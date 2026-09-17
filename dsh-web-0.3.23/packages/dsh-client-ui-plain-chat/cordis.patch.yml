@@ -1,0 +1,3 @@
+- insert:
+    - id: workbench-plain-chat
+      name: '@linxin666/dsh-client-ui-plain-chat'

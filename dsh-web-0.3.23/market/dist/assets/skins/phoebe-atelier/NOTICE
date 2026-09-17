@@ -1,0 +1,30 @@
+phoebe-atelier (辉弦圣堂 · 菲比 · Radiant Strings Atelier)
+============================================================
+
+Third-party derivative notice (non-commercial fan work attribution)
+
+角色形象出处 (character provenance):
+
+1. 《鸣潮》(Wuthering Waves) —— 库洛游戏 (Kuro Games) 原创角色
+   「菲比」(Phoebe) 的形象著作权归库洛游戏所有。
+   Phoebe is an original character of Wuthering Waves, © Kuro Games.
+
+2. 本皮肤素材 (this skin's artwork): 由 Theater-ahyeon 使用 AI 生成模型
+   (AI 图像生成模型（作者自制素材）) 以官方立绘为参考再创作, 仅用于个人/非商业同人展示用途,
+   不代表官方, 不得用于任何商业场景。
+   Artwork in assets/ is an AI-assisted fan derivative generated with
+   AI 图像生成模型（作者自制素材） using official art as reference. Personal, non-commercial
+   fan use only. Not affiliated with or endorsed by Kuro Games.
+
+工程骨架出处 (engineering provenance):
+
+- 皮肤工程架构 (apply/effect 生命周期、属性租约、状态投影、构建预设)
+  改编自 Small-tailqwq/dsh-deep-whale 的 maid-atelier 皮肤
+  (CC BY-NC-SA 4.0), 按 ShareAlike 条款以相同许可发布。
+  The skin engineering skeleton is adapted from maid-atelier by
+  Small-tailqwq (CC BY-NC-SA 4.0) and shared under the same license.
+
+- 脚手架 (scaffold): zhu1090093659/dsh-web-ui (Apache-2.0)。
+
+Usage terms: CC BY-NC-SA 4.0 —— 署名 (attribution) 必须保留以上完整出处；
+非商业性使用 (non-commercial only)；衍生作品必须以相同方式共享 (share-alike)。

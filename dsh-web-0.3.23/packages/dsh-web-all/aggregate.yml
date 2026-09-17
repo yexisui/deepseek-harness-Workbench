@@ -1,0 +1,92 @@
+# 聚合包清单：patchFrom 的包其 cordis.patch.yml insert 行会被汇总进本包 patch
+# deps 的包进 package.json dependencies（workspace:*）：children 作为 dependencies
+# 安装，DSH loader 从 profile 顶层解析 patch 行；严格（isolated）布局需在
+# profile 配 hoist（nodeLinker: hoisted 或 public-hoist-pattern，见根 README）
+# dsh-skins 的 patch 行只有 skin-center，汇总后展开为 web-ui-skin-center
+# 所有子插件行 id 统一加 web-ui- 命名空间（生成器剥掉子包 ui- 前缀后加 web-ui-），
+# 与独立包安装共存，不再触发 loader duplicate entry id
+# self: 聚合包自身也作为插件加载（compat shim 的 host/client 已并入本包，
+# 不再需要独立的 dsh-web-compat npm 包 —— npm 对新包名收费）
+# 顺序注意：ui-web-ui-settings 排在最前（self 之后），先声明
+# web-ui.plugin.item 子槽位，其余插件的设置卡再注入（slots.inject 声明感知，
+# 但更早的声明让设置组在任何卡片之前就位，避免观感上的注册顺序歧义）。
+# remote-web-ui 排在 pet 前，确保非 loopback 页面先安装配对门控的远程通道，
+# 再由 pet 发起首次 /api/pet/* 请求，避免启动阶段命中 SDK 围栏。
+patchFrom:
+  - ../dsh-web-settings
+  - ../dsh-plugin-manager
+  - ../dsh-community-plugins
+  - ../dsh-market
+  - ../dsh-task-board
+  - ../dsh-git-graph
+  - ../dsh-remote-web-ui
+  - ../dsh-pet
+  - ../dsh-ssh
+  - ../dsh-tool-describe-image
+  - ../dsh-liangshen
+  - ../dsh-skill-explorer
+  - ../dsh-doctor
+  - ../dsh-usage
+  - ../dsh-session-archive
+  - ../dsh-model-capabilities
+  # preset-center 排在 dsh-market 之后：创意工坊卡片先声明 dsh-workshop.panel
+  # 子槽位，预设面板再注册进该槽位（见 packages/dsh-preset-center）。
+  - ../dsh-preset-center
+  - ../skins/skin-center
+  # dsh-i18n 语言包无宿主行为、无时序依赖，放列表末尾：注册 ru 语言与全部
+  # 家族插件命名空间的 ru 字典（见 packages/dsh-i18n）。
+  - ../dsh-i18n
+self:
+  - web-ui-compat
+deps:
+  - ../dsh-plugin-manager
+  - ../dsh-community-plugins
+  - ../dsh-market
+  - ../dsh-task-board
+  - ../dsh-git-graph
+  - ../dsh-pet
+  - ../dsh-remote-web-ui
+  - ../dsh-ssh
+  - ../dsh-tool-describe-image
+  - ../dsh-liangshen
+  - ../dsh-skill-explorer
+  - ../dsh-doctor
+  - ../dsh-usage
+  - ../dsh-session-archive
+  - ../dsh-model-capabilities
+  - ../dsh-preset-center
+  - ../dsh-web-settings
+  - ../skins/skin-center
+  - ../dsh-i18n
+# 外部 npm 插件：dsh-better-sidebar 接管右侧面板位置。行名从 profile 顶层
+# 解析（hoisted 布局下由 web-ui-all 的 dependencies 提升），dependencies 里
+# 需有 "dsh-better-sidebar"（见 package.json，生成器保留非 workspace 依赖）。
+# 行排在 patchFrom 之后：web-ui-settings 行在前，家族设置组先于 better-sidebar
+# 应用。旧 aionui-panel 已彻底移除（2026-08-28），右侧面板固定由
+# dsh-better-sidebar 提供，无需行级 config patch。
+# 2026-08-30 曾因 alpha.2 移除 `@deepseek-ai/dsh-client-runtime` 面把本行
+# 与 dsh-archive-manager 一并排除（见协调升级 note）；better-sidebar 于
+# 2026-08-31 以 0.18.0-alpha.0（peer 对齐 alpha.2、inject 改用
+# dsh-client-modules）回归；2026-09-04 随 rc.1 cohort 升至 0.18.0 正式版
+# （2026-09-03 发布，peer 全面声明 ^0.1.2-rc.1）；2026-09-10 升至
+# 0.19.0 正式版（peer 全面声明 ^0.1.5-rc.1，inject 含 optional 的
+# dsh-client-ui-sidebar-right 面）；2026-09-11 升至 0.19.1 正式版
+# （等待 banner、跳过等待契约与彩色文件图标）。@mlgbnb/dsh-archive-manager
+# 仍排除：其 latest 1.0.7 仍 import 已移除面，上游发布 alpha.2 兼容版后按同
+# 法恢复。
+rows:
+  - {"id": "better-sidebar", "name": "dsh-better-sidebar"}
+# 出厂默认关闭的可选行（2026-09-09 产品决策）：工具/探索类家族插件对新装用户
+# 不加载（设置入口也不出现），在 设置 → 插件 → 插件管理 的聚合子行里逐个开启；
+# 开启即写入用户层 disabled:false 覆盖（优先于本默认），停用回写 disabled:true。
+# 锁定的核心行（compat/settings/plugin-manager）不可列入本清单。
+inactive:
+  - web-ui-ssh
+  - web-ui-describe-image
+  - web-ui-liangshen
+  - web-ui-skill-explorer
+  - web-ui-doctor
+# 兼容退役子插件导出：避免老用户 profile 残留旧条目时 Node.js 抛出 ERR_PACKAGE_PATH_NOT_EXPORTED
+tombstones:
+  - desktop-launcher
+  - dsh-perf

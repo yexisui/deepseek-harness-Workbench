@@ -1,0 +1,60 @@
+{
+  "$schema": "https://schemas.linxin666.org/dsh-skin/v2.json",
+  "skinManifestVersion": 2,
+  "id": "phoebe-atelier",
+  "name": "辉弦圣堂 · 菲比",
+  "nameEn": "Radiant Strings Atelier",
+  "author": "Theater-ahyeon",
+  "tagline": "双立绘圣堂背景 · 象牙白大理石廊柱侧栏 · 光环动效",
+  "description": "《鸣潮》菲比主题的高定制皮肤：双立绘与光弦圣堂场景垫在对话区之下，象牙白大理石廊柱侧栏与月白圣金 token 重映射覆盖全部 dsw 语义变量，为加载、思考与工具运行状态预留光弦/光环动效钩子。角色形象为 AI 辅助同人再创作，仅限非商业使用。",
+  "tags": [
+    "anime",
+    "phoebe",
+    "wuthering-waves",
+    "cathedral",
+    "gold",
+    "glass"
+  ],
+  "accent": "#cfa968",
+  "order": 15,
+  "version": "0.2.0",
+  "license": "CC BY-NC-SA 4.0",
+  "licenseUrl": "https://github.com/Theater-ahyeon/phoebe-atelier/blob/main/phoebe-atelier/LICENSE",
+  "noticeUrl": "https://github.com/Theater-ahyeon/phoebe-atelier/blob/main/phoebe-atelier/NOTICE",
+  "sourceUrl": "https://github.com/Theater-ahyeon/phoebe-atelier",
+  "attribution": "Kuro Games《鸣潮》菲比 -> Theater-ahyeon (AI 辅助再创作)；工程骨架改编自 Small-tailqwq 的 maid-atelier",
+  "preview": {
+    "light": "preview/light.jpg",
+    "dark": "preview/dark.jpg"
+  },
+  "requires": {
+    "contracts": [
+      {
+        "apiVersion": "x-org.linxin666.skin-center/v1alpha1",
+        "kind": "SkinHooks",
+        "optional": true
+      }
+    ]
+  },
+  "contributes": {
+    "stylesheet": "skin.css",
+    "backgroundMedia": {
+      "light": {
+        "type": "image",
+        "src": "assets/palace-light.webp",
+        "scrim": "linear-gradient(rgba(250, 247, 240, 0.1) 0%, rgba(244, 243, 248, 0.16) 55%, rgba(238, 241, 248, 0.22) 100%)"
+      },
+      "dark": {
+        "type": "image",
+        "src": "assets/palace-dark.webp",
+        "scrim": "linear-gradient(rgba(10, 14, 34, 0.18) 0%, rgba(12, 17, 40, 0.3) 60%, rgba(8, 11, 28, 0.4) 100%)"
+      }
+    }
+  },
+  "facets": {
+    "client": {
+      "entry": "hooks.mjs",
+      "apiVersion": "x-org.linxin666.skin-center/v1alpha1"
+    }
+  }
+}

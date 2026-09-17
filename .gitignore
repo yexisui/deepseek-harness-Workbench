@@ -1,0 +1,87 @@
+# 工作台根目录作为 Git 仓库根目录。
+# 保留源码、部署/启动脚本、源码依赖清单及锁文件。
+
+# 本地需求文档、事项台账和 AI 协作资料（保留在本机）
+/需求文档/
+PEFR_PLAN.[mM][dD]
+AGENTS.[mM][dD]
+AGENTS.local.[mM][dD]
+CLAUDE.[mM][dD]
+CLAUDE.local.[mM][dD]
+GEMINI.[mM][dD]
+.agents/
+.codex/
+.claude/
+.gemini/
+.cursor/
+.windsurf/
+.cursorrules
+.cursorignore
+.windsurfrules
+.mcp.json
+**/.github/copilot-instructions.md
+**/.github/instructions/
+**/.github/prompts/
+**/.github/agents/
+# 应用的 agent 预设、提示词源码和模型集成代码仍需入库。
+
+# 一键部署可重建的独立环境（仅匹配工作台根目录）
+/runtime-node/
+/runtime/
+/runtime-desktop/
+/runtime-dev/
+
+# 本机配置、模型凭据、会话、插件安装数据和桌面缓存
+/dsh-data/
+/chat-data/
+/desktop-state/
+
+# 隔离验证环境
+/qa-chat/
+
+# 所有层级的已安装依赖与工具缓存
+node_modules/
+.pnpm-store/
+.npm/
+.cache/
+__pycache__/
+*.py[cod]
+*.tsbuildinfo
+
+# 本地环境变量和认证配置；保留可公开的配置模板
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+!.env.*.example
+!.env.*.sample
+!.env.*.template
+.npmrc
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+!.dev.vars.sample
+!.dev.vars.template
+
+# 测试输出、覆盖率和运行日志
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+gui-test-screenshots/
+*.log
+*.log.*
+
+# 编辑器临时文件和系统文件
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 不全局忽略 lib/、dist/、build/ 或 runtime/：
+# 原项目要求保留部分 lib/、market/dist/；desktop/build/ 是安装器源码，
+# desktop/runtime/ 是打包依赖清单。下级 .gitignore 继续管理各自构建产物。
+# 不忽略 package.json、package-lock.json、pnpm-lock.yaml 或部署/启动脚本。

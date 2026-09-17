@@ -1,0 +1,28 @@
+{
+  "name": "@linxin666/dsh-client-ui-plain-chat",
+  "version": "0.1.0-local.1",
+  "private": true,
+  "description": "Workspace-optional plain chat for the local DSH workbench.",
+  "type": "module",
+  "engines": { "node": "^22.19.0 || >=24.0.0" },
+  "main": "lib/index.js",
+  "exports": { ".": "./lib/index.js", "./client": "./lib/client.js", "./package.json": "./package.json" },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": { "platform": "web", "inject": ["@deepseek-ai/dsh-client-ui-conversation", "@deepseek-ai/dsh-client-ui-sidebar", "@deepseek-ai/dsh-client-ui-workspace"] }
+  },
+  "scripts": { "build": "tsdown", "typecheck": "tsc --noEmit", "test": "vitest run" },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-client-ui-slots": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-client-ui-conversation": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-client-ui-sidebar": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-client-ui-workspace": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-client-locale": "0.1.5-rc.1",
+    "@deepseek-ai/dsh-api-session-controller": "0.1.5-rc.1",
+    "@types/react": "^18.3.18", "@types/node": "^22.0.0",
+    "js-yaml": "^4.1.0", "@types/js-yaml": "^4.0.9",
+    "react": "18.3.1", "react-dom": "18.3.1", "@types/react-dom": "^18.3.5", "@deepseek-ai/dsh-tools": "0.1.5-rc.1", "typescript": "~5.7.3", "tsdown": "0.22.2", "vitest": "^3.2.4", "jsdom": "^25.0.1"
+  }
+}

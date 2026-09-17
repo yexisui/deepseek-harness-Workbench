@@ -1,0 +1,61 @@
+# electron-builder configuration for the DeepSeek Harness desktop app.
+# Unsigned on purpose: internal/local distribution only (see desktop/README.md
+# Known limitations). Code signing and notarization are a separate follow-up.
+appId: com.deepseek.harness
+productName: DeepSeek Harness
+copyright: Copyright (c) DeepSeek Harness Contributors
+
+directories:
+  buildResources: resources
+  output: dist
+
+# The app itself is plain CommonJS plus two HTML pages; no native rebuilds.
+npmRebuild: false
+asar: true
+
+files:
+  - package.json
+  - src/**
+
+# The runtime payload (staged by scripts/build-runtime.mjs under
+# resources/runtime/) ships unpacked next to the app:
+#   runtime/node-<mac|win>-<arch> -> runtime/node   (per-platform Node distribution)
+#   runtime/host             -> runtime/host   (@deepseek-ai/dsh + closure)
+#   runtime/profile-web      -> runtime/profile-web (preinstalled web profile)
+# It is copied by the afterPack hook (scripts/after-pack.cjs), NOT by
+# extraResources: electron-builder applies the app dir's `!**/node_modules/**`
+# exclusion to extraResources too, silently dropping both payload
+# node_modules trees, and a missing extraResources source only warns.
+afterPack: ./scripts/after-pack.cjs
+
+mac:
+  category: public.app-category.developer-tools
+  target:
+    - dmg
+    - zip
+  identity: null
+  gatekeeperAssess: false
+  hardenedRuntime: false
+  artifactName: dsh-desktop-${version}-mac-${arch}.${ext}
+
+win:
+  target:
+    - nsis
+    - zip
+  artifactName: dsh-desktop-${version}-win-${arch}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: DeepSeek Harness
+  include: build/installer.nsh
+  installerLanguages:
+    - zh_CN
+    - en_US
+
+dmg:
+  writeUpdateInfo: false

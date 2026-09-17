@@ -1,0 +1,18 @@
+{
+  "name": "dsh-profile-web",
+  "private": true,
+  "description": "Preinstalled web profile seed for the desktop app: the official web bundles plus the dsh-web plugin collection.",
+  "dependencies": {
+    "@linxin666/dsh-web-all": "0.3.19"
+  },
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "@linxin666/dsh-web-all"
+      ],
+      "patchReload": "live"
+    }
+  }
+}
