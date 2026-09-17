@@ -1,0 +1,16 @@
+Attribution and license excerpts retained from archived project documentation.
+The complete original documents are held in the local archive.
+
+Source document: README.md
+
+## Artwork and license
+
+Copyright 2026 zhuqin. The skin CSS, background artwork, cushion artwork, and preview images are distributed under the Apache License 2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+---
+
+Source document: README.zh.md
+
+## 素材与许可证
+
+Copyright 2026 zhuqin。皮肤 CSS、背景图、软枕图和预览图按 Apache License 2.0 分发，详见 [LICENSE](LICENSE) 和 [NOTICE](NOTICE)。

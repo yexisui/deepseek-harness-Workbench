@@ -1,0 +1,22 @@
+Attribution and license excerpts retained from archived project documentation.
+The complete original documents are held in the local archive.
+
+Source document: README.md
+
+## License
+
+The skin code (skin CSS and hooks) and the character illustration are created
+and owned by the contributor (theater / Theater-ahyeon) and released under
+[CC-BY-NC-SA-4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). See
+the `license` / `attribution` fields in `skin.json`.
+
+---
+
+Source document: README.zh.md
+
+## 许可与素材来源
+
+皮肤代码（皮肤 CSS 与 hooks）与角色插画均由贡献者（theater /
+Theater-ahyeon）创作并持有，以
+[CC-BY-NC-SA-4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) 发布。
+详见 `skin.json` 的 `license` / `attribution` 字段。

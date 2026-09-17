@@ -1,0 +1,22 @@
+Attribution and license excerpts retained from archived project documentation.
+The complete original documents are held in the local archive.
+
+Source document: README.md
+
+## License and attribution
+
+- Skin code: Apache-2.0 (see `LICENSE`).
+- Background photo: Kriangsak Hongchumpae, Wikimedia Commons, CC BY-SA 4.0
+  (downscaled and re-compressed). Full provenance chain in `NOTICE` and
+  `skin.json` (`license` / `noticeUrl` / `sourceUrl` / `attribution`).
+
+---
+
+Source document: README.zh.md
+
+## 许可与署名
+
+- 皮肤代码：Apache-2.0（见 `LICENSE`）。
+- 背景照片：Kriangsak Hongchumpae，Wikimedia Commons，CC BY-SA 4.0
+  （已缩放并重新压缩）。完整来源链见 `NOTICE` 与 `skin.json` 的
+  `license` / `noticeUrl` / `sourceUrl` / `attribution` 字段。

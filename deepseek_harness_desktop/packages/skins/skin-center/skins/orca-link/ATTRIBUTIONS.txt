@@ -1,0 +1,22 @@
+Attribution and license excerpts retained from archived project documentation.
+The complete original documents are held in the local archive.
+
+Source document: README.md
+
+## License
+
+The skin is a derivative work of the upstream ORCA LINK skin and of the
+whale-girl character by 上善 (original design). It is released under
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+(attribution — non-commercial — share alike); the full attribution chain is
+in [NOTICE](NOTICE). Commercial use is not permitted.
+
+---
+
+Source document: README.zh.md
+
+## 许可
+
+本皮肤为上游 ORCA LINK 皮肤与鲸鱼娘角色（上善 原作）的衍生作品，按
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) 发布
+（署名 — 非商业性使用 — 相同方式共享）；完整署名链见 [NOTICE](NOTICE)。禁止商业性使用。

@@ -1,0 +1,28 @@
+Attribution and license excerpts retained from archived project documentation.
+The complete original documents are held in the local archive.
+
+Source document: README.md
+
+## Source and copyright
+
+- **Source**: ported from [whitelonng/dsh-plugin-describe-image](https://github.com/whitelonng/dsh-plugin-describe-image)
+  (deepseek-harness `packages/vision/tool-describe-image`), moved in 2026-08; tests ported with the source
+  (`pnpm --filter @linxin666/dsh-tool-describe-image test`).
+- **Copyright**: the original code belongs to its authors (deepseek-ai / whitelonng); this repository
+  only hosts and maintains it and claims no copyright; the ported contribution is licensed by its
+  contributor under the family license.
+- **License**: the family is licensed under [Apache-2.0](../../LICENSE) (repository root LICENSE); this
+  package's `license` field is `Apache-2.0`.
+
+---
+
+Source document: README.zh.md
+
+## 来源与版权
+
+- **来源**：本包移植自 [whitelonng/dsh-plugin-describe-image](https://github.com/whitelonng/dsh-plugin-describe-image)
+  （deepseek-harness `packages/vision/tool-describe-image`），2026-08 迁入，测试随源码一并移植
+  （`pnpm --filter @linxin666/dsh-tool-describe-image test`）。
+- **版权**：原代码版权归原作者（deepseek-ai / whitelonng）所有，本仓库仅托管与维护，不主张版权；
+  贡献移植部分由贡献者授权以全家桶许可证发布。
+- **许可证**：全家桶以 [Apache-2.0](../../LICENSE) 授权（见仓库根 LICENSE），本包 license 字段为 `Apache-2.0`。

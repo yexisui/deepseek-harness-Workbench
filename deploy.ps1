@@ -342,6 +342,13 @@ fs.writeFileSync(path.join(dev, 'chat-build-result.json'), JSON.stringify({ rela
     Invoke-Tool $script:Node @($script:Pnpm, 'add', ($script:ChatName + '@link:../../../' + $script:ChatRelative), '--save-exact') $script:Profile
     Register-Bundles
 }
+function Build-Workshop {
+    Invoke-Tool $script:Node @((Join-Path $script:Source 'scripts\build-workbench.mjs'), $script:Root, $script:Source)
+    Backup-Profile
+    # Baseline native modules are installed before this step. Runtime snapshots have no lifecycle scripts.
+    Invoke-Tool $script:Node @((Join-Path $script:Source 'scripts\install-workbench.mjs'), $script:Root)
+    Register-Bundles
+}
 function Write-Launchers {
     foreach ($entry in @(@('启动桌面端.cmd', 'Desktop'), @('启动网页版.cmd', 'Web'), @('重新构建.cmd', 'Build'))) {
         $content = "@echo off`r`nsetlocal`r`npowershell.exe -NoProfile -ExecutionPolicy Bypass -File `"%~dp0deploy.ps1`" -Mode " + $entry[1] + "`r`nset `"result=%errorlevel%`"`r`nif not `"%result%`"==`"0`" pause`r`nexit /b %result%`r`n"
@@ -362,6 +369,12 @@ function Check-Installation {
     if (([IO.File]::ReadAllText($electronVersionFile).Trim() -replace '^v', '') -ne $script:Versions.Electron) { throw 'Electron binary version differs from its package version.' }
     Assert-Version $script:Profile '@linxin666/dsh-web-all' $script:Versions.Web
     $manifest = Read-Json (Join-Path $script:Profile 'package.json')
+    $linkSpec = $manifest.dependencies.$script:ChatName
+    if (-not $linkSpec.StartsWith('link:')) { throw 'Plain-chat dependency must use a local link.' }
+    $expectedPlugin = [IO.Path]::GetFullPath((Join-Path $script:Profile $linkSpec.Substring(5)))
+    $linkedPlugin = Join-Path $script:Profile ('node_modules\' + $script:ChatName.Replace('/', '\'))
+    Invoke-Tool $script:Node @('-e', "const fs=require('node:fs');if(fs.realpathSync(process.argv[1])!==fs.realpathSync(process.argv[2]))process.exit(1)", $linkedPlugin, $expectedPlugin)
+    if (-not $manifest.dependencies.'@linxin666/dsh-web-all'.StartsWith('file:')) { throw 'Customized Workshop build is not installed. Run Build.' }
     foreach ($bundle in @('@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', '@linxin666/dsh-web-all', $script:ChatName)) {
         if (@($manifest.dsh.profile.bundles) -notcontains $bundle) { throw "Bundle registration missing: $bundle" }
     }
@@ -389,11 +402,6 @@ function Main {
             throw "Environment root must be a real workbench directory, not a junction/symlink: $path"
         }
     }
-    $linkSpec = $manifest.dependencies.$script:ChatName
-    if (-not $linkSpec.StartsWith('link:')) { throw 'Plain-chat dependency must use a local link.' }
-    $expectedPlugin = [IO.Path]::GetFullPath((Join-Path $script:Profile $linkSpec.Substring(5)))
-    $linkedPlugin = Join-Path $script:Profile ('node_modules\' + $script:ChatName.Replace('/', '\'))
-    Invoke-Tool $script:Node @('-e', "const fs=require('node:fs');if(fs.realpathSync(process.argv[1])!==fs.realpathSync(process.argv[2]))process.exit(1)", $linkedPlugin, $expectedPlugin)
     Set-LocalEnvironment
     $script:Profile = Join-Path $env:DSH_HOME 'profiles\web'
     if ($Mode -eq 'Check') { Check-Installation; return }
@@ -436,6 +444,7 @@ function Main {
             foreach ($file in @($script:Node, $script:Pnpm, (Join-Path $script:Profile 'package.json'), (Join-Path $dev 'node_modules\tsdown\dist\run.mjs'))) { Require-File $file }
         }
         $script:Step = 'Plain-chat build and registration'; Build-Chat
+        $script:Step = 'Local Workshop build and registration'; Build-Workshop
         $script:Step = 'Launchers'; Write-Launchers
         $script:Step = 'Validation'; Check-Installation
         Write-Json $selectionFile ([pscustomobject]@{ sourceName = Split-Path -Leaf $script:Source; lastRoot = $script:Root; chatRelative = $script:ChatRelative; completedAt = (Get-Date -Format o) })

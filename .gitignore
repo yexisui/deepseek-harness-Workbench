@@ -85,3 +85,6 @@ Desktop.ini
 # 原项目要求保留部分 lib/、market/dist/；desktop/build/ 是安装器源码，
 # desktop/runtime/ 是打包依赖清单。下级 .gitignore 继续管理各自构建产物。
 # 不忽略 package.json、package-lock.json、pnpm-lock.yaml 或部署/启动脚本。
+
+# 原项目开发资料的本地归档，不进入 Git 或发布包
+/原项目资料归档/

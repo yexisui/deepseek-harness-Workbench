@@ -1,0 +1,25 @@
+Attribution and license excerpts retained from archived project documentation.
+The complete original documents are held in the local archive.
+
+Source document: README.md
+
+## License
+
+The skin code follows the repository license (Apache-2.0). The backdrop
+artwork is created by the contributor with MiMo image generation; the
+contributor owns the output and hereby releases it under
+[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) (public
+domain), so it can be redistributed freely with the skin. See the
+`license` / `licenseUrl` / `attribution` fields in `skin.json`.
+
+---
+
+Source document: README.zh.md
+
+## 许可与素材来源
+
+皮肤代码遵循仓库许可（Apache-2.0）。背景画作由贡献者使用 MiMo 图像生成创作；
+贡献者持有生成输出权利，并以此处声明将图片以
+[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)（公有领域）
+贡献，可随皮肤自由分发。详见 `skin.json` 的 `license` / `licenseUrl` /
+`attribution` 字段。

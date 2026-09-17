@@ -1,0 +1,74 @@
+/* Local Workshop uses the same semantic colors, card spacing and controls as settings. */
+.market { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.market .tabs > button.tab {
+  font: inherit; font-size: 13px; line-height: 1.6;
+  color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l2); border-radius: 999px;
+  padding: 3px 12px; cursor: pointer; white-space: nowrap;
+}
+.market .tabs > button.tab:hover:enabled { color: var(--dsw-alias-label-primary); border-color: var(--dsw-alias-label-dimmed); }
+.market .tabs > button.tab.tabActive {
+  color: var(--dsw-alias-label-primary-foreground); background: var(--dsw-alias-button-primary-fill);
+  border-color: var(--dsw-alias-button-primary-fill); font-weight: 600;
+}
+.market .tabs > button.tab.tabActive:hover:enabled { background: var(--dsw-alias-button-primary-hover); }
+.market .tabs > button.tab:disabled { opacity: .55; cursor: default; }
+.market .tabs > button.tab:focus-visible { outline: 2px solid var(--dsw-alias-label-primary); outline-offset: 2px; }
+.tabCount { margin-left: 6px; font-size: 12px; opacity: .75; }
+.panel { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+/* Keep the toolbar aligned with settings Save/Discard controls even when a
+ * skin resets bare buttons. Primary colors use the SDK's matched token trio. */
+.market .toolbar button.toolbarButton {
+  min-height: 32px; height: auto; padding: 5px 12px; border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 8px; font: inherit; font-size: 13px; line-height: 1.5; font-weight: 500;
+}
+.market .toolbar button.toolbarPrimary {
+  color: var(--dsw-alias-label-primary-foreground); background: var(--dsw-alias-button-primary-fill);
+  border-color: var(--dsw-alias-button-primary-fill);
+}
+.market .toolbar button.toolbarPrimary:hover:enabled {
+  background: var(--dsw-alias-button-primary-hover); border-color: var(--dsw-alias-button-primary-hover);
+}
+.market .toolbar button.toolbarSecondary {
+  color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-layer-1);
+}
+.market .toolbar button.toolbarSecondary:hover:enabled {
+  color: var(--dsw-alias-label-primary); border-color: var(--dsw-alias-label-dimmed); background: var(--dsw-alias-bg-layer-2);
+}
+.market .toolbar button.toolbarButton:disabled { opacity: .4; cursor: default; }
+.market .toolbar button.toolbarButton:focus-visible { outline: 2px solid var(--dsw-alias-label-primary); outline-offset: 2px; }
+.actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.search {
+  box-sizing: border-box; width: 100%; font: inherit; font-size: 13px; line-height: 1.5;
+  color: var(--dsw-alias-label-primary); background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l2); border-radius: 6px; padding: 8px 10px;
+}
+.search::placeholder { color: var(--dsw-alias-label-tertiary); }
+.search:focus { outline: 2px solid var(--dsw-alias-label-primary); outline-offset: 1px; }
+.hint { margin: 0; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-tertiary); overflow-wrap: anywhere; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 272px), 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
+.card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 14px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-layer-1); }
+.card > .actions { margin-top: auto; padding-top: 4px; }
+.card > .actions:empty { display: none; }
+.cardHeading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
+.cardName { font-size: 14px; line-height: 1.5; color: var(--dsw-alias-label-primary); overflow-wrap: anywhere; }
+.version { font-size: 11px; color: var(--dsw-alias-label-tertiary); overflow-wrap: anywhere; }
+.cardMeta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: var(--dsw-alias-label-tertiary); }
+.badge { padding: 1px 8px; font-size: 11px; line-height: 1.6; color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-module-platform); border: 1px solid var(--dsw-alias-border-l2); border-radius: 999px; }
+.description { margin: 0; color: var(--dsw-alias-label-secondary); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.identifier { margin: 0; color: var(--dsw-alias-label-tertiary); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.empty { padding: 28px 16px; border: 1px dashed var(--dsw-alias-border-l2); border-radius: 8px; text-align: center; color: var(--dsw-alias-label-secondary); font-size: 13px; line-height: 1.6; }
+.empty p { margin: 6px 0 0; color: var(--dsw-alias-label-tertiary); }
+.feedback { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--dsw-alias-label-secondary); }
+.error { margin: 0; font-size: 13px; line-height: 1.6; color: var(--dsw-alias-state-error-primary, var(--dsw-alias-label-primary)); overflow-wrap: anywhere; }
+.notice { margin: 0; padding: 10px 12px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 6px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font-size: 13px; line-height: 1.6; }
+.confirmation { display: flex; flex-direction: column; gap: 14px; color: var(--dsw-alias-label-primary); font-size: 13px; line-height: 1.6; }
+.confirmation > p { margin: 0; }
+.details { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 20px; margin: 0; }
+.details dt { color: var(--dsw-alias-label-tertiary); }
+.details dd { margin: 0; overflow-wrap: anywhere; }
+.warning { padding: 10px 12px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 6px; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.modalActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+@media (max-width: 480px) { .toolbar { align-items: stretch; } .toolbar > .actions { flex: 1 1 100%; } .grid { grid-template-columns: minmax(0, 1fr); } .details { column-gap: 12px; } }

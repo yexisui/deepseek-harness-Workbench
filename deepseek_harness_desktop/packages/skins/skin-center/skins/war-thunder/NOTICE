@@ -1,0 +1,24 @@
+Attribution and license excerpts retained from archived project documentation.
+The complete original documents are held in the local archive.
+
+Source document: README.md
+
+## Artwork & license
+
+The background artwork is extracted read-only from the local War Thunder
+game client login page assets; the launcher badge comes from the client's
+launcher.ico. All artwork is copyrighted by Gaijin Entertainment and is
+used here for personal, non-commercial purposes only. The skin's own code
+follows the repository license. See `license` and `attribution` in
+`skin.json`.
+
+---
+
+Source document: README.zh.md
+
+## 素材与许可
+
+背景美术取自本机 War Thunder 游戏客户端登录页素材（只读解包），星徽取自
+客户端 launcher.ico。所有素材版权归 Gaijin Entertainment 所有，仅用于
+个人非商业用途；皮肤本体代码随仓库许可。详见 `skin.json` 的 `license`
+与 `attribution` 字段。

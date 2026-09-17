@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 try {
     $root = $PSScriptRoot
     $electronExe = Join-Path $root 'runtime-desktop\node_modules\electron\dist\electron.exe'
-    $sourceApp = Join-Path $root 'dsh-web-0.3.23\desktop'
+    $sourceApp = Join-Path $root 'deepseek_harness_desktop\desktop'
     $hostEntry = Join-Path $root 'runtime\node_modules\@deepseek-ai\dsh\lib\bin.js'
     $profileFile = Join-Path $root 'dsh-data\profiles\web\package.json'
     foreach ($required in @($electronExe, (Join-Path $sourceApp 'src\main.cjs'), $hostEntry, $profileFile)) {
