@@ -18,6 +18,7 @@ function ConversationRoot(props: Props) {
 }
 function SidebarRoot(props: Props) {
   return <aside>
+    {props.renderSlot('sidebar.workspaces', { wide: true })}
     <button data-action="new" onClick={() => props.startSession()}>New</button>
     <button data-action="project-new" onClick={() => props.startSession('project-a')}>Project</button>
   </aside>
@@ -267,5 +268,25 @@ describe('ordinary chat UI integration', () => {
     expect(document.querySelector('dialog')).toBeNull()
     expect(container.textContent).not.toContain('试写的名称')
     expect(app.remoteCreate).not.toHaveBeenCalled()
+  })
+
+  it('shares card selection with the main-area shortcut and new-chat preview without changing a host session', async () => {
+    await render(app.props, 'settings.section')
+    await click('button[aria-label="选定助手：市场部助手"]')
+    expect(container.querySelector('[aria-label="选定助手：市场部助手"]')!.getAttribute('aria-pressed')).toBe('true')
+    expect(container.textContent).toContain('已选定：市场部助手')
+    await render(app.props, 'sidebar')
+    expect(container.querySelector('[aria-label="打开 Agent 预设：市场部助手"]')).toBeNull()
+    await click('[data-action="new"]')
+    await render()
+    expect(container.querySelector('[aria-label="打开 Agent 预设：市场部助手"]')).not.toBeNull()
+    expect(container.querySelector('[aria-label="选择对话助手：市场部助手"]')).not.toBeNull()
+    await type('test')
+    expect(container.querySelector<HTMLButtonElement>('[aria-label="发送消息"]')!.disabled).toBe(true)
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+    await render(app.props, 'settings.section')
+    await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent === '取消选定')!.click() })
+    await render()
+    expect(container.querySelector('[aria-label="打开 Agent 预设：普通聊天"]')).not.toBeNull()
   })
 })

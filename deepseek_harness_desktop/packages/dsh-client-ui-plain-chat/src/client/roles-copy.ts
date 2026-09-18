@@ -1,5 +1,6 @@
 export const roleZh = {
   rolesTitle: '岗位助手', rolesDescription: '为每一类工作，准备一位熟悉职责的助手。',
+  rolesPick: '选定助手', rolesChosen: '已选定', rolesCurrent: '当前助手', rolesManage: '打开 Agent 预设', rolesNoSelection: '未选择岗位 · 自由交流', rolesSelectionHint: '已选岗位 · 仅界面预览', rolesReset: '取消选定', rolesSelectionDone: '已选定：',
   rolesPreview: '界面预览', rolesCreate: '创建岗位助手', rolesExample: '示例岗位',
   rolesAnalyst: '需求分析助手', rolesSummary: '梳理办公业务需求，厘清流程与功能，明确待确认事项。',
   rolesTagOne: '需求梳理', rolesTagTwo: '流程分析', rolesTagThree: '结构化输出',
@@ -44,6 +45,7 @@ export const roleZh = {
 
 export const roleEn: Record<keyof typeof roleZh, string> = {
   rolesTitle: 'Role assistants', rolesDescription: 'An assistant that understands each kind of work.',
+  rolesPick: 'Select assistant', rolesChosen: 'Selected', rolesCurrent: 'Current assistant', rolesManage: 'Open Agent presets', rolesNoSelection: 'No role selected · Everyday chat', rolesSelectionHint: 'Selected role · UI preview only', rolesReset: 'Clear selection', rolesSelectionDone: 'Selected: ',
   rolesPreview: 'UI preview', rolesCreate: 'Create role assistant', rolesExample: 'Example role',
   rolesAnalyst: 'Requirements analyst', rolesSummary: 'Clarify business needs, map workflows and list open questions.',
   rolesTagOne: 'Requirements', rolesTagTwo: 'Workflows', rolesTagThree: 'Structured output',

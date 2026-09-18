@@ -90,16 +90,19 @@ function RoleEditor({ t, mode, onClose }: { t: Translate; mode: EditorMode; onCl
   </>
 }
 
-export function RoleAssistantsSection({ t }: { t: Translate }) {
+export function RoleAssistantsSection({ t, selected = 'chat', onSelect }: { t: Translate; selected?: PreviewRole; onSelect?: (role: PreviewRole) => void }) {
   const [editor, setEditor] = useState<EditorMode | null>(null)
   return <section className={s.section} data-dsh-plugin="plain-chat" data-dsh-part="role-assistants">
     <div className={s.sectionHeader}><div><div className={s.titleRow}><h2>{t('rolesTitle')}</h2><span className={s.previewBadge}>{t('rolesPreview')}</span></div><p>{t('rolesDescription')}</p></div>
       <button type="button" className={s.primary} onClick={() => setEditor('create')}><span aria-hidden="true">＋</span> {t('rolesCreate')}</button>
     </div>
+    <div className={s.selectionStatus}><span role="status">{selected === 'chat' ? t('rolesNoSelection') : `${t('rolesSelectionDone')}${t(roleCatalog[selected].name)} · ${t('rolesPreview')}`}</span>{selected !== 'chat' && <button type="button" className={s.textButton} onClick={() => onSelect?.('chat')}>{t('rolesReset')}</button>}</div>
     <div className={s.cards}>
       {roleIds.map(role => {
         const example = roleCatalog[role]
-        return <article key={role} className={s.roleCard} style={colorStyle(example.color)} aria-label={t(example.name)}><div className={s.cardTop}><RoleIcon role={role} /><span className={s.exampleBadge}>{t('rolesExample')}</span></div>
+        return <article key={role} className={`${s.roleCard} ${selected === role ? s.selectedCard : ''}`} style={colorStyle(example.color)} aria-label={t(example.name)}>
+          <button type="button" className={s.cardSelect} aria-label={`${t('rolesPick')}：${t(example.name)}`} aria-pressed={selected === role} onClick={() => onSelect?.(role)} />
+          <div className={s.cardTop}><RoleIcon role={role} /><span className={`${s.exampleBadge} ${selected === role ? s.selectedBadge : ''}`}>{selected === role ? `✓ ${t('rolesChosen')}` : t('rolesExample')}</span></div>
           <h3>{t(example.name)}</h3><p>{t(example.summary)}</p>
           <div className={s.tags}>{example.tags.map(key => <span key={key}>{t(key)}</span>)}</div>
           <button type="button" className={s.cardAction} onClick={() => setEditor(role)}>{t('rolesConfigure')}<span aria-hidden="true">↗</span></button>
@@ -110,6 +113,15 @@ export function RoleAssistantsSection({ t }: { t: Translate }) {
     <p className={s.sectionNote}>{t('rolesNotice')}</p>
     {editor && <Modal title={t(editor === 'create' ? 'rolesCreate' : 'rolesEdit')} onClose={() => setEditor(null)} closeLabel={t('rolesClose')} wide><RoleEditor t={t} mode={editor} onClose={() => setEditor(null)} /></Modal>}
   </section>
+}
+
+export function CurrentAssistant({ t, selected, onOpen }: { t: Translate; selected: PreviewRole; onOpen: () => void }) {
+  const name = t(selected === 'chat' ? 'mode' : roleCatalog[selected].name)
+  return <button type="button" className={s.currentAssistant} style={colorStyle(selected === 'chat' ? '#78869f' : roleCatalog[selected].color)} aria-label={`${t('rolesManage')}：${name}`} title={`${t(selected === 'chat' ? 'rolesNoSelection' : 'rolesSelectionHint')} · ${t('rolesManage')}`} onClick={onOpen}>
+    <RoleIcon role={selected} /><span className={s.currentText}>{name}</span>
+    {selected !== 'chat' && <span className={s.currentHint}>{t('rolesPreview')}</span>}
+    <svg className={s.currentArrow} aria-hidden="true" viewBox="0 0 16 16" fill="none"><path d="m6 4 4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+  </button>
 }
 
 /** Keep the original roster mounted so collapsing does not discard its state. */

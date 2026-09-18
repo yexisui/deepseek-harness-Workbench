@@ -3,6 +3,7 @@ import React, { act, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { expect, it, vi } from 'vitest'
 import { withAppearanceNavigation } from '../src/client/AppearanceNavigation.tsx'
+import { createSettingsNavigation } from '../src/client/role-ui-state.ts'
 
 it('groups the three original navigation buttons while preserving page selection and collapsing', async () => {
   ;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true
@@ -24,7 +25,7 @@ it('groups the three original navigation buttons while preserving page selection
     const disclosure = container.querySelector('details')!
     expect(disclosure.open).toBe(false)
     expect(disclosure.querySelector('summary')!.textContent).toBe('外观')
-    expect([...disclosure.querySelectorAll('button')].map(button => button.textContent)).toEqual(['skin-center', 'pet', 'dsh-workshop'])
+    expect(Array.from(disclosure.querySelectorAll('button')).map(button => button.textContent)).toEqual(['skin-center', 'pet', 'dsh-workshop'])
     expect(container.querySelector('nav > div > button')!.textContent).toBe('general')
     for (const id of ['skin-center', 'pet', 'dsh-workshop']) {
       await act(async () => { Array.from(disclosure.querySelectorAll('button')).find(button => button.textContent === id)!.click() })
@@ -40,4 +41,30 @@ it('groups the three original navigation buttons while preserving page selection
     await act(async () => root.unmount())
     container.remove()
   }
+})
+
+it('opens Agent presets from the main UI even after settings have been closed', async () => {
+  ;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true
+  function SettingsPanel({ activeId, onSelect, onClose }: any) {
+    return <div role="dialog"><button onClick={() => onSelect('general')}>General</button><button onClick={onClose}>Close</button><main>{activeId}</main></div>
+  }
+  function SettingsRoot() {
+    const [open, setOpen] = useState(false)
+    const [active, setActive] = useState('general')
+    return <><button aria-haspopup="dialog" onClick={() => setOpen(true)}>Settings</button>{open && <SettingsPanel activeId={active} onSelect={setActive} onClose={() => { setOpen(false); setActive('general') }} />}</>
+  }
+  const navigation = createSettingsNavigation()
+  const Grouped = withAppearanceNavigation(SettingsRoot, () => '外观', navigation)
+  const container = document.createElement('div')
+  document.body.append(container)
+  const root = createRoot(container)
+  try {
+    await act(async () => root.render(<Grouped />))
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await act(async () => navigation.openPresets())
+      expect(container.querySelector('main')!.textContent).toBe('agent-presets')
+      await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent === 'Close')!.click() })
+      expect(container.querySelector('[role="dialog"]')).toBeNull()
+    }
+  } finally { await act(async () => root.unmount()); container.remove() }
 })

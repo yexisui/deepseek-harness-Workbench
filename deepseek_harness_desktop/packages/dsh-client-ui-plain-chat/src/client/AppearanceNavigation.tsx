@@ -1,4 +1,5 @@
-import React, { Children, cloneElement, isValidElement, useEffect, useRef, type ReactElement, type ReactNode } from 'react'
+import React, { Children, cloneElement, isValidElement, useEffect, useRef, useSyncExternalStore, type ReactElement, type ReactNode } from 'react'
+import type { SettingsNavigation } from './role-ui-state.ts'
 import styles from './AppearanceNavigation.module.css'
 
 const appearanceIds = new Set(['skin-center', 'pet', 'dsh-workshop'])
@@ -38,7 +39,7 @@ function groupNavigation(node: ReactNode, label: string): ReactNode {
 }
 
 /** SDK rc.2 compatibility seam: decorate the private panel's rendered navigation only. */
-export function withAppearanceNavigation(Original: View, label: () => string): View {
+export function withAppearanceNavigation(Original: View, label: () => string, navigation?: SettingsNavigation): View {
   const panels = new Map<View, View>()
   const transform = (node: ReactNode): ReactNode => {
     if (!isValidElement<NodeProps>(node)) return node
@@ -52,5 +53,26 @@ export function withAppearanceNavigation(Original: View, label: () => string): V
     }
     return node.props.children === undefined ? node : cloneElement(node, {}, Children.map(node.props.children, transform))
   }
-  return function AppearanceSettingsRoot(props: any) { return transform(Original(props)) }
+  const subscribe = navigation?.subscribe ?? (() => () => {})
+  const snapshot = navigation?.getSnapshot ?? (() => 0)
+  return function AppearanceSettingsRoot(props: any) {
+    const request = useSyncExternalStore(subscribe, snapshot)
+    const handled = useRef(0)
+    const tree = Original(props)
+    let panel: ReactElement<NodeProps> | undefined
+    let trigger: ReactElement<NodeProps> | undefined
+    const find = (node: ReactNode): void => {
+      if (!isValidElement<NodeProps>(node)) return
+      if (typeof node.type === 'function' && node.type.name === 'SettingsPanel') panel = node
+      if (node.type === 'button' && node.props['aria-haspopup'] === 'dialog') trigger = node
+      Children.forEach(node.props.children, find)
+    }
+    find(tree)
+    useEffect(() => {
+      if (request === 0 || request === handled.current) return
+      if (panel) { panel.props.onSelect('agent-presets'); handled.current = request }
+      else trigger?.props.onClick()
+    }, [request, panel, trigger])
+    return transform(tree)
+  }
 }

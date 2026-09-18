@@ -1,4 +1,4 @@
-import React, { useState, useSyncExternalStore } from 'react'
+import React, { useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
@@ -8,7 +8,8 @@ import { ChatStart, PRESET_ID } from '../core/start.ts'
 import { decorateSlot, type Registry } from './slot-adapter.ts'
 import { DraftComposer } from './DraftComposer.tsx'
 import { withAppearanceNavigation } from './AppearanceNavigation.tsx'
-import { AgentPresetDisclosure, RoleAssistantsSection, RolePicker, type PreviewRole } from './RoleAssistants.tsx'
+import { AgentPresetDisclosure, CurrentAssistant, RoleAssistantsSection, RolePicker } from './RoleAssistants.tsx'
+import { createRoleSelection, createSettingsNavigation } from './role-ui-state.ts'
 import { en, zh, type ChatKey } from './locales.ts'
 import { ru } from '../../../dsh-i18n/src/client/ru/plain-chat.ts'
 import styles from './Chat.module.css'
@@ -49,12 +50,15 @@ export function apply(ctx: Context): void {
     },
   }, chatRoot, () => `session-${crypto.randomUUID()}`)
   const registry = ctx.slots as unknown as Registry
+  const roleSelection = createRoleSelection()
+  const settingsNavigation = createSettingsNavigation()
   ctx.effect(() => decorateSlot(registry, 'sidebar.settings', 'SettingsRoot', Original =>
-    withAppearanceNavigation(Original as (props: any) => React.ReactNode, () => t('appearanceTitle'))), 'plain-chat: appearance navigation group')
+    withAppearanceNavigation(Original as (props: any) => React.ReactNode, () => t('appearanceTitle'), settingsNavigation)), 'plain-chat: appearance navigation group')
 
   // Keep the official roster and its injected actions; this addition is UI-only.
   ctx.effect(() => decorateSlot(registry, 'settings.section', 'AgentPresetSection', Original => function RolePresetSection(props: any) {
-    return <><RoleAssistantsSection t={t} /><AgentPresetDisclosure t={t}><Original {...props} /></AgentPresetDisclosure></>
+    const selected = useSyncExternalStore(roleSelection.subscribe, roleSelection.getSnapshot)
+    return <><RoleAssistantsSection t={t} selected={selected} onSelect={roleSelection.select} /><AgentPresetDisclosure t={t}><Original {...props} /></AgentPresetDisclosure></>
   }), 'plain-chat: role assistant settings preview')
 
   // These resident entries own private inject callbacks and child declarations.
@@ -62,10 +66,8 @@ export function apply(ctx: Context): void {
   ctx.effect(() => decorateSlot(registry, 'main.conversation', 'ConversationRoot', Original => {
     return function ChatConversation(props: any) {
       const draftKey = useSyncExternalStore(subscribe, snapshot)
-      // Preview state never enters ChatStart or the host preset configuration.
-      const [rolePreview, setRolePreview] = useState<{ revision: number; role: PreviewRole }>({ revision: draftKey, role: 'chat' })
-      const selectedRole = rolePreview.revision === draftKey ? rolePreview.role : 'chat'
-      const selectRole = (role: PreviewRole) => setRolePreview({ revision: draftKey, role })
+      const selectedRole = useSyncExternalStore(roleSelection.subscribe, roleSelection.getSnapshot)
+      const selectRole = roleSelection.select
       const summary = props.useSessions((s: any) => props.sessionId ? s.byId[props.sessionId] : undefined)
       const composerBlock = props.useComposerBlock((block: unknown) => block)
       const plain = summary?.projectionValues?.agentPreset === PRESET_ID || created.has(props.sessionId)
@@ -97,7 +99,10 @@ export function apply(ctx: Context): void {
           if (!input.state.getSnapshot().draft) { input.setDraft(draft); clearSavedDraft() }
         }
       }
-      return <Original {...props} t={translate} renderSlot={renderSlot} selectWorkspace={selectWorkspace} />
+      return <div className={styles.conversationShell}>
+        <div className={styles.assistantToolbar}><CurrentAssistant t={t} selected={selectedRole} onOpen={settingsNavigation.openPresets} /></div>
+        <div className={styles.conversationContent}><Original {...props} t={translate} renderSlot={renderSlot} selectWorkspace={selectWorkspace} /></div>
+      </div>
     }
   }), 'plain-chat: conversation adapter')
 

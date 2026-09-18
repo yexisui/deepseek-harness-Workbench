@@ -12,6 +12,24 @@
 .primary:hover:not(:disabled) { filter:brightness(1.08); }
 .primary:disabled { opacity:.42; cursor:not-allowed; }
 .cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.selectionStatus { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:-4px 0 18px; min-height:30px; color:var(--role-muted); font-size:12px; line-height:1.7; }
+.roleCard { position:relative; transition:box-shadow .18s,border-color .18s; }
+.cardSelect { position:absolute; inset:0 0 51px; z-index:1; border:0; padding:0; border-radius:12px 12px 0 0; background:transparent; cursor:pointer; }
+.cardSelect:hover { background:color-mix(in srgb,var(--role-color) 5%,transparent); }
+.roleCard .cardAction { position:relative; z-index:2; }
+.selectedCard { box-shadow:0 0 0 2px var(--role-color),0 7px 20px color-mix(in srgb,var(--role-color) 20%,transparent); animation:roleSelect .3s ease-out; }
+.roleCard .exampleBadge.selectedBadge { background:var(--role-color); color:white; }
+@keyframes roleSelect { 0%,100% { transform:translateX(0); } 30% { transform:translateX(-3px); } 60% { transform:translateX(3px); } }
+@media(prefers-reduced-motion:reduce) { .selectedCard { animation:none; } }
+.currentAssistant { --role-bg:var(--dsw-alias-bg-layer-2,#fff); --role-text:var(--dsw-alias-label-primary,#202938); --role-muted:var(--dsw-alias-label-secondary,#758095); --role-accent:var(--dsw-alias-button-primary-fill,#4263ba); display:inline-flex; align-items:center; gap:8px; box-sizing:border-box; max-width:100%; min-height:38px; padding:6px 12px 6px 7px; border:1px solid color-mix(in srgb,var(--role-color) 22%,transparent); border-radius:22px; background:color-mix(in srgb,var(--role-bg) 88%,transparent); backdrop-filter:blur(12px); box-shadow:0 2px 8px #182c5008; color:var(--role-text); text-align:left; font:inherit; cursor:pointer; transition:background .16s,border-color .16s,box-shadow .16s; }
+.currentAssistant:hover { background:color-mix(in srgb,var(--role-color) 8%,var(--role-bg)); border-color:color-mix(in srgb,var(--role-color) 45%,transparent); box-shadow:0 3px 12px #182c5010; }
+.currentAssistant:focus-visible { outline:2px solid var(--role-accent); outline-offset:3px; }
+.currentAssistant .icon { width:24px; height:24px; border-radius:50%; }
+.currentAssistant .icon svg { width:15px; height:15px; }
+.currentText { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:550; line-height:20px; }
+.currentHint { flex-shrink:0; font-size:10px; line-height:16px; color:var(--role-muted); padding:0 6px; border-left:1px solid color-mix(in srgb,var(--role-muted) 20%,transparent); }
+.currentArrow { width:14px; height:14px; flex-shrink:0; color:var(--role-muted); }
+@media(max-width:400px) { .currentHint { display:none; } }
 .roleCard { display:flex; flex-direction:column; padding:22px 22px 0; border:1px solid var(--role-border); border-radius:14px; background:var(--role-bg); min-width:0; }
 .cardTop { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .icon { display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:11px; flex-shrink:0; color:var(--role-accent); background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg)); }
