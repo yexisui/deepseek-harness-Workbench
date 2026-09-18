@@ -9,4 +9,6 @@
 .send:disabled { opacity:.45; cursor:default; }
 .error { margin-top:10px; color:#b53232; font-size:13px; }
 .badge { font-size:14px; opacity:.8; }
+.previewNotice { display:flex; align-items:center; flex-wrap:wrap; gap:8px 16px; padding:0 0 14px; margin-bottom:14px; border-bottom:1px solid var(--dsw-alias-border-l2,#d5dbe7); color:var(--dsw-alias-label-secondary,#78869f); font-size:12px; line-height:1.7; }
+.previewNotice button { border:0; background:transparent; color:var(--dsw-alias-button-primary-fill,#405eae); padding:3px 0; cursor:pointer; font:inherit; }
 @media(max-width:600px) { .card { padding:14px; } .row { align-items:flex-end; } .hint { font-size:11px; } }

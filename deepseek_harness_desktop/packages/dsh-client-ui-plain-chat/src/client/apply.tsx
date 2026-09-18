@@ -1,4 +1,4 @@
-import React, { useSyncExternalStore } from 'react'
+import React, { useState, useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
@@ -7,6 +7,8 @@ import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import { ChatStart, PRESET_ID } from '../core/start.ts'
 import { decorateSlot, type Registry } from './slot-adapter.ts'
 import { DraftComposer } from './DraftComposer.tsx'
+import { withAppearanceNavigation } from './AppearanceNavigation.tsx'
+import { AgentPresetDisclosure, RoleAssistantsSection, RolePicker, type PreviewRole } from './RoleAssistants.tsx'
 import { en, zh, type ChatKey } from './locales.ts'
 import { ru } from '../../../dsh-i18n/src/client/ru/plain-chat.ts'
 import styles from './Chat.module.css'
@@ -18,7 +20,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' { interface LocaleNamespaceMap
 export function apply(ctx: Context): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'plain-chat: locale')
   ctx.effect(() => {
-    try { return ctx.locale.register(NS, 'ru', ru) }
+    try { return ctx.locale.register(NS, 'ru', { ...en, ...ru }) }
     catch { return () => {} /* A rebuilt language pack may already own this dictionary. */ }
   }, 'plain-chat: central Russian dictionary')
   const t = ctx.locale.bind(NS)
@@ -47,21 +49,33 @@ export function apply(ctx: Context): void {
     },
   }, chatRoot, () => `session-${crypto.randomUUID()}`)
   const registry = ctx.slots as unknown as Registry
+  ctx.effect(() => decorateSlot(registry, 'sidebar.settings', 'SettingsRoot', Original =>
+    withAppearanceNavigation(Original as (props: any) => React.ReactNode, () => t('appearanceTitle'))), 'plain-chat: appearance navigation group')
+
+  // Keep the official roster and its injected actions; this addition is UI-only.
+  ctx.effect(() => decorateSlot(registry, 'settings.section', 'AgentPresetSection', Original => function RolePresetSection(props: any) {
+    return <><RoleAssistantsSection t={t} /><AgentPresetDisclosure t={t}><Original {...props} /></AgentPresetDisclosure></>
+  }), 'plain-chat: role assistant settings preview')
 
   // These resident entries own private inject callbacks and child declarations.
   // Decorate only their component face, preserving those identities and cleanup.
   ctx.effect(() => decorateSlot(registry, 'main.conversation', 'ConversationRoot', Original => {
     return function ChatConversation(props: any) {
       const draftKey = useSyncExternalStore(subscribe, snapshot)
+      // Preview state never enters ChatStart or the host preset configuration.
+      const [rolePreview, setRolePreview] = useState<{ revision: number; role: PreviewRole }>({ revision: draftKey, role: 'chat' })
+      const selectedRole = rolePreview.revision === draftKey ? rolePreview.role : 'chat'
+      const selectRole = (role: PreviewRole) => setRolePreview({ revision: draftKey, role })
       const summary = props.useSessions((s: any) => props.sessionId ? s.byId[props.sessionId] : undefined)
       const composerBlock = props.useComposerBlock((block: unknown) => block)
       const plain = summary?.projectionValues?.agentPreset === PRESET_ID || created.has(props.sessionId)
       const noSession = props.sessionId === undefined
       const translate = (key: string, ...args: unknown[]) => key === 'hero.chooseWorkspace' && (plain || noSession) ? t('workspace') : props.t(key, ...args)
       const renderSlot = (key: string, owner: any, ...rest: any[]) => {
-        if (key === 'conversation.hero.agentPreset' && (plain || noSession)) return <span className={styles.badge}>{t('mode')}</span>
+        if (key === 'conversation.hero.agentPreset' && noSession) return <RolePicker t={t} selected={selectedRole} onSelect={selectRole} />
+        if (key === 'conversation.hero.agentPreset' && plain) return <span className={styles.badge}>{t('mode')}</span>
         if (key === 'conversation.composer.bar') {
-          if (noSession) return <DraftComposer key={draftKey} start={start} t={t} available={chatRoot !== ''} />
+          if (noSession) return <DraftComposer key={draftKey} start={start} t={t} available={chatRoot !== ''} previewOnly={selectedRole !== 'chat'} onReturnChat={() => selectRole('chat')} />
           // Only the workspace gate is removed. Business composer blocks remain intact.
           if (plain && owner.onRequestWorkspace) {
             return props.renderSlot(key, { ...owner, disabled: false, blocked: composerBlock, placeholder: composerBlock?.reason ?? t('placeholder'), onRequestWorkspace: undefined }, ...rest)

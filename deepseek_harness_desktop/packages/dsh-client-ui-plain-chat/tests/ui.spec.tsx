@@ -23,6 +23,7 @@ function SidebarRoot(props: Props) {
   </aside>
 }
 function WorkspaceBrowser(props: Props) { return <div>{props.t('group.ungrouped')}</div> }
+function AgentPresetSection() { return <div data-existing-presets>Existing presets</div> }
 
 function deferred<T>() {
   let resolve!: (value: T) => void
@@ -35,6 +36,7 @@ function harness() {
     'main.conversation': [{ component: ConversationRoot as ComponentType<any> }],
     sidebar: [{ component: SidebarRoot as ComponentType<any> }],
     'sidebar.workspaces': [{ component: WorkspaceBrowser as ComponentType<any> }],
+    'settings.section': [{ component: AgentPresetSection as ComponentType<any> }],
   }
   const disposers: (() => void)[] = []
   const bindings = new Map<string, Binding>()
@@ -105,6 +107,8 @@ describe('ordinary chat UI integration', () => {
   beforeEach(() => {
     ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true
     sessionStorage.clear()
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
     document.head.innerHTML = '<meta name="dsh-plain-chat-root" content="C:\\workbench\\chat-data">'
     container = document.createElement('div')
     document.body.append(container)
@@ -228,5 +232,40 @@ describe('ordinary chat UI integration', () => {
   it('labels ungrouped history as ordinary chats', async () => {
     await render(app.props, 'sidebar.workspaces')
     expect(container.textContent).toBe('聊天')
+  })
+
+  it('never creates a session from a role preview and keeps the draft when returning to chat', async () => {
+    await render()
+    await type('请梳理审批流程')
+    await click('button[aria-haspopup="dialog"]')
+    await act(async () => { document.querySelectorAll<HTMLButtonElement>('dialog button[aria-pressed]')[1]!.click() })
+    expect(container.textContent).toContain('当前仅预览岗位界面')
+    expect(container.querySelector<HTMLButtonElement>('button[aria-label="发送消息"]')!.disabled).toBe(true)
+    await act(async () => { container.querySelector('textarea')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })) })
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+    await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent === '切回普通聊天')!.click() })
+    expect(container.querySelector('textarea')!.value).toBe('请梳理审批流程')
+    await click('button[aria-label="发送消息"]')
+    expect(app.remoteCreate).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ agentPreset: 'workbench-chat' }))
+  })
+
+  it('keeps the official preset roster and exposes a non-saving configuration preview', async () => {
+    await render(app.props, 'settings.section')
+    expect(container.querySelector('[data-existing-presets]')).not.toBeNull()
+    await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent?.startsWith('查看配置'))!.click() })
+    const dialog = document.querySelector('dialog')!
+    expect(dialog.textContent).toContain('配置预览')
+    expect(dialog.querySelector('input')!.value).toBe('需求分析助手')
+    expect(Array.from(dialog.querySelectorAll('button')).find(button => button.textContent === '保存并启用')!.disabled).toBe(true)
+    await act(async () => {
+      const name = dialog.querySelector('input')!
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(name, '试写的名称')
+      name.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    expect(dialog.querySelector('aside')!.textContent).toContain('试写的名称')
+    await act(async () => { dialog.dispatchEvent(new Event('cancel', { cancelable: true })) })
+    expect(document.querySelector('dialog')).toBeNull()
+    expect(container.textContent).not.toContain('试写的名称')
+    expect(app.remoteCreate).not.toHaveBeenCalled()
   })
 })

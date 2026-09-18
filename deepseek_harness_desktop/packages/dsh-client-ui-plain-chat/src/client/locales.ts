@@ -1,4 +1,7 @@
+import { roleZh, roleEn } from './roles-copy.ts'
 export const zh = {
+  ...roleZh,
+  appearanceTitle: '外观',
   placeholder: '输入消息，开始对话', send: '发送消息', sending: '正在准备会话…',
   mode: '普通聊天', workspace: '选择工作区（可选）', history: '聊天',
   hint: '直接提问或写作；处理项目文件时再选择工作区。',
@@ -7,6 +10,8 @@ export const zh = {
   unavailable: '普通聊天未加载，请重启 DSH 后刷新页面。',
 }
 export const en: Record<keyof typeof zh, string> = {
+  ...roleEn,
+  appearanceTitle: 'Appearance',
   placeholder: 'Type a message to start chatting', send: 'Send message', sending: 'Preparing conversation…',
   mode: 'Chat', workspace: 'Choose workspace (optional)', history: 'Chats',
   hint: 'Ask questions or write. Choose a workspace for project files.',

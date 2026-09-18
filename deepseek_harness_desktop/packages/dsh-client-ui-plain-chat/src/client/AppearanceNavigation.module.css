@@ -1,0 +1,9 @@
+.group { width:100%; min-width:0; }
+.heading { box-sizing:border-box; display:flex; align-items:center; gap:10px; width:100%; list-style:none; cursor:pointer; }
+.heading::-webkit-details-marker { display:none; }
+.heading > svg { flex-shrink:0; }
+.heading:focus-visible { outline:2px solid var(--dsw-alias-button-primary-fill,#4263ba); outline-offset:-2px; border-radius:8px; }
+.chevron { margin-left:auto; opacity:.65; }
+.group[open] > .heading .chevron { transform:rotate(90deg); }
+.children { display:flex; flex-direction:column; gap:4px; margin:4px 0 6px 17px; padding-left:10px; border-left:1px solid var(--dsw-alias-border-l2,#dfe4ed); }
+.children > button { width:100%; box-sizing:border-box; font-size:13px; }
