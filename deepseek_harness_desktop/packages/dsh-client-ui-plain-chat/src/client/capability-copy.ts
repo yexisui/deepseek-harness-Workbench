@@ -1,4 +1,6 @@
 export const capabilityZh = {
+  capHideLibrary: '收起能力库', capShowLibrary: '展开能力库', capHideSettings: '收起配件设置', capShowSettings: '展开配件设置',
+  capResizeHint: '拖动调整宽度，向外拖到底可收起', capRestoreHint: '点击或向内拖动恢复', capAlreadyAdded: '此配件已添加：',
   capLibrary: '能力配件库', capLibraryHint: '拖入助手，组合它的工作能力', capSearch: '搜索配件',
   capAll: '全部', capWeb: '网页', capOffice: '办公', capData: '资料', capCount: '款示例配件',
   capBrowser: '浏览器操作', capBrowserDesc: '浏览网页、读取信息、填写表单',
@@ -32,6 +34,8 @@ export const capabilityZh = {
 }
 
 export const capabilityEn: Record<keyof typeof capabilityZh, string> = {
+  capHideLibrary: 'Hide capability library', capShowLibrary: 'Show capability library', capHideSettings: 'Hide capability settings', capShowSettings: 'Show capability settings',
+  capResizeHint: 'Drag to resize; drag outward to collapse', capRestoreHint: 'Click or drag inward to restore', capAlreadyAdded: 'Already added: ',
   capLibrary: 'Capability library', capLibraryHint: 'Drag capabilities into your assistant', capSearch: 'Search capabilities',
   capAll: 'All', capWeb: 'Web', capOffice: 'Office', capData: 'Knowledge', capCount: 'example capabilities',
   capBrowser: 'Browser', capBrowserDesc: 'Browse pages, read information and fill forms',
