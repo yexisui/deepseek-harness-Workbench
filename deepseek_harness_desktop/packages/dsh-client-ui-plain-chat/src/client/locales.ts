@@ -1,6 +1,8 @@
 import { roleZh, roleEn } from './roles-copy.ts'
+import { capabilityZh, capabilityEn } from './capability-copy.ts'
 export const zh = {
   ...roleZh,
+  ...capabilityZh,
   appearanceTitle: '外观',
   placeholder: '输入消息，开始对话', send: '发送消息', sending: '正在准备会话…',
   mode: '普通聊天', workspace: '选择工作区（可选）', history: '聊天',
@@ -11,6 +13,7 @@ export const zh = {
 }
 export const en: Record<keyof typeof zh, string> = {
   ...roleEn,
+  ...capabilityEn,
   appearanceTitle: 'Appearance',
   placeholder: 'Type a message to start chatting', send: 'Send message', sending: 'Preparing conversation…',
   mode: 'Chat', workspace: 'Choose workspace (optional)', history: 'Chats',

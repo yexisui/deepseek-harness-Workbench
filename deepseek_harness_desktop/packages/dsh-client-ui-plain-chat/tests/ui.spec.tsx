@@ -256,10 +256,10 @@ describe('ordinary chat UI integration', () => {
     await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent?.startsWith('查看配置'))!.click() })
     const dialog = document.querySelector('dialog')!
     expect(dialog.textContent).toContain('配置预览')
-    expect(dialog.querySelector('input')!.value).toBe('需求分析助手')
+    expect(dialog.querySelector<HTMLInputElement>('input[maxlength="60"]')!.value).toBe('需求分析助手')
     expect(Array.from(dialog.querySelectorAll('button')).find(button => button.textContent === '保存并启用')!.disabled).toBe(true)
     await act(async () => {
-      const name = dialog.querySelector('input')!
+      const name = dialog.querySelector<HTMLInputElement>('input[maxlength="60"]')!
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(name, '试写的名称')
       name.dispatchEvent(new Event('input', { bubbles: true }))
     })
@@ -268,6 +268,43 @@ describe('ordinary chat UI integration', () => {
     expect(document.querySelector('dialog')).toBeNull()
     expect(container.textContent).not.toContain('试写的名称')
     expect(app.remoteCreate).not.toHaveBeenCalled()
+  })
+
+  it('composes capabilities by drag or button without persistence or host calls', async () => {
+    await render(app.props, 'settings.section')
+    const open = async () => act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent?.includes('创建岗位助手'))!.click() })
+    await open()
+    const dialog = document.querySelector('dialog')!
+    const clickInDialog = async (label: string) => act(async () => { dialog.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!.click() })
+    expect(dialog.querySelectorAll('[data-attached-capability]')).toHaveLength(0)
+    await clickInDialog('添加：浏览器操作')
+    expect(dialog.textContent).toContain('未连接 · 界面演示')
+    expect(dialog.querySelectorAll('[data-attached-capability="browser"]')).toHaveLength(1)
+    const drop = dialog.querySelector('[aria-label="将配件拖到这里"]')!
+    const drag = (id: string) => {
+      const event = new Event('drop', { bubbles: true, cancelable: true })
+      Object.defineProperty(event, 'dataTransfer', { value: { getData: () => id } })
+      drop.dispatchEvent(event)
+    }
+    await act(async () => { drag('browser'); drag('documents'); drag('unknown-plugin') })
+    expect(dialog.querySelectorAll('[data-attached-capability]')).toHaveLength(2)
+    await clickInDialog('配件设置：浏览器操作')
+    const site = dialog.querySelector<HTMLTextAreaElement>('textarea[placeholder*="example.com"]')!
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(site, 'example.com')
+      site.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    await clickInDialog('配件设置：文档处理')
+    await clickInDialog('配件设置：浏览器操作')
+    expect(dialog.querySelector<HTMLTextAreaElement>('textarea[placeholder*="example.com"]')!.value).toBe('example.com')
+    await clickInDialog('移除：浏览器操作')
+    expect(dialog.querySelector('[data-attached-capability="browser"]')).toBeNull()
+    await act(async () => { dialog.dispatchEvent(new Event('cancel', { cancelable: true })) })
+    await open()
+    expect(document.querySelectorAll('[data-attached-capability]')).toHaveLength(0)
+    expect(localStorage.length).toBe(0)
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+    expect(app.sessions.create).not.toHaveBeenCalled()
   })
 
   it('shares card selection with the main-area shortcut and new-chat preview without changing a host session', async () => {

@@ -2,6 +2,7 @@ import React, { useEffect, useId, useRef, useState, type CSSProperties, type Rea
 import { createPortal } from 'react-dom'
 import type { ChatKey } from './locales.ts'
 import { roleCatalog, roleIds, type AssistantRole, type PreviewRole } from './role-catalog.ts'
+import { CapabilityWorkbench } from './CapabilityWorkbench.tsx'
 export type { PreviewRole } from './role-catalog.ts'
 import s from './Roles.module.css'
 
@@ -50,15 +51,12 @@ function RoleEditor({ t, mode, onClose }: { t: Translate; mode: EditorMode; onCl
     ['format', 'rolesFormat', 'rolesFormatPlaceholder'],
   ] as const
   return <>
-    <div className={s.editorScroll}>
-      <p className={s.intro}>{t('rolesEditHint')}</p>
-      <div className={s.notice}><span className={s.previewBadge}>{t('rolesPreview')}</span>{t('rolesNotice')}</div>
-      <div className={s.editorGrid}>
+    <CapabilityWorkbench t={t} mode={mode} name={fields.name} form={
         <div className={s.fields}>
           <label className={s.field} htmlFor={`${id}-name`}><span>{t('rolesName')}</span>
             <input id={`${id}-name`} maxLength={60} value={fields.name} placeholder={t('rolesNamePlaceholder')} onChange={event => setFields({ ...fields, name: event.target.value })} />
           </label>
-          <fieldset className={s.colorField}>
+          <details className={s.editorDetails}><summary>{t('capColorDetails')}<span className={s.colorSample} style={{ backgroundColor: color }} /></summary><fieldset className={s.colorField}>
             <legend>{t('rolesColor')}</legend>
             <div className={s.palette}>{palette.map(value => <button type="button" key={value} className={s.swatch} style={{ backgroundColor: value }} aria-label={`${t('rolesColor')} ${value}`} aria-pressed={color.toLowerCase() === value.toLowerCase()} onClick={() => setColor(value)}>
               {color.toLowerCase() === value.toLowerCase() && <span aria-hidden="true">✓</span>}
@@ -69,20 +67,20 @@ function RoleEditor({ t, mode, onClose }: { t: Translate; mode: EditorMode; onCl
               <code>{color.toUpperCase()}</code>
             </div>
             <p className={s.caption}>{t('rolesColorHint')}</p>
-          </fieldset>
-          {definitions.map(([key, label, placeholder]) => <label key={key} className={s.field} htmlFor={`${id}-${key}`}><span>{t(label)}</span>
+          </fieldset></details>
+          <label className={s.field} htmlFor={`${id}-duties`}><span>{t('rolesDuties')}</span><textarea id={`${id}-duties`} rows={4} maxLength={4000} value={fields.duties} placeholder={t('rolesDutiesPlaceholder')} onChange={event => setFields({ ...fields, duties: event.target.value })} /></label>
+          <details className={s.editorDetails}><summary>{t('capAdvanced')}</summary><div className={s.fields}>{definitions.filter(([key]) => key !== 'duties').map(([key, label, placeholder]) => <label key={key} className={s.field} htmlFor={`${id}-${key}`}><span>{t(label)}</span>
             <textarea id={`${id}-${key}`} rows={key === 'format' ? 4 : 3} maxLength={4000} value={fields[key]} placeholder={t(placeholder)} onChange={event => setFields({ ...fields, [key]: event.target.value })} />
-          </label>)}
+          </label>)}</div></details>
         </div>
-        <aside className={s.livePreview} style={colorStyle(color)} aria-label={t('rolesLivePreview')}>
+      } preview={
+        <div className={s.livePreview} style={colorStyle(color)} aria-label={t('rolesLivePreview')}>
           <div className={s.previewHeading}><span>{t('rolesLivePreview')}</span><span className={s.dot} /></div>
           <p className={s.caption}>{t('rolesLiveHint')}</p>
           <div className={s.previewIdentity}><RoleIcon role={mode === 'create' ? 'analyst' : mode} color={color} /><h3>{fields.name.trim() || t('rolesUnnamed')}</h3></div>
           {definitions.map(([key, label]) => <section key={key} className={s.previewSection}><h4>{t(label)}</h4><p className={!fields[key].trim() ? s.empty : undefined}>{fields[key].trim() || t('rolesEmpty')}</p></section>)}
-          <p className={s.sessionHint}>{t('rolesNewSessionHint')}</p>
-        </aside>
-      </div>
-    </div>
+        </div>
+      } />
     <div className={s.footer}><p id={`${id}-save-hint`}>{t('rolesSaveHint')}</p><div className={s.actions}>
       <button type="button" className={s.secondary} onClick={onClose}>{t('rolesDone')}</button>
       <button type="button" className={s.primary} disabled aria-describedby={`${id}-save-hint`}>{t('rolesSave')}</button>

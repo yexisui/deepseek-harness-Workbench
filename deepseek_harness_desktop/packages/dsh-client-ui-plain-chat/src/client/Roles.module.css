@@ -63,7 +63,11 @@
 .dialog { background:var(--role-bg); border:1px solid var(--role-border); border-radius:18px; padding:0; width:560px; max-width:calc(100vw - 32px); max-height:calc(100dvh - 40px); overflow:auto; box-shadow:0 24px 90px #10223d30; }
 .dialog::backdrop { background:#0e18224d; backdrop-filter:blur(3px); }
 .dialog[open] { display:flex; flex-direction:column; }
-.wide { width:940px; }
+.wide { width:1240px; height:min(850px,calc(100dvh - 40px)); overflow:hidden; }
+.editorDetails { border:1px solid var(--role-border); border-radius:8px; padding:0 12px; }
+.editorDetails > summary { cursor:pointer; font-size:12px; color:var(--role-muted); padding:10px 0; }
+.editorDetails > fieldset, .editorDetails > div { padding:8px 0 14px; }
+.colorSample { display:inline-block; width:11px; height:11px; border-radius:50%; margin-left:10px; }
 .dialogHeader { display:flex; justify-content:space-between; gap:20px; align-items:center; padding:22px 26px; border-bottom:1px solid var(--role-border); flex-shrink:0; }
 .dialogHeader h2 { font-size:18px; }
 .close { border:0; background:transparent; color:var(--role-muted); cursor:pointer; font-size:25px; width:32px; height:32px; border-radius:6px; line-height:1; }
