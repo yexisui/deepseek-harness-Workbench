@@ -10,6 +10,8 @@ import r from './Roles.module.css'
 import { colorStyle, RoleIcon } from './RoleAssistants.tsx'
 import { roleIds } from './role-catalog.ts'
 
+const freeChat = { name: '自由聊天', color: '#78869f', description: '日常问答、写作与想法讨论，无需选择工作区。' }
+
 export function ManagedRoleEditor({ id, onClose }: { id?: string; onClose: () => void }) {
   const { data } = useCapabilities()
   useEffect(() => {
@@ -57,8 +59,19 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
   return <section className={r.section}>
     <div className={r.sectionHeader}><div><h2>岗位助手</h2><p>为每一类工作，准备一位熟悉职责的助手。</p></div><button className={r.primary} onClick={() => setEditor({})}>＋ 创建岗位助手</button></div>
     {(error || message) && <p role="alert" className={s.error}>{message || error}</p>}
-    <div className={r.selectionStatus}><span role="status">{selectedRole ? `已选定：${selectedRole.draft.name}` : '未选择岗位 · 自由交流'}</span>{selected !== 'chat' && <button className={r.textButton} onClick={() => onSelect('chat')}>取消选定</button>}</div>
-    <div className={r.cards}>{data?.state.roles.map(role => {
+    <div className={r.selectionStatus}><span role="status">{selected === 'chat' ? `已选定：${freeChat.name}` : selectedRole ? `已选定：${selectedRole.draft.name}` : data ? '当前岗位暂不可用' : '正在读取选定岗位…'}</span>{selected !== 'chat' && <button className={r.textButton} onClick={() => onSelect('chat')}>返回自由聊天</button>}</div>
+    <div className={r.cards}>
+      {/* 基础聊天沿用 chat / workbench-chat，不创建可发布、停用的岗位记录。 */}
+      <article data-role-id="chat" aria-label={freeChat.name} className={`${r.roleCard} ${selected === 'chat' ? r.selectedCard : ''}`} style={colorStyle(freeChat.color)}>
+        <div className={r.cardBody}>
+          <button type="button" className={r.cardSelect} aria-label={`选定助手：${freeChat.name}`} aria-pressed={selected === 'chat'} onClick={() => onSelect('chat')}/>
+          <div className={r.cardTop}><RoleIcon role="chat" color={freeChat.color}/><span className={`${r.exampleBadge} ${selected === 'chat' ? r.selectedBadge : ''}`}>{selected === 'chat' ? '✓ 已选定' : '内置'}</span></div>
+          <h3>{freeChat.name}</h3><p className={r.cardSummary}>{freeChat.description}</p>
+          <div className={r.tags}><span>内置基础助手</span><span>日常问答</span><span>写作讨论</span></div>
+        </div>
+        <div className={r.cardControls}><p className={r.chatCardNote}>无需岗位配置，随时开始聊天。</p></div>
+      </article>
+      {data?.state.roles.map(role => {
       const published = latest(role.versions), selectable = role.enabled && !!published, chosen = selectable && selected === role.id
       const icon = roleIds.find(id => role.id === `builtin-${id}`) ?? 'analyst'
       return <article key={role.id} data-role-id={role.id} aria-label={role.draft.name} className={`${r.roleCard} ${chosen ? r.selectedCard : ''}`} style={colorStyle(role.draft.color)}>
@@ -80,13 +93,13 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
 export function ManagedRolePicker({ selected, onSelect, t }: { selected: string; onSelect: (id: string) => void; t: (key: ChatKey) => string }) {
   const { data } = useCapabilities(), [open, setOpen] = useState(false), [editor, setEditor] = useState(false)
   const role = data?.state.roles.find(r => r.id === selected)
-  return <><button className={r.picker} aria-haspopup="dialog" onClick={() => setOpen(true)}><CapabilityGlyph/><span>{role?.draft.name ?? t('mode')}</span><span>⌄</span></button>{open && <Modal title="选择岗位助手" closeLabel="关闭" onClose={() => setOpen(false)}><div className={`${s.page} ${s.dialogBody}`}><button className={s.choice} aria-pressed={selected === 'chat'} onClick={() => { onSelect('chat'); setOpen(false) }}><span><strong>普通聊天</strong><small>问答与写作，不执行浏览器或项目工具。</small></span></button>{data?.state.roles.filter(r => r.enabled && r.versions.length).map(r => <button className={s.choice} key={r.id} aria-pressed={selected === r.id} onClick={() => { onSelect(r.id); setOpen(false) }}><CapabilityGlyph/><span><strong>{latest(r.versions)!.name}</strong><small>v{latest(r.versions)!.version} · {latest(r.versions)!.capabilities.length} 个能力</small></span></button>)}<button className={s.button} onClick={() => setEditor(true)}>＋ 创建岗位助手</button><p className={s.muted}>选择仅用于下一次新对话，当前对话的岗位不会改变。</p></div></Modal>}{editor && <ManagedRoleEditor onClose={() => setEditor(false)}/>}</>
+  return <><button className={r.picker} aria-haspopup="dialog" onClick={() => setOpen(true)}>{selected === 'chat' ? <RoleIcon role="chat" color={freeChat.color}/> : <CapabilityGlyph/>}<span>{role?.draft.name ?? t('mode')}</span><span>⌄</span></button>{open && <Modal title="选择岗位助手" closeLabel="关闭" onClose={() => setOpen(false)}><div className={`${s.page} ${s.dialogBody}`}><button className={s.choice} aria-pressed={selected === 'chat'} onClick={() => { onSelect('chat'); setOpen(false) }}><div><RoleIcon role="chat" color={freeChat.color}/></div><span><strong>{freeChat.name}</strong><small>{freeChat.description}</small></span></button>{data?.state.roles.filter(r => r.enabled && r.versions.length).map(r => <button className={s.choice} key={r.id} aria-pressed={selected === r.id} onClick={() => { onSelect(r.id); setOpen(false) }}><CapabilityGlyph/><span><strong>{latest(r.versions)!.name}</strong><small>v{latest(r.versions)!.version} · {latest(r.versions)!.capabilities.length} 个能力</small></span></button>)}<button className={s.button} onClick={() => setEditor(true)}>＋ 创建岗位助手</button><p className={s.muted}>选择仅用于下一次新对话，当前对话的岗位不会改变。</p></div></Modal>}{editor && <ManagedRoleEditor onClose={() => setEditor(false)}/>}</>
 }
 export function ManagedCurrentAssistant({ selected, onOpen }: { selected: string; onOpen: () => void }) {
   const { data } = useCapabilities()
   // 此处是全局岗位选择入口，沿用旧版联动；当前会话的预设仍由会话标题展示。
   const role = data?.state.roles.find(role => role.id === selected)
-  const name = role?.draft.name ?? '普通聊天', color = role?.draft.color ?? '#78869f'
+  const name = role?.draft.name ?? freeChat.name, color = role?.draft.color ?? freeChat.color
   const icon = role ? roleIds.find(id => role.id === `builtin-${id}`) ?? 'analyst' : 'chat'
   return <button type="button" data-current-assistant="true" data-role-icon={icon} className={r.currentAssistant} style={colorStyle(color)} aria-label={`打开岗位助手：${name}`} title={`当前选定：${name} · 点击管理岗位`} onClick={onOpen}><RoleIcon role={icon} color={color}/><span className={r.currentText}>{name}</span><svg className={r.currentArrow} aria-hidden="true" viewBox="0 0 16 16" fill="none"><path d="m6 4 4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
 }

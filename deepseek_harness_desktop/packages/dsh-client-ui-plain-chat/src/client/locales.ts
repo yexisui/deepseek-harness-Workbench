@@ -7,11 +7,11 @@ export const zh = {
   ...centerZh,
   appearanceTitle: '外观',
   placeholder: '输入消息，开始对话', send: '发送消息', sending: '正在准备会话…',
-  mode: '普通聊天', workspace: '选择工作区（可选）', history: '聊天',
+  mode: '自由聊天', workspace: '选择工作区（可选）', history: '聊天',
   hint: '直接提问或写作；处理项目文件时再选择工作区。',
   model: '使用设置中的默认模型，进入会话后可切换。',
   failed: '无法开始对话，内容已保留。请检查模型与连接后重试。',
-  unavailable: '普通聊天未加载，请重启 DSH 后刷新页面。',
+  unavailable: '自由聊天未加载，请重启 DSH 后刷新页面。',
 }
 export const en: Record<keyof typeof zh, string> = {
   ...roleEn,

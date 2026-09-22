@@ -162,7 +162,7 @@ describe('ordinary chat UI integration', () => {
     expect(input.value).toBe('你好，我想讨论一个想法')
     expect(sessionStorage.getItem('workbench-chat-draft')).toBe(input.value)
     expect(container.textContent).toContain('选择工作区（可选）')
-    expect(container.textContent).toContain('普通聊天')
+    expect(container.textContent).toContain('自由聊天')
     expect(app.remoteCreate).not.toHaveBeenCalled()
   })
 
@@ -260,20 +260,31 @@ describe('ordinary chat UI integration', () => {
     expect(app.remoteCreate).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ agentPreset: 'workbench-role-reader-v1' }))
   })
 
-  it('selects the role card, clears the selection, and starts its published preset without losing the draft', async () => {
+  it('defaults to the first free-chat card, switches roles and returns without losing the draft', async () => {
     await renderWithRoles()
     await type('请读取网页')
     const selector = 'button[aria-label="选定助手：网页助手"]'
+    const chatSelector = 'button[aria-label="选定助手：自由聊天"]'
+    const chatCard = container.querySelector('[data-role-id="chat"]')!
+    expect(container.querySelector('[data-role-id]')).toBe(chatCard)
+    expect(chatCard.querySelector(chatSelector)!.getAttribute('aria-pressed')).toBe('true')
+    expect(chatCard.textContent).not.toContain('编辑岗位')
+    expect(chatCard.textContent).not.toContain('停用')
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：自由聊天')
     expect(container.textContent).not.toContain('用于新对话')
     await click(selector)
     expect(container.querySelector(selector)!.getAttribute('aria-pressed')).toBe('true')
+    expect(container.querySelector(chatSelector)!.getAttribute('aria-pressed')).toBe('false')
     expect(container.querySelector('[data-role-id="reader"]')!.textContent).toContain('✓ 已选定')
     expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：网页助手')
-    await act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent === '取消选定')!.click() })
+    await act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent === '返回自由聊天')!.click() })
     expect(container.querySelector(selector)!.getAttribute('aria-pressed')).toBe('false')
-    expect(container.querySelector('button[aria-haspopup="dialog"]')!.textContent).toContain('普通聊天')
+    expect(container.querySelector(chatSelector)!.getAttribute('aria-pressed')).toBe('true')
+    expect(container.querySelector('button[aria-haspopup="dialog"]')!.textContent).toContain('自由聊天')
+    expect(container.querySelector('[role="status"]')!.textContent).toContain('已选定：自由聊天')
     await click(selector)
     expect(container.querySelector('textarea')!.value).toBe('请读取网页')
+    expect(sessionStorage.getItem('workbench-chat-draft')).toBe('请读取网页')
     expect(app.remoteCreate).not.toHaveBeenCalled()
     await click('button[aria-label="发送消息"]')
     expect(app.remoteCreate).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ agentPreset: 'workbench-role-reader-v1' }))
@@ -307,32 +318,62 @@ describe('ordinary chat UI integration', () => {
       await click(selector)
       expect(container.querySelector(selector)!.getAttribute('aria-pressed')).toBe('false')
     }
-    expect(container.querySelector('button[aria-pressed="true"]')).toBeNull()
+    expect(container.querySelectorAll('[data-role-id] button[aria-pressed="true"]')).toHaveLength(1)
+    expect(container.querySelector('button[aria-label="选定助手：自由聊天"]')!.getAttribute('aria-pressed')).toBe('true')
   })
 
-  it('switches the failed creation to the newly selected card while retaining the unsent draft', async () => {
+  it.each(['empty', 'loading'] as const)('starts free chat when the managed role list is %s', async availability => {
+    const current = capabilityClient.getSnapshot()
+    const data = availability === 'loading' ? null : { ...current.data!, state: { ...current.data!.state, roles: [] } }
+    const snapshot = vi.spyOn(capabilityClient, 'getSnapshot').mockReturnValue({ ...current, data })
+    const refresh = vi.spyOn(capabilityClient, 'refresh').mockResolvedValue(undefined)
+    try {
+      await renderWithRoles()
+      const card = container.querySelector('[data-role-id="chat"]')!
+      const select = card.querySelector<HTMLButtonElement>('button[aria-label="选定助手：自由聊天"]')!
+      expect(container.querySelectorAll('[data-role-id]')).toHaveLength(1)
+      expect(select.disabled).toBe(false)
+      expect(select.getAttribute('aria-pressed')).toBe('true')
+      await click('button[aria-label="选定助手：自由聊天"]')
+      await type('先聊一聊这个想法')
+      await click('button[aria-label="发送消息"]')
+      expect(app.remoteCreate).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ agentPreset: 'workbench-chat' }))
+      expect(app.sessions.create).toHaveBeenCalledTimes(1)
+      expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false)
+    } finally {
+      snapshot.mockRestore()
+      refresh.mockRestore()
+    }
+  })
+
+  it.each([
+    ['自由聊天', 'workbench-chat', '网页助手', 'workbench-role-reader-v1'],
+    ['网页助手', 'workbench-role-reader-v1', '自由聊天', 'workbench-chat'],
+  ])('replaces a failed %s (%s) creation after switching cards while retaining the draft', async (initialName, initialPreset, nextName, nextPreset) => {
     app.remoteCreate.mockRejectedValueOnce(new Error('network'))
     await renderWithRoles()
+    await click(`button[aria-label="选定助手：${initialName}"]`)
     await type('保留这段草稿')
     await click('button[aria-label="发送消息"]')
     const original = app.remoteCreate.mock.calls[0]![0] as { sessionId: string; agentPreset: string }
-    expect(original.agentPreset).toBe('workbench-chat')
-    await click('button[aria-label="选定助手：网页助手"]')
+    expect(original.agentPreset).toBe(initialPreset)
+    await click(`button[aria-label="选定助手：${nextName}"]`)
     expect(container.querySelector('textarea')!.value).toBe('保留这段草稿')
+    expect(sessionStorage.getItem('workbench-chat-draft')).toBe('保留这段草稿')
     await click('button[aria-label="发送消息"]')
     const replacement = app.remoteCreate.mock.calls[1]![0] as { sessionId: string; agentPreset: string }
-    expect(replacement.agentPreset).toBe('workbench-role-reader-v1')
+    expect(replacement.agentPreset).toBe(nextPreset)
     expect(replacement.sessionId).not.toBe(original.sessionId)
     expect(app.sessions.create).toHaveBeenCalledTimes(1)
   })
 
-  it('retains the retry identity when the already selected card is clicked again', async () => {
+  it.each(['自由聊天', '网页助手'])('retains the retry identity when the already selected %s card is clicked again', async name => {
     app.remoteCreate.mockRejectedValueOnce(new Error('network'))
     await renderWithRoles()
-    await click('button[aria-label="选定助手：网页助手"]')
+    await click(`button[aria-label="选定助手：${name}"]`)
     await type('继续读取')
     await click('button[aria-label="发送消息"]')
-    await click('button[aria-label="选定助手：网页助手"]')
+    await click(`button[aria-label="选定助手：${name}"]`)
     await click('button[aria-label="发送消息"]')
     expect(app.remoteCreate).toHaveBeenCalledTimes(2)
     expect(app.remoteCreate.mock.calls[1]![0]).toEqual(app.remoteCreate.mock.calls[0]![0])
@@ -341,6 +382,7 @@ describe('ordinary chat UI integration', () => {
   it('keeps the official roster and opens the persisted role fields', async () => {
     await render(app.props, 'settings.section')
     expect(container.querySelector('[data-existing-presets]')).not.toBeNull()
+    expect(container.querySelector('details summary')!.textContent).toBe('高级预设')
     for (const name of ['需求分析助手', '市场部助手', '项目经理助手', '开发助手']) expect(container.textContent).toContain(name)
     const customRole = Array.from(container.querySelectorAll('article')).find(card => card.querySelector('h3')?.textContent === '网页助手')!
     await act(async () => { Array.from(customRole.querySelectorAll('button')).find(b => b.textContent?.includes('编辑岗位'))!.click() })
@@ -388,8 +430,8 @@ describe('ordinary chat UI integration', () => {
       expect(toolbar().textContent).not.toContain('v1')
     }
 
-    await act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent === '取消选定')!.click() })
-    expect(toolbar().getAttribute('aria-label')).toBe('打开岗位助手：普通聊天')
+    await click('button[aria-label="选定助手：自由聊天"]')
+    expect(toolbar().getAttribute('aria-label')).toBe('打开岗位助手：自由聊天')
     expect(toolbar().getAttribute('data-role-icon')).toBe('chat')
     expect(toolbar().style.getPropertyValue('--role-color')).toBe('#78869f')
     expect(container.querySelector('textarea')).toBe(input)
