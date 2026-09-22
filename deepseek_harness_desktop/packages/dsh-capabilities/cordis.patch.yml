@@ -1,0 +1,7 @@
+- insert:
+    - id: workbench-capabilities
+      name: '@linxin666/dsh-capabilities'
+      config: {}
+    - id: workbench-browser-provider
+      name: '@linxin666/dsh-capabilities/browser'
+      config: {}
