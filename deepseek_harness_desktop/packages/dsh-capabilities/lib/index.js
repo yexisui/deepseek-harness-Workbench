@@ -2,8 +2,9 @@ import { createRequire } from "node:module";
 import { isAbsolute, join } from "node:path";
 import { homedir } from "node:os";
 import { isAbsolute as isAbsolute$1, join as join$1 } from "node:path/posix";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { mkdir, open, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { inflateSync } from "node:zlib";
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { defineTool } from "@deepseek-ai/dsh-tools";
@@ -169,6 +170,25 @@ function capabilityDeletionReferences(state, capabilityId) {
 	return state.roles.filter((role) => role.draft.capabilities.some((binding) => binding.capabilityId === capabilityId) || role.versions.some((version) => version.capabilities.some((binding) => binding.capabilityId === capabilityId)));
 }
 //#endregion
+//#region src/core/appearance.ts
+/** Shared appearance values; this module is safe to import from the browser. */
+const roleIconIds = [
+	"analyst",
+	"marketing",
+	"manager",
+	"developer",
+	"chat",
+	"chart",
+	"book",
+	"document",
+	"search",
+	"support",
+	"briefcase",
+	"idea",
+	"browser"
+];
+const roleIconAssetIdPattern = /^[a-f0-9]{64}$/;
+//#endregion
 //#region src/core/validation.ts
 var InputError = class extends Error {
 	status;
@@ -202,6 +222,18 @@ function list(value, max = 100) {
 	if (!Array.isArray(value) || value.length > max) throw new InputError("列表无效或过长");
 	return value;
 }
+function roleIcon(value) {
+	const icon = object(value);
+	if (icon.kind === "builtin" && roleIconIds.includes(icon.id)) return {
+		kind: "builtin",
+		id: icon.id
+	};
+	if (icon.kind === "png" && typeof icon.assetId === "string" && roleIconAssetIdPattern.test(icon.assetId)) return {
+		kind: "png",
+		assetId: icon.assetId
+	};
+	throw new InputError("岗位图标无效，请选择推荐图标或重新上传 PNG");
+}
 function definition(value) {
 	const data = object(value), seen = /* @__PURE__ */ new Set();
 	return {
@@ -231,6 +263,7 @@ function roleDefinition(value, state) {
 	return {
 		name: text(data.name, "岗位名称", 80, true),
 		color,
+		...data.icon === void 0 ? {} : { icon: roleIcon(data.icon) },
 		duties: text(data.duties, "职责", 8e3),
 		requirements: text(data.requirements, "要求", 8e3),
 		format: text(data.format, "输出格式", 4e3),
@@ -258,6 +291,147 @@ function issues(definition) {
 	return definition.components.length === 0 ? ["尚未添加组件"] : definition.components.flatMap((p) => p.actions.length ? [] : ["至少选择一个业务动作"]);
 }
 //#endregion
+//#region src/host/icons.ts
+const signature = Buffer.from([
+	137,
+	80,
+	78,
+	71,
+	13,
+	10,
+	26,
+	10
+]);
+const maxBytes = 300 * 1024;
+const crcTable = Uint32Array.from({ length: 256 }, (_, value) => {
+	for (let bit = 0; bit < 8; bit++) value = value & 1 ? 3988292384 ^ value >>> 1 : value >>> 1;
+	return value >>> 0;
+});
+function crc32(bytes) {
+	let crc = 4294967295;
+	for (const byte of bytes) crc = crcTable[(crc ^ byte) & 255] ^ crc >>> 8;
+	return (crc ^ 4294967295) >>> 0;
+}
+function chunk(type, data) {
+	const value = Buffer.alloc(12 + data.length);
+	value.writeUInt32BE(data.length);
+	value.write(type, 4, "ascii");
+	data.copy(value, 8);
+	value.writeUInt32BE(crc32(value.subarray(4, -4)), value.length - 4);
+	return value;
+}
+function invalid() {
+	throw new InputError("PNG 图标无效，请重新选择图片并调整后上传");
+}
+/** Accept the editor's static canvas output, not arbitrary original image files. */
+function normalizeRolePng(bytes) {
+	if (bytes.length < 45 || bytes.length > maxBytes || !bytes.subarray(0, 8).equals(signature)) invalid();
+	let offset = 8, header, dataEnded = false, ended = false;
+	const data = [], metadata = /* @__PURE__ */ new Set();
+	while (offset < bytes.length) {
+		if (bytes.length - offset < 12) invalid();
+		const length = bytes.readUInt32BE(offset), end = offset + length + 12;
+		if (end > bytes.length) invalid();
+		const type = bytes.toString("ascii", offset + 4, offset + 8), value = bytes.subarray(offset + 8, end - 4);
+		if (crc32(bytes.subarray(offset + 4, end - 4)) !== bytes.readUInt32BE(end - 4)) invalid();
+		if (!header && type !== "IHDR") invalid();
+		if (type === "IHDR") {
+			if (header || offset !== 8 || length !== 13) invalid();
+			if (value.readUInt32BE(0) !== 256 || value.readUInt32BE(4) !== 256 || value[8] !== 8 || ![2, 6].includes(value[9]) || value[10] !== 0 || value[11] !== 0 || value[12] !== 0) invalid();
+			header = value;
+		} else if (type === "IDAT") {
+			if (dataEnded) invalid();
+			data.push(value);
+		} else if (type === "IEND") {
+			if (length !== 0 || !data.length || end !== bytes.length) invalid();
+			ended = true;
+		} else {
+			if ({
+				sRGB: 1,
+				gAMA: 4,
+				cHRM: 32,
+				pHYs: 9
+			}[type] !== length || metadata.has(type) || data.length) invalid();
+			if (type === "sRGB" && value[0] > 3 || type === "gAMA" && value.readUInt32BE(0) === 0 || type === "pHYs" && value[8] > 1) invalid();
+			metadata.add(type);
+		}
+		if (data.length && type !== "IDAT") dataEnded = true;
+		offset = end;
+	}
+	if (!header || !ended) invalid();
+	const compressed = Buffer.concat(data), rowBytes = 256 * (header[9] === 6 ? 4 : 3), expectedBytes = 256 * (rowBytes + 1);
+	try {
+		const decoded = inflateSync(compressed, {
+			maxOutputLength: expectedBytes,
+			info: true
+		});
+		if (decoded.buffer.length !== expectedBytes || decoded.engine.bytesWritten !== compressed.length) invalid();
+		for (let row = 0; row < 256; row++) if (decoded.buffer[row * (rowBytes + 1)] > 4) invalid();
+	} catch {
+		invalid();
+	}
+	return Buffer.concat([
+		signature,
+		chunk("IHDR", header),
+		chunk("IDAT", compressed),
+		chunk("IEND", Buffer.alloc(0))
+	]);
+}
+function assetId(value) {
+	if (typeof value !== "string" || !roleIconAssetIdPattern.test(value)) throw new InputError("图标资源标识无效");
+	return value;
+}
+/** Immutable local assets survive draft replacement and historical role versions. */
+var RoleIconStore = class {
+	directory;
+	constructor(directory) {
+		this.directory = directory;
+	}
+	async upload(dataUrl) {
+		if (typeof dataUrl !== "string" || dataUrl.length > Math.ceil(maxBytes / 3) * 4 + 22 || !/^data:image\/png;base64,(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(dataUrl)) invalid();
+		const bytes = normalizeRolePng(Buffer.from(dataUrl.slice(22), "base64"));
+		const id = createHash("sha256").update(bytes).digest("hex"), path = join(this.directory, `${id}.png`);
+		await mkdir(this.directory, { recursive: true });
+		try {
+			if ((await this.read(id)).equals(bytes)) return { id };
+		} catch (error) {
+			if (!(error instanceof InputError && error.status === 404)) throw error;
+		}
+		const temporary = join(this.directory, `${id}-${randomUUID()}.tmp`), file = await open(temporary, "wx");
+		try {
+			try {
+				await file.writeFile(bytes);
+				await file.sync();
+			} finally {
+				await file.close();
+			}
+			await rename(temporary, path);
+		} catch (error) {
+			await unlink(temporary).catch(() => {});
+			throw error;
+		}
+		return { id };
+	}
+	async read(value) {
+		const id = assetId(value);
+		try {
+			const file = await open(join(this.directory, `${id}.png`), "r");
+			try {
+				const stat = await file.stat();
+				if (!stat.isFile() || stat.size > maxBytes) throw new Error("Invalid icon file");
+				const bytes = await file.readFile();
+				if (createHash("sha256").update(bytes).digest("hex") !== id) throw new Error("Invalid icon digest");
+				normalizeRolePng(bytes);
+				return bytes;
+			} finally {
+				await file.close();
+			}
+		} catch {
+			throw new InputError("图标资源已失效，请选择推荐图标或重新上传 PNG", 404);
+		}
+	}
+};
+//#endregion
 //#region src/host/store.ts
 /** One writer, atomic replacement and optimistic revisions; no silent overwrite on corruption. */
 var CapabilityStore = class {
@@ -266,8 +440,10 @@ var CapabilityStore = class {
 	tail = Promise.resolve();
 	lock;
 	listeners = /* @__PURE__ */ new Set();
+	icons;
 	constructor(directory) {
 		this.directory = directory;
+		this.icons = new RoleIconStore(join(directory, "icons"));
 	}
 	async init() {
 		await mkdir(this.directory, { recursive: true });
@@ -498,6 +674,7 @@ var CapabilityStore = class {
 				}
 			} else if (command.type === "role.save") {
 				const value = roleDefinition(command.definition, next), publish = bool(command.publish);
+				if (value.icon?.kind === "png") await this.icons.read(value.icon.assetId);
 				let role = next.roles.find((r) => r.id === target);
 				if (command.id && !role) throw new InputError("岗位不存在", 404);
 				const existingBindings = [...role?.draft.capabilities ?? [], ...role ? latest(role.versions)?.capabilities ?? [] : []];
@@ -1139,7 +1316,8 @@ const inject = [
 	"webServer",
 	"tools",
 	"agents",
-	"agentPresets"
+	"agentPresets",
+	"connection"
 ];
 async function apply(ctx, config = {}) {
 	const home = dshHome(), store = new CapabilityStore(join(home, "capabilities"));
@@ -1164,6 +1342,8 @@ async function apply(ctx, config = {}) {
 		handler: async (req, res) => {
 			try {
 				fence(req);
+				const rejection = ctx.connection.requestRejection(req);
+				if (rejection !== void 0) return json(res, rejection, { error: rejection === 401 ? "请从工作台入口重新连接后重试" : "不允许访问此接口" });
 				const route = new URL(req.url ?? "/", "http://localhost").pathname;
 				if (req.method === "GET" && route === "/api/capabilities/state") return json(res, 200, {
 					state: store.snapshot(),
@@ -1172,8 +1352,20 @@ async function apply(ctx, config = {}) {
 					tasks: runtime.tasks(),
 					dependencies: runtime.dependencies()
 				});
+				if (req.method === "GET" && route.startsWith("/api/capabilities/icons/")) {
+					const image = await store.icons.read(route.slice(24));
+					res.writeHead(200, {
+						"content-type": "image/png",
+						"content-length": image.length,
+						"cache-control": "private, max-age=31536000, immutable",
+						"x-content-type-options": "nosniff"
+					});
+					res.end(image);
+					return;
+				}
 				if (req.method !== "POST") throw new InputError("不支持此操作", 405);
 				const body = object(await readBody(req));
+				if (route === "/api/capabilities/icons") return json(res, 200, await store.icons.upload(body.dataUrl));
 				if (route === "/api/capabilities/command") {
 					const result = await store.command(body.revision, body.command);
 					await writePresets(home, result.state);

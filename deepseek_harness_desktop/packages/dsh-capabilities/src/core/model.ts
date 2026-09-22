@@ -1,12 +1,13 @@
 /** JSON-only contract shared by the host and UI; never imports a host service. */
 import { defaultRoles } from './default-roles.ts'
+import type { RoleIconSpec } from './appearance.ts'
 export type Action = 'navigate' | 'read' | 'screenshot'
 export type Part = { componentId: string; actions: Action[] }
 export type Definition = { name: string; description: string; instructions: string; components: Part[] }
 export type Version = Definition & { version: number; createdAt: string }
 export type Capability = { id: string; source: 'builtin' | 'local'; enabled: boolean; pinned: boolean; removedAt?: string; draft: Definition; versions: Version[] }
 export type Binding = { capabilityId: string; version: number; enabled: boolean; actions?: Action[] }
-export type RoleDefinition = { name: string; color: string; duties: string; requirements: string; format: string; capabilities: Binding[] }
+export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec; duties: string; requirements: string; format: string; capabilities: Binding[] }
 export type RoleVersion = RoleDefinition & { version: number; preset: string; createdAt: string }
 export type Role = { id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
 export type State = { schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }

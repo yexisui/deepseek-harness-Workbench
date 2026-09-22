@@ -1,5 +1,6 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
+import type {} from '@deepseek-ai/dsh-client-connection'
 import { join } from 'node:path'
 import { dshHome } from '../../../shared/host/dsh-home.ts'
 import { components } from './core/model.ts'
@@ -10,7 +11,7 @@ import { writePresets } from './host/presets.ts'
 import { fence, json, readBody } from './host/http.ts'
 
 export const name = 'workbench-capabilities'
-export const inject = ['webServer', 'tools', 'agents', 'agentPresets']
+export const inject = ['webServer', 'tools', 'agents', 'agentPresets', 'connection']
 declare module '@deepseek-ai/cordis' { interface Context { capabilities: CapabilityRuntime } }
 export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: string; port?: number } = {}) {
   const home = dshHome(), store = new CapabilityStore(join(home, 'capabilities'))
@@ -21,10 +22,18 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/api/capabilities', handler: async (req, res) => {
     try {
       fence(req)
+      // A named webServer route bypasses Connection's /api route; reuse its public authentication check explicitly.
+      const rejection = ctx.connection.requestRejection(req)
+      if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
       const route = new URL(req.url ?? '/', 'http://localhost').pathname
       if (req.method === 'GET' && route === '/api/capabilities/state') return json(res, 200, { state: store.snapshot(), components, health: runtime.health, tasks: runtime.tasks(), dependencies: runtime.dependencies() })
+      if (req.method === 'GET' && route.startsWith('/api/capabilities/icons/')) {
+        const image = await store.icons.read(route.slice('/api/capabilities/icons/'.length))
+        res.writeHead(200, { 'content-type': 'image/png', 'content-length': image.length, 'cache-control': 'private, max-age=31536000, immutable', 'x-content-type-options': 'nosniff' }); res.end(image); return
+      }
       if (req.method !== 'POST') throw new InputError('不支持此操作', 405)
       const body = object(await readBody(req))
+      if (route === '/api/capabilities/icons') return json(res, 200, await store.icons.upload(body.dataUrl))
       if (route === '/api/capabilities/command') { const result = await store.command(body.revision, body.command); await writePresets(home, result.state); return json(res, 200, result) }
       if (route === '/api/capabilities/check') return json(res, 200, await runtime.check())
       if (route === '/api/capabilities/connect') return json(res, 200, await runtime.connect())

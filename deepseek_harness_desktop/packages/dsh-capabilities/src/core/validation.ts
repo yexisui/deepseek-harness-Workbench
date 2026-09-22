@@ -1,4 +1,5 @@
 import { components, type Definition, type RoleDefinition, type State } from './model.ts'
+import { roleIconIds, roleIconAssetIdPattern, type RoleIconSpec } from './appearance.ts'
 export class InputError extends Error { constructor(message: string, readonly status = 400) { super(message) } }
 export function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new InputError('需要有效的对象')
@@ -12,6 +13,12 @@ export function bool(value: unknown): boolean { if (typeof value !== 'boolean') 
 export function id(value: unknown): string { const result = text(value, '标识', 90, true); if (!/^[a-z][a-z0-9-]*$/.test(result)) throw new InputError('标识格式无效'); return result }
 export function integer(value: unknown): number { if (!Number.isSafeInteger(value) || Number(value) < 0) throw new InputError('版本号无效'); return value as number }
 export function list(value: unknown, max = 100): unknown[] { if (!Array.isArray(value) || value.length > max) throw new InputError('列表无效或过长'); return value }
+export function roleIcon(value: unknown): RoleIconSpec {
+  const icon = object(value)
+  if (icon.kind === 'builtin' && roleIconIds.includes(icon.id as any)) return { kind: 'builtin', id: icon.id as typeof roleIconIds[number] }
+  if (icon.kind === 'png' && typeof icon.assetId === 'string' && roleIconAssetIdPattern.test(icon.assetId)) return { kind: 'png', assetId: icon.assetId }
+  throw new InputError('岗位图标无效，请选择推荐图标或重新上传 PNG')
+}
 export function definition(value: unknown): Definition {
   const data = object(value), seen = new Set<string>()
   return { name: text(data.name, '能力名称', 80, true), description: text(data.description, '简介', 1000), instructions: text(data.instructions, '使用说明', 8000), components: list(data.components, 20).map(value => {
@@ -30,7 +37,7 @@ export function definition(value: unknown): Definition {
 export function roleDefinition(value: unknown, state: State): RoleDefinition {
   const data = object(value), color = text(data.color, '颜色', 7), seen = new Set<string>()
   if (!/^#[0-9a-f]{6}$/i.test(color)) throw new InputError('颜色无效')
-  return { name: text(data.name, '岗位名称', 80, true), color, duties: text(data.duties, '职责', 8000), requirements: text(data.requirements, '要求', 8000), format: text(data.format, '输出格式', 4000), capabilities: list(data.capabilities, 30).map(value => {
+  return { name: text(data.name, '岗位名称', 80, true), color, ...(data.icon === undefined ? {} : { icon: roleIcon(data.icon) }), duties: text(data.duties, '职责', 8000), requirements: text(data.requirements, '要求', 8000), format: text(data.format, '输出格式', 4000), capabilities: list(data.capabilities, 30).map(value => {
     const binding = object(value), capabilityId = id(binding.capabilityId), version = integer(binding.version)
     if (seen.has(capabilityId)) throw new InputError('同一能力不能重复添加')
     seen.add(capabilityId)

@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { capabilityDeletionReferences, initialState, latest, type State, type Command, type Role, type RoleDefinition } from '../core/model.ts'
 import { defaultRoles } from '../core/default-roles.ts'
 import { bool, definition, id, InputError, integer, issues, list, object, roleDefinition, text } from '../core/validation.ts'
+import { RoleIconStore } from './icons.ts'
 
 /** One writer, atomic replacement and optimistic revisions; no silent overwrite on corruption. */
 export class CapabilityStore {
@@ -11,7 +12,8 @@ export class CapabilityStore {
   private tail: Promise<unknown> = Promise.resolve()
   private lock?: Awaited<ReturnType<typeof open>>
   private listeners = new Set<() => void>()
-  constructor(readonly directory: string) {}
+  readonly icons: RoleIconStore
+  constructor(readonly directory: string) { this.icons = new RoleIconStore(join(directory, 'icons')) }
   async init() {
     await mkdir(this.directory, { recursive: true })
     // A desktop host may be killed without disposal. Recover only a provably dead writer.
@@ -152,6 +154,7 @@ export class CapabilityStore {
         }
       } else if (command.type === 'role.save') {
         const value = roleDefinition(command.definition, next), publish = bool(command.publish)
+        if (value.icon?.kind === 'png') await this.icons.read(value.icon.assetId)
         let role = next.roles.find(r => r.id === target)
         if (command.id && !role) throw new InputError('岗位不存在', 404)
         const existingBindings = [...(role?.draft.capabilities ?? []), ...(role ? latest(role.versions)?.capabilities ?? [] : [])]

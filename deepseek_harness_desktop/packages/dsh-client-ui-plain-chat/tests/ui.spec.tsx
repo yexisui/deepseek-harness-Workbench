@@ -427,6 +427,10 @@ describe('ordinary chat UI integration', () => {
       expect(toolbar().textContent).toContain(name)
       expect(toolbar().getAttribute('data-role-icon')).toBe(icon)
       expect(toolbar().style.getPropertyValue('--role-color')).toBe(color)
+      expect(toolbar().querySelector('[data-role-appearance-icon]')!.getAttribute('data-role-appearance-icon')).toBe(icon)
+      const card = container.querySelector(`[data-role-id="builtin-${icon}"]`)!
+      expect(card.querySelector('[data-role-appearance-icon]')!.getAttribute('data-role-appearance-icon')).toBe(icon)
+      expect((card as HTMLElement).style.getPropertyValue('--role-color')).toBe(color)
       expect(toolbar().textContent).not.toContain('v1')
     }
 
@@ -470,5 +474,141 @@ describe('ordinary chat UI integration', () => {
     expect(app.remoteCreate).not.toHaveBeenCalled()
     expect(app.sessions.create).not.toHaveBeenCalled()
     expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false)
+  })
+
+  it.each([
+    { kind: 'builtin', id: 'developer' },
+    { kind: 'png', assetId: 'a'.repeat(64) },
+  ] as const)('links a saved $kind icon across the role card, toolbar and new-chat picker', async icon => {
+    const state = capabilityClient.getSnapshot().data!.state
+    const reader = state.roles.find(role => role.id === 'reader')!
+    const published = structuredClone(reader.versions)
+    reader.draft = { ...reader.draft, color: '#19647E', icon }
+    app.list.byId.older = { projectionValues: { agentPreset: 'workbench-role-reader-v1' }, title: '保留历史会话' }
+    const older = structuredClone(app.list.byId.older)
+    await renderWithRoles()
+    const input = await type('保留新的输入草稿')
+    await click('button[aria-label="选定助手：网页助手"]')
+    await click('button[aria-haspopup="dialog"]')
+    const option = Array.from(document.querySelectorAll<HTMLButtonElement>('dialog button')).find(button => button.querySelector('strong')?.textContent === '网页助手')!
+    const surfaces = [
+      container.querySelector('[data-role-id="reader"]')!,
+      container.querySelector('[data-current-assistant="true"]')!,
+      container.querySelector('button[aria-haspopup="dialog"]')!,
+      option,
+    ]
+    for (const surface of surfaces) {
+      const marker = surface.querySelector('[data-role-appearance-icon]')!
+      expect(marker.getAttribute('data-role-appearance-icon')).toBe(icon.kind === 'png' ? 'png' : icon.id)
+      if (icon.kind === 'png') expect(marker.querySelector('img')!.getAttribute('src')).toBe(`/api/capabilities/icons/${icon.assetId}`)
+    }
+    expect(surfaces[1]!.getAttribute('data-role-icon')).toBe(icon.kind === 'png' ? 'png' : icon.id)
+    expect((surfaces[1] as HTMLElement).style.getPropertyValue('--role-color')).toBe('#19647E')
+    await act(async () => { option.click() })
+    expect(container.querySelector('textarea')).toBe(input)
+    expect(input.value).toBe('保留新的输入草稿')
+    expect(sessionStorage.getItem('workbench-chat-draft')).toBe(input.value)
+    expect(app.list.byId.older).toEqual(older)
+    expect(reader.versions).toEqual(published)
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+    expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false)
+    await click('button[aria-label="发送消息"]')
+    expect(app.remoteCreate).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ agentPreset: 'workbench-role-reader-v1' }))
+  })
+
+  it('falls back from a missing PNG and retries a repaired same-hash snapshot without retrying unrelated renders', async () => {
+    const state = capabilityClient.getSnapshot().data!.state
+    const reader = state.roles.find(role => role.id === 'reader')!
+    reader.draft = { ...reader.draft, icon: { kind: 'png', assetId: 'a'.repeat(64) } }
+    await renderWithRoles()
+    await type('图片加载失败也保留草稿')
+    await click('button[aria-label="选定助手：网页助手"]')
+    await click('button[aria-haspopup="dialog"]')
+    const surfaces = () => [
+      container.querySelector('[data-role-id="reader"]')!,
+      container.querySelector('[data-current-assistant="true"]')!,
+      container.querySelector('button[aria-haspopup="dialog"]')!,
+      Array.from(document.querySelectorAll<HTMLButtonElement>('dialog button')).find(button => button.querySelector('strong')?.textContent === '网页助手')!,
+    ]
+    await act(async () => { for (const surface of surfaces()) surface.querySelector('img')!.dispatchEvent(new Event('error')) })
+    for (const surface of surfaces()) {
+      expect(surface.querySelector('img')).toBeNull()
+      expect(surface.querySelector('[data-role-appearance-icon]')!.getAttribute('data-role-appearance-icon')).toBe('analyst')
+    }
+    // Editing another field keeps the same icon snapshot and must not start a render/error loop.
+    reader.draft = { ...reader.draft, color: '#376BA9' }
+    await act(async () => { await capabilityClient.refresh() })
+    for (const surface of surfaces()) expect(surface.querySelector('img')).toBeNull()
+
+    // Repairing and saving identical PNG content returns the same hash in a new server snapshot.
+    reader.draft = { ...reader.draft, icon: { kind: 'png', assetId: 'a'.repeat(64) } }
+    await act(async () => { await capabilityClient.refresh() })
+    for (const surface of surfaces()) {
+      expect(surface.querySelector('[data-role-appearance-icon]')!.getAttribute('data-role-appearance-icon')).toBe('png')
+      expect(surface.querySelector('img')!.getAttribute('src')).toBe(`/api/capabilities/icons/${'a'.repeat(64)}`)
+    }
+    await act(async () => { for (const surface of surfaces()) surface.querySelector('img')!.dispatchEvent(new Event('error')) })
+    reader.draft = { ...reader.draft, icon: { kind: 'png', assetId: 'b'.repeat(64) } }
+    await act(async () => { await capabilityClient.refresh() })
+    for (const surface of surfaces()) {
+      expect(surface.querySelector('[data-role-appearance-icon]')!.getAttribute('data-role-appearance-icon')).toBe('png')
+      expect(surface.querySelector('img')!.getAttribute('src')).toBe(`/api/capabilities/icons/${'b'.repeat(64)}`)
+    }
+    expect(container.querySelector('button[aria-label="选定助手：网页助手"]')!.getAttribute('aria-pressed')).toBe('true')
+    expect(container.querySelector('textarea')!.value).toBe('图片加载失败也保留草稿')
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+    expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false)
+  })
+
+  it('keeps cached appearance edits local until saving and never changes the selected role or old session', async () => {
+    const state = capabilityClient.getSnapshot().data!.state
+    const reader = state.roles.find(role => role.id === 'reader')!
+    const published = structuredClone(reader.versions)
+    const cachedDraft = { ...structuredClone(reader.draft), color: '#8C3F81', icon: { kind: 'builtin', id: 'developer' } as const }
+    editorDrafts.set('role:reader', { value: cachedDraft, revision: state.revision })
+    app.list.byId.older = { title: '现有对话', projectionValues: { agentPreset: 'workbench-role-reader-v1' } }
+    app.list.current = 'older'
+    const older = structuredClone(app.list.byId.older)
+    const sessionInput = app.addBinding('older', '会话已有草稿')
+    const command = vi.spyOn(capabilityClient, 'command').mockImplementation(async (request, revision) => {
+      expect(request).toEqual({ type: 'role.save', id: 'reader', definition: cachedDraft, publish: false })
+      expect(revision).toBe(state.revision)
+      if (request.type !== 'role.save') throw new Error('Unexpected command')
+      reader.draft = structuredClone(request.definition)
+      await capabilityClient.refresh()
+      return reader.id
+    })
+    try {
+      await renderWithRoles({ ...app.props, sessionId: 'older' })
+      const input = await type('仍在编辑的输入')
+      await click('button[aria-label="选定助手：需求分析助手"]')
+      const open = () => act(async () => {
+        Array.from(container.querySelectorAll<HTMLButtonElement>('[data-role-id="reader"] button')).find(button => button.textContent?.includes('编辑岗位'))!.click()
+      })
+      await open()
+      await act(async () => { document.querySelector('dialog')!.dispatchEvent(new Event('cancel', { cancelable: true })) })
+      expect(container.querySelector('[data-role-id="reader"] [data-role-appearance-icon]')!.getAttribute('data-role-appearance-icon')).toBe('analyst')
+      expect(container.querySelector('button[aria-label="选定助手：需求分析助手"]')!.getAttribute('aria-pressed')).toBe('true')
+      expect(editorDrafts.get('role:reader')!.value).toEqual(cachedDraft)
+      await open()
+      await act(async () => { Array.from(document.querySelectorAll<HTMLButtonElement>('dialog button')).find(button => button.textContent === '保存草稿')!.click() })
+      expect(command).toHaveBeenCalledTimes(1)
+      expect(editorDrafts.has('role:reader')).toBe(false)
+      expect(container.querySelector('[data-role-id="reader"] [data-role-appearance-icon]')!.getAttribute('data-role-appearance-icon')).toBe('developer')
+      expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('data-role-icon')).toBe('analyst')
+      expect(container.querySelector('button[aria-label="选定助手：需求分析助手"]')!.getAttribute('aria-pressed')).toBe('true')
+      expect(reader.versions).toEqual(published)
+      expect(app.list.byId.older).toEqual(older)
+      expect(app.list.current).toBe('older')
+      expect(sessionInput.state.getSnapshot().draft).toBe('会话已有草稿')
+      expect(sessionInput.setDraft).not.toHaveBeenCalled()
+      expect(sessionInput.submit).not.toHaveBeenCalled()
+      expect(container.querySelector('textarea')).toBe(input)
+      expect(input.value).toBe('仍在编辑的输入')
+      expect(app.remoteCreate).not.toHaveBeenCalled()
+      expect(app.sessions.create).not.toHaveBeenCalled()
+      expect(app.sessions.open).not.toHaveBeenCalled()
+      expect(app.sessions.clear).not.toHaveBeenCalled()
+    } finally { command.mockRestore() }
   })
 })

@@ -26,6 +26,11 @@ export const capabilityClient = {
   },
   async check(connect = false) { await request(connect ? 'connect' : 'check', {}); await capabilityClient.refresh() },
   async stop(sessionId: string) { await request('stop', { sessionId }); await capabilityClient.refresh() },
+  async uploadRoleIcon(dataUrl: string): Promise<string> {
+    const result = await request<{ id: string }>('icons', { dataUrl })
+    if (!/^[a-f0-9]{64}$/.test(result.id)) throw new Error('图标保存结果无效，请重试')
+    return result.id
+  },
 }
 export function useCapabilities() {
   const state = useSyncExternalStore(capabilityClient.subscribe, capabilityClient.getSnapshot)
