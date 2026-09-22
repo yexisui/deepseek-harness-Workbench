@@ -229,10 +229,7 @@ export class LocalWorkshopService {
     if (kind === 'plugin') {
       const job = readSmallJson(path.join(this.home, 'workshop', 'plugin-jobs', createHash('sha256').update(id).digest('hex') + '.json'))
       if (job.state === 'running') fail('active-resource', 'Wait for the plugin installation to finish before replacing it.', 409)
-      for (const profile of readDirectories(path.join(this.home, 'profiles'))) {
-        const dependencies = readSmallJson(path.join(this.home, 'profiles', profile, 'package.json')).dependencies
-        if (dependencies && typeof dependencies === 'object' && Object.hasOwn(dependencies, id)) fail('active-resource', 'Uninstall this plugin before replacing its local package.', 409)
-      }
+      // Installed plugins use immutable snapshots; replacing the library is independent.
     }
     if (existsSync(destination) && !lstatSync(destination).isDirectory()) fail('conflict', 'The resource destination is occupied by a file.', 409)
     return plainExists(destination)
@@ -269,6 +266,9 @@ export class LocalWorkshopService {
     const conflict = this.guardDestination(manifest.kind, manifest.id)
     return { ...manifest, fileCount: files.length, totalBytes: files.reduce((sum, file) => sum + file.bytes, 0), conflict }
   }
+
+  /** Server-only access to a validated staging directory, never returned over HTTP. */
+  inspectedRoot(id: unknown): string { this.inspect(id); return this.getUpload(id).inspected!.root }
 
   async commit(id: unknown, replace = false): Promise<LocalResource> {
     this.inspect(id)

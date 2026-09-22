@@ -162,9 +162,9 @@ export function makeLocalActionRoutes(deps: LocalActionRouteDeps = {}): WebRoute
         const installed = rows.find(row => row.id === id)
         if (action === 'install') {
           if (installed) throw new ActionError('already-installed', 'This plugin is already installed. Manage it in Settings / Plugins.')
-          if (body.confirmCode !== true) throw new ActionError('confirmation-required', 'Installing this plugin executes package scripts and may download dependencies. Confirm before installing.')
+          if (body.confirmCode !== true) throw new ActionError('confirmation-required', 'This plugin will execute code after restart. Confirm this local version before installing.')
           trustLocalResource(home, dir, record)
-          // Install an immutable copy: queued CLI jobs never read a resource replaced by another import.
+          // Install an immutable copy: the offline installer never reads a resource replaced by another import.
           const snapshots = join(home, 'workshop', 'install-snapshots')
           assertTreeLocation(home, snapshots)
           mkdirSync(snapshots, { recursive: true })
@@ -177,7 +177,7 @@ export function makeLocalActionRoutes(deps: LocalActionRouteDeps = {}): WebRoute
           mkdirSync(dirname(marker), { recursive: true })
           writeFileSync(marker, JSON.stringify({ id, jobId: result.jobId, state: 'running', createdAt: new Date().toISOString() }))
           monitorPluginJob(home, id, result.jobId, req, service)
-          return { ok: true, jobId: result.jobId, requiresRestart: true, message: 'Installation queued. Dependencies may require network access; restart the workbench after the job succeeds.' }
+          return { ok: true, jobId: result.jobId, requiresRestart: true, message: 'Offline installation queued. Restart the workbench after the job succeeds; missing dependencies are rejected without downloads.' }
         }
         if (action === 'enable' || action === 'disable') {
           if (!installed) throw new ActionError('not-installed', 'Install the plugin before changing its state')

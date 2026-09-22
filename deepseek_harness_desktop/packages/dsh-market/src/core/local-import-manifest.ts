@@ -103,6 +103,7 @@ export function readResourceManifest(root: string, files: LocalFile[], expectedK
   if (!candidates.length && names.has('package.json')) candidates.push('plugin')
   if (candidates.length !== 1 || (expectedKind && candidates[0] !== expectedKind)) fail('wrong-kind', 'Resource manifest is missing, ambiguous or belongs to a different category.')
   const kind = candidates[0]!
+  if (kind !== 'plugin' && files.some(file => file.rel.split('/').includes('node_modules'))) fail('unsupported-files', 'Dependency directories are only supported in plugin packages.')
   const requireFile = (value: unknown): string => {
     const rel = safeLocalPath(typeof value === 'string' ? value.replace(/^\.\//, '') : value)
     if (!names.has(rel)) fail('missing-file', `Resource is missing the referenced file: ${rel}`)

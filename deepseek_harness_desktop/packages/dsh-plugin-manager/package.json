@@ -1,6 +1,6 @@
 {
   "name": "@linxin666/dsh-client-ui-plugin-manager",
-  "description": "Plugin manager tab for the dsh web GUI Plugins settings section: installs and manages plugins through the official host channels, with next-start enablement, conflict handling and repair conversations; plugin update checks are disabled.",
+  "description": "Offline plugin ZIP/folder imports, version rollback and persisted hierarchical inventory.",
   "version": "0.3.23",
   "type": "module",
   "main": "lib/index.js",
@@ -65,7 +65,8 @@
     "react-dom": "^18.3.1",
     "tsdown": "0.22.2",
     "typescript": "~5.7.2",
-    "vitest": "^4.1.1"
+    "vitest": "^4.1.1",
+    "semver": "^7.8.5"
   },
   "files": [
     "lib",

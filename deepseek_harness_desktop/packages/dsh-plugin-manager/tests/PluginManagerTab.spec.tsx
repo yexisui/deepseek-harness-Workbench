@@ -162,73 +162,27 @@ describe('PluginManagerTab', () => {
     expect(screen.getByRole('switch', { name: 'Turn off p1' }).getAttribute('aria-checked')).toBe('true')
   })
 
-  it('seeds the repair conversation with the install error, not a later unrelated error', async () => {
-    const injected = face({
-      install: vi.fn(async () => { throw new Error('ENOENT: install exploded') }),
-      setEnabled: vi.fn(async () => { throw new Error('toggle exploded') }),
-    })
+  it('preserves management errors without exposing an online installation field', async () => {
+    const injected = face({setEnabled: vi.fn(async () => { throw new Error('toggle exploded') })})
     renderTab(injected)
-
     await screen.findByText('p1')
-    fireEvent.change(screen.getByPlaceholderText(t('installPlaceholder')), { target: { value: '@scope/new' } })
-    fireEvent.click(screen.getByRole('button', { name: t('install') }))
-    expect(await screen.findByText(/ENOENT: install exploded/)).toBeTruthy()
-
-    // A later, unrelated failure overwrites the error row text...
-    fireEvent.click(screen.getByRole('switch', { name: 'Turn off p1' }))
+    fireEvent.click(screen.getByRole('switch', {name:'Turn off p1'}))
     expect(await screen.findByText(/toggle exploded/)).toBeTruthy()
-
-    // ...but the repair seed still carries the install error, not the toggle error.
-    fireEvent.click(screen.getByRole('button', { name: t('repair') }))
-    await waitFor(() => {
-      expect(injected.repairPlugin).toHaveBeenCalledTimes(1)
-    })
-    const [, message] = vi.mocked(injected.repairPlugin).mock.calls[0] as [string, string]
-    expect(message).toContain('@scope/new')
-    expect(message).toContain('ENOENT: install exploded')
-    expect(message).not.toContain('toggle exploded')
+    expect(screen.queryByPlaceholderText(t('installPlaceholder'))).toBeNull()
   })
 
-  it('shows the conflict ledger after an install disabled a product, and undoes it', async () => {
-    let controlsCalls = 0
-    const injected = face({
-      controlsList: vi.fn(async () => {
-        controlsCalls += 1
-        return controlsCalls <= 1 ? [product('enabled')] : [product('disabled')]
-      }),
-      controlsSetEnabled: vi.fn(async () => [product('enabled')]),
-    })
-    renderTab(injected)
-
-    await screen.findByText('p1')
-    fireEvent.change(screen.getByPlaceholderText(t('installPlaceholder')), { target: { value: '@scope/new' } })
-    fireEvent.click(screen.getByRole('button', { name: t('install') }))
-
-    expect(await screen.findByText(t('conflictDisabled', { name: 'dsh-web' }))).toBeTruthy()
-
-    // Every conflict row offers the repair handoff with a seeded conflict message.
-    fireEvent.click(screen.getByRole('button', { name: t('repair') }))
-    await waitFor(() => {
-      expect(injected.repairPlugin).toHaveBeenCalledTimes(1)
-    })
-    const [, conflictMessage] = vi.mocked(injected.repairPlugin).mock.calls[0] as [string, string]
-    expect(conflictMessage).toContain('dsh-web (web-ui)')
-    expect(conflictMessage).toContain(t('repairConflictTitle'))
-
-    fireEvent.click(screen.getByRole('button', { name: t('undoConflict') }))
-    await waitFor(() => {
-      expect(injected.controlsSetEnabled).toHaveBeenCalledWith('web-ui', true)
-    })
-    await waitFor(() => {
-      expect(screen.queryByText(t('conflictDisabled', { name: 'dsh-web' }))).toBeNull()
-    })
+  it('offers ZIP and folder imports without calling the legacy installer', async () => {
+    const injected=face();renderTab(injected);await screen.findByText('p1')
+    expect(screen.getByRole('button',{name:'导入 ZIP 压缩包'})).toBeTruthy()
+    expect(screen.getByRole('button',{name:'选择插件文件夹'})).toBeTruthy()
+    expect(injected.install).not.toHaveBeenCalled()
   })
 
   it('keeps install and local management but exposes no update controls', async () => {
     const injected = face()
     renderTab(injected)
     await screen.findByText('p1')
-    expect(screen.getByRole('button', { name: t('install') })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '导入 ZIP 压缩包' })).toBeTruthy()
     expect(screen.getByRole('button', { name: t('uninstall') })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Check for updates' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Update' })).toBeNull()

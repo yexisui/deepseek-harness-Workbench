@@ -19,6 +19,7 @@ import type { ProfileFacts } from '../src/host/profile.ts'
 function fakeRequest(chunks: Buffer[] = []): { request: IncomingMessage; destroyCalls: () => number } {
   let destroyCalls = 0
   const request = {
+    method: 'POST',
     [Symbol.asyncIterator]() {
       let index = 0
       return {

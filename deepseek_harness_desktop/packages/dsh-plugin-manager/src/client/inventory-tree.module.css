@@ -1,0 +1,160 @@
+.root {
+  --tree-bg: var(--dsw-alias-bg-layer-2, #fff);
+  --tree-text: var(--dsw-alias-label-primary, #263147);
+  --tree-muted: var(--dsw-alias-label-secondary, #7a859b);
+  --tree-border: var(--dsw-alias-border-l2, #dce2ed);
+  --tree-accent: var(--dsw-alias-button-primary-fill, #6478bd);
+  --tree-tone: var(--tree-accent);
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+  color: var(--tree-text);
+  font: inherit;
+  container-type: inline-size;
+}
+.root *, .root *::before, .root *::after { box-sizing: border-box; }
+.root button, .root input, .root select { font: inherit; }
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.root input:not([type=checkbox]), .root select {
+  border: 1px solid var(--tree-border); background: var(--tree-bg); color: inherit;
+  border-radius: 10px; padding: 9px 11px; min-width: 0; font-size: 13px;
+}
+.root button {
+  border: 1px solid var(--tree-border); border-radius: 10px; background: var(--tree-bg);
+  color: inherit; padding: 9px 12px; cursor: pointer; font-size: 13px;
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.root button:hover:not(:disabled) { border-color: color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border)); }
+.root button:disabled { opacity: .45; cursor: default; }
+.root button:focus-visible, .root input:focus-visible, .root select:focus-visible, .root summary:focus-visible {
+  outline: 2px solid var(--tree-accent); outline-offset: 3px;
+}
+.search {
+  display: flex; align-items: center; gap: 9px; flex: 1; min-width: 180px; padding: 0 12px;
+  border: 1px solid var(--tree-border); border-radius: 11px; background: var(--tree-bg);
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.search > svg { width: 18px; height: 18px; color: var(--tree-muted); flex-shrink: 0; }
+.root .search input { border: 0; background: transparent; padding: 11px 0; width: 100%; outline: none; }
+.search:focus-within { border-color: var(--tree-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent); }
+.search input::placeholder { color: var(--tree-muted); }
+.root .toolButton { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 12px; }
+.toolButton > svg { width: 16px; height: 16px; color: var(--tree-muted); }
+.scopeToolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.root .scopeButton {
+  display: flex; align-items: center; gap: 9px; padding: 4px 0; border: 0; background: transparent;
+  font-size: 15px; font-weight: 600; text-align: left;
+}
+.scopeIcon { width: 19px; height: 19px; color: var(--tree-accent); flex-shrink: 0; }
+.scopeButton .chevron { margin-left: 1px; }
+.session { padding-bottom: 20px; border-bottom: 1px solid var(--tree-border); }
+.scopeToolbar select { max-width: 52%; border-color: transparent; background: color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg)); }
+.muted, .scopeDescription { font-size: 12px; color: var(--tree-muted); line-height: 1.7; margin: 9px 0 12px; }
+.scopeDescription { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 8px 0 16px; }
+.statusDot { width: 5px; height: 5px; border-radius: 50%; background: #419b7a; margin-left: 6px; }
+.inactiveCount { margin-left: 6px; padding-left: 10px; border-left: 1px solid var(--tree-border); }
+.groupList { display: grid; gap: 12px; animation: treeReveal .22s ease-out; }
+.branch {
+  min-width: 0; border: 1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));
+  border-radius: 15px; background: color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.branch[data-tone=violet] { --tree-tone: #9780cb; }
+.branch[data-tone=amber] { --tree-tone: #b39860; }
+.branch[data-open=true] { border-color: color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border)); }
+.root .branchButton {
+  display: flex; align-items: center; width: 100%; gap: 12px; padding: 16px; text-align: left;
+  border: 0; border-radius: inherit; background: transparent; line-height: 1.5;
+}
+.root .branchButton:hover { background: color-mix(in srgb, var(--tree-tone) 5%, transparent); }
+.branchIcon {
+  width: 38px; height: 38px; flex-shrink: 0; display: grid; place-items: center; border-radius: 12px;
+  color: color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));
+  background: color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);
+  transition: transform .22s ease, background .22s ease;
+}
+.branchIcon svg { width: 21px; height: 21px; }
+.branchButton:hover .branchIcon { transform: translateY(-2px) rotate(-4deg); background: color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg)); }
+.branchLabel { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.branchTitle { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.branchHint { font-size: 11px; color: var(--tree-muted); font-weight: 400; }
+.branchMeta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.count {
+  display: inline-flex; align-items: baseline; justify-content: center; gap: 3px; flex-shrink: 0;
+  min-width: 29px; padding: 3px 8px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  font-variant-numeric: tabular-nums; line-height: 1.6;
+  color: color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));
+  background: color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));
+}
+.countUnit { font-size: 10px; font-weight: 400; opacity: .7; }
+.scopeButton .count { margin-left: 2px; padding: 1px 7px; }
+.chevron { width: 14px; height: 14px; flex-shrink: 0; color: var(--tree-muted); transition: transform .22s ease, color .18s ease; }
+button[aria-expanded=true] > .chevron { transform: rotate(90deg); color: var(--tree-tone); }
+.children { padding: 0 12px 12px; min-width: 0; animation: treeReveal .22s ease-out; }
+.moduleList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 8px; }
+.branch[data-level=module] {
+  border-radius: 11px; border-color: color-mix(in srgb, var(--tree-border) 65%, transparent);
+  background: color-mix(in srgb, var(--tree-bg) 82%, transparent);
+}
+.branch[data-level=module]:hover { border-color: color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border)); box-shadow: 0 3px 12px #182c5006; }
+.branch[data-level=module][data-open=true] { grid-column: 1 / -1; border-color: color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border)); }
+.branch[data-level=module] > .branchButton { min-height: 69px; padding: 12px; gap: 9px; }
+.branch[data-level=module] .branchIcon { width: 29px; height: 29px; border-radius: 9px; background: color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg)); box-shadow: none; }
+.branch[data-level=module] .branchIcon svg { width: 18px; height: 18px; }
+.branch[data-level=module] .branchTitle { font-size: 12px; font-weight: 500; }
+.branch[data-level=module] .count { min-width: 23px; padding: 2px 6px; font-size: 11px; }
+.branch[data-level=module] .countUnit { display: none; }
+.branch[data-level=module] > .children { padding-top: 0; }
+.branch[data-level=module] .grid { border-top: 1px solid var(--tree-border); padding-top: 12px; }
+.failureCount { color: #bc575e; font-size: 10px; }
+.emptyState { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 20px 8px; color: var(--tree-muted); font-size: 13px; }
+.emptyState > svg { width: 30px; height: 30px; opacity: .65; }
+.emptyState small { display: block; margin-top: 5px; font-size: 11px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; padding: 6px 0 0; }
+.card { border: 1px solid var(--tree-border); border-radius: 10px; padding: 12px; min-width: 0; background: var(--tree-bg); transition: border-color .18s ease, box-shadow .18s ease; }
+.card:hover { border-color: color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border)); box-shadow: 0 2px 8px #182c5006; }
+.card summary { cursor: pointer; display: flex; gap: 7px; align-items: flex-start; justify-content: space-between; list-style: none; }
+.card summary::-webkit-details-marker { display: none; }
+.card summary::after { content: ''; width: 6px; height: 6px; margin: 5px 2px 0 1px; border-right: 1.5px solid var(--tree-muted); border-bottom: 1.5px solid var(--tree-muted); transform: rotate(45deg); flex-shrink: 0; transition: transform .18s ease; }
+.card details[open] summary::after { transform: rotate(225deg); margin-top: 8px; }
+.card strong { overflow-wrap: anywhere; font-size: 12px; font-weight: 600; flex: 1; line-height: 1.6; }
+.card p { font-size: 11px; color: var(--tree-muted); line-height: 1.7; margin: 7px 0 0; }
+.card dl { font-size: 11px; overflow-wrap: anywhere; padding-top: 10px; border-top: 1px solid var(--tree-border); animation: treeReveal .18s ease-out; }
+.card dd { margin: 3px 0 9px; color: var(--tree-muted); }
+.card dt { font-weight: 500; }
+.badge { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 10px; line-height: 1.6; border-radius: 5px; background: color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg)); color: var(--tree-muted); padding: 2px 5px; }
+.badge[data-state=active] { background: color-mix(in srgb, #489779 10%, var(--tree-bg)); color: color-mix(in srgb, #489779 85%, var(--tree-text)); }
+.badge[data-state=active]::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.badge[data-state=failed] { background: color-mix(in srgb, #c25d64 10%, var(--tree-bg)); color: #c25d64; }
+.editor { border: 1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border)); border-radius: 14px; padding: 16px; display: grid; gap: 12px; background: color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg)); }
+.editor p { font-size: 12px; line-height: 1.7; color: var(--tree-muted); margin: 0; }
+.editGroup { border: 1px solid var(--tree-border); padding: 12px; border-radius: 10px; display: grid; gap: 8px; background: var(--tree-bg); }
+.moduleEdit { display: flex; gap: 6px; flex-wrap: wrap; margin-left: 12px; }
+.moduleEdit input { flex: 1; }
+.select { display: flex; gap: 6px; font-size: 12px; margin-bottom: 8px; }
+.select input { accent-color: var(--tree-accent); }
+.error { color: #c25d64; overflow-wrap: anywhere; }
+.confirm { background: color-mix(in srgb, #b39860 10%, var(--tree-bg)); padding: 14px; border-radius: 10px; }
+.confirm button { margin-left: 6px; }
+.importBox { border: 1px solid var(--tree-border); border-radius: 14px; padding: 18px; margin-bottom: 20px; background: color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg)); }
+.importBox p { font-size: 13px; line-height: 1.7; color: var(--tree-muted); overflow-wrap: anywhere; }
+.importBox .primary { background: var(--tree-accent); color: var(--dsw-alias-label-primary-foreground, white); }
+.preview { margin-top: 16px; padding: 16px; border-radius: 10px; background: var(--tree-bg); }
+.preview dl { display: grid; grid-template-columns: 80px 1fr; gap: 8px; font-size: 13px; }
+.preview dd { margin: 0; overflow-wrap: anywhere; }
+.reveal { animation: treeReveal .22s ease-out; }
+@keyframes treeReveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@container (max-width: 520px) {
+  .moduleList, .grid { grid-template-columns: 1fr; }
+  .moduleEdit { margin-left: 0; }
+  .root .branchButton { padding: 13px; gap: 9px; }
+  .scopeToolbar { flex-wrap: wrap; gap: 8px; }
+  .scopeToolbar select { max-width: 100%; }
+  .children { padding-inline: 9px; }
+  .card summary { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .root *, .root *::before, .root *::after { animation: none !important; transition: none !important; }
+  .branchButton:hover .branchIcon { transform: none; }
+}

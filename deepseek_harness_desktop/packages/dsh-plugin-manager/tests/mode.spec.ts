@@ -35,18 +35,18 @@ describe('/mode route', () => {
     const { res, body, status } = captureResponse()
     await modeHandler(async () => true)(loopbackGet(), res)
     expect(status()).toBe(200)
-    expect(JSON.parse(body())).toEqual({ official: true })
+    expect(JSON.parse(body())).toEqual({ official: false, offline: true })
   })
 
   it('reports the gateway verdict on the npm web runtime', async () => {
     const { res, body } = captureResponse()
     await modeHandler(async () => false)(loopbackGet(), res)
-    expect(JSON.parse(body())).toEqual({ official: false })
+    expect(JSON.parse(body())).toEqual({ official: false, offline: true })
   })
 
   it('defers to the browser capability probe on desktop runtimes', async () => {
     const { res, body } = captureResponse()
     await modeHandler(async () => false, true)(loopbackGet(), res)
-    expect(JSON.parse(body())).toEqual({ official: null })
+    expect(JSON.parse(body())).toEqual({ official: false, offline: true })
   })
 })

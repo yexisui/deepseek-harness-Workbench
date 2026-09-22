@@ -1,0 +1,1352 @@
+{
+  "groups": [
+    {
+      "id": "core",
+      "name": "底层插件"
+    },
+    {
+      "id": "extensions",
+      "name": "工作台扩展"
+    }
+  ],
+  "modules": [
+    {
+      "id": "core-0",
+      "groupId": "core",
+      "name": "底层框架与通信"
+    },
+    {
+      "id": "core-1",
+      "groupId": "core",
+      "name": "模型连接与选择"
+    },
+    {
+      "id": "core-2",
+      "groupId": "core",
+      "name": "会话、存储与记录"
+    },
+    {
+      "id": "core-3",
+      "groupId": "core",
+      "name": "目标、计划与用户协作"
+    },
+    {
+      "id": "core-4",
+      "groupId": "core",
+      "name": "Agent 执行与上下文"
+    },
+    {
+      "id": "core-5",
+      "groupId": "core",
+      "name": "终端、文件与后台进程"
+    },
+    {
+      "id": "core-6",
+      "groupId": "core",
+      "name": "权限、沙箱与凭据"
+    },
+    {
+      "id": "core-7",
+      "groupId": "core",
+      "name": "工作区、附件与本机应用"
+    },
+    {
+      "id": "core-8",
+      "groupId": "core",
+      "name": "技能、指令与预设"
+    },
+    {
+      "id": "core-9",
+      "groupId": "core",
+      "name": "多 Agent 与工作流"
+    },
+    {
+      "id": "core-10",
+      "groupId": "core",
+      "name": "联网搜索与网页读取"
+    },
+    {
+      "id": "core-11",
+      "groupId": "core",
+      "name": "前端界面与设置"
+    },
+    {
+      "id": "management",
+      "groupId": "extensions",
+      "name": "扩展基础与插件管理"
+    },
+    {
+      "id": "development",
+      "groupId": "extensions",
+      "name": "任务与开发工具"
+    },
+    {
+      "id": "maintenance",
+      "groupId": "extensions",
+      "name": "使用统计与维护"
+    },
+    {
+      "id": "resources",
+      "groupId": "extensions",
+      "name": "资源、预设与外观"
+    },
+    {
+      "id": "community",
+      "groupId": "extensions",
+      "name": "社区侧栏增强"
+    },
+    {
+      "id": "local",
+      "groupId": "extensions",
+      "name": "本地普通聊天"
+    }
+  ],
+  "rows": [
+    {
+      "entryId": "include",
+      "moduleName": "cordis:include",
+      "purpose": "加载并组合整棵插件配置树；属于官方使用的 Cordis 框架基础设施",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:timer",
+      "moduleName": "@deepseek-ai/cordis-plugin-timer",
+      "purpose": "为各模块提供定时器服务",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:hmr",
+      "moduleName": "@deepseek-ai/cordis-plugin-hmr",
+      "purpose": "插件热更新；静态配置中的可选入口",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:llm",
+      "moduleName": "@deepseek-ai/dsh-llm",
+      "purpose": "统一模型调用接口，让其他模块不必直接绑定某一家模型 API",
+      "source": "官方底座",
+      "moduleId": "core-1"
+    },
+    {
+      "entryId": "include:deepseek-llm-api-extensions",
+      "moduleName": "@deepseek-ai/dsh-deepseek-llm-api-extensions",
+      "purpose": "登记 DeepSeek 官方 API 的额外请求字段",
+      "source": "官方底座",
+      "moduleId": "core-1"
+    },
+    {
+      "entryId": "include:session",
+      "moduleName": "@deepseek-ai/dsh-session",
+      "purpose": "管理会话及其事件记录",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:session-log-deepseek",
+      "moduleName": "@deepseek-ai/dsh-session-log-deepseek",
+      "purpose": "官方 DeepSeek API 的增量会话日志请求扩展",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:typert",
+      "moduleName": "@deepseek-ai/dsh-typert-registry",
+      "purpose": "维护服务接口、类型与校验结构的运行时登记表",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:typert-loader",
+      "moduleName": "@deepseek-ai/dsh-typert-loader",
+      "purpose": "把插件的接口定义接入类型登记表",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:typert-gateway",
+      "moduleName": "@deepseek-ai/dsh-api-gateway",
+      "purpose": "把前端远程请求分发到宿主服务",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:session-title",
+      "moduleName": "@deepseek-ai/dsh-session-title",
+      "purpose": "管理和读取会话标题",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:session-title-llm",
+      "moduleName": "@deepseek-ai/dsh-session-title-first-prompt-llm",
+      "purpose": "使用模型根据首条消息生成会话标题",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:user-questions",
+      "moduleName": "@deepseek-ai/dsh-user-questions",
+      "purpose": "Agent 向用户提问的宿主接口",
+      "source": "官方底座",
+      "moduleId": "core-3"
+    },
+    {
+      "entryId": "include:agent",
+      "moduleName": "@deepseek-ai/dsh-agent",
+      "purpose": "Agent 注册、启动范围和运行事件的基础服务",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:plugin-package-inventory-deepseek",
+      "moduleName": "@deepseek-ai/dsh-plugin-package-inventory-deepseek",
+      "purpose": "向官方 DeepSeek API 请求提供当前插件包清单信息",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:agent-default-model",
+      "moduleName": "@deepseek-ai/dsh-agent-default-model",
+      "purpose": "决定 Agent 入口使用的默认模型",
+      "source": "官方底座",
+      "moduleId": "core-1"
+    },
+    {
+      "entryId": "include:jobs",
+      "moduleName": "@deepseek-ai/dsh-jobs-local",
+      "purpose": "登记和跟踪后台任务",
+      "source": "官方底座",
+      "moduleId": "core-5"
+    },
+    {
+      "entryId": "include:llm-retry",
+      "moduleName": "@deepseek-ai/dsh-llm-retry",
+      "purpose": "模型请求失败后的重试策略",
+      "source": "官方底座",
+      "moduleId": "core-1"
+    },
+    {
+      "entryId": "include:settings",
+      "moduleName": "@deepseek-ai/dsh-settings-file",
+      "purpose": "将设置保存到本地文件",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:credentials",
+      "moduleName": "@deepseek-ai/dsh-credentials-local",
+      "purpose": "在本地管理模型等服务使用的凭据",
+      "source": "官方底座",
+      "moduleId": "core-6"
+    },
+    {
+      "entryId": "include:llm-pi-ai",
+      "moduleName": "@deepseek-ai/dsh-llm-pi-ai",
+      "purpose": "通过 pi-ai 接入的 DeepSeek 模型适配实现",
+      "source": "官方底座",
+      "moduleId": "core-1"
+    },
+    {
+      "entryId": "include:session-persistence-jsonl",
+      "moduleName": "@deepseek-ai/dsh-session-persistence-jsonl",
+      "purpose": "把会话历史持久化为 JSONL 文件",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:attachment-local",
+      "moduleName": "@deepseek-ai/dsh-attachment-local",
+      "purpose": "在本地保存会话附件",
+      "source": "官方底座",
+      "moduleId": "core-7"
+    },
+    {
+      "entryId": "include:session-query-sqlite",
+      "moduleName": "@deepseek-ai/dsh-session-query-sqlite",
+      "purpose": "会话查询和全文搜索后端；加载不代表全文索引已开启",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:session-projection",
+      "moduleName": "@deepseek-ai/dsh-session-projection",
+      "purpose": "从会话日志推导当前会话状态",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:storage",
+      "moduleName": "@deepseek-ai/dsh-storage",
+      "purpose": "统一登记和使用持久化存储后端",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:storage-json",
+      "moduleName": "@deepseek-ai/dsh-storage-json",
+      "purpose": "用 JSON 文件提供键值存储",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:storage-domain",
+      "moduleName": "@deepseek-ai/dsh-storage-domain",
+      "purpose": "在存储上增加数据结构校验与变更事件",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:session-projection-cache",
+      "moduleName": "@deepseek-ai/dsh-session-projection-cache",
+      "purpose": "缓存从日志计算出的会话状态，改善恢复和列表读取",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:session-telemetry-otel",
+      "moduleName": "@deepseek-ai/dsh-session-telemetry-otel",
+      "purpose": "OpenTelemetry 会话观测日志后端；条目活跃本身不能证明正在向外发送数据",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:subprocess",
+      "moduleName": "@deepseek-ai/dsh-subprocess-local",
+      "purpose": "启动与管理本地子进程",
+      "source": "官方底座",
+      "moduleId": "core-5"
+    },
+    {
+      "entryId": "include:sandbox",
+      "moduleName": "@deepseek-ai/dsh-sandbox-local",
+      "purpose": "提供本机进程沙箱执行后端",
+      "source": "官方底座",
+      "moduleId": "core-6"
+    },
+    {
+      "entryId": "include:sandbox-policy",
+      "moduleName": "@deepseek-ai/dsh-sandbox-policy",
+      "purpose": "根据会话权限模式和工作区决定每次操作的限制",
+      "source": "官方底座",
+      "moduleId": "core-6"
+    },
+    {
+      "entryId": "include:bash-sandbox",
+      "moduleName": "@deepseek-ai/dsh-bash-sandbox",
+      "purpose": "通过沙箱运行 Bash 命令；本次 Windows 宿主未启用此行",
+      "source": "官方底座",
+      "moduleId": "core-5"
+    },
+    {
+      "entryId": "include:pwsh-sandbox",
+      "moduleName": "@deepseek-ai/dsh-pwsh-sandbox",
+      "purpose": "通过沙箱运行 PowerShell 命令",
+      "source": "官方底座",
+      "moduleId": "core-5"
+    },
+    {
+      "entryId": "include:approval",
+      "moduleName": "@deepseek-ai/dsh-user-approval",
+      "purpose": "接收需要用户审批的操作，并交给对应审批界面处理",
+      "source": "官方底座",
+      "moduleId": "core-6"
+    },
+    {
+      "entryId": "include:permission",
+      "moduleName": "@deepseek-ai/dsh-permission-presets",
+      "purpose": "统一管理用户可选择的权限预设",
+      "source": "官方底座",
+      "moduleId": "core-6"
+    },
+    {
+      "entryId": "include:shell-env",
+      "moduleName": "@deepseek-ai/dsh-shell-env",
+      "purpose": "维护传给命令行工具的 DSH 环境变量",
+      "source": "官方底座",
+      "moduleId": "core-5"
+    },
+    {
+      "entryId": "include:tool-bash",
+      "moduleName": "@deepseek-ai/dsh-tool-bash",
+      "purpose": "供模型调用的 Bash 命令工具",
+      "source": "官方底座",
+      "moduleId": "core-5"
+    },
+    {
+      "entryId": "include:tool-pwsh",
+      "moduleName": "@deepseek-ai/dsh-tool-pwsh",
+      "purpose": "供模型调用的 PowerShell 命令工具",
+      "source": "官方底座",
+      "moduleId": "core-5"
+    },
+    {
+      "entryId": "include:tool-jobs",
+      "moduleName": "@deepseek-ai/dsh-tool-jobs",
+      "purpose": "供模型查看、读取输出或停止后台任务的工具",
+      "source": "官方底座",
+      "moduleId": "core-5"
+    },
+    {
+      "entryId": "include:fs-observation-policy",
+      "moduleName": "@deepseek-ai/dsh-fs-observation-policy",
+      "purpose": "文件先读后改、读取版本及写入冲突保护",
+      "source": "官方底座",
+      "moduleId": "core-6"
+    },
+    {
+      "entryId": "include:tool-fs",
+      "moduleName": "@deepseek-ai/dsh-tool-fs",
+      "purpose": "供模型读取、写入和编辑文件的工具",
+      "source": "官方底座",
+      "moduleId": "core-5"
+    },
+    {
+      "entryId": "include:tool-fs-search",
+      "moduleName": "@deepseek-ai/dsh-tool-fs-search",
+      "purpose": "供模型按文件名或内容搜索文件的工具",
+      "source": "官方底座",
+      "moduleId": "core-5"
+    },
+    {
+      "entryId": "include:agent-instructions",
+      "moduleName": "@deepseek-ai/dsh-agent-instructions",
+      "purpose": "读取项目 AGENTS.md、CLAUDE.md 等工作区指令",
+      "source": "官方底座",
+      "moduleId": "core-8"
+    },
+    {
+      "entryId": "include:skill",
+      "moduleName": "@deepseek-ai/dsh-skill",
+      "purpose": "统一登记技能来源",
+      "source": "官方底座",
+      "moduleId": "core-8"
+    },
+    {
+      "entryId": "include:skill-filesystem",
+      "moduleName": "@deepseek-ai/dsh-skill-filesystem",
+      "purpose": "从本地目录发现和读取技能",
+      "source": "官方底座",
+      "moduleId": "core-8"
+    },
+    {
+      "entryId": "include:skill-badge",
+      "moduleName": "@deepseek-ai/dsh-skill-badge",
+      "purpose": "官方随包提供的徽章示例技能",
+      "source": "官方底座",
+      "moduleId": "core-8"
+    },
+    {
+      "entryId": "include:tool-skill",
+      "moduleName": "@deepseek-ai/dsh-tool-skill",
+      "purpose": "供模型读取技能内容的工具",
+      "source": "官方底座",
+      "moduleId": "core-8"
+    },
+    {
+      "entryId": "include:commands",
+      "moduleName": "@deepseek-ai/dsh-commands",
+      "purpose": "统一登记用户可输入的命令",
+      "source": "官方底座",
+      "moduleId": "core-3"
+    },
+    {
+      "entryId": "include:command-feedback",
+      "moduleName": "@deepseek-ai/dsh-command-feedback",
+      "purpose": "提供会话反馈命令和反馈记录",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:goal",
+      "moduleName": "@deepseek-ai/dsh-goal",
+      "purpose": "管理当前会话的目标和目标状态",
+      "source": "官方底座",
+      "moduleId": "core-3"
+    },
+    {
+      "entryId": "include:goal-round-driver",
+      "moduleName": "@deepseek-ai/dsh-goal-round-driver",
+      "purpose": "驱动目标任务的后续执行轮次",
+      "source": "官方底座",
+      "moduleId": "core-3"
+    },
+    {
+      "entryId": "include:command-goal",
+      "moduleName": "@deepseek-ai/dsh-command-goal",
+      "purpose": "供用户操作会话目标的命令",
+      "source": "官方底座",
+      "moduleId": "core-3"
+    },
+    {
+      "entryId": "include:plan-mode",
+      "moduleName": "@deepseek-ai/dsh-plan-mode",
+      "purpose": "管理计划模式和用户审阅后退出计划的流程",
+      "source": "官方底座",
+      "moduleId": "core-3"
+    },
+    {
+      "entryId": "include:token-meter",
+      "moduleName": "@deepseek-ai/dsh-token-meter",
+      "purpose": "统计上下文和 token 使用量",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:compaction-basic",
+      "moduleName": "@deepseek-ai/dsh-compaction-basic",
+      "purpose": "根据 token 用量进行上下文压缩与摘要",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:command-compact",
+      "moduleName": "@deepseek-ai/dsh-command-compact",
+      "purpose": "提供手动压缩上下文的命令",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:subagent",
+      "moduleName": "@deepseek-ai/dsh-subagent",
+      "purpose": "登记子 Agent 后端并提供委派能力",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:subagent-spawn-in-process",
+      "moduleName": "@deepseek-ai/dsh-subagent-spawn-in-process",
+      "purpose": "在当前进程中新建子 Agent",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:subagent-fork-in-process",
+      "moduleName": "@deepseek-ai/dsh-subagent-fork-in-process",
+      "purpose": "带着父会话的部分历史创建子 Agent",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:tool-subagent-control",
+      "moduleName": "@deepseek-ai/dsh-tool-subagent-control",
+      "purpose": "供模型发送消息、打断或查看子 Agent",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:tool-subagent-list-agents",
+      "moduleName": "@deepseek-ai/dsh-tool-subagent-control/list-agents",
+      "purpose": "只提供子 Agent 列表的独立工具入口",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:tool-subagent",
+      "moduleName": "@deepseek-ai/dsh-tool-subagent",
+      "purpose": "供模型创建子 Agent 的工具入口",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:tool-subagent-fork",
+      "moduleName": "@deepseek-ai/dsh-tool-subagent",
+      "purpose": "供模型分叉子 Agent 的工具入口；与创建入口使用同一个包",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:workflow-worker-thread",
+      "moduleName": "@deepseek-ai/dsh-workflow-worker-thread",
+      "purpose": "在 worker 线程中运行多 Agent 编排脚本",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:tool-workflow",
+      "moduleName": "@deepseek-ai/dsh-tool-workflow",
+      "purpose": "供模型调用 JavaScript 工作流编排",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:timeout-policy",
+      "moduleName": "@deepseek-ai/dsh-tool-call-timeout-policy",
+      "purpose": "限制工具调用耗时并返回超时结果",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:spill-local",
+      "moduleName": "@deepseek-ai/dsh-spill-local",
+      "purpose": "把过长输出保存到本地临时结果文件",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:spill-policy",
+      "moduleName": "@deepseek-ai/dsh-spill-policy",
+      "purpose": "过长工具输出保留摘要及文件路径，减少上下文占用",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:session-checkpoint-policy",
+      "moduleName": "@deepseek-ai/dsh-session-checkpoint-policy",
+      "purpose": "在模型请求及工具副作用前保存会话检查点",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:tool-result-pruner",
+      "moduleName": "@deepseek-ai/dsh-compaction-tool-result-pruner",
+      "purpose": "裁剪工具结果中不必完整保留的内容",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:tool-todo",
+      "moduleName": "@deepseek-ai/dsh-tool-todo",
+      "purpose": "供模型维护待办列表",
+      "source": "官方底座",
+      "moduleId": "core-3"
+    },
+    {
+      "entryId": "include:tool-goal",
+      "moduleName": "@deepseek-ai/dsh-tool-goal",
+      "purpose": "供模型创建和更新会话目标的工具",
+      "source": "官方底座",
+      "moduleId": "core-3"
+    },
+    {
+      "entryId": "include:tool-ralph",
+      "moduleName": "@deepseek-ai/dsh-tool-ralph",
+      "purpose": "通过工作流和子 Agent 运行反复新建 Agent 的迭代循环",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:repeat-tool-reminder",
+      "moduleName": "@deepseek-ai/dsh-repeat-tool-reminder",
+      "purpose": "识别重复工具调用，提醒 Agent 避免反复空转",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:web",
+      "moduleName": "@deepseek-ai/dsh-web",
+      "purpose": "统一登记网页搜索和内容获取能力",
+      "source": "官方底座",
+      "moduleId": "core-10"
+    },
+    {
+      "entryId": "include:web-search-deepseek",
+      "moduleName": "@deepseek-ai/dsh-web-search-deepseek",
+      "purpose": "通过 DeepSeek 搜索服务获取网页搜索结果",
+      "source": "官方底座",
+      "moduleId": "core-10"
+    },
+    {
+      "entryId": "include:web-fetch-http",
+      "moduleName": "@deepseek-ai/dsh-web-fetch-http",
+      "purpose": "读取公开 HTTP／HTTPS 网页内容",
+      "source": "官方底座",
+      "moduleId": "core-10"
+    },
+    {
+      "entryId": "include:tool-web",
+      "moduleName": "@deepseek-ai/dsh-tool-web",
+      "purpose": "供模型调用网页搜索和网页读取",
+      "source": "官方底座",
+      "moduleId": "core-10"
+    },
+    {
+      "entryId": "include:tools",
+      "moduleName": "@deepseek-ai/dsh-tools",
+      "purpose": "统一登记工具并执行工具调用",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:system-prompt",
+      "moduleName": "@deepseek-ai/dsh-system-prompt",
+      "purpose": "组装发给模型的系统提示词",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:agent-loop",
+      "moduleName": "@deepseek-ai/dsh-agent-loop",
+      "purpose": "驱动模型请求、工具执行和后续响应的循环",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:fs-sandbox",
+      "moduleName": "@deepseek-ai/dsh-fs-sandbox",
+      "purpose": "根据沙箱策略限制文件修改范围",
+      "source": "官方底座",
+      "moduleId": "core-6"
+    },
+    {
+      "entryId": "include:llm-deepseek",
+      "moduleName": "@deepseek-ai/dsh-llm-deepseek",
+      "purpose": "DeepSeek Chat Completions 模型接口适配器",
+      "source": "官方底座",
+      "moduleId": "core-1"
+    },
+    {
+      "entryId": "include:subagent-model-selection-settings",
+      "moduleName": "@deepseek-ai/dsh-tool-subagent/model-selection-settings",
+      "purpose": "设置主 Agent 是否可为子 Agent 选择模型及允许的模型范围",
+      "source": "官方底座",
+      "moduleId": "core-9"
+    },
+    {
+      "entryId": "include:code-runtime",
+      "moduleName": "@deepseek-ai/dsh-code-runtime-worker-thread",
+      "purpose": "在 worker 线程中执行工具编排代码",
+      "source": "官方底座",
+      "moduleId": "core-4"
+    },
+    {
+      "entryId": "include:message-feedback",
+      "moduleName": "@deepseek-ai/dsh-message-feedback",
+      "purpose": "保存针对助手消息的评价和备注",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:session-log-download",
+      "moduleName": "@deepseek-ai/dsh-session-log-export",
+      "purpose": "导出会话日志并提供下载入口",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:open-in-app",
+      "moduleName": "@deepseek-ai/dsh-host-open-in-app",
+      "purpose": "发现本机应用并提供打开工作区的宿主接口",
+      "source": "官方底座",
+      "moduleId": "core-7"
+    },
+    {
+      "entryId": "include:ui-open-in-app",
+      "moduleName": "@deepseek-ai/dsh-client-ui-open-in-app",
+      "purpose": "会话顶部的“在其他应用中打开”按钮",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:workspace",
+      "moduleName": "@deepseek-ai/dsh-workspace",
+      "purpose": "登记工作区并维护与会话的关系",
+      "source": "官方底座",
+      "moduleId": "core-7"
+    },
+    {
+      "entryId": "include:session-reference",
+      "moduleName": "@deepseek-ai/dsh-session-reference",
+      "purpose": "在会话中引用其他会话的快照内容",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:file-reference-local",
+      "moduleName": "@deepseek-ai/dsh-file-reference-local",
+      "purpose": "查找用于会话引用的本地文件",
+      "source": "官方底座",
+      "moduleId": "core-7"
+    },
+    {
+      "entryId": "include:session-stats",
+      "moduleName": "@deepseek-ai/dsh-session-stats",
+      "purpose": "计算会话消息数、耗时等统计",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:session-turn-outline",
+      "moduleName": "@deepseek-ai/dsh-session-turn-outline",
+      "purpose": "生成会话各轮次的概要结构",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:directory-picker",
+      "moduleName": "@deepseek-ai/dsh-host-directory-picker-auto",
+      "purpose": "根据运行环境选择原生或网页目录选择器",
+      "source": "官方底座",
+      "moduleId": "core-7"
+    },
+    {
+      "entryId": "include:plugin-inventory",
+      "moduleName": "@deepseek-ai/dsh-host-plugin-inventory",
+      "purpose": "提供当前插件条目及运行状态的只读接口；本次 178 项清单来自这里",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:session-controller",
+      "moduleName": "@deepseek-ai/dsh-api-session-controller",
+      "purpose": "提供会话创建、查询和运行控制接口",
+      "source": "官方底座",
+      "moduleId": "core-2"
+    },
+    {
+      "entryId": "include:workspace-files",
+      "moduleName": "@deepseek-ai/dsh-api-workspace-files",
+      "purpose": "向前端提供文件目录、文件内容和变化信息",
+      "source": "官方底座",
+      "moduleId": "core-7"
+    },
+    {
+      "entryId": "include:settings-controller",
+      "moduleName": "@deepseek-ai/dsh-api-settings-controller",
+      "purpose": "为界面提供配置读取与修改接口",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:workspace-controller",
+      "moduleName": "@deepseek-ai/dsh-api-workspace-controller",
+      "purpose": "向前端提供工作区管理和状态同步",
+      "source": "官方底座",
+      "moduleId": "core-7"
+    },
+    {
+      "entryId": "include:cordis-host-runner",
+      "moduleName": "@deepseek-ai/dsh-cordis-host-runner",
+      "purpose": "动态插件的宿主侧定义、生命周期与调用支持",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:web-startup",
+      "moduleName": "@deepseek-ai/dsh-web-app/startup",
+      "purpose": "解析和提供 Web 启动所需参数",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:webserver",
+      "moduleName": "@deepseek-ai/dsh-host-webserver",
+      "purpose": "承载本地 HTTP 服务、路由及静态页面",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:web-runtime",
+      "moduleName": "@deepseek-ai/dsh-web-app",
+      "purpose": "组装 Web 运行环境，连接前端文件和宿主",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:client-hmr",
+      "moduleName": "@deepseek-ai/dsh-client-hmr",
+      "purpose": "前端资源重建后的热更新支持",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:modules",
+      "moduleName": "@deepseek-ai/dsh-client-modules",
+      "purpose": "组织前端插件模块及加载关系",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:connection",
+      "moduleName": "@deepseek-ai/dsh-client-connection",
+      "purpose": "经过身份验证的前后端 RPC 通信",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:file-upload",
+      "moduleName": "@deepseek-ai/dsh-client-file-upload",
+      "purpose": "浏览器附件上传、接收和暂存",
+      "source": "官方底座",
+      "moduleId": "core-7"
+    },
+    {
+      "entryId": "include:api-remotes",
+      "moduleName": "@deepseek-ai/dsh-api-remotes",
+      "purpose": "汇集应用需要向前端开放的宿主服务",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:cordis-client-runner",
+      "moduleName": "@deepseek-ai/dsh-cordis-client-runner",
+      "purpose": "动态插件的浏览器侧执行与事件支持",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:ui-theme",
+      "moduleName": "@deepseek-ai/dsh-client-ui-theme",
+      "purpose": "明暗主题、配色变量与外观设置",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:locale",
+      "moduleName": "@deepseek-ai/dsh-client-locale",
+      "purpose": "界面语言选择及翻译字典",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-layout",
+      "moduleName": "@deepseek-ai/dsh-client-ui-layout",
+      "purpose": "三栏页面框架、面板布局和拖动调整",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-renderer",
+      "moduleName": "@deepseek-ai/dsh-client-ui-renderer",
+      "purpose": "把各插件提供的界面插槽渲染为 React 页面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-session",
+      "moduleName": "@deepseek-ai/dsh-client-ui-session",
+      "purpose": "把会话状态连接到 React 界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:resources",
+      "moduleName": "@deepseek-ai/dsh-client-resources",
+      "purpose": "统一前端对文件等资源的读取和订阅模型",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    },
+    {
+      "entryId": "include:ui-sidebar",
+      "moduleName": "@deepseek-ai/dsh-client-ui-sidebar",
+      "purpose": "左侧会话列表、分组和搜索",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-sidebar-right",
+      "moduleName": "@deepseek-ai/dsh-client-ui-sidebar-right",
+      "purpose": "官方右侧面板容器与导航",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-sidebar-documentpreview",
+      "moduleName": "@deepseek-ai/dsh-client-ui-sidebar-documentpreview",
+      "purpose": "官方文档预览：Markdown、代码、图片、PDF、HTML 等",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-sidebar-files",
+      "moduleName": "@deepseek-ai/dsh-client-ui-sidebar-files",
+      "purpose": "官方右侧文件树",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-settings",
+      "moduleName": "@deepseek-ai/dsh-client-ui-settings",
+      "purpose": "设置界面的基础结构和扩展插槽",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-settings-general",
+      "moduleName": "@deepseek-ai/dsh-client-ui-settings-general",
+      "purpose": "通用设置、设置入口和欢迎说明",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-settings-models",
+      "moduleName": "@deepseek-ai/dsh-client-ui-settings-models",
+      "purpose": "模型与供应商设置界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-settings-plugin-inventory",
+      "moduleName": "@deepseek-ai/dsh-client-ui-settings-plugin-inventory",
+      "purpose": "截图中的“插件列表”页",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-conversation",
+      "moduleName": "@deepseek-ai/dsh-client-ui-conversation",
+      "purpose": "对话布局、输入区、待发队列和视图切换",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-approval",
+      "moduleName": "@deepseek-ai/dsh-client-ui-approval",
+      "purpose": "需要审批时接管输入区展示审批操作",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-chat",
+      "moduleName": "@deepseek-ai/dsh-client-ui-chat",
+      "purpose": "聊天消息的渲染和详情界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-brand-official",
+      "moduleName": "@deepseek-ai/dsh-client-ui-brand-official",
+      "purpose": "DeepSeek 官方品牌展示",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-attachment",
+      "moduleName": "@deepseek-ai/dsh-client-ui-attachment",
+      "purpose": "附件和图片在输入区及消息中的展示",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-tool",
+      "moduleName": "@deepseek-ai/dsh-client-ui-tool",
+      "purpose": "工具调用树和各类工具结果展示",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-cordis",
+      "moduleName": "@deepseek-ai/dsh-client-ui-cordis",
+      "purpose": "动态插件定义卡片及运行／停止界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-workflow-run",
+      "moduleName": "@deepseek-ai/dsh-client-ui-workflow-run",
+      "purpose": "工作流运行记录及嵌套成员展开视图",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-deliverables",
+      "moduleName": "@deepseek-ai/dsh-client-ui-deliverables",
+      "purpose": "展示生成文件和可点击的交付文件引用",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-workspace",
+      "moduleName": "@deepseek-ai/dsh-client-ui-workspace",
+      "purpose": "选择工作区的界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-input-trigger",
+      "moduleName": "@deepseek-ai/dsh-client-ui-input-trigger",
+      "purpose": "检测输入框中的 / 命令和 @ 引用触发符",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-commands",
+      "moduleName": "@deepseek-ai/dsh-client-ui-commands",
+      "purpose": "显示命令候选项及命令操作界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-skill",
+      "moduleName": "@deepseek-ai/dsh-client-ui-skill",
+      "purpose": "展示技能引用与技能工具调用",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-subagent",
+      "moduleName": "@deepseek-ai/dsh-client-ui-subagent",
+      "purpose": "子 Agent 会话导航、续接和 @ 引用",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-reference",
+      "moduleName": "@deepseek-ai/dsh-client-ui-reference",
+      "purpose": "输入框中的 @文件 和 @会话 引用",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-schedule",
+      "moduleName": "@deepseek-ai/dsh-client-ui-schedule",
+      "purpose": "官方定时任务目录视图；当前全局未启用，不等于上游任务看板",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-jobs",
+      "moduleName": "@deepseek-ai/dsh-client-ui-jobs",
+      "purpose": "会话顶部后台任务列表",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-goal",
+      "moduleName": "@deepseek-ai/dsh-client-ui-goal",
+      "purpose": "输入框上方的目标状态条",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-message-feedback",
+      "moduleName": "@deepseek-ai/dsh-client-ui-message-feedback",
+      "purpose": "消息点赞／点踩及反馈对话框",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-model-selection",
+      "moduleName": "@deepseek-ai/dsh-client-ui-model-selection",
+      "purpose": "会话模型选择界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-permission",
+      "moduleName": "@deepseek-ai/dsh-client-ui-permission-presets",
+      "purpose": "权限预设选择和会话权限操作界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-agent-preset",
+      "moduleName": "@deepseek-ai/dsh-client-ui-agent-preset",
+      "purpose": "Agent 预设选择、默认预设与组成编辑界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-settings-plugins",
+      "moduleName": "@deepseek-ai/dsh-client-ui-settings-plugins",
+      "purpose": "插件设置分区及截图中的四项配置卡",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-plan",
+      "moduleName": "@deepseek-ai/dsh-client-ui-plan",
+      "purpose": "计划模式输入区和计划命令界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-user-questions",
+      "moduleName": "@deepseek-ai/dsh-client-ui-user-questions",
+      "purpose": "Agent 提问及计划审阅界面",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:ui-trajectory",
+      "moduleName": "@deepseek-ai/dsh-client-ui-trajectory",
+      "purpose": "执行事件轨迹与耗时总览",
+      "source": "官方底座",
+      "moduleId": "core-11"
+    },
+    {
+      "entryId": "include:agent-presets",
+      "moduleName": "@deepseek-ai/dsh-agent-presets",
+      "purpose": "按 Agent 预设为各会话组装插件",
+      "source": "官方底座",
+      "moduleId": "core-8"
+    },
+    {
+      "entryId": "include:web-ui-compat",
+      "moduleName": "@linxin666/dsh-web-all",
+      "purpose": "全家桶兼容与桥接层；扩展运行基础",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "management"
+    },
+    {
+      "entryId": "include:web-ui-settings",
+      "moduleName": "@linxin666/dsh-web-all/settings",
+      "purpose": "组织“Web 插件”设置入口和子插件卡片",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "management"
+    },
+    {
+      "entryId": "include:web-ui-plugin-manager",
+      "moduleName": "@linxin666/dsh-web-all/plugin-manager",
+      "purpose": "插件安装、卸载、启停与管理；本地版本移除了上游更新能力",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "management"
+    },
+    {
+      "entryId": "include:web-ui-community-plugins",
+      "moduleName": "@linxin666/dsh-web-all/community-plugins",
+      "purpose": "上游社区目录兼容条目；本地版本已精简线上目录行为",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "resources"
+    },
+    {
+      "entryId": "include:web-ui-market",
+      "moduleName": "@linxin666/dsh-web-all/market",
+      "purpose": "上游创意工坊；本地已改为本地资源浏览与 ZIP／文件夹导入",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "resources"
+    },
+    {
+      "entryId": "include:web-ui-task-board",
+      "moduleName": "@linxin666/dsh-web-all/task-board",
+      "purpose": "任务看板和后端定时任务调度",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "development"
+    },
+    {
+      "entryId": "include:web-ui-git-graph",
+      "moduleName": "@linxin666/dsh-web-all/git-graph",
+      "purpose": "Git 分支与提交图谱等可视化",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "development"
+    },
+    {
+      "entryId": "include:web-ui-remote-web-ui",
+      "moduleName": "@linxin666/dsh-web-all/remote-web-ui",
+      "purpose": "手机或其他浏览器连接工作台；本地曾清理旧公网连接相关路径",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "development"
+    },
+    {
+      "entryId": "include:web-ui-pet",
+      "moduleName": "@linxin666/dsh-web-all/pet",
+      "purpose": "桌面宠物及互动展示",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "resources"
+    },
+    {
+      "entryId": "include:web-ui-ssh",
+      "moduleName": "@linxin666/dsh-web-all/ssh",
+      "purpose": "SSH 远程终端、文件传输和服务器运维",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "development"
+    },
+    {
+      "entryId": "include:web-ui-describe-image",
+      "moduleName": "@linxin666/dsh-web-all/describe-image",
+      "purpose": "通过外部视觉模型为文本会话提供图像理解；属于移植适配集成",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "development"
+    },
+    {
+      "entryId": "include:web-ui-liangshen",
+      "moduleName": "@linxin666/dsh-web-all/liangshen",
+      "purpose": "梁神模式的提示词、预设及工具呈现策略",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "development"
+    },
+    {
+      "entryId": "include:web-ui-skill-explorer",
+      "moduleName": "@linxin666/dsh-web-all/skill-explorer",
+      "purpose": "浏览、创建和管理技能的可视化中心",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "development"
+    },
+    {
+      "entryId": "include:web-ui-doctor",
+      "moduleName": "@linxin666/dsh-web-all/doctor",
+      "purpose": "工作台故障诊断和恢复支持",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "maintenance"
+    },
+    {
+      "entryId": "include:web-ui-usage",
+      "moduleName": "@linxin666/dsh-web-all/usage",
+      "purpose": "用量统计、余额和额度查询",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "maintenance"
+    },
+    {
+      "entryId": "include:web-ui-session-archive",
+      "moduleName": "@linxin666/dsh-web-all/session-archive",
+      "purpose": "集中筛选、批量归档和管理会话",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "maintenance"
+    },
+    {
+      "entryId": "include:web-ui-model-capabilities",
+      "moduleName": "@linxin666/dsh-web-all/model-capabilities",
+      "purpose": "编辑模型图片输入、推理档位等能力声明",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "maintenance"
+    },
+    {
+      "entryId": "include:web-ui-preset-center",
+      "moduleName": "@linxin666/dsh-web-all/preset-center",
+      "purpose": "管理社区／本地预设库；本地已改造线上获取部分",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "resources"
+    },
+    {
+      "entryId": "include:web-ui-skin-center",
+      "moduleName": "@linxin666/dsh-web-all/skin-center",
+      "purpose": "皮肤、壁纸和主题资产管理",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "resources"
+    },
+    {
+      "entryId": "include:web-ui-i18n",
+      "moduleName": "@linxin666/dsh-i18n",
+      "purpose": "补充扩展插件的语言字典",
+      "source": "上游 dsh-web 扩展",
+      "moduleId": "resources"
+    },
+    {
+      "entryId": "include:web-ui-better-sidebar",
+      "moduleName": "dsh-better-sidebar",
+      "purpose": "项目预集成的社区右侧面板增强：文件、编辑器、终端、Git、浏览器等",
+      "source": "外部社区（上游预集成）",
+      "moduleId": "community"
+    },
+    {
+      "entryId": "include:workbench-plain-chat",
+      "moduleName": "@linxin666/dsh-client-ui-plain-chat",
+      "purpose": "本地普通聊天入口与预设；允许不选工作区聊天，并承载后续岗位助手界面改造",
+      "source": "本地新增",
+      "moduleId": "local"
+    },
+    {
+      "entryId": "5bda1796",
+      "moduleName": "@deepseek-ai/dsh-host-directory-picker-native",
+      "purpose": "运行时挂载的本机文件夹选择器后端",
+      "source": "官方底座",
+      "moduleId": "core-7"
+    },
+    {
+      "entryId": "749fed63",
+      "moduleName": "@deepseek-ai/dsh-client-ui-directory-picker-native",
+      "purpose": "运行时挂载的本机文件夹选择器前端连接",
+      "source": "官方底座",
+      "moduleId": "core-7"
+    },
+    {
+      "entryId": "fe40e5a2",
+      "moduleName": "@deepseek-ai/cordis-plugin-hmr",
+      "purpose": "运行时动态挂载的热更新／配置监听支持，与静态 hmr 是两个加载条目",
+      "source": "官方底座",
+      "moduleId": "core-0"
+    }
+  ]
+}
