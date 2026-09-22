@@ -256,7 +256,9 @@ describe('ordinary chat UI integration', () => {
   it('keeps the official roster and opens the persisted role fields', async () => {
     await render(app.props, 'settings.section')
     expect(container.querySelector('[data-existing-presets]')).not.toBeNull()
-    await act(async () => { Array.from(container.querySelectorAll('button')).find(b => b.textContent === '编辑岗位')!.click() })
+    for (const name of ['需求分析助手', '市场部助手', '项目经理助手', '开发助手']) expect(container.textContent).toContain(name)
+    const customRole = Array.from(container.querySelectorAll('article')).find(card => card.querySelector('h3')?.textContent === '网页助手')!
+    await act(async () => { Array.from(customRole.querySelectorAll('button')).find(b => b.textContent === '编辑岗位')!.click() })
     const dialog = document.querySelector('dialog')!
     expect(dialog.querySelector<HTMLInputElement>('input[maxlength="80"]')!.value).toBe('网页助手')
     expect(dialog.querySelectorAll('[data-attached-capability]')).toHaveLength(1)

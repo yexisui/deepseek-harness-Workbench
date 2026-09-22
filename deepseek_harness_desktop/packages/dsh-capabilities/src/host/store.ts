@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, open, rename, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 import { initialState, latest, type State, type Command, type Role, type RoleDefinition } from '../core/model.ts'
+import { defaultRoles } from '../core/default-roles.ts'
 import { bool, definition, id, InputError, integer, issues, list, object, roleDefinition, text } from '../core/validation.ts'
 
 /** One writer, atomic replacement and optimistic revisions; no silent overwrite on corruption. */
@@ -29,6 +30,7 @@ export class CapabilityStore {
         const raw = JSON.parse(await readFile(join(this.directory, 'state.json'), 'utf8'))
         if (raw.schema !== 1 || !Array.isArray(raw.capabilities) || !Array.isArray(raw.roles) || !Number.isSafeInteger(raw.revision)) throw new Error('Unsupported capability data')
         this.state = raw
+        if (raw.defaultRolesVersion !== undefined && raw.defaultRolesVersion !== 1) throw new Error('Unsupported default role migration')
         if (raw.stoppedSessions !== undefined && (!Array.isArray(raw.stoppedSessions) || raw.stoppedSessions.some((value: unknown) => typeof value !== 'string' || !value || value.length > 150))) throw new Error('Invalid stopped session data')
         if (raw.revokedAt !== undefined && Object.entries(object(raw.revokedAt)).some(([key, value]) => !/^(role|capability):[a-z][a-z0-9-]*$/.test(key) || !Number.isSafeInteger(value) || Number(value) < 0)) throw new Error('Invalid revocation data')
         // Validate persisted references too. Invalid state must never become execution authority.
@@ -37,6 +39,15 @@ export class CapabilityStore {
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
         this.state = initialState(); await this.persist(this.state)
+      }
+      if (this.state.defaultRolesVersion !== 1) {
+        // 只迁移一次；保留用户已有的同名岗位、修改、停用状态和历史版本。
+        const next = this.snapshot(), now = new Date().toISOString()
+        next.roles.push(...defaultRoles(now).filter(role => !next.roles.some(existing => existing.id === role.id || existing.draft.name.trim() === role.draft.name)))
+        next.defaultRolesVersion = 1; next.revision++; next.updatedAt = now
+        const backup = await open(join(this.directory, 'state-before-default-roles-v1.json'), 'wx').catch(error => { if (error.code !== 'EEXIST') throw error; return undefined })
+        if (backup) { try { await backup.writeFile(JSON.stringify(this.state, null, 2)); await backup.sync() } finally { await backup.close() } }
+        await this.persist(next); this.state = next
       }
     } catch (error) { await this.close(); throw error }
   }

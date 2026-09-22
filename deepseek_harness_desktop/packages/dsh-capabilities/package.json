@@ -1,5 +1,5 @@
 {
-  "name": "@linxin666/dsh-capabilities", "version": "0.1.0-local.3", "private": true,
+  "name": "@linxin666/dsh-capabilities", "version": "0.1.0-local.4", "private": true,
   "description": "岗位能力、版本、授权与 BrowserSkill 接入服务", "type": "module",
   "main": "lib/index.js", "exports": { ".": "./lib/index.js", "./policy": "./lib/policy.js", "./browser": "./lib/browser.js", "./package.json": "./package.json" },
   "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },

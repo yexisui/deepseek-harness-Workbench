@@ -14,13 +14,14 @@ describe('durable capability definitions', () => {
   it('restores definitions, drafts and immutable role versions after restart', async () => {
     const store = await setup(), result = await role(store), original = store.snapshot()
     await writePresets(store.directory, original)
-    const preset = latest(original.roles[0]!.versions)!.preset
+    const originalRole = original.roles.find(r => r.id === result.id)!
+    const preset = latest(originalRole.versions)!.preset
     const source = await readFile(join(store.directory, '.agent-presets', preset, 'agent.cordis.yml'), 'utf8')
     expect(JSON.parse(source)[1].name).toBe('@linxin666/dsh-capabilities/policy')
-    await store.command(result.state.revision, { type: 'role.save', id: result.id, definition: { ...original.roles[0]!.draft, name: '下一版' }, publish: true })
-    expect(store.snapshot().roles[0]!.versions[0]!.name).toBe('网页助手')
+    await store.command(result.state.revision, { type: 'role.save', id: result.id, definition: { ...originalRole.draft, name: '下一版' }, publish: true })
+    expect(store.snapshot().roles.find(r => r.id === result.id)!.versions[0]!.name).toBe('网页助手')
     await store.close(); const reopened = new CapabilityStore(store.directory); await reopened.init(); stores.push(reopened)
-    expect(reopened.snapshot().roles[0]!.versions).toHaveLength(2)
+    expect(reopened.snapshot().roles.find(r => r.id === result.id)!.versions).toHaveLength(2)
     expect(roleForPreset(reopened.snapshot(), preset)?.version.name).toBe('网页助手')
   })
   it('rejects racing stale writes without losing either existing configuration or the successful write', async () => {
@@ -37,11 +38,11 @@ describe('durable capability definitions', () => {
     await expect(store.command(1, { type: 'role.save', definition: { ...emptyRole(), name: 'bad', capabilities: [{ capabilityId: 'browser', version: 1, enabled: true, actions: ['submit'] }] }, publish: true })).rejects.toThrow('缩小权限')
   })
   it('copies only a draft and never overwrites the original or silently adopts a new version', async () => {
-    const store = await setup(); await role(store)
+    const store = await setup(), saved = await role(store)
     const before = store.snapshot(), copy = await store.command(before.revision, { type: 'capability.copy', id: 'browser' })
     expect(copy.state.capabilities.find(c => c.id === copy.id)!.versions).toEqual([])
     await store.command(copy.state.revision, { type: 'capability.save', id: 'browser', definition: { ...before.capabilities[0]!.draft, name: 'Browser v2' }, publish: true })
-    expect(latest(store.snapshot().roles[0]!.versions)!.capabilities[0]!.version).toBe(1)
+    expect(latest(store.snapshot().roles.find(r => r.id === saved.id)!.versions)!.capabilities[0]!.version).toBe(1)
     expect(references(store.snapshot(), 'browserskill').roles).toHaveLength(1)
   })
   it('rejects a second writer and never replaces a corrupt store with empty defaults', async () => {
@@ -54,7 +55,7 @@ describe('durable capability definitions', () => {
 })
 describe('monotonic role authorization', () => {
   it('keeps unloaded historical sessions revoked after disable and re-enable while allowing a new conversation', async () => {
-    const store = await setup(), result = await role(store), snapshot = result.state.roles[0]!.versions[0]!
+    const store = await setup(), result = await role(store), snapshot = result.state.roles.find(r => r.id === result.id)!.versions[0]!
     await store.command(1, { type: 'capability.toggle', id: 'browser', enabled: false })
     await store.command(2, { type: 'capability.toggle', id: 'browser', enabled: true })
     const revokedAt = store.snapshot().revokedAt!['capability:browser']!
@@ -62,7 +63,7 @@ describe('monotonic role authorization', () => {
     expect(wasRevoked(store.snapshot(), result.id, snapshot, revokedAt + 100)).toBe(false)
   })
   it('persists explicit stops and never restores permissions to old snapshots after a revoke and re-grant', async () => {
-    const store = await setup(), result = await role(store), snapshot = result.state.roles[0]!.versions[0]!, base = result.state.capabilities[0]!.draft
+    const store = await setup(), result = await role(store), snapshot = result.state.roles.find(r => r.id === result.id)!.versions[0]!, base = result.state.capabilities[0]!.draft
     await store.revokeSession('qa-stopped')
     await store.command(1, { type: 'capability.save', id: 'browser', definition: { ...base, components: [{ componentId: 'browserskill', actions: ['read'] }] }, publish: true })
     await store.command(2, { type: 'capability.save', id: 'browser', definition: base, publish: true })
@@ -73,13 +74,13 @@ describe('monotonic role authorization', () => {
     expect(allowedActions(restored.snapshot(), result.id, snapshot)).toEqual(['read'])
   })
   it('revokes existing sessions immediately and does not grant newly published actions to old roles', async () => {
-    const store = await setup(), result = await role(store), old = result.state.roles[0]!.versions[0]!
+    const store = await setup(), result = await role(store), old = result.state.roles.find(r => r.id === result.id)!.versions[0]!
     const base = result.state.capabilities[0]!.draft
     await store.command(1, { type: 'capability.save', id: 'browser', definition: { ...base, components: [{ componentId: 'browserskill', actions: ['read'] }] }, publish: true })
     expect(allowedActions(store.snapshot(), result.id, old)).toEqual(['read'])
     await store.command(2, { type: 'capability.toggle', id: 'browser', enabled: false })
     expect(allowedActions(store.snapshot(), result.id, old)).toEqual([])
-    expect(store.snapshot().roles[0]!.versions).toHaveLength(1)
+    expect(store.snapshot().roles.find(r => r.id === result.id)!.versions).toHaveLength(1)
   })
   it('refuses cross-session targets, implicit current session, hidden write actions, tab overrides and URL execution', () => {
     const allowed = ['navigate', 'read', 'screenshot'] as const

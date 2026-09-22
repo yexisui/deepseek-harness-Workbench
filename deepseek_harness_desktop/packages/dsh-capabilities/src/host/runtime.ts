@@ -99,6 +99,8 @@ export class CapabilityRuntime {
     this.live.set(agent.id, live)
     this.allowedAtAttach.set(agent.id, allowedActions(this.store.snapshot(), live.roleId, live.version))
     live.disposers.push(agent.ctx.tools.guard(exec => this.authorize(exec)))
+    // 仅有岗位职责的助手可以正常对话，但不展示尚未装配的浏览器技能。
+    if (live.stopped || !allowedActions(this.store.snapshot(), live.roleId, live.version).length) return
     const skills = agent.ctx.get('skills')
     if (skills) live.disposers.push(skills.register({ name: 'browser-skill', description: '当前岗位的网页导航、读取与截图能力。', content: guide, source: 'bundled' }))
     live.disposers.push(agent.ctx.tools.register(defineTool({

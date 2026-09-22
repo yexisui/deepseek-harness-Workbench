@@ -1,4 +1,5 @@
 /** JSON-only contract shared by the host and UI; never imports a host service. */
+import { defaultRoles } from './default-roles.ts'
 export type Action = 'navigate' | 'read' | 'screenshot'
 export type Part = { componentId: string; actions: Action[] }
 export type Definition = { name: string; description: string; instructions: string; components: Part[] }
@@ -8,7 +9,7 @@ export type Binding = { capabilityId: string; version: number; enabled: boolean;
 export type RoleDefinition = { name: string; color: string; duties: string; requirements: string; format: string; capabilities: Binding[] }
 export type RoleVersion = RoleDefinition & { version: number; preset: string; createdAt: string }
 export type Role = { id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
-export type State = { schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
+export type State = { schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
 export type Component = { id: string; name: string; provider: string; version: string; actions: readonly Action[]; dependencies: readonly string[] }
 export const browserPackage = '@wxg-prc-cpg/browser-skill-dsh-plugin'
 export const components: readonly Component[] = [{ id: 'browserskill', name: '浏览器操作', provider: browserPackage, version: '0.3.0', actions: ['navigate', 'read', 'screenshot'], dependencies: ['@deepseek-ai/dsh-tools', '@deepseek-ai/dsh-agent', '@deepseek-ai/dsh-session', '@deepseek-ai/dsh-skill', '@deepseek-ai/dsh-attachment', 'bsk', 'browser-extension'] }]
@@ -18,7 +19,7 @@ export const emptyRole = (): RoleDefinition => ({ name: '', color: '#4F73E8', du
 export const latest = <T>(versions: T[]): T | undefined => versions.at(-1)
 export function initialState(now = new Date().toISOString()): State {
   const definition: Definition = { name: '浏览器操作', description: '在独立浏览器窗口中打开、读取网页与截图。', instructions: '先说明目标，再打开网页并读取结果。仅使用已授权的浏览器动作；完成后关闭本会话的浏览器窗口。', components: [{ componentId: 'browserskill', actions: ['navigate', 'read', 'screenshot'] }] }
-  return { schema: 1, revision: 0, updatedAt: now, roles: [], capabilities: [{ id: 'browser', source: 'builtin', enabled: true, pinned: true, draft: definition, versions: [{ ...structuredClone(definition), version: 1, createdAt: now }] }] }
+  return { schema: 1, revision: 0, updatedAt: now, defaultRolesVersion: 1, roles: defaultRoles(now), capabilities: [{ id: 'browser', source: 'builtin', enabled: true, pinned: true, draft: definition, versions: [{ ...structuredClone(definition), version: 1, createdAt: now }] }] }
 }
 export type Command =
   | { type: 'capability.save'; id?: string; definition: Definition; publish: boolean; applyToRoles?: string[] }
