@@ -28,6 +28,8 @@ export type Command =
   | { type: 'capability.pin'; id: string; pinned: boolean }
   | { type: 'capability.remove'; id: string }
   | { type: 'capability.restore'; id: string }
+  | { type: 'capability.restoreMany'; ids: string[] }
+  | { type: 'capability.purge'; ids: string[] }
   | { type: 'role.save'; id?: string; definition: RoleDefinition; publish: boolean }
   | { type: 'role.toggle'; id: string; enabled: boolean }
 export type Health = { checkedAt: string | null; installed: boolean; loaded: boolean; state: 'unknown' | 'missing' | 'disconnected' | 'ready' | 'degraded'; message: string; cliVersion?: string; browsers: { id: string; name: string }[] }
@@ -40,6 +42,11 @@ export function resolveBinding(state: State, binding: Binding): Version | undefi
 }
 export function actionsOf(definition?: Definition): Action[] {
   return [...new Set(definition?.components.flatMap(part => part.actions) ?? [])]
+}
+/** 永久删除必须保护所有历史岗位版本，不能只检查当前列表或活动会话。 */
+export function capabilityDeletionReferences(state: State, capabilityId: string): Role[] {
+  return state.roles.filter(role => role.draft.capabilities.some(binding => binding.capabilityId === capabilityId)
+    || role.versions.some(version => version.capabilities.some(binding => binding.capabilityId === capabilityId)))
 }
 export function references(state: State, componentId: string, tasks: Task[] = []) {
   const capabilities = state.capabilities.filter(c => c.draft.components.some(p => p.componentId === componentId) || c.versions.some(v => v.components.some(p => p.componentId === componentId)))

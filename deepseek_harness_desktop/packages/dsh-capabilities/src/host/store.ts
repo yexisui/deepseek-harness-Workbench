@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, open, rename, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
-import { initialState, latest, type State, type Command, type Role, type RoleDefinition } from '../core/model.ts'
+import { capabilityDeletionReferences, initialState, latest, type State, type Command, type Role, type RoleDefinition } from '../core/model.ts'
 import { defaultRoles } from '../core/default-roles.ts'
 import { bool, definition, id, InputError, integer, issues, list, object, roleDefinition, text } from '../core/validation.ts'
 
@@ -117,7 +117,7 @@ export class CapabilityStore {
         const cap = next.capabilities.find(c => c.id === target)
         if (!cap) throw new InputError('能力不存在', 404)
         if (command.type === 'capability.remove') {
-          if (cap.removedAt) throw new InputError('此能力已移除，可从“已移除”中恢复')
+          if (cap.removedAt) throw new InputError('此能力已移除，可从“回收站”中恢复')
           // 软移除保留岗位引用和不可变历史；同时撤销未加载的旧会话权限。
           cap.removedAt = now; cap.enabled = false; cap.pinned = false
           next.revokedAt ??= {}; next.revokedAt[`capability:${target}`] = Date.parse(now)
@@ -126,6 +126,29 @@ export class CapabilityStore {
           delete cap.removedAt
           // 恢复配置不等于重新授权，必须由用户另行启用；旧撤销记录继续生效。
           cap.enabled = false; cap.pinned = false
+        }
+      } else if (command.type === 'capability.restoreMany' || command.type === 'capability.purge') {
+        const ids = list(command.ids, 10000).map(id)
+        if (!ids.length) throw new InputError('请先选择回收站中的能力')
+        if (new Set(ids).size !== ids.length) throw new InputError('能力标识不能重复')
+        // 先校验整批范围，任何一项失效均不写入，避免部分恢复或部分永久删除。
+        const capabilities = ids.map(capabilityId => {
+          const cap = next.capabilities.find(candidate => candidate.id === capabilityId)
+          if (!cap) throw new InputError('能力不存在，请刷新后重试', 404)
+          if (!cap.removedAt) throw new InputError('只能操作回收站中的能力')
+          if (command.type === 'capability.purge' && capabilityDeletionReferences(next, capabilityId).length) throw new InputError(`“${cap.draft.name}”仍被岗位草稿或历史版本引用，无法永久删除`)
+          return cap
+        })
+        target = ids[0]!
+        if (command.type === 'capability.restoreMany') {
+          for (const cap of capabilities) {
+            delete cap.removedAt
+            // 批量恢复同样只恢复配置，不恢复授权、收藏或旧会话的执行权限。
+            cap.enabled = false; cap.pinned = false
+          }
+        } else {
+          const selected = new Set(ids)
+          next.capabilities = next.capabilities.filter(cap => !selected.has(cap.id))
         }
       } else if (command.type === 'role.save') {
         const value = roleDefinition(command.definition, next), publish = bool(command.publish)

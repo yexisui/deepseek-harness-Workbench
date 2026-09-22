@@ -1167,6 +1167,10 @@ window.__ModuleLoader__.load({
 		function actionsOf(definition) {
 			return [...new Set(definition?.components.flatMap((part) => part.actions) ?? [])];
 		}
+		/** 永久删除必须保护所有历史岗位版本，不能只检查当前列表或活动会话。 */
+		function capabilityDeletionReferences(state, capabilityId) {
+			return state.roles.filter((role) => role.draft.capabilities.some((binding) => binding.capabilityId === capabilityId) || role.versions.some((version) => version.capabilities.some((binding) => binding.capabilityId === capabilityId)));
+		}
 		function references(state, componentId, tasks = []) {
 			const capabilities = state.capabilities.filter((c) => c.draft.components.some((p) => p.componentId === componentId) || c.versions.some((v) => v.components.some((p) => p.componentId === componentId)));
 			const ids = new Set(capabilities.map((c) => c.id));
@@ -1544,7 +1548,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css.mjs
-		const css = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}";
+		const css = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:32px;height:32px;display:inline-flex;position:relative}.eqpZFq_recycleSelect input{opacity:0;cursor:pointer;z-index:1;width:100%;height:100%;margin:0;position:absolute;inset:0}.eqpZFq_selectionMark{box-sizing:border-box;border:1px solid var(--role-muted);background:var(--role-bg);border-radius:5px;justify-content:center;align-items:center;width:20px;height:20px;display:flex}.eqpZFq_selectionMark svg{fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;width:18px;height:18px}.eqpZFq_recycleSelect input:checked+.eqpZFq_selectionMark,.eqpZFq_recycleSelect input:indeterminate+.eqpZFq_selectionMark{color:#fff;background:#344575;border-color:#7585b1}.eqpZFq_recycleSelect input:focus-visible+.eqpZFq_selectionMark{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_recycleSelect input:disabled{cursor:default}.eqpZFq_recycleSelect input:disabled+.eqpZFq_selectionMark{opacity:.45}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}";
 		const tagId = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 			const tag = document.createElement("style");
@@ -1567,6 +1571,7 @@ window.__ModuleLoader__.load({
 			"choice": "eqpZFq_choice",
 			"confirmActions": "eqpZFq_confirmActions",
 			"dangerButton": "eqpZFq_dangerButton",
+			"deleteList": "eqpZFq_deleteList",
 			"dialogBody": "eqpZFq_dialogBody",
 			"empty": "eqpZFq_empty",
 			"error": "eqpZFq_error",
@@ -1585,10 +1590,15 @@ window.__ModuleLoader__.load({
 			"pinned": "eqpZFq_pinned",
 			"pinnedCard": "eqpZFq_pinnedCard",
 			"primary": "eqpZFq_primary",
+			"recycleSelect": "eqpZFq_recycleSelect",
+			"recycleToolbar": "eqpZFq_recycleToolbar",
 			"removalImpact": "eqpZFq_removalImpact",
 			"removeAction": "eqpZFq_removeAction",
 			"row": "eqpZFq_row",
 			"search": "eqpZFq_search",
+			"selectedCard": "eqpZFq_selectedCard",
+			"selectionMark": "eqpZFq_selectionMark",
+			"selectionSummary": "eqpZFq_selectionSummary",
 			"status": "eqpZFq_status",
 			"tabs": "eqpZFq_tabs",
 			"tasks": "eqpZFq_tasks",
@@ -2185,6 +2195,36 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region src/client/CapabilitySelection.tsx
+		function CapabilitySelection({ checked, mixed = false, disabled = false, label, onChange }) {
+			const ref = (0, react.useRef)(null);
+			(0, react.useEffect)(() => {
+				if (ref.current) ref.current.indeterminate = mixed;
+			}, [mixed]);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+				className: ManagedCapabilities_module_css_default.recycleSelect,
+				title: label,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+					ref,
+					type: "checkbox",
+					checked,
+					disabled,
+					"aria-label": label,
+					onChange
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: ManagedCapabilities_module_css_default.selectionMark,
+					"aria-hidden": "true",
+					children: mixed ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+						viewBox: "0 0 20 20",
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M5 10h10" })
+					}) : checked ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+						viewBox: "0 0 20 20",
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m4 10 4 4 8-8" })
+					}) : null
+				})]
+			});
+		}
+		//#endregion
 		//#region src/client/ManagedCapabilityCards.tsx
 		function CapabilityActionIcon({ kind }) {
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
@@ -2206,12 +2246,16 @@ window.__ModuleLoader__.load({
 				tasks: data.tasks.filter((t) => t.status !== "stopped" && data.state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.some((b) => b.enabled && b.capabilityId === id))
 			};
 		}
-		function ManagedCapabilityCard({ capability: c, data, busy, onManage, onPin, onRemove, onRestore }) {
+		function ManagedCapabilityCard({ capability: c, data, busy, onManage, onPin, onRemove, onRestore, onPurge, selection }) {
 			const status = c.removedAt ? "已移除" : !c.enabled ? "已停用" : !c.versions.length ? "草稿" : data.health.state === "ready" ? "可使用" : "待连接";
 			const pinLabel = `${c.pinned ? "取消收藏" : "收藏能力"}：${c.draft.name}`;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
-				className: `${ManagedCapabilities_module_css_default.card} ${c.pinned && !c.removedAt ? ManagedCapabilities_module_css_default.pinnedCard : ""}`,
+				className: `${ManagedCapabilities_module_css_default.card} ${c.pinned && !c.removedAt ? ManagedCapabilities_module_css_default.pinnedCard : ""} ${selection?.checked ? ManagedCapabilities_module_css_default.selectedCard : ""}`,
 				"data-managed-capability": c.id,
+				"data-selected": selection?.checked,
+				onClick: (event) => {
+					if (selection && !busy && !event.target.closest("button,input,label")) selection.onChange();
+				},
 				children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ManagedCapabilities_module_css_default.cardTop,
@@ -2221,6 +2265,13 @@ window.__ModuleLoader__.load({
 								className: ManagedCapabilities_module_css_default.cardSource,
 								children: c.source === "builtin" ? "内置能力" : "我的能力"
 							}),
+							selection && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilitySelection, {
+								checked: selection.checked,
+								disabled: busy,
+								label: `选择能力：${c.draft.name}`,
+								onChange: selection.onChange
+							}),
+							" ",
 							!c.removedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: `${ManagedCapabilities_module_css_default.iconButton} ${c.pinned ? ManagedCapabilities_module_css_default.pinned : ""}`,
 								type: "button",
@@ -2252,18 +2303,36 @@ window.__ModuleLoader__.load({
 							})
 						]
 					}),
+					c.removedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: ManagedCapabilities_module_css_default.cardMeta,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: ["移除于 ", new Date(c.removedAt).toLocaleString()] }), capabilityDeletionReferences(data.state, c.id).length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							className: ManagedCapabilities_module_css_default.badge,
+							title: "岗位配置或历史版本仍在引用，清空回收站时会保留",
+							children: "引用保护"
+						})]
+					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ManagedCapabilities_module_css_default.cardFooter,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							className: ManagedCapabilities_module_css_default.button,
 							onClick: onManage,
 							children: c.removedAt ? "查看配置 →" : "管理能力 →"
-						}), c.removedAt ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-							className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.inlineAction}`,
-							disabled: busy,
-							"aria-label": `恢复能力：${c.draft.name}`,
-							onClick: onRestore,
-							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "restore" }), "恢复"]
+						}), c.removedAt ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.actions,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+								className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.inlineAction}`,
+								disabled: busy,
+								"aria-label": `恢复能力：${c.draft.name}`,
+								onClick: onRestore,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "restore" }), "恢复"]
+							}), onPurge && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: `${ManagedCapabilities_module_css_default.iconButton} ${ManagedCapabilities_module_css_default.removeAction}`,
+								disabled: busy,
+								"aria-label": `永久删除能力：${c.draft.name}`,
+								title: `永久删除能力：${c.draft.name}`,
+								onClick: onPurge,
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "remove" })
+							})]
 						}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							className: `${ManagedCapabilities_module_css_default.iconButton} ${ManagedCapabilities_module_css_default.removeAction}`,
 							disabled: busy,
@@ -2295,6 +2364,25 @@ window.__ModuleLoader__.load({
 					setBusy(false);
 				}
 			};
+			if (!cap) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal, {
+				title: "能力已不存在",
+				closeLabel: "取消移除",
+				onClose,
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.dialogBody}`,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "status",
+						children: "此能力已被其他页面永久删除。关闭后可继续管理其他能力。"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: ManagedCapabilities_module_css_default.confirmActions,
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: ManagedCapabilities_module_css_default.button,
+							onClick: onClose,
+							children: "关闭"
+						})
+					})]
+				})
+			});
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal, {
 				title: "移除能力",
 				closeLabel: "取消移除",
@@ -2307,11 +2395,11 @@ window.__ModuleLoader__.load({
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
 							"将「",
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: cap.draft.name }),
-							"」移入已移除列表。"
+							"」移入回收站。"
 						] }),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 							className: ManagedCapabilities_module_css_default.notice,
-							children: "移除后停止提供此能力，不能再添加到岗位。配置、历史版本和已有岗位引用会保留，可在“已移除”中恢复；恢复后需要手动启用。"
+							children: "移除后停止提供此能力，不能再添加到岗位。配置、历史版本和已有岗位引用会保留，可在“回收站”中恢复；恢复后需要手动启用。"
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.removalImpact,
@@ -2366,6 +2454,259 @@ window.__ModuleLoader__.load({
 						})
 					]
 				})
+			});
+		}
+		//#endregion
+		//#region src/client/ManagedRecycleBin.tsx
+		function DeleteCapabilitiesDialog({ data, ids, emptying, onClose, onDeleted }) {
+			const [revision, setRevision] = (0, react.useState)(data.state.revision), [busy, setBusy] = (0, react.useState)(false), [error, setError] = (0, react.useState)("");
+			const candidates = data.state.capabilities.filter((c) => ids.includes(c.id) && c.removedAt);
+			const protectedItems = candidates.map((cap) => ({
+				cap,
+				roles: capabilityDeletionReferences(data.state, cap.id)
+			})).filter((x) => x.roles.length);
+			const eligible = candidates.filter((c) => !protectedItems.some((x) => x.cap.id === c.id));
+			const changed = revision !== data.state.revision;
+			const purge = async () => {
+				setBusy(true);
+				setError("");
+				const deleting = eligible.map((c) => c.id);
+				try {
+					await capabilityClient.command({
+						type: "capability.purge",
+						ids: deleting
+					}, revision);
+					deleting.forEach((id) => editorDrafts.delete(`capability:${id}`));
+					onDeleted(deleting, protectedItems.length);
+				} catch (error) {
+					setError(error instanceof Error ? error.message : String(error));
+				} finally {
+					setBusy(false);
+				}
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal, {
+				title: emptying ? "清空回收站" : "永久删除能力",
+				closeLabel: "取消永久删除",
+				onClose: () => {
+					if (!busy) onClose();
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.dialogBody}`,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+							className: ManagedCapabilities_module_css_default.notice,
+							children: [
+								emptying ? "清空范围为打开此窗口时回收站中的全部能力，包含搜索结果之外的项目。" : "仅处理本次选中的能力。",
+								"可永久删除 ",
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: eligible.length }),
+								" 项，保留 ",
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: protectedItems.length }),
+								" 项。"
+							]
+						}),
+						eligible.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+							"以下能力的配置和历史版本将永久删除，",
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "无法通过回收站恢复" }),
+							"："
+						] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+							className: `${ManagedCapabilities_module_css_default.list} ${ManagedCapabilities_module_css_default.deleteList}`,
+							children: eligible.map((c) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("li", { children: c.draft.name }, c.id))
+						})] }),
+						protectedItems.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.removalImpact,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "以下能力有引用，将继续保留" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+									className: `${ManagedCapabilities_module_css_default.list} ${ManagedCapabilities_module_css_default.deleteList}`,
+									children: protectedItems.map(({ cap, roles }) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: cap.draft.name }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("br", {}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+											className: ManagedCapabilities_module_css_default.muted,
+											children: ["岗位配置或历史版本：", roles.map((r) => r.draft.name).join("、")]
+										})
+									] }, cap.id))
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+									className: ManagedCapabilities_module_css_default.muted,
+									children: "为保留岗位和历史会话配置，不会自动解除这些引用。仅从当前岗位拆下也不会删除历史版本中的引用。"
+								})
+							]
+						}),
+						!candidates.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "这些能力已不在回收站中，请关闭后刷新列表。" }),
+						error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							role: "alert",
+							className: ManagedCapabilities_module_css_default.error,
+							children: error
+						}),
+						changed && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+							role: "status",
+							className: ManagedCapabilities_module_css_default.notice,
+							children: ["配置已有更新，请重新核对以上范围。", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: busy,
+								onClick: () => {
+									setRevision(data.state.revision);
+									setError("");
+								},
+								children: "已核对，更新操作基准"
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.confirmActions,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: busy,
+								onClick: onClose,
+								children: "取消"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.dangerButton}`,
+								disabled: busy || changed || !eligible.length,
+								onClick: () => void purge(),
+								children: busy ? "正在删除…" : `永久删除 ${eligible.length} 项`
+							})]
+						})
+					]
+				})
+			});
+		}
+		function ManagedRecycleBin({ data, query, onInspect, onNotice }) {
+			const [checked, setChecked] = (0, react.useState)([]), [busy, setBusy] = (0, react.useState)(false), [error, setError] = (0, react.useState)("");
+			const [deleting, setDeleting] = (0, react.useState)(null);
+			const removed = data.state.capabilities.filter((c) => c.removedAt).sort((a, b) => b.removedAt.localeCompare(a.removedAt));
+			const visible = removed.filter((c) => `${c.draft.name} ${c.draft.description}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
+			const selected = checked.filter((id) => visible.some((c) => c.id === id)), all = visible.length > 0 && selected.length === visible.length;
+			(0, react.useEffect)(() => {
+				setChecked([]);
+			}, [query]);
+			const toggle = (id) => setChecked(selected.includes(id) ? selected.filter((value) => value !== id) : [...selected, id]);
+			const restore = async (ids) => {
+				setBusy(true);
+				setError("");
+				try {
+					await capabilityClient.command({
+						type: "capability.restoreMany",
+						ids
+					}, data.state.revision);
+					setChecked((current) => current.filter((id) => !ids.includes(id)));
+					onNotice(`已恢复 ${ids.length} 项能力，当前保持停用。可在“全部”中检查并启用。`);
+				} catch (error) {
+					setError(error instanceof Error ? error.message : String(error));
+				} finally {
+					setBusy(false);
+				}
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				"data-recycle-bin": true,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: "移除的能力保存在回收站中。恢复后保持停用；永久删除后无法恢复。"
+					}),
+					removed.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: ManagedCapabilities_module_css_default.recycleToolbar,
+						role: "group",
+						"aria-label": "回收站批量操作",
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.selectionSummary,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilitySelection, {
+									checked: all,
+									mixed: selected.length > 0 && !all,
+									disabled: busy || !visible.length,
+									label: query.trim() ? "全选当前搜索结果" : "全选回收站能力",
+									onChange: () => setChecked(all ? [] : visible.map((c) => c.id))
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: query.trim() ? "全选结果" : "全选" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+									className: ManagedCapabilities_module_css_default.muted,
+									children: [
+										"已选 ",
+										selected.length,
+										" / ",
+										visible.length,
+										" 项"
+									]
+								})
+							]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.actions,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.inlineAction}`,
+									disabled: busy || !selected.length,
+									onClick: () => void restore(selected),
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "restore" }), "恢复选中"]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									disabled: busy || !selected.length,
+									onClick: () => setDeleting({
+										ids: selected,
+										emptying: false
+									}),
+									children: "删除选中"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.inlineAction}`,
+									disabled: busy,
+									onClick: () => setDeleting({
+										ids: removed.map((c) => c.id),
+										emptying: true
+									}),
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "remove" }), "清空回收站"]
+								})
+							]
+						})]
+					}),
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "alert",
+						className: ManagedCapabilities_module_css_default.error,
+						children: error
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: ManagedCapabilities_module_css_default.grid,
+						children: visible.map((c) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCapabilityCard, {
+							capability: c,
+							data,
+							busy,
+							onManage: () => onInspect(c.id),
+							onPin: () => {},
+							onRemove: () => {},
+							onRestore: () => void restore([c.id]),
+							onPurge: () => setDeleting({
+								ids: [c.id],
+								emptying: false
+							}),
+							selection: {
+								checked: selected.includes(c.id),
+								onChange: () => toggle(c.id)
+							}
+						}, c.id))
+					}),
+					!visible.length && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: ManagedCapabilities_module_css_default.empty,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "remove" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: removed.length ? "回收站中没有匹配的能力。" : "回收站为空" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: ManagedCapabilities_module_css_default.muted,
+								children: removed.length ? "试试其他名称或清除搜索条件。" : "移除的能力会显示在这里。"
+							})
+						]
+					}),
+					deleting && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DeleteCapabilitiesDialog, {
+						data,
+						ids: deleting.ids,
+						emptying: deleting.emptying,
+						onClose: () => setDeleting(null),
+						onDeleted: (ids, protectedCount) => {
+							setDeleting(null);
+							setChecked((current) => current.filter((id) => !ids.includes(id)));
+							onNotice(`已永久删除 ${ids.length} 项能力${protectedCount ? `，${protectedCount} 项因岗位或历史版本引用而保留` : ""}。`);
+						}
+					})
+				]
 			});
 		}
 		//#endregion
@@ -2798,7 +3139,7 @@ window.__ModuleLoader__.load({
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							className: ManagedCapabilities_module_css_default.button,
 							onClick: () => setSelected(null),
-							children: "← 全部能力"
+							children: filter === "removed" ? "← 返回回收站" : "← 全部能力"
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.heading,
@@ -2975,7 +3316,7 @@ window.__ModuleLoader__.load({
 								["pinned", "收藏"],
 								["pending", "待就绪"],
 								["unused", "未使用"],
-								["removed", `已移除${removedCount ? ` ${removedCount}` : ""}`]
+								["removed", `回收站${removedCount ? ` ${removedCount}` : ""}`]
 							].map(([value, label]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								"aria-pressed": filter === value,
 								onClick: () => {
@@ -2985,41 +3326,48 @@ window.__ModuleLoader__.load({
 								children: label
 							}, value))
 						}),
-						filter === "removed" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-							className: ManagedCapabilities_module_css_default.muted,
-							children: "这里保留移除的能力及其配置。恢复后保持停用，可检查后重新启用。"
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-							className: ManagedCapabilities_module_css_default.grid,
-							children: visible.map((c) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCapabilityCard, {
-								capability: c,
-								data,
-								busy,
-								onManage: () => {
-									setSelected(c.id);
-									setTab("overview");
-									setNotice("");
-								},
-								onPin: () => void run(() => capabilityClient.command({
-									type: "capability.pin",
-									id: c.id,
-									pinned: !c.pinned
-								})),
-								onRemove: () => {
-									setRemoving(c.id);
-									setNotice("");
-								},
-								onRestore: () => restore(c.id)
-							}, c.id))
-						}),
-						!visible.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-							className: ManagedCapabilities_module_css_default.empty,
-							children: query.trim() ? "没有找到匹配的能力，试试其他名称或用途。" : filter === "removed" ? "暂无已移除的能力。" : filter === "pinned" ? "暂无收藏能力，点击卡片右上角的图钉即可收藏。" : "没有符合条件的能力。"
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-							className: ManagedCapabilities_module_css_default.muted,
-							children: "当前真实适配：BrowserSkill。文档、表格、知识库等组件将在适配完成后加入。"
-						})
+						filter === "removed" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRecycleBin, {
+							data,
+							query,
+							onInspect: (id) => {
+								setSelected(id);
+								setTab("overview");
+								setNotice("");
+							},
+							onNotice: setNotice
+						}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								className: ManagedCapabilities_module_css_default.grid,
+								children: visible.map((c) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCapabilityCard, {
+									capability: c,
+									data,
+									busy,
+									onManage: () => {
+										setSelected(c.id);
+										setTab("overview");
+										setNotice("");
+									},
+									onPin: () => void run(() => capabilityClient.command({
+										type: "capability.pin",
+										id: c.id,
+										pinned: !c.pinned
+									})),
+									onRemove: () => {
+										setRemoving(c.id);
+										setNotice("");
+									},
+									onRestore: () => restore(c.id)
+								}, c.id))
+							}),
+							!visible.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.empty,
+								children: query.trim() ? "没有找到匹配的能力，试试其他名称或用途。" : filter === "removed" ? "暂无已移除的能力。" : filter === "pinned" ? "暂无收藏能力，点击卡片右上角的图钉即可收藏。" : "没有符合条件的能力。"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.muted,
+								children: "当前真实适配：BrowserSkill。文档、表格、知识库等组件将在适配完成后加入。"
+							})
+						] })
 					] }),
 					removing && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RemoveCapabilityDialog, {
 						id: removing,
@@ -3028,7 +3376,7 @@ window.__ModuleLoader__.load({
 						onRemoved: () => {
 							setRemoving(null);
 							setSelected(null);
-							setNotice("能力已移除，可在“已移除”中恢复。");
+							setNotice("能力已移除，可在“回收站”中恢复。");
 						}
 					}),
 					editor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityEditor, {

@@ -60,4 +60,16 @@
 .dangerButton { background:#ac3444; color:#fff; border-color:#ac3444; }
 .removalImpact { border:1px solid var(--role-border); border-radius:10px; padding:14px; font-size:13px; }
 .confirmActions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+.recycleToolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; border:1px solid var(--role-border); border-radius:10px; padding:12px; margin:14px 0; background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg)); }
+.selectionSummary { display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:12px; }
+.recycleSelect { display:inline-flex; align-items:center; justify-content:center; position:relative; width:32px; height:32px; flex-shrink:0; cursor:pointer; }
+.recycleSelect input { position:absolute; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; z-index:1; }
+.selectionMark { display:flex; align-items:center; justify-content:center; width:20px; height:20px; box-sizing:border-box; border:1px solid var(--role-muted); border-radius:5px; background:var(--role-bg); }
+.selectionMark svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.recycleSelect input:checked + .selectionMark,.recycleSelect input:indeterminate + .selectionMark { color:#fff; background:#344575; border-color:#7585b1; }
+.recycleSelect input:focus-visible + .selectionMark { outline:2px solid var(--role-accent); outline-offset:3px; }
+.recycleSelect input:disabled { cursor:default; }
+.recycleSelect input:disabled + .selectionMark { opacity:.45; }
+.selectedCard { border-color:#7585b1; box-shadow:0 0 0 1px #7585b1; background:color-mix(in srgb,#7585b1 10%,var(--role-bg)); }
+.deleteList { max-height:180px; overflow:auto; overflow-wrap:anywhere; }
 @media(prefers-reduced-motion:reduce) { .iconButton { transition:none; } .iconButton:active { transform:none; } }

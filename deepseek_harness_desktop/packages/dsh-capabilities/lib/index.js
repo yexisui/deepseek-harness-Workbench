@@ -164,6 +164,10 @@ function initialState(now = (/* @__PURE__ */ new Date()).toISOString()) {
 function actionsOf(definition) {
 	return [...new Set(definition?.components.flatMap((part) => part.actions) ?? [])];
 }
+/** 永久删除必须保护所有历史岗位版本，不能只检查当前列表或活动会话。 */
+function capabilityDeletionReferences(state, capabilityId) {
+	return state.roles.filter((role) => role.draft.capabilities.some((binding) => binding.capabilityId === capabilityId) || role.versions.some((version) => version.capabilities.some((binding) => binding.capabilityId === capabilityId)));
+}
 //#endregion
 //#region src/core/validation.ts
 var InputError = class extends Error {
@@ -459,7 +463,7 @@ var CapabilityStore = class {
 				const cap = next.capabilities.find((c) => c.id === target);
 				if (!cap) throw new InputError("能力不存在", 404);
 				if (command.type === "capability.remove") {
-					if (cap.removedAt) throw new InputError("此能力已移除，可从“已移除”中恢复");
+					if (cap.removedAt) throw new InputError("此能力已移除，可从“回收站”中恢复");
 					cap.removedAt = now;
 					cap.enabled = false;
 					cap.pinned = false;
@@ -470,6 +474,27 @@ var CapabilityStore = class {
 					delete cap.removedAt;
 					cap.enabled = false;
 					cap.pinned = false;
+				}
+			} else if (command.type === "capability.restoreMany" || command.type === "capability.purge") {
+				const ids = list(command.ids, 1e4).map(id);
+				if (!ids.length) throw new InputError("请先选择回收站中的能力");
+				if (new Set(ids).size !== ids.length) throw new InputError("能力标识不能重复");
+				const capabilities = ids.map((capabilityId) => {
+					const cap = next.capabilities.find((candidate) => candidate.id === capabilityId);
+					if (!cap) throw new InputError("能力不存在，请刷新后重试", 404);
+					if (!cap.removedAt) throw new InputError("只能操作回收站中的能力");
+					if (command.type === "capability.purge" && capabilityDeletionReferences(next, capabilityId).length) throw new InputError(`“${cap.draft.name}”仍被岗位草稿或历史版本引用，无法永久删除`);
+					return cap;
+				});
+				target = ids[0];
+				if (command.type === "capability.restoreMany") for (const cap of capabilities) {
+					delete cap.removedAt;
+					cap.enabled = false;
+					cap.pinned = false;
+				}
+				else {
+					const selected = new Set(ids);
+					next.capabilities = next.capabilities.filter((cap) => !selected.has(cap.id));
 				}
 			} else if (command.type === "role.save") {
 				const value = roleDefinition(command.definition, next), publish = bool(command.publish);
