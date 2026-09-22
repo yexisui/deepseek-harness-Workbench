@@ -16,7 +16,7 @@ export function allowedActions(state: State, roleId: string, snapshot: RoleVersi
   for (const old of snapshot.capabilities) {
     const now = current.capabilities.find(b => b.capabilityId === old.capabilityId)
     const cap = state.capabilities.find(c => c.id === old.capabilityId)
-    if (!old.enabled || !now?.enabled || !cap?.enabled) continue
+    if (!old.enabled || !now?.enabled || !cap?.enabled || cap.removedAt) continue
     const original = cap.versions.find(v => v.version === old.version)
     const ceilings = cap.versions.filter(v => v.version >= old.version).map(actionsOf)
     // A revoke followed by a later re-grant must not resurrect permissions in an old session.

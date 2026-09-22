@@ -4,7 +4,7 @@ export type Action = 'navigate' | 'read' | 'screenshot'
 export type Part = { componentId: string; actions: Action[] }
 export type Definition = { name: string; description: string; instructions: string; components: Part[] }
 export type Version = Definition & { version: number; createdAt: string }
-export type Capability = { id: string; source: 'builtin' | 'local'; enabled: boolean; pinned: boolean; draft: Definition; versions: Version[] }
+export type Capability = { id: string; source: 'builtin' | 'local'; enabled: boolean; pinned: boolean; removedAt?: string; draft: Definition; versions: Version[] }
 export type Binding = { capabilityId: string; version: number; enabled: boolean; actions?: Action[] }
 export type RoleDefinition = { name: string; color: string; duties: string; requirements: string; format: string; capabilities: Binding[] }
 export type RoleVersion = RoleDefinition & { version: number; preset: string; createdAt: string }
@@ -26,6 +26,8 @@ export type Command =
   | { type: 'capability.copy'; id: string }
   | { type: 'capability.toggle'; id: string; enabled: boolean }
   | { type: 'capability.pin'; id: string; pinned: boolean }
+  | { type: 'capability.remove'; id: string }
+  | { type: 'capability.restore'; id: string }
   | { type: 'role.save'; id?: string; definition: RoleDefinition; publish: boolean }
   | { type: 'role.toggle'; id: string; enabled: boolean }
 export type Health = { checkedAt: string | null; installed: boolean; loaded: boolean; state: 'unknown' | 'missing' | 'disconnected' | 'ready' | 'degraded'; message: string; cliVersion?: string; browsers: { id: string; name: string }[] }

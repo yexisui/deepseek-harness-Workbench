@@ -297,6 +297,7 @@ var CapabilityStore = class {
 					id(cap.id);
 					bool(cap.enabled);
 					definition(cap.draft);
+					if (cap.removedAt !== void 0 && (typeof cap.removedAt !== "string" || !Number.isFinite(Date.parse(cap.removedAt)) || cap.enabled || cap.pinned)) throw new Error("Invalid removed capability data");
 					for (const version of cap.versions) {
 						integer(version.version);
 						definition(version);
@@ -397,6 +398,7 @@ var CapabilityStore = class {
 				if (publish && issues(value).length) throw new InputError(issues(value).join("；"));
 				let cap = next.capabilities.find((c) => c.id === target);
 				if (command.id && !cap) throw new InputError("能力不存在", 404);
+				if (cap?.removedAt) throw new InputError("此能力已移除，请先恢复后再编辑");
 				if (!cap) {
 					cap = {
 						id: target,
@@ -432,6 +434,7 @@ var CapabilityStore = class {
 			} else if (command.type === "capability.copy") {
 				const original = next.capabilities.find((c) => c.id === target);
 				if (!original) throw new InputError("能力不存在", 404);
+				if (original.removedAt) throw new InputError("此能力已移除，请先恢复后再复制");
 				target = `local-${randomUUID()}`;
 				next.capabilities.push({
 					id: target,
@@ -447,14 +450,33 @@ var CapabilityStore = class {
 			} else if (command.type === "capability.toggle" || command.type === "capability.pin") {
 				const cap = next.capabilities.find((c) => c.id === target);
 				if (!cap) throw new InputError("能力不存在", 404);
+				if (cap.removedAt) throw new InputError("此能力已移除，请先恢复后再操作");
 				if (command.type === "capability.toggle") {
 					cap.enabled = bool(command.enabled);
 					if (!cap.enabled) (next.revokedAt ??= {})[`capability:${target}`] = Date.parse(now);
 				} else cap.pinned = bool(command.pinned);
+			} else if (command.type === "capability.remove" || command.type === "capability.restore") {
+				const cap = next.capabilities.find((c) => c.id === target);
+				if (!cap) throw new InputError("能力不存在", 404);
+				if (command.type === "capability.remove") {
+					if (cap.removedAt) throw new InputError("此能力已移除，可从“已移除”中恢复");
+					cap.removedAt = now;
+					cap.enabled = false;
+					cap.pinned = false;
+					next.revokedAt ??= {};
+					next.revokedAt[`capability:${target}`] = Date.parse(now);
+				} else {
+					if (!cap.removedAt) throw new InputError("此能力未移除，无需恢复");
+					delete cap.removedAt;
+					cap.enabled = false;
+					cap.pinned = false;
+				}
 			} else if (command.type === "role.save") {
 				const value = roleDefinition(command.definition, next), publish = bool(command.publish);
 				let role = next.roles.find((r) => r.id === target);
 				if (command.id && !role) throw new InputError("岗位不存在", 404);
+				const existingBindings = [...role?.draft.capabilities ?? [], ...role ? latest(role.versions)?.capabilities ?? [] : []];
+				if (value.capabilities.some((binding) => next.capabilities.find((c) => c.id === binding.capabilityId)?.removedAt && !existingBindings.some((existing) => existing.capabilityId === binding.capabilityId && existing.version === binding.version))) throw new InputError("不能添加已移除的能力，请先在能力中心恢复");
 				if (!role) {
 					role = {
 						id: target,
@@ -519,7 +541,7 @@ function allowedActions(state, roleId, snapshot) {
 	for (const old of snapshot.capabilities) {
 		const now = current.capabilities.find((b) => b.capabilityId === old.capabilityId);
 		const cap = state.capabilities.find((c) => c.id === old.capabilityId);
-		if (!old.enabled || !now?.enabled || !cap?.enabled) continue;
+		if (!old.enabled || !now?.enabled || !cap?.enabled || cap.removedAt) continue;
 		const original = cap.versions.find((v) => v.version === old.version);
 		const ceilings = cap.versions.filter((v) => v.version >= old.version).map(actionsOf);
 		const roleCeilings = role.versions.filter((v) => v.version >= snapshot.version).map((v) => {
