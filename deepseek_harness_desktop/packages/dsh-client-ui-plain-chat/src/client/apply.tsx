@@ -128,7 +128,7 @@ export function apply(ctx: Context): void {
         }
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={selectedRole} preset={actualPreset} onOpen={settingsNavigation.openPresets} /></div>
+        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={selectedRole} onOpen={settingsNavigation.openPresets} /></div>
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
         <div className={styles.conversationContent}><Original {...props} t={translate} renderSlot={renderSlot} selectWorkspace={selectWorkspace} /></div>

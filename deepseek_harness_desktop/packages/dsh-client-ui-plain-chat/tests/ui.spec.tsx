@@ -113,6 +113,7 @@ describe('ordinary chat UI integration', () => {
     const definition = { ...emptyRole(), name: '网页助手', capabilities: [{ capabilityId: 'browser', version: 1, enabled: true }] }
     state.roles.push({ id: 'reader', enabled: true, draft: definition, versions: [{ ...definition, version: 1, preset: 'workbench-role-reader-v1', createdAt: state.updatedAt }] })
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ state, components: [], health: { state: 'disconnected', message: '浏览器待连接' }, tasks: [] }) })))
+    vi.stubGlobal('EventSource', class extends EventTarget { close = vi.fn() })
     await capabilityClient.refresh()
     ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true
     sessionStorage.clear()
@@ -135,11 +136,11 @@ describe('ordinary chat UI integration', () => {
     const Component = app.entries[key][0]!.component
     await act(async () => root.render(<Component {...props} />))
   }
-  async function renderWithRoles() {
+  async function renderWithRoles(props: Props = app.props) {
     const Conversation = app.entries['main.conversation'][0]!.component
     const Roles = app.entries['settings.section'][0]!.component
     // 设置弹窗打开时，实际输入框仍挂载；不能靠卸载输入框掩盖岗位切换问题。
-    await act(async () => root.render(<><Conversation {...app.props}/><Roles {...app.props}/></>))
+    await act(async () => root.render(<><Conversation {...props}/><Roles {...app.props}/></>))
   }
   async function type(text: string) {
     const input = container.querySelector('textarea')!
@@ -267,6 +268,7 @@ describe('ordinary chat UI integration', () => {
     await click(selector)
     expect(container.querySelector(selector)!.getAttribute('aria-pressed')).toBe('true')
     expect(container.querySelector('[data-role-id="reader"]')!.textContent).toContain('✓ 已选定')
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：网页助手')
     await act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent === '取消选定')!.click() })
     expect(container.querySelector(selector)!.getAttribute('aria-pressed')).toBe('false')
     expect(container.querySelector('button[aria-haspopup="dialog"]')!.textContent).toContain('普通聊天')
@@ -362,12 +364,69 @@ describe('ordinary chat UI integration', () => {
     expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false)
   })
 
-  it('shows the existing session preset instead of the next-chat selection', async () => {
-    await render(app.props, 'settings.section')
-    await click('button[aria-label="选定助手：网页助手"]')
-    app.list.byId['older'] = { projectionValues: { agentPreset: 'workbench-chat' } }
-    await render({ ...app.props, sessionId: 'older' })
-    expect(container.querySelector('button')!.textContent).toContain('普通聊天')
+  it.each(['workbench-chat', 'workbench-role-reader-v1'])('keeps the toolbar linked to role selection over an existing %s session without changing that session', async preset => {
+    const session = { title: '保留原来的对话', projectionValues: { agentPreset: preset }, metadata: { workspaceId: 'project-a' } }
+    const preserved = structuredClone(session)
+    app.list.byId.older = session
+    app.list.current = 'older'
+    const sessionInput = app.addBinding('older', '原会话的输入草稿')
+    await renderWithRoles({ ...app.props, sessionId: 'older' })
+    const input = await type('正在编辑，不要清空')
+    const toolbar = () => container.querySelector<HTMLButtonElement>('[data-current-assistant="true"]')!
+
+    for (const [name, icon, color] of [
+      ['需求分析助手', 'analyst', '#4F73E8'],
+      ['市场部助手', 'marketing', '#E58A32'],
+      ['项目经理助手', 'manager', '#9A62D8'],
+      ['开发助手', 'developer', '#22A58B'],
+    ]) {
+      await click(`button[aria-label="选定助手：${name}"]`)
+      expect(toolbar().getAttribute('aria-label')).toBe(`打开岗位助手：${name}`)
+      expect(toolbar().textContent).toContain(name)
+      expect(toolbar().getAttribute('data-role-icon')).toBe(icon)
+      expect(toolbar().style.getPropertyValue('--role-color')).toBe(color)
+      expect(toolbar().textContent).not.toContain('v1')
+    }
+
+    await act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent === '取消选定')!.click() })
+    expect(toolbar().getAttribute('aria-label')).toBe('打开岗位助手：普通聊天')
+    expect(toolbar().getAttribute('data-role-icon')).toBe('chat')
+    expect(toolbar().style.getPropertyValue('--role-color')).toBe('#78869f')
+    expect(container.querySelector('textarea')).toBe(input)
+    expect(input.value).toBe('正在编辑，不要清空')
+    expect(sessionInput.state.getSnapshot().draft).toBe('原会话的输入草稿')
+    expect(sessionInput.setDraft).not.toHaveBeenCalled()
+    expect(sessionInput.submit).not.toHaveBeenCalled()
+    expect(app.list.byId.older).toEqual(preserved)
+    expect(app.list.current).toBe('older')
     expect(app.remoteCreate).not.toHaveBeenCalled()
+    expect(app.sessions.create).not.toHaveBeenCalled()
+    expect(app.sessions.open).not.toHaveBeenCalled()
+    expect(app.sessions.clear).not.toHaveBeenCalled()
+    expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false)
+  })
+
+  it('refreshes the selected custom role name and color in the toolbar without altering the old session preset', async () => {
+    const state = capabilityClient.getSnapshot().data!.state
+    const reader = state.roles.find(role => role.id === 'reader')!
+    reader.draft = { ...reader.draft, name: '客户资料助手', color: '#123456' }
+    app.list.byId.older = { projectionValues: { agentPreset: 'workbench-role-reader-v1' } }
+    await renderWithRoles({ ...app.props, sessionId: 'older' })
+    await click('button[aria-label="选定助手：客户资料助手"]')
+    const toolbar = () => container.querySelector<HTMLButtonElement>('[data-current-assistant="true"]')!
+    expect(toolbar().getAttribute('aria-label')).toBe('打开岗位助手：客户资料助手')
+    expect(toolbar().getAttribute('data-role-icon')).toBe('analyst')
+    expect(toolbar().style.getPropertyValue('--role-color')).toBe('#123456')
+
+    // 服务端返回编辑后的岗位外观时，入口无需换会话或刷新页面即可同步。
+    reader.draft = { ...reader.draft, name: '市场资料助手', color: '#654321' }
+    await act(async () => { await capabilityClient.refresh() })
+    expect(toolbar().getAttribute('aria-label')).toBe('打开岗位助手：市场资料助手')
+    expect(toolbar().style.getPropertyValue('--role-color')).toBe('#654321')
+    expect(app.list.byId.older.projectionValues.agentPreset).toBe('workbench-role-reader-v1')
+    expect(reader.versions[0]!.name).toBe('网页助手')
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+    expect(app.sessions.create).not.toHaveBeenCalled()
+    expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false)
   })
 })

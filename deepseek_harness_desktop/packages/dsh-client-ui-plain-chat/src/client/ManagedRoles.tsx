@@ -82,11 +82,13 @@ export function ManagedRolePicker({ selected, onSelect, t }: { selected: string;
   const role = data?.state.roles.find(r => r.id === selected)
   return <><button className={r.picker} aria-haspopup="dialog" onClick={() => setOpen(true)}><CapabilityGlyph/><span>{role?.draft.name ?? t('mode')}</span><span>⌄</span></button>{open && <Modal title="选择岗位助手" closeLabel="关闭" onClose={() => setOpen(false)}><div className={`${s.page} ${s.dialogBody}`}><button className={s.choice} aria-pressed={selected === 'chat'} onClick={() => { onSelect('chat'); setOpen(false) }}><span><strong>普通聊天</strong><small>问答与写作，不执行浏览器或项目工具。</small></span></button>{data?.state.roles.filter(r => r.enabled && r.versions.length).map(r => <button className={s.choice} key={r.id} aria-pressed={selected === r.id} onClick={() => { onSelect(r.id); setOpen(false) }}><CapabilityGlyph/><span><strong>{latest(r.versions)!.name}</strong><small>v{latest(r.versions)!.version} · {latest(r.versions)!.capabilities.length} 个能力</small></span></button>)}<button className={s.button} onClick={() => setEditor(true)}>＋ 创建岗位助手</button><p className={s.muted}>选择仅用于下一次新对话，当前对话的岗位不会改变。</p></div></Modal>}{editor && <ManagedRoleEditor onClose={() => setEditor(false)}/>}</>
 }
-export function ManagedCurrentAssistant({ selected, preset, onOpen }: { selected: string; preset?: string; onOpen: () => void }) {
+export function ManagedCurrentAssistant({ selected, onOpen }: { selected: string; onOpen: () => void }) {
   const { data } = useCapabilities()
-  const historical = preset ? data?.state.roles.flatMap(r => r.versions).find(v => v.preset === preset) : undefined
-  const name = preset ? historical?.name ?? (preset === 'workbench-chat' ? '普通聊天' : preset) : data?.state.roles.find(r => r.id === selected)?.draft.name ?? '普通聊天'
-  return <button type="button" className={r.currentAssistant} onClick={onOpen}><CapabilityGlyph/><span>{name}</span>{historical && <span className={r.currentHint}>v{historical.version}</span>}<span>›</span></button>
+  // 此处是全局岗位选择入口，沿用旧版联动；当前会话的预设仍由会话标题展示。
+  const role = data?.state.roles.find(role => role.id === selected)
+  const name = role?.draft.name ?? '普通聊天', color = role?.draft.color ?? '#78869f'
+  const icon = role ? roleIds.find(id => role.id === `builtin-${id}`) ?? 'analyst' : 'chat'
+  return <button type="button" data-current-assistant="true" data-role-icon={icon} className={r.currentAssistant} style={colorStyle(color)} aria-label={`打开岗位助手：${name}`} title={`当前选定：${name} · 点击管理岗位`} onClick={onOpen}><RoleIcon role={icon} color={color}/><span className={r.currentText}>{name}</span><svg className={r.currentArrow} aria-hidden="true" viewBox="0 0 16 16" fill="none"><path d="m6 4 4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
 }
 export function BrowserTaskStatus({ sessionId }: { sessionId?: string }) {
   const { data } = useCapabilities(), [error, setError] = useState('')

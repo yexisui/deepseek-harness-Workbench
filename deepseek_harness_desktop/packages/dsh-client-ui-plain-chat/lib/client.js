@@ -2096,22 +2096,42 @@ window.__ModuleLoader__.load({
 				editor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRoleEditor, { onClose: () => setEditor(false) })
 			] });
 		}
-		function ManagedCurrentAssistant({ selected, preset, onOpen }) {
+		function ManagedCurrentAssistant({ selected, onOpen }) {
 			const { data } = useCapabilities();
-			const historical = preset ? data?.state.roles.flatMap((r) => r.versions).find((v) => v.preset === preset) : void 0;
-			const name = preset ? historical?.name ?? (preset === "workbench-chat" ? "普通聊天" : preset) : data?.state.roles.find((r) => r.id === selected)?.draft.name ?? "普通聊天";
+			const role = data?.state.roles.find((role) => role.id === selected);
+			const name = role?.draft.name ?? "普通聊天", color = role?.draft.color ?? "#78869f";
+			const icon = role ? roleIds.find((id) => role.id === `builtin-${id}`) ?? "analyst" : "chat";
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 				type: "button",
+				"data-current-assistant": "true",
+				"data-role-icon": icon,
 				className: Roles_module_css_default.currentAssistant,
+				style: colorStyle(color),
+				"aria-label": `打开岗位助手：${name}`,
+				title: `当前选定：${name} · 点击管理岗位`,
 				onClick: onOpen,
 				children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, {}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: name }),
-					historical && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-						className: Roles_module_css_default.currentHint,
-						children: ["v", historical.version]
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleIcon, {
+						role: icon,
+						color
 					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "›" })
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						className: Roles_module_css_default.currentText,
+						children: name
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+						className: Roles_module_css_default.currentArrow,
+						"aria-hidden": "true",
+						viewBox: "0 0 16 16",
+						fill: "none",
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", {
+							d: "m6 4 4 4-4 4",
+							stroke: "currentColor",
+							strokeWidth: "1.5",
+							strokeLinecap: "round",
+							strokeLinejoin: "round"
+						})
+					})
 				]
 			});
 		}
@@ -3547,7 +3567,6 @@ window.__ModuleLoader__.load({
 								className: Chat_module_css_default.assistantToolbar,
 								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCurrentAssistant, {
 									selected: selectedRole,
-									preset: actualPreset,
 									onOpen: settingsNavigation.openPresets
 								})
 							}),
