@@ -20,12 +20,12 @@ export function capabilityImpact(data: Snapshot, id: string) {
 
 export function ManagedCapabilityCard({ capability: c, data, busy, onManage, onPin, onRemove, onRestore }: { capability: Capability; data: Snapshot; busy: boolean; onManage: () => void; onPin: () => void; onRemove: () => void; onRestore: () => void }) {
   const status = c.removedAt ? '已移除' : !c.enabled ? '已停用' : !c.versions.length ? '草稿' : data.health.state === 'ready' ? '可使用' : '待连接'
-  const pinLabel = `${c.pinned ? '取消置顶' : '置顶能力'}：${c.draft.name}`
+  const pinLabel = `${c.pinned ? '取消收藏' : '收藏能力'}：${c.draft.name}`
   return <article className={`${s.card} ${c.pinned && !c.removedAt ? s.pinnedCard : ''}`} data-managed-capability={c.id}>
     <div className={s.cardTop}><CapabilityGlyph/><span className={s.cardSource}>{c.source === 'builtin' ? '内置能力' : '我的能力'}</span>{!c.removedAt && <button className={`${s.iconButton} ${c.pinned ? s.pinned : ''}`} type="button" disabled={busy} aria-label={pinLabel} title={pinLabel} aria-pressed={c.pinned} onClick={onPin}><CapabilityActionIcon kind="pin"/></button>}</div>
     <h3>{c.draft.name}</h3><p className={s.cardDescription}>{c.draft.description || '尚未填写能力简介'}</p>
-    <div className={s.cardMeta}><span className={s.badge}>{status}</span><span>{capabilityImpact(data, c.id).roles.length} 个岗位引用</span>{c.pinned && !c.removedAt && <span className={s.pinLabel}>已置顶</span>}</div>
-    <div className={s.cardFooter}><button className={s.button} onClick={onManage}>{c.removedAt ? '查看配置 →' : '管理能力 →'}</button>{c.removedAt ? <button className={`${s.button} ${s.inlineAction}`} disabled={busy} aria-label={`恢复能力：${c.draft.name}`} onClick={onRestore}><CapabilityActionIcon kind="restore"/>恢复</button> : <button className={`${s.inlineAction} ${s.removeAction}`} disabled={busy} aria-label={`移除能力：${c.draft.name}`} onClick={onRemove}><CapabilityActionIcon kind="remove"/>移除</button>}</div>
+    <div className={s.cardMeta}><span className={s.badge}>{status}</span><span>{capabilityImpact(data, c.id).roles.length} 个岗位引用</span>{c.pinned && !c.removedAt && <span className={s.pinLabel}>已收藏</span>}</div>
+    <div className={s.cardFooter}><button className={s.button} onClick={onManage}>{c.removedAt ? '查看配置 →' : '管理能力 →'}</button>{c.removedAt ? <button className={`${s.button} ${s.inlineAction}`} disabled={busy} aria-label={`恢复能力：${c.draft.name}`} onClick={onRestore}><CapabilityActionIcon kind="restore"/>恢复</button> : <button className={`${s.iconButton} ${s.removeAction}`} disabled={busy} aria-label={`移除能力：${c.draft.name}`} title={`移除能力：${c.draft.name}`} onClick={onRemove}><CapabilityActionIcon kind="remove"/></button>}</div>
   </article>
 }
 

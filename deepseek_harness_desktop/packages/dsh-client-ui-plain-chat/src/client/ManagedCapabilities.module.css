@@ -42,7 +42,8 @@
 .cardSource { flex:1; color:var(--role-muted); font-size:11px; }
 .iconButton { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; flex-shrink:0; border:1px solid transparent; border-radius:8px; color:var(--role-muted); background:transparent; cursor:pointer; transition:color .15s,background .15s,transform .15s; }
 .iconButton:hover { color:var(--role-accent); background:color-mix(in srgb,var(--role-accent) 8%,transparent); }
-.iconButton.pinned { color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text)); background:color-mix(in srgb,var(--role-accent) 12%,transparent); }
+.iconButton.pinned { color:#fff; background:#344575; border-color:#7585b1; box-shadow:0 2px 5px #0f1a3c26; }
+.iconButton.pinned:hover { color:#fff; background:#29385f; }
 .pinned svg { fill:color-mix(in srgb,currentColor 18%,transparent); }
 .iconButton:active { transform:scale(.92); }
 .pinnedCard { border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border)); }

@@ -107,7 +107,7 @@ describe('managed capability card actions', () => {
     expect(cardIds()).toEqual([secondId])
     const removedCard = container.querySelector(`[data-managed-capability="${secondId}"]`)!
     expect(removedCard.textContent).toContain('已移除')
-    expect(button('置顶能力：自定义采集', removedCard)).toBeUndefined()
+    expect(button('收藏能力：自定义采集', removedCard)).toBeUndefined()
     expect(button('移除能力：自定义采集', removedCard)).toBeUndefined()
     await click('恢复能力：自定义采集', removedCard)
     const restored = store.snapshot().capabilities.find(c => c.id === secondId)!
@@ -122,19 +122,19 @@ describe('managed capability card actions', () => {
 
   it('uses an accessible SVG pushpin and updates ordering and pinned filtering', async () => {
     await render()
-    const pinned = button('取消置顶：浏览器操作')!
+    const pinned = button('取消收藏：浏览器操作')!
     expect(pinned.getAttribute('aria-pressed')).toBe('true')
     expect(pinned.querySelector('svg')).not.toBeNull()
     expect(pinned.textContent).not.toMatch(/[★☆]/)
-    expect(button('置顶能力：自定义采集')!.getAttribute('aria-pressed')).toBe('false')
-    await click('取消置顶：浏览器操作'); await click('置顶能力：自定义采集')
+    expect(button('收藏能力：自定义采集')!.getAttribute('aria-pressed')).toBe('false')
+    await click('取消收藏：浏览器操作'); await click('收藏能力：自定义采集')
     expect(cardIds()).toEqual([secondId, 'browser'])
-    expect(button('取消置顶：自定义采集')!.getAttribute('aria-pressed')).toBe('true')
-    await click('置顶')
+    expect(button('取消收藏：自定义采集')!.getAttribute('aria-pressed')).toBe('true')
+    await click('收藏')
     expect(cardIds()).toEqual([secondId])
-    await click('取消置顶：自定义采集')
+    await click('取消收藏：自定义采集')
     expect(cardIds()).toEqual([])
-    expect(container.textContent).toContain('暂无置顶能力')
+    expect(container.textContent).toContain('暂无收藏能力')
   })
 
   it('requires reference review again when another write changes the pending removal revision', async () => {
