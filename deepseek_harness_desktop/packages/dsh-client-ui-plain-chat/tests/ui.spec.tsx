@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
 import { apply } from '../src/client/apply.tsx'
 import { zh, type ChatKey } from '../src/client/locales.ts'
+import { capabilityClient, editorDrafts } from '../src/client/capability-client.ts'
+import { initialState, emptyRole } from '../../dsh-capabilities/src/core/model.ts'
 
 type Props = Record<string, any>
 type Binding = { sessionId: string; ctx: object }
@@ -105,7 +107,13 @@ describe('ordinary chat UI integration', () => {
   let root: Root
   let app: ReturnType<typeof harness>
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    editorDrafts.clear()
+    const state = initialState()
+    const definition = { ...emptyRole(), name: '网页助手', capabilities: [{ capabilityId: 'browser', version: 1, enabled: true }] }
+    state.roles.push({ id: 'reader', enabled: true, draft: definition, versions: [{ ...definition, version: 1, preset: 'workbench-role-reader-v1', createdAt: state.updatedAt }] })
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ state, components: [], health: { state: 'disconnected', message: '浏览器待连接' }, tasks: [] }) })))
+    await capabilityClient.refresh()
     ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true
     sessionStorage.clear()
     HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
@@ -235,95 +243,46 @@ describe('ordinary chat UI integration', () => {
     expect(container.textContent).toBe('聊天')
   })
 
-  it('never creates a session from a role preview and keeps the draft when returning to chat', async () => {
+  it('starts a published role with its actual preset and retains the draft during selection', async () => {
     await render()
-    await type('请梳理审批流程')
+    await type('请读取网页')
     await click('button[aria-haspopup="dialog"]')
-    await act(async () => { document.querySelectorAll<HTMLButtonElement>('dialog button[aria-pressed]')[1]!.click() })
-    expect(container.textContent).toContain('当前仅预览岗位界面')
-    expect(container.querySelector<HTMLButtonElement>('button[aria-label="发送消息"]')!.disabled).toBe(true)
-    await act(async () => { container.querySelector('textarea')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })) })
-    expect(app.remoteCreate).not.toHaveBeenCalled()
-    await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent === '切回普通聊天')!.click() })
-    expect(container.querySelector('textarea')!.value).toBe('请梳理审批流程')
+    await act(async () => { Array.from(document.querySelectorAll<HTMLButtonElement>('dialog button')).find(b => b.textContent?.includes('网页助手'))!.click() })
+    expect(container.querySelector('textarea')!.value).toBe('请读取网页')
     await click('button[aria-label="发送消息"]')
-    expect(app.remoteCreate).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ agentPreset: 'workbench-chat' }))
+    expect(app.remoteCreate).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ agentPreset: 'workbench-role-reader-v1' }))
   })
 
-  it('keeps the official preset roster and exposes a non-saving configuration preview', async () => {
+  it('keeps the official roster and opens the persisted role fields', async () => {
     await render(app.props, 'settings.section')
     expect(container.querySelector('[data-existing-presets]')).not.toBeNull()
-    await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent?.startsWith('查看配置'))!.click() })
+    await act(async () => { Array.from(container.querySelectorAll('button')).find(b => b.textContent === '编辑岗位')!.click() })
     const dialog = document.querySelector('dialog')!
-    expect(dialog.textContent).toContain('配置预览')
-    expect(dialog.querySelector<HTMLInputElement>('input[maxlength="60"]')!.value).toBe('需求分析助手')
-    expect(Array.from(dialog.querySelectorAll('button')).find(button => button.textContent === '保存并启用')!.disabled).toBe(true)
-    await act(async () => {
-      const name = dialog.querySelector<HTMLInputElement>('input[maxlength="60"]')!
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(name, '试写的名称')
-      name.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-    expect(dialog.querySelector('aside')!.textContent).toContain('试写的名称')
-    await act(async () => { dialog.dispatchEvent(new Event('cancel', { cancelable: true })) })
-    expect(document.querySelector('dialog')).toBeNull()
-    expect(container.textContent).not.toContain('试写的名称')
+    expect(dialog.querySelector<HTMLInputElement>('input[maxlength="80"]')!.value).toBe('网页助手')
+    expect(dialog.querySelectorAll('[data-attached-capability]')).toHaveLength(1)
+    expect(Array.from(dialog.querySelectorAll<HTMLButtonElement>('button')).find(b => b.textContent === '保存并发布')!.disabled).toBe(false)
     expect(app.remoteCreate).not.toHaveBeenCalled()
   })
 
-  it('composes capabilities by drag or button without persistence or host calls', async () => {
+  it('preserves an unsaved role composition while leaving and returning to the editor', async () => {
     await render(app.props, 'settings.section')
-    const open = async () => act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent?.includes('创建岗位助手'))!.click() })
+    const open = () => act(async () => { Array.from(container.querySelectorAll('button')).find(b => b.textContent?.includes('创建岗位助手'))!.click() })
     await open()
-    const dialog = document.querySelector('dialog')!
-    const clickInDialog = async (label: string) => act(async () => { dialog.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!.click() })
-    expect(dialog.querySelectorAll('[data-attached-capability]')).toHaveLength(0)
-    await clickInDialog('添加：浏览器操作')
-    expect(dialog.textContent).toContain('未连接 · 界面演示')
-    expect(dialog.querySelectorAll('[data-attached-capability="browser"]')).toHaveLength(1)
-    const drop = dialog.querySelector('[aria-label="将配件拖到这里"]')!
-    const drag = (id: string) => {
-      const event = new Event('drop', { bubbles: true, cancelable: true })
-      Object.defineProperty(event, 'dataTransfer', { value: { getData: () => id } })
-      drop.dispatchEvent(event)
-    }
-    await act(async () => { drag('browser'); drag('documents'); drag('unknown-plugin') })
-    expect(dialog.querySelectorAll('[data-attached-capability]')).toHaveLength(2)
-    await clickInDialog('配件设置：浏览器操作')
-    const site = dialog.querySelector<HTMLTextAreaElement>('textarea[placeholder*="example.com"]')!
-    await act(async () => {
-      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(site, 'example.com')
-      site.dispatchEvent(new Event('input', { bubbles: true }))
-    })
-    await clickInDialog('配件设置：文档处理')
-    await clickInDialog('配件设置：浏览器操作')
-    expect(dialog.querySelector<HTMLTextAreaElement>('textarea[placeholder*="example.com"]')!.value).toBe('example.com')
-    await clickInDialog('移除：浏览器操作')
-    expect(dialog.querySelector('[data-attached-capability="browser"]')).toBeNull()
-    await act(async () => { dialog.dispatchEvent(new Event('cancel', { cancelable: true })) })
+    await act(async () => { document.querySelector<HTMLButtonElement>('dialog button[aria-label="添加 浏览器操作"]')!.click() })
+    expect(document.querySelectorAll('[data-attached-capability="browser"]')).toHaveLength(1)
+    await act(async () => { document.querySelector('dialog')!.dispatchEvent(new Event('cancel', { cancelable: true })) })
     await open()
-    expect(document.querySelectorAll('[data-attached-capability]')).toHaveLength(0)
-    expect(localStorage.length).toBe(0)
+    expect(document.querySelectorAll('[data-attached-capability="browser"]')).toHaveLength(1)
     expect(app.remoteCreate).not.toHaveBeenCalled()
-    expect(app.sessions.create).not.toHaveBeenCalled()
+    expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false)
   })
 
-  it('shares card selection with the main-area shortcut and new-chat preview without changing a host session', async () => {
+  it('shows the existing session preset instead of the next-chat selection', async () => {
     await render(app.props, 'settings.section')
-    await click('button[aria-label="选定助手：市场部助手"]')
-    expect(container.querySelector('[aria-label="选定助手：市场部助手"]')!.getAttribute('aria-pressed')).toBe('true')
-    expect(container.textContent).toContain('已选定：市场部助手')
-    await render(app.props, 'sidebar')
-    expect(container.querySelector('[aria-label="打开 Agent 预设：市场部助手"]')).toBeNull()
-    await click('[data-action="new"]')
-    await render()
-    expect(container.querySelector('[aria-label="打开 Agent 预设：市场部助手"]')).not.toBeNull()
-    expect(container.querySelector('[aria-label="选择对话助手：市场部助手"]')).not.toBeNull()
-    await type('test')
-    expect(container.querySelector<HTMLButtonElement>('[aria-label="发送消息"]')!.disabled).toBe(true)
+    await act(async () => { Array.from(container.querySelectorAll('button')).find(b => b.textContent === '用于新对话')!.click() })
+    app.list.byId['older'] = { projectionValues: { agentPreset: 'workbench-chat' } }
+    await render({ ...app.props, sessionId: 'older' })
+    expect(container.querySelector('button')!.textContent).toContain('普通聊天')
     expect(app.remoteCreate).not.toHaveBeenCalled()
-    await render(app.props, 'settings.section')
-    await act(async () => { Array.from(container.querySelectorAll('button')).find(button => button.textContent === '取消选定')!.click() })
-    await render()
-    expect(container.querySelector('[aria-label="打开 Agent 预设：普通聊天"]')).not.toBeNull()
   })
 })

@@ -1,5 +1,6 @@
 import React, { useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
+import type {} from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-api-session-controller/client'
@@ -10,7 +11,12 @@ import { DraftComposer } from './DraftComposer.tsx'
 import { withAppearanceNavigation } from './AppearanceNavigation.tsx'
 import { CapabilityPreviewContext, createCapabilityPreview } from './capability-preview.tsx'
 import { registerCapabilityCenter } from './capability-settings.tsx'
-import { CapabilityCenterPage, AgentPresetDisclosure, CurrentAssistant, RoleAssistantsSection, RolePicker } from './RoleAssistants.tsx'
+import { AgentPresetDisclosure } from './RoleAssistants.tsx'
+import { ManagedCenter } from './ManagedCenter.tsx'
+import { BrowserTaskStatus, ManagedCurrentAssistant, ManagedRolePicker, ManagedRolesSection } from './ManagedRoles.tsx'
+import { BrowserObservation } from './BrowserObservation.tsx'
+import { capabilityClient, type CapabilityLink } from './capability-client.ts'
+import { latest } from '../../../dsh-capabilities/src/core/model.ts'
 import { createRoleSelection, createSettingsNavigation } from './role-ui-state.ts'
 import { en, zh, type ChatKey } from './locales.ts'
 import { ru } from '../../../dsh-i18n/src/client/ru/plain-chat.ts'
@@ -36,6 +42,7 @@ export function apply(ctx: Context): void {
   const subscribe = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn) } }
   const snapshot = () => revision
   const clearSavedDraft = () => { try { sessionStorage.removeItem('workbench-chat-draft') } catch { /* Optional storage. */ } }
+  const roleSelection = createRoleSelection<string>()
   const start = new ChatStart({
     create: request => (ctx.remote as unknown as { session: { create: import('../core/start.ts').StartPort['create'] } }).session.create(request),
     adopt: request => sessions.create(request as Parameters<typeof sessions.create>[0]),
@@ -50,19 +57,30 @@ export function apply(ctx: Context): void {
       layout.selectPanel(null)
       input.submit()
     },
-  }, chatRoot, () => `session-${crypto.randomUUID()}`)
+  }, chatRoot, () => `session-${crypto.randomUUID()}`, () => {
+    const selected = roleSelection.getSnapshot()
+    if (selected === 'chat') return PRESET_ID
+    const role = capabilityClient.getSnapshot().data?.state.roles.find(r => r.id === selected)
+    const version = role && latest(role.versions)
+    if (!role?.enabled || !version) throw new Error('此岗位尚未发布或已停用，请重新选择岗位。')
+    return version.preset
+  })
   const registry = ctx.slots as unknown as Registry
   const capabilityPreview = createCapabilityPreview()
-  registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <CapabilityPreviewContext.Provider value={capabilityPreview}><CapabilityCenterPage t={t} /></CapabilityPreviewContext.Provider>)
-  const roleSelection = createRoleSelection()
+  registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <ManagedCenter />)
   const settingsNavigation = createSettingsNavigation()
+  ctx.effect(() => {
+    const open = (event: Event) => settingsNavigation.openSection((event as CustomEvent<CapabilityLink>).detail.section)
+    window.addEventListener('workbench-capability-link', open)
+    return () => window.removeEventListener('workbench-capability-link', open)
+  }, 'plain-chat: capability links')
   ctx.effect(() => decorateSlot(registry, 'sidebar.settings', 'SettingsRoot', Original =>
     withAppearanceNavigation(Original as (props: any) => React.ReactNode, () => t('appearanceTitle'), settingsNavigation)), 'plain-chat: appearance navigation group')
 
   // Keep the official roster and its injected actions; this addition is UI-only.
   ctx.effect(() => decorateSlot(registry, 'settings.section', 'AgentPresetSection', Original => function RolePresetSection(props: any) {
     const selected = useSyncExternalStore(roleSelection.subscribe, roleSelection.getSnapshot)
-    return <CapabilityPreviewContext.Provider value={capabilityPreview}><RoleAssistantsSection t={t} selected={selected} onSelect={roleSelection.select} /><AgentPresetDisclosure t={t}><Original {...props} /></AgentPresetDisclosure></CapabilityPreviewContext.Provider>
+    return <><ManagedRolesSection selected={selected} onSelect={roleSelection.select} /><AgentPresetDisclosure t={t}><Original {...props} /></AgentPresetDisclosure></>
   }), 'plain-chat: role assistant settings preview')
 
   // These resident entries own private inject callbacks and child declarations.
@@ -74,14 +92,15 @@ export function apply(ctx: Context): void {
       const selectRole = roleSelection.select
       const summary = props.useSessions((s: any) => props.sessionId ? s.byId[props.sessionId] : undefined)
       const composerBlock = props.useComposerBlock((block: unknown) => block)
-      const plain = summary?.projectionValues?.agentPreset === PRESET_ID || created.has(props.sessionId)
+      const actualPreset = summary?.projectionValues?.agentPreset
+      const plain = actualPreset === PRESET_ID || String(actualPreset ?? '').startsWith('workbench-role-') || created.has(props.sessionId)
       const noSession = props.sessionId === undefined
       const translate = (key: string, ...args: unknown[]) => key === 'hero.chooseWorkspace' && (plain || noSession) ? t('workspace') : props.t(key, ...args)
       const renderSlot = (key: string, owner: any, ...rest: any[]) => {
-        if (key === 'conversation.hero.agentPreset' && noSession) return <CapabilityPreviewContext.Provider value={capabilityPreview}><RolePicker t={t} selected={selectedRole} onSelect={selectRole} /></CapabilityPreviewContext.Provider>
+        if (key === 'conversation.hero.agentPreset' && noSession) return <ManagedRolePicker t={t} selected={selectedRole} onSelect={role => { start.reset(); selectRole(role) }} />
         if (key === 'conversation.hero.agentPreset' && plain) return <span className={styles.badge}>{t('mode')}</span>
         if (key === 'conversation.composer.bar') {
-          if (noSession) return <DraftComposer key={draftKey} start={start} t={t} available={chatRoot !== ''} previewOnly={selectedRole !== 'chat'} onReturnChat={() => selectRole('chat')} />
+          if (noSession) return <DraftComposer key={draftKey} start={start} t={t} available={chatRoot !== ''} />
           // Only the workspace gate is removed. Business composer blocks remain intact.
           if (plain && owner.onRequestWorkspace) {
             return props.renderSlot(key, { ...owner, disabled: false, blocked: composerBlock, placeholder: composerBlock?.reason ?? t('placeholder'), onRequestWorkspace: undefined }, ...rest)
@@ -104,7 +123,9 @@ export function apply(ctx: Context): void {
         }
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><CurrentAssistant t={t} selected={selectedRole} onOpen={settingsNavigation.openPresets} /></div>
+        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={selectedRole} preset={actualPreset} onOpen={settingsNavigation.openPresets} /></div>
+        <BrowserTaskStatus sessionId={props.sessionId}/>
+        {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
         <div className={styles.conversationContent}><Original {...props} t={translate} renderSlot={renderSlot} selectWorkspace={selectWorkspace} /></div>
       </div>
     }

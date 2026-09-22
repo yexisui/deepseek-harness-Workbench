@@ -11,21 +11,24 @@ export class ChatStart {
   private pending?: Promise<void>
   private id?: string
   private epoch = 0
-  constructor(private readonly port: StartPort, private readonly cwd: string, private readonly mint: () => string) {}
-  reset(): void { this.epoch++; this.id = undefined; this.pending = undefined }
+  private chosenPreset?: string
+  constructor(private readonly port: StartPort, private readonly cwd: string, private readonly mint: () => string, private readonly preset: () => string = () => PRESET_ID) {}
+  reset(): void { this.epoch++; this.id = undefined; this.pending = undefined; this.chosenPreset = undefined }
   send(text: string): Promise<void> {
     if (this.pending) return this.pending
     if (!text.trim()) return Promise.resolve()
     const epoch = this.epoch
     const id = this.id ??= this.mint()
     const run = async () => {
-      const result = await this.port.create({ sessionId: id, cwd: this.cwd, agentPreset: PRESET_ID })
+      const agentPreset = this.chosenPreset ??= this.preset()
+      const result = await this.port.create({ sessionId: id, cwd: this.cwd, agentPreset })
       if (!result.ok) throw new Error(result.error?.message ?? 'Session creation failed')
       if (epoch !== this.epoch) return
       await this.port.adopt({ sessionId: id, cwd: this.cwd })
       if (epoch !== this.epoch) return
       this.port.deliver(id, text)
       this.id = undefined
+      this.chosenPreset = undefined
     }
     const attempt = run().finally(() => { if (this.pending === attempt) this.pending = undefined })
     this.pending = attempt

@@ -6,6 +6,16 @@ function fixture() {
   return { port, start: new ChatStart(port, 'C:\\workbench\\chat-data', () => 'session-1') }
 }
 describe('first message transaction', () => {
+  it('pins the chosen role version across uncertain retries', async () => {
+    const port: StartPort = { create: vi.fn(async () => ({ ok: true })), adopt: vi.fn(), deliver: vi.fn() }
+    let preset = 'workbench-role-one-v1'
+    const start = new ChatStart(port, 'chat-data', () => 'session-1', () => preset)
+    vi.mocked(port.create).mockRejectedValueOnce(new Error('uncertain'))
+    await expect(start.send('read this page')).rejects.toThrow('uncertain')
+    preset = 'workbench-role-two-v1'
+    await start.send('read this page')
+    expect(vi.mocked(port.create).mock.calls.map(([request]) => request.agentPreset)).toEqual(['workbench-role-one-v1', 'workbench-role-one-v1'])
+  })
   it('creates the restricted preset, adopts the same id, then delivers exactly once', async () => {
     const { start, port } = fixture()
     await Promise.all([start.send('hello'), start.send('hello')])
