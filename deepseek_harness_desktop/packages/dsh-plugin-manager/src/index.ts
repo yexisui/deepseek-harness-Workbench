@@ -56,7 +56,11 @@ function applyImpl(ctx: Context): void {
   const cliAvailable = (): boolean => findDshBinary() !== null
 
   ctx.effect(() => {
-    const routes = [...makeGatewayRoutes({ facts, gateway, cliAvailable, offline }), ...makeLocalManagementRoutes(offline, gateway, inventory)]
+    const beforeCapabilityChange = async (moduleName: string) => {
+      const service = ctx.get('capabilities' as never) as unknown as { assertPluginChange?: (name: string) => void } | undefined
+      service?.assertPluginChange?.(moduleName)
+    }
+    const routes = [...makeGatewayRoutes({ facts, gateway, cliAvailable, offline, beforeCapabilityChange }), ...makeLocalManagementRoutes(offline, gateway, inventory, beforeCapabilityChange)]
     const disposers = routes.map(route => ctx.webServer.register(route))
     disposers.push(registerWorkshopServiceRoutes(dirname(dirname(facts.profileDir)), routes))
     return () => {

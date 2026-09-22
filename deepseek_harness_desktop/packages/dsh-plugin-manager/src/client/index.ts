@@ -23,6 +23,7 @@ import type {} from '@deepseek-ai/dsh-api-workspace-controller/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import { InventoryTree } from './InventoryTree.tsx'
+import { withCapabilityNavigation } from './CapabilityNavigation.tsx'
 import { decorateSlot, type Registry } from './slot-adapter.ts'
 import { PluginManagerTab, type PluginManagerTabInjected } from './PluginManagerTab.tsx'
 import { en, zh, type PluginManagerKey } from './locales.ts'
@@ -291,6 +292,7 @@ export function createPluginManagerFace(ctx: ClientContext): PluginManagerFace {
 
 /** Contribute the family plugin-manager tab and provide the shared face. */
 export function apply(ctx: ClientContext): void {
+  ctx.effect(() => decorateSlot(ctx.slots as unknown as Registry, 'settings.section', 'PluginsSettingsSection', withCapabilityNavigation), 'plugin-manager: capability navigation')
   ctx.effect(() => decorateSlot(ctx.slots as unknown as Registry, 'settings.plugins.tab', 'PluginInventorySettingsTab', () => InventoryTree), 'plugin-manager: grouped inventory')
   ctx.effect(() => {
     try {

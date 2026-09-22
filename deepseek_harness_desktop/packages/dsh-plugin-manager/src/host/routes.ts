@@ -24,6 +24,8 @@ const UPDATES_DISABLED = 'plugin-manager: plugin updates are disabled in this de
 
 /** Dependencies every route shares. */
 export interface GatewayRouteDeps {
+  /** Refuse destructive changes while a related browser operation is active. */
+  beforeCapabilityChange?: (moduleName: string) => Promise<void>
   offline?: OfflineInstaller
   facts: ProfileFacts
   gateway: CliGateway
@@ -99,7 +101,7 @@ export function makeGatewayRoutes(deps: GatewayRouteDeps): WebRoute[] {
       writeJson(res, 400, { error: unsafeId })
       return
     }
-    writeJson(res, 200, await gateway.withMutationLock(async () => offline().job('remove', id.trim(), () => offline().remove(id.trim()))))
+    writeJson(res, 200, await gateway.withMutationLock(async () => { await deps.beforeCapabilityChange?.(id.trim()); return offline().job('remove', id.trim(), () => offline().remove(id.trim())) }))
   }
 
   const statusHandler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
@@ -161,6 +163,7 @@ export function makeGatewayRoutes(deps: GatewayRouteDeps): WebRoute[] {
         entries = [owner.row]
       }
       let next = patchText
+      if (!enabled) await deps.beforeCapabilityChange?.(ownerName)
       for (const entry of entries) {
         // A whole-package disable still force-keeps the locked rows mounted.
         const entryEnabled = enabled || LOCKED_ENTRY_IDS.has(entry.id)

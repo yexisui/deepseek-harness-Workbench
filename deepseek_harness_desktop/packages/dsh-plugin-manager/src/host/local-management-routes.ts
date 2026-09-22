@@ -8,7 +8,7 @@ import { LocalWorkshopService, LocalImportError } from '../../../dsh-market/src/
 import { readJsonBody, writeJson } from './http.ts'
 import { isLoopbackRequest } from './loopback.ts'
 
-export function makeLocalManagementRoutes(installer:OfflineInstaller,gateway:CliGateway,inventory:()=>InventoryEntry[]):WebRoute[]{
+export function makeLocalManagementRoutes(installer:OfflineInstaller,gateway:CliGateway,inventory:()=>InventoryEntry[],beforeCapabilityChange?:(name:string)=>Promise<void>):WebRoute[]{
  const library=new LocalWorkshopService({dshHome:installer.home}),classification=new ClassificationStore(installer.home)
  const formats=new Map<string,'zip'|'folder'>()
  const body=async(req:IncomingMessage)=>(await readJsonBody(req,{maxBytes:2*1024*1024,objectOnly:true})??{}) as Record<string,unknown>
@@ -25,11 +25,12 @@ export function makeLocalManagementRoutes(installer:OfflineInstaller,gateway:Cli
   route('import/inspect',['POST'],async req=>{const b=await body(req);library.inspect(b.uploadId);return {preview:installer.inspect(library.inspectedRoot(b.uploadId)).preview}}),
   route('import/commit',['POST'],async req=>{const b=await body(req);if(b.confirm!==true||typeof b.hash!=='string'||typeof b.currentHash!=='string')throw Error('请先检查并确认待安装的插件。');return gateway.withMutationLock(async()=>{
    library.inspect(b.uploadId);const root=library.inspectedRoot(b.uploadId),format=formats.get(String(b.uploadId));if(!format)throw Error('导入会话已失效')
+   await beforeCapabilityChange?.(installer.inspect(root).preview.id)
    const result=installer.job('install',String(b.uploadId),()=>installer.install(root,format,b.hash as string,b.replace===true,b.currentHash as string))
    if(installer.status(result.jobId)?.phase==='done'){library.discard(b.uploadId);formats.delete(String(b.uploadId))}
    return result
   })}),
   route('import/discard',['POST'],async req=>{const b=await body(req);library.discard(b.uploadId);formats.delete(String(b.uploadId));return {ok:true}}),
-  route('rollback',['POST'],async req=>{const b=await body(req);if(b.confirm!==true||typeof b.id!=='string')throw Error('请确认回退版本');return gateway.withMutationLock(async()=>installer.job('update',b.id as string,()=>installer.rollback(b.id as string)))}),
+  route('rollback',['POST'],async req=>{const b=await body(req);if(b.confirm!==true||typeof b.id!=='string')throw Error('请确认回退版本');return gateway.withMutationLock(async()=>{await beforeCapabilityChange?.(b.id as string);return installer.job('update',b.id as string,()=>installer.rollback(b.id as string))})}),
  ]
 }

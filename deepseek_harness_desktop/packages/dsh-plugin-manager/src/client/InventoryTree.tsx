@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { entryKey, entryFacts, removeCategory, type Classification, type InventoryEntry } from '../core/classification.ts'
 import css from './inventory-tree.module.css'
 import { InventoryIcon } from './InventoryIcon.tsx'
+import { CapabilityReferences, capabilityLink, useCapabilityReferences } from './CapabilityReferences.tsx'
 
 interface Preset { id:string;name:string;isDefault?:boolean;rows:InventoryEntry[] }
 export interface InventorySnapshot { entries:InventoryEntry[];agentPresets?:Preset[] }
@@ -15,8 +16,10 @@ async function classificationRequest(body?:Classification):Promise<Classificatio
 }
 function shift<T>(items:T[],index:number,delta:number):T[]{const result=[...items],other=index+delta;if(other<0||other>=items.length)return result;[result[index],result[other]]=[result[other]!,result[index]!];return result}
 export function InventoryTree({list,presetName}:Props){
+ const capabilityData=useCapabilityReferences()
  const [snapshot,setSnapshot]=useState<InventorySnapshot>(),[config,setConfig]=useState<Classification>(),[draft,setDraft]=useState<Classification>()
  const [query,setQuery]=useState(''),[chosen,setChosen]=useState(''),[selected,setSelected]=useState<string[]>([]),[target,setTarget]=useState('')
+ useEffect(()=>{const select=(event?:Event)=>{try{const link=event?(event as CustomEvent).detail:JSON.parse(sessionStorage.getItem('workbench-capability-link')??'null');if(link?.section==='plugins'&&link.moduleName)setQuery(link.moduleName)}catch{/* Optional navigation memory. */}};select();window.addEventListener('workbench-capability-link',select);return()=>window.removeEventListener('workbench-capability-link',select)},[])
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[remove,setRemove]=useState<{id:string;group:boolean}>(),[removeTarget,setRemoveTarget]=useState('')
  const [opened,setOpened]=useState<Record<string,boolean>>(()=>{try{return JSON.parse(localStorage.getItem('dsh-plugin-tree-open')??'{}')}catch{return {}}})
  const refresh=async()=>{setError('');try{const [s,c]=await Promise.all([inventoryRequest(list),classificationRequest()]);setSnapshot(s);setConfig(c)}catch(e){setError(String(e))}}
@@ -36,7 +39,7 @@ export function InventoryTree({list,presetName}:Props){
    {draft&&!session&&<label className={css.select}><input type="checkbox" aria-label={'选择 '+e.moduleName} checked={selected.includes(key)} onChange={ev=>setSelected(ev.target.checked?[...selected,key]:selected.filter(x=>x!==key))}/>选择</label>}
    <details><summary><strong>{e.moduleName.replace(/^@deepseek-ai\/(?:dsh-)?/,'').replace(/^@linxin666\/dsh-/,'')}</strong><span className={css.badge} data-state={e.fiberPhase==='failed'?'failed':e.enabled?'active':'disabled'}>{e.fiberPhase==='pending-restart'?'待重启加载':e.fiberPhase==='failed'?'加载失败':e.enabled?(e.fiberPhase==='active'?'已启用':'待激活'):provided?'由会话预设提供':'已停用'}</span></summary>
     <dl><dt>完整包名</dt><dd>{e.moduleName}</dd><dt>条目 ID</dt><dd>{e.entryId}</dd><dt>来源</dt><dd>{session?(e.moduleName.startsWith('@deepseek-ai/')?'官方 Harness':'会话预设插件'):fact.source}</dd><dt>运行状态</dt><dd>{e.fiberPhase??'未在全局加载'}</dd>{provided&&<><dt>提供此能力的预设</dt><dd>{provided.join('、')}</dd></>}</dl>
-   </details><p>{session?(e.moduleName==='./no-tools.mjs'?'普通聊天的工具禁用边界。':e.moduleName.endsWith('/dsh-persona')?'会话角色提示词。':e.entryId):fact.purpose}</p>
+   </details><p>{session?(e.moduleName==='./no-tools.mjs'?'普通聊天的工具禁用边界。':e.moduleName.endsWith('/dsh-persona')?'会话角色提示词。':e.entryId):fact.purpose}</p><CapabilityReferences moduleName={e.moduleName} data={capabilityData}/>
   </div>
  }
  const grid=(entries:InventoryEntry[],session=false)=><div className={css.grid}>{[...entries].sort((a,b)=>Number(b.fiberPhase==='failed')-Number(a.fiberPhase==='failed')).map(e=>card(e,session))}</div>
@@ -63,6 +66,7 @@ export function InventoryTree({list,presetName}:Props){
  const differences=draft&&config?Object.keys({...config.assignments,...draft.assignments}).filter(k=>config.assignments[k]!==draft.assignments[k]).length:0
  const removeCount=remove&&current?rows.filter(r=>{const m=current.modules.find(m=>m.id===current.assignments[entryKey(r)]);return remove.group?m?.groupId===remove.id:m?.id===remove.id}).length:0
  return <div className={css.root}>
+  {capabilityData&&<button className={css.toolButton} onClick={()=>{let id:string|undefined;try{id=JSON.parse(sessionStorage.getItem('workbench-capability-link')??'null')?.capabilityId}catch{}capabilityLink('capability-center',id)}}>← 返回能力中心</button>}
   <div className={css.toolbar}><label className={css.search}><InventoryIcon name="search"/><input type="search" aria-label="搜索插件" placeholder="搜索插件、用途或模块" value={query} onChange={e=>setQuery(e.target.value)}/></label><button className={css.toolButton} disabled={busy||!!draft} onClick={()=>void refresh()}><InventoryIcon name="refresh"/>刷新</button><button className={css.toolButton} disabled={!config||busy||!!draft} onClick={()=>{setDraft(structuredClone(config!));setSelected([])}}><InventoryIcon name="grid"/>管理分类</button></div>
   {error&&<p role="alert" className={css.error}>{error}</p>}
   {!snapshot||!current?<p>正在读取插件清单…</p>:<>
