@@ -10,9 +10,9 @@ import s from './Roles.module.css'
 type Translate = (key: ChatKey) => string
 type EditorMode = 'create' | AssistantRole
 const palette = ['#4F73E8', '#22A58B', '#E58A32', '#9A62D8', '#E35E8D', '#E06453', '#21A0C5', '#788647']
-const colorStyle = (color: string): CSSProperties => ({ '--role-color': color } as CSSProperties)
+export const colorStyle = (color: string): CSSProperties => ({ '--role-color': color } as CSSProperties)
 
-function RoleIcon({ role = 'analyst', color }: { role?: PreviewRole; color?: string }) {
+export function RoleIcon({ role = 'analyst', color }: { role?: PreviewRole; color?: string }) {
   return <span className={s.icon} style={colorStyle(color ?? (role === 'chat' ? palette[0]! : roleCatalog[role].color))} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     {role === 'chat' ? <path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2V11.5a9 9 0 0 1 18 0Z" />
       : role === 'marketing' ? <><path d="M4 10h4l11-5v14L8 14H4zM8 14l2 6H6l-2-6M22 10v4" /></>

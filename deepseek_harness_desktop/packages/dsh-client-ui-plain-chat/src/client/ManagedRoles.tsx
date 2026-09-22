@@ -7,6 +7,8 @@ import { Modal } from './PreviewModal.tsx'
 import type { ChatKey } from './locales.ts'
 import s from './ManagedCapabilities.module.css'
 import r from './Roles.module.css'
+import { colorStyle, RoleIcon } from './RoleAssistants.tsx'
+import { roleIds } from './role-catalog.ts'
 
 export function ManagedRoleEditor({ id, onClose }: { id?: string; onClose: () => void }) {
   const { data } = useCapabilities()
@@ -45,8 +47,35 @@ function RoleForm({ id, onClose }: { id?: string; onClose: () => void }) {
 }
 export function ManagedRolesSection({ selected, onSelect }: { selected: string; onSelect: (id: string) => void }) {
   const { data, error } = useCapabilities(), [editor, setEditor] = useState<{ id?: string } | null>(null), [message, setMessage] = useState('')
-  return <section className={s.page}><div className={s.heading}><div><h2>岗位助手</h2><p className={s.muted}>为岗位装配能力，保存后从新对话中选择。</p></div><button className={`${s.button} ${s.primary}`} onClick={() => setEditor({})}>＋ 创建岗位助手</button></div>{(error || message) && <p role="alert" className={s.error}>{message || error}</p>}
-    <div className={s.grid}>{data?.state.roles.map(role => <article className={s.card} key={role.id} style={{ borderTop: `3px solid ${role.draft.color}` }}><h3>{role.draft.name}</h3><p>{role.draft.duties}</p><span className={s.badge}>{role.enabled ? role.versions.length ? `已发布 v${latest(role.versions)!.version}` : '草稿' : '已停用'} · {role.draft.capabilities.length} 个能力 · {data?.tasks.filter(t => t.roleId === role.id && t.status !== 'stopped').length ?? 0} 个活动会话</span><div className={s.actions}><button className={s.button} onClick={() => setEditor({ id: role.id })}>编辑岗位</button><button className={s.button} disabled={!role.enabled || !role.versions.length} aria-pressed={selected === role.id} onClick={() => onSelect(role.id)}>{selected === role.id ? '已选择' : '用于新对话'}</button><button className={s.button} onClick={() => void capabilityClient.command({ type: 'role.toggle', id: role.id, enabled: !role.enabled }).catch(e => setMessage(e.message))}>{role.enabled ? '停用' : '启用'}</button></div></article>)}</div>{data && !data.state.roles.length && <p className={s.empty}>还没有保存的岗位助手。创建后即可装配浏览器能力。</p>}{editor && <ManagedRoleEditor id={editor.id} onClose={() => setEditor(null)}/>}</section>
+  const selectedRole = data?.state.roles.find(role => role.id === selected && role.enabled && role.versions.length)
+  const toggleRole = async (id: string, enabled: boolean) => {
+    try {
+      await capabilityClient.command({ type: 'role.toggle', id, enabled })
+      if (!enabled && selected === id) onSelect('chat')
+    } catch (error) { setMessage(error instanceof Error ? error.message : String(error)) }
+  }
+  return <section className={r.section}>
+    <div className={r.sectionHeader}><div><h2>岗位助手</h2><p>为每一类工作，准备一位熟悉职责的助手。</p></div><button className={r.primary} onClick={() => setEditor({})}>＋ 创建岗位助手</button></div>
+    {(error || message) && <p role="alert" className={s.error}>{message || error}</p>}
+    <div className={r.selectionStatus}><span role="status">{selectedRole ? `已选定：${selectedRole.draft.name}` : '未选择岗位 · 自由交流'}</span>{selected !== 'chat' && <button className={r.textButton} onClick={() => onSelect('chat')}>取消选定</button>}</div>
+    <div className={r.cards}>{data?.state.roles.map(role => {
+      const published = latest(role.versions), selectable = role.enabled && !!published, chosen = selectable && selected === role.id
+      const icon = roleIds.find(id => role.id === `builtin-${id}`) ?? 'analyst'
+      return <article key={role.id} data-role-id={role.id} aria-label={role.draft.name} className={`${r.roleCard} ${chosen ? r.selectedCard : ''}`} style={colorStyle(role.draft.color)}>
+        <div className={r.cardBody}>
+          {/* 正文选择与管理操作分开，编辑/停用不会触发卡片选择。 */}
+          <button type="button" className={r.cardSelect} aria-label={`选定助手：${role.draft.name}`} aria-pressed={chosen} disabled={!selectable} onClick={() => onSelect(role.id)}/>
+          <div className={r.cardTop}><RoleIcon role={icon} color={role.draft.color}/><span className={`${r.exampleBadge} ${chosen ? r.selectedBadge : ''}`}>{chosen ? '✓ 已选定' : !role.enabled ? '已停用' : published ? '岗位助手' : '草稿'}</span></div>
+          <h3>{role.draft.name}</h3><p className={r.cardSummary} title={role.draft.duties}>{role.draft.duties || '点击编辑岗位，填写职责与工作要求。'}</p>
+          <div className={r.tags}><span>{published ? `已发布 v${published.version}` : '未发布'}</span><span>{role.draft.capabilities.length} 个能力</span><span>{data.tasks.filter(t => t.roleId === role.id && t.status !== 'stopped').length} 个活动会话</span></div>
+        </div>
+        <div className={r.cardControls}><button className={r.cardAction} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} onClick={() => void toggleRole(role.id, !role.enabled)}>{role.enabled ? '停用' : '启用'}</button></div>
+      </article>
+    })}</div>
+    {data && !data.state.roles.length && <p className={s.empty}>还没有保存的岗位助手。创建后即可装配能力。</p>}
+    <p className={r.sectionNote}>点击卡片选定助手；选择会用于下一次新对话，当前对话保持不变。</p>
+    {editor && <ManagedRoleEditor id={editor.id} onClose={() => setEditor(null)}/>}
+  </section>
 }
 export function ManagedRolePicker({ selected, onSelect, t }: { selected: string; onSelect: (id: string) => void; t: (key: ChatKey) => string }) {
   const { data } = useCapabilities(), [open, setOpen] = useState(false), [editor, setEditor] = useState(false)

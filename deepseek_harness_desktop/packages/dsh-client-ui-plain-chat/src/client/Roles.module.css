@@ -17,6 +17,15 @@
 .cardSelect { position:absolute; inset:0 0 51px; z-index:1; border:0; padding:0; border-radius:12px 12px 0 0; background:transparent; cursor:pointer; }
 .cardSelect:hover { background:color-mix(in srgb,var(--role-color) 5%,transparent); }
 .roleCard .cardAction { position:relative; z-index:2; }
+/* 正文独立承载选择层，页脚高度不受换行或字体缩放影响。 */
+.cardBody { position:relative; flex:1; margin:-22px -22px 0; padding:22px 22px 0; border-radius:10px 10px 0 0; }
+.cardBody .cardSelect { inset:0; border-radius:10px 10px 0 0; }
+.cardSelect:disabled { cursor:default; }
+.cardSelect:disabled:hover { background:transparent; }
+.roleCard .cardSummary { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; min-height:5.4em; overflow-wrap:anywhere; }
+.cardControls { position:relative; z-index:2; display:flex; align-items:center; gap:18px; border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border)); }
+.cardControls .cardAction { flex:1; width:auto; min-width:0; border-top:0; }
+.cardControls .textButton { min-height:44px; color:var(--role-muted); }
 .selectedCard { box-shadow:0 0 0 2px var(--role-color),0 7px 20px color-mix(in srgb,var(--role-color) 20%,transparent); animation:roleSelect .3s ease-out; }
 .roleCard .exampleBadge.selectedBadge { background:var(--role-color); color:white; }
 @keyframes roleSelect { 0%,100% { transform:translateX(0); } 30% { transform:translateX(-3px); } 60% { transform:translateX(3px); } }
