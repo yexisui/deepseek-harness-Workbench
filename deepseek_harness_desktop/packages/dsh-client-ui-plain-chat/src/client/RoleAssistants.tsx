@@ -1,7 +1,8 @@
-import React, { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import React, { useId, useState, type CSSProperties, type ReactNode } from 'react'
+import { Modal } from './PreviewModal.tsx'
 import type { ChatKey } from './locales.ts'
 import { roleCatalog, roleIds, type AssistantRole, type PreviewRole } from './role-catalog.ts'
+import { CapabilityCenter } from './CapabilityCenter.tsx'
 import { CapabilityWorkbench } from './CapabilityWorkbench.tsx'
 export type { PreviewRole } from './role-catalog.ts'
 import s from './Roles.module.css'
@@ -21,23 +22,9 @@ function RoleIcon({ role = 'analyst', color }: { role?: PreviewRole; color?: str
   </svg></span>
 }
 
-function Modal({ title, onClose, children, wide = false, closeLabel }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; closeLabel: string }) {
-  const ref = useRef<HTMLDialogElement>(null)
-  const titleId = useId()
-  useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null
-    const dialog = ref.current!
-    dialog.showModal()
-    return () => { dialog.close(); if (previous?.isConnected) previous.focus() }
-  }, [])
-  return createPortal(<dialog ref={ref} className={`${s.dialog} ${wide ? s.wide : ''}`} aria-labelledby={titleId}
-    onCancel={event => { event.preventDefault(); onClose() }}>
-    <div className={s.dialogHeader}><h2 id={titleId}>{title}</h2><button type="button" autoFocus className={s.close} onClick={onClose} aria-label={closeLabel}>×</button></div>
-    {children}
-  </dialog>, document.body)
-}
 
 function RoleEditor({ t, mode, onClose }: { t: Translate; mode: EditorMode; onClose: () => void }) {
+  const [relatedRole, setRelatedRole] = useState<AssistantRole | null>(null)
   const [color, setColor] = useState(mode === 'create' ? palette[0]! : roleCatalog[mode].color)
   const [fields, setFields] = useState(() => {
     if (mode === 'create') return { name: '', duties: '', requirements: '', format: '' }
@@ -51,7 +38,7 @@ function RoleEditor({ t, mode, onClose }: { t: Translate; mode: EditorMode; onCl
     ['format', 'rolesFormat', 'rolesFormatPlaceholder'],
   ] as const
   return <>
-    <CapabilityWorkbench t={t} mode={mode} name={fields.name} form={
+    <CapabilityWorkbench t={t} onOpenRole={setRelatedRole} mode={mode} name={fields.name} form={
         <div className={s.fields}>
           <label className={s.field} htmlFor={`${id}-name`}><span>{t('rolesName')}</span>
             <input id={`${id}-name`} maxLength={60} value={fields.name} placeholder={t('rolesNamePlaceholder')} onChange={event => setFields({ ...fields, name: event.target.value })} />
@@ -81,6 +68,7 @@ function RoleEditor({ t, mode, onClose }: { t: Translate; mode: EditorMode; onCl
           {definitions.map(([key, label]) => <section key={key} className={s.previewSection}><h4>{t(label)}</h4><p className={!fields[key].trim() ? s.empty : undefined}>{fields[key].trim() || t('rolesEmpty')}</p></section>)}
         </div>
       } />
+    {relatedRole && <RoleAssistantPreview t={t} mode={relatedRole} onClose={() => setRelatedRole(null)} />}
     <div className={s.footer}><p id={`${id}-save-hint`}>{t('rolesSaveHint')}</p><div className={s.actions}>
       <button type="button" className={s.secondary} onClick={onClose}>{t('rolesDone')}</button>
       <button type="button" className={s.primary} disabled aria-describedby={`${id}-save-hint`}>{t('rolesSave')}</button>
@@ -147,4 +135,14 @@ export function RolePicker({ t, selected, onSelect }: { t: Translate; selected: 
       </div>}
     </Modal>}
   </>
+}
+
+/** Opens a role preview above the center, preserving the center's draft and filters. */
+export function RoleAssistantPreview({ t, mode, onClose }: { t: Translate; mode: EditorMode; onClose: () => void }) {
+  return <Modal title={t(mode === 'create' ? 'rolesCreate' : 'rolesEdit')} onClose={onClose} closeLabel={t('rolesClose')} wide><RoleEditor t={t} mode={mode} onClose={onClose} /></Modal>
+}
+
+export function CapabilityCenterPage({ t }: { t: Translate }) {
+  const [role, setRole] = useState<AssistantRole | null>(null)
+  return <><CapabilityCenter t={t} onOpenRole={setRole} />{role && <RoleAssistantPreview t={t} mode={role} onClose={() => setRole(null)} />}</>
 }

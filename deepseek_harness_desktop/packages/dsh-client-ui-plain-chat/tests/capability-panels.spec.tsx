@@ -29,7 +29,7 @@ describe('capability layout interactions', () => {
     Object.getOwnPropertyDescriptor(prototype, 'value')!.set!.call(element, value)
     element.dispatchEvent(new Event('input', { bubbles: true }))
   })
-  const render = async () => act(async () => root.render(<CapabilityWorkbench t={t} mode="create" name="Test" form={<input aria-label="Role draft" defaultValue="Keep this" />} preview={<p>Preview</p>} />))
+  const render = async () => act(async () => root.render(<CapabilityWorkbench t={t} onOpenRole={() => {}} mode="create" name="Test" form={<input aria-label="Role draft" defaultValue="Keep this" />} preview={<p>Preview</p>} />))
 
   it('keeps side panels mounted, preserves their state, and does not reopen settings on addition', async () => {
     await render()
@@ -100,5 +100,43 @@ describe('capability layout interactions', () => {
     expect(animate.mock.calls.at(-1)![0].every((frame: Keyframe) => !frame.transform)).toBe(true)
     await drop('unknown')
     expect(container.querySelectorAll('[data-attached-capability]')).toHaveLength(2)
+  })
+
+  it('adds by pointer drag without opening details and ignores outside, duplicate and cancelled drops', async () => {
+    await render()
+    const card = find<HTMLElement>('[data-capability="browser"]')
+    const dropZone = find<HTMLElement>('[aria-label="将配件拖到这里"]')
+    const hit = vi.fn((): Element => dropZone)
+    const previousHit = Object.getOwnPropertyDescriptor(document, 'elementFromPoint')
+    Object.defineProperty(document, 'elementFromPoint', { configurable: true, value: hit })
+    const pointer = async (target: EventTarget, name: string, x: number) => act(async () => {
+      const event = new Event(name, { bubbles: true, cancelable: true })
+      Object.assign(event, { pointerId: 1, clientX: x, clientY: 100, button: 0 })
+      target.dispatchEvent(event)
+    })
+    try {
+      await pointer(card, 'pointerdown', 30)
+      await pointer(window, 'pointermove', 600)
+      await pointer(window, 'pointerup', 600)
+      await click('[aria-label="查看配件设置：浏览器操作"]')
+      expect(find<HTMLElement>('aside').hidden).toBe(true)
+      expect(container.querySelectorAll('[data-attached-capability]')).toHaveLength(1)
+      expect(animate).toHaveBeenCalledTimes(1)
+      await pointer(card, 'pointerdown', 30); await pointer(window, 'pointermove', 600); await pointer(window, 'pointerup', 600)
+      expect(container.querySelectorAll('[data-attached-capability]')).toHaveLength(1)
+      expect(animate).toHaveBeenCalledTimes(2)
+      const documents = find<HTMLElement>('[data-capability="documents"]')
+      hit.mockReturnValue(container)
+      await pointer(documents, 'pointerdown', 30); await pointer(window, 'pointermove', 600); await pointer(window, 'pointerup', 600)
+      expect(container.querySelectorAll('[data-attached-capability]')).toHaveLength(1)
+      hit.mockReturnValue(dropZone)
+      await pointer(documents, 'pointerdown', 30); await pointer(window, 'pointermove', 600)
+      await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true })))
+      await pointer(window, 'pointerup', 600)
+      expect(container.querySelectorAll('[data-attached-capability]')).toHaveLength(1)
+    } finally {
+      if (previousHit) Object.defineProperty(document, 'elementFromPoint', previousHit)
+      else delete (document as any).elementFromPoint
+    }
   })
 })

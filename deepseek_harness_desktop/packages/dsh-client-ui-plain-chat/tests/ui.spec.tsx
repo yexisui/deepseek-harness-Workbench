@@ -68,7 +68,7 @@ function harness() {
   }
   const selectPanel = vi.fn()
   const ctx = {
-    slots: { entries: (key: keyof typeof entries) => entries[key] ?? [], subscribe: vi.fn(() => () => {}) },
+    slots: { entries: (key: keyof typeof entries) => entries[key] ?? [], subscribe: vi.fn(() => () => {}), inject: (_key: string, setup: () => () => void) => disposers.push(setup()), register: vi.fn(() => () => {}) },
     effect: (setup: () => unknown) => { const dispose = setup(); if (typeof dispose === 'function') disposers.push(dispose as () => void) },
     locale: { register: vi.fn(() => () => {}), bind: () => (key: ChatKey) => zh[key] },
     remote: { session: { create: remoteCreate } },

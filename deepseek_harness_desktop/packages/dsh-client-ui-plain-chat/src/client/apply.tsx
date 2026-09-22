@@ -8,7 +8,9 @@ import { ChatStart, PRESET_ID } from '../core/start.ts'
 import { decorateSlot, type Registry } from './slot-adapter.ts'
 import { DraftComposer } from './DraftComposer.tsx'
 import { withAppearanceNavigation } from './AppearanceNavigation.tsx'
-import { AgentPresetDisclosure, CurrentAssistant, RoleAssistantsSection, RolePicker } from './RoleAssistants.tsx'
+import { CapabilityPreviewContext, createCapabilityPreview } from './capability-preview.tsx'
+import { registerCapabilityCenter } from './capability-settings.tsx'
+import { CapabilityCenterPage, AgentPresetDisclosure, CurrentAssistant, RoleAssistantsSection, RolePicker } from './RoleAssistants.tsx'
 import { createRoleSelection, createSettingsNavigation } from './role-ui-state.ts'
 import { en, zh, type ChatKey } from './locales.ts'
 import { ru } from '../../../dsh-i18n/src/client/ru/plain-chat.ts'
@@ -50,6 +52,8 @@ export function apply(ctx: Context): void {
     },
   }, chatRoot, () => `session-${crypto.randomUUID()}`)
   const registry = ctx.slots as unknown as Registry
+  const capabilityPreview = createCapabilityPreview()
+  registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <CapabilityPreviewContext.Provider value={capabilityPreview}><CapabilityCenterPage t={t} /></CapabilityPreviewContext.Provider>)
   const roleSelection = createRoleSelection()
   const settingsNavigation = createSettingsNavigation()
   ctx.effect(() => decorateSlot(registry, 'sidebar.settings', 'SettingsRoot', Original =>
@@ -58,7 +62,7 @@ export function apply(ctx: Context): void {
   // Keep the official roster and its injected actions; this addition is UI-only.
   ctx.effect(() => decorateSlot(registry, 'settings.section', 'AgentPresetSection', Original => function RolePresetSection(props: any) {
     const selected = useSyncExternalStore(roleSelection.subscribe, roleSelection.getSnapshot)
-    return <><RoleAssistantsSection t={t} selected={selected} onSelect={roleSelection.select} /><AgentPresetDisclosure t={t}><Original {...props} /></AgentPresetDisclosure></>
+    return <CapabilityPreviewContext.Provider value={capabilityPreview}><RoleAssistantsSection t={t} selected={selected} onSelect={roleSelection.select} /><AgentPresetDisclosure t={t}><Original {...props} /></AgentPresetDisclosure></CapabilityPreviewContext.Provider>
   }), 'plain-chat: role assistant settings preview')
 
   // These resident entries own private inject callbacks and child declarations.
@@ -74,7 +78,7 @@ export function apply(ctx: Context): void {
       const noSession = props.sessionId === undefined
       const translate = (key: string, ...args: unknown[]) => key === 'hero.chooseWorkspace' && (plain || noSession) ? t('workspace') : props.t(key, ...args)
       const renderSlot = (key: string, owner: any, ...rest: any[]) => {
-        if (key === 'conversation.hero.agentPreset' && noSession) return <RolePicker t={t} selected={selectedRole} onSelect={selectRole} />
+        if (key === 'conversation.hero.agentPreset' && noSession) return <CapabilityPreviewContext.Provider value={capabilityPreview}><RolePicker t={t} selected={selectedRole} onSelect={selectRole} /></CapabilityPreviewContext.Provider>
         if (key === 'conversation.hero.agentPreset' && plain) return <span className={styles.badge}>{t('mode')}</span>
         if (key === 'conversation.composer.bar') {
           if (noSession) return <DraftComposer key={draftKey} start={start} t={t} available={chatRoot !== ''} previewOnly={selectedRole !== 'chat'} onReturnChat={() => selectRole('chat')} />
