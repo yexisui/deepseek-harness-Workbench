@@ -1,5 +1,9 @@
 import type { Role, RoleDefinition } from './model.ts'
 
+// Keep the original local conversation role ID so saved meeting history remains readable.
+export const MEETING_ROLE_ID = 'meeting-minutes-demo'
+export const MEETING_CAPABILITY_ID = 'meeting-transcription'
+
 // 将旧版四个预置岗位转为可保存的真实岗位；默认只提供职责提示，不授予工具权限。
 const definitions: Array<{ id: string; definition: RoleDefinition }> = [
   { id: 'builtin-analyst', definition: {
@@ -25,6 +29,13 @@ const definitions: Array<{ id: string; definition: RoleDefinition }> = [
     duties: '协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。',
     requirements: '结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。',
     format: '一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项', capabilities: [],
+  } },
+  { id: MEETING_ROLE_ID, definition: {
+    name: '会议纪要助手', color: '#6683bd', icon: { kind: 'builtin', id: 'document' },
+    duties: '在对话中帮助用户上传会议录音、核对转写内容，并生成可继续修改的会议纪要。',
+    requirements: '只依据录音转写和用户确认的信息整理内容；区分结论、行动项与待确认事项，不编造负责人、期限或决策。',
+    format: '会议概览、主要结论、行动项、待确认事项；行动项尽量列明负责人、期限与录音依据。',
+    capabilities: [{ capabilityId: MEETING_CAPABILITY_ID, version: 1, enabled: true }],
   } },
 ]
 export function defaultRoles(now: string): Role[] {

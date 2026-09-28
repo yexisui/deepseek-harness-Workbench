@@ -1,13 +1,15 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { InputError } from '../core/validation.ts'
-export function fence(req: IncomingMessage) {
+export function fence(req: IncomingMessage, binaryUpload = false) {
   let host: URL
   try { host = new URL(`http://${req.headers.host}`) } catch { throw new InputError('无效 Host', 403) }
   if (!['localhost', '127.0.0.1', '[::1]'].includes(host.hostname)) throw new InputError('仅允许本机访问', 403)
   const origin = req.headers.origin
   if (origin) { let parsed: URL; try { parsed = new URL(origin) } catch { throw new InputError('无效 Origin', 403) }; if (parsed.origin !== host.origin) throw new InputError('不允许跨站访问', 403) }
   if (req.headers['sec-fetch-site'] === 'cross-site') throw new InputError('不允许跨站访问', 403)
-  if (req.method === 'POST' && !/^application\/json(?:\s*;|$)/i.test(req.headers['content-type'] ?? '')) throw new InputError('需要 JSON 请求', 415)
+  if (binaryUpload) {
+    if (req.method !== 'PUT' || !/^application\/octet-stream(?:\s*;|$)/i.test(req.headers['content-type'] ?? '')) throw new InputError('需要录音文件', 415)
+  } else if (req.method === 'POST' && !/^application\/json(?:\s*;|$)/i.test(req.headers['content-type'] ?? '')) throw new InputError('需要 JSON 请求', 415)
 }
 export async function readBody(req: IncomingMessage) {
   const chunks: Buffer[] = []; let bytes = 0

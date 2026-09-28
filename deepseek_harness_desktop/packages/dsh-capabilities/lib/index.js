@@ -1,12 +1,13 @@
 import { createRequire } from "node:module";
+import z from "@deepseek-ai/schemastery";
 import { isAbsolute, join } from "node:path";
+import { createHash, randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { isAbsolute as isAbsolute$1, join as join$1 } from "node:path/posix";
-import { createHash, randomUUID } from "node:crypto";
-import { mkdir, open, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { mkdir, open, readFile, readdir, rename, rm, stat, unlink, writeFile } from "node:fs/promises";
 import { inflateSync } from "node:zlib";
 import { spawn } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { createReadStream, existsSync, openAsBlob, readFileSync } from "node:fs";
 import { defineTool } from "@deepseek-ai/dsh-tools";
 //#region ../../shared/host/dsh-home.ts
 /**
@@ -44,6 +45,8 @@ function dshHome() {
 }
 //#endregion
 //#region src/core/default-roles.ts
+const MEETING_ROLE_ID = "meeting-minutes-demo";
+const MEETING_CAPABILITY_ID = "meeting-transcription";
 const definitions = [
 	{
 		id: "builtin-analyst",
@@ -88,6 +91,25 @@ const definitions = [
 			format: "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
 			capabilities: []
 		}
+	},
+	{
+		id: MEETING_ROLE_ID,
+		definition: {
+			name: "会议纪要助手",
+			color: "#6683bd",
+			icon: {
+				kind: "builtin",
+				id: "document"
+			},
+			duties: "在对话中帮助用户上传会议录音、核对转写内容，并生成可继续修改的会议纪要。",
+			requirements: "只依据录音转写和用户确认的信息整理内容；区分结论、行动项与待确认事项，不编造负责人、期限或决策。",
+			format: "会议概览、主要结论、行动项、待确认事项；行动项尽量列明负责人、期限与录音依据。",
+			capabilities: [{
+				capabilityId: MEETING_CAPABILITY_ID,
+				version: 1,
+				enabled: true
+			}]
+		}
 	}
 ];
 function defaultRoles(now) {
@@ -126,8 +148,38 @@ const components = [{
 		"bsk",
 		"browser-extension"
 	]
+}, {
+	id: "meeting-asr",
+	name: "会议录音转写",
+	provider: "@linxin666/dsh-capabilities/meeting",
+	version: "1.0.0",
+	actions: ["transcribe"],
+	dependencies: []
 }];
 const latest = (versions) => versions.at(-1);
+function meetingCapability(now) {
+	const definition = {
+		name: "会议录音转写",
+		description: "上传会议录音并转写，支持按时间定位和核对原文；纪要由工作台模型生成。",
+		instructions: "使用已配置的兼容语音识别接口处理录音。录音与转写内容仅在会议对话中使用；生成纪要前核对重要结论。",
+		components: [{
+			componentId: "meeting-asr",
+			actions: ["transcribe"]
+		}]
+	};
+	return {
+		id: MEETING_CAPABILITY_ID,
+		source: "builtin",
+		enabled: true,
+		pinned: false,
+		draft: definition,
+		versions: [{
+			...structuredClone(definition),
+			version: 1,
+			createdAt: now
+		}]
+	};
+}
 function initialState(now = (/* @__PURE__ */ new Date()).toISOString()) {
 	const definition = {
 		name: "浏览器操作",
@@ -146,7 +198,8 @@ function initialState(now = (/* @__PURE__ */ new Date()).toISOString()) {
 		schema: 1,
 		revision: 0,
 		updatedAt: now,
-		defaultRolesVersion: 1,
+		defaultRolesVersion: 2,
+		meetingCapabilityVersion: 1,
 		roles: defaultRoles(now),
 		capabilities: [{
 			id: "browser",
@@ -159,7 +212,7 @@ function initialState(now = (/* @__PURE__ */ new Date()).toISOString()) {
 				version: 1,
 				createdAt: now
 			}]
-		}]
+		}, meetingCapability(now)]
 	};
 }
 function actionsOf(definition) {
@@ -470,7 +523,8 @@ var CapabilityStore = class {
 				const raw = JSON.parse(await readFile(join(this.directory, "state.json"), "utf8"));
 				if (raw.schema !== 1 || !Array.isArray(raw.capabilities) || !Array.isArray(raw.roles) || !Number.isSafeInteger(raw.revision)) throw new Error("Unsupported capability data");
 				this.state = raw;
-				if (raw.defaultRolesVersion !== void 0 && raw.defaultRolesVersion !== 1) throw new Error("Unsupported default role migration");
+				if (raw.defaultRolesVersion !== void 0 && raw.defaultRolesVersion !== 1 && raw.defaultRolesVersion !== 2) throw new Error("Unsupported default role migration");
+				if (raw.meetingCapabilityVersion !== void 0 && raw.meetingCapabilityVersion !== 1) throw new Error("Unsupported meeting capability migration");
 				if (raw.stoppedSessions !== void 0 && (!Array.isArray(raw.stoppedSessions) || raw.stoppedSessions.some((value) => typeof value !== "string" || !value || value.length > 150))) throw new Error("Invalid stopped session data");
 				if (raw.revokedAt !== void 0 && Object.entries(object(raw.revokedAt)).some(([key, value]) => !/^(role|capability):[a-z][a-z0-9-]*$/.test(key) || !Number.isSafeInteger(value) || Number(value) < 0)) throw new Error("Invalid revocation data");
 				for (const cap of this.state.capabilities) {
@@ -497,13 +551,42 @@ var CapabilityStore = class {
 				this.state = initialState();
 				await this.persist(this.state);
 			}
-			if (this.state.defaultRolesVersion !== 1) {
+			if (this.state.meetingCapabilityVersion !== 1) {
 				const next = this.snapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
-				next.roles.push(...defaultRoles(now).filter((role) => !next.roles.some((existing) => existing.id === role.id || existing.draft.name.trim() === role.draft.name)));
-				next.defaultRolesVersion = 1;
+				if (!next.capabilities.some((cap) => cap.id === "meeting-transcription")) next.capabilities.push(meetingCapability(now));
+				const role = next.roles.find((item) => item.id === MEETING_ROLE_ID);
+				if (role && !role.draft.capabilities.some((binding) => binding.capabilityId === "meeting-transcription")) {
+					const binding = {
+						capabilityId: MEETING_CAPABILITY_ID,
+						version: 1,
+						enabled: true
+					};
+					role.draft.capabilities.push(binding);
+					this.publishRole(role, role.draft, now);
+				}
+				next.meetingCapabilityVersion = 1;
 				next.revision++;
 				next.updatedAt = now;
-				const backup = await open(join(this.directory, "state-before-default-roles-v1.json"), "wx").catch((error) => {
+				const backup = await open(join(this.directory, "state-before-meeting-capability-v1.json"), "wx").catch((error) => {
+					if (error.code !== "EEXIST") throw error;
+				});
+				if (backup) try {
+					await backup.writeFile(JSON.stringify(this.state, null, 2));
+					await backup.sync();
+				} finally {
+					await backup.close();
+				}
+				await this.persist(next);
+				this.state = next;
+			}
+			if (this.state.defaultRolesVersion !== 2) {
+				const next = this.snapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
+				const defaults = defaultRoles(now).filter((role) => this.state.defaultRolesVersion !== 1 || role.id === "meeting-minutes-demo");
+				next.roles.push(...defaults.filter((role) => !next.roles.some((existing) => existing.id === role.id || role.id !== "meeting-minutes-demo" && existing.draft.name.trim() === role.draft.name)));
+				next.defaultRolesVersion = 2;
+				next.revision++;
+				next.updatedAt = now;
+				const backup = await open(join(this.directory, "state-before-default-roles-v2.json"), "wx").catch((error) => {
 					if (error.code !== "EEXIST") throw error;
 				});
 				if (backup) try {
@@ -575,6 +658,10 @@ var CapabilityStore = class {
 			let target = "id" in command && command.id !== void 0 ? id(command.id) : `local-${randomUUID()}`;
 			if (command.type === "capability.save") {
 				const value = definition(command.definition), publish = bool(command.publish);
+				const meetingParts = value.components.filter((part) => part.componentId === "meeting-asr");
+				if (target === "meeting-transcription") {
+					if (meetingParts.length !== 1 || value.components.length !== 1 || meetingParts[0]?.actions.length !== 1 || meetingParts[0].actions[0] !== "transcribe") throw new InputError("内置会议能力必须保留录音转写组件和动作");
+				} else if (meetingParts.length) throw new InputError("会议录音转写组件仅供内置会议能力使用");
 				if (publish && issues(value).length) throw new InputError(issues(value).join("；"));
 				let cap = next.capabilities.find((c) => c.id === target);
 				if (command.id && !cap) throw new InputError("能力不存在", 404);
@@ -614,6 +701,7 @@ var CapabilityStore = class {
 			} else if (command.type === "capability.copy") {
 				const original = next.capabilities.find((c) => c.id === target);
 				if (!original) throw new InputError("能力不存在", 404);
+				if (target === "meeting-transcription") throw new InputError("内置会议录音转写不能复制；可编辑说明和服务配置");
 				if (original.removedAt) throw new InputError("此能力已移除，请先恢复后再复制");
 				target = `local-${randomUUID()}`;
 				next.capabilities.push({
@@ -674,6 +762,9 @@ var CapabilityStore = class {
 				}
 			} else if (command.type === "role.save") {
 				const value = roleDefinition(command.definition, next), publish = bool(command.publish);
+				const meetingBinding = value.capabilities.find((binding) => binding.capabilityId === MEETING_CAPABILITY_ID);
+				if (target === "meeting-minutes-demo" && !meetingBinding) throw new InputError("会议纪要助手必须保留录音转写能力关联");
+				if (target !== "meeting-minutes-demo" && meetingBinding) throw new InputError("会议录音转写仅供会议纪要助手使用");
 				if (value.icon?.kind === "png") await this.icons.read(value.icon.assetId);
 				let role = next.roles.find((r) => r.id === target);
 				if (command.id && !role) throw new InputError("岗位不存在", 404);
@@ -754,6 +845,9 @@ function allowedActions(state, roleId, snapshot) {
 	}
 	return [...allowed];
 }
+function browserActions(actions) {
+	return actions.filter((action) => action === "navigate" || action === "read" || action === "screenshot");
+}
 function requiredAction(tool, args) {
 	if (tool === "browser_session" && [
 		"start",
@@ -770,7 +864,7 @@ function requiredAction(tool, args) {
 }
 function callViolation(tool, args, allowed, owned) {
 	const action = requiredAction(tool, args);
-	if (!action || (action === "session" ? allowed.length === 0 : !allowed.includes(action))) return "此岗位未获准执行该浏览器动作，或对应能力已停用。";
+	if (!action || (action === "session" ? browserActions(allowed).length === 0 : !allowed.includes(action))) return "此岗位未获准执行该浏览器动作，或对应能力已停用。";
 	if ("tabId" in args || "device" in args) return "首期仅操作本会话创建的默认页面，不接受其他标签页或设备设置。";
 	if (tool === "browser_session" && ["start", "list"].includes(String(args.action))) {
 		if (args.session !== void 0) return "创建或列出会话时不能指定其他会话标识。";
@@ -976,7 +1070,7 @@ var CapabilityRuntime = class {
 		this.live.set(agent.id, live);
 		this.allowedAtAttach.set(agent.id, allowedActions(this.store.snapshot(), live.roleId, live.version));
 		live.disposers.push(agent.ctx.tools.guard((exec) => this.authorize(exec)));
-		if (live.stopped || !allowedActions(this.store.snapshot(), live.roleId, live.version).length) return;
+		if (live.stopped || !browserActions(allowedActions(this.store.snapshot(), live.roleId, live.version)).length) return;
 		const skills = agent.ctx.get("skills");
 		if (skills) live.disposers.push(skills.register({
 			name: "browser-skill",
@@ -1047,7 +1141,7 @@ var CapabilityRuntime = class {
 		if (wasRevoked(this.store.snapshot(), live.roleId, live.version, live.agent.session.header.createdAt)) return "此会话的权限曾被撤销。重新启用后，请创建新对话。";
 		const allowed = allowedActions(this.store.snapshot(), live.roleId, live.version);
 		const args = exec.arguments && typeof exec.arguments === "object" ? exec.arguments : {};
-		if (exec.name === "skill") return args.name === "browser-skill" && allowed.length ? void 0 : "岗位未授权此技能。";
+		if (exec.name === "skill") return args.name === "browser-skill" && browserActions(allowed).length ? void 0 : "岗位未授权此技能。";
 		return callViolation(exec.name, args, allowed, this.owned(live.agent.id));
 	}
 	async execute(live, tool, args, exec) {
@@ -1071,7 +1165,7 @@ var CapabilityRuntime = class {
 				signal
 			});
 			const stillAllowed = allowedActions(this.store.snapshot(), live.roleId, live.version);
-			if (live.stopped || !stillAllowed.length) {
+			if (live.stopped || !browserActions(stillAllowed).length) {
 				await Promise.all(this.owned(live.agent.id).map((id) => this.observation.stopSession(id)));
 				throw new Error("权限已撤销，操作结果不再继续执行。");
 			}
@@ -1262,7 +1356,7 @@ async function writePresets(home, state) {
 }
 //#endregion
 //#region src/host/http.ts
-function fence(req) {
+function fence(req, binaryUpload = false) {
 	let host;
 	try {
 		host = new URL(`http://${req.headers.host}`);
@@ -1285,7 +1379,9 @@ function fence(req) {
 		if (parsed.origin !== host.origin) throw new InputError("不允许跨站访问", 403);
 	}
 	if (req.headers["sec-fetch-site"] === "cross-site") throw new InputError("不允许跨站访问", 403);
-	if (req.method === "POST" && !/^application\/json(?:\s*;|$)/i.test(req.headers["content-type"] ?? "")) throw new InputError("需要 JSON 请求", 415);
+	if (binaryUpload) {
+		if (req.method !== "PUT" || !/^application\/octet-stream(?:\s*;|$)/i.test(req.headers["content-type"] ?? "")) throw new InputError("需要录音文件", 415);
+	} else if (req.method === "POST" && !/^application\/json(?:\s*;|$)/i.test(req.headers["content-type"] ?? "")) throw new InputError("需要 JSON 请求", 415);
 }
 async function readBody(req) {
 	const chunks = [];
@@ -1310,7 +1406,416 @@ function json(res, status, body) {
 	res.end(JSON.stringify(body));
 }
 //#endregion
+//#region src/host/meeting.ts
+const MAX_MB = 100;
+const ALLOWED = /* @__PURE__ */ new Set([
+	".mp3",
+	".m4a",
+	".wav",
+	".aac",
+	".flac",
+	".ogg",
+	".opus",
+	".webm",
+	".mp4"
+]);
+const ID = /^[a-f0-9-]{36}$/i;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const string = (value, max = 200) => typeof value === "string" ? value.trim().slice(0, max) : "";
+const errorText = (error) => error instanceof Error ? error.message : String(error);
+function config(override) {
+	const endpoint = (override?.endpoint ?? process.env.MEETING_ASR_URL ?? "").trim();
+	const model = (override?.model ?? process.env.MEETING_ASR_MODEL ?? "").trim();
+	const apiKey = (override?.apiKey ?? process.env.MEETING_ASR_API_KEY ?? "").trim();
+	const format = (override?.format ?? process.env.MEETING_ASR_RESPONSE_FORMAT ?? "verbose_json").trim();
+	const limit = Number(override?.maxMb ?? process.env.MEETING_ASR_MAX_MB ?? 25);
+	const maxBytes = Math.min(MAX_MB, Math.max(1, Number.isFinite(limit) ? limit : 25)) * 1024 * 1024;
+	if (endpoint) {
+		let url;
+		try {
+			url = new URL(endpoint);
+		} catch {
+			throw new Error("MEETING_ASR_URL 不是有效地址");
+		}
+		if (url.protocol !== "https:" && !(url.protocol === "http:" && [
+			"localhost",
+			"127.0.0.1",
+			"[::1]"
+		].includes(url.hostname))) throw new Error("语音识别接口须使用 HTTPS；本机服务可使用 HTTP");
+		if (url.username || url.password || url.hash) throw new Error("语音识别接口地址不能包含凭据或片段");
+	}
+	if (!["json", "verbose_json"].includes(format)) throw new Error("MEETING_ASR_RESPONSE_FORMAT 仅支持 json 或 verbose_json");
+	if (!Number.isInteger(limit) || limit < 1 || limit > MAX_MB) throw new Error("录音大小限制应为 1–100 MB");
+	return {
+		endpoint,
+		model,
+		apiKey,
+		format,
+		maxBytes
+	};
+}
+function parseSegments(data) {
+	const segments = (Array.isArray(data?.segments) ? data.segments : Array.isArray(data?.transcripts) ? data.transcripts.flatMap((part) => Array.isArray(part?.sentences) ? part.sentences : []) : []).map((row, index) => ({
+		id: `s${index + 1}`,
+		start: Math.max(0, Number(row.begin_time ?? Number(row.start) * 1e3) || 0),
+		end: Math.max(0, Number(row.end_time ?? Number(row.end) * 1e3) || 0),
+		speaker: string(row.speaker, 100) || (row.speaker_id === void 0 || row.speaker_id === null ? "发言人" : `发言人 ${Number(row.speaker_id) + 1}`),
+		text: string(row.text, 5e3)
+	})).filter((row) => row.text);
+	return segments.length ? segments : string(data?.text, 1e5) ? [{
+		id: "s1",
+		start: 0,
+		end: 0,
+		speaker: "发言人",
+		text: string(data.text, 1e5)
+	}] : [];
+}
+function parseMinutes(raw, segments) {
+	const first = raw.indexOf("{"), last = raw.lastIndexOf("}");
+	if (first < 0 || last < first) throw new Error("纪要模型没有返回可解析的结构");
+	const value = JSON.parse(raw.slice(first, last + 1));
+	const valid = new Set(segments.map((row) => row.id));
+	const item = (row) => ({
+		text: string(typeof row === "string" ? row : row?.text, 2e3),
+		sourceIds: Array.isArray(row?.sourceIds) ? row.sourceIds.filter((id) => typeof id === "string" && valid.has(id)).slice(0, 4) : []
+	});
+	const list = (rows) => Array.isArray(rows) ? rows.map(item).filter((row) => row.text).slice(0, 30) : [];
+	return {
+		title: string(value.title, 120) || "会议纪要",
+		overview: string(value.overview, 6e3),
+		decisions: list(value.decisions),
+		actions: Array.isArray(value.actions) ? value.actions.map((row) => ({
+			...item(row),
+			owner: string(row?.owner, 100),
+			deadline: string(row?.deadline, 100)
+		})).filter((row) => row.text).slice(0, 30) : [],
+		unknown: list(value.unknown)
+	};
+}
+var MeetingService = class {
+	root;
+	workbenchText;
+	currentRole;
+	currentState;
+	asrSettings;
+	running = /* @__PURE__ */ new Set();
+	deleted = /* @__PURE__ */ new Set();
+	constructor(root, workbenchText, currentRole, currentState, asrSettings) {
+		this.root = root;
+		this.workbenchText = workbenchText;
+		this.currentRole = currentRole;
+		this.currentState = currentState;
+		this.asrSettings = asrSettings;
+	}
+	config() {
+		return config(this.asrSettings?.());
+	}
+	capabilityError() {
+		if (!this.currentState) return;
+		const cap = this.currentState().capabilities.find((item) => item.id === MEETING_CAPABILITY_ID);
+		if (!cap || cap.removedAt) return "会议录音转写能力已移除，请在能力中心恢复";
+		if (!cap.enabled) return "会议录音转写能力已停用，请在能力中心启用";
+		if (!latest(cap.versions)?.components.some((part) => part.componentId === "meeting-asr" && part.actions.includes("transcribe"))) return "会议录音转写能力未发布可用的转写动作";
+	}
+	role(version) {
+		const unavailable = this.capabilityError();
+		if (unavailable) throw new InputError(unavailable, 409);
+		if (!this.currentRole) return void 0;
+		const role = this.currentRole();
+		if (!role?.enabled) throw new InputError("会议纪要助手已停用，请在岗位助手中启用后重试", 409);
+		const binding = latest(role.versions)?.capabilities.find((item) => item.capabilityId === MEETING_CAPABILITY_ID);
+		if (this.currentState && (!binding?.enabled || binding.actions && !binding.actions.includes("transcribe"))) throw new InputError("会议纪要助手未启用录音转写能力，请在岗位中检查关联", 409);
+		const published = version === void 0 ? latest(role.versions) : role.versions.find((item) => item.version === version);
+		if (!published) throw new InputError("会议纪要岗位版本不存在，请重新选择岗位", 409);
+		return {
+			version: published.version,
+			name: published.name,
+			duties: published.duties,
+			requirements: published.requirements,
+			format: published.format
+		};
+	}
+	async init() {
+		await mkdir(this.root, { recursive: true });
+		for (const file of await readdir(this.root)) {
+			if (!ID.test(file.replace(/\.json$/, "")) || !file.endsWith(".json")) continue;
+			try {
+				const job = await this.get(file.slice(0, -5));
+				if (![
+					"uploading",
+					"transcribing",
+					"generating"
+				].includes(job.status)) continue;
+				job.status = "error";
+				job.error = job.size ? "处理被工作台重启中断，请点击重试" : "上传被工作台重启中断，请重新选择录音";
+				await this.save(job);
+				await rm(`${this.audio(job)}.upload`, { force: true });
+			} catch {}
+		}
+	}
+	availability() {
+		try {
+			const value = this.config(), unavailable = this.capabilityError(), role = this.currentRole?.();
+			const binding = latest(role?.versions ?? [])?.capabilities.find((item) => item.capabilityId === MEETING_CAPABILITY_ID);
+			const roleUnavailable = this.currentState && role && (!role.enabled ? "会议纪要助手已停用，请在岗位助手中启用" : !binding?.enabled || binding.actions && !binding.actions.includes("transcribe") ? "会议纪要助手未启用录音转写能力" : "");
+			const state = unavailable || roleUnavailable ? "disabled" : !value.endpoint || !value.model ? "unconfigured" : "ready";
+			return {
+				ready: state === "ready",
+				state,
+				provider: "自定义语音识别接口",
+				endpointHost: value.endpoint ? new URL(value.endpoint).origin : "",
+				endpoint: value.endpoint,
+				asrModel: value.model,
+				format: value.format,
+				maxMb: value.maxBytes / 1024 / 1024,
+				hasKey: Boolean(value.apiKey),
+				maxBytes: value.maxBytes,
+				message: unavailable || roleUnavailable || (state === "ready" ? "语音识别接口已配置，尚需实际调用验证" : "请在默认配置中填写语音识别接口与模型")
+			};
+		} catch (error) {
+			return {
+				ready: false,
+				provider: "自定义语音识别接口",
+				maxBytes: 25 * 1024 * 1024,
+				message: errorText(error)
+			};
+		}
+	}
+	path(id) {
+		if (!ID.test(id)) throw new InputError("无效任务标识");
+		return join(this.root, `${id}.json`);
+	}
+	audio(job) {
+		return join(this.root, `${job.id}${job.extension}`);
+	}
+	async get(id) {
+		for (let attempt = 0; attempt < 3; attempt++) try {
+			const job = JSON.parse(await readFile(this.path(id), "utf8"));
+			job.summaryModel ??= "";
+			return job;
+		} catch (error) {
+			if (error.code === "ENOENT") throw new InputError("会议任务不存在", 404);
+			if (!(error instanceof SyntaxError) || attempt === 2) throw error;
+			await sleep(10);
+		}
+		throw new Error("会议状态暂不可读");
+	}
+	async save(job) {
+		if (this.deleted.has(job.id)) return;
+		job.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+		await writeFile(this.path(job.id), JSON.stringify(job));
+	}
+	async remove(id) {
+		const job = await this.get(id);
+		this.deleted.add(id);
+		await rm(this.audio(job), { force: true });
+		await rm(this.path(id), { force: true });
+	}
+	async create(input) {
+		if (!this.availability().ready) throw new InputError(this.availability().message, 503);
+		const data = input && typeof input === "object" ? input : {};
+		const role = this.role(data.roleVersion);
+		const fileName = string(data.fileName, 200).replace(/[\\/]/g, "_");
+		const extension = /\.[a-z0-9]+$/i.exec(fileName)?.[0].toLowerCase() ?? "";
+		if (!ALLOWED.has(extension)) throw new InputError("不支持此录音格式；请使用 MP3、M4A、WAV 等常见格式");
+		const now = (/* @__PURE__ */ new Date()).toISOString();
+		const job = {
+			id: randomUUID(),
+			fileName,
+			extension,
+			size: 0,
+			createdAt: now,
+			updatedAt: now,
+			mode: data.mode === "guided" ? "guided" : "quick",
+			audience: string(data.audience, 100),
+			focus: string(data.focus, 100),
+			summaryModel: string(data.summaryModel, 200),
+			role,
+			status: "uploading",
+			segments: []
+		};
+		await this.save(job);
+		return job;
+	}
+	async upload(id, req) {
+		const job = await this.get(id);
+		this.role(job.role?.version);
+		if (job.status !== "uploading") throw new InputError("此任务无法重复上传", 409);
+		const path = this.audio(job), temp = `${path}.upload`;
+		const handle = await import("node:fs").then((fs) => fs.createWriteStream(temp, { flags: "wx" }));
+		let bytes = 0;
+		try {
+			for await (const chunk of req) {
+				const buffer = Buffer.from(chunk);
+				bytes += buffer.length;
+				if (bytes > this.config().maxBytes) throw new InputError("录音文件超过当前上传限制", 413);
+				if (!handle.write(buffer)) await new Promise((resolve) => handle.once("drain", resolve));
+			}
+			if (!req.complete) throw new InputError("录音上传中断，请重新选择文件");
+			if (!bytes) throw new InputError("录音文件为空");
+			if (this.deleted.has(id)) throw new InputError("此会议已删除", 410);
+			await new Promise((resolve, reject) => handle.end((error) => error ? reject(error) : resolve()));
+			await rename(temp, path);
+			job.size = bytes;
+			job.status = "transcribing";
+			delete job.error;
+			await this.save(job);
+			this.transcribe(job.id);
+			return job;
+		} catch (error) {
+			handle.destroy();
+			await rm(temp, { force: true });
+			job.status = "error";
+			job.error = errorText(error);
+			await this.save(job);
+			throw error;
+		}
+	}
+	async retry(id) {
+		const job = await this.get(id);
+		this.role(job.role?.version);
+		if (job.status !== "error") throw new InputError("只有失败的任务可以重试", 409);
+		if (!job.size) throw new InputError("请重新选择录音上传", 409);
+		job.status = job.segments.length ? "transcribed" : "transcribing";
+		delete job.error;
+		await this.save(job);
+		if (!job.segments.length) this.transcribe(id);
+		return job;
+	}
+	async transcribe(id) {
+		if (this.running.has(id)) return;
+		this.running.add(id);
+		try {
+			const job = await this.get(id), { endpoint, apiKey, model, format } = this.config();
+			if (!endpoint || !model) throw new Error("请先配置语音识别接口和模型");
+			const form = new FormData();
+			form.set("model", model);
+			form.set("response_format", format);
+			form.set("file", await openAsBlob(this.audio(job)), job.fileName);
+			const sent = await fetch(endpoint, {
+				method: "POST",
+				headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+				body: form,
+				signal: AbortSignal.timeout(20 * 6e4)
+			});
+			const response = await sent.text();
+			if (!sent.ok) throw new Error(`语音识别失败（${sent.status}）：${response.slice(0, 300)}`);
+			let transcript;
+			try {
+				transcript = JSON.parse(response);
+			} catch {
+				throw new Error("语音识别接口没有返回有效 JSON");
+			}
+			const segments = parseSegments(transcript);
+			if (!segments.length) throw new Error("未识别到可用语音，请检查录音内容");
+			const latest = await this.get(id);
+			latest.segments = segments;
+			latest.status = "transcribed";
+			await this.save(latest);
+			if (latest.mode === "quick") await this.generate(id);
+		} catch (error) {
+			if (!this.deleted.has(id)) {
+				const job = await this.get(id);
+				job.status = "error";
+				job.error = errorText(error);
+				await this.save(job);
+			}
+		} finally {
+			this.running.delete(id);
+		}
+	}
+	ask(prompt, modelRoute) {
+		return this.workbenchText(prompt, modelRoute);
+	}
+	transcriptText(rows) {
+		return rows.map((row) => `[${row.id} ${Math.floor(row.start / 6e4).toString().padStart(2, "0")}:${Math.floor(row.start % 6e4 / 1e3).toString().padStart(2, "0")} ${row.speaker}] ${row.text}`).join("\n");
+	}
+	async generate(id, edited, instruction, summaryModel) {
+		const job = await this.get(id);
+		this.role(job.role?.version);
+		if (![
+			"transcribed",
+			"ready",
+			"error"
+		].includes(job.status) || !job.segments.length) throw new InputError("请先完成录音转写", 409);
+		if (edited) {
+			if (edited.length !== job.segments.length || edited.some((row, index) => row.id !== job.segments[index].id)) throw new InputError("转写片段与原录音不一致");
+			job.segments = edited.map((row, index) => ({
+				...job.segments[index],
+				text: string(row.text, 5e3),
+				speaker: string(row.speaker, 100) || "发言人"
+			}));
+		}
+		if (summaryModel !== void 0) job.summaryModel = string(summaryModel, 200);
+		job.status = "generating";
+		delete job.error;
+		await this.save(job);
+		this.finishGenerate(job, instruction);
+		return job;
+	}
+	async finishGenerate(job, instruction) {
+		try {
+			const text = this.transcriptText(job.segments);
+			const chunks = text.match(/[\s\S]{1,16000}/g) ?? [];
+			let source = text;
+			if (chunks.length > 1) {
+				const summaries = [];
+				for (let i = 0; i < chunks.length; i++) summaries.push(await this.ask(`以下是会议转写第 ${i + 1}/${chunks.length} 段。请保留事实、发言人、任务、时间和 [s编号] 引用，压缩为不超过 3000 字的中文摘要；只返回 JSON：{"summary":"..."}\n${chunks[i]}`, job.summaryModel));
+				source = summaries.join("\n");
+			}
+			const previous = job.minutes ? `\n现有纪要：${JSON.stringify(job.minutes)}` : "";
+			const prompt = `${job.role ? `岗位：${job.role.name}。职责：${job.role.duties}。工作要求：${job.role.requirements}。输出偏好：${job.role.format}。\n` : ""}用途：${job.audience || "通用会议纪要"}；重点：${job.focus || "结论与待办"}。${instruction ? `用户修改要求：${string(instruction, 1e3)}。` : ""}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`;
+			job.minutes = parseMinutes(await this.ask(prompt, job.summaryModel), job.segments);
+			job.status = "ready";
+			await this.save(job);
+		} catch (error) {
+			job.status = "error";
+			job.error = errorText(error);
+			await this.save(job);
+		}
+	}
+	async serveAudio(id, req, res) {
+		const job = await this.get(id), path = this.audio(job), size = (await stat(path)).size;
+		const match = /^bytes=(\d+)-(\d*)$/.exec(req.headers.range ?? "");
+		const start = match ? Number(match[1]) : 0, end = match?.[2] ? Math.min(Number(match[2]), size - 1) : size - 1;
+		if (start >= size || end < start) {
+			res.writeHead(416, { "content-range": `bytes */${size}` });
+			res.end();
+			return;
+		}
+		res.writeHead(match ? 206 : 200, {
+			"content-type": {
+				".mp3": "audio/mpeg",
+				".m4a": "audio/mp4",
+				".wav": "audio/wav",
+				".aac": "audio/aac",
+				".flac": "audio/flac",
+				".ogg": "audio/ogg",
+				".opus": "audio/ogg",
+				".webm": "audio/webm",
+				".mp4": "video/mp4"
+			}[job.extension] ?? "application/octet-stream",
+			"content-length": end - start + 1,
+			"accept-ranges": "bytes",
+			"cache-control": "private, no-store",
+			...match ? { "content-range": `bytes ${start}-${end}/${size}` } : {}
+		});
+		createReadStream(path, {
+			start,
+			end
+		}).pipe(res);
+	}
+};
+//#endregion
 //#region src/index.ts
+const ASR_NAMESPACE = "meeting-asr";
+const AsrSchema = z.object({
+	endpoint: z.string(),
+	model: z.string(),
+	apiKey: z.string().role("secret"),
+	format: z.union(["json", "verbose_json"]),
+	maxMb: z.number().step(1).min(1).max(100)
+});
 const name = "workbench-capabilities";
 const inject = [
 	"webServer",
@@ -1319,13 +1824,92 @@ const inject = [
 	"agentPresets",
 	"connection"
 ];
-async function apply(ctx, config = {}) {
+async function apply(ctx, config$1 = {}) {
 	const home = dshHome(), store = new CapabilityStore(join(home, "capabilities"));
 	await store.init();
+	const asrEntry = {
+		endpoint: process.env.MEETING_ASR_URL?.trim() ?? "",
+		model: process.env.MEETING_ASR_MODEL?.trim() ?? "",
+		apiKey: process.env.MEETING_ASR_API_KEY?.trim() ?? "",
+		format: process.env.MEETING_ASR_RESPONSE_FORMAT?.trim() === "json" ? "json" : "verbose_json",
+		maxMb: (() => {
+			const value = Number(process.env.MEETING_ASR_MAX_MB ?? 25);
+			return Number.isInteger(value) && value >= 1 && value <= 100 ? value : 25;
+		})()
+	};
+	let asrSettings;
+	let currentAsr = () => asrEntry;
+	ctx.inject(["settings"], (settingsCtx) => {
+		asrSettings = settingsCtx.settings;
+		asrSettings.installSection(ctx, ASR_NAMESPACE, AsrSchema, asrEntry, {
+			setSource: (source) => {
+				currentAsr = source;
+			},
+			onChange: () => {}
+		});
+	});
+	const asrDescriptor = () => asrSettings?.describe().find((item) => item.ns === ASR_NAMESPACE);
+	const effectiveAsr = () => {
+		const value = currentAsr();
+		const user = asrDescriptor()?.user;
+		return !user?.apiKey && user?.endpoint && user.endpoint !== asrEntry.endpoint ? {
+			...value,
+			apiKey: ""
+		} : value;
+	};
+	const asrStatus = () => {
+		const user = asrDescriptor()?.user;
+		return {
+			...meeting.availability(),
+			revision: asrDescriptor()?.revision,
+			editable: Boolean(asrSettings?.writable),
+			keySource: user?.apiKey ? "saved" : effectiveAsr().apiKey ? "environment" : "none",
+			configSource: user && Object.keys(user).length ? "saved" : "environment"
+		};
+	};
+	const meeting = new MeetingService(join(home, "capabilities", "meetings"), async (prompt, selectedModel) => {
+		let defaultRoute;
+		let llm;
+		try {
+			defaultRoute = ctx.get("settings")?.get("agent-default-model");
+		} catch {}
+		try {
+			llm = ctx.get("llm");
+		} catch {}
+		const slash = selectedModel.indexOf("/");
+		const route = selectedModel && slash > 0 ? {
+			provider: selectedModel.slice(0, slash),
+			model: selectedModel.slice(slash + 1)
+		} : defaultRoute;
+		if (!llm || !route?.provider || !route.model) throw new Error("请在工作台选择纪要模型，或配置默认模型");
+		let output = "";
+		for await (const chunk of llm.stream({
+			provider: route.provider,
+			model: route.model,
+			system: "你是严谨的中文会议纪要助手。只依据转写内容回答，只输出有效 JSON。",
+			messages: [{
+				id: randomUUID(),
+				role: "user",
+				content: [{
+					type: "text",
+					text: prompt
+				}],
+				source: { kind: "user" }
+			}],
+			temperature: .1,
+			maxTokens: 4096
+		})) {
+			if (chunk.type === "text-delta") output += chunk.text ?? "";
+			if (chunk.type === "finish" && chunk.reason?.kind === "error") throw new Error(chunk.reason.failure?.message || "工作台模型生成纪要失败");
+		}
+		if (!output) throw new Error("工作台模型没有返回纪要内容");
+		return output;
+	}, () => store.snapshot().roles.find((role) => role.id === MEETING_ROLE_ID), () => store.snapshot(), effectiveAsr);
+	await meeting.init();
 	const runtime = new CapabilityRuntime(ctx, store, {
-		bskPath: config.bskPath ?? process.env.DSH_BSK_PATH ?? "",
-		bskHome: config.bskHome ?? join(home, "browser-runtime"),
-		port: config.port ?? 52800
+		bskPath: config$1.bskPath ?? process.env.DSH_BSK_PATH ?? "",
+		bskHome: config$1.bskHome ?? join(home, "browser-runtime"),
+		port: config$1.port ?? 52800
 	});
 	try {
 		await writePresets(home, store.snapshot());
@@ -1341,10 +1925,18 @@ async function apply(ctx, config = {}) {
 		path: "/api/capabilities",
 		handler: async (req, res) => {
 			try {
-				fence(req);
+				const route = new URL(req.url ?? "/", "http://localhost").pathname;
+				fence(req, req.method === "PUT" && route.startsWith("/api/capabilities/meeting/upload/"));
 				const rejection = ctx.connection.requestRejection(req);
 				if (rejection !== void 0) return json(res, rejection, { error: rejection === 401 ? "请从工作台入口重新连接后重试" : "不允许访问此接口" });
-				const route = new URL(req.url ?? "/", "http://localhost").pathname;
+				if (req.method === "GET" && route === "/api/capabilities/meeting/config") return json(res, 200, asrStatus());
+				if (req.method === "GET" && route.startsWith("/api/capabilities/meeting/job/")) return json(res, 200, await meeting.get(route.slice(30)));
+				if (req.method === "GET" && route.startsWith("/api/capabilities/meeting/audio/")) return await meeting.serveAudio(route.slice(32), req, res);
+				if (req.method === "DELETE" && route.startsWith("/api/capabilities/meeting/job/")) {
+					await meeting.remove(route.slice(30));
+					return json(res, 200, { ok: true });
+				}
+				if (req.method === "PUT" && route.startsWith("/api/capabilities/meeting/upload/")) return json(res, 202, await meeting.upload(route.slice(33), req));
 				if (req.method === "GET" && route === "/api/capabilities/state") return json(res, 200, {
 					state: store.snapshot(),
 					components,
@@ -1365,6 +1957,75 @@ async function apply(ctx, config = {}) {
 				}
 				if (req.method !== "POST") throw new InputError("不支持此操作", 405);
 				const body = object(await readBody(req));
+				if (route === "/api/capabilities/meeting/config/reveal") {
+					const user = asrDescriptor()?.user;
+					if (!user?.apiKey) throw new InputError("当前密钥由环境变量提供，不能在界面查看", 403);
+					return json(res, 200, { apiKey: user.apiKey });
+				}
+				if (route === "/api/capabilities/meeting/config") {
+					if (!asrSettings?.writable) throw new InputError("工作台配置服务当前不可写", 503);
+					const revision = Number(body.revision);
+					if (!Number.isInteger(revision)) throw new InputError("配置版本无效，请刷新后重试");
+					if (body.reset === true) await asrSettings.replace(ASR_NAMESPACE, {}, revision);
+					else {
+						const endpoint = text(body.endpoint, "服务地址", 2048, true).trim();
+						const model = text(body.model, "识别模型", 200, true).trim();
+						const format = body.format === "json" ? "json" : body.format === "verbose_json" ? "verbose_json" : "";
+						const maxMb = Number(body.maxMb);
+						if (!format || !Number.isInteger(maxMb) || maxMb < 1 || maxMb > 100) throw new InputError("响应格式或录音大小限制无效");
+						if (body.apiKey !== void 0 && (typeof body.apiKey !== "string" || !body.apiKey.trim() || body.apiKey.length > 4096)) throw new InputError("API Key 无效");
+						try {
+							config({
+								endpoint,
+								model,
+								format,
+								maxMb
+							});
+						} catch (error) {
+							throw new InputError(error instanceof Error ? error.message : "语音识别配置无效");
+						}
+						const ops = [
+							{
+								op: "set",
+								path: ["endpoint"],
+								value: endpoint
+							},
+							{
+								op: "set",
+								path: ["model"],
+								value: model
+							},
+							{
+								op: "set",
+								path: ["format"],
+								value: format
+							},
+							{
+								op: "set",
+								path: ["maxMb"],
+								value: maxMb
+							}
+						];
+						if (typeof body.apiKey === "string") ops.push({
+							op: "set",
+							path: ["apiKey"],
+							value: body.apiKey.trim()
+						});
+						if (body.clearKey === true) ops.push({
+							op: "unset",
+							path: ["apiKey"]
+						});
+						await asrSettings.mutate(ASR_NAMESPACE, ops, revision);
+					}
+					return json(res, 200, asrStatus());
+				}
+				if (route === "/api/capabilities/meeting/create") return json(res, 201, await meeting.create(body));
+				if (route === "/api/capabilities/meeting/retry") return json(res, 202, await meeting.retry(text(body.id, "任务标识", 36)));
+				if (route === "/api/capabilities/meeting/generate") {
+					const id = text(body.id, "任务标识", 36);
+					const segments = Array.isArray(body.segments) ? body.segments : void 0;
+					return json(res, 202, await meeting.generate(id, segments, typeof body.instruction === "string" ? body.instruction : void 0, typeof body.summaryModel === "string" ? body.summaryModel : void 0));
+				}
 				if (route === "/api/capabilities/icons") return json(res, 200, await store.icons.upload(body.dataUrl));
 				if (route === "/api/capabilities/command") {
 					const result = await store.command(body.revision, body.command);

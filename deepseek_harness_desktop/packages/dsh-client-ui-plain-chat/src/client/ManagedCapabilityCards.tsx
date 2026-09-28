@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { capabilityDeletionReferences, latest, type Capability, type Snapshot } from '../../../dsh-capabilities/src/core/model.ts'
+import { MEETING_CAPABILITY_ID } from '../../../dsh-capabilities/src/core/default-roles.ts'
+import type { MeetingAvailability } from './meeting-capability-status.ts'
 import { capabilityClient } from './capability-client.ts'
 import { CapabilityGlyph } from './ManagedWorkbench.tsx'
 import { CapabilitySelection } from './CapabilitySelection.tsx'
@@ -19,13 +21,13 @@ export function capabilityImpact(data: Snapshot, id: string) {
   return { roles, tasks }
 }
 
-export function ManagedCapabilityCard({ capability: c, data, busy, onManage, onPin, onRemove, onRestore, onPurge, selection }: { capability: Capability; data: Snapshot; busy: boolean; onManage: () => void; onPin: () => void; onRemove: () => void; onRestore: () => void; onPurge?: () => void; selection?: { checked: boolean; onChange: () => void } }) {
-  const status = c.removedAt ? '已移除' : !c.enabled ? '已停用' : !c.versions.length ? '草稿' : data.health.state === 'ready' ? '可使用' : '待连接'
+export function ManagedCapabilityCard({ capability: c, data, busy, onManage, onPin, onRemove, onRestore, onPurge, selection, meetingStatus }: { capability: Capability; data: Snapshot; busy: boolean; onManage: () => void; onPin: () => void; onRemove: () => void; onRestore: () => void; onPurge?: () => void; selection?: { checked: boolean; onChange: () => void }; meetingStatus?: MeetingAvailability | null }) {
+  const status = c.removedAt ? '已移除' : !c.enabled ? '已停用' : !c.versions.length ? '草稿' : c.id === MEETING_CAPABILITY_ID ? meetingStatus?.ready ? '已配置' : meetingStatus?.state === 'disabled' ? '不可用' : meetingStatus ? '待配置' : '检测中' : data.health.state === 'ready' ? '可使用' : '待连接'
   const pinLabel = `${c.pinned ? '取消收藏' : '收藏能力'}：${c.draft.name}`
   return <article className={`${s.card} ${c.pinned && !c.removedAt ? s.pinnedCard : ''} ${selection?.checked ? s.selectedCard : ''}`} data-managed-capability={c.id} data-selected={selection?.checked} onClick={event => { if (selection && !busy && !(event.target as HTMLElement).closest('button,input,label')) selection.onChange() }}>
-    <div className={s.cardTop}><CapabilityGlyph/><span className={s.cardSource}>{c.source === 'builtin' ? '内置能力' : '我的能力'}</span>{selection && <CapabilitySelection checked={selection.checked} disabled={busy} label={`选择能力：${c.draft.name}`} onChange={selection.onChange}/>} {!c.removedAt && <button className={`${s.iconButton} ${c.pinned ? s.pinned : ''}`} type="button" disabled={busy} aria-label={pinLabel} title={pinLabel} aria-pressed={c.pinned} onClick={onPin}><CapabilityActionIcon kind="pin"/></button>}</div>
+    <div className={s.cardTop}><CapabilityGlyph kind={c.id === MEETING_CAPABILITY_ID ? 'audio' : 'browser'}/><span className={s.cardSource}>{c.source === 'builtin' ? '内置能力' : '我的能力'}</span>{selection && <CapabilitySelection checked={selection.checked} disabled={busy} label={`选择能力：${c.draft.name}`} onChange={selection.onChange}/>} {!c.removedAt && <button className={`${s.iconButton} ${c.pinned ? s.pinned : ''}`} type="button" disabled={busy} aria-label={pinLabel} title={pinLabel} aria-pressed={c.pinned} onClick={onPin}><CapabilityActionIcon kind="pin"/></button>}</div>
     <h3>{c.draft.name}</h3><p className={s.cardDescription}>{c.draft.description || '尚未填写能力简介'}</p>
-    <div className={s.cardMeta}><span className={s.badge}>{status}</span><span>{capabilityImpact(data, c.id).roles.length} 个岗位引用</span>{c.pinned && !c.removedAt && <span className={s.pinLabel}>已收藏</span>}</div>
+    <div className={s.cardMeta}><span className={s.badge} title={c.id === MEETING_CAPABILITY_ID ? meetingStatus?.message : undefined}>{status}</span><span>{capabilityImpact(data, c.id).roles.length} 个岗位引用</span>{c.pinned && !c.removedAt && <span className={s.pinLabel}>已收藏</span>}</div>
     {c.removedAt && <div className={s.cardMeta}><span>移除于 {new Date(c.removedAt).toLocaleString()}</span>{capabilityDeletionReferences(data.state, c.id).length > 0 && <span className={s.badge} title="岗位配置或历史版本仍在引用，清空回收站时会保留">引用保护</span>}</div>}
     <div className={s.cardFooter}><button className={s.button} onClick={onManage}>{c.removedAt ? '查看配置 →' : '管理能力 →'}</button>{c.removedAt ? <div className={s.actions}><button className={`${s.button} ${s.inlineAction}`} disabled={busy} aria-label={`恢复能力：${c.draft.name}`} onClick={onRestore}><CapabilityActionIcon kind="restore"/>恢复</button>{onPurge && <button className={`${s.iconButton} ${s.removeAction}`} disabled={busy} aria-label={`永久删除能力：${c.draft.name}`} title={`永久删除能力：${c.draft.name}`} onClick={onPurge}><CapabilityActionIcon kind="remove"/></button>}</div> : <button className={`${s.iconButton} ${s.removeAction}`} disabled={busy} aria-label={`移除能力：${c.draft.name}`} title={`移除能力：${c.draft.name}`} onClick={onRemove}><CapabilityActionIcon kind="remove"/></button>}</div>
   </article>
@@ -45,7 +47,7 @@ export function RemoveCapabilityDialog({ data, id, onClose, onRemoved }: { data:
   return <Modal title="移除能力" closeLabel="取消移除" onClose={() => { if (!busy) onClose() }}><div className={`${s.page} ${s.dialogBody}`}>
     <p>将「<strong>{cap.draft.name}</strong>」移入回收站。</p>
     <p className={s.notice}>移除后停止提供此能力，不能再添加到岗位。配置、历史版本和已有岗位引用会保留，可在“回收站”中恢复；恢复后需要手动启用。</p>
-    <div className={s.removalImpact}><strong>{roles.length} 个岗位引用 · {tasks.length} 个活动会话</strong>{roles.length > 0 && <ul className={s.list}>{roles.map(r => <li key={r.id}>{r.draft.name}</li>)}</ul>}<p className={s.muted}>{tasks.length ? '相关会话的后续调用将被阻止，并请求停止其浏览器任务。' : '没有相关的活动会话。'}共享插件及其他能力保持不变。</p></div>
+    <div className={s.removalImpact}><strong>{roles.length} 个岗位引用 · {tasks.length} 个活动会话</strong>{roles.length > 0 && <ul className={s.list}>{roles.map(r => <li key={r.id}>{r.draft.name}</li>)}</ul>}<p className={s.muted}>{cap.id === MEETING_CAPABILITY_ID ? '移除后将无法新建或继续处理会议录音；已有会议记录仍保留。' : tasks.length ? '相关会话的后续调用将被阻止，并请求停止其浏览器任务。' : '没有相关的活动会话。'}共享插件及其他能力保持不变。</p></div>
     {error && <p role="alert" className={s.error}>{error}</p>}
     {changed && <p role="status" className={s.notice}>配置已有更新，请核对上方引用范围。<button className={s.button} disabled={busy} onClick={() => { setRevision(data.state.revision); setError('') }}>已核对，更新操作基准</button></p>}
     <div className={s.confirmActions}><button className={s.button} disabled={busy} onClick={onClose}>取消</button><button className={`${s.button} ${s.dangerButton}`} disabled={busy || changed} onClick={() => void remove()}>{busy ? '正在移除…' : '确认移除'}</button></div>

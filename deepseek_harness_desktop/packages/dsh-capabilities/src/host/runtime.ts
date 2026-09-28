@@ -7,7 +7,7 @@ import type {} from '@deepseek-ai/dsh-agent-presets'
 import type {} from '@deepseek-ai/dsh-skill'
 import { defineTool, type ToolDefinition, type ToolExecution, type ToolRunContext } from '@deepseek-ai/dsh-tools'
 import type * as BrowserSkill from '@wxg-prc-cpg/browser-skill-dsh-plugin'
-import { allowedActions, callViolation, roleForPreset, wasRevoked } from '../core/policy.ts'
+import { allowedActions, browserActions, callViolation, roleForPreset, wasRevoked } from '../core/policy.ts'
 import { browserPackage, components, type DependencyHealth, type Health, type RoleVersion, type Task } from '../core/model.ts'
 import type { CapabilityStore } from './store.ts'
 
@@ -100,7 +100,7 @@ export class CapabilityRuntime {
     this.allowedAtAttach.set(agent.id, allowedActions(this.store.snapshot(), live.roleId, live.version))
     live.disposers.push(agent.ctx.tools.guard(exec => this.authorize(exec)))
     // 仅有岗位职责的助手可以正常对话，但不展示尚未装配的浏览器技能。
-    if (live.stopped || !allowedActions(this.store.snapshot(), live.roleId, live.version).length) return
+    if (live.stopped || !browserActions(allowedActions(this.store.snapshot(), live.roleId, live.version)).length) return
     const skills = agent.ctx.get('skills')
     if (skills) live.disposers.push(skills.register({ name: 'browser-skill', description: '当前岗位的网页导航、读取与截图能力。', content: guide, source: 'bundled' }))
     live.disposers.push(agent.ctx.tools.register(defineTool({
@@ -136,7 +136,7 @@ export class CapabilityRuntime {
     if (wasRevoked(this.store.snapshot(), live.roleId, live.version, live.agent.session.header.createdAt)) return '此会话的权限曾被撤销。重新启用后，请创建新对话。'
     const allowed = allowedActions(this.store.snapshot(), live.roleId, live.version)
     const args = exec.arguments && typeof exec.arguments === 'object' ? exec.arguments as Record<string, unknown> : {}
-    if (exec.name === 'skill') return args.name === 'browser-skill' && allowed.length ? undefined : '岗位未授权此技能。'
+    if (exec.name === 'skill') return args.name === 'browser-skill' && browserActions(allowed).length ? undefined : '岗位未授权此技能。'
     return callViolation(exec.name, args, allowed, this.owned(live.agent.id))
   }
   private async execute(live: Live, tool: ToolDefinition, args: unknown, exec: ToolRunContext): Promise<unknown> {
@@ -148,7 +148,7 @@ export class CapabilityRuntime {
     try {
       const result = await tool.execute(args, { ...exec, signal })
       const stillAllowed = allowedActions(this.store.snapshot(), live.roleId, live.version)
-      if (live.stopped || !stillAllowed.length) {
+      if (live.stopped || !browserActions(stillAllowed).length) {
         await Promise.all(this.owned(live.agent.id).map(id => this.observation!.stopSession(id)))
         throw new Error('权限已撤销，操作结果不再继续执行。')
       }

@@ -26,6 +26,9 @@
 .fields { display:flex; flex-direction:column; gap:16px; }
 .field { display:flex; flex-direction:column; gap:8px; font-size:13px; font-weight:550; }
 .field input,.field textarea,.field select { box-sizing:border-box; width:100%; border:1px solid var(--role-border); border-radius:8px; padding:10px; background:var(--role-bg); color:inherit; font:inherit; font-weight:400; }
+.secretField { display:flex; align-items:center; gap:6px; }
+.secretField input { flex:1; min-width:0; }
+.secretField button { border:1px solid var(--role-border); }
 .check { display:flex; align-items:center; gap:8px; margin:12px 0; font-size:13px; }
 .footer { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; border-top:1px solid var(--role-border); padding:16px 22px; }
 .footer p { margin:0; font-size:12px; }

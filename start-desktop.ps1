@@ -10,6 +10,36 @@ try {
             throw "Required file is missing: $required"
         }
     }
+    $capabilityLock = Join-Path $root 'dsh-data\capabilities\writer.lock'
+    if (Test-Path -LiteralPath $capabilityLock -PathType Leaf) {
+        try {
+            $savedLock = Get-Content -LiteralPath $capabilityLock -Raw
+            $lockRecord = $savedLock | ConvertFrom-Json
+            $lockPid = [int]$lockRecord.pid
+            $timeMatch = [regex]::Match($savedLock, '"startedAt"\s*:\s*"([^"]+)"')
+            if (-not $timeMatch.Success) { throw 'Capability lock has no start timestamp.' }
+            $lockTime = [DateTimeOffset]::Parse($timeMatch.Groups[1].Value, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::RoundtripKind).UtcDateTime
+            if ($lockPid -gt 0) {
+                $owner = $null
+                $isStale = $false
+                try {
+                    $owner = Get-Process -Id $lockPid -ErrorAction Stop
+                } catch {
+                    if ($_.FullyQualifiedErrorId -like 'NoProcessFoundForGivenId*') { $isStale = $true }
+                    else { throw }
+                }
+                if ($null -ne $owner) {
+                    $isStale = $owner.StartTime.ToUniversalTime() -gt $lockTime.AddSeconds(5)
+                }
+                if ($isStale -and (Get-Content -LiteralPath $capabilityLock -Raw) -eq $savedLock) {
+                    Remove-Item -LiteralPath $capabilityLock -Force
+                    Write-Host "Removed a stale capability lock from PID $lockPid."
+                }
+            }
+        } catch {
+            Write-Warning "Could not verify capability lock; leaving it in place: $($_.Exception.Message)"
+        }
+    }
     $env:DSH_DESKTOP_DEV_ROOT = $root
     $nodeCommand = Get-Command node.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1
     $env:DSH_DESKTOP_NODE = $nodeCommand.Source

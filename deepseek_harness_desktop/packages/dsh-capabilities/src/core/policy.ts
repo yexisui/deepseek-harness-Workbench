@@ -28,6 +28,7 @@ export function allowedActions(state: State, roleId: string, snapshot: RoleVersi
   }
   return [...allowed]
 }
+export function browserActions(actions: readonly Action[]): Action[] { return actions.filter(action => action === 'navigate' || action === 'read' || action === 'screenshot') }
 export function requiredAction(tool: string, args: Record<string, unknown>): Action | 'session' | undefined {
   if (tool === 'browser_session' && ['start', 'stop', 'list'].includes(String(args.action))) return args.url === undefined ? 'session' : 'navigate'
   if (tool === 'browser_page' && args.action === 'navigate') return 'navigate'
@@ -36,7 +37,7 @@ export function requiredAction(tool: string, args: Record<string, unknown>): Act
 }
 export function callViolation(tool: string, args: Record<string, unknown>, allowed: Action[], owned: string[]): string | undefined {
   const action = requiredAction(tool, args)
-  if (!action || (action === 'session' ? allowed.length === 0 : !allowed.includes(action))) return '此岗位未获准执行该浏览器动作，或对应能力已停用。'
+  if (!action || (action === 'session' ? browserActions(allowed).length === 0 : !allowed.includes(action))) return '此岗位未获准执行该浏览器动作，或对应能力已停用。'
   if ('tabId' in args || 'device' in args) return '首期仅操作本会话创建的默认页面，不接受其他标签页或设备设置。'
   if (tool === 'browser_session' && ['start', 'list'].includes(String(args.action))) {
     if (args.session !== undefined) return '创建或列出会话时不能指定其他会话标识。'

@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../src/host/store.ts', () => ({ CapabilityStore: class { constructor() { return mocks.store } } }))
 vi.mock('../src/host/runtime.ts', () => ({ CapabilityRuntime: class { constructor() { return mocks.runtime } } }))
 vi.mock('../src/host/presets.ts', () => ({ writePresets: mocks.writePresets }))
-vi.mock('../../../shared/host/dsh-home.ts', () => ({ dshHome: () => 'C:/test-dsh-home' }))
+vi.mock('../../../shared/host/dsh-home.ts', () => ({ dshHome: () => `${process.env.TEMP}/dsh-route-auth-test` }))
 import { apply, inject } from '../src/index.ts'
 
 type Handler = (request: IncomingMessage, response: ServerResponse) => Promise<unknown>
@@ -82,7 +82,7 @@ describe('capability named-route authentication', () => {
     const save = request('/api/capabilities/command', 'POST', JSON.stringify({ revision: 10, command })), saved = response()
     await handler(save.req, saved)
     expect(mocks.store.command).toHaveBeenCalledWith(10, command)
-    expect(mocks.writePresets).toHaveBeenCalledWith('C:/test-dsh-home', result.state)
+    expect(mocks.writePresets).toHaveBeenCalledWith(`${process.env.TEMP}/dsh-route-auth-test`, result.state)
     expect(saved.end).toHaveBeenCalledWith(JSON.stringify(result))
   })
 

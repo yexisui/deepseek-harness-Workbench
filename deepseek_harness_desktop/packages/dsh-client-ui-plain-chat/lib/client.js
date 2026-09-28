@@ -114,13 +114,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/Chat.module.css.mjs
-		const css$6 = ".yzXCLW_card{box-sizing:border-box;border:1px solid var(--dsw-alias-border-l2,#d5dbe7);background:var(--dsw-alias-bg-layer-2,#fff);width:100%;color:var(--dsw-alias-label-primary,#202938);border-radius:20px;padding:18px;box-shadow:0 3px 14px #182c5010}.yzXCLW_input{resize:vertical;box-sizing:border-box;width:100%;min-height:108px;max-height:300px;color:inherit;font:inherit;background:0 0;border:0;outline:none;line-height:1.6;display:block}.yzXCLW_input::placeholder{color:var(--dsw-alias-label-secondary,#78869f)}.yzXCLW_input:focus-visible{outline-offset:5px;border-radius:4px;outline:2px solid #8b9dd5}.yzXCLW_row{justify-content:space-between;align-items:center;gap:12px;margin-top:10px;display:flex}.yzXCLW_hint{opacity:.72;font-size:12px;line-height:1.6}.yzXCLW_send{background:var(--dsw-alias-button-primary-fill,#405eae);min-width:44px;min-height:44px;color:var(--dsw-alias-label-primary-foreground,#fff);cursor:pointer;border:0;border-radius:999px;flex-shrink:0;padding:10px 16px}.yzXCLW_send:hover{background:var(--dsw-alias-button-primary-hover,#334c91)}.yzXCLW_send:disabled{opacity:.45;cursor:default}.yzXCLW_error{color:#b53232;margin-top:10px;font-size:13px}.yzXCLW_badge{opacity:.8;font-size:14px}.yzXCLW_previewNotice{border-bottom:1px solid var(--dsw-alias-border-l2,#d5dbe7);color:var(--dsw-alias-label-secondary,#78869f);flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:14px;padding:0 0 14px;font-size:12px;line-height:1.7;display:flex}.yzXCLW_previewNotice button{color:var(--dsw-alias-button-primary-fill,#405eae);cursor:pointer;font:inherit;background:0 0;border:0;padding:3px 0}@media (width<=600px){.yzXCLW_card{padding:14px}.yzXCLW_row{align-items:flex-end}.yzXCLW_hint{font-size:11px}}.yzXCLW_conversationShell{flex-direction:column;min-width:0;height:100%;min-height:0;display:flex}.yzXCLW_assistantToolbar{flex:none;align-items:center;min-width:0;padding:20px 28px 8px;display:flex}.yzXCLW_conversationContent{flex:1;min-width:0;min-height:0}@media (width<=600px){.yzXCLW_assistantToolbar{padding:12px 16px 6px}}";
-		const tagId$6 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Chat.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$6) + "]") === null) {
+		const css$9 = ".yzXCLW_card{box-sizing:border-box;border:1px solid var(--dsw-alias-border-l2,#d5dbe7);background:var(--dsw-alias-bg-layer-2,#fff);width:100%;color:var(--dsw-alias-label-primary,#202938);border-radius:20px;padding:18px;box-shadow:0 3px 14px #182c5010}.yzXCLW_input{resize:vertical;box-sizing:border-box;width:100%;min-height:108px;max-height:300px;color:inherit;font:inherit;background:0 0;border:0;outline:none;line-height:1.6;display:block}.yzXCLW_input::placeholder{color:var(--dsw-alias-label-secondary,#78869f)}.yzXCLW_input:focus-visible{outline-offset:5px;border-radius:4px;outline:2px solid #8b9dd5}.yzXCLW_row{justify-content:space-between;align-items:center;gap:12px;margin-top:10px;display:flex}.yzXCLW_hint{opacity:.72;font-size:12px;line-height:1.6}.yzXCLW_send{background:var(--dsw-alias-button-primary-fill,#405eae);min-width:44px;min-height:44px;color:var(--dsw-alias-label-primary-foreground,#fff);cursor:pointer;border:0;border-radius:999px;flex-shrink:0;padding:10px 16px}.yzXCLW_send:hover{background:var(--dsw-alias-button-primary-hover,#334c91)}.yzXCLW_send:disabled{opacity:.45;cursor:default}.yzXCLW_error{color:#b53232;margin-top:10px;font-size:13px}.yzXCLW_badge{opacity:.8;font-size:14px}.yzXCLW_previewNotice{border-bottom:1px solid var(--dsw-alias-border-l2,#d5dbe7);color:var(--dsw-alias-label-secondary,#78869f);flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:14px;padding:0 0 14px;font-size:12px;line-height:1.7;display:flex}.yzXCLW_previewNotice button{color:var(--dsw-alias-button-primary-fill,#405eae);cursor:pointer;font:inherit;background:0 0;border:0;padding:3px 0}@media (width<=600px){.yzXCLW_card{padding:14px}.yzXCLW_row{align-items:flex-end}.yzXCLW_hint{font-size:11px}}.yzXCLW_conversationShell{flex-direction:column;min-width:0;height:100%;min-height:0;display:flex}.yzXCLW_assistantToolbar{flex:none;align-items:center;min-width:0;padding:20px 28px 8px;display:flex}.yzXCLW_conversationContent{flex:1;min-width:0;min-height:0}@media (width<=600px){.yzXCLW_assistantToolbar{padding:12px 16px 6px}}";
+		const tagId$9 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Chat.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$9) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$6;
-			tag.textContent = css$6;
+			tag.dataset.pluginCss = tagId$9;
+			tag.textContent = css$9;
 			document.head.appendChild(tag);
 		}
 		var Chat_module_css_default = {
@@ -138,8 +138,9 @@ window.__ModuleLoader__.load({
 		};
 		//#endregion
 		//#region src/client/DraftComposer.tsx
-		function DraftComposer({ start, t, available, previewOnly = false, onReturnChat }) {
+		function DraftComposer({ start, t, available, previewOnly = false, onReturnChat, initialDraft, onDraftChange }) {
 			const [draft, setDraft] = (0, react.useState)(() => {
+				if (initialDraft !== void 0) return initialDraft;
 				try {
 					return sessionStorage.getItem("workbench-chat-draft") ?? "";
 				} catch {
@@ -161,6 +162,7 @@ window.__ModuleLoader__.load({
 				try {
 					sessionStorage.setItem("workbench-chat-draft", value);
 				} catch {}
+				onDraftChange?.(value);
 			};
 			const send = async () => {
 				if (busy || previewOnly || !available || !draft.trim()) return;
@@ -230,13 +232,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/AppearanceNavigation.module.css.mjs
-		const css$5 = ".W_oMjq_group{width:100%;min-width:0}.W_oMjq_heading{box-sizing:border-box;cursor:pointer;align-items:center;gap:10px;width:100%;list-style:none;display:flex}.W_oMjq_heading::-webkit-details-marker{display:none}.W_oMjq_heading>svg{flex-shrink:0}.W_oMjq_heading:focus-visible{outline:2px solid var(--dsw-alias-button-primary-fill,#4263ba);outline-offset:-2px;border-radius:8px}.W_oMjq_chevron{opacity:.65;margin-left:auto}.W_oMjq_group[open]>.W_oMjq_heading .W_oMjq_chevron{transform:rotate(90deg)}.W_oMjq_children{border-left:1px solid var(--dsw-alias-border-l2,#dfe4ed);flex-direction:column;gap:4px;margin:4px 0 6px 17px;padding-left:10px;display:flex}.W_oMjq_children>button{box-sizing:border-box;width:100%;font-size:13px}";
-		const tagId$5 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/AppearanceNavigation.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$5) + "]") === null) {
+		const css$8 = ".W_oMjq_group{width:100%;min-width:0}.W_oMjq_heading{box-sizing:border-box;cursor:pointer;align-items:center;gap:10px;width:100%;list-style:none;display:flex}.W_oMjq_heading::-webkit-details-marker{display:none}.W_oMjq_heading>svg{flex-shrink:0}.W_oMjq_heading:focus-visible{outline:2px solid var(--dsw-alias-button-primary-fill,#4263ba);outline-offset:-2px;border-radius:8px}.W_oMjq_chevron{opacity:.65;margin-left:auto}.W_oMjq_group[open]>.W_oMjq_heading .W_oMjq_chevron{transform:rotate(90deg)}.W_oMjq_children{border-left:1px solid var(--dsw-alias-border-l2,#dfe4ed);flex-direction:column;gap:4px;margin:4px 0 6px 17px;padding-left:10px;display:flex}.W_oMjq_children>button{box-sizing:border-box;width:100%;font-size:13px}";
+		const tagId$8 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/AppearanceNavigation.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$8) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$5;
-			tag.textContent = css$5;
+			tag.dataset.pluginCss = tagId$8;
+			tag.textContent = css$8;
 			document.head.appendChild(tag);
 		}
 		var AppearanceNavigation_module_css_default = {
@@ -483,13 +485,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/Roles.module.css.mjs
-		const css$4 = ".fwzdhW_section,.fwzdhW_dialog,.fwzdhW_picker,.fwzdhW_presetDisclosure{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);font:inherit}.fwzdhW_section{box-sizing:border-box;width:100%;padding:4px 0 0}.fwzdhW_sectionHeader{justify-content:space-between;align-items:center;gap:20px;margin-bottom:22px;display:flex}.fwzdhW_titleRow{align-items:center;gap:12px;display:flex}.fwzdhW_section h2,.fwzdhW_dialog h2{letter-spacing:-.4px;margin:0;font-size:20px;font-weight:650}.fwzdhW_sectionHeader p{color:var(--role-muted);margin:8px 0 0;font-size:13px;line-height:1.7}.fwzdhW_previewBadge,.fwzdhW_exampleBadge{border:1px solid var(--role-border);color:var(--role-muted);white-space:nowrap;border-radius:6px;flex-shrink:0;align-items:center;padding:3px 8px;font-size:11px;font-weight:500;line-height:1.4;display:inline-flex}.fwzdhW_exampleBadge{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-color:#0000}.fwzdhW_primary,.fwzdhW_secondary{border:1px solid var(--role-border);font:inherit;cursor:pointer;white-space:nowrap;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:550}.fwzdhW_primary{background:var(--role-accent);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:#0000}.fwzdhW_secondary{background:var(--role-bg);color:var(--role-text)}.fwzdhW_primary:hover:not(:disabled){filter:brightness(1.08)}.fwzdhW_primary:disabled{opacity:.42;cursor:not-allowed}.fwzdhW_cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;display:grid}.fwzdhW_selectionStatus{min-height:30px;color:var(--role-muted);justify-content:space-between;align-items:center;gap:12px;margin:-4px 0 18px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_roleCard{transition:box-shadow .18s,border-color .18s;position:relative}.fwzdhW_cardSelect{z-index:1;cursor:pointer;background:0 0;border:0;border-radius:12px 12px 0 0;padding:0;position:absolute;inset:0 0 51px}.fwzdhW_cardSelect:hover{background:color-mix(in srgb,var(--role-color) 5%,transparent)}.fwzdhW_roleCard .fwzdhW_cardAction{z-index:2;position:relative}.fwzdhW_cardBody{border-radius:10px 10px 0 0;flex:1;margin:-22px -22px 0;padding:22px 22px 0;position:relative}.fwzdhW_cardBody .fwzdhW_cardSelect{border-radius:10px 10px 0 0;inset:0}.fwzdhW_cardSelect:disabled{cursor:default}.fwzdhW_cardSelect:disabled:hover{background:0 0}.fwzdhW_roleCard .fwzdhW_cardSummary{-webkit-line-clamp:3;overflow-wrap:anywhere;-webkit-box-orient:vertical;min-height:5.4em;display:-webkit-box;overflow:hidden}.fwzdhW_cardControls{z-index:2;border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border));align-items:center;gap:18px;display:flex;position:relative}.fwzdhW_cardControls .fwzdhW_cardAction{border-top:0;flex:1;width:auto;min-width:0}.fwzdhW_cardControls .fwzdhW_textButton{min-height:44px;color:var(--role-muted)}.fwzdhW_roleCard .fwzdhW_chatCardNote{padding:14px 0;font-size:12px}.fwzdhW_selectedCard{box-shadow:0 0 0 2px var(--role-color),0 7px 20px color-mix(in srgb,var(--role-color) 20%,transparent);animation:.3s ease-out fwzdhW_roleSelect}.fwzdhW_roleCard .fwzdhW_exampleBadge.fwzdhW_selectedBadge{background:var(--role-color);color:var(--role-on-color,white)}@keyframes fwzdhW_roleSelect{0%,to{transform:translate(0)}30%{transform:translate(-3px)}60%{transform:translate(3px)}}@media (prefers-reduced-motion:reduce){.fwzdhW_selectedCard{animation:none}}.fwzdhW_currentAssistant{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);box-sizing:border-box;border:1px solid color-mix(in srgb,var(--role-color) 22%,transparent);background:color-mix(in srgb,var(--role-bg) 88%,transparent);backdrop-filter:blur(12px);max-width:100%;min-height:38px;color:var(--role-text);text-align:left;font:inherit;cursor:pointer;border-radius:22px;align-items:center;gap:8px;padding:6px 12px 6px 7px;transition:background .16s,border-color .16s,box-shadow .16s;display:inline-flex;box-shadow:0 2px 8px #182c5008}.fwzdhW_currentAssistant:hover{background:color-mix(in srgb,var(--role-color) 8%,var(--role-bg));border-color:color-mix(in srgb,var(--role-color) 45%,transparent);box-shadow:0 3px 12px #182c5010}.fwzdhW_currentAssistant:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_currentAssistant .fwzdhW_icon{border-radius:50%;width:24px;height:24px}.fwzdhW_currentAssistant .fwzdhW_icon svg{width:15px;height:15px}.fwzdhW_currentText{text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:13px;font-weight:550;line-height:20px;overflow:hidden}.fwzdhW_currentHint{color:var(--role-muted);border-left:1px solid color-mix(in srgb,var(--role-muted) 20%,transparent);flex-shrink:0;padding:0 6px;font-size:10px;line-height:16px}.fwzdhW_currentArrow{width:14px;height:14px;color:var(--role-muted);flex-shrink:0}@media (width<=400px){.fwzdhW_currentHint{display:none}}.fwzdhW_roleCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:14px;flex-direction:column;min-width:0;padding:22px 22px 0;display:flex}.fwzdhW_cardTop{justify-content:space-between;align-items:center;gap:12px;display:flex}.fwzdhW_icon{width:42px;height:42px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));border-radius:11px;flex-shrink:0;justify-content:center;align-items:center;display:inline-flex}.fwzdhW_icon svg{width:23px;height:23px}.fwzdhW_icon img{object-fit:contain;width:100%;height:100%;padding:4px;display:block}.fwzdhW_currentAssistant .fwzdhW_icon img{padding:2px}.fwzdhW_icon{color:color-mix(in srgb,var(--role-color,var(--role-accent)) 65%,var(--role-text));background:color-mix(in srgb,var(--role-color,var(--role-accent)) 20%,var(--role-bg))}.fwzdhW_roleCard,.fwzdhW_livePreview{border-color:color-mix(in srgb,var(--role-color) 40%,var(--role-border));border-top:4px solid var(--role-color);background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg)))}.fwzdhW_roleCard .fwzdhW_exampleBadge,.fwzdhW_roleCard .fwzdhW_tags span{background:color-mix(in srgb,var(--role-color) 15%,var(--role-bg));color:color-mix(in srgb,var(--role-color) 45%,var(--role-text))}.fwzdhW_roleCard .fwzdhW_cardAction{color:color-mix(in srgb,var(--role-color) 55%,var(--role-text));border-top-color:color-mix(in srgb,var(--role-color) 25%,var(--role-border))}.fwzdhW_roleCard h3{margin:18px 0 8px;font-size:16px;font-weight:650}.fwzdhW_roleCard p{color:var(--role-muted);margin:0;font-size:13px;line-height:1.8}.fwzdhW_tags{flex-wrap:wrap;gap:7px;margin:18px 0 22px;display:flex}.fwzdhW_tags span{background:color-mix(in srgb,var(--role-muted) 8%,var(--role-bg));color:var(--role-muted);border-radius:5px;padding:4px 8px;font-size:11px}.fwzdhW_cardAction{border:0;border-top:1px solid var(--role-border);width:100%;color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;justify-content:space-between;align-items:center;margin-top:auto;padding:14px 0;font-size:13px;display:flex}.fwzdhW_createCard{border:1px dashed var(--role-border);width:100%;color:var(--role-muted);font:inherit;cursor:pointer;background:0 0;border-radius:14px;justify-content:flex-start;align-items:center;gap:13px;margin-top:16px;padding:16px 20px;display:flex}.fwzdhW_createCard:hover{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.fwzdhW_createCard strong{color:var(--role-text);font-size:14px;font-weight:550}.fwzdhW_createCard>span:last-child{text-align:left;font-size:12px;line-height:1.8}.fwzdhW_plus{border:1px solid var(--role-border);border-radius:50%;place-items:center;width:38px;height:38px;font-size:24px;font-weight:300;display:grid}.fwzdhW_createCard .fwzdhW_plus{flex-shrink:0;width:30px;height:30px}.fwzdhW_createCard strong{flex-shrink:0}@media (width<=680px){.fwzdhW_createCard{flex-wrap:wrap}.fwzdhW_createCard>span:last-child{width:100%}}.fwzdhW_sectionNote{color:var(--role-muted);margin:14px 0 0;font-size:12px;line-height:1.8}.fwzdhW_presetDisclosure{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;margin-top:24px}.fwzdhW_presetDisclosure>summary{cursor:pointer;justify-content:space-between;align-items:center;gap:16px;padding:14px 16px;font-size:14px;font-weight:550;list-style:none;display:flex}.fwzdhW_presetDisclosure>summary::-webkit-details-marker{display:none}.fwzdhW_presetDisclosure>summary:hover{background:color-mix(in srgb,var(--role-muted) 5%,transparent);border-radius:10px}.fwzdhW_presetDisclosure>summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px;border-radius:10px}.fwzdhW_disclosureChevron{width:16px;height:16px;color:var(--role-muted);flex-shrink:0}.fwzdhW_presetDisclosure[open]>summary .fwzdhW_disclosureChevron{transform:rotate(90deg)}.fwzdhW_disclosureContent{border-top:1px solid var(--role-border);padding:18px 16px}.fwzdhW_dialog{background:var(--role-bg);border:1px solid var(--role-border);border-radius:18px;width:560px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 40px);padding:0;overflow:auto;box-shadow:0 24px 90px #10223d30}.fwzdhW_dialog::backdrop{backdrop-filter:blur(3px);background:#0e18224d}.fwzdhW_dialog[open]{flex-direction:column;display:flex}.fwzdhW_wide{width:1240px;height:min(850px,100dvh - 40px);overflow:hidden}.fwzdhW_editorDetails{border:1px solid var(--role-border);border-radius:8px;padding:0 12px}.fwzdhW_editorDetails>summary{cursor:pointer;color:var(--role-muted);padding:10px 0;font-size:12px}.fwzdhW_editorDetails>fieldset,.fwzdhW_editorDetails>div{padding:8px 0 14px}.fwzdhW_colorSample{border-radius:50%;width:11px;height:11px;margin-left:10px;display:inline-block}.fwzdhW_dialogHeader{border-bottom:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:20px;padding:22px 26px;display:flex}.fwzdhW_dialogHeader h2{font-size:18px}.fwzdhW_close{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-radius:6px;width:32px;height:32px;font-size:25px;line-height:1}.fwzdhW_close:hover{background:color-mix(in srgb,var(--role-muted) 10%,var(--role-bg))}.fwzdhW_editorScroll{min-height:0;padding:20px 26px 24px;overflow:auto}.fwzdhW_intro{color:var(--role-muted);margin:0 0 16px;font-size:13px;line-height:1.8}.fwzdhW_notice{background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border:1px solid var(--role-border);color:var(--role-muted);border-radius:8px;align-items:center;gap:10px;margin-bottom:24px;padding:11px 13px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_editorGrid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:28px;display:grid}.fwzdhW_fields{flex-direction:column;gap:18px;display:flex}.fwzdhW_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.fwzdhW_field input,.fwzdhW_field textarea{box-sizing:border-box;border:1px solid var(--role-border);width:100%;color:var(--role-text);background:var(--role-bg);font:inherit;border-radius:8px;padding:10px 12px;font-weight:400;line-height:1.7}.fwzdhW_field textarea{resize:vertical;min-height:85px}.fwzdhW_field input::placeholder,.fwzdhW_field textarea::placeholder{color:var(--role-muted);opacity:.75}.fwzdhW_field input:focus,.fwzdhW_field textarea:focus{outline:2px solid color-mix(in srgb,var(--role-accent) 22%,transparent);border-color:var(--role-accent)}.fwzdhW_colorField{border:0;min-width:0;margin:0;padding:0}.fwzdhW_colorField legend{margin-bottom:10px;padding:0;font-size:13px;font-weight:550}.fwzdhW_palette{flex-wrap:wrap;gap:10px;display:flex}.fwzdhW_swatch{cursor:pointer;color:#fff;text-shadow:0 1px 2px #0007;border:2px solid #0000;border-radius:50%;place-items:center;width:28px;height:28px;padding:0;font-size:16px;display:grid}.fwzdhW_swatch[aria-pressed=true]{outline:2px solid var(--role-text);outline-offset:3px}.fwzdhW_customColor{flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;font-size:12px;display:flex}.fwzdhW_customColor label,.fwzdhW_customColor input{cursor:pointer}.fwzdhW_customColor input{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);border-radius:6px;width:34px;height:30px;padding:2px}.fwzdhW_customColor input:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_customColor code{color:var(--role-muted);font-size:12px}.fwzdhW_livePreview{overflow-wrap:anywhere;border-radius:12px;padding:20px}.fwzdhW_previewHeading{justify-content:space-between;align-items:center;font-size:12px;font-weight:600;display:flex}.fwzdhW_dot{background:var(--role-color,var(--role-accent));border-radius:50%;width:6px;height:6px}.fwzdhW_caption{color:var(--role-muted);margin:6px 0 0;font-size:12px;line-height:1.7}.fwzdhW_previewIdentity{align-items:center;gap:12px;margin:24px 0;display:flex}.fwzdhW_previewIdentity h3{margin:0;font-size:16px;font-weight:650}.fwzdhW_previewSection{margin-top:20px}.fwzdhW_previewSection h4{letter-spacing:.5px;color:var(--role-muted);margin:0 0 8px;font-size:11px;font-weight:500}.fwzdhW_previewSection p{white-space:pre-wrap;margin:0;font-size:12px;line-height:1.9}.fwzdhW_empty{color:var(--role-muted);opacity:.65}.fwzdhW_sessionHint{border-top:1px solid var(--role-border);color:var(--role-muted);margin:24px 0 0;padding-top:15px;font-size:11px;line-height:1.7}.fwzdhW_footer{border-top:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:16px;padding:16px 26px;display:flex}.fwzdhW_footer p{color:var(--role-muted);margin:0;font-size:11px;line-height:1.7}.fwzdhW_actions{gap:10px;display:flex}.fwzdhW_picker{border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:10px;align-items:center;gap:9px;padding:6px 10px 6px 6px;font-size:13px;display:inline-flex}.fwzdhW_picker .fwzdhW_icon{border-radius:6px;width:27px;height:27px}.fwzdhW_picker .fwzdhW_icon svg{width:17px;height:17px}.fwzdhW_choices{padding:22px 26px 26px;overflow:auto}.fwzdhW_choice{border:1px solid var(--role-border);text-align:left;background:var(--role-bg);width:100%;color:var(--role-text);font:inherit;cursor:pointer;border-radius:12px;align-items:center;gap:14px;margin-bottom:12px;padding:17px;display:flex}.fwzdhW_choice:hover,.fwzdhW_chosen{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg))}.fwzdhW_choiceText{flex-direction:column;flex:1;gap:8px;min-width:0;display:flex}.fwzdhW_choiceText strong{flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:600;display:flex}.fwzdhW_choiceText>span{color:var(--role-muted);font-size:12px;line-height:1.7}.fwzdhW_radio{border:1px solid var(--role-border);border-radius:50%;flex-shrink:0;place-items:center;width:19px;height:19px;font-size:12px;display:grid}.fwzdhW_chosen .fwzdhW_radio{color:#fff;border-color:var(--role-accent);background:var(--role-accent)}.fwzdhW_choiceTools{border-bottom:1px solid var(--role-border);justify-content:space-between;gap:16px;padding:2px 0 14px;display:flex}.fwzdhW_textButton,.fwzdhW_back{color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;border:0;padding:6px 0;font-size:12px}.fwzdhW_back{align-self:flex-start;margin:14px 26px 0}.fwzdhW_section button:focus-visible,.fwzdhW_dialog button:focus-visible,.fwzdhW_picker:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}@media (width<=680px){.fwzdhW_cards,.fwzdhW_editorGrid{grid-template-columns:1fr}.fwzdhW_sectionHeader{flex-direction:column;align-items:flex-start;gap:14px}.fwzdhW_createCard{padding:22px}.fwzdhW_dialogHeader,.fwzdhW_editorScroll,.fwzdhW_choices{padding:16px}.fwzdhW_footer{flex-direction:column;align-items:flex-end;gap:10px;padding:14px 16px}.fwzdhW_notice{align-items:flex-start}.fwzdhW_dialog{max-height:calc(100dvh - 24px)}.fwzdhW_livePreview{padding:16px}}";
-		const tagId$4 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Roles.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$4) + "]") === null) {
+		const css$7 = ".fwzdhW_section,.fwzdhW_dialog,.fwzdhW_picker,.fwzdhW_presetDisclosure{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);font:inherit}.fwzdhW_section{box-sizing:border-box;width:100%;padding:4px 0 0}.fwzdhW_sectionHeader{justify-content:space-between;align-items:center;gap:20px;margin-bottom:22px;display:flex}.fwzdhW_titleRow{align-items:center;gap:12px;display:flex}.fwzdhW_section h2,.fwzdhW_dialog h2{letter-spacing:-.4px;margin:0;font-size:20px;font-weight:650}.fwzdhW_sectionHeader p{color:var(--role-muted);margin:8px 0 0;font-size:13px;line-height:1.7}.fwzdhW_previewBadge,.fwzdhW_exampleBadge{border:1px solid var(--role-border);color:var(--role-muted);white-space:nowrap;border-radius:6px;flex-shrink:0;align-items:center;padding:3px 8px;font-size:11px;font-weight:500;line-height:1.4;display:inline-flex}.fwzdhW_exampleBadge{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-color:#0000}.fwzdhW_primary,.fwzdhW_secondary{border:1px solid var(--role-border);font:inherit;cursor:pointer;white-space:nowrap;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:550}.fwzdhW_primary{background:var(--role-accent);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:#0000}.fwzdhW_secondary{background:var(--role-bg);color:var(--role-text)}.fwzdhW_primary:hover:not(:disabled){filter:brightness(1.08)}.fwzdhW_primary:disabled{opacity:.42;cursor:not-allowed}.fwzdhW_cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;display:grid}.fwzdhW_selectionStatus{min-height:30px;color:var(--role-muted);justify-content:space-between;align-items:center;gap:12px;margin:-4px 0 18px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_roleCard{transition:box-shadow .18s,border-color .18s;position:relative}.fwzdhW_cardSelect{z-index:1;cursor:pointer;background:0 0;border:0;border-radius:12px 12px 0 0;padding:0;position:absolute;inset:0 0 51px}.fwzdhW_cardSelect:hover{background:color-mix(in srgb,var(--role-color) 5%,transparent)}.fwzdhW_roleCard .fwzdhW_cardAction{z-index:2;position:relative}.fwzdhW_cardBody{border-radius:10px 10px 0 0;flex:1;margin:-22px -22px 0;padding:22px 22px 0;position:relative}.fwzdhW_cardBody .fwzdhW_cardSelect{border-radius:10px 10px 0 0;inset:0}.fwzdhW_cardSelect:disabled{cursor:default}.fwzdhW_cardSelect:disabled:hover{background:0 0}.fwzdhW_roleCard .fwzdhW_cardSummary{-webkit-line-clamp:3;overflow-wrap:anywhere;-webkit-box-orient:vertical;min-height:5.4em;display:-webkit-box;overflow:hidden}.fwzdhW_cardControls{z-index:2;border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border));align-items:center;gap:18px;display:flex;position:relative}.fwzdhW_cardControls .fwzdhW_cardAction{border-top:0;flex:1;width:auto;min-width:0}.fwzdhW_cardControls .fwzdhW_textButton{min-height:44px;color:var(--role-muted)}.fwzdhW_roleCard .fwzdhW_chatCardNote{padding:14px 0;font-size:12px}.fwzdhW_selectedCard{box-shadow:0 0 0 2px var(--role-color),0 7px 20px color-mix(in srgb,var(--role-color) 20%,transparent);animation:.3s ease-out fwzdhW_roleSelect}.fwzdhW_roleCard .fwzdhW_exampleBadge.fwzdhW_selectedBadge{background:var(--role-color);color:var(--role-on-color,white)}@keyframes fwzdhW_roleSelect{0%,to{transform:translate(0)}30%{transform:translate(-3px)}60%{transform:translate(3px)}}@media (prefers-reduced-motion:reduce){.fwzdhW_selectedCard{animation:none}}.fwzdhW_currentAssistant{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);box-sizing:border-box;border:1px solid color-mix(in srgb,var(--role-color) 22%,transparent);background:color-mix(in srgb,var(--role-bg) 88%,transparent);backdrop-filter:blur(12px);max-width:100%;min-height:38px;color:var(--role-text);text-align:left;font:inherit;cursor:pointer;border-radius:22px;align-items:center;gap:8px;padding:6px 12px 6px 7px;transition:background .16s,border-color .16s,box-shadow .16s;display:inline-flex;box-shadow:0 2px 8px #182c5008}.fwzdhW_currentAssistant:hover{background:color-mix(in srgb,var(--role-color) 8%,var(--role-bg));border-color:color-mix(in srgb,var(--role-color) 45%,transparent);box-shadow:0 3px 12px #182c5010}.fwzdhW_currentAssistant:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_currentAssistant .fwzdhW_icon{border-radius:50%;width:24px;height:24px}.fwzdhW_currentAssistant .fwzdhW_icon svg{width:15px;height:15px}.fwzdhW_currentText{text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:13px;font-weight:550;line-height:20px;overflow:hidden}.fwzdhW_currentHint{color:var(--role-muted);border-left:1px solid color-mix(in srgb,var(--role-muted) 20%,transparent);flex-shrink:0;padding:0 6px;font-size:10px;line-height:16px}.fwzdhW_currentArrow{width:14px;height:14px;color:var(--role-muted);flex-shrink:0}@media (width<=400px){.fwzdhW_currentHint{display:none}}.fwzdhW_roleCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:14px;flex-direction:column;min-width:0;padding:22px 22px 0;display:flex}.fwzdhW_cardTop{justify-content:space-between;align-items:center;gap:12px;display:flex}.fwzdhW_icon{width:42px;height:42px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));border-radius:11px;flex-shrink:0;justify-content:center;align-items:center;display:inline-flex}.fwzdhW_icon svg{width:23px;height:23px}.fwzdhW_icon img{object-fit:contain;width:100%;height:100%;padding:4px;display:block}.fwzdhW_currentAssistant .fwzdhW_icon img{padding:2px}.fwzdhW_icon{color:color-mix(in srgb,var(--role-color,var(--role-accent)) 65%,var(--role-text));background:color-mix(in srgb,var(--role-color,var(--role-accent)) 20%,var(--role-bg))}.fwzdhW_roleCard,.fwzdhW_livePreview{border-color:color-mix(in srgb,var(--role-color) 40%,var(--role-border));border-top:4px solid var(--role-color);background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg)))}.fwzdhW_roleCard .fwzdhW_exampleBadge,.fwzdhW_roleCard .fwzdhW_tags span{background:color-mix(in srgb,var(--role-color) 15%,var(--role-bg));color:color-mix(in srgb,var(--role-color) 45%,var(--role-text))}.fwzdhW_roleCard .fwzdhW_cardAction{color:color-mix(in srgb,var(--role-color) 55%,var(--role-text));border-top-color:color-mix(in srgb,var(--role-color) 25%,var(--role-border))}.fwzdhW_roleCard h3{margin:18px 0 8px;font-size:16px;font-weight:650}.fwzdhW_roleCard p{color:var(--role-muted);margin:0;font-size:13px;line-height:1.8}.fwzdhW_tags{flex-wrap:wrap;gap:7px;margin:18px 0 22px;display:flex}.fwzdhW_tags span{background:color-mix(in srgb,var(--role-muted) 8%,var(--role-bg));color:var(--role-muted);border-radius:5px;padding:4px 8px;font-size:11px}.fwzdhW_cardAction{border:0;border-top:1px solid var(--role-border);width:100%;color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;justify-content:space-between;align-items:center;margin-top:auto;padding:14px 0;font-size:13px;display:flex}.fwzdhW_createCard{border:1px dashed var(--role-border);width:100%;color:var(--role-muted);font:inherit;cursor:pointer;background:0 0;border-radius:14px;justify-content:flex-start;align-items:center;gap:13px;margin-top:16px;padding:16px 20px;display:flex}.fwzdhW_createCard:hover{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.fwzdhW_createCard strong{color:var(--role-text);font-size:14px;font-weight:550}.fwzdhW_createCard>span:last-child{text-align:left;font-size:12px;line-height:1.8}.fwzdhW_plus{border:1px solid var(--role-border);border-radius:50%;place-items:center;width:38px;height:38px;font-size:24px;font-weight:300;display:grid}.fwzdhW_createCard .fwzdhW_plus{flex-shrink:0;width:30px;height:30px}.fwzdhW_createCard strong{flex-shrink:0}@media (width<=680px){.fwzdhW_createCard{flex-wrap:wrap}.fwzdhW_createCard>span:last-child{width:100%}}.fwzdhW_sectionNote{color:var(--role-muted);margin:14px 0 0;font-size:12px;line-height:1.8}.fwzdhW_presetDisclosure{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;margin-top:24px}.fwzdhW_presetDisclosure>summary{cursor:pointer;justify-content:space-between;align-items:center;gap:16px;padding:14px 16px;font-size:14px;font-weight:550;list-style:none;display:flex}.fwzdhW_presetDisclosure>summary::-webkit-details-marker{display:none}.fwzdhW_presetDisclosure>summary:hover{background:color-mix(in srgb,var(--role-muted) 5%,transparent);border-radius:10px}.fwzdhW_presetDisclosure>summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px;border-radius:10px}.fwzdhW_disclosureChevron{width:16px;height:16px;color:var(--role-muted);flex-shrink:0}.fwzdhW_presetDisclosure[open]>summary .fwzdhW_disclosureChevron{transform:rotate(90deg)}.fwzdhW_disclosureContent{border-top:1px solid var(--role-border);padding:18px 16px}.fwzdhW_dialog{background:var(--role-bg);border:1px solid var(--role-border);border-radius:18px;width:560px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 40px);padding:0;overflow:auto;box-shadow:0 24px 90px #10223d30}.fwzdhW_dialog::backdrop{backdrop-filter:blur(3px);background:#0e18224d}.fwzdhW_dialog[open]{flex-direction:column;display:flex}.fwzdhW_wide{width:1240px;height:min(850px,100dvh - 40px);overflow:hidden}.fwzdhW_editorDetails{border:1px solid var(--role-border);border-radius:8px;padding:0 12px}.fwzdhW_editorDetails>summary{cursor:pointer;color:var(--role-muted);padding:10px 0;font-size:12px}.fwzdhW_editorDetails>fieldset,.fwzdhW_editorDetails>div{padding:8px 0 14px}.fwzdhW_colorSample{border-radius:50%;width:11px;height:11px;margin-left:10px;display:inline-block}.fwzdhW_dialogHeader{border-bottom:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:20px;padding:22px 26px;display:flex}.fwzdhW_dialogHeader h2{font-size:18px}.fwzdhW_close{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-radius:6px;width:32px;height:32px;font-size:25px;line-height:1}.fwzdhW_close:hover{background:color-mix(in srgb,var(--role-muted) 10%,var(--role-bg))}.fwzdhW_editorScroll{min-height:0;padding:20px 26px 24px;overflow:auto}.fwzdhW_intro{color:var(--role-muted);margin:0 0 16px;font-size:13px;line-height:1.8}.fwzdhW_notice{background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border:1px solid var(--role-border);color:var(--role-muted);border-radius:8px;align-items:center;gap:10px;margin-bottom:24px;padding:11px 13px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_editorGrid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:28px;display:grid}.fwzdhW_fields{flex-direction:column;gap:18px;display:flex}.fwzdhW_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.fwzdhW_field input,.fwzdhW_field textarea{box-sizing:border-box;border:1px solid var(--role-border);width:100%;color:var(--role-text);background:var(--role-bg);font:inherit;border-radius:8px;padding:10px 12px;font-weight:400;line-height:1.7}.fwzdhW_field textarea{resize:vertical;min-height:85px}.fwzdhW_field input::placeholder,.fwzdhW_field textarea::placeholder{color:var(--role-muted);opacity:.75}.fwzdhW_field input:focus,.fwzdhW_field textarea:focus{outline:2px solid color-mix(in srgb,var(--role-accent) 22%,transparent);border-color:var(--role-accent)}.fwzdhW_colorField{border:0;min-width:0;margin:0;padding:0}.fwzdhW_colorField legend{margin-bottom:10px;padding:0;font-size:13px;font-weight:550}.fwzdhW_palette{flex-wrap:wrap;gap:10px;display:flex}.fwzdhW_swatch{cursor:pointer;color:#fff;text-shadow:0 1px 2px #0007;border:2px solid #0000;border-radius:50%;place-items:center;width:28px;height:28px;padding:0;font-size:16px;display:grid}.fwzdhW_swatch[aria-pressed=true]{outline:2px solid var(--role-text);outline-offset:3px}.fwzdhW_customColor{flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;font-size:12px;display:flex}.fwzdhW_customColor label,.fwzdhW_customColor input{cursor:pointer}.fwzdhW_customColor input{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);border-radius:6px;width:34px;height:30px;padding:2px}.fwzdhW_customColor input:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_customColor code{color:var(--role-muted);font-size:12px}.fwzdhW_livePreview{overflow-wrap:anywhere;border-radius:12px;padding:20px}.fwzdhW_previewHeading{justify-content:space-between;align-items:center;font-size:12px;font-weight:600;display:flex}.fwzdhW_dot{background:var(--role-color,var(--role-accent));border-radius:50%;width:6px;height:6px}.fwzdhW_caption{color:var(--role-muted);margin:6px 0 0;font-size:12px;line-height:1.7}.fwzdhW_previewIdentity{align-items:center;gap:12px;margin:24px 0;display:flex}.fwzdhW_previewIdentity h3{margin:0;font-size:16px;font-weight:650}.fwzdhW_previewSection{margin-top:20px}.fwzdhW_previewSection h4{letter-spacing:.5px;color:var(--role-muted);margin:0 0 8px;font-size:11px;font-weight:500}.fwzdhW_previewSection p{white-space:pre-wrap;margin:0;font-size:12px;line-height:1.9}.fwzdhW_empty{color:var(--role-muted);opacity:.65}.fwzdhW_sessionHint{border-top:1px solid var(--role-border);color:var(--role-muted);margin:24px 0 0;padding-top:15px;font-size:11px;line-height:1.7}.fwzdhW_footer{border-top:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:16px;padding:16px 26px;display:flex}.fwzdhW_footer p{color:var(--role-muted);margin:0;font-size:11px;line-height:1.7}.fwzdhW_actions{gap:10px;display:flex}.fwzdhW_picker{border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:10px;align-items:center;gap:9px;padding:6px 10px 6px 6px;font-size:13px;display:inline-flex}.fwzdhW_picker .fwzdhW_icon{border-radius:6px;width:27px;height:27px}.fwzdhW_picker .fwzdhW_icon svg{width:17px;height:17px}.fwzdhW_choices{padding:22px 26px 26px;overflow:auto}.fwzdhW_choice{border:1px solid var(--role-border);text-align:left;background:var(--role-bg);width:100%;color:var(--role-text);font:inherit;cursor:pointer;border-radius:12px;align-items:center;gap:14px;margin-bottom:12px;padding:17px;display:flex}.fwzdhW_choice:hover,.fwzdhW_chosen{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg))}.fwzdhW_choiceText{flex-direction:column;flex:1;gap:8px;min-width:0;display:flex}.fwzdhW_choiceText strong{flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:600;display:flex}.fwzdhW_choiceText>span{color:var(--role-muted);font-size:12px;line-height:1.7}.fwzdhW_radio{border:1px solid var(--role-border);border-radius:50%;flex-shrink:0;place-items:center;width:19px;height:19px;font-size:12px;display:grid}.fwzdhW_chosen .fwzdhW_radio{color:#fff;border-color:var(--role-accent);background:var(--role-accent)}.fwzdhW_choiceTools{border-bottom:1px solid var(--role-border);justify-content:space-between;gap:16px;padding:2px 0 14px;display:flex}.fwzdhW_textButton,.fwzdhW_back{color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;border:0;padding:6px 0;font-size:12px}.fwzdhW_back{align-self:flex-start;margin:14px 26px 0}.fwzdhW_section button:focus-visible,.fwzdhW_dialog button:focus-visible,.fwzdhW_picker:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}@media (width<=680px){.fwzdhW_cards,.fwzdhW_editorGrid{grid-template-columns:1fr}.fwzdhW_sectionHeader{flex-direction:column;align-items:flex-start;gap:14px}.fwzdhW_createCard{padding:22px}.fwzdhW_dialogHeader,.fwzdhW_editorScroll,.fwzdhW_choices{padding:16px}.fwzdhW_footer{flex-direction:column;align-items:flex-end;gap:10px;padding:14px 16px}.fwzdhW_notice{align-items:flex-start}.fwzdhW_dialog{max-height:calc(100dvh - 24px)}.fwzdhW_livePreview{padding:16px}}";
+		const tagId$7 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Roles.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$7) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$4;
-			tag.textContent = css$4;
+			tag.dataset.pluginCss = tagId$7;
+			tag.textContent = css$7;
 			document.head.appendChild(tag);
 		}
 		var Roles_module_css_default = {
@@ -672,13 +674,13 @@ window.__ModuleLoader__.load({
 		};
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/Capabilities.module.css.mjs
-		const css$3 = ".ChWdyq_banner{border-bottom:1px solid var(--role-border);color:var(--role-muted);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));flex-shrink:0;align-items:center;gap:8px;padding:11px 24px;font-size:12px;line-height:1.6;display:flex}.ChWdyq_bannerDot{background:#c09542;border-radius:50%;flex-shrink:0;width:6px;height:6px}.ChWdyq_workbench{grid-template-columns:var(--library-width) var(--left-rail) minmax(380px,1fr) var(--right-rail) var(--inspector-width);flex:1;grid-template-rows:minmax(0,1fr);min-height:0;font-size:13px;line-height:1.6;transition:grid-template-columns .22s;display:grid;position:relative;overflow:hidden}.ChWdyq_resizing{user-select:none;cursor:col-resize;transition:none}.ChWdyq_workbench *{box-sizing:border-box}.ChWdyq_workbench,.ChWdyq_library,.ChWdyq_canvas,.ChWdyq_inspector{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--role-muted) 30%,transparent) transparent}.ChWdyq_workbench button,.ChWdyq_workbench input,.ChWdyq_workbench select,.ChWdyq_workbench textarea{font:inherit}.ChWdyq_workbench button{cursor:pointer}.ChWdyq_library{background:color-mix(in srgb,var(--role-muted) 4%,var(--role-bg));flex-direction:column;grid-area:1/1;min-width:0;padding:20px 12px 12px;display:flex;overflow:hidden}.ChWdyq_canvas,.ChWdyq_inspector{overscroll-behavior:contain;overflow:auto}.ChWdyq_library[hidden],.ChWdyq_inspector[hidden]{display:none}.ChWdyq_columnHeading{justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;display:flex}.ChWdyq_columnHeading h3{margin:0;font-size:14px;font-weight:650}.ChWdyq_columnHeading p{color:var(--role-muted);margin:5px 0 0;font-size:11px}.ChWdyq_collapseButton{border:1px solid var(--role-border);background:var(--role-bg);width:26px;height:26px;color:var(--role-muted);border-radius:7px;flex-shrink:0;place-items:center;padding:0;line-height:1;display:grid;font-size:22px!important}.ChWdyq_collapseButton:hover{color:var(--role-accent);border-color:var(--role-accent)}.ChWdyq_rail{z-index:2;border-inline:1px solid var(--role-border);background:color-mix(in srgb,var(--role-muted) 3%,var(--role-bg));color:var(--role-muted);cursor:col-resize;touch-action:none;user-select:none;grid-row:1;justify-content:center;align-items:center;min-width:0;display:flex;position:relative;outline-offset:-2px!important}.ChWdyq_leftRail{grid-column:2}.ChWdyq_rightRail{grid-column:4}.ChWdyq_rail:hover,.ChWdyq_rail:focus-visible,.ChWdyq_collapseReady{background:color-mix(in srgb,var(--role-accent) 10%,var(--role-bg));color:var(--role-accent)}.ChWdyq_collapseReady{box-shadow:inset 0 0 0 1px var(--role-accent)}.ChWdyq_railHandle{pointer-events:none;flex-direction:column;justify-content:center;align-items:center;gap:9px;width:100%;min-width:0;height:58px;display:flex}.ChWdyq_railHandle svg{width:18px;height:18px;display:none}.ChWdyq_railArrow{font-size:20px;line-height:14px}.ChWdyq_railGrip{opacity:.55;border-inline:1px solid;width:3px;height:16px}.ChWdyq_railCollapsed{cursor:ew-resize}.ChWdyq_railCollapsed .ChWdyq_railHandle{border-block:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;height:92px;transition:background .15s,box-shadow .15s;box-shadow:0 2px 7px #172b4d08}.ChWdyq_railCollapsed .ChWdyq_railHandle svg{display:block}.ChWdyq_railCollapsed:hover .ChWdyq_railHandle{box-shadow:0 2px 10px color-mix(in srgb,var(--role-accent) 18%,transparent)}.ChWdyq_search{border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;align-items:center;gap:8px;padding:9px 11px;display:flex}.ChWdyq_search svg{width:17px;height:17px;color:var(--role-muted);flex-shrink:0}.ChWdyq_search input{width:100%;min-width:0;color:var(--role-text);background:0 0;border:0;outline:0;font-size:12px}.ChWdyq_search:focus-within{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent);border-color:var(--role-accent)}.ChWdyq_filters{flex-wrap:wrap;flex-shrink:0;gap:3px;margin:12px 0;display:flex}.ChWdyq_filters button{color:var(--role-muted);background:0 0;border:1px solid #0000;border-radius:6px;padding:5px 7px;font-size:11px}.ChWdyq_filters button[aria-pressed=true]{color:var(--role-text);background:var(--role-bg);border-color:var(--role-border);box-shadow:0 1px 3px #00000006}.ChWdyq_library .ChWdyq_columnHeading,.ChWdyq_library .ChWdyq_search{flex-shrink:0}.ChWdyq_library .ChWdyq_columnHeading{margin-bottom:14px}.ChWdyq_manageLink{color:var(--role-accent);text-align:left;cursor:pointer;background:0 0;border:0;margin-top:4px;margin-bottom:6px;padding:4px 0;font-size:11px!important}.ChWdyq_catalog{overscroll-behavior:contain;scrollbar-width:thin;flex-direction:column;flex:1;gap:8px;min-height:0;padding:2px;display:flex;overflow:auto}.ChWdyq_catalogCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-shrink:0;align-items:center;gap:2px;width:100%;min-width:0;min-height:68px;padding:9px 5px 9px 8px;transition:box-shadow .15s,border-color .15s;display:flex}.ChWdyq_catalogCard[draggable=true]{cursor:grab;user-select:none;touch-action:pan-y}.ChWdyq_grip{touch-action:none}.ChWdyq_dragGhost{pointer-events:none;z-index:10;border:1px solid var(--role-accent);background:var(--role-bg);color:var(--role-accent);border-radius:8px;padding:10px 16px;font-size:12px;position:fixed;box-shadow:0 5px 18px #172a4433}.ChWdyq_catalogCard[draggable=true]:active{cursor:grabbing}.ChWdyq_catalogCard:hover{border-color:color-mix(in srgb,var(--role-accent) 50%,var(--role-border))}.ChWdyq_catalogSelected{border-color:color-mix(in srgb,var(--role-accent) 65%,var(--role-border));background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.ChWdyq_catalogInspect{text-align:left;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;align-items:center;gap:7px;padding:0;display:flex;cursor:grab!important}.ChWdyq_catalogInspect>span:nth-child(2){flex-direction:column;flex:1;min-width:0;display:flex}.ChWdyq_catalogInspect strong,.ChWdyq_catalogInspect small{white-space:nowrap;text-overflow:ellipsis;display:block;overflow:hidden}.ChWdyq_catalogInspect strong{font-size:12px;font-weight:600}.ChWdyq_catalogInspect small{color:var(--role-muted);margin-top:2px;font-size:10px}.ChWdyq_quickAdd{width:26px;height:30px;color:var(--role-accent);background:0 0;border:0;border-radius:6px;flex-shrink:0;padding:0;font-size:17px!important}.ChWdyq_quickAdd:hover:not(:disabled){background:color-mix(in srgb,var(--role-accent) 9%,transparent)}.ChWdyq_quickAdd:disabled{cursor:default;color:#39947c;font-size:13px!important}.ChWdyq_grip{width:9px;color:var(--role-muted);opacity:.55;flex-shrink:0;font-size:16px}.ChWdyq_icon{width:32px;height:32px;color:color-mix(in srgb,var(--cap-color) 75%,var(--role-text));background:color-mix(in srgb,var(--cap-color) 11%,var(--role-bg));border-radius:8px;flex-shrink:0;place-items:center;display:inline-grid}.ChWdyq_icon svg{width:20px;height:20px}.ChWdyq_libraryNote{color:var(--role-muted);flex-shrink:0;margin:10px 0 0;padding-inline:2px;font-size:10px}.ChWdyq_emptySearch{text-align:center;color:var(--role-muted);padding:24px 0;font-size:12px}.ChWdyq_emptySearch button{color:var(--role-accent);background:0 0;border:0}.ChWdyq_canvas{grid-area:1/3;min-width:0;padding:24px 26px}.ChWdyq_step{color:var(--role-muted);opacity:.65;font-variant-numeric:tabular-nums;font-size:12px}.ChWdyq_attachedHeading{margin-top:28px}.ChWdyq_count{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-radius:6px;place-items:center;width:20px;height:20px;margin-left:5px;font-size:11px;display:inline-grid}.ChWdyq_dropZone{border:1px dashed var(--role-border);border-radius:12px;padding:10px;transition:background .15s,border-color .15s}.ChWdyq_dragReady{border-color:var(--role-accent)}.ChWdyq_dragOver{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));outline:3px solid color-mix(in srgb,var(--role-accent) 12%,transparent);border-style:solid}.ChWdyq_dropHint{text-align:center;color:var(--role-muted);flex-direction:column;align-items:center;gap:8px;padding:30px 10px;display:flex}.ChWdyq_dropHint>span{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;place-items:center;width:36px;height:36px;font-size:23px;display:grid}.ChWdyq_dropHint strong{font-size:12px;font-weight:500}.ChWdyq_dropHint p{margin:0;font-size:11px}.ChWdyq_dropCompact{flex-direction:row;justify-content:center;padding:10px}.ChWdyq_dropCompact>span{background:0 0;border:0;width:auto;height:auto;font-size:20px}.ChWdyq_attachedCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;align-items:center;margin-bottom:8px;transition:opacity .15s;display:flex}.ChWdyq_attachedSelected{border-color:var(--role-accent);box-shadow:0 0 0 1px color-mix(in srgb,var(--role-accent) 10%,transparent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.ChWdyq_attachedSelect{text-align:left;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;align-items:center;gap:10px;padding:12px;display:flex}.ChWdyq_attachedSelect>span:last-child{flex-direction:column;min-width:0;display:flex}.ChWdyq_attachedSelect strong{font-size:12px;font-weight:550}.ChWdyq_attachedSelect small{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:5px;font-size:10px;display:flex}.ChWdyq_enabledDot,.ChWdyq_disabledDot{background:#36a18b;border-radius:50%;width:5px;height:5px;display:inline-block}.ChWdyq_disabledDot{background:var(--role-muted)}.ChWdyq_disabledCard{opacity:.65}.ChWdyq_remove{width:27px;height:27px;color:var(--role-muted);background:0 0;border:0;border-radius:6px;flex-shrink:0;margin-right:9px;font-size:20px!important}.ChWdyq_remove:hover{background:color-mix(in srgb,var(--role-muted) 10%,var(--role-bg));color:var(--role-text)}.ChWdyq_inspector{background:color-mix(in srgb,var(--role-muted) 2%,var(--role-bg));grid-area:1/5;min-width:0;padding:0 20px 24px}.ChWdyq_inspectorHeader{align-items:center;gap:10px;display:flex}.ChWdyq_inspectorHeader .ChWdyq_inspectorTabs{flex:1;gap:14px;min-width:0}.ChWdyq_inspectorHeader .ChWdyq_collapseButton{margin-top:9px}.ChWdyq_inspectorTabs{border-bottom:1px solid var(--role-border);gap:20px;padding-top:9px;display:flex}.ChWdyq_inspectorTabs button{color:var(--role-muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:15px 0 12px;font-size:12px}.ChWdyq_inspectorTabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent);font-weight:600}.ChWdyq_assistantName{color:var(--role-muted);overflow-wrap:anywhere;margin:18px 0;font-size:11px}.ChWdyq_detailIdentity{align-items:center;gap:10px;display:flex}.ChWdyq_detailIdentity .ChWdyq_icon{width:40px;height:40px}.ChWdyq_detailIdentity h3{margin:0;font-size:15px;font-weight:600}.ChWdyq_detailIdentity span:not(.ChWdyq_icon){color:var(--role-muted);font-size:11px}.ChWdyq_detailDescription{color:var(--role-muted);margin:14px 0;font-size:12px;line-height:1.7}.ChWdyq_connection{background:color-mix(in srgb,#b99449 8%,var(--role-bg));color:var(--role-muted);border-radius:7px;align-items:center;gap:7px;margin-top:12px;margin-bottom:20px;padding:9px 10px;font-size:11px;display:flex}.ChWdyq_statusDot{background:#bc974c;border-radius:50%;width:5px;height:5px}.ChWdyq_switchRow{cursor:pointer;justify-content:space-between;align-items:center;gap:12px;padding:0 0 18px;display:flex;position:relative}.ChWdyq_switchRow>span:first-child{flex:1;min-width:0}.ChWdyq_switchRow strong{font-size:12px;font-weight:500}.ChWdyq_switchRow small{color:var(--role-muted);margin-top:4px;font-size:10px;line-height:1.7;display:block}.ChWdyq_switchRow input{opacity:0;width:32px;height:20px;margin:0;position:absolute;right:0}.ChWdyq_switchTrack{background:color-mix(in srgb,var(--role-muted) 32%,var(--role-bg));pointer-events:none;border-radius:20px;flex-shrink:0;width:32px;height:18px;padding:3px}.ChWdyq_switchTrack:after{content:\"\";background:#fff;border-radius:50%;width:12px;height:12px;transition:transform .15s;display:block;box-shadow:0 1px 3px #0002}.ChWdyq_switchRow input:checked+.ChWdyq_switchTrack{background:var(--role-accent)}.ChWdyq_switchRow input:checked+.ChWdyq_switchTrack:after{transform:translate(14px)}.ChWdyq_switchRow input:focus-visible+.ChWdyq_switchTrack{outline:2px solid var(--role-accent);outline-offset:3px}.ChWdyq_settingsFields{border:0;border-top:1px solid var(--role-border);min-width:0;margin:0;padding:18px 0 0}.ChWdyq_settingsFields:disabled{opacity:.48}.ChWdyq_field{flex-direction:column;gap:8px;margin-bottom:18px;font-size:12px;display:flex}.ChWdyq_field input,.ChWdyq_field select,.ChWdyq_field textarea{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-text);border-radius:7px;width:100%;min-width:0;padding:9px 10px;font-size:12px}.ChWdyq_field textarea{resize:vertical;line-height:1.7}.ChWdyq_field input::placeholder,.ChWdyq_field textarea::placeholder,.ChWdyq_search input::placeholder{color:var(--role-muted);opacity:.8}.ChWdyq_field input:focus,.ChWdyq_field select:focus,.ChWdyq_field textarea:focus{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent);border-color:var(--role-accent)}.ChWdyq_actionsGroup{border:0;margin:0 0 22px;padding:0}.ChWdyq_actionsGroup legend{margin-bottom:10px;font-size:12px}.ChWdyq_actionsGroup label{cursor:pointer;align-items:center;gap:8px;margin:8px 0;font-size:12px;display:flex}.ChWdyq_actionsGroup input{accent-color:var(--role-accent);width:14px;height:14px;margin:0}.ChWdyq_notAdded{padding-bottom:18px}.ChWdyq_notAdded p{color:var(--role-muted);font-size:11px}.ChWdyq_notAdded button{color:var(--dsw-alias-label-primary-foreground,#fff);background:var(--role-accent);border:0;border-radius:7px;width:100%;padding:8px 12px;font-size:12px}.ChWdyq_output{flex-direction:column;gap:9px;margin:18px 0;font-size:12px;display:flex}.ChWdyq_output strong{color:var(--role-muted);border:1px solid var(--role-border);border-radius:7px;padding:10px;font-weight:400}.ChWdyq_inspectorEmpty{color:var(--role-muted);text-align:center;padding:65px 0}.ChWdyq_inspectorEmpty>span{font-size:32px}.ChWdyq_inspectorEmpty h3{font-size:13px;font-weight:500}.ChWdyq_inspectorEmpty p{font-size:12px;line-height:1.8}.ChWdyq_overview{overflow-wrap:anywhere}.ChWdyq_overview h4{margin:20px 0 10px;font-size:12px}.ChWdyq_summaryCaps{flex-wrap:wrap;gap:7px;display:flex}.ChWdyq_summaryCaps span{border:1px solid var(--role-border);color:var(--role-muted);border-radius:6px;padding:4px 7px;font-size:10px}.ChWdyq_muted{color:var(--role-muted);font-size:12px}.ChWdyq_srOnly{clip:rect(0,0,0,0);white-space:nowrap;border:0;width:1px;height:1px;margin:-1px;padding:0;position:absolute;overflow:hidden}.ChWdyq_compact{grid-template-columns:30px minmax(0,1fr) 30px;transition:none}.ChWdyq_compact .ChWdyq_canvas{grid-column:2;padding:20px 16px}.ChWdyq_compact .ChWdyq_library,.ChWdyq_compact .ChWdyq_inspector{z-index:4;grid-column:auto;position:absolute;top:0;bottom:0;box-shadow:0 0 22px #14244124}.ChWdyq_compact .ChWdyq_library{width:var(--library-width);padding:18px 10px 10px;left:0}.ChWdyq_compact .ChWdyq_inspector{width:var(--inspector-width);padding:0 14px 20px;right:0}.ChWdyq_compact .ChWdyq_rail{z-index:5;grid-column:auto;position:absolute;top:0;bottom:0}.ChWdyq_compact .ChWdyq_leftRail{left:var(--library-width);width:var(--left-rail)}.ChWdyq_compact .ChWdyq_rightRail{right:var(--inspector-width);width:var(--right-rail)}@media (width<=1100px){.ChWdyq_canvas{padding:22px 18px}.ChWdyq_library{padding:20px 10px 10px}.ChWdyq_inspector{padding-left:16px;padding-right:16px}}@media (width<=620px){.ChWdyq_banner{padding:10px 16px;font-size:11px}}@media (prefers-reduced-motion:reduce){.ChWdyq_workbench,.ChWdyq_workbench *,.ChWdyq_switchTrack:after{transition:none}}";
-		const tagId$3 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Capabilities.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
+		const css$6 = ".ChWdyq_banner{border-bottom:1px solid var(--role-border);color:var(--role-muted);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));flex-shrink:0;align-items:center;gap:8px;padding:11px 24px;font-size:12px;line-height:1.6;display:flex}.ChWdyq_bannerDot{background:#c09542;border-radius:50%;flex-shrink:0;width:6px;height:6px}.ChWdyq_workbench{grid-template-columns:var(--library-width) var(--left-rail) minmax(380px,1fr) var(--right-rail) var(--inspector-width);flex:1;grid-template-rows:minmax(0,1fr);min-height:0;font-size:13px;line-height:1.6;transition:grid-template-columns .22s;display:grid;position:relative;overflow:hidden}.ChWdyq_resizing{user-select:none;cursor:col-resize;transition:none}.ChWdyq_workbench *{box-sizing:border-box}.ChWdyq_workbench,.ChWdyq_library,.ChWdyq_canvas,.ChWdyq_inspector{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--role-muted) 30%,transparent) transparent}.ChWdyq_workbench button,.ChWdyq_workbench input,.ChWdyq_workbench select,.ChWdyq_workbench textarea{font:inherit}.ChWdyq_workbench button{cursor:pointer}.ChWdyq_library{background:color-mix(in srgb,var(--role-muted) 4%,var(--role-bg));flex-direction:column;grid-area:1/1;min-width:0;padding:20px 12px 12px;display:flex;overflow:hidden}.ChWdyq_canvas,.ChWdyq_inspector{overscroll-behavior:contain;overflow:auto}.ChWdyq_library[hidden],.ChWdyq_inspector[hidden]{display:none}.ChWdyq_columnHeading{justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;display:flex}.ChWdyq_columnHeading h3{margin:0;font-size:14px;font-weight:650}.ChWdyq_columnHeading p{color:var(--role-muted);margin:5px 0 0;font-size:11px}.ChWdyq_collapseButton{border:1px solid var(--role-border);background:var(--role-bg);width:26px;height:26px;color:var(--role-muted);border-radius:7px;flex-shrink:0;place-items:center;padding:0;line-height:1;display:grid;font-size:22px!important}.ChWdyq_collapseButton:hover{color:var(--role-accent);border-color:var(--role-accent)}.ChWdyq_rail{z-index:2;border-inline:1px solid var(--role-border);background:color-mix(in srgb,var(--role-muted) 3%,var(--role-bg));color:var(--role-muted);cursor:col-resize;touch-action:none;user-select:none;grid-row:1;justify-content:center;align-items:center;min-width:0;display:flex;position:relative;outline-offset:-2px!important}.ChWdyq_leftRail{grid-column:2}.ChWdyq_rightRail{grid-column:4}.ChWdyq_rail:hover,.ChWdyq_rail:focus-visible,.ChWdyq_collapseReady{background:color-mix(in srgb,var(--role-accent) 10%,var(--role-bg));color:var(--role-accent)}.ChWdyq_collapseReady{box-shadow:inset 0 0 0 1px var(--role-accent)}.ChWdyq_railHandle{pointer-events:none;flex-direction:column;justify-content:center;align-items:center;gap:9px;width:100%;min-width:0;height:58px;display:flex}.ChWdyq_railHandle svg{width:18px;height:18px;display:none}.ChWdyq_railArrow{font-size:20px;line-height:14px}.ChWdyq_railGrip{opacity:.55;border-inline:1px solid;width:3px;height:16px}.ChWdyq_railCollapsed{cursor:ew-resize}.ChWdyq_railCollapsed .ChWdyq_railHandle{border-block:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;height:92px;transition:background .15s,box-shadow .15s;box-shadow:0 2px 7px #172b4d08}.ChWdyq_railCollapsed .ChWdyq_railHandle svg{display:block}.ChWdyq_railCollapsed:hover .ChWdyq_railHandle{box-shadow:0 2px 10px color-mix(in srgb,var(--role-accent) 18%,transparent)}.ChWdyq_search{border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;align-items:center;gap:8px;padding:9px 11px;display:flex}.ChWdyq_search svg{width:17px;height:17px;color:var(--role-muted);flex-shrink:0}.ChWdyq_search input{width:100%;min-width:0;color:var(--role-text);background:0 0;border:0;outline:0;font-size:12px}.ChWdyq_search:focus-within{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent);border-color:var(--role-accent)}.ChWdyq_filters{flex-wrap:wrap;flex-shrink:0;gap:3px;margin:12px 0;display:flex}.ChWdyq_filters button{color:var(--role-muted);background:0 0;border:1px solid #0000;border-radius:6px;padding:5px 7px;font-size:11px}.ChWdyq_filters button[aria-pressed=true]{color:var(--role-text);background:var(--role-bg);border-color:var(--role-border);box-shadow:0 1px 3px #00000006}.ChWdyq_library .ChWdyq_columnHeading,.ChWdyq_library .ChWdyq_search{flex-shrink:0}.ChWdyq_library .ChWdyq_columnHeading{margin-bottom:14px}.ChWdyq_manageLink{color:var(--role-accent);text-align:left;cursor:pointer;background:0 0;border:0;margin-top:4px;margin-bottom:6px;padding:4px 0;font-size:11px!important}.ChWdyq_catalog{overscroll-behavior:contain;scrollbar-width:thin;flex-direction:column;flex:1;gap:8px;min-height:0;padding:2px;display:flex;overflow:auto}.ChWdyq_catalogCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-shrink:0;align-items:center;gap:2px;width:100%;min-width:0;min-height:68px;padding:9px 5px 9px 8px;transition:box-shadow .15s,border-color .15s;display:flex}.ChWdyq_catalogCard[draggable=true]{cursor:grab;user-select:none;touch-action:pan-y}.ChWdyq_grip{touch-action:none}.ChWdyq_dragGhost{pointer-events:none;z-index:10;border:1px solid var(--role-accent);background:var(--role-bg);color:var(--role-accent);border-radius:8px;padding:10px 16px;font-size:12px;position:fixed;box-shadow:0 5px 18px #172a4433}.ChWdyq_catalogCard[draggable=true]:active{cursor:grabbing}.ChWdyq_catalogCard:hover{border-color:color-mix(in srgb,var(--role-accent) 50%,var(--role-border))}.ChWdyq_catalogSelected{border-color:color-mix(in srgb,var(--role-accent) 65%,var(--role-border));background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.ChWdyq_catalogInspect{text-align:left;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;align-items:center;gap:7px;padding:0;display:flex;cursor:grab!important}.ChWdyq_catalogInspect>span:nth-child(2){flex-direction:column;flex:1;min-width:0;display:flex}.ChWdyq_catalogInspect strong,.ChWdyq_catalogInspect small{white-space:nowrap;text-overflow:ellipsis;display:block;overflow:hidden}.ChWdyq_catalogInspect strong{font-size:12px;font-weight:600}.ChWdyq_catalogInspect small{color:var(--role-muted);margin-top:2px;font-size:10px}.ChWdyq_quickAdd{width:26px;height:30px;color:var(--role-accent);background:0 0;border:0;border-radius:6px;flex-shrink:0;padding:0;font-size:17px!important}.ChWdyq_quickAdd:hover:not(:disabled){background:color-mix(in srgb,var(--role-accent) 9%,transparent)}.ChWdyq_quickAdd:disabled{cursor:default;color:#39947c;font-size:13px!important}.ChWdyq_grip{width:9px;color:var(--role-muted);opacity:.55;flex-shrink:0;font-size:16px}.ChWdyq_icon{width:32px;height:32px;color:color-mix(in srgb,var(--cap-color) 75%,var(--role-text));background:color-mix(in srgb,var(--cap-color) 11%,var(--role-bg));border-radius:8px;flex-shrink:0;place-items:center;display:inline-grid}.ChWdyq_icon svg{width:20px;height:20px}.ChWdyq_libraryNote{color:var(--role-muted);flex-shrink:0;margin:10px 0 0;padding-inline:2px;font-size:10px}.ChWdyq_emptySearch{text-align:center;color:var(--role-muted);padding:24px 0;font-size:12px}.ChWdyq_emptySearch button{color:var(--role-accent);background:0 0;border:0}.ChWdyq_canvas{grid-area:1/3;min-width:0;padding:24px 26px}.ChWdyq_step{color:var(--role-muted);opacity:.65;font-variant-numeric:tabular-nums;font-size:12px}.ChWdyq_attachedHeading{margin-top:28px}.ChWdyq_count{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-radius:6px;place-items:center;width:20px;height:20px;margin-left:5px;font-size:11px;display:inline-grid}.ChWdyq_dropZone{border:1px dashed var(--role-border);border-radius:12px;padding:10px;transition:background .15s,border-color .15s}.ChWdyq_dragReady{border-color:var(--role-accent)}.ChWdyq_dragOver{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));outline:3px solid color-mix(in srgb,var(--role-accent) 12%,transparent);border-style:solid}.ChWdyq_dropHint{text-align:center;color:var(--role-muted);flex-direction:column;align-items:center;gap:8px;padding:30px 10px;display:flex}.ChWdyq_dropHint>span{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;place-items:center;width:36px;height:36px;font-size:23px;display:grid}.ChWdyq_dropHint strong{font-size:12px;font-weight:500}.ChWdyq_dropHint p{margin:0;font-size:11px}.ChWdyq_dropCompact{flex-direction:row;justify-content:center;padding:10px}.ChWdyq_dropCompact>span{background:0 0;border:0;width:auto;height:auto;font-size:20px}.ChWdyq_attachedCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;align-items:center;margin-bottom:8px;transition:opacity .15s;display:flex}.ChWdyq_attachedSelected{border-color:var(--role-accent);box-shadow:0 0 0 1px color-mix(in srgb,var(--role-accent) 10%,transparent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.ChWdyq_attachedSelect{text-align:left;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;align-items:center;gap:10px;padding:12px;display:flex}.ChWdyq_attachedSelect>span:last-child{flex-direction:column;min-width:0;display:flex}.ChWdyq_attachedSelect strong{font-size:12px;font-weight:550}.ChWdyq_attachedSelect small{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:5px;font-size:10px;display:flex}.ChWdyq_enabledDot,.ChWdyq_disabledDot{background:#36a18b;border-radius:50%;width:5px;height:5px;display:inline-block}.ChWdyq_disabledDot{background:var(--role-muted)}.ChWdyq_disabledCard{opacity:.65}.ChWdyq_remove{width:27px;height:27px;color:var(--role-muted);background:0 0;border:0;border-radius:6px;flex-shrink:0;margin-right:9px;font-size:20px!important}.ChWdyq_remove:hover{background:color-mix(in srgb,var(--role-muted) 10%,var(--role-bg));color:var(--role-text)}.ChWdyq_inspector{background:color-mix(in srgb,var(--role-muted) 2%,var(--role-bg));grid-area:1/5;min-width:0;padding:0 20px 24px}.ChWdyq_inspectorHeader{align-items:center;gap:10px;display:flex}.ChWdyq_inspectorHeader .ChWdyq_inspectorTabs{flex:1;gap:14px;min-width:0}.ChWdyq_inspectorHeader .ChWdyq_collapseButton{margin-top:9px}.ChWdyq_inspectorTabs{border-bottom:1px solid var(--role-border);gap:20px;padding-top:9px;display:flex}.ChWdyq_inspectorTabs button{color:var(--role-muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:15px 0 12px;font-size:12px}.ChWdyq_inspectorTabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent);font-weight:600}.ChWdyq_assistantName{color:var(--role-muted);overflow-wrap:anywhere;margin:18px 0;font-size:11px}.ChWdyq_detailIdentity{align-items:center;gap:10px;display:flex}.ChWdyq_detailIdentity .ChWdyq_icon{width:40px;height:40px}.ChWdyq_detailIdentity h3{margin:0;font-size:15px;font-weight:600}.ChWdyq_detailIdentity span:not(.ChWdyq_icon){color:var(--role-muted);font-size:11px}.ChWdyq_detailDescription{color:var(--role-muted);margin:14px 0;font-size:12px;line-height:1.7}.ChWdyq_connection{background:color-mix(in srgb,#b99449 8%,var(--role-bg));color:var(--role-muted);border-radius:7px;align-items:center;gap:7px;margin-top:12px;margin-bottom:20px;padding:9px 10px;font-size:11px;display:flex}.ChWdyq_statusDot{background:#bc974c;border-radius:50%;width:5px;height:5px}.ChWdyq_switchRow{cursor:pointer;justify-content:space-between;align-items:center;gap:12px;padding:0 0 18px;display:flex;position:relative}.ChWdyq_switchRow>span:first-child{flex:1;min-width:0}.ChWdyq_switchRow strong{font-size:12px;font-weight:500}.ChWdyq_switchRow small{color:var(--role-muted);margin-top:4px;font-size:10px;line-height:1.7;display:block}.ChWdyq_switchRow input{opacity:0;width:32px;height:20px;margin:0;position:absolute;right:0}.ChWdyq_switchTrack{background:color-mix(in srgb,var(--role-muted) 32%,var(--role-bg));pointer-events:none;border-radius:20px;flex-shrink:0;width:32px;height:18px;padding:3px}.ChWdyq_switchTrack:after{content:\"\";background:#fff;border-radius:50%;width:12px;height:12px;transition:transform .15s;display:block;box-shadow:0 1px 3px #0002}.ChWdyq_switchRow input:checked+.ChWdyq_switchTrack{background:var(--role-accent)}.ChWdyq_switchRow input:checked+.ChWdyq_switchTrack:after{transform:translate(14px)}.ChWdyq_switchRow input:focus-visible+.ChWdyq_switchTrack{outline:2px solid var(--role-accent);outline-offset:3px}.ChWdyq_settingsFields{border:0;border-top:1px solid var(--role-border);min-width:0;margin:0;padding:18px 0 0}.ChWdyq_settingsFields:disabled{opacity:.48}.ChWdyq_field{flex-direction:column;gap:8px;margin-bottom:18px;font-size:12px;display:flex}.ChWdyq_field input,.ChWdyq_field select,.ChWdyq_field textarea{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-text);border-radius:7px;width:100%;min-width:0;padding:9px 10px;font-size:12px}.ChWdyq_field textarea{resize:vertical;line-height:1.7}.ChWdyq_field input::placeholder,.ChWdyq_field textarea::placeholder,.ChWdyq_search input::placeholder{color:var(--role-muted);opacity:.8}.ChWdyq_field input:focus,.ChWdyq_field select:focus,.ChWdyq_field textarea:focus{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent);border-color:var(--role-accent)}.ChWdyq_actionsGroup{border:0;margin:0 0 22px;padding:0}.ChWdyq_actionsGroup legend{margin-bottom:10px;font-size:12px}.ChWdyq_actionsGroup label{cursor:pointer;align-items:center;gap:8px;margin:8px 0;font-size:12px;display:flex}.ChWdyq_actionsGroup input{accent-color:var(--role-accent);width:14px;height:14px;margin:0}.ChWdyq_notAdded{padding-bottom:18px}.ChWdyq_notAdded p{color:var(--role-muted);font-size:11px}.ChWdyq_notAdded button{color:var(--dsw-alias-label-primary-foreground,#fff);background:var(--role-accent);border:0;border-radius:7px;width:100%;padding:8px 12px;font-size:12px}.ChWdyq_output{flex-direction:column;gap:9px;margin:18px 0;font-size:12px;display:flex}.ChWdyq_output strong{color:var(--role-muted);border:1px solid var(--role-border);border-radius:7px;padding:10px;font-weight:400}.ChWdyq_inspectorEmpty{color:var(--role-muted);text-align:center;padding:65px 0}.ChWdyq_inspectorEmpty>span{font-size:32px}.ChWdyq_inspectorEmpty h3{font-size:13px;font-weight:500}.ChWdyq_inspectorEmpty p{font-size:12px;line-height:1.8}.ChWdyq_overview{overflow-wrap:anywhere}.ChWdyq_overview h4{margin:20px 0 10px;font-size:12px}.ChWdyq_summaryCaps{flex-wrap:wrap;gap:7px;display:flex}.ChWdyq_summaryCaps span{border:1px solid var(--role-border);color:var(--role-muted);border-radius:6px;padding:4px 7px;font-size:10px}.ChWdyq_muted{color:var(--role-muted);font-size:12px}.ChWdyq_srOnly{clip:rect(0,0,0,0);white-space:nowrap;border:0;width:1px;height:1px;margin:-1px;padding:0;position:absolute;overflow:hidden}.ChWdyq_compact{grid-template-columns:30px minmax(0,1fr) 30px;transition:none}.ChWdyq_compact .ChWdyq_canvas{grid-column:2;padding:20px 16px}.ChWdyq_compact .ChWdyq_library,.ChWdyq_compact .ChWdyq_inspector{z-index:4;grid-column:auto;position:absolute;top:0;bottom:0;box-shadow:0 0 22px #14244124}.ChWdyq_compact .ChWdyq_library{width:var(--library-width);padding:18px 10px 10px;left:0}.ChWdyq_compact .ChWdyq_inspector{width:var(--inspector-width);padding:0 14px 20px;right:0}.ChWdyq_compact .ChWdyq_rail{z-index:5;grid-column:auto;position:absolute;top:0;bottom:0}.ChWdyq_compact .ChWdyq_leftRail{left:var(--library-width);width:var(--left-rail)}.ChWdyq_compact .ChWdyq_rightRail{right:var(--inspector-width);width:var(--right-rail)}@media (width<=1100px){.ChWdyq_canvas{padding:22px 18px}.ChWdyq_library{padding:20px 10px 10px}.ChWdyq_inspector{padding-left:16px;padding-right:16px}}@media (width<=620px){.ChWdyq_banner{padding:10px 16px;font-size:11px}}@media (prefers-reduced-motion:reduce){.ChWdyq_workbench,.ChWdyq_workbench *,.ChWdyq_switchTrack:after{transition:none}}";
+		const tagId$6 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Capabilities.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$6) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$3;
-			tag.textContent = css$3;
+			tag.dataset.pluginCss = tagId$6;
+			tag.textContent = css$6;
 			document.head.appendChild(tag);
 		}
 		var Capabilities_module_css_default = {
@@ -750,13 +752,13 @@ window.__ModuleLoader__.load({
 		};
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/CapabilityCenter.module.css.mjs
-		const css$2 = ".T4-_kG_center{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);box-sizing:border-box;width:100%;min-width:0;font-family:inherit;font-size:13px;line-height:1.6;container-type:inline-size}.T4-_kG_center *{box-sizing:border-box}.T4-_kG_center button,.T4-_kG_center input,.T4-_kG_center textarea,.T4-_kG_center select{font:inherit}.T4-_kG_center button{cursor:pointer}.T4-_kG_center button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.T4-_kG_heading{justify-content:space-between;align-items:center;gap:16px;margin:4px 0 20px;display:flex}.T4-_kG_heading h2{align-items:center;gap:10px;margin:0;font-size:22px;font-weight:650;display:flex}.T4-_kG_heading h2 span{border:1px solid var(--role-border);color:var(--role-muted);border-radius:5px;padding:2px 6px;font-size:10px;font-weight:400}.T4-_kG_heading p{color:var(--role-muted);margin:7px 0 0;font-size:12px}.T4-_kG_mark{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));width:46px;height:46px;color:var(--role-accent);border-radius:14px;place-items:center;font-size:32px;display:grid}.T4-_kG_notice{color:var(--role-muted);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:8px;margin:0 0 20px;padding:11px 13px;font-size:11px}.T4-_kG_search{border:1px solid var(--role-border);border-radius:9px;align-items:center;gap:9px;padding:11px 13px;display:flex}.T4-_kG_search svg{width:17px;height:17px;color:var(--role-muted);flex-shrink:0}.T4-_kG_search input{color:var(--role-text);background:0 0;border:0;outline:0;width:100%;min-width:0;font-size:12px}.T4-_kG_search:focus-within{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent)}.T4-_kG_filters{flex-wrap:wrap;gap:6px;margin:15px 0 20px;display:flex}.T4-_kG_filters button{color:var(--role-muted);background:0 0;border:1px solid #0000;border-radius:7px;align-items:center;gap:6px;padding:6px 9px;font-size:12px;display:flex}.T4-_kG_filters button[aria-pressed=true]{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-color:color-mix(in srgb,var(--role-accent) 22%,var(--role-border))}.T4-_kG_filters span{opacity:.75;font-size:10px}.T4-_kG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;display:grid}.T4-_kG_card{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;min-width:0;padding:18px;transition:border-color .15s,box-shadow .15s}.T4-_kG_card:hover{border-color:color-mix(in srgb,var(--role-accent) 40%,var(--role-border));box-shadow:0 4px 14px #13223a08}.T4-_kG_cardHeading,.T4-_kG_detailHeader{align-items:center;gap:10px;display:flex}.T4-_kG_cardHeading>div,.T4-_kG_detailHeader>div{flex:1;min-width:0}.T4-_kG_cardHeading h3{overflow-wrap:anywhere;margin:0;font-size:14px}.T4-_kG_cardHeading small{color:var(--role-muted);font-size:11px}.T4-_kG_pin{width:28px;height:28px;color:var(--role-muted);background:0 0;border:0;border-radius:6px;flex-shrink:0;padding:0;font-size:22px!important}.T4-_kG_pin[aria-pressed=true]{color:var(--role-accent)}.T4-_kG_pin:hover{background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.T4-_kG_description{color:var(--role-muted);margin:15px 0;font-size:12px;line-height:1.7}.T4-_kG_cardStatus{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;gap:7px;margin-bottom:16px;font-size:10px;display:flex}.T4-_kG_cardStatus>span{align-items:center;gap:5px;display:flex}.T4-_kG_cardStatus button{color:var(--role-muted);background:0 0;border:0;padding:0;font-size:10px}.T4-_kG_cardStatus button:hover{color:var(--role-accent)}.T4-_kG_statusDot{background:#bd9650;border-radius:50%;flex-shrink:0;width:5px;height:5px;display:inline-block}.T4-_kG_configure{border:0;border-top:1px solid var(--role-border);width:100%;color:var(--role-accent);background:0 0;justify-content:space-between;align-items:center;padding:10px 0 0;display:flex;font-size:12px!important}.T4-_kG_back{color:var(--role-accent);background:0 0;border:0;margin:0 0 22px;padding:0;font-size:12px!important}.T4-_kG_detailHeader h3{margin:0;font-size:20px}.T4-_kG_detailHeader p{color:var(--role-muted);margin:2px 0 0;font-size:12px}.T4-_kG_tabs{border-bottom:1px solid var(--role-border);flex-wrap:wrap;gap:18px;margin-top:20px;display:flex}.T4-_kG_tabs button{color:var(--role-muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:9px 0 11px;font-size:12px}.T4-_kG_tabs button[aria-pressed=true]{color:var(--role-accent);border-color:var(--role-accent);font-weight:600}.T4-_kG_detailBody{padding:22px 0 8px}.T4-_kG_connection{border:1px solid var(--role-border);border-radius:10px;flex-wrap:wrap;align-items:baseline;gap:10px;padding:18px;display:flex}.T4-_kG_connection>div{flex:1;min-width:160px}.T4-_kG_connection strong{font-size:13px}.T4-_kG_connection p{color:var(--role-muted);margin:6px 0 0;font-size:12px}.T4-_kG_connection button{border:1px solid var(--role-border);color:var(--role-muted);cursor:default;background:0 0;border-radius:7px;padding:7px 10px;font-size:11px}.T4-_kG_overviewActions{grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 24px;display:grid}.T4-_kG_overviewActions button{border:1px solid var(--role-border);color:var(--role-text);background:0 0;border-radius:9px;justify-content:space-between;align-items:center;gap:8px;padding:14px;font-size:12px;display:flex}.T4-_kG_overviewActions span{color:var(--role-muted)}.T4-_kG_technical{color:var(--role-muted);border-top:1px solid var(--role-border);padding-top:15px;font-size:12px}.T4-_kG_technical summary{cursor:pointer}.T4-_kG_technical dl{grid-template-columns:100px 1fr;gap:10px;display:grid}.T4-_kG_technical dd{overflow-wrap:anywhere;color:var(--role-text);margin:0}.T4-_kG_hint{color:var(--role-muted);margin:0 0 20px;font-size:12px;line-height:1.8}.T4-_kG_draftNote{color:var(--role-muted);border-top:1px solid var(--role-border);padding:12px 0 0;font-size:11px}.T4-_kG_roleRow{border:1px solid var(--role-border);border-radius:9px;justify-content:space-between;align-items:center;gap:16px;margin-bottom:10px;padding:14px;display:flex}.T4-_kG_roleRow>div{min-width:0}.T4-_kG_roleRow strong{font-size:13px}.T4-_kG_roleRow small{color:var(--role-muted);margin-top:3px;font-size:11px;display:block}.T4-_kG_roleRow button,.T4-_kG_empty button{color:var(--role-accent);background:0 0;border:0;flex-shrink:0;padding:5px 0;font-size:11px}.T4-_kG_currentRole{background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));margin-bottom:20px}.T4-_kG_empty{text-align:center;color:var(--role-muted);padding:40px 16px;font-size:12px}.T4-_kG_empty strong{font-size:14px;font-weight:500}dialog.T4-_kG_overlayDialog{width:760px;overflow:hidden}.T4-_kG_overlayBody{overscroll-behavior:contain;min-height:0;padding:24px 28px;overflow:auto}.T4-_kG_overlayBack{color:var(--dsw-alias-button-primary-fill,#4263ba);font:inherit;cursor:pointer;background:0 0;border:0;margin:0 0 18px;padding:0;font-size:12px}@container (width<=480px){.T4-_kG_grid{grid-template-columns:1fr}.T4-_kG_mark{display:none}.T4-_kG_roleRow{flex-direction:column;align-items:flex-start;gap:6px}.T4-_kG_tabs{gap:13px}}@media (width<=620px){.T4-_kG_overlayBody{padding:18px 16px}}@media (prefers-reduced-motion:reduce){.T4-_kG_card{transition:none}}";
-		const tagId$2 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/CapabilityCenter.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$2) + "]") === null) {
+		const css$5 = ".T4-_kG_center{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);box-sizing:border-box;width:100%;min-width:0;font-family:inherit;font-size:13px;line-height:1.6;container-type:inline-size}.T4-_kG_center *{box-sizing:border-box}.T4-_kG_center button,.T4-_kG_center input,.T4-_kG_center textarea,.T4-_kG_center select{font:inherit}.T4-_kG_center button{cursor:pointer}.T4-_kG_center button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.T4-_kG_heading{justify-content:space-between;align-items:center;gap:16px;margin:4px 0 20px;display:flex}.T4-_kG_heading h2{align-items:center;gap:10px;margin:0;font-size:22px;font-weight:650;display:flex}.T4-_kG_heading h2 span{border:1px solid var(--role-border);color:var(--role-muted);border-radius:5px;padding:2px 6px;font-size:10px;font-weight:400}.T4-_kG_heading p{color:var(--role-muted);margin:7px 0 0;font-size:12px}.T4-_kG_mark{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));width:46px;height:46px;color:var(--role-accent);border-radius:14px;place-items:center;font-size:32px;display:grid}.T4-_kG_notice{color:var(--role-muted);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:8px;margin:0 0 20px;padding:11px 13px;font-size:11px}.T4-_kG_search{border:1px solid var(--role-border);border-radius:9px;align-items:center;gap:9px;padding:11px 13px;display:flex}.T4-_kG_search svg{width:17px;height:17px;color:var(--role-muted);flex-shrink:0}.T4-_kG_search input{color:var(--role-text);background:0 0;border:0;outline:0;width:100%;min-width:0;font-size:12px}.T4-_kG_search:focus-within{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent)}.T4-_kG_filters{flex-wrap:wrap;gap:6px;margin:15px 0 20px;display:flex}.T4-_kG_filters button{color:var(--role-muted);background:0 0;border:1px solid #0000;border-radius:7px;align-items:center;gap:6px;padding:6px 9px;font-size:12px;display:flex}.T4-_kG_filters button[aria-pressed=true]{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-color:color-mix(in srgb,var(--role-accent) 22%,var(--role-border))}.T4-_kG_filters span{opacity:.75;font-size:10px}.T4-_kG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;display:grid}.T4-_kG_card{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;min-width:0;padding:18px;transition:border-color .15s,box-shadow .15s}.T4-_kG_card:hover{border-color:color-mix(in srgb,var(--role-accent) 40%,var(--role-border));box-shadow:0 4px 14px #13223a08}.T4-_kG_cardHeading,.T4-_kG_detailHeader{align-items:center;gap:10px;display:flex}.T4-_kG_cardHeading>div,.T4-_kG_detailHeader>div{flex:1;min-width:0}.T4-_kG_cardHeading h3{overflow-wrap:anywhere;margin:0;font-size:14px}.T4-_kG_cardHeading small{color:var(--role-muted);font-size:11px}.T4-_kG_pin{width:28px;height:28px;color:var(--role-muted);background:0 0;border:0;border-radius:6px;flex-shrink:0;padding:0;font-size:22px!important}.T4-_kG_pin[aria-pressed=true]{color:var(--role-accent)}.T4-_kG_pin:hover{background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.T4-_kG_description{color:var(--role-muted);margin:15px 0;font-size:12px;line-height:1.7}.T4-_kG_cardStatus{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;gap:7px;margin-bottom:16px;font-size:10px;display:flex}.T4-_kG_cardStatus>span{align-items:center;gap:5px;display:flex}.T4-_kG_cardStatus button{color:var(--role-muted);background:0 0;border:0;padding:0;font-size:10px}.T4-_kG_cardStatus button:hover{color:var(--role-accent)}.T4-_kG_statusDot{background:#bd9650;border-radius:50%;flex-shrink:0;width:5px;height:5px;display:inline-block}.T4-_kG_configure{border:0;border-top:1px solid var(--role-border);width:100%;color:var(--role-accent);background:0 0;justify-content:space-between;align-items:center;padding:10px 0 0;display:flex;font-size:12px!important}.T4-_kG_back{color:var(--role-accent);background:0 0;border:0;margin:0 0 22px;padding:0;font-size:12px!important}.T4-_kG_detailHeader h3{margin:0;font-size:20px}.T4-_kG_detailHeader p{color:var(--role-muted);margin:2px 0 0;font-size:12px}.T4-_kG_tabs{border-bottom:1px solid var(--role-border);flex-wrap:wrap;gap:18px;margin-top:20px;display:flex}.T4-_kG_tabs button{color:var(--role-muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:9px 0 11px;font-size:12px}.T4-_kG_tabs button[aria-pressed=true]{color:var(--role-accent);border-color:var(--role-accent);font-weight:600}.T4-_kG_detailBody{padding:22px 0 8px}.T4-_kG_connection{border:1px solid var(--role-border);border-radius:10px;flex-wrap:wrap;align-items:baseline;gap:10px;padding:18px;display:flex}.T4-_kG_connection>div{flex:1;min-width:160px}.T4-_kG_connection strong{font-size:13px}.T4-_kG_connection p{color:var(--role-muted);margin:6px 0 0;font-size:12px}.T4-_kG_connection button{border:1px solid var(--role-border);color:var(--role-muted);cursor:default;background:0 0;border-radius:7px;padding:7px 10px;font-size:11px}.T4-_kG_overviewActions{grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 24px;display:grid}.T4-_kG_overviewActions button{border:1px solid var(--role-border);color:var(--role-text);background:0 0;border-radius:9px;justify-content:space-between;align-items:center;gap:8px;padding:14px;font-size:12px;display:flex}.T4-_kG_overviewActions span{color:var(--role-muted)}.T4-_kG_technical{color:var(--role-muted);border-top:1px solid var(--role-border);padding-top:15px;font-size:12px}.T4-_kG_technical summary{cursor:pointer}.T4-_kG_technical dl{grid-template-columns:100px 1fr;gap:10px;display:grid}.T4-_kG_technical dd{overflow-wrap:anywhere;color:var(--role-text);margin:0}.T4-_kG_hint{color:var(--role-muted);margin:0 0 20px;font-size:12px;line-height:1.8}.T4-_kG_draftNote{color:var(--role-muted);border-top:1px solid var(--role-border);padding:12px 0 0;font-size:11px}.T4-_kG_roleRow{border:1px solid var(--role-border);border-radius:9px;justify-content:space-between;align-items:center;gap:16px;margin-bottom:10px;padding:14px;display:flex}.T4-_kG_roleRow>div{min-width:0}.T4-_kG_roleRow strong{font-size:13px}.T4-_kG_roleRow small{color:var(--role-muted);margin-top:3px;font-size:11px;display:block}.T4-_kG_roleRow button,.T4-_kG_empty button{color:var(--role-accent);background:0 0;border:0;flex-shrink:0;padding:5px 0;font-size:11px}.T4-_kG_currentRole{background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));margin-bottom:20px}.T4-_kG_empty{text-align:center;color:var(--role-muted);padding:40px 16px;font-size:12px}.T4-_kG_empty strong{font-size:14px;font-weight:500}dialog.T4-_kG_overlayDialog{width:760px;overflow:hidden}.T4-_kG_overlayBody{overscroll-behavior:contain;min-height:0;padding:24px 28px;overflow:auto}.T4-_kG_overlayBack{color:var(--dsw-alias-button-primary-fill,#4263ba);font:inherit;cursor:pointer;background:0 0;border:0;margin:0 0 18px;padding:0;font-size:12px}@container (width<=480px){.T4-_kG_grid{grid-template-columns:1fr}.T4-_kG_mark{display:none}.T4-_kG_roleRow{flex-direction:column;align-items:flex-start;gap:6px}.T4-_kG_tabs{gap:13px}}@media (width<=620px){.T4-_kG_overlayBody{padding:18px 16px}}@media (prefers-reduced-motion:reduce){.T4-_kG_card{transition:none}}";
+		const tagId$5 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/CapabilityCenter.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$5) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$2;
-			tag.textContent = css$2;
+			tag.dataset.pluginCss = tagId$5;
+			tag.textContent = css$5;
 			document.head.appendChild(tag);
 		}
 		//#endregion
@@ -1081,6 +1083,10 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region ../dsh-capabilities/src/core/default-roles.ts
+		const MEETING_ROLE_ID = "meeting-minutes-demo";
+		const MEETING_CAPABILITY_ID = "meeting-transcription";
+		//#endregion
 		//#region ../dsh-capabilities/src/core/model.ts
 		const browserPackage = "@wxg-prc-cpg/browser-skill-dsh-plugin";
 		const components = [{
@@ -1102,11 +1108,19 @@ window.__ModuleLoader__.load({
 				"bsk",
 				"browser-extension"
 			]
+		}, {
+			id: "meeting-asr",
+			name: "会议录音转写",
+			provider: "@linxin666/dsh-capabilities/meeting",
+			version: "1.0.0",
+			actions: ["transcribe"],
+			dependencies: []
 		}];
 		const actionNames = {
 			navigate: "打开网页",
 			read: "读取网页",
-			screenshot: "截取页面"
+			screenshot: "截取页面",
+			transcribe: "转写录音"
 		};
 		const emptyDefinition = () => ({
 			name: "",
@@ -1141,6 +1155,369 @@ window.__ModuleLoader__.load({
 				roles: state.roles.filter((r) => r.draft.capabilities.some((b) => ids.has(b.capabilityId)) || latest(r.versions)?.capabilities.some((b) => ids.has(b.capabilityId))),
 				tasks: tasks.filter((t) => !["stopped"].includes(t.status) && state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.some((b) => ids.has(b.capabilityId)))
 			};
+		}
+		//#endregion
+		//#region src/client/meeting-capability-status.ts
+		function useMeetingAvailability(revision) {
+			const [status, setStatus] = (0, react.useState)(null);
+			const refresh = (0, react.useCallback)(async () => {
+				try {
+					const response = await fetch("/api/capabilities/meeting/config", { credentials: "same-origin" });
+					if (!response.ok) throw new Error(`状态读取失败（${response.status}）`);
+					setStatus(await response.json());
+				} catch (error) {
+					setStatus({
+						ready: false,
+						message: error instanceof Error ? error.message : String(error)
+					});
+				}
+			}, []);
+			(0, react.useEffect)(() => {
+				refresh();
+				const onFocus = () => {
+					refresh();
+				};
+				window.addEventListener("focus", onFocus);
+				return () => window.removeEventListener("focus", onFocus);
+			}, [refresh, revision]);
+			return {
+				status,
+				refresh
+			};
+		}
+		//#endregion
+		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css.mjs
+		const css$4 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:32px;height:32px;display:inline-flex;position:relative}.eqpZFq_recycleSelect input{opacity:0;cursor:pointer;z-index:1;width:100%;height:100%;margin:0;position:absolute;inset:0}.eqpZFq_selectionMark{box-sizing:border-box;border:1px solid var(--role-muted);background:var(--role-bg);border-radius:5px;justify-content:center;align-items:center;width:20px;height:20px;display:flex}.eqpZFq_selectionMark svg{fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;width:18px;height:18px}.eqpZFq_recycleSelect input:checked+.eqpZFq_selectionMark,.eqpZFq_recycleSelect input:indeterminate+.eqpZFq_selectionMark{color:#fff;background:#344575;border-color:#7585b1}.eqpZFq_recycleSelect input:focus-visible+.eqpZFq_selectionMark{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_recycleSelect input:disabled{cursor:default}.eqpZFq_recycleSelect input:disabled+.eqpZFq_selectionMark{opacity:.45}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}";
+		const tagId$4 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$4) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$4;
+			tag.textContent = css$4;
+			document.head.appendChild(tag);
+		}
+		var ManagedCapabilities_module_css_default = {
+			"actions": "eqpZFq_actions",
+			"badge": "eqpZFq_badge",
+			"button": "eqpZFq_button",
+			"card": "eqpZFq_card",
+			"cardDescription": "eqpZFq_cardDescription",
+			"cardFooter": "eqpZFq_cardFooter",
+			"cardMeta": "eqpZFq_cardMeta",
+			"cardSource": "eqpZFq_cardSource",
+			"cardTop": "eqpZFq_cardTop",
+			"check": "eqpZFq_check",
+			"choice": "eqpZFq_choice",
+			"confirmActions": "eqpZFq_confirmActions",
+			"dangerButton": "eqpZFq_dangerButton",
+			"deleteList": "eqpZFq_deleteList",
+			"dialogBody": "eqpZFq_dialogBody",
+			"empty": "eqpZFq_empty",
+			"error": "eqpZFq_error",
+			"field": "eqpZFq_field",
+			"fields": "eqpZFq_fields",
+			"footer": "eqpZFq_footer",
+			"grid": "eqpZFq_grid",
+			"heading": "eqpZFq_heading",
+			"iconButton": "eqpZFq_iconButton",
+			"inlineAction": "eqpZFq_inlineAction",
+			"list": "eqpZFq_list",
+			"muted": "eqpZFq_muted",
+			"notice": "eqpZFq_notice",
+			"page": "eqpZFq_page",
+			"pinLabel": "eqpZFq_pinLabel",
+			"pinned": "eqpZFq_pinned",
+			"pinnedCard": "eqpZFq_pinnedCard",
+			"primary": "eqpZFq_primary",
+			"recycleSelect": "eqpZFq_recycleSelect",
+			"recycleToolbar": "eqpZFq_recycleToolbar",
+			"removalImpact": "eqpZFq_removalImpact",
+			"removeAction": "eqpZFq_removeAction",
+			"row": "eqpZFq_row",
+			"search": "eqpZFq_search",
+			"secretField": "eqpZFq_secretField",
+			"selectedCard": "eqpZFq_selectedCard",
+			"selectionMark": "eqpZFq_selectionMark",
+			"selectionSummary": "eqpZFq_selectionSummary",
+			"status": "eqpZFq_status",
+			"tabs": "eqpZFq_tabs",
+			"tasks": "eqpZFq_tasks",
+			"time": "eqpZFq_time"
+		};
+		//#endregion
+		//#region src/client/MeetingAsrSettings.tsx
+		async function post$1(path, body) {
+			const response = await fetch(`/api/capabilities/meeting/${path}`, {
+				method: "POST",
+				credentials: "same-origin",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(body)
+			});
+			const result = await response.json();
+			if (!response.ok) throw new Error(result.error || `保存失败（${response.status}）`);
+			return result;
+		}
+		function EyeIcon({ visible }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				"aria-hidden": "true",
+				viewBox: "0 0 24 24",
+				width: "18",
+				height: "18",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.8",
+				strokeLinecap: "round",
+				strokeLinejoin: "round",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "12",
+						cy: "12",
+						r: "2.5"
+					}),
+					!visible && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 21 21 3" })
+				]
+			});
+		}
+		function MeetingAsrSettings({ status, refresh, disabled, onEditingChange }) {
+			const [editing, setEditing] = (0, react.useState)(false);
+			const [endpoint, setEndpoint] = (0, react.useState)(""), [model, setModel] = (0, react.useState)("");
+			const [format, setFormat] = (0, react.useState)("verbose_json"), [maxMb, setMaxMb] = (0, react.useState)(25);
+			const [keyDraft, setKeyDraft] = (0, react.useState)(""), [keyDirty, setKeyDirty] = (0, react.useState)(false), [keyVisible, setKeyVisible] = (0, react.useState)(false);
+			const [busy, setBusy] = (0, react.useState)(false), [error, setError] = (0, react.useState)(""), [notice, setNotice] = (0, react.useState)("");
+			const start = () => {
+				setEndpoint(status?.endpoint ?? "");
+				setModel(status?.asrModel ?? "");
+				setFormat(status?.format === "json" ? "json" : "verbose_json");
+				setMaxMb(status?.maxMb ?? 25);
+				setKeyDraft("");
+				setKeyDirty(false);
+				setKeyVisible(false);
+				setError("");
+				setNotice("");
+				setEditing(true);
+				onEditingChange?.(true);
+			};
+			const stop = () => {
+				setEditing(false);
+				setKeyDraft("");
+				setKeyVisible(false);
+				setKeyDirty(false);
+				setError("");
+				onEditingChange?.(false);
+			};
+			const toggleKey = async () => {
+				if (keyVisible) {
+					setKeyVisible(false);
+					if (!keyDirty) setKeyDraft("");
+					return;
+				}
+				if (!keyDraft && status?.keySource === "saved") {
+					setBusy(true);
+					setError("");
+					try {
+						const value = await post$1("config/reveal", {});
+						setKeyDraft(value.apiKey ?? "");
+					} catch (cause) {
+						setError(cause instanceof Error ? cause.message : String(cause));
+						return;
+					} finally {
+						setBusy(false);
+					}
+				} else if (!keyDraft && status?.keySource === "environment") {
+					setError("环境变量提供的密钥不能在界面查看；可直接输入新密钥覆盖。");
+					return;
+				}
+				setKeyVisible(true);
+			};
+			const save = async (clearKey = false) => {
+				if (!endpoint.trim() || !model.trim()) {
+					setError("请填写服务地址和识别模型");
+					return;
+				}
+				if (!Number.isInteger(maxMb) || maxMb < 1 || maxMb > 100) {
+					setError("录音大小限制应为 1–100 MB");
+					return;
+				}
+				setBusy(true);
+				setError("");
+				setNotice("");
+				try {
+					await post$1("config", {
+						revision: status?.revision,
+						endpoint: endpoint.trim(),
+						model: model.trim(),
+						format,
+						maxMb,
+						...clearKey ? { clearKey: true } : keyDirty && keyDraft.trim() ? { apiKey: keyDraft.trim() } : {}
+					});
+					await refresh();
+					stop();
+					setNotice(clearKey ? "已移除界面保存的密钥。" : "识别配置已保存并生效。");
+				} catch (cause) {
+					setError(cause instanceof Error ? cause.message : String(cause));
+				} finally {
+					setBusy(false);
+				}
+			};
+			const reset = async () => {
+				if (!window.confirm("恢复使用工作台环境变量中的语音识别配置？")) return;
+				setBusy(true);
+				setError("");
+				try {
+					await post$1("config", {
+						revision: status?.revision,
+						reset: true
+					});
+					await refresh();
+					stop();
+					setNotice("已恢复使用环境变量配置。");
+				} catch (cause) {
+					setError(cause instanceof Error ? cause.message : String(cause));
+				} finally {
+					setBusy(false);
+				}
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: ManagedCapabilities_module_css_default.row,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "兼容语音识别接口" }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["服务地址：", status?.endpoint || "待配置"] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["识别模型：", status?.asrModel || "待配置"] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+							"API Key：",
+							status?.hasKey ? "********" : "未配置或本地服务无需密钥",
+							status?.keySource === "environment" ? "（环境变量）" : ""
+						] })
+					] }), !editing && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						disabled: disabled || !status?.editable,
+						onClick: start,
+						children: "编辑识别配置"
+					})]
+				}),
+				editing && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: ManagedCapabilities_module_css_default.fields,
+					"data-meeting-asr-editor": true,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: ["服务地址", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+								"aria-label": "语音识别服务地址",
+								value: endpoint,
+								onChange: (event) => setEndpoint(event.target.value),
+								placeholder: "https://.../v1/audio/transcriptions"
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: ["识别模型", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+								"aria-label": "语音识别模型",
+								value: model,
+								onChange: (event) => setModel(event.target.value),
+								placeholder: "例如 whisper-1"
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: ["API Key", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: ManagedCapabilities_module_css_default.secretField,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									"aria-label": "语音识别 API Key",
+									type: keyVisible ? "text" : "password",
+									value: keyDraft,
+									placeholder: status?.hasKey ? "********" : "可选，本地服务可留空",
+									autoComplete: "off",
+									spellCheck: false,
+									onChange: (event) => {
+										setKeyDraft(event.target.value);
+										setKeyDirty(true);
+									}
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									className: ManagedCapabilities_module_css_default.iconButton,
+									"aria-label": keyVisible ? "隐藏 API Key" : "显示 API Key",
+									title: keyVisible ? "隐藏 API Key" : "显示 API Key",
+									disabled: busy,
+									onClick: () => void toggleKey(),
+									children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(EyeIcon, { visible: keyVisible })
+								})]
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.actions,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+								className: ManagedCapabilities_module_css_default.field,
+								children: ["响应格式", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+									value: format,
+									onChange: (event) => setFormat(event.target.value),
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: "verbose_json",
+										children: "verbose_json（含时间片段）"
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: "json",
+										children: "json"
+									})]
+								})]
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+								className: ManagedCapabilities_module_css_default.field,
+								children: ["录音大小上限（MB）", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									"aria-label": "录音大小上限",
+									type: "number",
+									min: "1",
+									max: "100",
+									value: maxMb,
+									onChange: (event) => setMaxMb(Number(event.target.value))
+								})]
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.actions,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
+									disabled: busy,
+									onClick: () => void save(),
+									children: busy ? "保存中…" : "保存配置"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									disabled: busy,
+									onClick: stop,
+									children: "取消"
+								}),
+								status?.keySource === "saved" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									disabled: busy,
+									onClick: () => void save(true),
+									children: "移除已保存密钥"
+								}),
+								status?.configSource === "saved" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									disabled: busy,
+									onClick: () => void reset(),
+									children: "恢复环境变量配置"
+								})
+							]
+						})
+					]
+				}),
+				error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+					className: ManagedCapabilities_module_css_default.error,
+					role: "alert",
+					children: error
+				}),
+				notice && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+					className: ManagedCapabilities_module_css_default.notice,
+					role: "status",
+					children: notice
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+					className: ManagedCapabilities_module_css_default.muted,
+					children: "录音转写使用这里的接口；纪要生成模型仍在会议对话中选择。保存后无需重启工作台。"
+				})
+			] });
 		}
 		//#endregion
 		//#region ../dsh-capabilities/src/core/validation.ts
@@ -1250,17 +1627,23 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region src/client/ManagedWorkbench.tsx
-		function CapabilityGlyph() {
+		function CapabilityGlyph({ kind = "browser" }) {
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 				className: Capabilities_module_css_default.icon,
-				style: { "--cap-color": "#4F73E8" },
+				style: { "--cap-color": kind === "audio" ? "#6683bd" : "#4F73E8" },
 				"aria-hidden": "true",
-				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
 					viewBox: "0 0 24 24",
 					fill: "none",
 					stroke: "currentColor",
 					strokeWidth: "1.6",
-					children: [
+					children: kind === "audio" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+						x: "9",
+						y: "3",
+						width: "6",
+						height: "12",
+						rx: "3"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M6 11a6 6 0 0 0 12 0M12 17v4m-4 0h8" })] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
 							cx: "12",
 							cy: "12",
@@ -1273,7 +1656,7 @@ window.__ModuleLoader__.load({
 							ry: "9"
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 12h18" })
-					]
+					] })
 				})
 			});
 		}
@@ -1400,7 +1783,7 @@ window.__ModuleLoader__.load({
 												className: Capabilities_module_css_default.catalogInspect,
 												title: item.name,
 												onClick: () => configure(item.id),
-												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, {}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: item.subtitle })] })]
+												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: item.id === "meeting-asr" || item.id === "meeting-transcription" ? "audio" : "browser" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: item.subtitle })] })]
 											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 												"data-capability-add": true,
@@ -1463,8 +1846,8 @@ window.__ModuleLoader__.load({
 											type: "button",
 											className: Capabilities_module_css_default.attachedSelect,
 											onClick: () => configure(item.id),
-											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, {}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: item.subtitle })] })]
-										}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: item.id === "meeting-asr" || item.id === "meeting-transcription" ? "audio" : "browser" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: item.subtitle })] })]
+										}), item.removable !== false && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											type: "button",
 											className: Capabilities_module_css_default.remove,
 											"aria-label": `移除 ${item.name}`,
@@ -1513,64 +1896,6 @@ window.__ModuleLoader__.load({
 				})
 			] });
 		}
-		//#endregion
-		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css.mjs
-		const css$1 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:32px;height:32px;display:inline-flex;position:relative}.eqpZFq_recycleSelect input{opacity:0;cursor:pointer;z-index:1;width:100%;height:100%;margin:0;position:absolute;inset:0}.eqpZFq_selectionMark{box-sizing:border-box;border:1px solid var(--role-muted);background:var(--role-bg);border-radius:5px;justify-content:center;align-items:center;width:20px;height:20px;display:flex}.eqpZFq_selectionMark svg{fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;width:18px;height:18px}.eqpZFq_recycleSelect input:checked+.eqpZFq_selectionMark,.eqpZFq_recycleSelect input:indeterminate+.eqpZFq_selectionMark{color:#fff;background:#344575;border-color:#7585b1}.eqpZFq_recycleSelect input:focus-visible+.eqpZFq_selectionMark{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_recycleSelect input:disabled{cursor:default}.eqpZFq_recycleSelect input:disabled+.eqpZFq_selectionMark{opacity:.45}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}";
-		const tagId$1 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$1) + "]") === null) {
-			const tag = document.createElement("style");
-			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$1;
-			tag.textContent = css$1;
-			document.head.appendChild(tag);
-		}
-		var ManagedCapabilities_module_css_default = {
-			"actions": "eqpZFq_actions",
-			"badge": "eqpZFq_badge",
-			"button": "eqpZFq_button",
-			"card": "eqpZFq_card",
-			"cardDescription": "eqpZFq_cardDescription",
-			"cardFooter": "eqpZFq_cardFooter",
-			"cardMeta": "eqpZFq_cardMeta",
-			"cardSource": "eqpZFq_cardSource",
-			"cardTop": "eqpZFq_cardTop",
-			"check": "eqpZFq_check",
-			"choice": "eqpZFq_choice",
-			"confirmActions": "eqpZFq_confirmActions",
-			"dangerButton": "eqpZFq_dangerButton",
-			"deleteList": "eqpZFq_deleteList",
-			"dialogBody": "eqpZFq_dialogBody",
-			"empty": "eqpZFq_empty",
-			"error": "eqpZFq_error",
-			"field": "eqpZFq_field",
-			"fields": "eqpZFq_fields",
-			"footer": "eqpZFq_footer",
-			"grid": "eqpZFq_grid",
-			"heading": "eqpZFq_heading",
-			"iconButton": "eqpZFq_iconButton",
-			"inlineAction": "eqpZFq_inlineAction",
-			"list": "eqpZFq_list",
-			"muted": "eqpZFq_muted",
-			"notice": "eqpZFq_notice",
-			"page": "eqpZFq_page",
-			"pinLabel": "eqpZFq_pinLabel",
-			"pinned": "eqpZFq_pinned",
-			"pinnedCard": "eqpZFq_pinnedCard",
-			"primary": "eqpZFq_primary",
-			"recycleSelect": "eqpZFq_recycleSelect",
-			"recycleToolbar": "eqpZFq_recycleToolbar",
-			"removalImpact": "eqpZFq_removalImpact",
-			"removeAction": "eqpZFq_removeAction",
-			"row": "eqpZFq_row",
-			"search": "eqpZFq_search",
-			"selectedCard": "eqpZFq_selectedCard",
-			"selectionMark": "eqpZFq_selectionMark",
-			"selectionSummary": "eqpZFq_selectionSummary",
-			"status": "eqpZFq_status",
-			"tabs": "eqpZFq_tabs",
-			"tasks": "eqpZFq_tasks",
-			"time": "eqpZFq_time"
-		};
 		//#endregion
 		//#region src/client/RoleAppearance.tsx
 		const roleIconOptions = [
@@ -1628,6 +1953,13 @@ window.__ModuleLoader__.load({
 			}
 		];
 		function roleAppearanceDefaults(roleId) {
+			if (roleId === "meeting-minutes-demo") return {
+				color: "#6683bd",
+				icon: {
+					kind: "builtin",
+					id: "document"
+				}
+			};
 			const id = roleId === "chat" ? "chat" : roleIds.find((id) => roleId === `builtin-${id}`) ?? "analyst";
 			return {
 				color: id === "chat" ? "#78869f" : roleCatalog[id].color,
@@ -1957,13 +2289,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/RoleAppearanceEditor.module.css.mjs
-		const css = ".UhGNxW_editor{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;min-width:0;overflow:hidden;container-type:inline-size}.UhGNxW_summary{cursor:pointer;min-height:48px;color:var(--role-text);align-items:center;gap:10px;padding:0 15px;font-size:13px;font-weight:550;list-style:none;display:flex}.UhGNxW_summary::-webkit-details-marker{display:none}.UhGNxW_chevron{font-size:21px;font-weight:400;transition:transform .15s}.UhGNxW_editor[open]>.UhGNxW_summary .UhGNxW_chevron{transform:rotate(90deg)}.UhGNxW_editor[open]>.UhGNxW_summary{border-bottom:1px solid var(--role-border)}.UhGNxW_summaryColor,.UhGNxW_colorSample{border:1px solid #7d879333;border-radius:6px;flex-shrink:0;width:18px;height:18px}.UhGNxW_summaryColor{margin-left:auto}.UhGNxW_summary .UhGNxW_summaryIcon{border-radius:7px;width:26px;height:26px}.UhGNxW_summary .UhGNxW_summaryIcon svg{width:16px;height:16px}.UhGNxW_layout{grid-template-columns:minmax(220px,1fr) minmax(210px,.85fr);gap:24px;padding:20px;display:grid}.UhGNxW_controls{min-width:0}.UhGNxW_editor h4{color:var(--role-text);margin:0;font-size:13px;font-weight:600}.UhGNxW_sectionHeading{justify-content:space-between;align-items:center;gap:10px;display:flex}.UhGNxW_sectionHeading>span{color:var(--role-muted);font-size:11px}.UhGNxW_honeycomb{flex-direction:column;align-items:center;padding:15px 0 10px;display:flex}.UhGNxW_hexRow{gap:3px;display:flex}.UhGNxW_hexRow+.UhGNxW_hexRow{margin-top:-5px}.UhGNxW_swatch{clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);cursor:pointer;border:0;place-items:center;width:32px;height:37px;padding:7px;transition:filter .15s;display:grid}.UhGNxW_swatch svg{fill:none;stroke:currentColor;stroke-width:3px;stroke-linecap:round;stroke-linejoin:round;width:19px;height:19px}.UhGNxW_swatch:hover{filter:brightness(1.14)}.UhGNxW_swatch[aria-pressed=true]{z-index:1;position:relative}.UhGNxW_swatch[aria-pressed=true]:after{content:\"\";clip-path:inherit;opacity:.12;background:currentColor;position:absolute;inset:2px}.UhGNxW_swatch:focus-visible{filter:brightness(.7);outline:0}.UhGNxW_rangeLabel{color:var(--role-text);flex-direction:column;gap:6px;margin:9px 0 13px;font-size:12px;font-weight:400;display:flex}.UhGNxW_rangeLabel>span{justify-content:space-between;gap:10px;display:flex}.UhGNxW_rangeLabel output{color:var(--role-muted)}.UhGNxW_editor .UhGNxW_rangeLabel input{width:100%;height:18px;accent-color:var(--role-accent);cursor:pointer;background:0 0;margin:0;padding:0}.UhGNxW_hexLabel{border:1px solid var(--role-border);color:var(--role-muted);border-radius:8px;align-items:center;gap:10px;padding:5px 10px;font-size:12px;display:flex}.UhGNxW_editor .UhGNxW_hexLabel input{width:auto;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;padding:5px 0;font:12px ui-monospace,monospace}.UhGNxW_hexLabel:focus-within{outline:2px solid var(--role-accent);outline-offset:2px}.UhGNxW_hexLabel input:focus{outline:0}.UhGNxW_iconSection{margin-top:23px}.UhGNxW_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:10px 0 12px;display:flex}.UhGNxW_tabs button{color:var(--role-muted);cursor:pointer;font:inherit;background:0 0;border:0;border-bottom:2px solid #0000;flex:1;padding:9px 5px;font-size:12px}.UhGNxW_tabs button[aria-selected=true]{color:var(--role-accent);border-bottom-color:var(--role-accent);font-weight:550}.UhGNxW_iconGrid{grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:7px;display:grid}.UhGNxW_iconGrid button{border:1px solid var(--role-border);min-width:0;color:var(--role-text);cursor:pointer;font:inherit;background:0 0;border-radius:9px;flex-direction:column;align-items:center;gap:5px;padding:8px 3px;font-size:10px;display:flex;position:relative}.UhGNxW_iconGrid button>span:first-child{background:0 0;border-radius:7px;width:28px;height:28px}.UhGNxW_iconGrid button svg{width:20px;height:20px}.UhGNxW_iconGrid button[aria-pressed=true]{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));border-color:var(--role-accent);box-shadow:inset 0 0 0 1px var(--role-accent)}.UhGNxW_iconCheck{color:var(--role-accent);font-size:9px;position:absolute;top:2px;right:4px}.UhGNxW_fileInput{opacity:0;pointer-events:none;width:1px;height:1px;position:absolute}.UhGNxW_uploadButton{border:1px dashed var(--role-border);width:100%;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg));font:inherit;cursor:pointer;border-radius:9px;justify-content:center;align-items:center;gap:8px;padding:13px 8px;font-size:12px;display:flex}.UhGNxW_uploadButton>span{font-size:20px}.UhGNxW_editor .UhGNxW_help{color:var(--role-muted);margin:9px 0 0;font-size:11px;font-weight:400;line-height:1.7}.UhGNxW_imageStage{border:1px solid var(--role-border);background-color:var(--role-bg);background-image:conic-gradient(color-mix(in srgb,var(--role-muted) 15%,transparent) 25%,transparent 0 50%,color-mix(in srgb,var(--role-muted) 15%,transparent) 0 75%,transparent 0);background-size:16px 16px;border-radius:10px;width:144px;height:144px;margin:15px auto;overflow:hidden}.UhGNxW_imageStage img{object-fit:contain;width:100%;height:100%}.UhGNxW_imageActions,.UhGNxW_footer{flex-wrap:wrap;justify-content:space-between;gap:8px;display:flex}.UhGNxW_imageActions button,.UhGNxW_footer button{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-text);cursor:pointer;font:inherit;border-radius:7px;padding:8px 10px;font-size:11px}.UhGNxW_imageActions .UhGNxW_applyButton{color:#fff;background:var(--role-accent);border-color:var(--role-accent)}.UhGNxW_imageActions button:disabled{opacity:.55;cursor:default}.UhGNxW_editor .UhGNxW_error{color:var(--dsw-alias-label-error,#b33c42);background:color-mix(in srgb,#b33c42 8%,var(--role-bg));border-radius:7px;margin:10px 0 0;padding:8px;font-size:12px;line-height:1.6}.UhGNxW_previews{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-muted) 3%,var(--role-bg));border-radius:12px;flex-direction:column;align-self:start;gap:12px;min-width:0;padding:16px;display:flex}.UhGNxW_previewCaption{color:var(--role-muted);margin:5px 0 -5px;font-size:11px}.UhGNxW_previewCard{border:1px solid color-mix(in srgb,var(--role-color) 40%,var(--role-border));border-top:4px solid var(--role-color);background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg)));border-radius:10px;padding:16px}.UhGNxW_previewCardTop{justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;display:flex}.UhGNxW_previewBadge{color:color-mix(in srgb,var(--role-color) 45%,var(--role-text));background:color-mix(in srgb,var(--role-color) 12%,var(--role-bg));border-radius:5px;padding:3px 6px;font-size:10px}.UhGNxW_previewCard>strong{color:var(--role-text);overflow-wrap:anywhere;font-size:15px}.UhGNxW_editor .UhGNxW_previewCard p{-webkit-line-clamp:3;color:var(--role-muted);overflow-wrap:anywhere;-webkit-box-orient:vertical;margin:8px 0 14px;font-size:12px;line-height:1.8;display:-webkit-box;overflow:hidden}.UhGNxW_previewSelected{border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border));color:color-mix(in srgb,var(--role-color) 55%,var(--role-text));padding-top:10px;font-size:11px}.UhGNxW_toolbarPreview,.UhGNxW_choicePreview{color:var(--role-text);background:var(--role-bg);border:1px solid color-mix(in srgb,var(--role-color) 40%,var(--role-border));align-items:center;gap:8px;padding:8px;display:flex}.UhGNxW_toolbarPreview{box-sizing:border-box;border-radius:24px;align-self:flex-start;max-width:100%;padding-right:12px}.UhGNxW_toolbarPreview strong,.UhGNxW_choicePreview strong{text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:12px;font-weight:550;overflow:hidden}.UhGNxW_choicePreview{border-radius:9px}.UhGNxW_choicePreview strong{flex:1}.UhGNxW_previewCheck{color:color-mix(in srgb,var(--role-color) 65%,var(--role-text))}.UhGNxW_localIcon{background:color-mix(in srgb,var(--role-color) 20%,var(--role-bg));border-radius:11px;flex-shrink:0;justify-content:center;align-items:center;width:42px;height:42px;display:inline-flex}.UhGNxW_localIcon img{box-sizing:border-box;object-fit:contain;width:100%;height:100%;padding:4px}.UhGNxW_previews .UhGNxW_smallIcon{border-radius:8px;width:28px;height:28px}.UhGNxW_previews .UhGNxW_smallIcon svg{width:18px;height:18px}.UhGNxW_previews .UhGNxW_smallIcon img{padding:2px}.UhGNxW_footer{border-top:1px solid var(--role-border);justify-content:flex-start;padding:12px 20px}.UhGNxW_footer button{color:var(--role-muted);background:0 0}.UhGNxW_editor button:focus-visible,.UhGNxW_summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:2px}@container (width<=590px){.UhGNxW_layout{grid-template-columns:1fr;gap:18px;padding:15px}.UhGNxW_controls{grid-template-columns:minmax(220px,1fr) minmax(190px,1fr);align-items:start;gap:22px;display:grid}.UhGNxW_iconSection{margin-top:0}}@container (width<=460px){.UhGNxW_controls{display:block}.UhGNxW_iconSection{margin-top:23px}.UhGNxW_layout{padding:12px}.UhGNxW_previews{padding:13px}.UhGNxW_footer{padding:12px}}@container (width<=280px){.UhGNxW_swatch{width:27px;height:31px;padding:5px}.UhGNxW_hexRow{gap:2px}.UhGNxW_hexRow+.UhGNxW_hexRow{margin-top:-4px}}@media (prefers-reduced-motion:reduce){.UhGNxW_chevron,.UhGNxW_swatch{transition:none}}";
-		const tagId = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/RoleAppearanceEditor.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
+		const css$3 = ".UhGNxW_editor{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;min-width:0;overflow:hidden;container-type:inline-size}.UhGNxW_summary{cursor:pointer;min-height:48px;color:var(--role-text);align-items:center;gap:10px;padding:0 15px;font-size:13px;font-weight:550;list-style:none;display:flex}.UhGNxW_summary::-webkit-details-marker{display:none}.UhGNxW_chevron{font-size:21px;font-weight:400;transition:transform .15s}.UhGNxW_editor[open]>.UhGNxW_summary .UhGNxW_chevron{transform:rotate(90deg)}.UhGNxW_editor[open]>.UhGNxW_summary{border-bottom:1px solid var(--role-border)}.UhGNxW_summaryColor,.UhGNxW_colorSample{border:1px solid #7d879333;border-radius:6px;flex-shrink:0;width:18px;height:18px}.UhGNxW_summaryColor{margin-left:auto}.UhGNxW_summary .UhGNxW_summaryIcon{border-radius:7px;width:26px;height:26px}.UhGNxW_summary .UhGNxW_summaryIcon svg{width:16px;height:16px}.UhGNxW_layout{grid-template-columns:minmax(220px,1fr) minmax(210px,.85fr);gap:24px;padding:20px;display:grid}.UhGNxW_controls{min-width:0}.UhGNxW_editor h4{color:var(--role-text);margin:0;font-size:13px;font-weight:600}.UhGNxW_sectionHeading{justify-content:space-between;align-items:center;gap:10px;display:flex}.UhGNxW_sectionHeading>span{color:var(--role-muted);font-size:11px}.UhGNxW_honeycomb{flex-direction:column;align-items:center;padding:15px 0 10px;display:flex}.UhGNxW_hexRow{gap:3px;display:flex}.UhGNxW_hexRow+.UhGNxW_hexRow{margin-top:-5px}.UhGNxW_swatch{clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);cursor:pointer;border:0;place-items:center;width:32px;height:37px;padding:7px;transition:filter .15s;display:grid}.UhGNxW_swatch svg{fill:none;stroke:currentColor;stroke-width:3px;stroke-linecap:round;stroke-linejoin:round;width:19px;height:19px}.UhGNxW_swatch:hover{filter:brightness(1.14)}.UhGNxW_swatch[aria-pressed=true]{z-index:1;position:relative}.UhGNxW_swatch[aria-pressed=true]:after{content:\"\";clip-path:inherit;opacity:.12;background:currentColor;position:absolute;inset:2px}.UhGNxW_swatch:focus-visible{filter:brightness(.7);outline:0}.UhGNxW_rangeLabel{color:var(--role-text);flex-direction:column;gap:6px;margin:9px 0 13px;font-size:12px;font-weight:400;display:flex}.UhGNxW_rangeLabel>span{justify-content:space-between;gap:10px;display:flex}.UhGNxW_rangeLabel output{color:var(--role-muted)}.UhGNxW_editor .UhGNxW_rangeLabel input{width:100%;height:18px;accent-color:var(--role-accent);cursor:pointer;background:0 0;margin:0;padding:0}.UhGNxW_hexLabel{border:1px solid var(--role-border);color:var(--role-muted);border-radius:8px;align-items:center;gap:10px;padding:5px 10px;font-size:12px;display:flex}.UhGNxW_editor .UhGNxW_hexLabel input{width:auto;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;padding:5px 0;font:12px ui-monospace,monospace}.UhGNxW_hexLabel:focus-within{outline:2px solid var(--role-accent);outline-offset:2px}.UhGNxW_hexLabel input:focus{outline:0}.UhGNxW_iconSection{margin-top:23px}.UhGNxW_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:10px 0 12px;display:flex}.UhGNxW_tabs button{color:var(--role-muted);cursor:pointer;font:inherit;background:0 0;border:0;border-bottom:2px solid #0000;flex:1;padding:9px 5px;font-size:12px}.UhGNxW_tabs button[aria-selected=true]{color:var(--role-accent);border-bottom-color:var(--role-accent);font-weight:550}.UhGNxW_iconGrid{grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:7px;display:grid}.UhGNxW_iconGrid button{border:1px solid var(--role-border);min-width:0;color:var(--role-text);cursor:pointer;font:inherit;background:0 0;border-radius:9px;flex-direction:column;align-items:center;gap:5px;padding:8px 3px;font-size:10px;display:flex;position:relative}.UhGNxW_iconGrid button>span:first-child{background:0 0;border-radius:7px;width:28px;height:28px}.UhGNxW_iconGrid button svg{width:20px;height:20px}.UhGNxW_iconGrid button[aria-pressed=true]{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));border-color:var(--role-accent);box-shadow:inset 0 0 0 1px var(--role-accent)}.UhGNxW_iconCheck{color:var(--role-accent);font-size:9px;position:absolute;top:2px;right:4px}.UhGNxW_fileInput{opacity:0;pointer-events:none;width:1px;height:1px;position:absolute}.UhGNxW_uploadButton{border:1px dashed var(--role-border);width:100%;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg));font:inherit;cursor:pointer;border-radius:9px;justify-content:center;align-items:center;gap:8px;padding:13px 8px;font-size:12px;display:flex}.UhGNxW_uploadButton>span{font-size:20px}.UhGNxW_editor .UhGNxW_help{color:var(--role-muted);margin:9px 0 0;font-size:11px;font-weight:400;line-height:1.7}.UhGNxW_imageStage{border:1px solid var(--role-border);background-color:var(--role-bg);background-image:conic-gradient(color-mix(in srgb,var(--role-muted) 15%,transparent) 25%,transparent 0 50%,color-mix(in srgb,var(--role-muted) 15%,transparent) 0 75%,transparent 0);background-size:16px 16px;border-radius:10px;width:144px;height:144px;margin:15px auto;overflow:hidden}.UhGNxW_imageStage img{object-fit:contain;width:100%;height:100%}.UhGNxW_imageActions,.UhGNxW_footer{flex-wrap:wrap;justify-content:space-between;gap:8px;display:flex}.UhGNxW_imageActions button,.UhGNxW_footer button{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-text);cursor:pointer;font:inherit;border-radius:7px;padding:8px 10px;font-size:11px}.UhGNxW_imageActions .UhGNxW_applyButton{color:#fff;background:var(--role-accent);border-color:var(--role-accent)}.UhGNxW_imageActions button:disabled{opacity:.55;cursor:default}.UhGNxW_editor .UhGNxW_error{color:var(--dsw-alias-label-error,#b33c42);background:color-mix(in srgb,#b33c42 8%,var(--role-bg));border-radius:7px;margin:10px 0 0;padding:8px;font-size:12px;line-height:1.6}.UhGNxW_previews{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-muted) 3%,var(--role-bg));border-radius:12px;flex-direction:column;align-self:start;gap:12px;min-width:0;padding:16px;display:flex}.UhGNxW_previewCaption{color:var(--role-muted);margin:5px 0 -5px;font-size:11px}.UhGNxW_previewCard{border:1px solid color-mix(in srgb,var(--role-color) 40%,var(--role-border));border-top:4px solid var(--role-color);background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg)));border-radius:10px;padding:16px}.UhGNxW_previewCardTop{justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;display:flex}.UhGNxW_previewBadge{color:color-mix(in srgb,var(--role-color) 45%,var(--role-text));background:color-mix(in srgb,var(--role-color) 12%,var(--role-bg));border-radius:5px;padding:3px 6px;font-size:10px}.UhGNxW_previewCard>strong{color:var(--role-text);overflow-wrap:anywhere;font-size:15px}.UhGNxW_editor .UhGNxW_previewCard p{-webkit-line-clamp:3;color:var(--role-muted);overflow-wrap:anywhere;-webkit-box-orient:vertical;margin:8px 0 14px;font-size:12px;line-height:1.8;display:-webkit-box;overflow:hidden}.UhGNxW_previewSelected{border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border));color:color-mix(in srgb,var(--role-color) 55%,var(--role-text));padding-top:10px;font-size:11px}.UhGNxW_toolbarPreview,.UhGNxW_choicePreview{color:var(--role-text);background:var(--role-bg);border:1px solid color-mix(in srgb,var(--role-color) 40%,var(--role-border));align-items:center;gap:8px;padding:8px;display:flex}.UhGNxW_toolbarPreview{box-sizing:border-box;border-radius:24px;align-self:flex-start;max-width:100%;padding-right:12px}.UhGNxW_toolbarPreview strong,.UhGNxW_choicePreview strong{text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:12px;font-weight:550;overflow:hidden}.UhGNxW_choicePreview{border-radius:9px}.UhGNxW_choicePreview strong{flex:1}.UhGNxW_previewCheck{color:color-mix(in srgb,var(--role-color) 65%,var(--role-text))}.UhGNxW_localIcon{background:color-mix(in srgb,var(--role-color) 20%,var(--role-bg));border-radius:11px;flex-shrink:0;justify-content:center;align-items:center;width:42px;height:42px;display:inline-flex}.UhGNxW_localIcon img{box-sizing:border-box;object-fit:contain;width:100%;height:100%;padding:4px}.UhGNxW_previews .UhGNxW_smallIcon{border-radius:8px;width:28px;height:28px}.UhGNxW_previews .UhGNxW_smallIcon svg{width:18px;height:18px}.UhGNxW_previews .UhGNxW_smallIcon img{padding:2px}.UhGNxW_footer{border-top:1px solid var(--role-border);justify-content:flex-start;padding:12px 20px}.UhGNxW_footer button{color:var(--role-muted);background:0 0}.UhGNxW_editor button:focus-visible,.UhGNxW_summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:2px}@container (width<=590px){.UhGNxW_layout{grid-template-columns:1fr;gap:18px;padding:15px}.UhGNxW_controls{grid-template-columns:minmax(220px,1fr) minmax(190px,1fr);align-items:start;gap:22px;display:grid}.UhGNxW_iconSection{margin-top:0}}@container (width<=460px){.UhGNxW_controls{display:block}.UhGNxW_iconSection{margin-top:23px}.UhGNxW_layout{padding:12px}.UhGNxW_previews{padding:13px}.UhGNxW_footer{padding:12px}}@container (width<=280px){.UhGNxW_swatch{width:27px;height:31px;padding:5px}.UhGNxW_hexRow{gap:2px}.UhGNxW_hexRow+.UhGNxW_hexRow{margin-top:-4px}}@media (prefers-reduced-motion:reduce){.UhGNxW_chevron,.UhGNxW_swatch{transition:none}}";
+		const tagId$3 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/RoleAppearanceEditor.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId;
-			tag.textContent = css;
+			tag.dataset.pluginCss = tagId$3;
+			tag.textContent = css$3;
 			document.head.appendChild(tag);
 		}
 		var RoleAppearanceEditor_module_css_default = {
@@ -2544,6 +2876,10 @@ window.__ModuleLoader__.load({
 			color: "#78869f",
 			description: "日常问答、写作与想法讨论，无需选择工作区。"
 		};
+		const MEETING_DEMO_ROLE_ID = MEETING_ROLE_ID;
+		function useMeetingStatus() {
+			return useMeetingAvailability().status;
+		}
 		function ManagedRoleEditor({ id, onClose }) {
 			const { data } = useCapabilities();
 			(0, react.useEffect)(() => {
@@ -2566,6 +2902,7 @@ window.__ModuleLoader__.load({
 		}
 		function RoleForm({ id, onClose }) {
 			const { data } = useCapabilities(), state = data.state, role = state.roles.find((r) => r.id === id), key = `role:${id ?? "new"}`, cached = editorDrafts.get(key);
+			const meetingStatus = useMeetingStatus();
 			const [draft, setDraft] = (0, react.useState)(() => structuredClone(cached?.value ?? role?.draft ?? emptyRole()));
 			const [initialAppearance] = (0, react.useState)(() => structuredClone({
 				color: draft.color,
@@ -2573,7 +2910,7 @@ window.__ModuleLoader__.load({
 			}));
 			const [appearanceBusy, setAppearanceBusy] = (0, react.useState)(false);
 			const [appearanceRevision, setAppearanceRevision] = (0, react.useState)(0);
-			const [revision, setRevision] = (0, react.useState)(cached?.revision ?? state.revision), [selected, setSelected] = (0, react.useState)(draft.capabilities[0]?.capabilityId ?? null);
+			const [revision, setRevision] = (0, react.useState)(cached?.revision ?? state.revision), [selected, setSelected] = (0, react.useState)(id === "meeting-minutes-demo" ? MEETING_CAPABILITY_ID : draft.capabilities[0]?.capabilityId ?? null);
 			const [center, setCenter] = (0, react.useState)(false), [busy, setBusy] = (0, react.useState)(false), [error, setError] = (0, react.useState)(""), [review, setReview] = (0, react.useState)(false);
 			const change = (value) => {
 				setDraft(value);
@@ -2611,25 +2948,28 @@ window.__ModuleLoader__.load({
 			};
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedWorkbench, {
-					libraryTitle: "能力配件库",
+					libraryTitle: id === "meeting-minutes-demo" ? "会议流程能力" : "能力配件库",
 					title: "岗位信息",
 					selected,
 					onSelect: setSelected,
 					onManage: () => setCenter(true),
-					library: state.capabilities.filter((c) => !c.removedAt && c.versions.length).map((c) => ({
+					library: state.capabilities.filter((c) => !c.removedAt && c.versions.length && (id === "meeting-minutes-demo" ? c.id === "meeting-transcription" : c.id !== "meeting-transcription")).map((c) => ({
 						id: c.id,
 						name: c.draft.name,
-						subtitle: `v${latest(c.versions).version} · ${c.enabled ? "已发布" : "已停用"}`
+						subtitle: `v${latest(c.versions).version} · ${c.enabled ? "已发布" : "已停用"}`,
+						disabled: id === MEETING_ROLE_ID
 					})),
 					attached: draft.capabilities.map((b) => {
 						const c = state.capabilities.find((c) => c.id === b.capabilityId);
 						return {
 							id: b.capabilityId,
 							name: c?.draft.name ?? "能力缺失",
-							subtitle: `v${b.version} · ${c?.removedAt ? "能力已移除" : !b.enabled ? "岗位中停用" : !c?.enabled ? "能力已停用" : data.health.state === "ready" ? "可使用" : "待连接"}`
+							subtitle: `v${b.version} · ${c?.removedAt ? "能力已移除" : !b.enabled ? "岗位中停用" : !c?.enabled ? "能力已停用" : b.capabilityId === "meeting-transcription" ? meetingStatus?.ready ? "已配置" : meetingStatus?.state === "disabled" ? "不可用" : "待配置" : data.health.state === "ready" ? "可使用" : "待连接"}`,
+							removable: b.capabilityId !== MEETING_CAPABILITY_ID
 						};
 					}),
 					onAdd: (capabilityId) => {
+						if (id === "meeting-minutes-demo") return;
 						const c = state.capabilities.find((c) => c.id === capabilityId), v = c && latest(c.versions);
 						if (v && !c?.removedAt && !draft.capabilities.some((b) => b.capabilityId === capabilityId)) change({
 							...draft,
@@ -2641,13 +2981,24 @@ window.__ModuleLoader__.load({
 						});
 						setSelected(capabilityId);
 					},
-					onRemove: (capabilityId) => change({
-						...draft,
-						capabilities: draft.capabilities.filter((b) => b.capabilityId !== capabilityId)
-					}),
+					onRemove: (capabilityId) => {
+						if (capabilityId !== "meeting-transcription") change({
+							...draft,
+							capabilities: draft.capabilities.filter((b) => b.capabilityId !== capabilityId)
+						});
+					},
 					form: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.fields}`,
 						children: [
+							id === "meeting-minutes-demo" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: ManagedCapabilities_module_css_default.notice,
+								children: ["此岗位已关联“会议录音转写”能力，并提供快速生成和引导整理两种对话流程。下方的职责、要求和输出格式会用于新会议的纪要生成。", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									className: ManagedCapabilities_module_css_default.button,
+									onClick: () => setCenter(true),
+									children: "查看录音转写能力 →"
+								})]
+							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 								className: ManagedCapabilities_module_css_default.field,
 								children: ["助手名称", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
@@ -2744,7 +3095,52 @@ window.__ModuleLoader__.load({
 					}),
 					inspector: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 						className: ManagedCapabilities_module_css_default.page,
-						children: cap ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+						children: cap?.id === "meeting-transcription" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: cap.draft.name }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.muted,
+								children: cap.draft.description
+							}),
+							cap.removedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.notice,
+								children: "此能力已移除，请在能力中心恢复后使用。"
+							}),
+							binding && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+								className: ManagedCapabilities_module_css_default.check,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									type: "checkbox",
+									checked: binding.enabled,
+									onChange: (e) => updateBinding({ enabled: e.target.checked })
+								}), "在此岗位中启用录音转写"]
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+								className: ManagedCapabilities_module_css_default.field,
+								children: ["采用的能力版本", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
+									value: binding.version,
+									onChange: (e) => updateBinding({
+										version: Number(e.target.value),
+										actions: void 0
+									}),
+									children: cap.versions.map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
+										value: v.version,
+										children: [
+											"v",
+											v.version,
+											" · ",
+											v.createdAt.slice(0, 10)
+										]
+									}, v.version))
+								})]
+							})] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.notice,
+								children: meetingStatus?.message ?? "正在检查语音识别配置…"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								onClick: () => setCenter(true),
+								children: "管理录音转写能力 ↗"
+							})
+						] }) : cap ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: cap.draft.name }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 								className: ManagedCapabilities_module_css_default.muted,
@@ -2808,7 +3204,18 @@ window.__ModuleLoader__.load({
 								onClick: () => setCenter(true),
 								children: "查看能力及关联组件 ↗"
 							})
-						] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						] }) : id === "meeting-minutes-demo" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.notice,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "会议录音转纪要" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "快速生成、引导整理与录音转写由会议流程提供。语音识别接口在服务端配置，密钥不会保存到岗位草稿。" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									onClick: () => setCenter(true),
+									children: "查看能力中心 →"
+								})
+							]
+						}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 							className: ManagedCapabilities_module_css_default.empty,
 							children: "选择已添加的能力以调整设置。"
 						})
@@ -2879,7 +3286,7 @@ window.__ModuleLoader__.load({
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 								className: ManagedCapabilities_module_css_default.notice,
-								children: "新增能力和放宽动作只由新对话采用。移除能力或缩小权限会立即限制旧会话，并停止受影响的浏览器任务。"
+								children: id === "meeting-minutes-demo" ? "新会议将采用此岗位版本的名称、外观、纪要要求与录音转写能力关联；已有会议保留创建时的版本。" : "新增能力和放宽动作只由新对话采用。移除能力或缩小权限会立即限制旧会话，并停止受影响的浏览器任务。"
 							}),
 							error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 								role: "alert",
@@ -2899,6 +3306,8 @@ window.__ModuleLoader__.load({
 		}
 		function ManagedRolesSection({ selected, onSelect }) {
 			const { data, error } = useCapabilities(), [editor, setEditor] = (0, react.useState)(null), [message, setMessage] = (0, react.useState)("");
+			const meetingStatus = useMeetingStatus();
+			const displayedRoles = [...data?.state.roles ?? []].sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID));
 			const selectedRole = data?.state.roles.find((role) => role.id === selected && role.enabled && role.versions.length);
 			const toggleRole = async (id, enabled) => {
 				try {
@@ -2987,7 +3396,7 @@ window.__ModuleLoader__.load({
 									children: "无需岗位配置，随时开始聊天。"
 								})
 							})]
-						}), data?.state.roles.map((role) => {
+						}), displayedRoles.map((role) => {
 							const published = latest(role.versions), selectable = role.enabled && !!published, chosen = selectable && selected === role.id;
 							return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
 								"data-role-id": role.id,
@@ -3024,11 +3433,10 @@ window.__ModuleLoader__.load({
 										}),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 											className: Roles_module_css_default.tags,
-											children: [
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: published ? `已发布 v${published.version}` : "未发布" }),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [role.draft.capabilities.length, " 个能力"] }),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [data.tasks.filter((t) => t.roleId === role.id && t.status !== "stopped").length, " 个活动会话"] })
-											]
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: published ? `已发布 v${published.version}` : "未发布" }), role.id === "meeting-minutes-demo" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "快速生成 · 引导整理" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+												title: meetingStatus?.message,
+												children: meetingStatus?.ready === true ? "录音转写已配置" : meetingStatus?.state === "disabled" ? "录音转写不可用" : meetingStatus?.ready === false ? "录音转写待配置" : "正在检测录音转写"
+											})] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [role.draft.capabilities.length, " 个能力"] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [data?.tasks.filter((t) => t.roleId === role.id && t.status !== "stopped").length ?? 0, " 个活动会话"] })] })]
 										})
 									]
 								}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -3101,7 +3509,7 @@ window.__ModuleLoader__.load({
 									color: freeChat.color
 								}) }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: freeChat.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: freeChat.description })] })]
 							}),
-							data?.state.roles.filter((role) => role.enabled && role.versions.length).map((role) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							[...data?.state.roles ?? []].sort((left, right) => Number(right.id === "meeting-minutes-demo") - Number(left.id === "meeting-minutes-demo")).filter((role) => role.enabled && role.versions.length).map((role) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 								className: ManagedCapabilities_module_css_default.choice,
 								"aria-pressed": selected === role.id,
 								onClick: () => {
@@ -3112,13 +3520,7 @@ window.__ModuleLoader__.load({
 									roleId: role.id,
 									icon: role.draft.icon,
 									color: role.draft.color
-								}) }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: latest(role.versions).name }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-									"v",
-									latest(role.versions).version,
-									" · ",
-									latest(role.versions).capabilities.length,
-									" 个能力"
-								] })] })]
+								}) }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: latest(role.versions).name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: role.id === "meeting-minutes-demo" ? `v${latest(role.versions).version} · 快速生成 / 引导整理` : `v${latest(role.versions).version} · ${latest(role.versions).capabilities.length} 个能力` })] })]
 							}, role.id)),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: ManagedCapabilities_module_css_default.button,
@@ -3135,14 +3537,16 @@ window.__ModuleLoader__.load({
 				editor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRoleEditor, { onClose: () => setEditor(false) })
 			] });
 		}
-		function ManagedCurrentAssistant({ selected, onOpen }) {
+		function ManagedCurrentAssistant({ selected, onOpen, preset }) {
 			const { data } = useCapabilities();
 			const role = data?.state.roles.find((role) => role.id === selected);
-			const name = role?.draft.name ?? freeChat.name, color = role?.draft.color ?? freeChat.color;
+			const appearance = (preset ? role?.versions.find((version) => version.preset === preset) : void 0) ?? role?.draft;
+			const name = appearance?.name ?? freeChat.name, color = appearance?.color ?? freeChat.color;
+			const iconSpec = appearance?.icon;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 				type: "button",
 				"data-current-assistant": "true",
-				"data-role-icon": roleAppearanceIconId(role?.id ?? "chat", role?.draft.icon),
+				"data-role-icon": roleAppearanceIconId(role?.id ?? "chat", iconSpec),
 				className: Roles_module_css_default.currentAssistant,
 				style: appearanceStyle(color),
 				"aria-label": `打开岗位助手：${name}`,
@@ -3151,7 +3555,7 @@ window.__ModuleLoader__.load({
 				children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleAppearanceIcon, {
 						roleId: role?.id ?? "chat",
-						icon: role?.draft.icon,
+						icon: iconSpec,
 						color
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
@@ -3257,8 +3661,8 @@ window.__ModuleLoader__.load({
 				tasks: data.tasks.filter((t) => t.status !== "stopped" && data.state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.some((b) => b.enabled && b.capabilityId === id))
 			};
 		}
-		function ManagedCapabilityCard({ capability: c, data, busy, onManage, onPin, onRemove, onRestore, onPurge, selection }) {
-			const status = c.removedAt ? "已移除" : !c.enabled ? "已停用" : !c.versions.length ? "草稿" : data.health.state === "ready" ? "可使用" : "待连接";
+		function ManagedCapabilityCard({ capability: c, data, busy, onManage, onPin, onRemove, onRestore, onPurge, selection, meetingStatus }) {
+			const status = c.removedAt ? "已移除" : !c.enabled ? "已停用" : !c.versions.length ? "草稿" : c.id === "meeting-transcription" ? meetingStatus?.ready ? "已配置" : meetingStatus?.state === "disabled" ? "不可用" : meetingStatus ? "待配置" : "检测中" : data.health.state === "ready" ? "可使用" : "待连接";
 			const pinLabel = `${c.pinned ? "取消收藏" : "收藏能力"}：${c.draft.name}`;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
 				className: `${ManagedCapabilities_module_css_default.card} ${c.pinned && !c.removedAt ? ManagedCapabilities_module_css_default.pinnedCard : ""} ${selection?.checked ? ManagedCapabilities_module_css_default.selectedCard : ""}`,
@@ -3271,7 +3675,7 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ManagedCapabilities_module_css_default.cardTop,
 						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, {}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: c.id === "meeting-transcription" ? "audio" : "browser" }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 								className: ManagedCapabilities_module_css_default.cardSource,
 								children: c.source === "builtin" ? "内置能力" : "我的能力"
@@ -3305,6 +3709,7 @@ window.__ModuleLoader__.load({
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 								className: ManagedCapabilities_module_css_default.badge,
+								title: c.id === "meeting-transcription" ? meetingStatus?.message : void 0,
 								children: status
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [capabilityImpact(data, c.id).roles.length, " 个岗位引用"] }),
@@ -3427,7 +3832,7 @@ window.__ModuleLoader__.load({
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
 									className: ManagedCapabilities_module_css_default.muted,
-									children: [tasks.length ? "相关会话的后续调用将被阻止，并请求停止其浏览器任务。" : "没有相关的活动会话。", "共享插件及其他能力保持不变。"]
+									children: [cap.id === "meeting-transcription" ? "移除后将无法新建或继续处理会议录音；已有会议记录仍保留。" : tasks.length ? "相关会话的后续调用将被阻止，并请求停止其浏览器任务。" : "没有相关的活动会话。", "共享插件及其他能力保持不变。"]
 								})
 							]
 						}),
@@ -3727,15 +4132,10 @@ window.__ModuleLoader__.load({
 			"read",
 			"screenshot"
 		], onChange }) {
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: [
-				"navigate",
-				"read",
-				"screenshot"
-			].map((action) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: available.map((action) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 				className: ManagedCapabilities_module_css_default.check,
 				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 					type: "checkbox",
-					disabled: !available.includes(action),
 					checked: value.includes(action),
 					onChange: (e) => onChange(e.target.checked ? [...value, action] : value.filter((a) => a !== action))
 				}), actionNames[action]]
@@ -3789,36 +4189,36 @@ window.__ModuleLoader__.load({
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedWorkbench, {
 							libraryTitle: "组件库",
 							title: "能力信息",
-							library: components.map((c) => ({
+							library: components.filter((c) => id === "meeting-transcription" ? c.id === "meeting-asr" : c.id !== "meeting-asr").map((c) => ({
 								id: c.id,
 								name: c.name,
-								subtitle: `BrowserSkill · ${c.version}`
+								subtitle: `${c.id === "meeting-asr" ? "会议服务" : "BrowserSkill"} · ${c.version}`
 							})),
 							selected,
 							onSelect: setSelected,
 							attached: draft.components.map((c) => ({
 								id: c.componentId,
 								name: components.find((i) => i.id === c.componentId)?.name ?? c.componentId,
-								subtitle: c.actions.map((a) => actionNames[a]).join(" · ") || "未选择动作"
+								subtitle: c.actions.map((a) => actionNames[a]).join(" · ") || "未选择动作",
+								removable: c.componentId !== "meeting-asr"
 							})),
 							onAdd: (componentId) => {
-								if (!draft.components.some((p) => p.componentId === componentId)) change({
+								const descriptor = components.find((c) => c.id === componentId);
+								if (descriptor && !draft.components.some((p) => p.componentId === componentId)) change({
 									...draft,
 									components: [...draft.components, {
 										componentId,
-										actions: [
-											"navigate",
-											"read",
-											"screenshot"
-										]
+										actions: [...descriptor.actions]
 									}]
 								});
 								setSelected(componentId);
 							},
-							onRemove: (componentId) => change({
-								...draft,
-								components: draft.components.filter((p) => p.componentId !== componentId)
-							}),
+							onRemove: (componentId) => {
+								if (id !== "meeting-transcription") change({
+									...draft,
+									components: draft.components.filter((p) => p.componentId !== componentId)
+								});
+							},
 							form: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 								className: ManagedCapabilities_module_css_default.fields,
 								children: [
@@ -3882,7 +4282,17 @@ window.__ModuleLoader__.load({
 									})
 								]
 							}),
-							inspector: descriptor ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+							inspector: descriptor ? descriptor.id === "meeting-asr" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "会议录音转写" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+									className: ManagedCapabilities_module_css_default.muted,
+									children: "这是会议纪要助手的内置流程。录音交给服务端配置的兼容语音识别接口；纪要模型在对话中选择。"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+									className: ManagedCapabilities_module_css_default.notice,
+									children: "转写动作属于内置能力，编辑说明时会保留该组件。接口凭据不会写入能力草稿。"
+								})
+							] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: descriptor.name }),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 									className: ManagedCapabilities_module_css_default.muted,
@@ -3890,6 +4300,7 @@ window.__ModuleLoader__.load({
 								}),
 								part ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ActionFields, {
 									value: part.actions,
+									available: descriptor.actions,
 									onChange: (actions) => change({
 										...draft,
 										components: draft.components.map((p) => p.componentId === selected ? {
@@ -4000,6 +4411,17 @@ window.__ModuleLoader__.load({
 		}
 		function ComponentRelations({ data, capabilityId }) {
 			const cap = data.state.capabilities.find((c) => c.id === capabilityId);
+			if (capabilityId === "meeting-transcription") return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				className: ManagedCapabilities_module_css_default.row,
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "会议语音识别服务" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "内置流程 · 兼容音频转写接口" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "接口地址、模型和密钥由工作台服务端读取；密钥不会进入岗位或能力数据。" })
+				] })
+			}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+				className: ManagedCapabilities_module_css_default.muted,
+				children: "转写结果在会议对话中核对；纪要使用对话所选的工作台模型生成。"
+			})] });
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [cap.draft.components.map((part) => {
 				const descriptor = components.find((c) => c.id === part.componentId), refs = references(data.state, descriptor.id, data.tasks);
 				return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
@@ -4074,9 +4496,17 @@ window.__ModuleLoader__.load({
 		}
 		function ManagedCenter({ initialId, embedded = false }) {
 			const { data, error } = useCapabilities();
+			const { status: meetingStatus, refresh: refreshMeeting } = useMeetingAvailability(data?.state.revision);
 			const [selected, setSelected] = (0, react.useState)(initialId ?? lastCapabilityLink()?.capabilityId ?? null), [tab, setTab] = (0, react.useState)("overview"), [query, setQuery] = (0, react.useState)(""), [filter, setFilter] = (0, react.useState)("all");
 			const [editor, setEditor] = (0, react.useState)(null), [role, setRole] = (0, react.useState)(null), [message, setMessage] = (0, react.useState)(""), [busy, setBusy] = (0, react.useState)(false);
 			const [removing, setRemoving] = (0, react.useState)(null), [notice, setNotice] = (0, react.useState)("");
+			const [meetingEditing, setMeetingEditing] = (0, react.useState)(false);
+			const meetingNavigate = (action) => {
+				if (!meetingEditing || window.confirm("识别配置尚未保存，确定放弃修改？")) {
+					setMeetingEditing(false);
+					action();
+				}
+			};
 			(0, react.useEffect)(() => {
 				const open = (event) => {
 					const link = event.detail;
@@ -4108,9 +4538,10 @@ window.__ModuleLoader__.load({
 				})]
 			});
 			const item = data.state.capabilities.find((c) => c.id === selected);
+			const meetingAssistantName = data.state.roles.find((role) => role.id === "meeting-minutes-demo")?.draft.name ?? "会议纪要助手";
 			const linked = (id) => capabilityImpact(data, id).roles;
 			const removedCount = data.state.capabilities.filter((c) => c.removedAt).length;
-			const visible = data.state.capabilities.filter((c) => (filter === "removed" ? Boolean(c.removedAt) : !c.removedAt) && (filter !== "pinned" || c.pinned) && (filter !== "pending" || !c.enabled || !c.versions.length || data.health.state !== "ready") && (filter !== "unused" || !linked(c.id).length) && `${c.draft.name} ${c.draft.description}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).sort((a, b) => Number(b.pinned) - Number(a.pinned));
+			const visible = data.state.capabilities.filter((c) => (filter === "removed" ? Boolean(c.removedAt) : !c.removedAt) && (filter !== "pinned" || c.pinned) && (filter !== "pending" || !c.enabled || !c.versions.length || (c.id === "meeting-transcription" ? !meetingStatus?.ready : data.health.state !== "ready")) && (filter !== "unused" || !linked(c.id).length) && `${c.draft.name} ${c.draft.description}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).sort((a, b) => Number(b.pinned) - Number(a.pinned));
 			const restore = (id) => void run(async () => {
 				await capabilityClient.command({
 					type: "capability.restore",
@@ -4120,6 +4551,155 @@ window.__ModuleLoader__.load({
 				setFilter("all");
 				setSelected(id);
 				setTab("overview");
+			});
+			if (item?.id === "meeting-transcription") return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+				className: ManagedCapabilities_module_css_default.page,
+				"data-capability-center": true,
+				"data-meeting-capability-detail": true,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						onClick: () => meetingNavigate(() => setSelected(null)),
+						children: item.removedAt ? "← 返回回收站" : "← 全部能力"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: ManagedCapabilities_module_css_default.heading,
+						style: { marginTop: 18 },
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.actions,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: "audio" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: item.draft.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+								className: ManagedCapabilities_module_css_default.muted,
+								children: ["内置能力 · v", latest(item.versions)?.version ?? 1]
+							})] })]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							className: ManagedCapabilities_module_css_default.actions,
+							children: item.removedAt ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: busy,
+								onClick: () => restore(item.id),
+								children: "恢复能力"
+							}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								onClick: () => setEditor({ id: item.id }),
+								children: "编辑能力信息"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: `${ManagedCapabilities_module_css_default.iconButton} ${ManagedCapabilities_module_css_default.removeAction}`,
+								disabled: busy,
+								"aria-label": `移除能力：${item.draft.name}`,
+								onClick: () => setRemoving(item.id),
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "remove" })
+							})] })
+						})]
+					}),
+					(error || message) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "alert",
+						className: ManagedCapabilities_module_css_default.error,
+						children: message || error
+					}),
+					notice && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "status",
+						className: ManagedCapabilities_module_css_default.notice,
+						children: notice
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: item.draft.description }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: ManagedCapabilities_module_css_default.tabs,
+						children: [
+							["overview", "概览与连接"],
+							["instructions", "使用说明"],
+							["defaults", "默认配置"],
+							["components", "关联组件"],
+							["roles", "使用岗位"]
+						].map(([value, label]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							"aria-pressed": tab === value,
+							onClick: () => meetingNavigate(() => setTab(value)),
+							children: label
+						}, value))
+					}),
+					tab === "overview" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.row,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.removedAt ? "此能力已移除" : !item.enabled ? "此能力已停用" : meetingStatus?.ready ? "语音识别接口已配置" : "语音识别接口待配置" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: meetingStatus?.message ?? "正在检查配置…" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: busy,
+								onClick: () => void refreshMeeting(),
+								children: "刷新状态"
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.check,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+								type: "checkbox",
+								checked: item.enabled,
+								disabled: busy || !!item.removedAt,
+								onChange: (event) => void run(() => capabilityClient.command({
+									type: "capability.toggle",
+									id: item.id,
+									enabled: event.target.checked
+								}))
+							}), "启用此能力"]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+							className: ManagedCapabilities_module_css_default.muted,
+							children: [
+								"由",
+								meetingAssistantName,
+								"使用。停用后不能新建或继续处理录音；已有纪要和转写记录保留。"
+							]
+						})
+					] }),
+					tab === "instructions" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						style: { whiteSpace: "pre-wrap" },
+						children: item.draft.instructions
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						disabled: !!item.removedAt,
+						onClick: () => setEditor({ id: item.id }),
+						children: "编辑说明"
+					})] }),
+					tab === "defaults" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MeetingAsrSettings, {
+						status: meetingStatus,
+						refresh: refreshMeeting,
+						disabled: !!item.removedAt,
+						onEditingChange: setMeetingEditing
+					}),
+					tab === "components" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentRelations, {
+						data,
+						capabilityId: item.id
+					}),
+					tab === "roles" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: linked(item.id).map((used) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: ManagedCapabilities_module_css_default.row,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: used.draft.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+							used.enabled ? "已启用" : "已停用",
+							" · 已发布 v",
+							latest(used.versions)?.version ?? 1
+						] })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: ManagedCapabilities_module_css_default.button,
+							onClick: () => setRole(used.id),
+							children: "编辑岗位 →"
+						})]
+					}, used.id)) }),
+					removing && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RemoveCapabilityDialog, {
+						id: removing,
+						data,
+						onClose: () => setRemoving(null),
+						onRemoved: () => {
+							setRemoving(null);
+							setSelected(null);
+							setNotice("能力已移除，可在“回收站”中恢复。");
+						}
+					}),
+					editor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityEditor, {
+						id: editor.id,
+						data,
+						onClose: () => setEditor(null),
+						onSaved: setSelected
+					}, editor.id ?? "new"),
+					role && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRoleEditor, {
+						id: role,
+						onClose: () => setRole(null)
+					})
+				]
 			});
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
 				className: ManagedCapabilities_module_css_default.page,
@@ -4353,6 +4933,7 @@ window.__ModuleLoader__.load({
 									capability: c,
 									data,
 									busy,
+									meetingStatus: c.id === "meeting-transcription" ? meetingStatus : void 0,
 									onManage: () => {
 										setSelected(c.id);
 										setTab("overview");
@@ -4374,9 +4955,13 @@ window.__ModuleLoader__.load({
 								className: ManagedCapabilities_module_css_default.empty,
 								children: query.trim() ? "没有找到匹配的能力，试试其他名称或用途。" : filter === "removed" ? "暂无已移除的能力。" : filter === "pinned" ? "暂无收藏能力，点击卡片右上角的图钉即可收藏。" : "没有符合条件的能力。"
 							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
 								className: ManagedCapabilities_module_css_default.muted,
-								children: "当前真实适配：BrowserSkill。文档、表格、知识库等组件将在适配完成后加入。"
+								children: [
+									"会议录音转写由",
+									meetingAssistantName,
+									"调用；录音会发送至你配置的识别服务，纪要由工作台已配置的模型生成。其他可组合能力仍按现有配置管理。"
+								]
 							})
 						] })
 					] }),
@@ -4402,6 +4987,1342 @@ window.__ModuleLoader__.load({
 					})
 				]
 			});
+		}
+		//#endregion
+		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/MeetingDemo.module.css.mjs
+		const css$2 = ".oLleaW_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#4d68ad);width:100%;height:100%;min-height:0;color:var(--ink);font:inherit;flex-direction:column;display:flex}.oLleaW_root button{font:inherit;cursor:pointer}.oLleaW_root button:focus-visible,.oLleaW_root textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.oLleaW_heading{border-bottom:1px solid var(--border);justify-content:space-between;align-items:center;gap:16px;min-height:60px;padding:0 28px;display:flex}.oLleaW_heading>div{align-items:center;gap:13px;display:flex}.oLleaW_heading>div:first-child span{color:var(--muted)}.oLleaW_heading strong{font-size:16px;font-weight:650}.oLleaW_heading button{color:var(--muted);background:0 0;border:0;font-size:12px}.oLleaW_heading button:hover{color:var(--accent)}.oLleaW_demoBadge{border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:4px 8px;font-size:11px}.oLleaW_tabs{border-bottom:1px solid var(--border);flex:none;gap:30px;height:44px;padding:0 28px;display:flex}.oLleaW_tabs button{color:var(--muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:0 2px;font-size:14px}.oLleaW_tabs button[aria-selected=true]{border-color:var(--accent);color:var(--ink);font-weight:650}.oLleaW_scroll{overscroll-behavior:contain;flex:1;min-height:0;overflow:auto}.oLleaW_messages{width:min(900px,100% - 64px);margin:0 auto;padding:28px 0 40px}.oLleaW_message{align-items:flex-start;gap:12px;margin:0 0 28px;display:flex}.oLleaW_message>span:first-child{border-radius:10px;width:32px;height:32px}.oLleaW_messageBody{flex:1;min-width:0;max-width:810px;font-size:14px;line-height:1.75}.oLleaW_messageBody>p{margin:0 0 12px}.oLleaW_messageBody .oLleaW_lead{margin:0 0 9px;font-size:19px;font-weight:650}.oLleaW_messageBody .oLleaW_muted{color:var(--muted);margin-top:13px;font-size:12px}.oLleaW_byline{margin:2px 0 10px;font-size:12px;font-weight:700}.oLleaW_byline span{color:var(--muted);margin-left:7px;font-size:10px;font-weight:400}.oLleaW_userMessage{justify-content:flex-end;margin:0 0 24px;display:flex}.oLleaW_userMessage>div{border:1px solid color-mix(in srgb,var(--accent) 23%,var(--border));background:color-mix(in srgb,var(--accent) 8%,var(--surface));overflow-wrap:anywhere;border-radius:16px 16px 4px;max-width:min(560px,85%);padding:10px 14px;font-size:13px;line-height:1.6}.oLleaW_userMessage small{color:var(--muted);font-size:10px;display:block}.oLleaW_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:710px;margin:17px 0 4px;display:grid}.oLleaW_modes button{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--surface);min-height:132px;color:var(--ink);text-align:left;border-radius:12px;flex-direction:column;align-items:flex-start;padding:16px;transition:transform .16s,border-color .16s;display:flex}.oLleaW_modes button:hover{border-color:var(--accent);transform:translateY(-2px)}.oLleaW_modes b{font-size:15px}.oLleaW_modes span{color:var(--muted);margin-top:7px;font-size:12px}.oLleaW_modes em{color:var(--accent);margin-top:auto;font-size:11px;font-style:normal;font-weight:650}.oLleaW_selectedMode{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:8px 11px;font-size:12px;display:inline-block}.oLleaW_choices{flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;display:flex}.oLleaW_choices>span{color:var(--muted);font-size:12px}.oLleaW_choices button,.oLleaW_cardFooter button,.oLleaW_uploadPrompt>button:not(.oLleaW_primary){border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 10px;font-size:12px}.oLleaW_choices button:hover,.oLleaW_cardFooter button:hover,.oLleaW_uploadPrompt>button:hover{border-color:var(--accent)}.oLleaW_uploadPrompt{border:1px dashed color-mix(in srgb,var(--accent) 50%,var(--border));background:var(--surface);border-radius:11px;flex-wrap:wrap;align-items:center;gap:11px;max-width:680px;padding:13px;display:flex}.oLleaW_uploadPrompt>span{background:color-mix(in srgb,var(--accent) 12%,var(--surface));width:36px;height:36px;color:var(--accent);border-radius:9px;place-items:center;font-size:22px;display:grid}.oLleaW_uploadPrompt>div{flex:1;min-width:160px}.oLleaW_uploadPrompt strong,.oLleaW_uploadPrompt small{display:block}.oLleaW_uploadPrompt strong{font-size:12px}.oLleaW_uploadPrompt small{color:var(--muted);font-size:10px}.oLleaW_modelControl{color:var(--muted);flex-wrap:wrap;align-items:center;gap:8px;margin-top:9px;font-size:11px;display:flex}.oLleaW_modelControl select{border:1px solid var(--border);background:var(--surface);min-width:180px;max-width:100%;color:var(--ink);font:inherit;border-radius:7px;padding:6px 9px}.oLleaW_modelRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:0 18px 13px;display:flex}.oLleaW_modelRow button{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 10px;font-size:11px}.oLleaW_primary{border-radius:8px;padding:8px 12px;font-size:12px;background:var(--accent)!important;color:#fff!important;border:0!important}.oLleaW_primary:disabled{opacity:.5;cursor:not-allowed}.oLleaW_progress{border:1px solid var(--border);background:var(--surface);border-radius:11px;align-items:center;gap:13px;max-width:570px;padding:15px;display:flex}.oLleaW_progress>span{color:var(--accent);font-size:27px}.oLleaW_progress>div{flex:1}.oLleaW_progress strong,.oLleaW_progress small{display:block}.oLleaW_progress strong{font-size:12px}.oLleaW_progress small{color:var(--muted);font-size:10px}.oLleaW_progressTrack{background:var(--border);border-radius:9px;height:5px;margin-top:8px;overflow:hidden}.oLleaW_progressTrack i{background:var(--accent);border-radius:9px;width:72%;height:100%;animation:1.5s ease-in-out infinite oLleaW_progress;display:block}@keyframes oLleaW_progress{0%{transform:translate(-110%)}to{transform:translate(150%)}}.oLleaW_resultCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;max-width:760px;overflow:hidden;box-shadow:0 4px 18px #182c500b}.oLleaW_audioBar{border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;gap:8px;padding:9px 18px;display:flex}.oLleaW_audioBar audio{width:min(420px,100%);height:36px}.oLleaW_audioBar small{color:var(--muted);font-size:10px}.oLleaW_cardHead{border-bottom:1px solid var(--border);justify-content:space-between;align-items:center;gap:10px;padding:15px 18px;display:flex}.oLleaW_cardHead small{color:var(--accent);font-size:10px;font-weight:700;display:block}.oLleaW_cardHead h3{margin:2px 0 0;font-size:15px}.oLleaW_cardHead>span{white-space:nowrap;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 7px;font-size:10px}.oLleaW_transcriptRows{padding:0 18px}.oLleaW_transcriptRow{border-bottom:1px solid var(--border);grid-template-columns:48px minmax(0,1fr);gap:12px;padding:13px 0;display:grid}.oLleaW_transcriptRow:last-child{border-bottom:0}.oLleaW_transcriptRow time{color:var(--accent);font-size:11px}.oLleaW_transcriptRow strong{font-size:11px}.oLleaW_transcriptRow p{margin:4px 0 0;font-size:12px;line-height:1.7}.oLleaW_transcriptRow textarea{box-sizing:border-box;resize:vertical;border:1px solid var(--border);background:var(--surface);width:100%;min-height:58px;color:var(--ink);font:inherit;border-radius:7px;margin-top:6px;padding:8px;font-size:12px;line-height:1.6;display:block}.oLleaW_speakerInput{border:1px solid var(--border);background:var(--surface);max-width:180px;color:var(--ink);font:inherit;border-radius:6px;padding:4px 6px;font-size:11px;display:block}.oLleaW_cardFooter{border-top:1px solid var(--border);flex-wrap:wrap;align-items:center;gap:8px;padding:12px 18px;display:flex}.oLleaW_cardFooter span{min-width:180px;color:var(--muted);flex:1;font-size:10px}.oLleaW_minutes{padding:4px 20px 19px}.oLleaW_minutes section{margin-top:13px}.oLleaW_minutes h4{margin:0 0 5px;font-size:12px}.oLleaW_minutes p{margin:0;font-size:12px;line-height:1.75}.oLleaW_minutes small{color:var(--muted);font-size:10px}.oLleaW_actionLine{border:1px solid var(--border);border-radius:7px;flex-wrap:wrap;justify-content:space-between;gap:5px 12px;margin:6px 0;padding:8px 10px;font-size:11px;display:flex}.oLleaW_actionLine span{color:var(--muted)}.oLleaW_sourceLink{color:var(--accent);background:0 0;border:0;padding:0;font-size:10px}.oLleaW_sourceLink:hover{text-decoration:underline}.oLleaW_highlight{background:color-mix(in srgb,#d8a254 8%,var(--surface));border-left:3px solid #d8a254;margin-left:-8px;padding-left:8px}.oLleaW_trace{border:1px solid var(--border);background:var(--surface);border-radius:12px;width:min(760px,100% - 64px);margin:30px auto;padding:22px}.oLleaW_trace h2{margin:0 0 5px;font-size:18px}.oLleaW_trace p{color:var(--muted);font-size:12px}.oLleaW_trace ol{margin:20px 0 0;padding:0;list-style:none}.oLleaW_trace li{border-top:1px solid var(--border);gap:13px;padding:10px 0;font-size:12px;display:flex}.oLleaW_trace li span{color:var(--accent)}.oLleaW_composerWrap{flex:none;width:min(970px,100% - 48px);margin:0 auto;padding:10px 0 14px}.oLleaW_composer{border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5014}.oLleaW_composer textarea{resize:vertical;box-sizing:border-box;width:100%;min-height:65px;max-height:160px;color:var(--ink);font:inherit;background:0 0;border:0;outline:0;font-size:15px;line-height:1.5;display:block}.oLleaW_composer textarea::placeholder{color:var(--muted)}.oLleaW_composerTools,.oLleaW_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.oLleaW_composerTools>div span{color:var(--muted);font-size:11px}.oLleaW_composerTools button{color:var(--accent);background:0 0;border:0;font-size:24px}.oLleaW_composerTools button:disabled{opacity:.35;cursor:default}.oLleaW_composerTools .oLleaW_send{background:var(--accent);color:#fff;border-radius:50%;width:38px;height:38px;line-height:1}.oLleaW_notice{color:var(--accent);text-align:center;margin:5px 0 0;font-size:11px}@media (width<=660px){.oLleaW_heading{min-height:52px;padding:0 15px}.oLleaW_heading>div{gap:7px}.oLleaW_heading strong{font-size:13px}.oLleaW_tabs{padding:0 15px}.oLleaW_messages{width:calc(100% - 28px);padding-top:17px}.oLleaW_message{gap:8px}.oLleaW_message>span:first-child{width:27px;height:27px}.oLleaW_messageBody{font-size:13px}.oLleaW_modes{grid-template-columns:1fr}.oLleaW_modes button{min-height:100px}.oLleaW_uploadPrompt>button{flex:1}.oLleaW_composerWrap{width:calc(100% - 18px);padding-bottom:6px}.oLleaW_composer{border-radius:16px}.oLleaW_composerTools>div span{font-size:9px}.oLleaW_trace{box-sizing:border-box;width:calc(100% - 26px)}}@media (prefers-reduced-motion:reduce){.oLleaW_modes button{transition:none}.oLleaW_modes button:hover{transform:none}.oLleaW_progressTrack i{animation:none}}";
+		const tagId$2 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/MeetingDemo.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$2) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$2;
+			tag.textContent = css$2;
+			document.head.appendChild(tag);
+		}
+		var MeetingDemo_module_css_default = {
+			"actionLine": "oLleaW_actionLine",
+			"audioBar": "oLleaW_audioBar",
+			"byline": "oLleaW_byline",
+			"cardFooter": "oLleaW_cardFooter",
+			"cardHead": "oLleaW_cardHead",
+			"choices": "oLleaW_choices",
+			"composer": "oLleaW_composer",
+			"composerTools": "oLleaW_composerTools",
+			"composerWrap": "oLleaW_composerWrap",
+			"demoBadge": "oLleaW_demoBadge",
+			"heading": "oLleaW_heading",
+			"highlight": "oLleaW_highlight",
+			"lead": "oLleaW_lead",
+			"message": "oLleaW_message",
+			"messageBody": "oLleaW_messageBody",
+			"messages": "oLleaW_messages",
+			"minutes": "oLleaW_minutes",
+			"modelControl": "oLleaW_modelControl",
+			"modelRow": "oLleaW_modelRow",
+			"modes": "oLleaW_modes",
+			"muted": "oLleaW_muted",
+			"notice": "oLleaW_notice",
+			"primary": "oLleaW_primary",
+			"progress": "oLleaW_progress",
+			"progressTrack": "oLleaW_progressTrack",
+			"resultCard": "oLleaW_resultCard",
+			"root": "oLleaW_root",
+			"scroll": "oLleaW_scroll",
+			"selectedMode": "oLleaW_selectedMode",
+			"send": "oLleaW_send",
+			"sourceLink": "oLleaW_sourceLink",
+			"speakerInput": "oLleaW_speakerInput",
+			"tabs": "oLleaW_tabs",
+			"trace": "oLleaW_trace",
+			"transcriptRow": "oLleaW_transcriptRow",
+			"transcriptRows": "oLleaW_transcriptRows",
+			"uploadPrompt": "oLleaW_uploadPrompt",
+			"userMessage": "oLleaW_userMessage"
+		};
+		//#endregion
+		//#region src/client/MeetingDemo.tsx
+		const endpoint = "/api/capabilities/meeting";
+		const formatTime = (ms) => `${Math.floor(ms / 6e4).toString().padStart(2, "0")}:${Math.floor(ms % 6e4 / 1e3).toString().padStart(2, "0")}`;
+		const escapeHtml = (value) => value.replace(/[&<>"']/g, (char) => ({
+			"&": "&amp;",
+			"<": "&lt;",
+			">": "&gt;",
+			"\"": "&quot;",
+			"'": "&#39;"
+		})[char] ?? char);
+		async function api(path, init) {
+			const response = await fetch(`${endpoint}${path}`, {
+				credentials: "same-origin",
+				...init
+			});
+			const body = await response.json().catch(() => ({}));
+			if (!response.ok) throw new Error(body.error || `请求失败（${response.status}）`);
+			return body;
+		}
+		function post(path, body) {
+			return api(path, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(body)
+			});
+		}
+		function restore(value) {
+			if (!value || typeof value !== "object") return void 0;
+			const state = value;
+			if (!Array.isArray(state.messages) || !Array.isArray(state.trace) || typeof state.draft !== "string") return void 0;
+			if (typeof state.jobId === "string" || state.phase === "start") return state;
+			return {
+				...state,
+				phase: [
+					"audience",
+					"focus",
+					"upload"
+				].includes(state.phase) ? state.phase : "upload",
+				jobId: null,
+				showTranscript: false,
+				messages: state.messages.filter((message) => ![
+					"transcript",
+					"minutes",
+					"upload"
+				].includes(message.kind))
+			};
+		}
+		function minutesText(minutes) {
+			return [
+				minutes.title,
+				"",
+				"会议概览",
+				minutes.overview,
+				"",
+				"主要结论",
+				...minutes.decisions.map((item) => `• ${item.text}`),
+				"",
+				"行动项",
+				...minutes.actions.map((item) => `• ${item.text}${item.owner ? `｜负责人：${item.owner}` : ""}${item.deadline ? `｜期限：${item.deadline}` : ""}`),
+				"",
+				"待确认事项",
+				...minutes.unknown.map((item) => `• ${item.text}`)
+			].join("\n");
+		}
+		function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, onReset, assistant, roleVersion } = {}) {
+			const initial = (0, react.useRef)(restore(initialState));
+			const assistantName = assistant?.name ?? "会议纪要助手";
+			const assistantColor = assistant?.color ?? "#6683bd";
+			const assistantIcon = assistant?.icon ?? {
+				kind: "builtin",
+				id: "document"
+			};
+			const [mode, setMode] = (0, react.useState)(initial.current?.mode ?? null);
+			const [phase, setPhase] = (0, react.useState)(initial.current?.phase ?? "start");
+			const [audience, setAudience] = (0, react.useState)(initial.current?.audience ?? "");
+			const [focus, setFocus] = (0, react.useState)(initial.current?.focus ?? "");
+			const [summaryModel, setSummaryModel] = (0, react.useState)(initial.current?.summaryModel ?? "");
+			const [models, setModels] = (0, react.useState)([]);
+			const [messages, setMessages] = (0, react.useState)(initial.current?.messages ?? [{
+				id: 0,
+				kind: "intro"
+			}]);
+			const [trace, setTrace] = (0, react.useState)(initial.current?.trace ?? ["打开会议纪要助手"]);
+			const [tab, setTab] = (0, react.useState)("chat");
+			const [draft, setDraft] = (0, react.useState)(initial.current?.draft ?? "");
+			const [jobId, setJobId] = (0, react.useState)(initial.current?.jobId ?? null);
+			const [job, setJob] = (0, react.useState)(null);
+			const [segments, setSegments] = (0, react.useState)([]);
+			const [showTranscript, setShowTranscript] = (0, react.useState)(initial.current?.showTranscript ?? false);
+			const [availability, setAvailability] = (0, react.useState)(null);
+			const [notice, setNotice] = (0, react.useState)("");
+			const [busy, setBusy] = (0, react.useState)(false);
+			const input = (0, react.useRef)(null);
+			const player = (0, react.useRef)(null);
+			const scroll = (0, react.useRef)(null);
+			const nextId = (0, react.useRef)(Math.max(0, ...messages.map((message) => message.id)) + 1);
+			const snapshotCallback = (0, react.useRef)(onSnapshot);
+			snapshotCallback.current = onSnapshot;
+			(0, react.useEffect)(() => {
+				snapshotCallback.current?.({
+					mode,
+					phase,
+					audience,
+					focus,
+					summaryModel,
+					messages,
+					trace,
+					draft,
+					jobId,
+					showTranscript,
+					roleVersion
+				});
+			}, [
+				mode,
+				phase,
+				audience,
+				focus,
+				summaryModel,
+				messages,
+				trace,
+				draft,
+				jobId,
+				showTranscript,
+				roleVersion
+			]);
+			(0, react.useEffect)(() => {
+				api("/config").then(setAvailability).catch((error) => setAvailability({
+					ready: false,
+					message: String(error),
+					maxBytes: 0,
+					provider: "自定义语音识别接口"
+				}));
+			}, []);
+			(0, react.useEffect)(() => {
+				if (loadModels) loadModels().then(setModels).catch(() => setModels([]));
+			}, [loadModels]);
+			(0, react.useEffect)(() => {
+				if (!jobId) return;
+				let active = true;
+				const check = async () => {
+					try {
+						const next = await api(`/job/${jobId}`);
+						if (!active) return;
+						setJob(next);
+						if (next.status === "transcribed" && mode === "guided") {
+							setPhase("transcript");
+							setSegments((current) => current.length ? current : next.segments);
+							setMessages((current) => current.some((message) => message.kind === "transcript") ? current : [...current, {
+								id: nextId.current++,
+								kind: "transcript"
+							}]);
+						} else if (next.status === "ready") {
+							setPhase("ready");
+							setSegments(next.segments);
+							setMessages((current) => current.some((message) => message.kind === "minutes") ? current : [...current, {
+								id: nextId.current++,
+								kind: "minutes"
+							}]);
+						}
+					} catch (error) {
+						if (active) setNotice(error instanceof Error ? error.message : String(error));
+					}
+				};
+				check();
+				const timer = window.setInterval(() => {
+					if (!job || [
+						"uploading",
+						"transcribing",
+						"generating"
+					].includes(job.status)) check();
+				}, 2500);
+				return () => {
+					active = false;
+					window.clearInterval(timer);
+				};
+			}, [
+				jobId,
+				mode,
+				job?.status
+			]);
+			(0, react.useEffect)(() => {
+				if (tab === "chat" && scroll.current?.scrollTo) scroll.current.scrollTo({
+					top: scroll.current.scrollHeight,
+					behavior: "smooth"
+				});
+			}, [
+				messages,
+				phase,
+				tab
+			]);
+			(0, react.useEffect)(() => {
+				if (!notice) return;
+				const timer = window.setTimeout(() => setNotice(""), 6e3);
+				return () => window.clearTimeout(timer);
+			}, [notice]);
+			const add = (...entries) => setMessages((current) => [...current, ...entries.map((entry) => ({
+				...entry,
+				id: nextId.current++
+			}))]);
+			const log = (value) => setTrace((current) => [...current, value]);
+			const chooseMode = (value) => {
+				if (phase !== "start") return;
+				onCommit?.(`会议纪要 · ${value === "quick" ? "快速生成" : "引导整理"}`);
+				setMode(value);
+				add({
+					kind: "user",
+					text: value === "quick" ? "快速生成" : "引导整理"
+				}, {
+					kind: "assistant",
+					text: value === "quick" ? "上传录音后，我会直接生成纪要草稿。" : "先选择纪要用途和关注重点，再上传录音核对转写。"
+				});
+				setPhase(value === "quick" ? "upload" : "audience");
+				log(`选择${value === "quick" ? "快速生成" : "引导整理"}`);
+			};
+			const chooseAudience = (value) => {
+				if (phase !== "audience") return;
+				setAudience(value);
+				setPhase("focus");
+				add({
+					kind: "user",
+					text: value
+				}, {
+					kind: "assistant",
+					text: "这次希望重点突出什么？"
+				});
+				log(`纪要用途：${value}`);
+			};
+			const chooseFocus = (value) => {
+				if (phase !== "focus") return;
+				setFocus(value);
+				setPhase("upload");
+				add({
+					kind: "user",
+					text: value
+				}, {
+					kind: "assistant",
+					text: "准备好了，请上传录音。"
+				});
+				log(`关注重点：${value}`);
+			};
+			const onFile = async (file) => {
+				if (!file || phase !== "upload" || busy) return;
+				if (!/\.(mp3|m4a|wav|aac|flac|ogg|opus|webm|mp4)$/i.test(file.name)) {
+					setNotice("请选择 MP3、M4A、WAV 等支持的音视频文件");
+					return;
+				}
+				if (file.size > (availability?.maxBytes ?? 0)) {
+					setNotice("录音超过当前上传限制");
+					return;
+				}
+				if (!availability?.ready) {
+					setNotice(availability?.message || "转写服务尚未配置");
+					return;
+				}
+				setBusy(true);
+				setPhase("processing");
+				add({
+					kind: "upload",
+					file: file.name
+				});
+				log(`上传录音：${file.name}`);
+				try {
+					const created = await post("/create", {
+						fileName: file.name,
+						mode,
+						audience,
+						focus,
+						summaryModel,
+						roleVersion
+					});
+					setJobId(created.id);
+					const uploaded = await api(`/upload/${created.id}`, {
+						method: "PUT",
+						headers: { "Content-Type": "application/octet-stream" },
+						body: file
+					});
+					setJob(uploaded);
+					log("录音上传完成，开始语音转写");
+				} catch (error) {
+					setNotice(error instanceof Error ? error.message : String(error));
+					setPhase("upload");
+				} finally {
+					setBusy(false);
+					if (input.current) input.current.value = "";
+				}
+			};
+			const retry = async () => {
+				if (!jobId) return;
+				if (job && !job.size) {
+					setJobId(null);
+					setJob(null);
+					setPhase("upload");
+					setNotice("请重新选择录音上传");
+					return;
+				}
+				if (job?.segments.length) {
+					generate();
+					return;
+				}
+				setBusy(true);
+				try {
+					const next = await post("/retry", { id: jobId });
+					setJob(next);
+					setPhase(next.status === "transcribed" ? "transcript" : "processing");
+					log("重试处理录音");
+				} catch (error) {
+					setNotice(error instanceof Error ? error.message : String(error));
+				} finally {
+					setBusy(false);
+				}
+			};
+			const generate = async (instruction) => {
+				if (!jobId || busy) return;
+				setBusy(true);
+				setPhase("processing");
+				try {
+					await post("/generate", {
+						id: jobId,
+						summaryModel,
+						...instruction ? { instruction } : mode === "guided" ? { segments } : {}
+					});
+					setJob((current) => current ? {
+						...current,
+						status: "generating"
+					} : current);
+					log(instruction ? `修改纪要：${instruction}` : "核对转写并生成纪要");
+				} catch (error) {
+					setNotice(error instanceof Error ? error.message : String(error));
+					setPhase(instruction ? "ready" : "transcript");
+				} finally {
+					setBusy(false);
+				}
+			};
+			const revise = (value) => {
+				if (phase !== "ready" || !value.trim()) return;
+				add({
+					kind: "user",
+					text: value
+				}, {
+					kind: "assistant",
+					text: "正在根据录音与现有纪要修改…"
+				});
+				generate(value);
+			};
+			const send = () => {
+				const value = draft.trim();
+				if (!value) return;
+				setDraft("");
+				if (phase === "audience") return chooseAudience(value);
+				if (phase === "focus") return chooseFocus(value);
+				if (phase === "ready") return revise(value);
+				if (phase === "start") add({
+					kind: "user",
+					text: value
+				}, {
+					kind: "assistant",
+					text: "请先选择“快速生成”或“引导整理”。"
+				});
+				else setNotice(phase === "transcript" ? "请先在转写原文中核对并确认" : phase === "processing" ? "正在处理录音，请稍候" : "请先上传录音");
+			};
+			const seek = (id) => {
+				const row = job?.segments.find((segment) => segment.id === id);
+				if (!row) return;
+				setShowTranscript(true);
+				window.setTimeout(() => {
+					document.getElementById(`meeting-source-${id}`)?.scrollIntoView({
+						behavior: "smooth",
+						block: "center"
+					});
+					if (player.current) {
+						player.current.currentTime = row.start / 1e3;
+						player.current.play().catch(() => {});
+					}
+				}, 0);
+			};
+			const sourceLinks = (item) => item.sourceIds.map((id) => {
+				const row = job?.segments.find((segment) => segment.id === id);
+				return row ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+					className: MeetingDemo_module_css_default.sourceLink,
+					onClick: () => seek(id),
+					children: ["回听 ", formatTime(row.start)]
+				}, id) : null;
+			});
+			const modelControl = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+				className: MeetingDemo_module_css_default.modelControl,
+				children: ["纪要模型", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+					"aria-label": "纪要模型",
+					value: summaryModel,
+					onChange: (event) => setSummaryModel(event.target.value),
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+						value: "",
+						children: "工作台默认模型"
+					}), models.map((model) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
+						value: model.id,
+						children: [
+							model.name,
+							" · ",
+							model.id
+						]
+					}, model.id))]
+				})]
+			});
+			const copyMinutes = async () => {
+				if (!job?.minutes) return;
+				try {
+					await navigator.clipboard.writeText(minutesText(job.minutes));
+					setNotice("已复制当前纪要");
+				} catch {
+					setNotice("复制失败，可选中文字手动复制");
+				}
+			};
+			const printMinutes = () => {
+				if (!job?.minutes) return;
+				const windowRef = window.open("", "_blank", "width=900,height=700");
+				if (!windowRef) {
+					setNotice("打印窗口被拦截，请允许弹出窗口后重试");
+					return;
+				}
+				const html = minutesText(job.minutes).split("\n").map((line) => `<div>${escapeHtml(line) || "&nbsp;"}</div>`).join("");
+				windowRef.document.write(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>${escapeHtml(job.minutes.title)}</title><style>body{font:15px/1.7 system-ui,sans-serif;max-width:760px;margin:40px auto;color:#202938}div{white-space:pre-wrap}div:first-child{font-size:24px;font-weight:700;margin-bottom:20px}@page{size:A4;margin:18mm}</style></head><body>${html}</body></html>`);
+				windowRef.document.close();
+				windowRef.focus();
+				windowRef.print();
+			};
+			const transcriptCard = (editable) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: MeetingDemo_module_css_default.resultCard,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.cardHead,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "录音转写" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: editable ? "请先核对原文" : "转写原文" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [job?.segments.length ?? 0, " 个片段"] })]
+					}),
+					jobId && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.audioBar,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("audio", {
+							ref: player,
+							controls: true,
+							preload: "metadata",
+							src: `${endpoint}/audio/${jobId}`
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "点击时间戳可从对应位置回听" })]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: MeetingDemo_module_css_default.transcriptRows,
+						children: (editable ? segments : job?.segments ?? []).map((row, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: MeetingDemo_module_css_default.transcriptRow,
+							id: `meeting-source-${row.id}`,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: MeetingDemo_module_css_default.sourceLink,
+								onClick: () => seek(row.id),
+								children: formatTime(row.start)
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: editable ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+								className: MeetingDemo_module_css_default.speakerInput,
+								"aria-label": `${formatTime(row.start)} 发言人`,
+								value: row.speaker,
+								onChange: (event) => setSegments((current) => current.map((item, i) => i === index ? {
+									...item,
+									speaker: event.target.value
+								} : item))
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("textarea", {
+								"aria-label": `${formatTime(row.start)} 转写文字`,
+								value: row.text,
+								onChange: (event) => setSegments((current) => current.map((item, i) => i === index ? {
+									...item,
+									text: event.target.value
+								} : item))
+							})] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: row.speaker }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: row.text })] }) })]
+						}, row.id))
+					}),
+					editable && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.cardFooter,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "可修改说话人和识别文字，确认后生成纪要。" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: MeetingDemo_module_css_default.primary,
+							disabled: busy,
+							onClick: () => void generate(),
+							children: "确认转写，生成纪要 →"
+						})]
+					})
+				]
+			});
+			const minutesCard = () => !job?.minutes ? null : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: MeetingDemo_module_css_default.resultCard,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.cardHead,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "会议纪要 · 可继续对话修改" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: job.minutes.title })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "基于录音生成" })]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.minutes,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "会议概览" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: job.minutes.overview })] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "主要结论" }), job.minutes.decisions.map((item, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+								item.text,
+								" ",
+								sourceLinks(item)
+							] }, index))] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "行动项" }), job.minutes.actions.map((item, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: MeetingDemo_module_css_default.actionLine,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.text }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
+									item.owner || "负责人待确认",
+									" · ",
+									item.deadline || "期限待确认",
+									" ",
+									sourceLinks(item)
+								] })]
+							}, index))] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "待确认事项" }), job.minutes.unknown.map((item, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+								item.text,
+								" ",
+								sourceLinks(item)
+							] }, index))] })
+						]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.cardFooter,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: () => void copyMinutes(),
+								children: "复制纪要"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: printMinutes,
+								children: "打印 / 保存 PDF"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: () => setShowTranscript((value) => !value),
+								children: showTranscript ? "收起转写" : "查看转写原文"
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.modelRow,
+						children: [modelControl, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy,
+							onClick: () => void generate(),
+							children: "用所选模型重新生成"
+						})]
+					}),
+					showTranscript && transcriptCard(false)
+				]
+			});
+			const assistantMessage = (children, key) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
+				className: MeetingDemo_module_css_default.message,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleAppearanceIcon, {
+					roleId: MEETING_DEMO_ROLE_ID,
+					icon: assistantIcon,
+					color: assistantColor
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: MeetingDemo_module_css_default.messageBody,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: MeetingDemo_module_css_default.byline,
+						children: assistantName
+					}), children]
+				})]
+			}, key);
+			const renderMessage = (message) => {
+				if (message.kind === "user" || message.kind === "upload") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("article", {
+					className: MeetingDemo_module_css_default.userMessage,
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: message.kind === "upload" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+						"♫　",
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: message.file }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "会议录音" })
+					] }) : message.text })
+				}, message.id);
+				if (message.kind === "intro") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						className: MeetingDemo_module_css_default.lead,
+						children: [
+							"你好，我是",
+							assistantName,
+							"。"
+						]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "我可以帮你把会议录音整理为结论和待办。先选择这次的处理方式：" }),
+					mode ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						className: MeetingDemo_module_css_default.selectedMode,
+						children: [
+							"已选择 ",
+							mode === "quick" ? "快速生成" : "引导整理",
+							" · 后续仍可在对话中修改"
+						]
+					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.modes,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							onClick: () => chooseMode("quick"),
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("b", { children: "⚡　快速生成" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "上传录音后直接生成纪要草稿" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("em", { children: "适合马上看结果 →" })
+							]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							onClick: () => chooseMode("guided"),
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("b", { children: "☷　引导整理" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "先选用途与重点，再核对转写" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("em", { children: "适合需要把控细节 →" })
+							]
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						className: MeetingDemo_module_css_default.muted,
+						children: ["录音由你配置的语音识别接口处理；纪要使用工作台模型。", availability?.message]
+					})
+				] }), message.id);
+				if (message.kind === "assistant") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: message.text }),
+					phase === "audience" && message.text?.startsWith("先选择") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: MeetingDemo_module_css_default.choices,
+						children: [
+							"团队同步",
+							"领导汇报",
+							"客户沟通"
+						].map((value) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							onClick: () => chooseAudience(value),
+							children: value
+						}, value))
+					}),
+					phase === "focus" && message.text === "这次希望重点突出什么？" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: MeetingDemo_module_css_default.choices,
+						children: [
+							"结论与待办",
+							"风险与问题",
+							"完整讨论"
+						].map((value) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							onClick: () => chooseFocus(value),
+							children: value
+						}, value))
+					}),
+					phase === "upload" && (message.text?.startsWith("上传录音") || message.text?.startsWith("准备好了")) && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.uploadPrompt,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "♫" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "添加会议录音" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+								"MP3、M4A、WAV 等 · 最大 ",
+								Math.round((availability?.maxBytes ?? 25 * 1024 * 1024) / 1024 / 1024),
+								" MB"
+							] })] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: MeetingDemo_module_css_default.primary,
+								disabled: !availability?.ready || busy,
+								onClick: () => input.current?.click(),
+								children: "选择录音"
+							}),
+							!availability?.ready && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								onClick: () => openCapabilityLink({
+									section: "capability-center",
+									capabilityId: "meeting-transcription"
+								}),
+								children: "前往能力中心"
+							})
+						]
+					}), modelControl] })
+				] }), message.id);
+				if (message.kind === "transcript") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "转写已完成。请核对说话人和关键内容，确认后生成纪要。" }), transcriptCard(true)] }), message.id);
+				if (message.kind === "minutes") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "纪要已生成。你可以继续在下方对话框提出修改。" }),
+					minutesCard(),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.choices,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "试试：" }), [
+							"把待办放在前面",
+							"缩短摘要",
+							"突出待确认事项"
+						].map((value) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							onClick: () => revise(value),
+							children: value
+						}, value))]
+					})
+				] }), message.id);
+				return null;
+			};
+			const status = job?.status;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: MeetingDemo_module_css_default.root,
+				"data-meeting-demo": "true",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.heading,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "你好" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: assistantName })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							className: MeetingDemo_module_css_default.demoBadge,
+							children: availability?.ready ? "录音转纪要" : "待配置"
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							onClick: () => onReset?.(),
+							children: "重新开始"
+						})] })]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.tabs,
+						role: "tablist",
+						"aria-label": "会话视图",
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							role: "tab",
+							"aria-selected": tab === "chat",
+							onClick: () => setTab("chat"),
+							children: "对话"
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							role: "tab",
+							"aria-selected": tab === "trace",
+							onClick: () => setTab("trace"),
+							children: "轨迹"
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: MeetingDemo_module_css_default.scroll,
+						ref: scroll,
+						role: "tabpanel",
+						children: tab === "chat" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: MeetingDemo_module_css_default.messages,
+							children: [
+								messages.map(renderMessage),
+								phase === "processing" && status !== "error" && assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: MeetingDemo_module_css_default.progress,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "◌" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: status === "generating" || status === "transcribed" ? "正在生成纪要…" : status === "uploading" ? "正在上传录音…" : "正在转写录音…" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "可以切换会话，处理完成后回来查看" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+											className: MeetingDemo_module_css_default.progressTrack,
+											children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", {})
+										})
+									] })]
+								}), -1),
+								status === "error" && assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: MeetingDemo_module_css_default.resultCard,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										className: MeetingDemo_module_css_default.cardHead,
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "处理失败" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: job?.error })] })
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										className: MeetingDemo_module_css_default.cardFooter,
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											disabled: busy,
+											onClick: () => void retry(),
+											children: "重试"
+										})
+									})]
+								}), -2)
+							]
+						}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: MeetingDemo_module_css_default.trace,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "会话轨迹" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "记录本次会议处理步骤。" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ol", { children: trace.map((entry, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: String(index + 1).padStart(2, "0") }), entry] }, index)) })
+							]
+						})
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.composerWrap,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: MeetingDemo_module_css_default.composer,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("textarea", {
+								"aria-label": "输入消息",
+								value: draft,
+								onChange: (event) => setDraft(event.target.value),
+								onKeyDown: (event) => {
+									if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing && event.keyCode !== 229) {
+										event.preventDefault();
+										send();
+									}
+								},
+								placeholder: phase === "start" ? "先选择上方的整理方式，或输入消息" : phase === "audience" ? "输入纪要用途" : phase === "focus" ? "输入关注重点" : phase === "ready" ? "输入要求，继续修改纪要" : "输入消息，继续对话"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: MeetingDemo_module_css_default.composerTools,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									"aria-label": "添加录音",
+									title: "添加录音",
+									disabled: phase !== "upload" || !availability?.ready || busy,
+									onClick: () => input.current?.click(),
+									children: "＋"
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: availability?.ready ? "录音交由已配置的识别接口处理" : "语音识别尚未配置" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: assistantName }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: MeetingDemo_module_css_default.send,
+									"aria-label": "发送消息",
+									disabled: !draft.trim() || busy,
+									onClick: send,
+									children: "↑"
+								})] })]
+							})]
+						}), notice && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: MeetingDemo_module_css_default.notice,
+							role: "status",
+							children: notice
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+						ref: input,
+						type: "file",
+						accept: ".mp3,.m4a,.wav,.aac,.flac,.ogg,.opus,.webm,.mp4",
+						hidden: true,
+						onChange: (event) => void onFile(event.target.files?.[0])
+					})
+				]
+			});
+		}
+		//#endregion
+		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/LocalConversationRows.module.css.mjs
+		const css$1 = ".z58OfW_rows{flex-direction:column;gap:2px;display:flex}.z58OfW_row{min-width:0;height:32px;color:var(--dsw-alias-label-primary,#202938);border-radius:8px;align-items:center;margin:0 8px;display:flex}.z58OfW_row:hover,.z58OfW_active{background:var(--dsw-alias-interactive-bg-hover,#e9eff9)}.z58OfW_open{min-width:0;height:100%;color:inherit;text-align:left;cursor:pointer;font:inherit;background:0 0;border:0;flex:1;align-items:center;gap:4px;padding:0 4px 0 24px;display:flex}.z58OfW_icon{width:16px;color:var(--dsw-alias-label-tertiary,#8995aa);flex:none;font-size:15px}.z58OfW_title{text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;font-size:14px;line-height:20px;overflow:hidden}.z58OfW_open small{color:var(--dsw-alias-label-tertiary,#8995aa);flex:none;font-size:11px}.z58OfW_menuTrigger{width:25px;height:25px;color:var(--dsw-alias-label-tertiary,#8995aa);cursor:pointer;opacity:0;background:0 0;border:0;border-radius:6px;place-items:center;margin-right:3px;display:grid}.z58OfW_row:hover .z58OfW_menuTrigger,.z58OfW_menuTrigger:focus-visible,.z58OfW_menuTrigger[aria-expanded=true]{opacity:1}.z58OfW_menuTrigger:hover{background:color-mix(in srgb,var(--dsw-alias-label-tertiary,#8995aa) 12%,transparent)}.z58OfW_open:focus-visible,.z58OfW_menuTrigger:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#4e6bb3);outline-offset:-2px}.z58OfW_menu{z-index:10000;box-sizing:border-box;border:1px solid var(--dsw-alias-border-default,#d7deeb);background:var(--dsw-alias-bg-surface,#fff);border-radius:12px;min-width:214px;padding:6px;position:fixed;box-shadow:0 8px 24px #16243c24}.z58OfW_menu button{width:100%;color:var(--dsw-alias-label-primary,#202938);text-align:left;cursor:pointer;font:inherit;background:0 0;border:0;border-radius:7px;align-items:center;gap:12px;padding:9px 10px;font-size:13px;display:flex}.z58OfW_menu button svg{color:var(--dsw-alias-label-secondary,#65769a);flex:none}.z58OfW_menu button:hover,.z58OfW_menu button:focus-visible{background:var(--dsw-alias-interactive-bg-hover,#e9eff9);outline:none}@media (hover:none){.z58OfW_menuTrigger{opacity:1}}";
+		const tagId$1 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/LocalConversationRows.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$1) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$1;
+			tag.textContent = css$1;
+			document.head.appendChild(tag);
+		}
+		var LocalConversationRows_module_css_default = {
+			"active": "z58OfW_active",
+			"icon": "z58OfW_icon",
+			"menu": "z58OfW_menu",
+			"menuTrigger": "z58OfW_menuTrigger",
+			"open": "z58OfW_open",
+			"row": "z58OfW_row",
+			"rows": "z58OfW_rows",
+			"title": "z58OfW_title"
+		};
+		//#endregion
+		//#region src/client/LocalConversationRows.tsx
+		/** Place local draft/demo rows beneath the upstream ungrouped Chat header. */
+		function LocalConversationRows({ host, label, rows, activeId, onOpen, onRemove }) {
+			const [target, setTarget] = (0, react.useState)(null);
+			const [menu, setMenu] = (0, react.useState)(null);
+			const trigger = (0, react.useRef)(null);
+			const menuItem = (0, react.useRef)(null);
+			(0, react.useEffect)(() => {
+				if (!menu) return;
+				menuItem.current?.focus({ preventScroll: true });
+				const closeOutside = (event) => {
+					if (event.target instanceof Node && (menuItem.current?.parentElement?.contains(event.target) || trigger.current?.contains(event.target))) return;
+					setMenu(null);
+				};
+				const closeEscape = (event) => {
+					if (event.key !== "Escape") return;
+					event.preventDefault();
+					setMenu(null);
+					trigger.current?.focus();
+				};
+				const closeOnMove = () => setMenu(null);
+				document.addEventListener("pointerdown", closeOutside);
+				document.addEventListener("keydown", closeEscape);
+				window.addEventListener("resize", closeOnMove);
+				window.addEventListener("scroll", closeOnMove, true);
+				return () => {
+					document.removeEventListener("pointerdown", closeOutside);
+					document.removeEventListener("keydown", closeEscape);
+					window.removeEventListener("resize", closeOnMove);
+					window.removeEventListener("scroll", closeOnMove, true);
+				};
+			}, [menu]);
+			(0, react.useLayoutEffect)(() => {
+				if (!host) return;
+				let container = null;
+				const place = () => {
+					const header = Array.from(host.querySelectorAll("button[aria-label]")).find((button) => button.getAttribute("aria-label") === label)?.closest("[role=\"treeitem\"]");
+					const group = header?.parentElement;
+					if (!header || !group) return;
+					if (container) container.hidden = header.getAttribute("aria-expanded") === "false";
+					if (container?.parentElement === group && container.previousElementSibling === header) return;
+					container?.remove();
+					container = document.createElement("div");
+					container.dataset.localConversationHost = "true";
+					container.hidden = header.getAttribute("aria-expanded") === "false";
+					group.insertBefore(container, header.nextSibling);
+					setTarget(container);
+				};
+				place();
+				const observer = new MutationObserver(place);
+				observer.observe(host, {
+					childList: true,
+					subtree: true,
+					attributes: true,
+					attributeFilter: ["aria-expanded"]
+				});
+				return () => {
+					observer.disconnect();
+					container?.remove();
+				};
+			}, [host, label]);
+			if (!target || !rows.length) return null;
+			const openMenu = (id, button) => {
+				if (menu?.id === id) {
+					setMenu(null);
+					return;
+				}
+				trigger.current = button;
+				const rect = button.getBoundingClientRect();
+				const left = Math.max(8, Math.min(rect.left, window.innerWidth - 214 - 8));
+				const top = rect.bottom + 6 + 54 > window.innerHeight ? Math.max(8, rect.top - 60) : rect.bottom + 6;
+				setMenu({
+					id,
+					left,
+					top
+				});
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [(0, react_dom.createPortal)(/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				className: LocalConversationRows_module_css_default.rows,
+				"data-local-conversations": "true",
+				children: rows.map((row) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: `${LocalConversationRows_module_css_default.row} ${activeId === row.id ? LocalConversationRows_module_css_default.active : ""}`,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						type: "button",
+						className: LocalConversationRows_module_css_default.open,
+						onClick: () => onOpen(row.id),
+						"aria-label": `打开本地会话：${row.title}`,
+						"aria-current": activeId === row.id ? "page" : void 0,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: LocalConversationRows_module_css_default.icon,
+								"aria-hidden": "true",
+								children: row.kind === "demo" ? "▤" : "◌"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: LocalConversationRows_module_css_default.title,
+								children: row.title
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: row.kind === "demo" ? "演示" : row.draft.trim() ? "草稿" : "临时" })
+						]
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						type: "button",
+						className: LocalConversationRows_module_css_default.menuTrigger,
+						onClick: (event) => openMenu(row.id, event.currentTarget),
+						"aria-label": `会话操作：${row.title}`,
+						"aria-haspopup": "menu",
+						"aria-expanded": menu?.id === row.id,
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+							width: "16",
+							height: "16",
+							viewBox: "0 0 16 16",
+							fill: "currentColor",
+							"aria-hidden": "true",
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+									cx: "3",
+									cy: "8",
+									r: "1.2"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+									cx: "8",
+									cy: "8",
+									r: "1.2"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+									cx: "13",
+									cy: "8",
+									r: "1.2"
+								})
+							]
+						})
+					})]
+				}, row.id))
+			}), target), menu && (0, react_dom.createPortal)(/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				className: LocalConversationRows_module_css_default.menu,
+				role: "menu",
+				"aria-label": "会话操作",
+				style: {
+					left: menu.left,
+					top: menu.top
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+					ref: menuItem,
+					type: "button",
+					role: "menuitem",
+					onClick: () => {
+						const id = menu.id;
+						setMenu(null);
+						onRemove(id);
+					},
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+						width: "16",
+						height: "16",
+						viewBox: "0 0 16 16",
+						fill: "none",
+						stroke: "currentColor",
+						strokeWidth: "1.5",
+						strokeLinecap: "round",
+						strokeLinejoin: "round",
+						"aria-hidden": "true",
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 4.5h10M6 4.5V3h4v1.5M4.5 4.5l.6 8h5.8l.6-8M6.5 7v3.5M9.5 7v3.5" })
+					}), "移除对话"]
+				})
+			}), document.body)] });
+		}
+		//#endregion
+		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/NativeConversationRemoval.module.css.mjs
+		const css = ".JXxDsG_overlay{z-index:20000;background:#101a2d80;place-items:center;padding:20px;display:grid;position:fixed;inset:0}.JXxDsG_dialog{box-sizing:border-box;border:1px solid var(--dsw-alias-border-default,#d7deeb);background:var(--dsw-alias-bg-surface,#fff);width:min(420px,100%);color:var(--dsw-alias-label-primary,#202938);border-radius:16px;padding:24px;box-shadow:0 16px 48px #11182733}.JXxDsG_dialog:focus{outline:none}.JXxDsG_dialog h2{margin:0 0 14px;font-size:18px;line-height:26px}.JXxDsG_dialog p{overflow-wrap:anywhere;margin:0 0 12px;font-size:14px;line-height:22px}.JXxDsG_muted{color:var(--dsw-alias-label-secondary,#65769a)}.JXxDsG_error{color:var(--dsw-alias-state-error-primary,#c43a4b)}.JXxDsG_actions{justify-content:flex-end;gap:8px;margin-top:22px;display:flex}.JXxDsG_actions button{border:1px solid var(--dsw-alias-border-default,#d7deeb);min-width:80px;color:inherit;cursor:pointer;font:inherit;background:0 0;border-radius:8px;padding:8px 14px}.JXxDsG_actions button:disabled{opacity:.55;cursor:default}.JXxDsG_actions .JXxDsG_danger{color:#fff;background:#c43a4b;border-color:#c43a4b}";
+		const tagId = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/NativeConversationRemoval.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId;
+			tag.textContent = css;
+			document.head.appendChild(tag);
+		}
+		var NativeConversationRemoval_module_css_default = {
+			"actions": "JXxDsG_actions",
+			"danger": "JXxDsG_danger",
+			"dialog": "JXxDsG_dialog",
+			"error": "JXxDsG_error",
+			"muted": "JXxDsG_muted",
+			"overlay": "JXxDsG_overlay"
+		};
+		//#endregion
+		//#region src/client/NativeConversationRemoval.tsx
+		const REMOVE_SESSION_EVENT = "dsh-plain-chat:remove-session";
+		function totalWithDescendants(rows, id) {
+			const byId = new Map(rows.map((row) => [row.id, row]));
+			if (!byId.has(id)) throw new Error("未找到这条会话，请刷新后重试。");
+			const visited = /* @__PURE__ */ new Set();
+			const pending = [id];
+			while (pending.length) {
+				const current = pending.pop();
+				if (visited.has(current)) continue;
+				visited.add(current);
+				pending.push(...byId.get(current)?.childIds ?? []);
+			}
+			return visited.size;
+		}
+		function NativeConversationRemoval({ sessions }) {
+			const [view, setView] = (0, react.useState)(null);
+			const dialog = (0, react.useRef)(null);
+			const returnFocus = (0, react.useRef)(null);
+			(0, react.useEffect)(() => {
+				const handle = (event) => {
+					const detail = event.detail;
+					if (typeof detail?.id !== "string" || typeof detail.title !== "string") return;
+					returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+					setView({
+						target: {
+							id: detail.id,
+							title: detail.title
+						},
+						phase: "checking",
+						total: 0,
+						error: null
+					});
+				};
+				window.addEventListener(REMOVE_SESSION_EVENT, handle);
+				return () => window.removeEventListener(REMOVE_SESSION_EVENT, handle);
+			}, []);
+			(0, react.useEffect)(() => {
+				if (view?.phase !== "checking") return;
+				const { id } = view.target;
+				const controller = new AbortController();
+				fetch("/api/dsh-session-archive/inventory", {
+					credentials: "same-origin",
+					signal: controller.signal
+				}).then(async (response) => {
+					if (!response.ok) throw new Error(`无法读取会话信息（${response.status}）。`);
+					return response.json();
+				}).then((data) => {
+					if (controller.signal.aborted) return;
+					const rows = data.rows ?? [];
+					if (rows.find((row) => row.id === id)?.running) throw new Error("这条会话仍在运行，请结束后再移除。");
+					const total = totalWithDescendants(rows, id);
+					setView((previous) => previous?.target.id === id ? {
+						...previous,
+						phase: "ready",
+						total
+					} : previous);
+				}).catch((error) => {
+					if (controller.signal.aborted) return;
+					setView((previous) => previous?.target.id === id ? {
+						...previous,
+						phase: "error",
+						error: error instanceof Error ? error.message : String(error)
+					} : previous);
+				});
+				return () => controller.abort();
+			}, [view?.phase === "checking" ? view.target.id : null]);
+			(0, react.useEffect)(() => {
+				if (!view) return;
+				dialog.current?.focus({ preventScroll: true });
+				const escape = (event) => {
+					if (event.key !== "Escape" || view.phase === "deleting") return;
+					event.preventDefault();
+					event.stopPropagation();
+					setView(null);
+				};
+				document.addEventListener("keydown", escape, true);
+				return () => document.removeEventListener("keydown", escape, true);
+			}, [view?.target.id, view?.phase]);
+			const close = () => {
+				if (view?.phase === "deleting") return;
+				setView(null);
+				queueMicrotask(() => returnFocus.current?.focus({ preventScroll: true }));
+			};
+			const remove = async () => {
+				if (view?.phase !== "ready") return;
+				const { id } = view.target;
+				const expectedTotal = view.total;
+				setView({
+					...view,
+					phase: "deleting",
+					error: null
+				});
+				try {
+					const response = await fetch("/api/dsh-session-archive/delete", {
+						method: "POST",
+						credentials: "same-origin",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify({
+							ids: [id],
+							expectedTotal
+						})
+					});
+					const body = await response.json().catch(() => ({}));
+					if (!response.ok) throw new Error(body.error === "plan-mismatch" ? "关联会话数量发生变化，请关闭后重新操作。" : body.error ?? `移除失败（${response.status}）。`);
+					const result = body.results?.find((item) => item.id === id);
+					if (result?.status !== "ok") throw new Error(result?.reason === "attached" ? "会话仍被工作台占用，请关闭该会话并重新启动工作台后重试。" : result?.detail ?? `移除失败：${result?.reason ?? "未知原因"}`);
+					const incomplete = body.results?.find((item) => item.status !== "ok");
+					if (incomplete) throw new Error(`部分关联会话未能移除：${incomplete.detail ?? incomplete.reason ?? "未知原因"}`);
+					if (sessions.list.getSnapshot().current === id) sessions.clear();
+					try {
+						await sessions.refresh?.();
+					} catch {}
+					setView(null);
+				} catch (error) {
+					setView((previous) => previous?.target.id === id ? {
+						...previous,
+						phase: "error",
+						error: error instanceof Error ? error.message : String(error)
+					} : previous);
+				}
+			};
+			if (!view) return null;
+			return (0, react_dom.createPortal)(/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				className: NativeConversationRemoval_module_css_default.overlay,
+				onMouseDown: (event) => {
+					if (event.target === event.currentTarget) close();
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					ref: dialog,
+					className: NativeConversationRemoval_module_css_default.dialog,
+					role: "dialog",
+					"aria-modal": "true",
+					"aria-label": "移除对话",
+					tabIndex: -1,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "移除对话" }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+							"将永久删除“",
+							view.target.title,
+							"”的对话记录，无法恢复。"
+						] }),
+						view.phase === "checking" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: NativeConversationRemoval_module_css_default.muted,
+							children: "正在检查关联会话…"
+						}),
+						view.phase === "ready" && view.total > 1 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+							className: NativeConversationRemoval_module_css_default.muted,
+							children: [
+								"关联的 ",
+								view.total - 1,
+								" 条分支会话也会一并删除。"
+							]
+						}),
+						view.error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: NativeConversationRemoval_module_css_default.error,
+							role: "alert",
+							children: view.error
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: NativeConversationRemoval_module_css_default.actions,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								onClick: close,
+								disabled: view.phase === "deleting",
+								children: "取消"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								className: NativeConversationRemoval_module_css_default.danger,
+								onClick: () => void remove(),
+								disabled: view.phase !== "ready",
+								children: view.phase === "deleting" ? "正在移除…" : "确认移除"
+							})]
+						})
+					]
+				})
+			}), document.body);
+		}
+		//#endregion
+		//#region src/client/local-conversations.ts
+		const DRAFTS_KEY = "workbench-local-drafts-v1";
+		const DEMOS_KEY = "workbench-meeting-demos-v1";
+		const ACTIVE_KEY = "workbench-local-active-v1";
+		const MAX_ROWS = 40;
+		function readRows(storage, key, kind) {
+			try {
+				const value = JSON.parse(storage.getItem(key) ?? "[]");
+				if (!Array.isArray(value)) return [];
+				return value.filter((row) => row && typeof row === "object" && typeof row.id === "string" && typeof row.role === "string" && row.kind === kind && typeof row.title === "string" && typeof row.draft === "string" && typeof row.updatedAt === "number").slice(0, MAX_ROWS);
+			} catch {
+				return [];
+			}
+		}
+		function createLocalConversations(mint = () => `local-${crypto.randomUUID()}`) {
+			const saved = [...readRows(sessionStorage, DRAFTS_KEY, "draft"), ...readRows(localStorage, DEMOS_KEY, "demo")];
+			let activeId = null;
+			try {
+				const id = sessionStorage.getItem(ACTIVE_KEY);
+				if (id && saved.some((row) => row.id === id)) activeId = id;
+			} catch {}
+			let snapshot = {
+				items: saved.sort((a, b) => b.updatedAt - a.updatedAt),
+				activeId
+			};
+			const listeners = /* @__PURE__ */ new Set();
+			const persist = () => {
+				try {
+					sessionStorage.setItem(DRAFTS_KEY, JSON.stringify(snapshot.items.filter((row) => row.kind === "draft").slice(0, MAX_ROWS)));
+					if (snapshot.activeId) sessionStorage.setItem(ACTIVE_KEY, snapshot.activeId);
+					else sessionStorage.removeItem(ACTIVE_KEY);
+				} catch {}
+				try {
+					localStorage.setItem(DEMOS_KEY, JSON.stringify(snapshot.items.filter((row) => row.kind === "demo").slice(0, MAX_ROWS)));
+				} catch {}
+			};
+			const update = (items, nextActive = snapshot.activeId) => {
+				snapshot = {
+					items: items.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, MAX_ROWS),
+					activeId: nextActive
+				};
+				persist();
+				listeners.forEach((listener) => listener());
+			};
+			const active = () => snapshot.items.find((row) => row.id === snapshot.activeId);
+			const leave = () => {
+				const current = active();
+				update(snapshot.items.filter((row) => row !== current || row.kind === "demo" || row.draft.trim()), null);
+			};
+			const start = (role = "chat") => {
+				const current = active();
+				const retained = snapshot.items.filter((row) => row !== current || row.kind === "demo" || row.draft.trim());
+				const now = Date.now();
+				const row = {
+					id: mint(),
+					role,
+					kind: "draft",
+					title: "新对话",
+					draft: "",
+					updatedAt: now
+				};
+				update([row, ...retained], row.id);
+				return row;
+			};
+			const ensure = (role = "chat") => active() ?? start(role);
+			const patch = (id, change) => {
+				const current = snapshot.items.find((row) => row.id === id);
+				if (!current) return;
+				const next = {
+					...current,
+					...change,
+					updatedAt: Date.now()
+				};
+				update(snapshot.items.map((row) => row.id === id ? next : row));
+			};
+			return {
+				getSnapshot: () => snapshot,
+				subscribe: (listener) => {
+					listeners.add(listener);
+					return () => {
+						listeners.delete(listener);
+					};
+				},
+				active,
+				start,
+				ensure,
+				leave,
+				open: (id) => {
+					if (snapshot.items.some((row) => row.id === id)) update(snapshot.items, id);
+				},
+				remove: (id) => update(snapshot.items.filter((row) => row.id !== id), snapshot.activeId === id ? null : snapshot.activeId),
+				setRole: (id, role) => patch(id, { role }),
+				setDraft: (id, draft) => patch(id, {
+					draft,
+					title: draft.trim() ? draft.trim().slice(0, 28) : "新对话"
+				}),
+				setMeeting: (id, meeting, draft) => patch(id, {
+					meeting,
+					draft
+				}),
+				commitDemo: (id, title) => patch(id, {
+					kind: "demo",
+					title
+				}),
+				commitChat: (id) => update(snapshot.items.filter((row) => row.id !== id), snapshot.activeId === id ? null : snapshot.activeId)
+			};
 		}
 		//#endregion
 		//#region src/client/BrowserObservation.tsx
@@ -5032,6 +6953,14 @@ window.__ModuleLoader__.load({
 			const t = ctx.locale.bind(NS);
 			const chatRoot = document.querySelector("meta[name=\"dsh-plain-chat-root\"]")?.content ?? "";
 			const sessions = ctx.sessions;
+			const loadMeetingModels = async () => {
+				const result = await ctx.remote.session?.modelCatalog?.();
+				if (!result?.ok) return [];
+				return (result.value?.groups ?? []).flatMap((group) => (group.models ?? []).map((model) => ({
+					id: `${group.id ?? group.provider}/${model.id}`,
+					name: model.name ?? model.id
+				}))).filter((model) => !model.id.startsWith("undefined/"));
+			};
 			const layout = ctx.get("layout");
 			const created = /* @__PURE__ */ new Set();
 			let revision = 0;
@@ -5049,6 +6978,10 @@ window.__ModuleLoader__.load({
 				} catch {}
 			};
 			const roleSelection = createRoleSelection();
+			const localConversations = createLocalConversations();
+			const resumedLocal = localConversations.active();
+			if (resumedLocal && sessions.list.getSnapshot().current === void 0) roleSelection.select(resumedLocal.role);
+			else if (resumedLocal) localConversations.leave();
 			const start = new ChatStart({
 				create: (request) => ctx.remote.session.create(request),
 				adopt: (request) => sessions.create(request),
@@ -5059,6 +6992,8 @@ window.__ModuleLoader__.load({
 					input.setDraft(text);
 					created.add(id);
 					clearSavedDraft();
+					const local = localConversations.active();
+					if (local?.kind === "draft") localConversations.commitChat(local.id);
 					sessions.open(binding.sessionId);
 					layout.selectPanel(null);
 					input.submit();
@@ -5075,7 +7010,57 @@ window.__ModuleLoader__.load({
 				if (id === roleSelection.getSnapshot()) return;
 				start.reset();
 				roleSelection.select(id);
+				if (sessions.list.getSnapshot().current === void 0) {
+					const active = localConversations.active();
+					const local = active?.kind === "demo" ? localConversations.start(id) : active ?? localConversations.start(id);
+					if (local.kind === "draft") localConversations.setRole(local.id, id);
+				}
 			};
+			const startFreshChat = (role = "chat") => {
+				start.reset();
+				clearSavedDraft();
+				localConversations.start(role);
+				if (roleSelection.getSnapshot() !== role) roleSelection.select(role);
+				revision++;
+				listeners.forEach((fn) => fn());
+				sessions.clear();
+				layout.selectPanel(null);
+			};
+			const openLocalConversation = (id) => {
+				const row = localConversations.getSnapshot().items.find((item) => item.id === id);
+				if (!row) return;
+				start.reset();
+				localConversations.open(id);
+				roleSelection.select(row.role);
+				try {
+					sessionStorage.setItem("workbench-chat-draft", row.draft);
+				} catch {}
+				revision++;
+				listeners.forEach((fn) => fn());
+				sessions.clear();
+				layout.selectPanel(null);
+			};
+			const removeLocalConversation = (id) => {
+				const row = localConversations.getSnapshot().items.find((item) => item.id === id);
+				const meetingId = row?.meeting && typeof row.meeting === "object" ? row.meeting.jobId : void 0;
+				if (typeof meetingId === "string") fetch(`/api/capabilities/meeting/job/${encodeURIComponent(meetingId)}`, {
+					method: "DELETE",
+					credentials: "same-origin"
+				}).catch(() => {});
+				const active = localConversations.getSnapshot().activeId === id;
+				localConversations.remove(id);
+				if (!active) return;
+				start.reset();
+				clearSavedDraft();
+				roleSelection.select("chat");
+				revision++;
+				listeners.forEach((fn) => fn());
+			};
+			ctx.effect(() => {
+				return sessions.list.subscribe(() => {
+					if (sessions.list.getSnapshot().current !== void 0 && localConversations.active()) localConversations.leave();
+				});
+			}, "plain-chat: local draft lifecycle");
 			const registry = ctx.slots;
 			createCapabilityPreview();
 			registerCapabilityCenter(ctx.slots, () => t("centerTitle"), () => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCenter, {}));
@@ -5099,16 +7084,25 @@ window.__ModuleLoader__.load({
 				return function ChatConversation(props) {
 					const draftKey = (0, react.useSyncExternalStore)(subscribe, snapshot);
 					const selectedRole = (0, react.useSyncExternalStore)(roleSelection.subscribe, roleSelection.getSnapshot);
+					const localSnapshot = (0, react.useSyncExternalStore)(localConversations.subscribe, localConversations.getSnapshot);
+					const local = localSnapshot.items.find((row) => row.id === localSnapshot.activeId);
+					const effectiveRole = local?.role ?? selectedRole;
+					const capabilities = (0, react.useSyncExternalStore)(capabilityClient.subscribe, capabilityClient.getSnapshot);
+					const meetingRole = capabilities.data?.state.roles.find((role) => role.id === MEETING_DEMO_ROLE_ID);
+					const savedMeetingVersion = local?.meeting && typeof local.meeting === "object" ? local.meeting.roleVersion : void 0;
+					const meetingVersion = meetingRole?.versions.find((version) => version.version === savedMeetingVersion) ?? (meetingRole && latest(meetingRole.versions));
 					const summary = props.useSessions((s) => props.sessionId ? s.byId[props.sessionId] : void 0);
 					const composerBlock = props.useComposerBlock((block) => block);
 					const actualPreset = summary?.projectionValues?.agentPreset;
 					const plain = actualPreset === "workbench-chat" || String(actualPreset ?? "").startsWith("workbench-role-") || created.has(props.sessionId);
 					const noSession = props.sessionId === void 0;
+					const sessionRole = actualPreset === "workbench-chat" ? "chat" : capabilities.data?.state.roles.find((role) => role.versions.some((version) => version.preset === actualPreset))?.id;
+					const displayedRole = noSession ? effectiveRole : sessionRole ?? (actualPreset ? "chat" : selectedRole);
 					const translate = (key, ...args) => key === "hero.chooseWorkspace" && (plain || noSession) ? t("workspace") : props.t(key, ...args);
 					const renderSlot = (key, owner, ...rest) => {
 						if (key === "conversation.hero.agentPreset" && noSession) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRolePicker, {
 							t,
-							selected: selectedRole,
+							selected: effectiveRole,
 							onSelect: selectRole
 						});
 						if (key === "conversation.hero.agentPreset" && plain) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
@@ -5119,7 +7113,13 @@ window.__ModuleLoader__.load({
 							if (noSession) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DraftComposer, {
 								start,
 								t,
-								available: chatRoot !== ""
+								available: chatRoot !== "",
+								initialDraft: local?.kind === "draft" ? local.draft : void 0,
+								onDraftChange: (value) => {
+									let row = localConversations.active();
+									if (!row && value.trim()) row = localConversations.start(effectiveRole);
+									if (row?.kind === "draft") localConversations.setDraft(row.id, value);
+								}
 							}, draftKey);
 							if (plain && owner.onRequestWorkspace) return props.renderSlot(key, {
 								...owner,
@@ -5152,6 +7152,7 @@ window.__ModuleLoader__.load({
 								clearSavedDraft();
 							}
 						}
+						if (binding && local?.kind === "draft") localConversations.commitChat(local.id);
 					};
 					return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: Chat_module_css_default.conversationShell,
@@ -5159,7 +7160,8 @@ window.__ModuleLoader__.load({
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 								className: Chat_module_css_default.assistantToolbar,
 								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCurrentAssistant, {
-									selected: selectedRole,
+									selected: displayedRole,
+									preset: noSession && effectiveRole === MEETING_DEMO_ROLE_ID ? meetingVersion?.preset : noSession ? void 0 : actualPreset,
 									onOpen: settingsNavigation.openPresets
 								})
 							}),
@@ -5167,7 +7169,21 @@ window.__ModuleLoader__.load({
 							String(actualPreset ?? "").startsWith("workbench-role-") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(BrowserObservation, { sessionId: props.sessionId }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 								className: Chat_module_css_default.conversationContent,
-								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, {
+								children: noSession && (local?.kind === "demo" || effectiveRole === MEETING_DEMO_ROLE_ID) ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MeetingDemo, {
+									initialState: local?.meeting,
+									assistant: meetingVersion,
+									roleVersion: meetingVersion?.version,
+									loadModels: loadMeetingModels,
+									onSnapshot: (state) => {
+										const row = localConversations.active() ?? localConversations.start(MEETING_DEMO_ROLE_ID);
+										localConversations.setMeeting(row.id, state, state.draft);
+									},
+									onCommit: (title) => {
+										const row = localConversations.active() ?? localConversations.start(MEETING_DEMO_ROLE_ID);
+										localConversations.commitDemo(row.id, title);
+									},
+									onReset: () => startFreshChat(MEETING_DEMO_ROLE_ID)
+								}, draftKey) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, {
 									...props,
 									t: translate,
 									renderSlot,
@@ -5181,12 +7197,7 @@ window.__ModuleLoader__.load({
 			ctx.effect(() => decorateSlot(registry, "sidebar", "SidebarRoot", (Original) => function ChatSidebar(props) {
 				const startSession = (workspaceId) => {
 					if (workspaceId !== void 0) return props.startSession(workspaceId);
-					start.reset();
-					clearSavedDraft();
-					revision++;
-					listeners.forEach((fn) => fn());
-					sessions.clear();
-					layout.selectPanel(null);
+					startFreshChat();
 				};
 				return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, {
 					...props,
@@ -5194,10 +7205,45 @@ window.__ModuleLoader__.load({
 				});
 			}), "plain-chat: new conversation");
 			ctx.effect(() => decorateSlot(registry, "sidebar.workspaces", "WorkspaceBrowser", (Original) => function ChatHistory(props) {
+				const local = (0, react.useSyncExternalStore)(localConversations.subscribe, localConversations.getSnapshot);
+				const [host, setHost] = (0, react.useState)(null);
 				const translate = (key, ...args) => key === "group.ungrouped" ? t("history") : props.t(key, ...args);
-				return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, {
-					...props,
-					t: translate
+				const ungroupedNewLabel = props.t("actions.newSession.aria", { name: t("history") });
+				const onClickCapture = (event) => {
+					const button = event.target.closest("button[aria-label]");
+					if (button?.getAttribute("aria-label") !== ungroupedNewLabel) return;
+					event.preventDefault();
+					event.stopPropagation();
+					startFreshChat();
+					const header = button?.closest("[role=\"treeitem\"]");
+					if (header?.getAttribute("aria-expanded") === "false") header.click();
+				};
+				const open = (id) => {
+					start.reset();
+					localConversations.leave();
+					clearSavedDraft();
+					props.open(id);
+				};
+				return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					ref: setHost,
+					style: { display: "contents" },
+					onClickCapture,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, {
+							...props,
+							t: translate,
+							open
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(LocalConversationRows, {
+							host,
+							label: ungroupedNewLabel,
+							rows: local.items,
+							activeId: local.activeId,
+							onOpen: openLocalConversation,
+							onRemove: removeLocalConversation
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(NativeConversationRemoval, { sessions })
+					]
 				});
 			}), "plain-chat: history label");
 			ctx.effect(() => () => {

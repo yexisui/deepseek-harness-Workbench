@@ -25,7 +25,15 @@ function SidebarRoot(props: Props) {
     <button data-action="project-new" onClick={() => props.startSession('project-a')}>Project</button>
   </aside>
 }
-function WorkspaceBrowser(props: Props) { return <div>{props.t('group.ungrouped')}</div> }
+function WorkspaceBrowser(props: Props) {
+  const ungrouped = props.t('group.ungrouped')
+  const [expanded, setExpanded] = React.useState(true)
+  return <div role="tree"><div data-chat-group="true"><div role="treeitem" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{ungrouped}
+    <button data-action="ungrouped-new" aria-label={props.t('actions.newSession.aria', { name: ungrouped })} onClick={() => {}} />
+    </div><button data-action="open-existing" aria-label="打开已有对话" onClick={() => props.open?.('older')}/></div>
+    <div><button data-action="workspace-group-new" aria-label="new in project" onClick={() => props.startSession('project-a')} /></div>
+  </div>
+}
 function AgentPresetSection() { return <div data-existing-presets>Existing presets</div> }
 
 function deferred<T>() {
@@ -44,6 +52,7 @@ function harness() {
   const disposers: (() => void)[] = []
   const bindings = new Map<string, Binding>()
   const inputs = new Map<object, ReturnType<typeof makeInput>>()
+  const listListeners = new Set<() => void>()
   const list = { current: undefined as string | undefined, byId: {} as Record<string, any> }
   function makeInput(initial = '') {
     let draft = initial
@@ -64,9 +73,9 @@ function harness() {
   const sessions = {
     create: vi.fn(async ({ sessionId }: { sessionId: string }) => { addBinding(sessionId); return sessionId }),
     binding: vi.fn((id: string) => bindings.get(id)),
-    open: vi.fn((id: string) => { list.current = id }),
-    clear: vi.fn(() => { list.current = undefined }),
-    list: { getSnapshot: () => list },
+    open: vi.fn((id: string) => { list.current = id; listListeners.forEach(fn => fn()) }),
+    clear: vi.fn(() => { list.current = undefined; listListeners.forEach(fn => fn()) }),
+    list: { getSnapshot: () => list, subscribe: (fn: () => void) => { listListeners.add(fn); return () => { listListeners.delete(fn) } } },
   }
   const selectPanel = vi.fn()
   const ctx = {
@@ -85,6 +94,7 @@ function harness() {
     : <span>Project mode</span>)
   const selectWorkspace = vi.fn(async (_id: string) => { list.current = 'project-session' })
   const originalStartSession = vi.fn()
+  const openExisting = vi.fn((id: string) => sessions.open(id))
   const props = {
     sessionId: undefined as string | undefined,
     owner: { disabled: true, blocked: { reason: 'Choose workspace' }, onRequestWorkspace: vi.fn(), placeholder: 'Choose workspace' },
@@ -93,11 +103,12 @@ function harness() {
     renderSlot: originalRenderSlot,
     selectWorkspace,
     startSession: originalStartSession,
+    open: openExisting,
     t: (key: string) => key,
   }
   return {
     entries, list, props, sessions, remoteCreate, selectPanel, inputs, bindings, addBinding,
-    originalRenderSlot, selectWorkspace, originalStartSession,
+    originalRenderSlot, selectWorkspace, originalStartSession, openExisting,
     dispose: () => { for (const dispose of disposers.reverse()) dispose() },
   }
 }
@@ -117,6 +128,7 @@ describe('ordinary chat UI integration', () => {
     await capabilityClient.refresh()
     ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true
     sessionStorage.clear()
+    localStorage.clear()
     HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
     HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
     document.head.innerHTML = '<meta name="dsh-plain-chat-root" content="C:\\workbench\\chat-data">'
@@ -131,6 +143,7 @@ describe('ordinary chat UI integration', () => {
     container.remove()
     document.head.innerHTML = ''
     sessionStorage.clear()
+    localStorage.clear()
   })
   async function render(props: Props = app.props, key: keyof typeof app.entries = 'main.conversation') {
     const Component = app.entries[key][0]!.component
@@ -141,6 +154,13 @@ describe('ordinary chat UI integration', () => {
     const Roles = app.entries['settings.section'][0]!.component
     // 设置弹窗打开时，实际输入框仍挂载；不能靠卸载输入框掩盖岗位切换问题。
     await act(async () => root.render(<><Conversation {...props}/><Roles {...app.props}/></>))
+  }
+  async function renderWithSidebarAndRoles(props: Props = app.props) {
+    const Conversation = app.entries['main.conversation'][0]!.component
+    const Sidebar = app.entries.sidebar[0]!.component
+    const Browser = app.entries['sidebar.workspaces'][0]!.component
+    const Roles = app.entries['settings.section'][0]!.component
+    await act(async () => root.render(<><Conversation {...props}/><Sidebar {...props}/><Browser {...props}/><Roles {...props}/></>))
   }
   async function type(text: string) {
     const input = container.querySelector('textarea')!
@@ -250,6 +270,112 @@ describe('ordinary chat UI integration', () => {
     expect(container.textContent).toBe('聊天')
   })
 
+  it('makes the chat-group plus start a fresh free-chat draft without changing real workspace plus', async () => {
+    await renderWithSidebarAndRoles()
+    await click('button[aria-label="选定助手：会议纪要助手"]')
+    expect(container.querySelector('[data-meeting-demo="true"]')).not.toBeNull()
+    await click('[data-action="ungrouped-new"]')
+    expect(container.querySelector('[data-local-conversations="true"]')).not.toBeNull()
+    expect(container.querySelector('[data-chat-group] [aria-current="page"]')!.textContent).toContain('新对话')
+    expect(container.querySelector('[data-meeting-demo="true"]')).toBeNull()
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：自由聊天')
+    expect(container.querySelector('[data-dsh-part="composer"]')).not.toBeNull()
+    expect(app.sessions.clear).toHaveBeenCalledTimes(1)
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+    await click('[data-action="workspace-group-new"]')
+    expect(app.originalStartSession).toHaveBeenCalledExactlyOnceWith('project-a')
+    expect(app.sessions.clear).toHaveBeenCalledTimes(1)
+    await click('button[aria-label="选定助手：会议纪要助手"]')
+    await click('[data-action="new"]')
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：自由聊天')
+    expect(app.sessions.clear).toHaveBeenCalledTimes(2)
+    expect(container.querySelectorAll('[data-chat-group] [aria-label^="打开本地会话"]')).toHaveLength(1)
+  })
+
+  it('removes an untouched temporary row when opening another conversation', async () => {
+    await renderWithSidebarAndRoles()
+    await click('[data-action="ungrouped-new"]')
+    expect(container.querySelector('[data-chat-group] [aria-label="打开本地会话：新对话"]')).not.toBeNull()
+    await click('[data-action="open-existing"]')
+    expect(container.querySelector('[data-local-conversations="true"]')).toBeNull()
+    expect(app.openExisting).toHaveBeenCalledExactlyOnceWith('older')
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+  })
+
+  it('expands a collapsed chat group when its plus creates a temporary row', async () => {
+    await renderWithSidebarAndRoles()
+    await click('[data-chat-group] [role="treeitem"]')
+    expect(container.querySelector('[data-chat-group] [role="treeitem"]')!.getAttribute('aria-expanded')).toBe('false')
+    await click('[data-action="ungrouped-new"]')
+    expect(container.querySelector('[data-chat-group] [role="treeitem"]')!.getAttribute('aria-expanded')).toBe('true')
+    expect(container.querySelector('[data-chat-group] [aria-current="page"]')!.textContent).toContain('新对话')
+  })
+
+  it('keeps unsent text as a local draft and restores it when reopened', async () => {
+    await renderWithSidebarAndRoles()
+    await click('[data-action="ungrouped-new"]')
+    await type('明天讨论项目计划')
+    expect(container.querySelector('[data-chat-group] [aria-current="page"]')!.textContent).toContain('明天讨论项目计划')
+    await click('[data-action="open-existing"]')
+    expect(container.querySelector('[data-chat-group] [aria-label^="打开本地会话"]')!.textContent).toContain('草稿')
+    await click('[data-chat-group] [aria-label^="打开本地会话"]')
+    await renderWithSidebarAndRoles(app.props)
+    expect(container.querySelector('textarea')!.value).toBe('明天讨论项目计划')
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：自由聊天')
+  })
+
+  it('replaces the temporary row with a real session when a message is sent', async () => {
+    await renderWithSidebarAndRoles()
+    await click('[data-action="ungrouped-new"]')
+    await type('讨论下一步计划')
+    expect(container.querySelector('[data-chat-group] [aria-label^="打开本地会话"]')).not.toBeNull()
+    await click('button[aria-label="发送消息"]')
+    expect(app.sessions.create).toHaveBeenCalledTimes(1)
+    expect(app.sessions.open).toHaveBeenCalledTimes(1)
+    expect(container.querySelector('[data-chat-group] [aria-label^="打开本地会话"]')).toBeNull()
+  })
+
+  it('keeps a started meeting demo in the sidebar and restores its route', async () => {
+    await renderWithSidebarAndRoles()
+    await click('button[aria-label="选定助手：会议纪要助手"]')
+    await act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('[data-meeting-demo] button')).find(button => button.textContent?.includes('快速生成'))!.click() })
+    expect(container.querySelector('[data-chat-group] [aria-current="page"]')!.textContent).toContain('会议纪要 · 快速生成')
+    await click('[data-action="open-existing"]')
+    expect(container.querySelector('[data-chat-group] [aria-label^="打开本地会话"]')!.textContent).toContain('演示')
+    await renderWithSidebarAndRoles({ ...app.props, sessionId: 'older' })
+    await click('[data-chat-group] [aria-label^="打开本地会话"]')
+    await renderWithSidebarAndRoles(app.props)
+    expect(container.querySelector('[data-meeting-demo="true"]')).not.toBeNull()
+    expect(container.textContent).toContain('已选择 快速生成')
+    expect(container.textContent).toContain('添加会议录音')
+    expect(localStorage.getItem('workbench-meeting-demos-v1')).toContain('会议纪要 · 快速生成')
+  })
+
+  it('starts a separate draft when changing assistants from a saved meeting demo', async () => {
+    await renderWithSidebarAndRoles()
+    await click('button[aria-label="选定助手：会议纪要助手"]')
+    await act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('[data-meeting-demo] button')).find(button => button.textContent?.includes('引导整理'))!.click() })
+    await click('button[aria-label="选定助手：自由聊天"]')
+    expect(container.querySelector('[data-meeting-demo="true"]')).toBeNull()
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：自由聊天')
+    expect(container.querySelectorAll('[data-chat-group] [aria-label^="打开本地会话"]')).toHaveLength(2)
+    expect(container.textContent).toContain('会议纪要 · 引导整理')
+  })
+
+  it('shows each existing conversation’s saved role after switching drafts and returning', async () => {
+    app.list.byId.readerSession = { projectionValues: { agentPreset: 'workbench-role-reader-v1' } }
+    await renderWithSidebarAndRoles({ ...app.props, sessionId: 'readerSession' })
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：网页助手')
+    await click('button[aria-label="选定助手：会议纪要助手"]')
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：网页助手')
+    await click('[data-action="ungrouped-new"]')
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：网页助手')
+    await renderWithSidebarAndRoles(app.props)
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：自由聊天')
+    await renderWithSidebarAndRoles({ ...app.props, sessionId: 'readerSession' })
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：网页助手')
+  })
+
   it('starts a published role with its actual preset and retains the draft during selection', async () => {
     await render()
     await type('请读取网页')
@@ -306,6 +432,22 @@ describe('ordinary chat UI integration', () => {
     expect(app.remoteCreate).not.toHaveBeenCalled()
   })
 
+  it('manages the meeting assistant through the same role editor and toggle controls', async () => {
+    await renderWithRoles()
+    const card = container.querySelector('[data-role-id="meeting-minutes-demo"]')!
+    expect(card.textContent).toContain('编辑岗位')
+    expect(card.textContent).toContain('停用')
+    expect(card.textContent).toContain('正在检测录音转写')
+    await act(async () => { Array.from(card.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent?.includes('编辑岗位'))!.click() })
+    expect(document.querySelector('dialog')?.textContent).toContain('已关联“会议录音转写”能力')
+    expect(document.querySelector('[data-attached-capability="meeting-transcription"]')).not.toBeNull()
+    expect(document.querySelector('button[aria-label="移除 会议录音转写"]')).toBeNull()
+    await act(async () => { Array.from(document.querySelectorAll<HTMLButtonElement>('dialog button')).find(button => button.textContent === '保存草稿')!.click() })
+    expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.body && JSON.parse(String(options.body)).command?.id === 'meeting-minutes-demo' && JSON.parse(String(options.body)).command?.type === 'role.save')).toBe(true)
+    await act(async () => { Array.from(card.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent === '停用')!.click() })
+    expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.body && JSON.parse(String(options.body)).command?.id === 'meeting-minutes-demo' && JSON.parse(String(options.body)).command?.type === 'role.toggle')).toBe(true)
+  })
+
   it('keeps draft and disabled role cards unavailable for selection', async () => {
     const state = capabilityClient.getSnapshot().data!.state
     const reader = state.roles.find(role => role.id === 'reader')!
@@ -344,6 +486,48 @@ describe('ordinary chat UI integration', () => {
       snapshot.mockRestore()
       refresh.mockRestore()
     }
+  })
+
+  it('opens the meeting demo in a new conversation without creating a session or changing ordinary chat', async () => {
+    await renderWithRoles()
+    await click('button[aria-label="选定助手：会议纪要助手"]')
+    expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：会议纪要助手')
+    expect(container.querySelector('[data-meeting-demo="true"]')).not.toBeNull()
+    expect(container.textContent).toContain('快速生成')
+    expect(container.textContent).toContain('引导整理')
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+    await click('button[aria-label="选定助手：自由聊天"]')
+    expect(container.querySelector('[data-meeting-demo="true"]')).toBeNull()
+    expect(container.querySelector('[data-dsh-part="composer"]')).not.toBeNull()
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+  })
+
+  it('shows a clear configuration state instead of a sample transcript', async () => {
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = vi.fn((input: string | URL | Request, init?: RequestInit) => String(input).includes('/meeting/config')
+      ? Promise.resolve(new Response(JSON.stringify({ ready: false, message: '未配置 DASHSCOPE_API_KEY', maxBytes: 100_000_000, provider: '阿里云百炼' }), { headers: { 'content-type': 'application/json' } }))
+      : originalFetch(input, init)) as typeof fetch
+    try {
+      await renderWithRoles()
+      await click('button[aria-label="选定助手：会议纪要助手"]')
+      await act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('[data-meeting-demo] button')).find(button => button.textContent?.includes('快速生成'))!.click() })
+      expect(container.textContent).toContain('未配置 DASHSCOPE_API_KEY')
+      expect(container.querySelector<HTMLButtonElement>('button[aria-label="添加录音"]')?.disabled).toBe(true)
+      expect(container.textContent).not.toContain('固定样例')
+      expect(app.remoteCreate).not.toHaveBeenCalled()
+    } finally { globalThis.fetch = originalFetch }
+  })
+
+  it('keeps the guided route in the existing conversation before upload', async () => {
+    await renderWithRoles()
+    await click('button[aria-label="选定助手：会议纪要助手"]')
+    const clickText = async (text: string) => act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('[data-meeting-demo] button')).find(button => button.textContent?.includes(text))!.click() })
+    await clickText('引导整理')
+    await clickText('团队同步')
+    await clickText('结论与待办')
+    expect(container.textContent).toContain('添加会议录音')
+    expect(container.querySelector('[data-meeting-demo="true"]')).not.toBeNull()
+    expect(app.remoteCreate).not.toHaveBeenCalled()
   })
 
   it.each([
@@ -406,7 +590,7 @@ describe('ordinary chat UI integration', () => {
     expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false)
   })
 
-  it.each(['workbench-chat', 'workbench-role-reader-v1'])('keeps the toolbar linked to role selection over an existing %s session without changing that session', async preset => {
+  it.each(['workbench-chat', 'workbench-role-reader-v1'])('keeps the toolbar on the saved %s session role while configuring a new draft', async preset => {
     const session = { title: '保留原来的对话', projectionValues: { agentPreset: preset }, metadata: { workspaceId: 'project-a' } }
     const preserved = structuredClone(session)
     app.list.byId.older = session
@@ -415,6 +599,7 @@ describe('ordinary chat UI integration', () => {
     await renderWithRoles({ ...app.props, sessionId: 'older' })
     const input = await type('正在编辑，不要清空')
     const toolbar = () => container.querySelector<HTMLButtonElement>('[data-current-assistant="true"]')!
+    const savedAppearance = { label: toolbar().getAttribute('aria-label'), icon: toolbar().getAttribute('data-role-icon'), color: toolbar().style.getPropertyValue('--role-color') }
 
     for (const [name, icon, color] of [
       ['需求分析助手', 'analyst', '#4F73E8'],
@@ -423,11 +608,10 @@ describe('ordinary chat UI integration', () => {
       ['开发助手', 'developer', '#22A58B'],
     ]) {
       await click(`button[aria-label="选定助手：${name}"]`)
-      expect(toolbar().getAttribute('aria-label')).toBe(`打开岗位助手：${name}`)
-      expect(toolbar().textContent).toContain(name)
-      expect(toolbar().getAttribute('data-role-icon')).toBe(icon)
-      expect(toolbar().style.getPropertyValue('--role-color')).toBe(color)
-      expect(toolbar().querySelector('[data-role-appearance-icon]')!.getAttribute('data-role-appearance-icon')).toBe(icon)
+      expect(toolbar().getAttribute('aria-label')).toBe(savedAppearance.label)
+      expect(toolbar().getAttribute('data-role-icon')).toBe(savedAppearance.icon)
+      expect(toolbar().style.getPropertyValue('--role-color')).toBe(savedAppearance.color)
+      expect(container.querySelector(`button[aria-label="选定助手：${name}"]`)!.getAttribute('aria-pressed')).toBe('true')
       const card = container.querySelector(`[data-role-id="builtin-${icon}"]`)!
       expect(card.querySelector('[data-role-appearance-icon]')!.getAttribute('data-role-appearance-icon')).toBe(icon)
       expect((card as HTMLElement).style.getPropertyValue('--role-color')).toBe(color)
@@ -435,9 +619,9 @@ describe('ordinary chat UI integration', () => {
     }
 
     await click('button[aria-label="选定助手：自由聊天"]')
-    expect(toolbar().getAttribute('aria-label')).toBe('打开岗位助手：自由聊天')
-    expect(toolbar().getAttribute('data-role-icon')).toBe('chat')
-    expect(toolbar().style.getPropertyValue('--role-color')).toBe('#78869f')
+    expect(toolbar().getAttribute('aria-label')).toBe(savedAppearance.label)
+    expect(toolbar().getAttribute('data-role-icon')).toBe(savedAppearance.icon)
+    expect(toolbar().style.getPropertyValue('--role-color')).toBe(savedAppearance.color)
     expect(container.querySelector('textarea')).toBe(input)
     expect(input.value).toBe('正在编辑，不要清空')
     expect(sessionInput.state.getSnapshot().draft).toBe('原会话的输入草稿')
@@ -452,7 +636,7 @@ describe('ordinary chat UI integration', () => {
     expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.method === 'POST')).toBe(false)
   })
 
-  it('refreshes the selected custom role name and color in the toolbar without altering the old session preset', async () => {
+  it('keeps a saved session version while refreshing the next draft’s selected role appearance', async () => {
     const state = capabilityClient.getSnapshot().data!.state
     const reader = state.roles.find(role => role.id === 'reader')!
     reader.draft = { ...reader.draft, name: '客户资料助手', color: '#123456' }
@@ -460,13 +644,16 @@ describe('ordinary chat UI integration', () => {
     await renderWithRoles({ ...app.props, sessionId: 'older' })
     await click('button[aria-label="选定助手：客户资料助手"]')
     const toolbar = () => container.querySelector<HTMLButtonElement>('[data-current-assistant="true"]')!
-    expect(toolbar().getAttribute('aria-label')).toBe('打开岗位助手：客户资料助手')
+    expect(toolbar().getAttribute('aria-label')).toBe('打开岗位助手：网页助手')
     expect(toolbar().getAttribute('data-role-icon')).toBe('analyst')
-    expect(toolbar().style.getPropertyValue('--role-color')).toBe('#123456')
+    expect(toolbar().style.getPropertyValue('--role-color')).toBe(reader.versions[0]!.color)
 
-    // 服务端返回编辑后的岗位外观时，入口无需换会话或刷新页面即可同步。
+    // Draft changes affect the next conversation, not the saved version of this one.
     reader.draft = { ...reader.draft, name: '市场资料助手', color: '#654321' }
     await act(async () => { await capabilityClient.refresh() })
+    expect(toolbar().getAttribute('aria-label')).toBe('打开岗位助手：网页助手')
+    expect(toolbar().style.getPropertyValue('--role-color')).toBe(reader.versions[0]!.color)
+    await renderWithRoles(app.props)
     expect(toolbar().getAttribute('aria-label')).toBe('打开岗位助手：市场资料助手')
     expect(toolbar().style.getPropertyValue('--role-color')).toBe('#654321')
     expect(app.list.byId.older.projectionValues.agentPreset).toBe('workbench-role-reader-v1')

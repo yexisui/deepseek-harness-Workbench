@@ -1,5 +1,6 @@
 import React, { useState, type CSSProperties } from 'react'
 import type { RoleIconId, RoleIconSpec } from '../../../dsh-capabilities/src/core/appearance.ts'
+import { MEETING_ROLE_ID } from '../../../dsh-capabilities/src/core/default-roles.ts'
 import { roleCatalog, roleIds } from './role-catalog.ts'
 import r from './Roles.module.css'
 
@@ -11,6 +12,7 @@ export const roleIconOptions: readonly { id: RoleIconId; name: string }[] = [
   { id: 'chat', name: '自由交流' },
 ]
 export function roleAppearanceDefaults(roleId?: string): { color: string; icon: RoleIconSpec } {
+  if (roleId === MEETING_ROLE_ID) return { color: '#6683bd', icon: { kind: 'builtin', id: 'document' } }
   const id = roleId === 'chat' ? 'chat' : roleIds.find(id => roleId === `builtin-${id}`) ?? 'analyst'
   return { color: id === 'chat' ? '#78869f' : roleCatalog[id].color, icon: { kind: 'builtin', id } }
 }

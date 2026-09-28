@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, open, rename, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
-import { capabilityDeletionReferences, initialState, latest, type State, type Command, type Role, type RoleDefinition } from '../core/model.ts'
-import { defaultRoles } from '../core/default-roles.ts'
+import { capabilityDeletionReferences, initialState, latest, meetingCapability, type State, type Command, type Role, type RoleDefinition } from '../core/model.ts'
+import { defaultRoles, MEETING_CAPABILITY_ID, MEETING_ROLE_ID } from '../core/default-roles.ts'
 import { bool, definition, id, InputError, integer, issues, list, object, roleDefinition, text } from '../core/validation.ts'
 import { RoleIconStore } from './icons.ts'
 
@@ -32,7 +32,8 @@ export class CapabilityStore {
         const raw = JSON.parse(await readFile(join(this.directory, 'state.json'), 'utf8'))
         if (raw.schema !== 1 || !Array.isArray(raw.capabilities) || !Array.isArray(raw.roles) || !Number.isSafeInteger(raw.revision)) throw new Error('Unsupported capability data')
         this.state = raw
-        if (raw.defaultRolesVersion !== undefined && raw.defaultRolesVersion !== 1) throw new Error('Unsupported default role migration')
+        if (raw.defaultRolesVersion !== undefined && raw.defaultRolesVersion !== 1 && raw.defaultRolesVersion !== 2) throw new Error('Unsupported default role migration')
+        if (raw.meetingCapabilityVersion !== undefined && raw.meetingCapabilityVersion !== 1) throw new Error('Unsupported meeting capability migration')
         if (raw.stoppedSessions !== undefined && (!Array.isArray(raw.stoppedSessions) || raw.stoppedSessions.some((value: unknown) => typeof value !== 'string' || !value || value.length > 150))) throw new Error('Invalid stopped session data')
         if (raw.revokedAt !== undefined && Object.entries(object(raw.revokedAt)).some(([key, value]) => !/^(role|capability):[a-z][a-z0-9-]*$/.test(key) || !Number.isSafeInteger(value) || Number(value) < 0)) throw new Error('Invalid revocation data')
         // Validate persisted references too. Invalid state must never become execution authority.
@@ -46,12 +47,29 @@ export class CapabilityStore {
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
         this.state = initialState(); await this.persist(this.state)
       }
-      if (this.state.defaultRolesVersion !== 1) {
-        // 只迁移一次；保留用户已有的同名岗位、修改、停用状态和历史版本。
+      if (this.state.meetingCapabilityVersion !== 1) {
         const next = this.snapshot(), now = new Date().toISOString()
-        next.roles.push(...defaultRoles(now).filter(role => !next.roles.some(existing => existing.id === role.id || existing.draft.name.trim() === role.draft.name)))
-        next.defaultRolesVersion = 1; next.revision++; next.updatedAt = now
-        const backup = await open(join(this.directory, 'state-before-default-roles-v1.json'), 'wx').catch(error => { if (error.code !== 'EEXIST') throw error; return undefined })
+        if (!next.capabilities.some(cap => cap.id === MEETING_CAPABILITY_ID)) next.capabilities.push(meetingCapability(now))
+        const role = next.roles.find(item => item.id === MEETING_ROLE_ID)
+        if (role && !role.draft.capabilities.some(binding => binding.capabilityId === MEETING_CAPABILITY_ID)) {
+          const binding = { capabilityId: MEETING_CAPABILITY_ID, version: 1, enabled: true }
+          role.draft.capabilities.push(binding)
+          // Existing meeting conversations keep their published version; only new ones use the binding.
+          this.publishRole(role, role.draft, now)
+        }
+        next.meetingCapabilityVersion = 1; next.revision++; next.updatedAt = now
+        const backup = await open(join(this.directory, 'state-before-meeting-capability-v1.json'), 'wx').catch(error => { if (error.code !== 'EEXIST') throw error; return undefined })
+        if (backup) { try { await backup.writeFile(JSON.stringify(this.state, null, 2)); await backup.sync() } finally { await backup.close() } }
+        await this.persist(next); this.state = next
+      }
+      if (this.state.defaultRolesVersion !== 2) {
+        // V1 users already have four managed roles. Add the meeting role under its
+        // existing conversation ID without touching their drafts or history.
+        const next = this.snapshot(), now = new Date().toISOString()
+        const defaults = defaultRoles(now).filter(role => this.state.defaultRolesVersion !== 1 || role.id === MEETING_ROLE_ID)
+        next.roles.push(...defaults.filter(role => !next.roles.some(existing => existing.id === role.id || (role.id !== MEETING_ROLE_ID && existing.draft.name.trim() === role.draft.name))))
+        next.defaultRolesVersion = 2; next.revision++; next.updatedAt = now
+        const backup = await open(join(this.directory, 'state-before-default-roles-v2.json'), 'wx').catch(error => { if (error.code !== 'EEXIST') throw error; return undefined })
         if (backup) { try { await backup.writeFile(JSON.stringify(this.state, null, 2)); await backup.sync() } finally { await backup.close() } }
         await this.persist(next); this.state = next
       }
@@ -85,6 +103,10 @@ export class CapabilityStore {
       let target = 'id' in command && command.id !== undefined ? id(command.id) : `local-${randomUUID()}`
       if (command.type === 'capability.save') {
         const value = definition(command.definition), publish = bool(command.publish)
+        const meetingParts = value.components.filter(part => part.componentId === 'meeting-asr')
+        if (target === MEETING_CAPABILITY_ID) {
+          if (meetingParts.length !== 1 || value.components.length !== 1 || meetingParts[0]?.actions.length !== 1 || meetingParts[0].actions[0] !== 'transcribe') throw new InputError('内置会议能力必须保留录音转写组件和动作')
+        } else if (meetingParts.length) throw new InputError('会议录音转写组件仅供内置会议能力使用')
         if (publish && issues(value).length) throw new InputError(issues(value).join('；'))
         let cap = next.capabilities.find(c => c.id === target)
         if (command.id && !cap) throw new InputError('能力不存在', 404)
@@ -106,6 +128,7 @@ export class CapabilityStore {
       } else if (command.type === 'capability.copy') {
         const original = next.capabilities.find(c => c.id === target)
         if (!original) throw new InputError('能力不存在', 404)
+        if (target === MEETING_CAPABILITY_ID) throw new InputError('内置会议录音转写不能复制；可编辑说明和服务配置')
         if (original.removedAt) throw new InputError('此能力已移除，请先恢复后再复制')
         target = `local-${randomUUID()}`
         next.capabilities.push({ id: target, source: 'local', enabled: true, pinned: false, draft: { ...structuredClone(original.draft), name: `${original.draft.name} 副本`.slice(0, 80) }, versions: [] })
@@ -154,6 +177,9 @@ export class CapabilityStore {
         }
       } else if (command.type === 'role.save') {
         const value = roleDefinition(command.definition, next), publish = bool(command.publish)
+        const meetingBinding = value.capabilities.find(binding => binding.capabilityId === MEETING_CAPABILITY_ID)
+        if (target === MEETING_ROLE_ID && !meetingBinding) throw new InputError('会议纪要助手必须保留录音转写能力关联')
+        if (target !== MEETING_ROLE_ID && meetingBinding) throw new InputError('会议录音转写仅供会议纪要助手使用')
         if (value.icon?.kind === 'png') await this.icons.read(value.icon.assetId)
         let role = next.roles.find(r => r.id === target)
         if (command.id && !role) throw new InputError('岗位不存在', 404)

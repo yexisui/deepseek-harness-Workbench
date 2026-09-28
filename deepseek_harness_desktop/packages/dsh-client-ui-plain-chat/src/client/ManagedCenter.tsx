@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { actionNames, actionsOf, browserPackage, components, emptyDefinition, latest, references, type Action, type Definition, type Snapshot } from '../../../dsh-capabilities/src/core/model.ts'
+import { MEETING_ROLE_ID } from '../../../dsh-capabilities/src/core/default-roles.ts'
+import { MEETING_CAPABILITY_ID } from '../../../dsh-capabilities/src/core/default-roles.ts'
+import { useMeetingAvailability } from './meeting-capability-status.ts'
+import { MeetingAsrSettings } from './MeetingAsrSettings.tsx'
 import { issues } from '../../../dsh-capabilities/src/core/validation.ts'
 import { capabilityClient, editorDrafts, lastCapabilityLink, openCapabilityLink, useCapabilities, type CapabilityLink } from './capability-client.ts'
 import { ManagedWorkbench, CapabilityGlyph } from './ManagedWorkbench.tsx'
@@ -10,7 +14,7 @@ import { ManagedRecycleBin } from './ManagedRecycleBin.tsx'
 import s from './ManagedCapabilities.module.css'
 
 export function ActionFields({ value, available = ['navigate', 'read', 'screenshot'], onChange }: { value: Action[]; available?: readonly Action[]; onChange: (value: Action[]) => void }) {
-  return <div>{(['navigate', 'read', 'screenshot'] as const).map(action => <label key={action} className={s.check}><input type="checkbox" disabled={!available.includes(action)} checked={value.includes(action)} onChange={e => onChange(e.target.checked ? [...value, action] : value.filter(a => a !== action))}/>{actionNames[action]}</label>)}</div>
+  return <div>{available.map(action => <label key={action} className={s.check}><input type="checkbox" checked={value.includes(action)} onChange={e => onChange(e.target.checked ? [...value, action] : value.filter(a => a !== action))}/>{actionNames[action]}</label>)}</div>
 }
 export function CapabilityEditor({ id, data, onClose, onSaved }: { id?: string; data: Snapshot; onClose: () => void; onSaved: (id: string) => void }) {
   const cap = data.state.capabilities.find(c => c.id === id), key = `capability:${id ?? 'new'}`
@@ -29,12 +33,12 @@ export function CapabilityEditor({ id, data, onClose, onSaved }: { id?: string; 
     finally { setBusy(false) }
   }
   return <Modal title={id ? '编辑能力' : '创建能力'} closeLabel="关闭编辑器" onClose={onClose} wide><div className={s.page} style={{ display: 'contents' }}>
-    <ManagedWorkbench libraryTitle="组件库" title="能力信息" library={components.map(c => ({ id: c.id, name: c.name, subtitle: `BrowserSkill · ${c.version}` }))} selected={selected} onSelect={setSelected}
-      attached={draft.components.map(c => ({ id: c.componentId, name: components.find(i => i.id === c.componentId)?.name ?? c.componentId, subtitle: c.actions.map(a => actionNames[a]).join(' · ') || '未选择动作' }))}
-      onAdd={componentId => { if (!draft.components.some(p => p.componentId === componentId)) change({ ...draft, components: [...draft.components, { componentId, actions: ['navigate', 'read', 'screenshot'] }] }); setSelected(componentId) }}
-      onRemove={componentId => change({ ...draft, components: draft.components.filter(p => p.componentId !== componentId) })}
+    <ManagedWorkbench libraryTitle="组件库" title="能力信息" library={components.filter(c => id === MEETING_CAPABILITY_ID ? c.id === 'meeting-asr' : c.id !== 'meeting-asr').map(c => ({ id: c.id, name: c.name, subtitle: `${c.id === 'meeting-asr' ? '会议服务' : 'BrowserSkill'} · ${c.version}` }))} selected={selected} onSelect={setSelected}
+      attached={draft.components.map(c => ({ id: c.componentId, name: components.find(i => i.id === c.componentId)?.name ?? c.componentId, subtitle: c.actions.map(a => actionNames[a]).join(' · ') || '未选择动作', removable: c.componentId !== 'meeting-asr' }))}
+      onAdd={componentId => { const descriptor = components.find(c => c.id === componentId); if (descriptor && !draft.components.some(p => p.componentId === componentId)) change({ ...draft, components: [...draft.components, { componentId, actions: [...descriptor.actions] }] }); setSelected(componentId) }}
+      onRemove={componentId => { if (id !== MEETING_CAPABILITY_ID) change({ ...draft, components: draft.components.filter(p => p.componentId !== componentId) }) }}
       form={<div className={s.fields}><label className={s.field}>能力名称<input value={draft.name} maxLength={80} placeholder="例如：网页资料采集" onChange={e => change({ ...draft, name: e.target.value })}/></label><label className={s.field}>简介<textarea rows={2} maxLength={1000} value={draft.description} onChange={e => change({ ...draft, description: e.target.value })}/></label><label className={s.field}>使用说明<textarea rows={6} maxLength={8000} value={draft.instructions} onChange={e => change({ ...draft, instructions: e.target.value })}/></label>{cap && <label className={s.field}>从历史版本恢复到当前草稿<select value="" onChange={e => { const value = cap.versions.find(v => v.version === Number(e.target.value)); if (value) change(structuredClone(value)) }}><option value="">选择版本…</option>{cap.versions.map(v => <option key={v.version} value={v.version}>v{v.version} · {v.createdAt.slice(0, 16).replace('T', ' ')}</option>)}</select></label>}</div>}
-      inspector={descriptor ? <><h3>{descriptor.name}</h3><p className={s.muted}>选择此能力允许使用的业务动作。组件顺序不代表执行顺序。</p>{part ? <ActionFields value={part.actions} onChange={actions => change({ ...draft, components: draft.components.map(p => p.componentId === selected ? { ...p, actions } : p) })}/> : <p>请先将组件添加到中间区域。</p>}<h4>自动关联的支持组件</h4><ul className={s.list}>{descriptor.dependencies.map(dep => <li key={dep}>{dep.replace('@deepseek-ai/dsh-', '')}</li>)}</ul><p className={s.muted}>必需依赖由组件自动推导。移除业务组件后引用才会解除。</p><p className={s.notice}>{data.health.message}</p><p className={s.muted}>缺少运行环境时仍可保存；执行时会检查连接。</p></> : <p className={s.empty}>选择一个组件以调整动作。</p>}/>
+      inspector={descriptor ? descriptor.id === 'meeting-asr' ? <><h3>会议录音转写</h3><p className={s.muted}>这是会议纪要助手的内置流程。录音交给服务端配置的兼容语音识别接口；纪要模型在对话中选择。</p><p className={s.notice}>转写动作属于内置能力，编辑说明时会保留该组件。接口凭据不会写入能力草稿。</p></> : <><h3>{descriptor.name}</h3><p className={s.muted}>选择此能力允许使用的业务动作。组件顺序不代表执行顺序。</p>{part ? <ActionFields value={part.actions} available={descriptor.actions} onChange={actions => change({ ...draft, components: draft.components.map(p => p.componentId === selected ? { ...p, actions } : p) })}/> : <p>请先将组件添加到中间区域。</p>}<h4>自动关联的支持组件</h4><ul className={s.list}>{descriptor.dependencies.map(dep => <li key={dep}>{dep.replace('@deepseek-ai/dsh-', '')}</li>)}</ul><p className={s.muted}>必需依赖由组件自动推导。移除业务组件后引用才会解除。</p><p className={s.notice}>{data.health.message}</p><p className={s.muted}>缺少运行环境时仍可保存；执行时会检查连接。</p></> : <p className={s.empty}>选择一个组件以调整动作。</p>}/>
     <div className={s.footer}><div>{message ? <p role="alert" className={s.error}>{message}</p> : <p>{issues(draft).join('；') || '已选择受支持的动作。发布前可检查影响范围。'}</p>}{revision !== data.state.revision && <button className={s.button} onClick={() => { setRevision(data.state.revision); setMessage('已更新基准，请核对保留的草稿后保存。') }}>保留草稿并更新保存基准</button>}</div><div className={s.actions}><button className={s.button} disabled={busy} onClick={() => void save(false)}>保存草稿</button><button className={`${s.button} ${s.primary}`} disabled={busy || !draft.name.trim() || issues(draft).length > 0} onClick={() => setReview(true)}>检查并发布</button></div></div>
     {review && <Modal title="发布新版本" closeLabel="返回编辑" onClose={() => setReview(false)}><div className={`${s.page} ${s.dialogBody}`}><p>当前发布：v{latest(cap?.versions ?? [])?.version ?? 0} → v{(latest(cap?.versions ?? [])?.version ?? 0) + 1}</p><p>原动作：{actionsOf(latest(cap?.versions ?? [])).map(a => actionNames[a]).join('、') || '无'}</p><p>新动作：{actionsOf(draft).map(a => actionNames[a]).join('、') || '无'}</p><p className={s.notice}>新增动作仅由新版本采用。移除动作会立即限制引用此能力的旧会话，并停止正在使用它的浏览器任务。</p><h4>让以下岗位的新会话采用此版本</h4>{linked.map(role => <label className={s.check} key={role.id}><input type="checkbox" checked={applyRoles.includes(role.id)} onChange={e => setApplyRoles(e.target.checked ? [...applyRoles, role.id] : applyRoles.filter(id => id !== role.id))}/>{role.draft.name}</label>)}{!linked.length && <p className={s.muted}>尚无引用此能力的已发布岗位。</p>}<button className={`${s.button} ${s.primary}`} disabled={busy} onClick={() => void save(true)}>{busy ? '发布中…' : '发布本地版本'}</button>{message && <p role="alert" className={s.error}>{message}</p>}</div></Modal>}
   </div></Modal>
@@ -42,6 +46,7 @@ export function CapabilityEditor({ id, data, onClose, onSaved }: { id?: string; 
 
 function ComponentRelations({ data, capabilityId }: { data: Snapshot; capabilityId: string }) {
   const cap = data.state.capabilities.find(c => c.id === capabilityId)!
+  if (capabilityId === MEETING_CAPABILITY_ID) return <><div className={s.row}><div><strong>会议语音识别服务</strong><small>内置流程 · 兼容音频转写接口</small><small>接口地址、模型和密钥由工作台服务端读取；密钥不会进入岗位或能力数据。</small></div></div><p className={s.muted}>转写结果在会议对话中核对；纪要使用对话所选的工作台模型生成。</p></>
   return <>{cap.draft.components.map(part => { const descriptor = components.find(c => c.id === part.componentId)!, refs = references(data.state, descriptor.id, data.tasks)
     return <div key={part.componentId}><h4>业务插件</h4><div className={s.row}><div><strong>{descriptor.name}</strong><small>{browserPackage} · 固定版本 {descriptor.version}</small><small>{data.health.installed ? '已安装' : '未安装'} · {data.health.loaded ? '已由岗位适配层加载' : '未加载'}</small></div><button className={s.button} onClick={() => openCapabilityLink({ section: 'plugins', moduleName: '@linxin666/dsh-capabilities/browser', capabilityId })}>插件管理 ↗</button></div><p className={s.muted}>共关联 {refs.capabilities.length} 个能力、{refs.roles.length} 个岗位；活动会话 {refs.tasks.length} 个。底层插件安装一份，由各能力复用。</p><h4>共享支持服务</h4>{descriptor.dependencies.filter(dep => dep.startsWith('@')).map(dep => <div className={s.row} key={dep}><div><strong>{dep.replace('@deepseek-ai/dsh-', '')}</strong><small>{dep} · 必需依赖</small><small>{(() => { const status = data.dependencies?.find(d => d.id === dep); return !status ? '尚未检测' : `${status.version ?? '版本未知'} · ${status.pendingRestart ? '待重启' : status.loaded ? '已加载' : status.installed ? '已安装，未加载' : '未安装'}` })()}</small></div><button className={s.button} onClick={() => openCapabilityLink({ section: 'plugins', moduleName: dep, capabilityId })}>查看组件 ↗</button></div>)}<h4>浏览器环境</h4><div className={s.row}><div><strong>本机 CLI 与浏览器扩展</strong><small>{data.health.cliVersion ?? 'CLI 版本待检测'} · 扩展通过浏览器单独安装</small><small>{data.health.message}</small></div></div></div>
   })}{!cap.draft.components.length && <p>当前草稿没有组件。</p>}</>
@@ -49,17 +54,37 @@ function ComponentRelations({ data, capabilityId }: { data: Snapshot; capability
 
 export function ManagedCenter({ initialId, embedded = false }: { initialId?: string; embedded?: boolean }) {
   const { data, error } = useCapabilities()
+  const { status: meetingStatus, refresh: refreshMeeting } = useMeetingAvailability(data?.state.revision)
   const [selected, setSelected] = useState<string | null>(initialId ?? lastCapabilityLink()?.capabilityId ?? null), [tab, setTab] = useState('overview'), [query, setQuery] = useState(''), [filter, setFilter] = useState('all')
   const [editor, setEditor] = useState<{ id?: string } | null>(null), [role, setRole] = useState<string | null>(null), [message, setMessage] = useState(''), [busy, setBusy] = useState(false)
   const [removing, setRemoving] = useState<string | null>(null), [notice, setNotice] = useState('')
+  const [meetingEditing, setMeetingEditing] = useState(false)
+  const meetingNavigate = (action: () => void) => { if (!meetingEditing || window.confirm('识别配置尚未保存，确定放弃修改？')) { setMeetingEditing(false); action() } }
   useEffect(() => { const open = (event: Event) => { const link = (event as CustomEvent<CapabilityLink>).detail; if (link.section === 'capability-center') setSelected(link.capabilityId ?? null) }; window.addEventListener('workbench-capability-link', open); return () => window.removeEventListener('workbench-capability-link', open) }, [])
   const run = async (fn: () => Promise<unknown>) => { setBusy(true); setMessage(''); try { await fn() } catch (error) { setMessage(error instanceof Error ? error.message : String(error)) } finally { setBusy(false) } }
   if (!data) return <div className={s.page}><p role={error ? 'alert' : 'status'}>{error || '正在读取能力数据…'}</p><button className={s.button} onClick={() => void capabilityClient.refresh()}>重新加载</button></div>
   const item = data.state.capabilities.find(c => c.id === selected)
+  const meetingAssistantName = data.state.roles.find(role => role.id === MEETING_ROLE_ID)?.draft.name ?? '会议纪要助手'
   const linked = (id: string) => capabilityImpact(data, id).roles
   const removedCount = data.state.capabilities.filter(c => c.removedAt).length
-  const visible = data.state.capabilities.filter(c => (filter === 'removed' ? Boolean(c.removedAt) : !c.removedAt) && (filter !== 'pinned' || c.pinned) && (filter !== 'pending' || !c.enabled || !c.versions.length || data.health.state !== 'ready') && (filter !== 'unused' || !linked(c.id).length) && `${c.draft.name} ${c.draft.description}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).sort((a, b) => Number(b.pinned) - Number(a.pinned))
+  const visible = data.state.capabilities.filter(c => (filter === 'removed' ? Boolean(c.removedAt) : !c.removedAt) && (filter !== 'pinned' || c.pinned) && (filter !== 'pending' || !c.enabled || !c.versions.length || (c.id === MEETING_CAPABILITY_ID ? !meetingStatus?.ready : data.health.state !== 'ready')) && (filter !== 'unused' || !linked(c.id).length) && `${c.draft.name} ${c.draft.description}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).sort((a, b) => Number(b.pinned) - Number(a.pinned))
   const restore = (id: string) => void run(async () => { await capabilityClient.command({ type: 'capability.restore', id }); setNotice('能力已恢复，当前保持停用。可在“管理能力”中检查配置并启用。'); setFilter('all'); setSelected(id); setTab('overview') })
+  if (item?.id === MEETING_CAPABILITY_ID) return <section className={s.page} data-capability-center data-meeting-capability-detail>
+    <button className={s.button} onClick={() => meetingNavigate(() => setSelected(null))}>{item.removedAt ? '← 返回回收站' : '← 全部能力'}</button>
+    <div className={s.heading} style={{ marginTop: 18 }}><div className={s.actions}><CapabilityGlyph kind="audio"/><div><h3>{item.draft.name}</h3><span className={s.muted}>内置能力 · v{latest(item.versions)?.version ?? 1}</span></div></div><div className={s.actions}>{item.removedAt ? <button className={s.button} disabled={busy} onClick={() => restore(item.id)}>恢复能力</button> : <><button className={s.button} onClick={() => setEditor({ id: item.id })}>编辑能力信息</button><button className={`${s.iconButton} ${s.removeAction}`} disabled={busy} aria-label={`移除能力：${item.draft.name}`} onClick={() => setRemoving(item.id)}><CapabilityActionIcon kind="remove"/></button></>}</div></div>
+    {(error || message) && <p role="alert" className={s.error}>{message || error}</p>}
+    {notice && <p role="status" className={s.notice}>{notice}</p>}
+    <p>{item.draft.description}</p>
+    <div className={s.tabs}>{[['overview', '概览与连接'], ['instructions', '使用说明'], ['defaults', '默认配置'], ['components', '关联组件'], ['roles', '使用岗位']].map(([value, label]) => <button key={value} aria-pressed={tab === value} onClick={() => meetingNavigate(() => setTab(value))}>{label}</button>)}</div>
+    {tab === 'overview' && <><div className={s.row}><div><strong>{item.removedAt ? '此能力已移除' : !item.enabled ? '此能力已停用' : meetingStatus?.ready ? '语音识别接口已配置' : '语音识别接口待配置'}</strong><small>{meetingStatus?.message ?? '正在检查配置…'}</small></div><button className={s.button} disabled={busy} onClick={() => void refreshMeeting()}>刷新状态</button></div><label className={s.check}><input type="checkbox" checked={item.enabled} disabled={busy || !!item.removedAt} onChange={event => void run(() => capabilityClient.command({ type: 'capability.toggle', id: item.id, enabled: event.target.checked }))}/>启用此能力</label><p className={s.muted}>由{meetingAssistantName}使用。停用后不能新建或继续处理录音；已有纪要和转写记录保留。</p></>}
+    {tab === 'instructions' && <><p style={{ whiteSpace: 'pre-wrap' }}>{item.draft.instructions}</p><button className={s.button} disabled={!!item.removedAt} onClick={() => setEditor({ id: item.id })}>编辑说明</button></>}
+    {tab === 'defaults' && <MeetingAsrSettings status={meetingStatus} refresh={refreshMeeting} disabled={!!item.removedAt} onEditingChange={setMeetingEditing}/>}
+    {tab === 'components' && <ComponentRelations data={data} capabilityId={item.id}/>}
+    {tab === 'roles' && <>{linked(item.id).map(used => <div className={s.row} key={used.id}><div><strong>{used.draft.name}</strong><small>{used.enabled ? '已启用' : '已停用'} · 已发布 v{latest(used.versions)?.version ?? 1}</small></div><button className={s.button} onClick={() => setRole(used.id)}>编辑岗位 →</button></div>)}</>}
+    {removing && <RemoveCapabilityDialog id={removing} data={data} onClose={() => setRemoving(null)} onRemoved={() => { setRemoving(null); setSelected(null); setNotice('能力已移除，可在“回收站”中恢复。') }}/>}
+    {editor && <CapabilityEditor key={editor.id ?? 'new'} id={editor.id} data={data} onClose={() => setEditor(null)} onSaved={setSelected}/>}
+    {role && <ManagedRoleEditor id={role} onClose={() => setRole(null)}/>}
+  </section>
   return <section className={s.page} data-capability-center>
     {!embedded && <div className={s.heading}><div><h2>能力中心</h2><span className={s.muted}>编辑能力、组合组件，再装配到岗位助手。</span></div><button className={`${s.button} ${s.primary}`} onClick={() => setEditor({})}>＋ 创建能力</button></div>}
     {(error || message) && <p role="alert" className={s.error}>{message || error}</p>}
@@ -74,12 +99,12 @@ export function ManagedCenter({ initialId, embedded = false }: { initialId?: str
     </> : <><input className={s.search} aria-label="搜索能力" placeholder="搜索能力名称或用途" value={query} onChange={e => setQuery(e.target.value)}/>
       <div className={s.tabs}>{[['all','全部'],['pinned','收藏'],['pending','待就绪'],['unused','未使用'],['removed',`回收站${removedCount ? ` ${removedCount}` : ''}`]].map(([value,label]) => <button key={value} aria-pressed={filter === value} onClick={() => { setFilter(value!); setNotice('') }}>{label}</button>)}</div>
       {filter === 'removed' ? <ManagedRecycleBin data={data} query={query} onInspect={id => { setSelected(id); setTab('overview'); setNotice('') }} onNotice={setNotice}/> : <>
-      <div className={s.grid}>{visible.map(c => <ManagedCapabilityCard key={c.id} capability={c} data={data} busy={busy}
+      <div className={s.grid}>{visible.map(c => <ManagedCapabilityCard key={c.id} capability={c} data={data} busy={busy} meetingStatus={c.id === MEETING_CAPABILITY_ID ? meetingStatus : undefined}
         onManage={() => { setSelected(c.id); setTab('overview'); setNotice('') }}
         onPin={() => void run(() => capabilityClient.command({ type: 'capability.pin', id: c.id, pinned: !c.pinned }))}
         onRemove={() => { setRemoving(c.id); setNotice('') }} onRestore={() => restore(c.id)}/>)}</div>
       {!visible.length && <p className={s.empty}>{query.trim() ? '没有找到匹配的能力，试试其他名称或用途。' : filter === 'removed' ? '暂无已移除的能力。' : filter === 'pinned' ? '暂无收藏能力，点击卡片右上角的图钉即可收藏。' : '没有符合条件的能力。'}</p>}
-      <p className={s.muted}>当前真实适配：BrowserSkill。文档、表格、知识库等组件将在适配完成后加入。</p></>}</>}
+      <p className={s.muted}>会议录音转写由{meetingAssistantName}调用；录音会发送至你配置的识别服务，纪要由工作台已配置的模型生成。其他可组合能力仍按现有配置管理。</p></>}</>}
     {removing && <RemoveCapabilityDialog id={removing} data={data} onClose={() => setRemoving(null)} onRemoved={() => { setRemoving(null); setSelected(null); setNotice('能力已移除，可在“回收站”中恢复。'); }}/>}
     {editor && <CapabilityEditor key={editor.id ?? 'new'} id={editor.id} data={data} onClose={() => setEditor(null)} onSaved={setSelected}/>}
     {role && <ManagedRoleEditor id={role} onClose={() => setRole(null)}/>}

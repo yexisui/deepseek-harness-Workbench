@@ -3,8 +3,8 @@ import { useCapabilityPanels, type PanelSide } from './useCapabilityPanels.ts'
 import { useCapabilityDrag } from './useCapabilityDrag.ts'
 import s from './Capabilities.module.css'
 
-export type WorkbenchItem = { id: string; name: string; subtitle: string; disabled?: boolean }
-export function CapabilityGlyph() { return <span className={s.icon} style={{ '--cap-color': '#4F73E8' } as React.CSSProperties} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg></span> }
+export type WorkbenchItem = { id: string; name: string; subtitle: string; disabled?: boolean; removable?: boolean }
+export function CapabilityGlyph({ kind = 'browser' }: { kind?: 'browser' | 'audio' }) { return <span className={s.icon} style={{ '--cap-color': kind === 'audio' ? '#6683bd' : '#4F73E8' } as React.CSSProperties} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">{kind === 'audio' ? <><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4m-4 0h8"/></> : <><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></>}</svg></span> }
 
 /** Reuses the tested resize/drag hooks and the established compact row design. */
 export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd, onRemove, form, inspector, title, libraryTitle, onManage }: {
@@ -38,14 +38,14 @@ export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd,
         <div className={s.columnHeading}><div><h3>{libraryTitle}</h3>{onManage && <button type="button" className={s.manageLink} onClick={onManage}>管理能力 ↗</button>}</div><button type="button" className={s.collapseButton} onClick={() => panels.close('left')} aria-label="收起左栏">‹</button></div>
         <label className={s.search}><input placeholder="搜索名称或组件" aria-label="搜索配件" value={query} onChange={e => setQuery(e.target.value)}/></label>
         <div className={s.catalog}>{library.filter(i => `${i.name} ${i.subtitle}`.toLowerCase().includes(query.toLowerCase())).map(item => <article className={`${s.catalogCard} ${selected === item.id ? s.catalogSelected : ''}`} key={item.id} onPointerDown={e => !item.disabled && drag.start(item.id, e)} onClickCapture={drag.click}>
-          <button type="button" className={s.catalogInspect} title={item.name} onClick={() => configure(item.id)}><CapabilityGlyph/><span><strong>{item.name}</strong><small>{item.subtitle}</small></span></button><button data-capability-add type="button" className={s.quickAdd} disabled={item.disabled || attached.some(a => a.id === item.id)} aria-label={`添加 ${item.name}`} onClick={() => add(item.id)}>{attached.some(a => a.id === item.id) ? '✓' : '＋'}</button><span className={s.grip} aria-hidden="true">⠿</span>
+          <button type="button" className={s.catalogInspect} title={item.name} onClick={() => configure(item.id)}><CapabilityGlyph kind={item.id === 'meeting-asr' || item.id === 'meeting-transcription' ? 'audio' : 'browser'}/><span><strong>{item.name}</strong><small>{item.subtitle}</small></span></button><button data-capability-add type="button" className={s.quickAdd} disabled={item.disabled || attached.some(a => a.id === item.id)} aria-label={`添加 ${item.name}`} onClick={() => add(item.id)}>{attached.some(a => a.id === item.id) ? '✓' : '＋'}</button><span className={s.grip} aria-hidden="true">⠿</span>
         </article>)}</div><p className={s.libraryNote}>仅列出已适配的组件和已发布的能力</p>
       </section>{rail('left')}
       <section className={s.canvas} aria-label={title}><div className={s.columnHeading}><h3>{title}</h3><span className={s.step}>01</span></div>{form}
         <div className={`${s.columnHeading} ${s.attachedHeading}`}><h3>已添加的配件 <span className={s.count}>{attached.length}</span></h3><span className={s.step}>02</span></div>
         <div ref={drag.zone} aria-label="拖入配件" className={`${s.dropZone} ${drag.drag ? s.dragReady : ''} ${drag.over ? s.dragOver : ''}`}>
           {attached.map(item => <div key={item.id} ref={node => { if (node) cards.current.set(item.id, node); else cards.current.delete(item.id) }} className={`${s.attachedCard} ${selected === item.id ? s.attachedSelected : ''}`} data-attached-capability={item.id}>
-            <button type="button" className={s.attachedSelect} onClick={() => configure(item.id)}><CapabilityGlyph/><span><strong>{item.name}</strong><small>{item.subtitle}</small></span></button><button type="button" className={s.remove} aria-label={`移除 ${item.name}`} onClick={() => onRemove(item.id)}>×</button>
+            <button type="button" className={s.attachedSelect} onClick={() => configure(item.id)}><CapabilityGlyph kind={item.id === 'meeting-asr' || item.id === 'meeting-transcription' ? 'audio' : 'browser'}/><span><strong>{item.name}</strong><small>{item.subtitle}</small></span></button>{item.removable !== false && <button type="button" className={s.remove} aria-label={`移除 ${item.name}`} onClick={() => onRemove(item.id)}>×</button>}
           </div>)}<div className={`${s.dropHint} ${attached.length ? s.dropCompact : ''}`}><span>＋</span><strong>拖入配件，或点击左侧加号</strong></div>
         </div>
       </section>{rail('right')}

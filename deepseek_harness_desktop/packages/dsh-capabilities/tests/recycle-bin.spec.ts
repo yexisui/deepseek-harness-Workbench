@@ -46,7 +46,7 @@ describe('capability recycle bin', () => {
     const result = await send(store, { type: 'capability.restoreMany', ids: ['browser', copyId] })
     expect(result.id).toBe('browser')
     expect(result.state.revision).toBe(removed.revision + 1)
-    for (const cap of result.state.capabilities) {
+    for (const cap of result.state.capabilities.filter(cap => ['browser', copyId].includes(cap.id))) {
       expect(cap.removedAt).toBeUndefined()
       expect(cap.enabled).toBe(false)
       expect(cap.pinned).toBe(false)

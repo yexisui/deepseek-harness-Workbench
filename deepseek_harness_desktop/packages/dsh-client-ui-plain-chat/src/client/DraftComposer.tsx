@@ -3,8 +3,8 @@ import type { ChatStart } from '../core/start.ts'
 import type { ChatKey } from './locales.ts'
 import styles from './Chat.module.css'
 
-export function DraftComposer({ start, t, available, previewOnly = false, onReturnChat }: { start: ChatStart; t: (key: ChatKey) => string; available: boolean; previewOnly?: boolean; onReturnChat?: () => void }) {
-  const [draft, setDraft] = useState(() => { try { return sessionStorage.getItem('workbench-chat-draft') ?? '' } catch { return '' } })
+export function DraftComposer({ start, t, available, previewOnly = false, onReturnChat, initialDraft, onDraftChange }: { start: ChatStart; t: (key: ChatKey) => string; available: boolean; previewOnly?: boolean; onReturnChat?: () => void; initialDraft?: string; onDraftChange?: (value: string) => void }) {
+  const [draft, setDraft] = useState(() => { if (initialDraft !== undefined) return initialDraft; try { return sessionStorage.getItem('workbench-chat-draft') ?? '' } catch { return '' } })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(false)
   const alive = useRef(true)
@@ -12,6 +12,7 @@ export function DraftComposer({ start, t, available, previewOnly = false, onRetu
   const update = (value: string) => {
     setDraft(value)
     try { sessionStorage.setItem('workbench-chat-draft', value) } catch { /* Session storage is optional. */ }
+    onDraftChange?.(value)
   }
   const send = async () => {
     if (busy || previewOnly || !available || !draft.trim()) return
