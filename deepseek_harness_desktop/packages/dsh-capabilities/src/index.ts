@@ -86,7 +86,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (req.method === 'GET' && route.startsWith('/api/capabilities/meeting/audio/')) return await meeting.serveAudio(route.slice('/api/capabilities/meeting/audio/'.length), req, res)
       if (req.method === 'DELETE' && route.startsWith('/api/capabilities/meeting/job/')) { await meeting.remove(route.slice('/api/capabilities/meeting/job/'.length)); return json(res, 200, { ok: true }) }
       if (req.method === 'PUT' && route.startsWith('/api/capabilities/meeting/upload/')) return json(res, 202, await meeting.upload(route.slice('/api/capabilities/meeting/upload/'.length), req))
-      if (req.method === 'GET' && route === '/api/capabilities/state') return json(res, 200, { state: store.snapshot(), components, health: runtime.health, tasks: runtime.tasks(), dependencies: runtime.dependencies() })
+      if (req.method === 'GET' && route === '/api/capabilities/state') return json(res, 200, { compositionVersion: 1, state: store.snapshot(), components, health: runtime.health, tasks: runtime.tasks(), dependencies: runtime.dependencies() })
       if (req.method === 'GET' && route.startsWith('/api/capabilities/icons/')) {
         const image = await store.icons.read(route.slice('/api/capabilities/icons/'.length))
         res.writeHead(200, { 'content-type': 'image/png', 'content-length': image.length, 'cache-control': 'private, max-age=31536000, immutable', 'x-content-type-options': 'nosniff' }); res.end(image); return

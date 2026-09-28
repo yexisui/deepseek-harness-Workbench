@@ -75,4 +75,21 @@
 .recycleSelect input:disabled + .selectionMark { opacity:.45; }
 .selectedCard { border-color:#7585b1; box-shadow:0 0 0 1px #7585b1; background:color-mix(in srgb,#7585b1 10%,var(--role-bg)); }
 .deleteList { max-height:180px; overflow:auto; overflow-wrap:anywhere; }
+.compositionFieldset { margin:0; padding:0; border:0; min-width:0; }
+.compositionInfo { border:1px solid var(--role-border); border-radius:9px; padding:12px; margin-bottom:18px; }
+.compositionInfo summary { font-size:12px; color:var(--role-muted); cursor:pointer; }
+.compositionInfo[open] summary { margin-bottom:16px; }
+.associationRow { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; margin:10px 0; border:1px solid var(--role-border); border-radius:10px; background:var(--role-bg); }
+.associationIdentity { display:flex; align-items:center; gap:12px; min-width:0; }
+.associationIdentity > div { min-width:0; }
+.associationIdentity strong { margin-right:8px; }
+.associationIdentity small { display:block; color:var(--role-muted); font-size:11px; margin-top:5px; overflow-wrap:anywhere; }
+.associationSymbol { flex-shrink:0; display:grid; place-items:center; width:34px; height:34px; border-radius:8px; color:var(--role-accent); background:color-mix(in srgb,var(--role-accent) 10%,transparent); font-size:22px; }
+.associationActions { display:flex; gap:6px; align-items:center; flex-shrink:0; }
+.compositionFeedback,.compositionToolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:12px; margin:12px 0; border:1px solid var(--role-border); border-radius:9px; font-size:12px; background:var(--role-bg); }
+.compositionToolbar { position:sticky; bottom:0; z-index:1; box-shadow:0 -5px 12px #00000008; }
+.missingAssociations { border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border)); background:color-mix(in srgb,#be8432 8%,var(--role-bg)); padding:12px; border-radius:9px; font-size:12px; margin:10px 0; }
+.missingRow { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.missingRow small { color:var(--role-muted); }
+@media(max-width:650px) { .associationRow { align-items:flex-start; flex-wrap:wrap; padding:12px; } .associationActions { margin-left:auto; } }
 @media(prefers-reduced-motion:reduce) { .iconButton { transition:none; } .iconButton:active { transform:none; } }

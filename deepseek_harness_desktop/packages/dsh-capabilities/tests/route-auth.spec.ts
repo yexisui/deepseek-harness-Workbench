@@ -22,7 +22,7 @@ beforeEach(async () => {
   mocks.runtime.tasks.mockReturnValue([]); mocks.runtime.dependencies.mockReturnValue([])
   const ctx = {
     webServer: { register: vi.fn((route: { handler: Handler }) => { handler = route.handler; return () => {} }) },
-    connection: { requestRejection: mocks.requestRejection }, provide: vi.fn(), effect: (effect: () => unknown) => effect(),
+    connection: { requestRejection: mocks.requestRejection }, inject: vi.fn(), provide: vi.fn(), effect: (effect: () => unknown) => effect(),
   } as unknown as Context
   await apply(ctx)
   mocks.store.snapshot.mockClear(); mocks.writePresets.mockClear()

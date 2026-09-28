@@ -216,11 +216,23 @@ function initialState(now = (/* @__PURE__ */ new Date()).toISOString()) {
 	};
 }
 function actionsOf(definition) {
-	return [...new Set(definition?.components.flatMap((part) => part.actions) ?? [])];
+	return [...new Set(definition?.components.flatMap((part) => {
+		return components.find((c) => c.id === part.componentId)?.dependencies.some((dep) => definition.excludedDependencies?.includes(dep)) ? [] : part.actions;
+	}) ?? [])];
 }
 /** 永久删除必须保护所有历史岗位版本，不能只检查当前列表或活动会话。 */
 function capabilityDeletionReferences(state, capabilityId) {
 	return state.roles.filter((role) => role.draft.capabilities.some((binding) => binding.capabilityId === capabilityId) || role.versions.some((version) => version.capabilities.some((binding) => binding.capabilityId === capabilityId)));
+}
+//#endregion
+//#region src/core/composition.ts
+const dependencyName = (id) => id.replace("@deepseek-ai/dsh-", "");
+/** Environment requirements (CLI/extension) are not removable plugin associations. */
+function supportDependencies(value) {
+	return [...new Set(value.components.flatMap((part) => components.find((c) => c.id === part.componentId)?.dependencies.filter((id) => id.startsWith("@")) ?? []))];
+}
+function missingDependencies(value) {
+	return supportDependencies(value).filter((id) => value.excludedDependencies?.includes(id));
 }
 //#endregion
 //#region src/core/appearance.ts
@@ -289,7 +301,7 @@ function roleIcon(value) {
 }
 function definition(value) {
 	const data = object(value), seen = /* @__PURE__ */ new Set();
-	return {
+	const result = {
 		name: text(data.name, "能力名称", 80, true),
 		description: text(data.description, "简介", 1e3),
 		instructions: text(data.instructions, "使用说明", 8e3),
@@ -309,6 +321,16 @@ function definition(value) {
 			};
 		})
 	};
+	const dependencies = supportDependencies(result);
+	const associations = [...result.components.map((p) => p.componentId), ...dependencies];
+	for (const key of ["excludedDependencies", "componentOrder"]) {
+		if (data[key] === void 0) continue;
+		const values = list(data[key], 100).map((value) => text(value, "组件关联", 160, true));
+		const allowed = key === "excludedDependencies" ? dependencies : associations;
+		if (new Set(values).size !== values.length || values.some((value) => !allowed.includes(value))) throw new InputError("组件关联包含重复或不受支持的项目");
+		result[key] = values;
+	}
+	return result;
 }
 function roleDefinition(value, state) {
 	const data = object(value), color = text(data.color, "颜色", 7), seen = /* @__PURE__ */ new Set();
@@ -341,7 +363,7 @@ function roleDefinition(value, state) {
 	};
 }
 function issues(definition) {
-	return definition.components.length === 0 ? ["尚未添加组件"] : definition.components.flatMap((p) => p.actions.length ? [] : ["至少选择一个业务动作"]);
+	return [...definition.components.length === 0 ? ["尚未添加组件"] : definition.components.flatMap((p) => p.actions.length ? [] : ["至少选择一个业务动作"]), ...missingDependencies(definition).map((id) => `缺少必需组件：${dependencyName(id)}，补回后才能发布`)];
 }
 //#endregion
 //#region src/host/icons.ts
@@ -1938,6 +1960,7 @@ async function apply(ctx, config$1 = {}) {
 				}
 				if (req.method === "PUT" && route.startsWith("/api/capabilities/meeting/upload/")) return json(res, 202, await meeting.upload(route.slice(33), req));
 				if (req.method === "GET" && route === "/api/capabilities/state") return json(res, 200, {
+					compositionVersion: 1,
 					state: store.snapshot(),
 					components,
 					health: runtime.health,

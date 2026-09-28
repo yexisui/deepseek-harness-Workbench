@@ -85,7 +85,7 @@ describe('managed capability card actions', () => {
     expect(container.querySelector('[data-meeting-capability-detail]')).not.toBeNull()
     expect(container.textContent).toContain('语音识别接口待配置')
     await click('默认配置')
-    expect(container.textContent).toContain('纪要模型在会议对话中选择')
+    expect(container.textContent).toContain('纪要生成模型仍在会议对话中选择')
     await click('← 全部能力')
     await click('收藏能力：会议录音转写')
     await click('收藏')

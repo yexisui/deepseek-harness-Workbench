@@ -3,7 +3,7 @@ import { defaultRoles, MEETING_CAPABILITY_ID } from './default-roles.ts'
 import type { RoleIconSpec } from './appearance.ts'
 export type Action = 'navigate' | 'read' | 'screenshot' | 'transcribe'
 export type Part = { componentId: string; actions: Action[] }
-export type Definition = { name: string; description: string; instructions: string; components: Part[] }
+export type Definition = { name: string; description: string; instructions: string; components: Part[]; excludedDependencies?: string[]; componentOrder?: string[] }
 export type Version = Definition & { version: number; createdAt: string }
 export type Capability = { id: string; source: 'builtin' | 'local'; enabled: boolean; pinned: boolean; removedAt?: string; draft: Definition; versions: Version[] }
 export type Binding = { capabilityId: string; version: number; enabled: boolean; actions?: Action[] }
@@ -43,13 +43,17 @@ export type Command =
 export type Health = { checkedAt: string | null; installed: boolean; loaded: boolean; state: 'unknown' | 'missing' | 'disconnected' | 'ready' | 'degraded'; message: string; cliVersion?: string; browsers: { id: string; name: string }[] }
 export type Task = { sessionId: string; roleId: string; roleVersion: number; name: string; status: 'idle' | 'running' | 'stopping' | 'stopped' | 'error'; error?: string; action?: string; browserSessions: string[] }
 export type DependencyHealth = { id: string; installed: boolean; loaded: boolean; version?: string; pendingRestart: boolean }
-export type Snapshot = { state: State; components: readonly Component[]; health: Health; tasks: Task[]; dependencies?: DependencyHealth[] }
+export type Snapshot = { compositionVersion?: 1; state: State; components: readonly Component[]; health: Health; tasks: Task[]; dependencies?: DependencyHealth[] }
 
 export function resolveBinding(state: State, binding: Binding): Version | undefined {
   return state.capabilities.find(c => c.id === binding.capabilityId)?.versions.find(v => v.version === binding.version)
 }
 export function actionsOf(definition?: Definition): Action[] {
-  return [...new Set(definition?.components.flatMap(part => part.actions) ?? [])]
+  // Incomplete drafts must never confer authority, even if loaded as a version by an old client.
+  return [...new Set(definition?.components.flatMap(part => {
+    const descriptor = components.find(c => c.id === part.componentId)
+    return descriptor?.dependencies.some(dep => definition.excludedDependencies?.includes(dep)) ? [] : part.actions
+  }) ?? [])]
 }
 /** 永久删除必须保护所有历史岗位版本，不能只检查当前列表或活动会话。 */
 export function capabilityDeletionReferences(state: State, capabilityId: string): Role[] {

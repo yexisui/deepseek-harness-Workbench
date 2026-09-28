@@ -135,6 +135,13 @@
 .summaryCaps span { border:1px solid var(--role-border); border-radius:6px; padding:4px 7px; font-size:10px; color:var(--role-muted); }
 .muted { color:var(--role-muted); font-size:12px; }
 .srOnly { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.catalogGroup { margin:15px 0 7px; color:var(--role-muted); font-size:11px; font-weight:500; }
+.catalogCard,.sortHandle { user-select:none; }
+.sortHandle { border:0; background:none; color:var(--role-muted); padding:9px 3px; cursor:grab; touch-action:none; flex-shrink:0; font-size:19px; }
+.sortHandle:active { cursor:grabbing; }
+.sortHandle:focus-visible { outline:2px solid var(--role-accent); border-radius:5px; }
+.sortSource { opacity:.5; }
+.sortTarget { box-shadow:0 -3px 0 var(--role-accent); }
 .compact { grid-template-columns:30px minmax(0,1fr) 30px; transition:none; }
 .compact .canvas { grid-column:2; padding:20px 16px; }
 .compact .library, .compact .inspector { position:absolute; top:0; bottom:0; z-index:4; grid-column:auto; box-shadow:0 0 22px #14244124; }

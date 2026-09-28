@@ -1,4 +1,5 @@
 import { components, type Definition, type RoleDefinition, type State } from './model.ts'
+import { dependencyName, missingDependencies, supportDependencies } from './composition.ts'
 import { roleIconIds, roleIconAssetIdPattern, type RoleIconSpec } from './appearance.ts'
 export class InputError extends Error { constructor(message: string, readonly status = 400) { super(message) } }
 export function object(value: unknown): Record<string, unknown> {
@@ -21,7 +22,7 @@ export function roleIcon(value: unknown): RoleIconSpec {
 }
 export function definition(value: unknown): Definition {
   const data = object(value), seen = new Set<string>()
-  return { name: text(data.name, '能力名称', 80, true), description: text(data.description, '简介', 1000), instructions: text(data.instructions, '使用说明', 8000), components: list(data.components, 20).map(value => {
+  const result: Definition = { name: text(data.name, '能力名称', 80, true), description: text(data.description, '简介', 1000), instructions: text(data.instructions, '使用说明', 8000), components: list(data.components, 20).map(value => {
     const part = object(value), componentId = id(part.componentId), descriptor = components.find(c => c.id === componentId)
     if (!descriptor) throw new InputError('此组件尚未适配，不能作为可执行能力添加')
     if (seen.has(componentId)) throw new InputError('组件重复；请在已有组件中调整动作')
@@ -33,6 +34,16 @@ export function definition(value: unknown): Definition {
     if (new Set(actions).size !== actions.length) throw new InputError('动作重复')
     return { componentId, actions }
   }) }
+  const dependencies = supportDependencies(result)
+  const associations = [...result.components.map(p => p.componentId), ...dependencies]
+  for (const key of ['excludedDependencies', 'componentOrder'] as const) {
+    if (data[key] === undefined) continue
+    const values = list(data[key], 100).map(value => text(value, '组件关联', 160, true))
+    const allowed = key === 'excludedDependencies' ? dependencies : associations
+    if (new Set(values).size !== values.length || values.some(value => !allowed.includes(value))) throw new InputError('组件关联包含重复或不受支持的项目')
+    result[key] = values
+  }
+  return result
 }
 export function roleDefinition(value: unknown, state: State): RoleDefinition {
   const data = object(value), color = text(data.color, '颜色', 7), seen = new Set<string>()
@@ -52,5 +63,5 @@ export function roleDefinition(value: unknown, state: State): RoleDefinition {
   }) }
 }
 export function issues(definition: Definition): string[] {
-  return definition.components.length === 0 ? ['尚未添加组件'] : definition.components.flatMap(p => p.actions.length ? [] : ['至少选择一个业务动作'])
+  return [...(definition.components.length === 0 ? ['尚未添加组件'] : definition.components.flatMap(p => p.actions.length ? [] : ['至少选择一个业务动作'])), ...missingDependencies(definition).map(id => `缺少必需组件：${dependencyName(id)}，补回后才能发布`)]
 }
