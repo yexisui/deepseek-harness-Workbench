@@ -11,11 +11,16 @@ export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec;
 export type RoleVersion = RoleDefinition & { version: number; preset: string; createdAt: string }
 export type Role = { id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
 export type State = { schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
-export type Component = { id: string; name: string; provider: string; version: string; actions: readonly Action[]; dependencies: readonly string[] }
+export type Component = {
+  id: string; name: string; provider: string; version: string; actions: readonly Action[]; dependencies: readonly string[]
+  icon: 'browser' | 'audio'; sourceLabel: string; management: 'browser' | 'meeting-asr'; pluginModule?: string
+  /** Exclusive workflows cannot be assembled into unrelated capabilities until their execution adapter supports it. */
+  capabilityIds?: readonly string[]; required?: boolean; compositionVersion: 1 | 2
+}
 export const browserPackage = '@wxg-prc-cpg/browser-skill-dsh-plugin'
 export const components: readonly Component[] = [
-  { id: 'browserskill', name: '浏览器操作', provider: browserPackage, version: '0.3.0', actions: ['navigate', 'read', 'screenshot'], dependencies: ['@deepseek-ai/dsh-tools', '@deepseek-ai/dsh-agent', '@deepseek-ai/dsh-session', '@deepseek-ai/dsh-skill', '@deepseek-ai/dsh-attachment', 'bsk', 'browser-extension'] },
-  { id: 'meeting-asr', name: '会议录音转写', provider: '@linxin666/dsh-capabilities/meeting', version: '1.0.0', actions: ['transcribe'], dependencies: [] },
+  { id: 'browserskill', name: '浏览器操作', provider: browserPackage, version: '0.3.0', actions: ['navigate', 'read', 'screenshot'], dependencies: ['@deepseek-ai/dsh-tools', '@deepseek-ai/dsh-agent', '@deepseek-ai/dsh-session', '@deepseek-ai/dsh-skill', '@deepseek-ai/dsh-attachment', 'bsk', 'browser-extension'], icon: 'browser', sourceLabel: 'BrowserSkill', management: 'browser', pluginModule: '@linxin666/dsh-capabilities/browser', compositionVersion: 1 },
+  { id: 'meeting-asr', name: '会议录音转写', provider: '@linxin666/dsh-capabilities', version: '1.0.0', actions: ['transcribe'], dependencies: [], icon: 'audio', sourceLabel: '内置会议服务', management: 'meeting-asr', capabilityIds: [MEETING_CAPABILITY_ID], required: true, compositionVersion: 2 },
 ]
 export const actionNames: Record<Action, string> = { navigate: '打开网页', read: '读取网页', screenshot: '截取页面', transcribe: '转写录音' }
 export const emptyDefinition = (): Definition => ({ name: '', description: '', instructions: '', components: [] })
@@ -43,7 +48,7 @@ export type Command =
 export type Health = { checkedAt: string | null; installed: boolean; loaded: boolean; state: 'unknown' | 'missing' | 'disconnected' | 'ready' | 'degraded'; message: string; cliVersion?: string; browsers: { id: string; name: string }[] }
 export type Task = { sessionId: string; roleId: string; roleVersion: number; name: string; status: 'idle' | 'running' | 'stopping' | 'stopped' | 'error'; error?: string; action?: string; browserSessions: string[] }
 export type DependencyHealth = { id: string; installed: boolean; loaded: boolean; version?: string; pendingRestart: boolean }
-export type Snapshot = { compositionVersion?: 1; state: State; components: readonly Component[]; health: Health; tasks: Task[]; dependencies?: DependencyHealth[] }
+export type Snapshot = { compositionVersion?: 1 | 2; state: State; components: readonly Component[]; health: Health; tasks: Task[]; dependencies?: DependencyHealth[] }
 
 export function resolveBinding(state: State, binding: Binding): Version | undefined {
   return state.capabilities.find(c => c.id === binding.capabilityId)?.versions.find(v => v.version === binding.version)

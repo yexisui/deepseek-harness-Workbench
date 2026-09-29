@@ -4,7 +4,7 @@ import { useCapabilityDrag } from './useCapabilityDrag.ts'
 import { useCompositionSort } from './useCompositionSort.ts'
 import s from './Capabilities.module.css'
 
-export type WorkbenchItem = { id: string; name: string; subtitle: string; disabled?: boolean; removable?: boolean; group?: string }
+export type WorkbenchItem = { id: string; name: string; subtitle: string; disabled?: boolean; removable?: boolean; group?: string; icon?: 'browser' | 'audio' | 'support' }
 export function CapabilityGlyph({ kind = 'browser' }: { kind?: 'browser' | 'audio' | 'support' }) { return <span className={s.icon} style={{ '--cap-color': kind === 'audio' ? '#6683bd' : '#4F73E8' } as React.CSSProperties} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">{kind === 'audio' ? <><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4m-4 0h8"/></> : kind === 'support' ? <><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9"/></> : <><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></>}</svg></span> }
 
 /** Reuses the tested resize/drag hooks and the established compact row design. */
@@ -42,7 +42,7 @@ export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd,
         <div className={s.columnHeading}><div><h3>{libraryTitle}</h3>{onManage && <button type="button" className={s.manageLink} onClick={onManage}>管理能力 ↗</button>}</div><button type="button" className={s.collapseButton} onClick={() => panels.close('left')} aria-label="收起左栏">‹</button></div>
         <label className={s.search}><input placeholder="搜索名称或组件" aria-label="搜索配件" value={query} onChange={e => setQuery(e.target.value)}/></label>
         <div className={s.catalog}>{library.filter(i => `${i.name} ${i.subtitle}`.toLowerCase().includes(query.toLowerCase())).map((item, index, items) => <React.Fragment key={item.id}>{item.group && items[index - 1]?.group !== item.group && <h4 className={s.catalogGroup}>{item.group}</h4>}<article className={`${s.catalogCard} ${selected === item.id ? s.catalogSelected : ''}`} onPointerDown={e => !item.disabled && drag.start(item.id, e)} onClickCapture={drag.click}>
-          <button type="button" className={s.catalogInspect} title={item.name} onClick={() => configure(item.id)}><CapabilityGlyph kind={item.id === 'meeting-asr' || item.id === 'meeting-transcription' ? 'audio' : item.id.startsWith('@') ? 'support' : 'browser'}/><span><strong>{item.name}</strong><small>{item.subtitle}</small></span></button><button data-capability-add type="button" className={s.quickAdd} disabled={item.disabled || attached.some(a => a.id === item.id)} aria-label={`添加 ${item.name}`} onClick={() => add(item.id)}>{attached.some(a => a.id === item.id) ? '✓' : '＋'}</button><span className={s.grip} aria-hidden="true">⠿</span>
+          <button type="button" className={s.catalogInspect} title={item.name} onClick={() => configure(item.id)}><CapabilityGlyph kind={item.icon ?? (item.id === 'meeting-transcription' ? 'audio' : item.id.startsWith('@') ? 'support' : 'browser')}/><span><strong>{item.name}</strong><small>{item.subtitle}</small></span></button><button data-capability-add type="button" className={s.quickAdd} disabled={item.disabled || attached.some(a => a.id === item.id)} aria-label={`添加 ${item.name}`} onClick={() => add(item.id)}>{attached.some(a => a.id === item.id) ? '✓' : '＋'}</button><span className={s.grip} aria-hidden="true">⠿</span>
         </article></React.Fragment>)}</div><p className={s.libraryNote}>仅列出已适配的组件和已发布的能力</p>
       </section>{rail('left')}
       <section className={s.canvas} aria-label={title}><div className={s.columnHeading}><h3>{title}</h3><span className={s.step}>01</span></div>{form}
@@ -56,7 +56,7 @@ export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd,
               const target = attached[index + (e.key === 'ArrowUp' ? -1 : 1)]
               if (target) { onReorder(item.id, target.id); setSortNotice(`${item.name}已${e.key === 'ArrowUp' ? '上移' : '下移'}`) }
             }}>⠿</button>}
-            <button type="button" className={s.attachedSelect} onClick={() => configure(item.id)}><CapabilityGlyph kind={item.id === 'meeting-asr' || item.id === 'meeting-transcription' ? 'audio' : item.id.startsWith('@') ? 'support' : 'browser'}/><span><strong>{item.name}</strong><small>{item.subtitle}</small></span></button>{item.removable !== false && <button type="button" className={s.remove} title={`移除 ${item.name}`} aria-label={`移除 ${item.name}`} onClick={() => onRemove(item.id)}>{removeIcon ?? '×'}</button>}
+            <button type="button" className={s.attachedSelect} onClick={() => configure(item.id)}><CapabilityGlyph kind={item.icon ?? (item.id === 'meeting-transcription' ? 'audio' : item.id.startsWith('@') ? 'support' : 'browser')}/><span><strong>{item.name}</strong><small>{item.subtitle}</small></span></button>{item.removable !== false && <button type="button" className={s.remove} title={`移除 ${item.name}`} aria-label={`移除 ${item.name}`} onClick={() => onRemove(item.id)}>{removeIcon ?? '×'}</button>}
           </div>)}<div className={`${s.dropHint} ${attached.length ? s.dropCompact : ''}`}><span>＋</span><strong>拖入配件，或点击左侧加号</strong></div>
         </div></div>
       </section>{rail('right')}

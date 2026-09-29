@@ -147,14 +147,25 @@ const components = [{
 		"@deepseek-ai/dsh-attachment",
 		"bsk",
 		"browser-extension"
-	]
+	],
+	icon: "browser",
+	sourceLabel: "BrowserSkill",
+	management: "browser",
+	pluginModule: "@linxin666/dsh-capabilities/browser",
+	compositionVersion: 1
 }, {
 	id: "meeting-asr",
 	name: "会议录音转写",
-	provider: "@linxin666/dsh-capabilities/meeting",
+	provider: "@linxin666/dsh-capabilities",
 	version: "1.0.0",
 	actions: ["transcribe"],
-	dependencies: []
+	dependencies: [],
+	icon: "audio",
+	sourceLabel: "内置会议服务",
+	management: "meeting-asr",
+	capabilityIds: [MEETING_CAPABILITY_ID],
+	required: true,
+	compositionVersion: 2
 }];
 const latest = (versions) => versions.at(-1);
 function meetingCapability(now) {
@@ -226,6 +237,20 @@ function capabilityDeletionReferences(state, capabilityId) {
 }
 //#endregion
 //#region src/core/composition.ts
+function availableComponents(capabilityId) {
+	const scoped = components.filter((c) => c.capabilityIds?.includes(capabilityId ?? ""));
+	return scoped.length ? scoped : components.filter((c) => !c.capabilityIds);
+}
+function requiredComponents(capabilityId) {
+	return availableComponents(capabilityId).filter((c) => c.required);
+}
+function compatibilityIssues(value, capabilityId) {
+	const allowed = availableComponents(capabilityId);
+	return value.components.filter((p) => !allowed.some((c) => c.id === p.componentId)).map((p) => `${components.find((c) => c.id === p.componentId)?.name ?? p.componentId}不支持当前能力的执行流程`);
+}
+function missingAssociations(value, capabilityId) {
+	return [...requiredComponents(capabilityId).filter((c) => !value.components.some((p) => p.componentId === c.id)).map((c) => c.id), ...missingDependencies(value)];
+}
 const dependencyName = (id) => id.replace("@deepseek-ai/dsh-", "");
 /** Environment requirements (CLI/extension) are not removable plugin associations. */
 function supportDependencies(value) {
@@ -362,8 +387,13 @@ function roleDefinition(value, state) {
 		})
 	};
 }
-function issues(definition) {
-	return [...definition.components.length === 0 ? ["尚未添加组件"] : definition.components.flatMap((p) => p.actions.length ? [] : ["至少选择一个业务动作"]), ...missingDependencies(definition).map((id) => `缺少必需组件：${dependencyName(id)}，补回后才能发布`)];
+function issues(definition, capabilityId) {
+	const missing = missingAssociations(definition, capabilityId);
+	return [
+		...compatibilityIssues(definition, capabilityId),
+		...definition.components.length === 0 && !missing.length ? ["尚未添加组件"] : definition.components.flatMap((p) => p.actions.length ? [] : ["至少选择一个业务动作"]),
+		...missing.map((id) => `缺少必需组件：${components.find((c) => c.id === id)?.name ?? dependencyName(id)}，补回后才能发布`)
+	];
 }
 //#endregion
 //#region src/host/icons.ts
@@ -680,11 +710,8 @@ var CapabilityStore = class {
 			let target = "id" in command && command.id !== void 0 ? id(command.id) : `local-${randomUUID()}`;
 			if (command.type === "capability.save") {
 				const value = definition(command.definition), publish = bool(command.publish);
-				const meetingParts = value.components.filter((part) => part.componentId === "meeting-asr");
-				if (target === "meeting-transcription") {
-					if (meetingParts.length !== 1 || value.components.length !== 1 || meetingParts[0]?.actions.length !== 1 || meetingParts[0].actions[0] !== "transcribe") throw new InputError("内置会议能力必须保留录音转写组件和动作");
-				} else if (meetingParts.length) throw new InputError("会议录音转写组件仅供内置会议能力使用");
-				if (publish && issues(value).length) throw new InputError(issues(value).join("；"));
+				const problems = publish ? issues(value, target) : compatibilityIssues(value, target);
+				if (problems.length) throw new InputError(problems.join("；"));
 				let cap = next.capabilities.find((c) => c.id === target);
 				if (command.id && !cap) throw new InputError("能力不存在", 404);
 				if (cap?.removedAt) throw new InputError("此能力已移除，请先恢复后再编辑");
@@ -1960,7 +1987,7 @@ async function apply(ctx, config$1 = {}) {
 				}
 				if (req.method === "PUT" && route.startsWith("/api/capabilities/meeting/upload/")) return json(res, 202, await meeting.upload(route.slice(33), req));
 				if (req.method === "GET" && route === "/api/capabilities/state") return json(res, 200, {
-					compositionVersion: 1,
+					compositionVersion: 2,
 					state: store.snapshot(),
 					components,
 					health: runtime.health,

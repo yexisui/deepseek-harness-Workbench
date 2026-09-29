@@ -1,5 +1,5 @@
 import { components, type Definition, type RoleDefinition, type State } from './model.ts'
-import { dependencyName, missingDependencies, supportDependencies } from './composition.ts'
+import { compatibilityIssues, dependencyName, missingAssociations, supportDependencies } from './composition.ts'
 import { roleIconIds, roleIconAssetIdPattern, type RoleIconSpec } from './appearance.ts'
 export class InputError extends Error { constructor(message: string, readonly status = 400) { super(message) } }
 export function object(value: unknown): Record<string, unknown> {
@@ -62,6 +62,7 @@ export function roleDefinition(value: unknown, state: State): RoleDefinition {
     return { capabilityId, version, enabled: bool(binding.enabled), ...(actions === undefined ? {} : { actions: [...new Set(actions)] }) }
   }) }
 }
-export function issues(definition: Definition): string[] {
-  return [...(definition.components.length === 0 ? ['尚未添加组件'] : definition.components.flatMap(p => p.actions.length ? [] : ['至少选择一个业务动作'])), ...missingDependencies(definition).map(id => `缺少必需组件：${dependencyName(id)}，补回后才能发布`)]
+export function issues(definition: Definition, capabilityId?: string): string[] {
+  const missing = missingAssociations(definition, capabilityId)
+  return [...compatibilityIssues(definition, capabilityId), ...(definition.components.length === 0 && !missing.length ? ['尚未添加组件'] : definition.components.flatMap(p => p.actions.length ? [] : ['至少选择一个业务动作'])), ...missing.map(id => `缺少必需组件：${components.find(c => c.id === id)?.name ?? dependencyName(id)}，补回后才能发布`)]
 }

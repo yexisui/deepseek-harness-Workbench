@@ -1108,14 +1108,25 @@ window.__ModuleLoader__.load({
 				"@deepseek-ai/dsh-attachment",
 				"bsk",
 				"browser-extension"
-			]
+			],
+			icon: "browser",
+			sourceLabel: "BrowserSkill",
+			management: "browser",
+			pluginModule: "@linxin666/dsh-capabilities/browser",
+			compositionVersion: 1
 		}, {
 			id: "meeting-asr",
 			name: "会议录音转写",
-			provider: "@linxin666/dsh-capabilities/meeting",
+			provider: "@linxin666/dsh-capabilities",
 			version: "1.0.0",
 			actions: ["transcribe"],
-			dependencies: []
+			dependencies: [],
+			icon: "audio",
+			sourceLabel: "内置会议服务",
+			management: "meeting-asr",
+			capabilityIds: [MEETING_CAPABILITY_ID],
+			required: true,
+			compositionVersion: 2
 		}];
 		const actionNames = {
 			navigate: "打开网页",
@@ -1525,6 +1536,23 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region ../dsh-capabilities/src/core/composition.ts
+		function availableComponents(capabilityId) {
+			const scoped = components.filter((c) => c.capabilityIds?.includes(capabilityId ?? ""));
+			return scoped.length ? scoped : components.filter((c) => !c.capabilityIds);
+		}
+		function requiredComponents(capabilityId) {
+			return availableComponents(capabilityId).filter((c) => c.required);
+		}
+		function compositionSupported(data, capabilityId) {
+			return (data.compositionVersion ?? 0) >= Math.max(1, ...availableComponents(capabilityId).map((c) => c.compositionVersion));
+		}
+		function compatibilityIssues(value, capabilityId) {
+			const allowed = availableComponents(capabilityId);
+			return value.components.filter((p) => !allowed.some((c) => c.id === p.componentId)).map((p) => `${components.find((c) => c.id === p.componentId)?.name ?? p.componentId}不支持当前能力的执行流程`);
+		}
+		function missingAssociations(value, capabilityId) {
+			return [...requiredComponents(capabilityId).filter((c) => !value.components.some((p) => p.componentId === c.id)).map((c) => c.id), ...missingDependencies(value)];
+		}
 		const dependencyName = (id) => id.replace("@deepseek-ai/dsh-", "");
 		/** Environment requirements (CLI/extension) are not removable plugin associations. */
 		function supportDependencies(value) {
@@ -1586,8 +1614,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region ../dsh-capabilities/src/core/validation.ts
-		function issues(definition) {
-			return [...definition.components.length === 0 ? ["尚未添加组件"] : definition.components.flatMap((p) => p.actions.length ? [] : ["至少选择一个业务动作"]), ...missingDependencies(definition).map((id) => `缺少必需组件：${dependencyName(id)}，补回后才能发布`)];
+		function issues(definition, capabilityId) {
+			const missing = missingAssociations(definition, capabilityId);
+			return [
+				...compatibilityIssues(definition, capabilityId),
+				...definition.components.length === 0 && !missing.length ? ["尚未添加组件"] : definition.components.flatMap((p) => p.actions.length ? [] : ["至少选择一个业务动作"]),
+				...missing.map((id) => `缺少必需组件：${components.find((c) => c.id === id)?.name ?? dependencyName(id)}，补回后才能发布`)
+			];
 		}
 		//#endregion
 		//#region src/client/capability-client.ts
@@ -1966,7 +1999,7 @@ window.__ModuleLoader__.load({
 												className: Capabilities_module_css_default.catalogInspect,
 												title: item.name,
 												onClick: () => configure(item.id),
-												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: item.id === "meeting-asr" || item.id === "meeting-transcription" ? "audio" : item.id.startsWith("@") ? "support" : "browser" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: item.subtitle })] })]
+												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: item.icon ?? (item.id === "meeting-transcription" ? "audio" : item.id.startsWith("@") ? "support" : "browser") }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: item.subtitle })] })]
 											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 												"data-capability-add": true,
@@ -2056,7 +2089,7 @@ window.__ModuleLoader__.load({
 													type: "button",
 													className: Capabilities_module_css_default.attachedSelect,
 													onClick: () => configure(item.id),
-													children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: item.id === "meeting-asr" || item.id === "meeting-transcription" ? "audio" : item.id.startsWith("@") ? "support" : "browser" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: item.subtitle })] })]
+													children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: item.icon ?? (item.id === "meeting-transcription" ? "audio" : item.id.startsWith("@") ? "support" : "browser") }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: item.subtitle })] })]
 												}),
 												item.removable !== false && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 													type: "button",
@@ -2379,32 +2412,81 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region src/client/ComponentService.tsx
+		/** Module differences live here; shared composition views never assume a browser environment. */
+		const adapters = {
+			browser: ({ data }) => ({
+				description: "通过 BrowserSkill 在独立浏览器窗口中执行已授权的网页动作。",
+				status: data.health.message,
+				title: "浏览器环境",
+				name: "本机 CLI 与浏览器扩展",
+				detail: `${data.health.cliVersion ?? "CLI 版本待检测"} · 环境连接单独管理，不作为可拆卸的组件关联。`,
+				publishNotice: "新增动作仅由新版本采用。移除动作会立即限制引用此能力的旧会话，并停止正在使用它的浏览器任务。"
+			}),
+			"meeting-asr": ({ meetingStatus }) => ({
+				description: "使用兼容音频转写接口识别录音。当前仅适配会议纪要助手流程；纪要模型在对话中选择。",
+				status: meetingStatus?.ready ? "识别接口已配置 · 待实际调用验证" : meetingStatus?.message ?? "正在读取识别配置…",
+				title: "语音识别服务",
+				name: "兼容音频转写接口",
+				detail: "接口配置独立保存，作用于新转写任务。工作台提供设置存储与纪要模型；凭据不会写入能力版本。",
+				configuration: "配置服务",
+				publishNotice: "当前会议流程必须保留转写组件和动作。发布新的能力版本不会清除录音、转写、纪要或服务配置；岗位是否采用新版本由下方选择决定。"
+			})
+		};
+		function componentService(component, context) {
+			return adapters[component.management](context);
+		}
+		function ComponentEnvironment({ component, data, meetingStatus, onConfigure, disabled = false }) {
+			const info = componentService(component, {
+				data,
+				meetingStatus
+			});
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				"data-component-environment": component.management,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: info.title }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: ManagedCapabilities_module_css_default.row,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: info.name }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: info.status }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: info.detail })
+					] }), info.configuration && onConfigure && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						disabled,
+						onClick: onConfigure,
+						children: info.configuration
+					})]
+				})]
+			});
+		}
+		//#endregion
 		//#region src/client/ComponentComposition.tsx
 		const associationName = (id) => components.find((c) => c.id === id)?.name ?? dependencyName(id);
-		function compositionItems(draft) {
+		function compositionItems(draft, capabilityId) {
 			return compositionIds(draft).map((id) => {
 				const part = draft.components.find((p) => p.componentId === id);
 				return {
 					id,
 					name: associationName(id),
-					removable: id !== "meeting-asr",
-					subtitle: part ? `业务组件 · ${part.actions.map((a) => actionNames[a]).join(" · ") || "未选择动作"}` : `必需支持 · ${dependencyUsers(draft, id).map((c) => c.name).join("、")}`
+					icon: components.find((c) => c.id === id)?.icon ?? "support",
+					subtitle: part ? `${requiredComponents(capabilityId).some((c) => c.id === id) ? "必需组件" : "业务组件"} · ${part.actions.map((a) => actionNames[a]).join(" · ") || "未选择动作"}` : `必需支持 · ${dependencyUsers(draft, id).map((c) => c.name).join("、")}`
 				};
 			});
 		}
-		function compositionLibrary(draft, meeting = false) {
-			const business = components.filter((c) => meeting ? c.id === "meeting-asr" : c.id !== "meeting-asr");
+		function compositionLibrary(draft, capabilityId) {
+			const business = availableComponents(capabilityId);
 			const support = [...new Set(business.flatMap((c) => c.dependencies.filter((id) => id.startsWith("@"))))];
 			const needed = supportDependencies(draft);
 			return [...business.map((c) => ({
 				id: c.id,
 				name: c.name,
-				subtitle: `v${c.version} · ${c.id === "meeting-asr" ? "会议服务" : "BrowserSkill"}`,
+				icon: c.icon,
+				subtitle: `v${c.version} · ${c.sourceLabel}`,
 				group: "业务组件"
 			})), ...support.map((id) => ({
 				id,
 				name: dependencyName(id),
-				subtitle: needed.includes(id) ? missingDependencies(draft).includes(id) ? "缺少关联 · 拖入补回" : "必需支持" : "先添加浏览器操作",
+				icon: "support",
+				subtitle: needed.includes(id) ? missingDependencies(draft).includes(id) ? "缺少关联 · 拖入补回" : "必需支持" : "先添加对应业务组件",
 				disabled: !needed.includes(id),
 				group: "支持组件"
 			}))];
@@ -2414,7 +2496,7 @@ window.__ModuleLoader__.load({
 			value.excludedDependencies,
 			value.componentOrder
 		]);
-		function useAssociationEditing(draft, change) {
+		function useAssociationEditing(draft, change, capabilityId) {
 			const [removing, setRemoving] = (0, react.useState)(null);
 			const [undo, setUndo] = (0, react.useState)(null);
 			const feedback = undo && undo.after === compositionKey(draft) ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -2438,14 +2520,13 @@ window.__ModuleLoader__.load({
 					children: "撤销移除"
 				})]
 			}) : null;
-			const request = (id) => {
-				if (id !== "meeting-asr") setRemoving(id);
-			};
+			const request = (id) => setRemoving(id);
 			return {
 				request,
 				dialog: removing ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RemoveAssociationDialog, {
 					id: removing,
 					draft,
+					capabilityId,
 					onClose: () => setRemoving(null),
 					onConfirm: () => {
 						const next = removeAssociation(draft, removing);
@@ -2461,10 +2542,10 @@ window.__ModuleLoader__.load({
 				feedback
 			};
 		}
-		function RemoveAssociationDialog({ id, draft, onClose, onConfirm }) {
-			const users = dependencyUsers(draft, id), required = users.length > 0;
+		function RemoveAssociationDialog({ id, draft, capabilityId, onClose, onConfirm }) {
+			const users = dependencyUsers(draft, id), required = users.length > 0 || requiredComponents(capabilityId).some((c) => c.id === id);
 			const part = draft.components.find((p) => p.componentId === id);
-			const actions = [...new Set(required ? draft.components.filter((p) => users.some((c) => c.id === p.componentId)).flatMap((p) => p.actions) : part?.actions ?? [])];
+			const actions = [...new Set(users.length ? draft.components.filter((p) => users.some((c) => c.id === p.componentId)).flatMap((p) => p.actions) : part?.actions ?? [])];
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal, {
 				title: `移除 ${associationName(id)} 组件关联？`,
 				closeLabel: "取消移除关联",
@@ -2476,15 +2557,19 @@ window.__ModuleLoader__.load({
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.removalImpact,
 							children: [required ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "必需支持组件" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: users.length ? "必需支持组件" : "必需组件" }),
 								" · ",
-								users.map((c) => c.name).join("、"),
+								users.length ? users.map((c) => c.name).join("、") : "当前能力的执行流程",
 								"需要此组件。"
 							] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "移除后，当前草稿将缺少必需依赖。可以保存草稿，补回后才能发布。" })] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "将从当前草稿移除此业务组件，其不再使用的自动关联也会一并解除。" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["涉及动作：", actions.map((a) => actionNames[a]).join("、") || "无已选动作"] })]
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 							className: ManagedCapabilities_module_css_default.muted,
 							children: "本次只修改当前能力草稿。共享插件不会卸载，其他能力、已发布版本和当前会话保持原状。"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: ManagedCapabilities_module_css_default.muted,
+							children: "服务配置、凭据和历史处理结果（包括录音、转写及纪要）均保留。"
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.confirmActions,
@@ -2502,8 +2587,8 @@ window.__ModuleLoader__.load({
 				})
 			});
 		}
-		function MissingAssociations({ draft, change, disabled = false }) {
-			const missing = missingDependencies(draft);
+		function MissingAssociations({ draft, change, capabilityId, disabled = false }) {
+			const missing = missingAssociations(draft, capabilityId);
 			return missing.length ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: ManagedCapabilities_module_css_default.missingAssociations,
 				role: "status",
@@ -2513,15 +2598,15 @@ window.__ModuleLoader__.load({
 					" 个必需组件，暂时无法发布"
 				] }), missing.map((id) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: ManagedCapabilities_module_css_default.missingRow,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [dependencyName(id), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [associationName(id), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
 						" · ",
-						dependencyUsers(draft, id).map((c) => c.name).join("、"),
+						dependencyUsers(draft, id).map((c) => c.name).join("、") || "当前能力",
 						"需要"
 					] })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 						className: ManagedCapabilities_module_css_default.button,
 						disabled,
 						onClick: () => change(addAssociation(draft, id)),
-						children: ["补回 ", dependencyName(id)]
+						children: ["补回 ", associationName(id)]
 					})]
 				}, id))]
 			}) : null;
@@ -2540,7 +2625,7 @@ window.__ModuleLoader__.load({
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["当前能力：", !users.length ? "尚无业务组件需要" : missing ? "缺少关联" : "已关联"] }),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
 					"由",
-					users.map((c) => c.name).join("、") || "浏览器操作",
+					users.map((c) => c.name).join("、") || "对应业务组件",
 					"使用。"
 				] }),
 				users.length > 0 && missing && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
@@ -2554,10 +2639,59 @@ window.__ModuleLoader__.load({
 				})
 			] });
 		}
-		function ComponentRelations$1({ data, capabilityId, onEdit }) {
+		function BusinessInspector({ component, draft, capabilityId, data, meetingStatus, onConfigure, children }) {
+			const part = draft.components.find((p) => p.componentId === component.id), info = componentService(component, {
+				data,
+				meetingStatus
+			});
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: component.name }),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+					className: ManagedCapabilities_module_css_default.muted,
+					children: [
+						component.sourceLabel,
+						" · v",
+						component.version
+					]
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: info.description }),
+				requiredComponents(capabilityId).some((c) => c.id === component.id) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+					className: ManagedCapabilities_module_css_default.notice,
+					children: "必需组件 · 可从草稿移除，补回组件并选择动作后才能发布。"
+				}),
+				children ?? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["当前动作：", part?.actions.map((a) => actionNames[a]).join("、") || "未选择动作"] }),
+				component.dependencies.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "依赖要求" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+						className: ManagedCapabilities_module_css_default.list,
+						children: component.dependencies.map((dep) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+							dependencyName(dep),
+							" · ",
+							dep.startsWith("@") ? missingDependencies(draft).includes(dep) ? "缺少关联" : part ? "已关联" : "待添加" : "运行环境"
+						] }, dep))
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: "添加业务组件时自动关联支持组件；缺少必需组件的草稿暂时无法发布。"
+					})
+				] }),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+					className: ManagedCapabilities_module_css_default.muted,
+					children: "组件展示顺序不代表执行顺序。配置状态与草稿完整性分别检查。"
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentEnvironment, {
+					component,
+					data,
+					meetingStatus,
+					onConfigure
+				})
+			] });
+		}
+		function ComponentRelations({ data, capabilityId, onEdit, meetingStatus, onConfigure }) {
 			const cap = data.state.capabilities.find((c) => c.id === capabilityId);
 			const { draft, change, dirty, revision, discard } = useCapabilityDefinition(capabilityId, data);
-			const edit = useAssociationEditing(draft, change);
+			const edit = useAssociationEditing(draft, change, capabilityId);
+			const [inspecting, setInspecting] = (0, react.useState)(null);
 			const [busy, setBusy] = (0, react.useState)(false), [message, setMessage] = (0, react.useState)(""), [discarding, setDiscarding] = (0, react.useState)(false);
 			const save = async () => {
 				setBusy(true);
@@ -2578,12 +2712,12 @@ window.__ModuleLoader__.load({
 				}
 			};
 			const referenced = data.state.roles.filter((r) => r.draft.capabilities.some((b) => b.capabilityId === capabilityId) || r.versions.at(-1)?.capabilities.some((b) => b.capabilityId === capabilityId));
-			const disabled = busy || !!cap.removedAt || data.compositionVersion !== 1;
+			const disabled = busy || !!cap.removedAt || !compositionSupported(data, capabilityId);
 			const statusMessage = dirty && message === "草稿已保存。已发布版本保持原状。" ? "有未保存的组件修改" : message || "有未保存的组件修改";
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
 				"aria-label": "关联组件组合",
 				children: [
-					data.compositionVersion !== 1 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+					!compositionSupported(data, capabilityId) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 						className: ManagedCapabilities_module_css_default.notice,
 						role: "status",
 						children: "组件组合服务待更新。请保存当前工作并正常重启工作台后编辑，避免旧服务忽略新的关联配置。"
@@ -2618,51 +2752,56 @@ window.__ModuleLoader__.load({
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)(MissingAssociations, {
 								draft,
 								change,
+								capabilityId,
 								disabled
 							}),
-							compositionItems(draft).map((item) => {
+							compositionItems(draft, capabilityId).map((item) => {
 								const business = components.find((c) => c.id === item.id), status = data.dependencies?.find((d) => d.id === (business?.provider ?? item.id));
-								const moduleName = business ? "@linxin666/dsh-capabilities/browser" : item.id;
+								const info = business && componentService(business, {
+									data,
+									meetingStatus
+								});
+								const required = requiredComponents(capabilityId).some((c) => c.id === item.id);
 								return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 									className: ManagedCapabilities_module_css_default.associationRow,
 									"data-association": item.id,
 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 										className: ManagedCapabilities_module_css_default.associationIdentity,
-										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-											className: ManagedCapabilities_module_css_default.associationSymbol,
-											"aria-hidden": "true",
-											children: business ? "◇" : "⬡"
-										}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: item.icon }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.name }),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 												className: ManagedCapabilities_module_css_default.badge,
-												children: business ? "业务组件" : "必需支持"
+												children: business ? required ? "必需组件" : "业务组件" : "必需支持"
 											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: business?.provider ?? item.id }),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-												business ? "当前能力已关联" : `${dependencyUsers(draft, item.id).map((c) => c.name).join("、")}需要 · 当前能力已关联`,
-												" · ",
-												status?.pendingRestart ? "待重启" : status?.loaded ? "系统已加载" : status?.installed ? "系统已安装" : status ? "系统未安装" : business && data.health.loaded ? "系统已加载" : "状态待检测",
-												status?.version ? ` · ${status.version}` : ""
-											] })
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: business ? `${business.sourceLabel} · v${business.version}` : item.id }),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: item.subtitle }),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: info?.status ?? `${status?.pendingRestart ? "待重启" : status?.loaded ? "系统已加载" : status?.installed ? "系统已安装" : status ? "系统未安装" : "状态待检测"}${status?.version ? ` · ${status.version}` : ""}` })
 										] })]
 									}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 										className: ManagedCapabilities_module_css_default.associationActions,
-										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											className: ManagedCapabilities_module_css_default.button,
-											onClick: () => openCapabilityLink({
-												section: "plugins",
-												moduleName,
-												capabilityId
+										children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												className: ManagedCapabilities_module_css_default.button,
+												onClick: () => business && !business.pluginModule ? setInspecting(business) : openCapabilityLink({
+													section: "plugins",
+													moduleName: business?.pluginModule ?? item.id,
+													capabilityId
+												}),
+												children: business && !business.pluginModule ? "查看详情" : "查看组件 ↗"
 											}),
-											children: "查看组件 ↗"
-										}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											className: `${ManagedCapabilities_module_css_default.iconButton} ${ManagedCapabilities_module_css_default.removeAction}`,
-											title: `移除关联：${item.name}`,
-											"aria-label": `移除关联：${item.name}`,
-											onClick: () => edit.request(item.id),
-											children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "remove" })
-										})]
+											info?.configuration && onConfigure && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												className: ManagedCapabilities_module_css_default.button,
+												onClick: onConfigure,
+												children: info.configuration
+											}),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												className: `${ManagedCapabilities_module_css_default.iconButton} ${ManagedCapabilities_module_css_default.removeAction}`,
+												title: `移除关联：${item.name}`,
+												"aria-label": `移除关联：${item.name}`,
+												onClick: () => edit.request(item.id),
+												children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "remove" })
+											})
+										]
 									})]
 								}, item.id);
 							}),
@@ -2696,18 +2835,31 @@ window.__ModuleLoader__.load({
 						className: ManagedCapabilities_module_css_default.error,
 						children: "配置已在其他页面变化。当前草稿保留；请在组合编辑器核对最新配置后再保存。"
 					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "浏览器环境" }),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-						className: ManagedCapabilities_module_css_default.row,
-						children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "本机 CLI 与浏览器扩展" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-								data.health.cliVersion ?? "CLI 版本待检测",
-								" · ",
-								data.health.message
-							] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "环境连接单独管理，不作为可拆卸的组件关联。" })
-						] })
+					availableComponents(capabilityId).filter((c, i, all) => all.findIndex((other) => other.management === c.management) === i).map((component) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentEnvironment, {
+						component,
+						data,
+						meetingStatus,
+						onConfigure,
+						disabled: !!cap.removedAt
+					}, component.id)),
+					inspecting && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal, {
+						title: "组件详情",
+						closeLabel: "关闭组件详情",
+						onClose: () => setInspecting(null),
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.dialogBody}`,
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(BusinessInspector, {
+								component: inspecting,
+								draft,
+								capabilityId,
+								data,
+								meetingStatus,
+								onConfigure: onConfigure ? () => {
+									setInspecting(null);
+									onConfigure();
+								} : void 0
+							})
+						})
 					}),
 					edit.dialog,
 					discarding && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal, {
@@ -4719,10 +4871,10 @@ window.__ModuleLoader__.load({
 				}), actionNames[action]]
 			}, action)) });
 		}
-		function CapabilityEditor({ id, data, onClose, onSaved, compositionFocus = false }) {
+		function CapabilityEditor({ id, data, onClose, onSaved, compositionFocus = false, meetingStatus, onConfigure }) {
 			const cap = data.state.capabilities.find((c) => c.id === id);
 			const { draft, revision, change, rebase } = useCapabilityDefinition(id, data);
-			const associationEdit = useAssociationEditing(draft, change);
+			const associationEdit = useAssociationEditing(draft, change, id);
 			const [selected, setSelected] = (0, react.useState)(draft.components[0]?.componentId ?? null);
 			const [busy, setBusy] = (0, react.useState)(false), [message, setMessage] = (0, react.useState)(""), [review, setReview] = (0, react.useState)(false), [applyRoles, setApplyRoles] = (0, react.useState)([]);
 			const part = draft.components.find((p) => p.componentId === selected), descriptor = components.find((c) => c.id === selected);
@@ -4747,7 +4899,7 @@ window.__ModuleLoader__.load({
 					setBusy(false);
 				}
 			};
-			if (data.compositionVersion !== 1 && id !== "meeting-transcription") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal, {
+			if (!compositionSupported(data, id)) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal, {
 				title: "组件组合服务待更新",
 				closeLabel: "关闭编辑器",
 				onClose,
@@ -4772,10 +4924,10 @@ window.__ModuleLoader__.load({
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedWorkbench, {
 							libraryTitle: "组件库",
 							title: compositionFocus ? "组件组合" : "能力信息",
-							library: compositionLibrary(draft, id === MEETING_CAPABILITY_ID),
+							library: compositionLibrary(draft, id),
 							selected,
 							onSelect: setSelected,
-							attached: compositionItems(draft),
+							attached: compositionItems(draft, id),
 							attachedTitle: "当前组件组合",
 							removeIcon: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "remove" }),
 							onAdd: (componentId) => {
@@ -4786,7 +4938,8 @@ window.__ModuleLoader__.load({
 							onReorder: (from, to) => change(moveAssociation(draft, from, to)),
 							compositionNotice: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [associationEdit.feedback, /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MissingAssociations, {
 								draft,
-								change
+								change,
+								capabilityId: id
 							})] }),
 							form: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 								open: !compositionFocus,
@@ -4860,23 +5013,14 @@ window.__ModuleLoader__.load({
 								draft,
 								data,
 								change
-							}) : descriptor ? descriptor.id === "meeting-asr" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "会议录音转写" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									className: ManagedCapabilities_module_css_default.muted,
-									children: "这是会议纪要助手的内置流程。录音交给服务端配置的兼容语音识别接口；纪要模型在对话中选择。"
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									className: ManagedCapabilities_module_css_default.notice,
-									children: "转写动作属于内置能力，编辑说明时会保留该组件。接口凭据不会写入能力草稿。"
-								})
-							] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: descriptor.name }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									className: ManagedCapabilities_module_css_default.muted,
-									children: "选择此能力允许使用的业务动作。组件顺序不代表执行顺序。"
-								}),
-								part ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ActionFields, {
+							}) : descriptor ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(BusinessInspector, {
+								component: descriptor,
+								draft,
+								capabilityId: id,
+								data,
+								meetingStatus,
+								onConfigure,
+								children: part ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ActionFields, {
 									value: part.actions,
 									available: descriptor.actions,
 									onChange: (actions) => change({
@@ -4886,29 +5030,8 @@ window.__ModuleLoader__.load({
 											actions
 										} : p)
 									})
-								}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "请先将组件添加到中间区域。" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "依赖要求" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
-									className: ManagedCapabilities_module_css_default.list,
-									children: descriptor.dependencies.map((dep) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
-										dep.replace("@deepseek-ai/dsh-", ""),
-										" · ",
-										dep.startsWith("@") ? missingDependencies(draft).includes(dep) ? "缺少关联" : part ? "已关联" : "待添加" : "运行环境"
-									] }, dep))
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									className: ManagedCapabilities_module_css_default.muted,
-									children: "添加业务组件时自动关联支持组件；可在中间拆下或从左侧补回。缺少必需组件的草稿暂时无法发布。"
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									className: ManagedCapabilities_module_css_default.notice,
-									children: data.health.message
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									className: ManagedCapabilities_module_css_default.muted,
-									children: "缺少运行环境时仍可保存；执行时会检查连接。"
-								})
-							] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "请先将组件添加到中间区域。" })
+							}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 								className: ManagedCapabilities_module_css_default.empty,
 								children: "选择一个组件以调整动作。"
 							})
@@ -4919,7 +5042,7 @@ window.__ModuleLoader__.load({
 								role: "alert",
 								className: ManagedCapabilities_module_css_default.error,
 								children: message
-							}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: issues(draft).join("；") || "已选择受支持的动作。发布前可检查影响范围。" }), revision !== data.state.revision && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: issues(draft, id).join("；") || "已选择受支持的动作。发布前可检查影响范围。" }), revision !== data.state.revision && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: ManagedCapabilities_module_css_default.button,
 								onClick: () => {
 									rebase();
@@ -4935,7 +5058,7 @@ window.__ModuleLoader__.load({
 									children: "保存草稿"
 								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
-									disabled: busy || !draft.name.trim() || issues(draft).length > 0,
+									disabled: busy || !draft.name.trim() || issues(draft, id).length > 0,
 									onClick: () => setReview(true),
 									children: "检查并发布"
 								})]
@@ -4959,7 +5082,10 @@ window.__ModuleLoader__.load({
 									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["新动作：", actionsOf(draft).map((a) => actionNames[a]).join("、") || "无"] }),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 										className: ManagedCapabilities_module_css_default.notice,
-										children: "新增动作仅由新版本采用。移除动作会立即限制引用此能力的旧会话，并停止正在使用它的浏览器任务。"
+										children: [...new Set(availableComponents(id).map((component) => componentService(component, {
+											data,
+											meetingStatus
+										}).publishNotice))].join(" ")
 									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "让以下岗位的新会话采用此版本" }),
 									linked.map((role) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
@@ -4992,24 +5118,6 @@ window.__ModuleLoader__.load({
 				})
 			});
 		}
-		function ComponentRelations({ data, capabilityId, onEdit }) {
-			if (capabilityId === "meeting-transcription") return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-				className: ManagedCapabilities_module_css_default.row,
-				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "会议语音识别服务" }),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "内置流程 · 兼容音频转写接口" }),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "接口地址、模型和密钥由工作台服务端读取；密钥不会进入岗位或能力数据。" })
-				] })
-			}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-				className: ManagedCapabilities_module_css_default.muted,
-				children: "转写结果在会议对话中核对；纪要使用对话所选的工作台模型生成。"
-			})] });
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentRelations$1, {
-				data,
-				capabilityId,
-				onEdit
-			}, capabilityId);
-		}
 		function ManagedCenter({ initialId, embedded = false }) {
 			const { data, error } = useCapabilities();
 			const { status: meetingStatus, refresh: refreshMeeting } = useMeetingAvailability(data?.state.revision);
@@ -5017,12 +5125,26 @@ window.__ModuleLoader__.load({
 			const [editor, setEditor] = (0, react.useState)(null), [role, setRole] = (0, react.useState)(null), [message, setMessage] = (0, react.useState)(""), [busy, setBusy] = (0, react.useState)(false);
 			const [removing, setRemoving] = (0, react.useState)(null), [notice, setNotice] = (0, react.useState)("");
 			const [meetingEditing, setMeetingEditing] = (0, react.useState)(false);
+			const [compositionReturn, setCompositionReturn] = (0, react.useState)(null);
 			const meetingNavigate = (action) => {
 				if (!meetingEditing || window.confirm("识别配置尚未保存，确定放弃修改？")) {
 					setMeetingEditing(false);
 					action();
 				}
 			};
+			const configureComponents = (from) => meetingNavigate(() => {
+				setCompositionReturn(from);
+				setEditor(null);
+				setTab("defaults");
+			});
+			const returnToComposition = () => meetingNavigate(() => {
+				setTab("components");
+				if (compositionReturn === "editor" && selected) setEditor({
+					id: selected,
+					compositionFocus: true
+				});
+				setCompositionReturn(null);
+			});
 			(0, react.useEffect)(() => {
 				const open = (event) => {
 					const link = event.detail;
@@ -5096,8 +5218,8 @@ window.__ModuleLoader__.load({
 								children: "恢复能力"
 							}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: ManagedCapabilities_module_css_default.button,
-								onClick: () => setEditor({ id: item.id }),
-								children: "编辑能力信息"
+								onClick: () => meetingNavigate(() => setEditor({ id: item.id })),
+								children: "编辑能力"
 							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: `${ManagedCapabilities_module_css_default.iconButton} ${ManagedCapabilities_module_css_default.removeAction}`,
 								disabled: busy,
@@ -5173,20 +5295,26 @@ window.__ModuleLoader__.load({
 						onClick: () => setEditor({ id: item.id }),
 						children: "编辑说明"
 					})] }),
-					tab === "defaults" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MeetingAsrSettings, {
+					tab === "defaults" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [compositionReturn && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						onClick: returnToComposition,
+						children: "← 返回组件组合"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MeetingAsrSettings, {
 						status: meetingStatus,
 						refresh: refreshMeeting,
 						disabled: !!item.removedAt,
 						onEditingChange: setMeetingEditing
-					}),
+					})] }),
 					tab === "components" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentRelations, {
 						data,
 						capabilityId: item.id,
+						meetingStatus,
+						onConfigure: () => configureComponents("relations"),
 						onEdit: () => setEditor({
 							id: item.id,
 							compositionFocus: true
 						})
-					}),
+					}, `relations:${item.id}`),
 					tab === "roles" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: linked(item.id).map((used) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ManagedCapabilities_module_css_default.row,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: used.draft.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
@@ -5213,6 +5341,8 @@ window.__ModuleLoader__.load({
 						id: editor.id,
 						compositionFocus: editor.compositionFocus,
 						data,
+						meetingStatus,
+						onConfigure: () => configureComponents("editor"),
 						onClose: () => setEditor(null),
 						onSaved: setSelected
 					}, editor.id ?? "new"),
@@ -5397,11 +5527,13 @@ window.__ModuleLoader__.load({
 						tab === "components" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentRelations, {
 							data,
 							capabilityId: item.id,
+							meetingStatus,
+							onConfigure: () => configureComponents("relations"),
 							onEdit: () => setEditor({
 								id: item.id,
 								compositionFocus: true
 							})
-						}),
+						}, `relations:${item.id}`),
 						tab === "roles" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [linked(item.id).map((r) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.row,
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: r.draft.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
@@ -5504,6 +5636,8 @@ window.__ModuleLoader__.load({
 						id: editor.id,
 						compositionFocus: editor.compositionFocus,
 						data,
+						meetingStatus,
+						onConfigure: () => configureComponents("editor"),
 						onClose: () => setEditor(null),
 						onSaved: setSelected
 					}, editor.id ?? "new"),

@@ -5,6 +5,7 @@ import { capabilityDeletionReferences, initialState, latest, meetingCapability, 
 import { defaultRoles, MEETING_CAPABILITY_ID, MEETING_ROLE_ID } from '../core/default-roles.ts'
 import { bool, definition, id, InputError, integer, issues, list, object, roleDefinition, text } from '../core/validation.ts'
 import { RoleIconStore } from './icons.ts'
+import { compatibilityIssues } from '../core/composition.ts'
 
 /** One writer, atomic replacement and optimistic revisions; no silent overwrite on corruption. */
 export class CapabilityStore {
@@ -103,11 +104,9 @@ export class CapabilityStore {
       let target = 'id' in command && command.id !== undefined ? id(command.id) : `local-${randomUUID()}`
       if (command.type === 'capability.save') {
         const value = definition(command.definition), publish = bool(command.publish)
-        const meetingParts = value.components.filter(part => part.componentId === 'meeting-asr')
-        if (target === MEETING_CAPABILITY_ID) {
-          if (meetingParts.length !== 1 || value.components.length !== 1 || meetingParts[0]?.actions.length !== 1 || meetingParts[0].actions[0] !== 'transcribe') throw new InputError('内置会议能力必须保留录音转写组件和动作')
-        } else if (meetingParts.length) throw new InputError('会议录音转写组件仅供内置会议能力使用')
-        if (publish && issues(value).length) throw new InputError(issues(value).join('；'))
+        // Incomplete drafts are editable; unsupported execution combinations are never accepted.
+        const problems = publish ? issues(value, target) : compatibilityIssues(value, target)
+        if (problems.length) throw new InputError(problems.join('；'))
         let cap = next.capabilities.find(c => c.id === target)
         if (command.id && !cap) throw new InputError('能力不存在', 404)
         if (cap?.removedAt) throw new InputError('此能力已移除，请先恢复后再编辑')

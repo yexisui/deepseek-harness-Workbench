@@ -1,4 +1,20 @@
-import { components, type Definition } from './model.ts'
+import { components, type Definition, type Snapshot } from './model.ts'
+
+export function availableComponents(capabilityId?: string) {
+  const scoped = components.filter(c => c.capabilityIds?.includes(capabilityId ?? ''))
+  return scoped.length ? scoped : components.filter(c => !c.capabilityIds)
+}
+export function requiredComponents(capabilityId?: string) { return availableComponents(capabilityId).filter(c => c.required) }
+export function compositionSupported(data: Snapshot, capabilityId?: string) {
+  return (data.compositionVersion ?? 0) >= Math.max(1, ...availableComponents(capabilityId).map(c => c.compositionVersion))
+}
+export function compatibilityIssues(value: Definition, capabilityId?: string) {
+  const allowed = availableComponents(capabilityId)
+  return value.components.filter(p => !allowed.some(c => c.id === p.componentId)).map(p => `${components.find(c => c.id === p.componentId)?.name ?? p.componentId}不支持当前能力的执行流程`)
+}
+export function missingAssociations(value: Definition, capabilityId?: string) {
+  return [...requiredComponents(capabilityId).filter(c => !value.components.some(p => p.componentId === c.id)).map(c => c.id), ...missingDependencies(value)]
+}
 
 export const dependencyName = (id: string) => id.replace('@deepseek-ai/dsh-', '')
 /** Environment requirements (CLI/extension) are not removable plugin associations. */

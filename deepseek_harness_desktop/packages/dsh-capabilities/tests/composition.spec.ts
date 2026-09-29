@@ -80,6 +80,7 @@ describe('component associations', () => {
     await send(store, { type: 'capability.save', id: 'browser', definition: removeAssociation(sample(), session), publish: false })
     await expect(store.command(old, { type: 'capability.save', id: 'browser', definition: sample(), publish: false })).rejects.toThrow('其他页面')
     const meeting = store.snapshot().capabilities.find(c => c.id === 'meeting-transcription')!
-    await expect(send(store, { type: 'capability.save', id: meeting.id, definition: { ...meeting.draft, components: [] }, publish: false })).rejects.toThrow('必须保留')
+    await send(store, { type: 'capability.save', id: meeting.id, definition: { ...meeting.draft, components: [] }, publish: false })
+    await expect(send(store, { type: 'capability.save', id: meeting.id, definition: { ...meeting.draft, components: [] }, publish: true })).rejects.toThrow('缺少必需组件')
   })
 })
