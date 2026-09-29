@@ -54,6 +54,8 @@ function setup(): Setup {
     get: (name: string) => name === 'connection' ? connection : undefined,
     provide: vi.fn((name: string, value: unknown) => { provided.set(name, value); return () => {} }),
     slots: {
+      entries: () => [],
+      subscribe: () => () => {},
       inject: vi.fn((_name: string, cb: () => unknown) => { cb() }),
       register: vi.fn((options: { inject: () => unknown }) => { slotFace = options.inject; return () => {} }),
     },
@@ -71,7 +73,7 @@ afterEach(() => { vi.unstubAllGlobals() })
 
 /** Stub the gateway /mode probe so ensureMode picks the official channel. */
 function stubOfficialMode(): void {
-  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ official: true }), { status: 200 })))
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify(url.includes('/status') ? { job: { phase: 'done', plugin } } : url.endsWith('/set-enabled') ? { plugin } : url.endsWith('/list') ? { plugins: [plugin] } : { jobId: 'local-job' }), { status: 200 })))
 }
 
 describe('pluginManager cordis service', () => {
@@ -98,12 +100,12 @@ describe('pluginManager cordis service', () => {
     expect(cb).toHaveBeenCalledTimes(2)
   })
 
-  it('probes the in-process official channel when desktop mode is indeterminate', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ official: null }), { status: 200 })))
+  it('uses the offline gateway without probing an online installer', async () => {
+    stubOfficialMode()
     const { face, rpcCall } = setup()
 
     await expect(face.list()).resolves.toEqual([plugin])
-    expect(rpcCall).toHaveBeenCalledWith('/plugin-installer', 'list', {})
+    expect(rpcCall).not.toHaveBeenCalled()
   })
 
   it('does not notify when a mutation fails, and a throwing listener never breaks the others', async () => {
@@ -113,7 +115,7 @@ describe('pluginManager cordis service', () => {
     face.onChange(() => { throw new Error('consumer listener failure') })
     face.onChange(good)
 
-    rpcCall.mockImplementationOnce(async () => ({ ok: false as const, error: { code: 'boom', message: 'install failed' } }))
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({error:'install failed'}),{status:400}))
     await expect(face.install('@scope/p1')).rejects.toThrow('install failed')
     expect(good).not.toHaveBeenCalled()
 

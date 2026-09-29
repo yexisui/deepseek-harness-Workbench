@@ -33,8 +33,8 @@ export function safeLocalPath(value: unknown): string {
     || /^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(?:\.|$)/i.test(p))) {
     fail('invalid-path', 'Absolute, parent, device and ambiguous paths are not supported.')
   }
-  if (parts.some(p => ['.git', '.svn', 'node_modules'].includes(p.toLowerCase()))) {
-    fail('unsupported-files', 'Export the resource package without repository metadata or node_modules.')
+  if (parts.some(p => ['.git', '.svn', '.pnpm'].includes(p.toLowerCase()))) {
+    fail('unsupported-files', 'Remove repository metadata and package-manager stores; ship plain dependency files.')
   }
   return value
 }

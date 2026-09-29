@@ -1,3 +1,4 @@
+import { LocalPluginImport, OfflineRollback } from './LocalPluginImport.tsx'
 /**
  * The plugin-manager tab: an install box, one row per installed user plugin
  * (next-start enablement switch, source badge, 
@@ -15,7 +16,7 @@
  */
 import { useEffect, useRef, useState } from 'react'
 import { Button, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
-import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
+import type { InjectFace, PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { classifyChange, diffControls, type ControlChange } from '../core/conflict.ts'
 import type {
   InstallProgressItem,
@@ -62,8 +63,7 @@ export interface PluginManagerTabInjected {
 
 /** Full component props assembled by the Settings slot renderer. */
 export type PluginManagerTabProps =
-  PropsRuntime<'settings.plugins.tab'>
-  & PropsLocale<'settings.pluginManager'>
+  PropsLocale<'settings.pluginManager'>
   & InjectFace<PluginManagerTabInjected>
 
 type ViewState =
@@ -421,27 +421,7 @@ export function PluginManagerTab(props: PluginManagerTabProps) {
         </div>
       )}
 
-      <div className={css.installRow}>
-        <input
-          className={css.spec}
-          type="text"
-          value={spec}
-          placeholder={t('installPlaceholder')}
-          disabled={busy !== undefined}
-          onChange={event => { setSpec(event.target.value) }}
-          onKeyDown={event => {
-            if (event.key === 'Enter' && spec.trim() !== '' && busy === undefined) onInstall()
-          }}
-        />
-        <Button
-          variant="primary"
-          disabled={spec.trim() === '' || busy !== undefined}
-          onClick={onInstall}
-        >
-          {busy !== undefined && busy.kind === 'install' ? t('installing') : t('install')}
-        </Button>
-      </div>
-      <p className={css.hint}>{t('installHint')}</p>
+      <LocalPluginImport disabled={busy !== undefined || toggleBusy !== undefined} onChange={async () => { setDirty(true); await reload() }} />
 
       {busy?.kind === 'install' && (
         <div className={css.progressRow} role="status">
@@ -526,10 +506,12 @@ export function PluginManagerTab(props: PluginManagerTabProps) {
                       <span className={css.sub}>
                         <span className={css.version}>{t('version', { version: plugin.version })}</span>
                         <span className={css.sourceBadge} data-source={plugin.source.kind}>
-                          {plugin.source.kind === 'npm' ? t('npmSource') : t('gitSource')}
+                          {{ npm: 'npm（历史安装）', git: 'Git（历史安装）', 'local-link': '本地链接', 'local-folder': '本地文件夹', 'local-zip': '本地 ZIP' }[plugin.source.kind]}
                         </span>
                         <span className={css.specText} title={plugin.source.spec}>{plugin.source.spec}</span>
                       </span>
+                      {plugin.requiresRestart && <p>待重启加载</p>}
+                      {plugin.previousVersion && <OfflineRollback id={plugin.id} version={plugin.previousVersion} onChange={async () => { setDirty(true); await reload() }} />}
                       {failure !== undefined && (
                         <div className={css.failure} data-plugin-failure={plugin.id}>
                           <span className={css.badge}>{t('failureBadge')}</span>

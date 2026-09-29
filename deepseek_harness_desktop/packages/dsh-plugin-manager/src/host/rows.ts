@@ -272,7 +272,11 @@ export function setRowEnabled(text: string, filename: string, id: string, name: 
       if (effBase) return text
       root.items.push(document.createNode({ id, name, disabled: false }))
     } else if (effBase) {
-      root.items.splice(found.index, 1)
+      // A user config override is not merely an enable/disable marker.
+      // Re-enabling must retain paths, settings and all other authored fields.
+      const hasConfiguration = found.row.items.some(pair => !isScalar(pair.key) || !['id', 'name', 'disabled'].includes(String(pair.key.value)))
+      if (hasConfiguration) found.row.delete('disabled')
+      else root.items.splice(found.index, 1)
     } else {
       found.row.set('disabled', document.createNode(false))
     }

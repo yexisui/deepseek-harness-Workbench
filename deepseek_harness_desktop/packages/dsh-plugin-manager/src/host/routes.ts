@@ -12,7 +12,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { WebRoute } from '@deepseek-ai/dsh-host-webserver'
 import { readJsonBody, writeJson } from './http.ts'
 import { isLoopbackRequest } from './loopback.ts'
-import { detectOfficialChannels, findDshBinary, unsafeSpecReason, type CliGateway } from './gateway.ts'
+import { unsafeSpecReason, type CliGateway } from './gateway.ts'
+import { OfflineInstaller } from './offline-installer.ts'
 import { readPatchText, readProfileManifest, type ProfileFacts } from './profile.ts'
 import { setRowEnabled, writePatchAtomic } from './rows.ts'
 import { buildPluginRow, claimedEntryRowsOf, findRowOwner, LOCKED_ENTRY_IDS, snapshotGateway } from './state.ts'
@@ -23,6 +24,9 @@ const UPDATES_DISABLED = 'plugin-manager: plugin updates are disabled in this de
 
 /** Dependencies every route shares. */
 export interface GatewayRouteDeps {
+  /** Refuse destructive changes while a related browser operation is active. */
+  beforeCapabilityChange?: (moduleName: string) => Promise<void>
+  offline?: OfflineInstaller
   facts: ProfileFacts
   gateway: CliGateway
   /** Resolve the dsh binary presence (the CLI is the write path). */
@@ -43,13 +47,16 @@ function messageOf(error: unknown): string {
  */
 export function makeGatewayRoutes(deps: GatewayRouteDeps): WebRoute[] {
   const { facts, gateway } = deps
+  let offlineService: OfflineInstaller | undefined
+  const offline = () => deps.offline ?? (offlineService ??= new OfflineInstaller(facts))
   /** Wrap a handler with the loopback fence and JSON error reporting. */
-  const guard = (handler: (req: IncomingMessage, res: ServerResponse) => Promise<void>) =>
+  const guard = (handler: (req: IncomingMessage, res: ServerResponse) => Promise<void>, method = 'POST') =>
     async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
       if (!isLoopbackRequest(req)) {
         writeJson(res, 403, { ok: false, error: 'forbidden: loopback-only' })
         return
       }
+      if (req.method !== method) { writeJson(res, 405, { error: 'method-not-allowed' }); return }
       try {
         await handler(req, res)
       } catch (error) {
@@ -60,7 +67,7 @@ export function makeGatewayRoutes(deps: GatewayRouteDeps): WebRoute[] {
   const listHandler = async (_req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const patchText = await readPatchText(facts.patchPath)
     const snapshot = await snapshotGateway(facts, patchText)
-    writeJson(res, 200, { plugins: snapshot.plugins })
+    writeJson(res, 200, { plugins: offline().decorate(snapshot.plugins) })
   }
 
   const installHandler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
@@ -75,11 +82,7 @@ export function makeGatewayRoutes(deps: GatewayRouteDeps): WebRoute[] {
       writeJson(res, 400, { error: unsafeSpec })
       return
     }
-    if (!deps.cliAvailable()) {
-      writeJson(res, 500, { error: 'plugin-manager: dsh CLI not found on PATH' })
-      return
-    }
-    writeJson(res, 200, gateway.install(spec.trim()))
+    writeJson(res, 200, await gateway.withMutationLock(async () => offline().job('install', spec.trim(), () => offline().installSpec(spec.trim()))))
   }
 
   const updateHandler = async (_req: IncomingMessage, res: ServerResponse): Promise<void> => {
@@ -98,11 +101,7 @@ export function makeGatewayRoutes(deps: GatewayRouteDeps): WebRoute[] {
       writeJson(res, 400, { error: unsafeId })
       return
     }
-    if (!deps.cliAvailable()) {
-      writeJson(res, 500, { error: 'plugin-manager: dsh CLI not found on PATH' })
-      return
-    }
-    writeJson(res, 200, gateway.remove(id.trim()))
+    writeJson(res, 200, await gateway.withMutationLock(async () => { await deps.beforeCapabilityChange?.(id.trim()); return offline().job('remove', id.trim(), () => offline().remove(id.trim())) }))
   }
 
   const statusHandler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
@@ -112,7 +111,7 @@ export function makeGatewayRoutes(deps: GatewayRouteDeps): WebRoute[] {
       writeJson(res, 400, { error: 'plugin-manager: status needs a job id' })
       return
     }
-    const job = gateway.status(jobId)
+    const job = offline().status(jobId) ?? gateway.status(jobId)
     if (job === undefined) {
       writeJson(res, 404, { error: 'plugin-manager: unknown job' })
       return
@@ -164,6 +163,7 @@ export function makeGatewayRoutes(deps: GatewayRouteDeps): WebRoute[] {
         entries = [owner.row]
       }
       let next = patchText
+      if (!enabled) await deps.beforeCapabilityChange?.(ownerName)
       for (const entry of entries) {
         // A whole-package disable still force-keeps the locked rows mounted.
         const entryEnabled = enabled || LOCKED_ENTRY_IDS.has(entry.id)
@@ -191,40 +191,19 @@ export function makeGatewayRoutes(deps: GatewayRouteDeps): WebRoute[] {
     writeJson(res, 200, { items: [], pluginRoot: facts.profileDir, safeMode: false })
   }
 
-  // One verdict per host process: the browser half reads it instead of
-  // probing the official channel, whose route 405s on the npm web runtime.
-  let modePromise: Promise<{ official: boolean | null }> | undefined
-  const probeOfficialChannels = (): Promise<boolean> => {
-    const binary = findDshBinary()
-    if (binary === null) return Promise.resolve(false)
-    return detectOfficialChannels(binary, facts.profileName)
-  }
-  const modeHandler = async (_req: IncomingMessage, res: ServerResponse): Promise<void> => {
-    if (modePromise === undefined) {
-      if (facts.desktop) {
-        // Desktop registers installer services programmatically, so the CLI
-        // dump cannot see them. Null tells the browser to perform its existing
-        // direct RPC capability probe before falling back to this gateway.
-        modePromise = Promise.resolve({ official: null })
-      } else {
-        const probe = deps.officialChannels ?? probeOfficialChannels
-        modePromise = probe().then(official => ({ official })).catch(() => ({ official: false }))
-      }
-    }
-    writeJson(res, 200, await modePromise)
-  }
+  const modeHandler = async (_req: IncomingMessage, res: ServerResponse): Promise<void> => { writeJson(res, 200, { official: false, offline: true }) }
 
   const checkUpdatesHandler = updateHandler
 
   return [
-    { kind: 'exact', path: `${GATEWAY_PREFIX}/list`, handler: guard(listHandler) },
+    { kind: 'exact', path: `${GATEWAY_PREFIX}/list`, handler: guard(listHandler, 'GET') },
     { kind: 'exact', path: `${GATEWAY_PREFIX}/install`, handler: guard(installHandler) },
     { kind: 'exact', path: `${GATEWAY_PREFIX}/update`, handler: guard(updateHandler) },
     { kind: 'exact', path: `${GATEWAY_PREFIX}/remove`, handler: guard(removeHandler) },
-    { kind: 'exact', path: `${GATEWAY_PREFIX}/status`, handler: guard(statusHandler) },
+    { kind: 'exact', path: `${GATEWAY_PREFIX}/status`, handler: guard(statusHandler, 'GET') },
     { kind: 'exact', path: `${GATEWAY_PREFIX}/set-enabled`, handler: guard(setEnabledHandler) },
-    { kind: 'exact', path: `${GATEWAY_PREFIX}/failures`, handler: guard(failuresHandler) },
-    { kind: 'exact', path: `${GATEWAY_PREFIX}/mode`, handler: guard(modeHandler) },
+    { kind: 'exact', path: `${GATEWAY_PREFIX}/failures`, handler: guard(failuresHandler, 'GET') },
+    { kind: 'exact', path: `${GATEWAY_PREFIX}/mode`, handler: guard(modeHandler, 'GET') },
     { kind: 'exact', path: `${GATEWAY_PREFIX}/check-updates`, handler: guard(checkUpdatesHandler) },
   ]
 }

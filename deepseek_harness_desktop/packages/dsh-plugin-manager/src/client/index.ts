@@ -22,6 +22,9 @@ import type {} from '@deepseek-ai/dsh-api-session-controller/client'
 import type {} from '@deepseek-ai/dsh-api-workspace-controller/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
+import { InventoryTree } from './InventoryTree.tsx'
+import { withCapabilityNavigation } from './CapabilityNavigation.tsx'
+import { decorateSlot, type Registry } from './slot-adapter.ts'
 import { PluginManagerTab, type PluginManagerTabInjected } from './PluginManagerTab.tsx'
 import { en, zh, type PluginManagerKey } from './locales.ts'
 import {
@@ -213,33 +216,8 @@ export function createPluginManagerFace(ctx: ClientContext): PluginManagerFace {
 
   // ── mode selection ────────────────────────────────────────────────────────
 
-  let modePromise: Promise<'official' | 'gateway'> | undefined
-  const ensureMode = (): Promise<'official' | 'gateway'> => {
-    if (modePromise === undefined) {
-      modePromise = (async () => {
-        // Prefer the host verdict: the gateway's /mode route reports whether
-        // the official installer channels exist, so the direct channel probe
-        // below (which 405s into the browser console on the npm web runtime)
-        // only runs when the host half is absent or explicitly returns null
-        // for a desktop runtime whose services are registered in-process.
-        try {
-          const mode = await gatewayJson(`${GATEWAY_PREFIX}/mode`) as { official?: boolean | null }
-          if (mode.official === true) return 'official' as const
-          if (mode.official === false) return 'gateway' as const
-        } catch {
-          // Host half absent (an official runtime without a boot profile):
-          // fall back to the direct channel probe.
-        }
-        try {
-          const result = await connection.rpc.call(CHANNEL, LIST_ENDPOINT, {})
-          return result.ok ? 'official' as const : 'gateway' as const
-        } catch {
-          return 'gateway' as const
-        }
-      })()
-    }
-    return modePromise
-  }
+  // All writes use the local offline service, including sibling Workshop callers.
+  const ensureMode = async (): Promise<'official' | 'gateway'> => 'gateway'
 
   /**
    * Start a repair conversation for a failed plugin: resolve a workspace over
@@ -314,6 +292,8 @@ export function createPluginManagerFace(ctx: ClientContext): PluginManagerFace {
 
 /** Contribute the family plugin-manager tab and provide the shared face. */
 export function apply(ctx: ClientContext): void {
+  ctx.effect(() => decorateSlot(ctx.slots as unknown as Registry, 'settings.section', 'PluginsSettingsSection', withCapabilityNavigation), 'plugin-manager: capability navigation')
+  ctx.effect(() => decorateSlot(ctx.slots as unknown as Registry, 'settings.plugins.tab', 'PluginInventorySettingsTab', () => InventoryTree), 'plugin-manager: grouped inventory')
   ctx.effect(() => {
     try {
       return ctx.locale.register(NS, { zh, en })

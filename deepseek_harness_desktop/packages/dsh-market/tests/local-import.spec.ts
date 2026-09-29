@@ -272,7 +272,7 @@ describe('local Workshop library', () => {
 })
 
 describe('ZIP and cross-platform path validation', () => {
-  it.each(['../escape', '/root', 'C:/test', 'C:test', '\\\\host\\share', 'a\\b', 'a/../b', 'a//b', 'a:stream', 'NUL.txt', 'com1', 'file.', 'file ', 'a/./b', 'node_modules/x', '.git/config'])('rejects ambiguous path %s', candidate => {
+  it.each(['../escape', '/root', 'C:/test', 'C:test', '\\\\host\\share', 'a\\b', 'a/../b', 'a//b', 'a:stream', 'NUL.txt', 'com1', 'file.', 'file ', 'a/./b', 'node_modules/.pnpm/x', '.git/config'])('rejects ambiguous path %s', candidate => {
     expect(() => safeLocalPath(candidate)).toThrow()
   })
 

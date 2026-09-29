@@ -1,0 +1,9 @@
+{
+  "name": "@linxin666/dsh-capabilities", "version": "0.1.0-local.9", "private": true,
+  "description": "岗位能力、版本、授权与 BrowserSkill 接入服务", "type": "module",
+  "main": "lib/index.js", "exports": { ".": "./lib/index.js", "./policy": "./lib/policy.js", "./browser": "./lib/browser.js", "./package.json": "./package.json" },
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
+  "scripts": { "build": "tsdown", "typecheck": "tsc --noEmit", "test": "vitest run" },
+  "dependencies": { "@wxg-prc-cpg/browser-skill-dsh-plugin": "0.3.0" },
+  "peerDependencies": { "@deepseek-ai/cordis": "^4.0.2", "@deepseek-ai/dsh-tools": "0.1.5-rc.2", "@deepseek-ai/dsh-agent": "0.1.5-rc.2", "@deepseek-ai/dsh-client-connection": "0.1.5-rc.2", "@deepseek-ai/dsh-settings": "^0.1.5-rc.1", "@deepseek-ai/schemastery": "^3.18.1" }
+}

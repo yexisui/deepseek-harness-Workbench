@@ -9,6 +9,7 @@
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { packagePatch } from './offline-package.ts'
 import type { InstalledPluginChild, InstalledPluginItem } from '../core/protocol.ts'
 import type { LayerSnapshot } from '../core/patch-diff.ts'
 import { bareRowEnabled, bareRowId, claimedIdsOf, insertRowsOf, parsePatch, rowDefaultEnabledOf } from './rows.ts'
@@ -29,6 +30,8 @@ export const LOCKED_ENTRY_IDS: ReadonlySet<string> = new Set([
   'web-ui-compat',
 ])
 
+function declaredPatch(dir:string):string { try { return packagePatch(dir) } catch { return join(dir,'cordis.patch.yml') } }
+
 /** The listing result: plugin rows plus the raw layer snapshot for diffs. */
 export interface GatewaySnapshot {
   plugins: InstalledPluginItem[]
@@ -41,7 +44,9 @@ function modulePathOf(profileDir: string, name: string): string {
 }
 
 /** Whether an install spec names a git/file/link source rather than a registry package. */
-export function sourceKindOf(spec: string): 'npm' | 'git' {
+export function sourceKindOf(spec: string): InstalledPluginItem['source']['kind'] {
+  if (spec.startsWith('link:')) return 'local-link'
+  if (spec.startsWith('file:')) return 'local-folder'
   return /^(link:|file:|git:|github:|git\+|https?:\/\/github\.com)/.test(spec) ? 'git' : 'npm'
 }
 
@@ -55,7 +60,7 @@ export function sourceKindOf(spec: string): 'npm' | 'git' {
  * @returns the claimed entry ids, never empty.
  */
 export async function claimedEntryIdsOf(facts: ProfileFacts, name: string): Promise<string[]> {
-  const patchPath = join(modulePathOf(facts.profileDir, name), 'cordis.patch.yml')
+  const patchPath = declaredPatch(modulePathOf(facts.profileDir, name))
   try {
     const text = stripBom(await readFile(patchPath, 'utf8'))
     const ids = claimedIdsOf(text)
@@ -80,7 +85,7 @@ export async function claimedEntryIdsOf(facts: ProfileFacts, name: string): Prom
  * @returns the claimed rows, never empty.
  */
 export async function claimedEntryRowsOf(facts: ProfileFacts, name: string): Promise<Array<{ id: string; name: string; baseEnabled: boolean }>> {
-  const patchPath = join(modulePathOf(facts.profileDir, name), 'cordis.patch.yml')
+  const patchPath = declaredPatch(modulePathOf(facts.profileDir, name))
   try {
     const text = stripBom(await readFile(patchPath, 'utf8'))
     const rows = insertRowsOf(text)
@@ -122,7 +127,7 @@ export async function buildPluginRow(
   }
 
   let bundlePatch = '[]'
-  const bundlePatchPath = join(moduleDir, 'cordis.patch.yml')
+  const bundlePatchPath = declaredPatch(moduleDir)
   if (existsSync(bundlePatchPath)) {
     try {
       bundlePatch = stripBom(await readFile(bundlePatchPath, 'utf8'))

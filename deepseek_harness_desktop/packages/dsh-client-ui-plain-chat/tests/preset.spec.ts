@@ -26,7 +26,7 @@ describe('workbench-chat preset', () => {
 
   it('exposes a distinct ordinary-chat entry instead of redefining the standard preset', () => {
     const metadata = load(readFileSync(new URL('preset.yml', presetRoot), 'utf8')) as Record<string, unknown>
-    expect(metadata.name).toBe('普通聊天')
+    expect(metadata.name).toBe('自由聊天')
     expect(metadata.description).toEqual(expect.stringContaining('不执行命令'))
     expect(metadata.order).toBeLessThan(0)
     expect(name).toBe('workbench-chat-no-tools')

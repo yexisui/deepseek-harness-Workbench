@@ -28,7 +28,10 @@ export interface InstalledPluginItem {
   id: string
   name: string
   version: string
-  source: { kind: 'npm' | 'git'; spec: string }
+  source: { kind: 'npm' | 'git' | 'local-zip' | 'local-folder' | 'local-link'; spec: string }
+  managed?: boolean
+  previousVersion?: string
+  requiresRestart?: boolean
   installedAt: string
   /** Effective next-start enablement across the bundle's own rows and the managed profile patch row. */
   enabled: boolean
@@ -126,7 +129,7 @@ function parsePlugin(value: unknown, index: number): InstalledPluginItem {
   if (!isRecord(value) || !isString(value.id) || !isString(value.name)
     || !isString(value.version) || !isString(value.installedAt)
     || typeof value.enabled !== 'boolean'
-    || !isRecord(value.source) || (value.source.kind !== 'npm' && value.source.kind !== 'git')
+    || !isRecord(value.source) || !['npm','git','local-zip','local-folder','local-link'].includes(String(value.source.kind))
     || !isString(value.source.spec)) {
     throw new Error(`plugin-manager: plugin row ${String(index)} is invalid`)
   }
@@ -138,7 +141,10 @@ function parsePlugin(value: unknown, index: number): InstalledPluginItem {
     id: value.id,
     name: value.name,
     version: value.version,
-    source: { kind: value.source.kind, spec: value.source.spec },
+    source: { kind: value.source.kind as InstalledPluginItem['source']['kind'], spec: value.source.spec },
+    ...typeof value.managed === 'boolean' ? {managed:value.managed} : {},
+    ...isString(value.previousVersion) ? {previousVersion:value.previousVersion} : {},
+    ...typeof value.requiresRestart === 'boolean' ? {requiresRestart:value.requiresRestart} : {},
     installedAt: value.installedAt,
     enabled: value.enabled,
     ...isString(value.commit) ? { commit: value.commit } : {},

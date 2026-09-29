@@ -339,7 +339,7 @@ describe('set-enabled id space', () => {
     // Read side: the bundle's own disabled row must reach the listing, or the
     // switch shows "enabled" for a family the loader never mounts.
     const listed = captureResponse()
-    await listHandler(facts)(loopbackRequest({}), listed.res)
+    await listHandler(facts)(Object.assign(loopbackRequest({}), {method:'GET'}), listed.res)
     const before = JSON.parse(listed.body()) as { plugins: WireRow[] }
     const packageRow = before.plugins.find(item => item.id === '@linxin666/dsh-web-all')
     expect(packageRow?.enabled).toBe(false)

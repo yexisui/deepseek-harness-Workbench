@@ -1,6 +1,6 @@
 export const roleZh = {
   rolesTitle: '岗位助手', rolesDescription: '为每一类工作，准备一位熟悉职责的助手。',
-  rolesPick: '选定助手', rolesChosen: '已选定', rolesCurrent: '当前助手', rolesManage: '打开 Agent 预设', rolesNoSelection: '未选择岗位 · 自由交流', rolesSelectionHint: '已选岗位 · 仅界面预览', rolesReset: '取消选定', rolesSelectionDone: '已选定：',
+  rolesPick: '选定助手', rolesChosen: '已选定', rolesCurrent: '当前助手', rolesManage: '打开 Agent 预设', rolesNoSelection: '已选定：自由聊天', rolesSelectionHint: '已选岗位 · 仅界面预览', rolesReset: '返回自由聊天', rolesSelectionDone: '已选定：',
   rolesPreview: '界面预览', rolesCreate: '创建岗位助手', rolesExample: '示例岗位',
   rolesAnalyst: '需求分析助手', rolesSummary: '梳理办公业务需求，厘清流程与功能，明确待确认事项。',
   rolesTagOne: '需求梳理', rolesTagTwo: '流程分析', rolesTagThree: '结构化输出',
@@ -19,7 +19,7 @@ export const roleZh = {
   rolesDeveloperDuties: '协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。',
   rolesDeveloperRequirements: '结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。',
   rolesDeveloperFormat: '一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项',
-  rolesConfigure: '查看配置', rolesExisting: 'Agent 预设',
+  rolesConfigure: '查看配置', rolesExisting: '高级预设',
   rolesExistingHint: '继续管理已有预设及其配置。',
   rolesNotice: '当前为界面预览，岗位配置暂不保存，也不会用于实际对话。',
   rolesChoose: '选择对话助手', rolesChooseHint: '根据本次工作，选择合适的助手。',
@@ -39,13 +39,13 @@ export const roleZh = {
   rolesCancel: '取消', rolesDone: '完成预览', rolesSave: '保存并启用',
   rolesSaveHint: '保存功能将在后续版本接入；关闭后不保留本次编辑。',
   rolesNewSessionHint: '配置修改将在新对话中使用。',
-  rolesChatOnly: '当前仅预览岗位界面。切回普通聊天后即可发送消息。',
-  rolesReturnChat: '切回普通聊天', rolesComposer: '输入工作需求（岗位对话尚未接通）',
+  rolesChatOnly: '当前仅预览岗位界面。返回自由聊天后即可发送消息。',
+  rolesReturnChat: '返回自由聊天', rolesComposer: '输入工作需求（岗位对话尚未接通）',
 }
 
 export const roleEn: Record<keyof typeof roleZh, string> = {
   rolesTitle: 'Role assistants', rolesDescription: 'An assistant that understands each kind of work.',
-  rolesPick: 'Select assistant', rolesChosen: 'Selected', rolesCurrent: 'Current assistant', rolesManage: 'Open Agent presets', rolesNoSelection: 'No role selected · Everyday chat', rolesSelectionHint: 'Selected role · UI preview only', rolesReset: 'Clear selection', rolesSelectionDone: 'Selected: ',
+  rolesPick: 'Select assistant', rolesChosen: 'Selected', rolesCurrent: 'Current assistant', rolesManage: 'Open Agent presets', rolesNoSelection: 'Selected: Chat', rolesSelectionHint: 'Selected role · UI preview only', rolesReset: 'Return to Chat', rolesSelectionDone: 'Selected: ',
   rolesPreview: 'UI preview', rolesCreate: 'Create role assistant', rolesExample: 'Example role',
   rolesAnalyst: 'Requirements analyst', rolesSummary: 'Clarify business needs, map workflows and list open questions.',
   rolesTagOne: 'Requirements', rolesTagTwo: 'Workflows', rolesTagThree: 'Structured output',
@@ -64,7 +64,7 @@ export const roleEn: Record<keyof typeof roleZh, string> = {
   rolesDeveloperDuties: 'Turn confirmed requirements into technical proposals. Analyze code and issues, suggest implementation steps, code examples and test cases.',
   rolesDeveloperRequirements: 'Use the supplied stack, interfaces and project constraints. Do not assume unconfirmed implementation details.\nDistinguish suggestions and examples from execution results. Clearly mark untested code and tests.',
   rolesDeveloperFormat: '1. Requirements and technical proposal\n2. Implementation steps or code examples\n3. Test considerations\n4. Risks and open questions',
-  rolesConfigure: 'View configuration', rolesExisting: 'Agent presets', rolesExistingHint: 'Manage your existing presets and configurations.',
+  rolesConfigure: 'View configuration', rolesExisting: 'Advanced presets', rolesExistingHint: 'Manage your existing presets and configurations.',
   rolesNotice: 'UI preview only. Role settings are not saved or used in conversations yet.',
   rolesChoose: 'Choose an assistant', rolesChooseHint: 'Choose an assistant for the work at hand.',
   rolesChatSummary: 'Everyday questions, writing and ideas', rolesSelected: 'Selected', rolesSelect: 'Preview this role',

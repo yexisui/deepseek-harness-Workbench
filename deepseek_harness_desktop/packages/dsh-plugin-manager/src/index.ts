@@ -19,6 +19,9 @@ import { findDshBinary, CliGateway } from './host/gateway.ts'
 import { profileExists, resolveProfile } from './host/profile.ts'
 import { makeGatewayRoutes } from './host/routes.ts'
 import { dirname } from 'node:path'
+import { OfflineInstaller } from './host/offline-installer.ts'
+import { makeLocalManagementRoutes } from './host/local-management-routes.ts'
+import type { InventoryEntry } from './core/classification.ts'
 import { registerWorkshopServiceRoutes } from '../../../shared/host/workshop-services.ts'
 
 /** Stable cordis plugin name (matches cordis.patch.yml insert id). */
@@ -43,11 +46,21 @@ function applyImpl(ctx: Context): void {
   }
   if (!profileExists(facts.profileDir)) return
 
+  const inventory = (): InventoryEntry[] => {
+    const loader = ctx.get('loader') as unknown as { entries(): Iterable<{ id: string; options: {name: string; group?: boolean}; disabled: boolean; fiber?: {state: number} }> } | undefined
+    if (!loader) throw new Error('插件清单尚未就绪，请稍后刷新。')
+    return [...loader.entries()].filter(e => !e.options.group).map(e => ({ entryId:e.id, moduleName:e.options.name, enabled:!e.disabled, fiberPhase:e.fiber ? ['pending','loading','active','failed',null,'unloading'][e.fiber.state] ?? null : null }))
+  }
+  const offline = new OfflineInstaller(facts, inventory)
   const gateway = new CliGateway(facts)
   const cliAvailable = (): boolean => findDshBinary() !== null
 
   ctx.effect(() => {
-    const routes = makeGatewayRoutes({ facts, gateway, cliAvailable })
+    const beforeCapabilityChange = async (moduleName: string) => {
+      const service = ctx.get('capabilities' as never) as unknown as { assertPluginChange?: (name: string) => void } | undefined
+      service?.assertPluginChange?.(moduleName)
+    }
+    const routes = [...makeGatewayRoutes({ facts, gateway, cliAvailable, offline, beforeCapabilityChange }), ...makeLocalManagementRoutes(offline, gateway, inventory, beforeCapabilityChange)]
     const disposers = routes.map(route => ctx.webServer.register(route))
     disposers.push(registerWorkshopServiceRoutes(dirname(dirname(facts.profileDir)), routes))
     return () => {

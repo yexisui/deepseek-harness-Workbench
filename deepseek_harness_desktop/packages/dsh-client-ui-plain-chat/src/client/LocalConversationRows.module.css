@@ -1,0 +1,16 @@
+.rows { display:flex; flex-direction:column; gap:2px; }
+.row { display:flex; align-items:center; height:32px; min-width:0; margin:0 8px; border-radius:8px; color:var(--dsw-alias-label-primary,#202938); }
+.row:hover,.active { background:var(--dsw-alias-interactive-bg-hover,#e9eff9); }
+.open { display:flex; align-items:center; gap:4px; flex:1; min-width:0; height:100%; padding:0 4px 0 24px; border:0; background:transparent; color:inherit; text-align:left; cursor:pointer; font:inherit; }
+.icon { width:16px; flex:none; color:var(--dsw-alias-label-tertiary,#8995aa); font-size:15px; }
+.title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; line-height:20px; }
+.open small { flex:none; color:var(--dsw-alias-label-tertiary,#8995aa); font-size:11px; }
+.menuTrigger { width:25px; height:25px; display:grid; place-items:center; margin-right:3px; border:0; border-radius:6px; background:transparent; color:var(--dsw-alias-label-tertiary,#8995aa); cursor:pointer; opacity:0; }
+.row:hover .menuTrigger,.menuTrigger:focus-visible,.menuTrigger[aria-expanded="true"] { opacity:1; }
+.menuTrigger:hover { background:color-mix(in srgb,var(--dsw-alias-label-tertiary,#8995aa) 12%,transparent); }
+.open:focus-visible,.menuTrigger:focus-visible { outline:2px solid var(--dsw-alias-state-business-primary,#4e6bb3); outline-offset:-2px; }
+.menu { position:fixed; z-index:10000; min-width:214px; box-sizing:border-box; padding:6px; border:1px solid var(--dsw-alias-border-default,#d7deeb); border-radius:12px; background:var(--dsw-alias-bg-surface,#fff); box-shadow:0 8px 24px #16243c24; }
+.menu button { width:100%; display:flex; align-items:center; gap:12px; padding:9px 10px; border:0; border-radius:7px; background:transparent; color:var(--dsw-alias-label-primary,#202938); text-align:left; cursor:pointer; font:inherit; font-size:13px; }
+.menu button svg { flex:none; color:var(--dsw-alias-label-secondary,#65769a); }
+.menu button:hover,.menu button:focus-visible { outline:none; background:var(--dsw-alias-interactive-bg-hover,#e9eff9); }
+@media(hover:none) { .menuTrigger { opacity:1; } }

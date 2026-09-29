@@ -17,8 +17,18 @@
 .cardSelect { position:absolute; inset:0 0 51px; z-index:1; border:0; padding:0; border-radius:12px 12px 0 0; background:transparent; cursor:pointer; }
 .cardSelect:hover { background:color-mix(in srgb,var(--role-color) 5%,transparent); }
 .roleCard .cardAction { position:relative; z-index:2; }
+/* 正文独立承载选择层，页脚高度不受换行或字体缩放影响。 */
+.cardBody { position:relative; flex:1; margin:-22px -22px 0; padding:22px 22px 0; border-radius:10px 10px 0 0; }
+.cardBody .cardSelect { inset:0; border-radius:10px 10px 0 0; }
+.cardSelect:disabled { cursor:default; }
+.cardSelect:disabled:hover { background:transparent; }
+.roleCard .cardSummary { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; min-height:5.4em; overflow-wrap:anywhere; }
+.cardControls { position:relative; z-index:2; display:flex; align-items:center; gap:18px; border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border)); }
+.cardControls .cardAction { flex:1; width:auto; min-width:0; border-top:0; }
+.cardControls .textButton { min-height:44px; color:var(--role-muted); }
+.roleCard .chatCardNote { padding:14px 0; font-size:12px; }
 .selectedCard { box-shadow:0 0 0 2px var(--role-color),0 7px 20px color-mix(in srgb,var(--role-color) 20%,transparent); animation:roleSelect .3s ease-out; }
-.roleCard .exampleBadge.selectedBadge { background:var(--role-color); color:white; }
+.roleCard .exampleBadge.selectedBadge { background:var(--role-color); color:var(--role-on-color,white); }
 @keyframes roleSelect { 0%,100% { transform:translateX(0); } 30% { transform:translateX(-3px); } 60% { transform:translateX(3px); } }
 @media(prefers-reduced-motion:reduce) { .selectedCard { animation:none; } }
 .currentAssistant { --role-bg:var(--dsw-alias-bg-layer-2,#fff); --role-text:var(--dsw-alias-label-primary,#202938); --role-muted:var(--dsw-alias-label-secondary,#758095); --role-accent:var(--dsw-alias-button-primary-fill,#4263ba); display:inline-flex; align-items:center; gap:8px; box-sizing:border-box; max-width:100%; min-height:38px; padding:6px 12px 6px 7px; border:1px solid color-mix(in srgb,var(--role-color) 22%,transparent); border-radius:22px; background:color-mix(in srgb,var(--role-bg) 88%,transparent); backdrop-filter:blur(12px); box-shadow:0 2px 8px #182c5008; color:var(--role-text); text-align:left; font:inherit; cursor:pointer; transition:background .16s,border-color .16s,box-shadow .16s; }
@@ -34,6 +44,8 @@
 .cardTop { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .icon { display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:11px; flex-shrink:0; color:var(--role-accent); background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg)); }
 .icon svg { width:23px; height:23px; }
+.icon img { display:block; width:100%; height:100%; padding:4px; object-fit:contain; }
+.currentAssistant .icon img { padding:2px; }
 .icon { color:color-mix(in srgb,var(--role-color,var(--role-accent)) 65%,var(--role-text)); background:color-mix(in srgb,var(--role-color,var(--role-accent)) 20%,var(--role-bg)); }
 .roleCard, .livePreview { border-color:color-mix(in srgb,var(--role-color) 40%,var(--role-border)); border-top:4px solid var(--role-color); background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg))); }
 .roleCard .exampleBadge, .roleCard .tags span { background:color-mix(in srgb,var(--role-color) 15%,var(--role-bg)); color:color-mix(in srgb,var(--role-color) 45%,var(--role-text)); }
@@ -63,7 +75,11 @@
 .dialog { background:var(--role-bg); border:1px solid var(--role-border); border-radius:18px; padding:0; width:560px; max-width:calc(100vw - 32px); max-height:calc(100dvh - 40px); overflow:auto; box-shadow:0 24px 90px #10223d30; }
 .dialog::backdrop { background:#0e18224d; backdrop-filter:blur(3px); }
 .dialog[open] { display:flex; flex-direction:column; }
-.wide { width:940px; }
+.wide { width:1240px; height:min(850px,calc(100dvh - 40px)); overflow:hidden; }
+.editorDetails { border:1px solid var(--role-border); border-radius:8px; padding:0 12px; }
+.editorDetails > summary { cursor:pointer; font-size:12px; color:var(--role-muted); padding:10px 0; }
+.editorDetails > fieldset, .editorDetails > div { padding:8px 0 14px; }
+.colorSample { display:inline-block; width:11px; height:11px; border-radius:50%; margin-left:10px; }
 .dialogHeader { display:flex; justify-content:space-between; gap:20px; align-items:center; padding:22px 26px; border-bottom:1px solid var(--role-border); flex-shrink:0; }
 .dialogHeader h2 { font-size:18px; }
 .close { border:0; background:transparent; color:var(--role-muted); cursor:pointer; font-size:25px; width:32px; height:32px; border-radius:6px; line-height:1; }

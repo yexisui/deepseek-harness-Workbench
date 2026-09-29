@@ -96,6 +96,12 @@ describe('rowDefaultEnabledOf', () => {
 })
 
 describe('setRowEnabled', () => {
+  it('retains CLI paths and authored configuration through disable and re-enable', () => {
+    const before = '- id: workbench-capabilities\n  config:\n    bskPath: C:/runtime/bsk.exe\n    port: 52800\n'
+    const after = setRowEnabled(setRowEnabled(before, 'p', 'workbench-capabilities', '@linxin666/dsh-capabilities', false), 'p', 'workbench-capabilities', '@linxin666/dsh-capabilities', true)
+    const { root } = parsePatch(after, 'p')
+    expect(root.toJSON()).toEqual([{ id: 'workbench-capabilities', config: { bskPath: 'C:/runtime/bsk.exe', port: 52800 } }])
+  })
   it('creates a bare disabled row and preserves comments and other rows', () => {
     const next = setRowEnabled(SAMPLE, 'cordis.patch.yml', 'ui-plugin-manager', 'ui-plugin-manager', false)
     expect(next).toContain('# a top-level comment that must survive every edit')
@@ -186,4 +192,3 @@ describe('setRowEnabled', () => {
     expect(disabled).toContain('id: dup')
   })
 })
-

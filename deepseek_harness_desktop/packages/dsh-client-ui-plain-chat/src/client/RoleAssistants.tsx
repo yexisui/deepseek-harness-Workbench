@@ -1,16 +1,18 @@
-import React, { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import React, { useId, useState, type CSSProperties, type ReactNode } from 'react'
+import { Modal } from './PreviewModal.tsx'
 import type { ChatKey } from './locales.ts'
 import { roleCatalog, roleIds, type AssistantRole, type PreviewRole } from './role-catalog.ts'
+import { CapabilityCenter } from './CapabilityCenter.tsx'
+import { CapabilityWorkbench } from './CapabilityWorkbench.tsx'
 export type { PreviewRole } from './role-catalog.ts'
 import s from './Roles.module.css'
 
 type Translate = (key: ChatKey) => string
 type EditorMode = 'create' | AssistantRole
 const palette = ['#4F73E8', '#22A58B', '#E58A32', '#9A62D8', '#E35E8D', '#E06453', '#21A0C5', '#788647']
-const colorStyle = (color: string): CSSProperties => ({ '--role-color': color } as CSSProperties)
+export const colorStyle = (color: string): CSSProperties => ({ '--role-color': color } as CSSProperties)
 
-function RoleIcon({ role = 'analyst', color }: { role?: PreviewRole; color?: string }) {
+export function RoleIcon({ role = 'analyst', color }: { role?: PreviewRole; color?: string }) {
   return <span className={s.icon} style={colorStyle(color ?? (role === 'chat' ? palette[0]! : roleCatalog[role].color))} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     {role === 'chat' ? <path d="M20 11.5a8 8 0 0 1-8 8H5l-3 2V11.5a9 9 0 0 1 18 0Z" />
       : role === 'marketing' ? <><path d="M4 10h4l11-5v14L8 14H4zM8 14l2 6H6l-2-6M22 10v4" /></>
@@ -20,23 +22,9 @@ function RoleIcon({ role = 'analyst', color }: { role?: PreviewRole; color?: str
   </svg></span>
 }
 
-function Modal({ title, onClose, children, wide = false, closeLabel }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; closeLabel: string }) {
-  const ref = useRef<HTMLDialogElement>(null)
-  const titleId = useId()
-  useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null
-    const dialog = ref.current!
-    dialog.showModal()
-    return () => { dialog.close(); if (previous?.isConnected) previous.focus() }
-  }, [])
-  return createPortal(<dialog ref={ref} className={`${s.dialog} ${wide ? s.wide : ''}`} aria-labelledby={titleId}
-    onCancel={event => { event.preventDefault(); onClose() }}>
-    <div className={s.dialogHeader}><h2 id={titleId}>{title}</h2><button type="button" autoFocus className={s.close} onClick={onClose} aria-label={closeLabel}>×</button></div>
-    {children}
-  </dialog>, document.body)
-}
 
 function RoleEditor({ t, mode, onClose }: { t: Translate; mode: EditorMode; onClose: () => void }) {
+  const [relatedRole, setRelatedRole] = useState<AssistantRole | null>(null)
   const [color, setColor] = useState(mode === 'create' ? palette[0]! : roleCatalog[mode].color)
   const [fields, setFields] = useState(() => {
     if (mode === 'create') return { name: '', duties: '', requirements: '', format: '' }
@@ -50,15 +38,12 @@ function RoleEditor({ t, mode, onClose }: { t: Translate; mode: EditorMode; onCl
     ['format', 'rolesFormat', 'rolesFormatPlaceholder'],
   ] as const
   return <>
-    <div className={s.editorScroll}>
-      <p className={s.intro}>{t('rolesEditHint')}</p>
-      <div className={s.notice}><span className={s.previewBadge}>{t('rolesPreview')}</span>{t('rolesNotice')}</div>
-      <div className={s.editorGrid}>
+    <CapabilityWorkbench t={t} onOpenRole={setRelatedRole} mode={mode} name={fields.name} form={
         <div className={s.fields}>
           <label className={s.field} htmlFor={`${id}-name`}><span>{t('rolesName')}</span>
             <input id={`${id}-name`} maxLength={60} value={fields.name} placeholder={t('rolesNamePlaceholder')} onChange={event => setFields({ ...fields, name: event.target.value })} />
           </label>
-          <fieldset className={s.colorField}>
+          <details className={s.editorDetails}><summary>{t('capColorDetails')}<span className={s.colorSample} style={{ backgroundColor: color }} /></summary><fieldset className={s.colorField}>
             <legend>{t('rolesColor')}</legend>
             <div className={s.palette}>{palette.map(value => <button type="button" key={value} className={s.swatch} style={{ backgroundColor: value }} aria-label={`${t('rolesColor')} ${value}`} aria-pressed={color.toLowerCase() === value.toLowerCase()} onClick={() => setColor(value)}>
               {color.toLowerCase() === value.toLowerCase() && <span aria-hidden="true">✓</span>}
@@ -69,20 +54,21 @@ function RoleEditor({ t, mode, onClose }: { t: Translate; mode: EditorMode; onCl
               <code>{color.toUpperCase()}</code>
             </div>
             <p className={s.caption}>{t('rolesColorHint')}</p>
-          </fieldset>
-          {definitions.map(([key, label, placeholder]) => <label key={key} className={s.field} htmlFor={`${id}-${key}`}><span>{t(label)}</span>
+          </fieldset></details>
+          <label className={s.field} htmlFor={`${id}-duties`}><span>{t('rolesDuties')}</span><textarea id={`${id}-duties`} rows={4} maxLength={4000} value={fields.duties} placeholder={t('rolesDutiesPlaceholder')} onChange={event => setFields({ ...fields, duties: event.target.value })} /></label>
+          <details className={s.editorDetails}><summary>{t('capAdvanced')}</summary><div className={s.fields}>{definitions.filter(([key]) => key !== 'duties').map(([key, label, placeholder]) => <label key={key} className={s.field} htmlFor={`${id}-${key}`}><span>{t(label)}</span>
             <textarea id={`${id}-${key}`} rows={key === 'format' ? 4 : 3} maxLength={4000} value={fields[key]} placeholder={t(placeholder)} onChange={event => setFields({ ...fields, [key]: event.target.value })} />
-          </label>)}
+          </label>)}</div></details>
         </div>
-        <aside className={s.livePreview} style={colorStyle(color)} aria-label={t('rolesLivePreview')}>
+      } preview={
+        <div className={s.livePreview} style={colorStyle(color)} aria-label={t('rolesLivePreview')}>
           <div className={s.previewHeading}><span>{t('rolesLivePreview')}</span><span className={s.dot} /></div>
           <p className={s.caption}>{t('rolesLiveHint')}</p>
           <div className={s.previewIdentity}><RoleIcon role={mode === 'create' ? 'analyst' : mode} color={color} /><h3>{fields.name.trim() || t('rolesUnnamed')}</h3></div>
           {definitions.map(([key, label]) => <section key={key} className={s.previewSection}><h4>{t(label)}</h4><p className={!fields[key].trim() ? s.empty : undefined}>{fields[key].trim() || t('rolesEmpty')}</p></section>)}
-          <p className={s.sessionHint}>{t('rolesNewSessionHint')}</p>
-        </aside>
-      </div>
-    </div>
+        </div>
+      } />
+    {relatedRole && <RoleAssistantPreview t={t} mode={relatedRole} onClose={() => setRelatedRole(null)} />}
     <div className={s.footer}><p id={`${id}-save-hint`}>{t('rolesSaveHint')}</p><div className={s.actions}>
       <button type="button" className={s.secondary} onClick={onClose}>{t('rolesDone')}</button>
       <button type="button" className={s.primary} disabled aria-describedby={`${id}-save-hint`}>{t('rolesSave')}</button>
@@ -149,4 +135,14 @@ export function RolePicker({ t, selected, onSelect }: { t: Translate; selected: 
       </div>}
     </Modal>}
   </>
+}
+
+/** Opens a role preview above the center, preserving the center's draft and filters. */
+export function RoleAssistantPreview({ t, mode, onClose }: { t: Translate; mode: EditorMode; onClose: () => void }) {
+  return <Modal title={t(mode === 'create' ? 'rolesCreate' : 'rolesEdit')} onClose={onClose} closeLabel={t('rolesClose')} wide><RoleEditor t={t} mode={mode} onClose={onClose} /></Modal>
+}
+
+export function CapabilityCenterPage({ t }: { t: Translate }) {
+  const [role, setRole] = useState<AssistantRole | null>(null)
+  return <><CapabilityCenter t={t} onOpenRole={setRole} />{role && <RoleAssistantPreview t={t} mode={role} onClose={() => setRole(null)} />}</>
 }

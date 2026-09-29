@@ -56,7 +56,7 @@ describe('sourceKindOf', () => {
   it('classifies registry specs as npm and git/link specs as git', () => {
     expect(sourceKindOf('@scope/pkg')).toBe('npm')
     expect(sourceKindOf('pkg@1.0.0')).toBe('npm')
-    expect(sourceKindOf('link:/x/packages/y')).toBe('git')
+    expect(sourceKindOf('link:/x/packages/y')).toBe('local-link')
     expect(sourceKindOf('git+https://github.com/a/b')).toBe('git')
     expect(sourceKindOf('github:a/b')).toBe('git')
     expect(sourceKindOf('https://github.com/a/b')).toBe('git')
