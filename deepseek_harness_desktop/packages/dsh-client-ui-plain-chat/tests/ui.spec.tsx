@@ -507,14 +507,21 @@ describe('ordinary chat UI integration', () => {
     expect(app.remoteCreate).not.toHaveBeenCalled()
   })
 
-  it('opens the requirements workspace and keeps the first creation dialog mounted through the server history update', async () => {
+  it('keeps mode selection in the same sidebar row and promotes it only when meaningful content is saved', async () => {
     const original = vi.mocked(fetch).getMockImplementation()!
     let created: RequirementTask | undefined
     vi.mocked(fetch).mockImplementation(async (url, options) => {
       if (String(url).endsWith('/requirements/create')) {
         const body = JSON.parse(String(options?.body)), now = new Date().toISOString()
-        created = { schema: 1, id: '10000000-0000-4000-8000-000000000001', revision: 0, dataRevision: 0, title: body.title, mode: body.mode, roleId: body.roleId, roleVersion: body.roleVersion, capabilityId: 'requirements-analysis', capabilityVersion: 1, authorityAt: Date.now(), roleGuidance: { name: '需求分析助手', duties: '', requirements: '', format: '' }, createdAt: now, updatedAt: now, settings: defaultRequirementSettings(), overview: emptyRequirementOverview(), draft: '', requirements: [], materials: [], questions: [], flows: [], rules: [], messages: [], events: [], versions: [] }
+        created = { schema: 1, id: body.requestId, revision: 0, dataRevision: 0, title: body.title, mode: body.mode, roleId: body.roleId, roleVersion: body.roleVersion, capabilityId: 'requirements-analysis', capabilityVersion: 1, authorityAt: Date.now(), roleGuidance: { name: '需求分析助手', duties: '', requirements: '', format: '' }, createdAt: now, updatedAt: now, settings: defaultRequirementSettings(), overview: emptyRequirementOverview(), draft: body.draft ?? '', requirements: [], materials: [], questions: [], flows: [], rules: [], messages: [], events: [], versions: [] }
         return { ok: true, json: async () => created } as Response
+      }
+      if (String(url).endsWith('/requirements/command')) {
+        const { command } = JSON.parse(String(options?.body))
+        if (command.type === 'material.save') created!.materials.push({ ...command.material, id: 'material-1', revision: 1, history: [] })
+        if (command.type === 'save') Object.assign(created!, command.draft === undefined ? {} : { draft: command.draft }, command.mode === undefined ? {} : { mode: command.mode })
+        created!.revision++
+        return { ok: true, json: async () => structuredClone(created) } as Response
       }
       if (String(url).includes('/requirements/task/')) return { ok: true, json: async () => created } as Response
       return original(url, options)
@@ -524,17 +531,87 @@ describe('ordinary chat UI integration', () => {
     await click('button[aria-label="选定助手：需求分析助手"]')
     expect(container.querySelector('[data-requirements-assistant]')).not.toBeNull()
     expect(container.querySelector<HTMLTextAreaElement>('[data-requirements-assistant] textarea')!.value).toBe('保留原来写下的业务想法')
-    const quick = Array.from(container.querySelectorAll<HTMLButtonElement>('[data-requirements-assistant] button')).find(button => button.textContent?.includes('添加资料开始'))!
-    await act(async () => { quick.click() })
+    const currentRow = () => container.querySelector('[data-local-conversations]')!
+    const rowLabels = () => Array.from(currentRow().querySelectorAll('[aria-label^="打开本地会话："]')).map(element => element.getAttribute('aria-label'))
+    const before = rowLabels()
+    await click('button[aria-label="选择快速整理"]')
+    expect(created).toBeUndefined()
+    const button = (name: string) => Array.from(container.querySelectorAll<HTMLButtonElement>('[data-requirements-assistant] button')).find(element => element.textContent?.trim() === name)!
+    await act(async () => { button('切换分析方式').click() })
+    expect(container.querySelector('button[aria-label="选择快速整理"]')).not.toBeNull()
+    expect(rowLabels()).toEqual(before)
+    expect(container.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('保留原来写下的业务想法')
+    await click('button[aria-label="选择快速整理"]')
+    await click('button[aria-label="添加需求资料"]')
     expect(document.querySelector('[role="dialog"][aria-label="资料内容"]')).not.toBeNull()
-    expect(container.querySelector('[data-local-conversations]')!.textContent).toContain('需求')
+    expect(created).toBeUndefined()
+    for (const [label, value] of [['资料名称', '预约说明'], ['资料原文', '员工可以预约会议室']]) {
+      await act(async () => {
+        const input = document.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[aria-label="${label}"]`)!
+        Object.getOwnPropertyDescriptor(input instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype, 'value')!.set!.call(input, value)
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+      })
+    }
+    await act(async () => { button('保存修改').click() })
+    expect(created!.materials).toHaveLength(1)
+    expect(document.querySelector('[role="dialog"][aria-label="资料内容"]')).toBeNull()
+    expect(rowLabels()).toHaveLength(1)
+    expect(currentRow().textContent).toContain('需求')
     expect(app.remoteCreate).not.toHaveBeenCalled()
-    await act(async () => { (document.querySelector('[aria-label="关闭面板"]') as HTMLButtonElement).click() })
+    await act(async () => { button('切换分析方式').click() })
+    const existingId = created!.id
+    expect(container.textContent).toContain('已有资料和结果已保留')
+    await click('button[aria-label="选择引导分析"]')
+    expect(created!.id).toBe(existingId)
+    expect(created!.materials).toHaveLength(1)
+    expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith('/requirements/create'))).toHaveLength(1)
     await click('[data-action="new"]')
     expect(container.querySelector('[data-requirements-assistant]')).toBeNull()
     await click('[data-chat-group] [aria-label="打开本地会话：保留原来写下的业务想法"]')
     expect(container.querySelector('[data-requirements-assistant]')).not.toBeNull()
     expect(container.textContent).toContain('需求工作区')
+  })
+
+  it('keeps an unsaved requirement draft in its own local row when leaving before autosave', async () => {
+    await renderWithSidebarAndRoles()
+    await click('button[aria-label="选定助手：需求分析助手"]')
+    await click('button[aria-label="选择引导分析"]')
+    await type('第一份尚未发送的需求草稿')
+    await click('[data-action="new"]')
+    await click('button[aria-label="选定助手：需求分析助手"]')
+    expect(container.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('')
+    await click('[data-chat-group] [aria-label="打开本地会话：第一份尚未发送的需求草稿"]')
+    expect(container.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('第一份尚未发送的需求草稿')
+    expect(container.querySelector('button[aria-label="选择引导分析"]')).toBeNull()
+    expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith('/requirements/create'))).toHaveLength(0)
+  })
+
+  it('adds a late saved requirement to history without selecting it or retaining its old temporary row', async () => {
+    vi.useFakeTimers()
+    try {
+      const original = vi.mocked(fetch).getMockImplementation()!, response = deferred<Response>()
+      let created: RequirementTask | undefined
+      vi.mocked(fetch).mockImplementation(async (url, options) => {
+        if (!String(url).endsWith('/requirements/create')) return original(url, options)
+        const body = JSON.parse(String(options?.body)), now = new Date().toISOString()
+        created = { schema: 1, id: body.requestId, revision: 0, dataRevision: 0, title: body.title, mode: body.mode, roleId: body.roleId, roleVersion: body.roleVersion, capabilityId: 'requirements-analysis', capabilityVersion: 1, authorityAt: Date.now(), roleGuidance: { name: '需求分析助手', duties: '', requirements: '', format: '' }, createdAt: now, updatedAt: now, settings: defaultRequirementSettings(), overview: emptyRequirementOverview(), draft: body.draft, requirements: [], materials: [], questions: [], flows: [], rules: [], messages: [], events: [], versions: [] }
+        return response.promise
+      })
+      await renderWithSidebarAndRoles()
+      await click('button[aria-label="选定助手：需求分析助手"]')
+      await type('后台保存的第一份需求')
+      await act(async () => { await vi.advanceTimersByTimeAsync(1000) })
+      expect(created).toBeDefined()
+      await click('[data-action="new"]')
+      await type('另一个会话正在编辑')
+      await act(async () => { response.resolve({ ok: true, json: async () => created } as Response); await Promise.resolve() })
+      expect(container.querySelector('[data-requirements-assistant]')).toBeNull()
+      expect(container.querySelector<HTMLTextAreaElement>('textarea')!.value).toBe('另一个会话正在编辑')
+      const rows = container.querySelectorAll('[data-local-conversations] [aria-label^="打开本地会话："]')
+      expect(rows).toHaveLength(2)
+      expect(Array.from(rows).filter(row => row.getAttribute('aria-label') === '打开本地会话：后台保存的第一份需求')).toHaveLength(1)
+      expect(sessionStorage.getItem('workbench-requirements-active-v1')).toBeNull()
+    } finally { vi.useRealTimers() }
   })
 
   it('shows a clear configuration state instead of a sample transcript', async () => {

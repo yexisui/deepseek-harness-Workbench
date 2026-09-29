@@ -831,6 +831,21 @@ var RequirementsService = class {
 		return this.serialized(async () => {
 			const d = object(raw), roleId = str(d.roleId, "岗位标识", 90) || "builtin-analyst";
 			const role = this.role(roleId, d.roleVersion === void 0 ? void 0 : integer(d.roleVersion));
+			const requestId = d.requestId === void 0 ? void 0 : text(d.requestId, "创建请求标识", 36, true).toLowerCase();
+			if (requestId && !UUID.test(requestId)) throw new InputError("创建请求标识无效");
+			if (requestId) {
+				let existing;
+				try {
+					existing = await this.get(requestId);
+				} catch (error) {
+					if (!(error instanceof InputError && error.status === 404)) throw error;
+				}
+				if (existing) {
+					if (existing.roleId !== roleId || existing.roleVersion !== role.version) throw new InputError("此草稿已关联另一岗位版本，请打开已保存的需求记录继续", 409);
+					this.authorize(existing);
+					return existing;
+				}
+			}
 			const binding = role.capabilities.find((b) => b.capabilityId === REQUIREMENTS_CAPABILITY_ID);
 			const settings = this.settings({
 				...defaultRequirementSettings(),
@@ -839,7 +854,7 @@ var RequirementsService = class {
 			});
 			const task = {
 				schema: 1,
-				id: randomUUID(),
+				id: requestId ?? randomUUID(),
 				revision: 0,
 				dataRevision: 0,
 				title: str(d.title, "名称", 120) || "新需求分析",
@@ -858,7 +873,7 @@ var RequirementsService = class {
 				createdAt: now(),
 				updatedAt: now(),
 				settings,
-				draft: "",
+				draft: str(d.draft, "输入草稿", MAX_TEXT),
 				overview: emptyRequirementOverview(),
 				requirements: [],
 				materials: [],
@@ -1107,7 +1122,7 @@ var RequirementsService = class {
 			let changed = true, launch = false;
 			switch (c.type) {
 				case "save":
-					changed = c.overview !== void 0 || c.settings !== void 0 || c.title !== void 0 || c.mode !== void 0;
+					changed = c.overview !== void 0 || c.settings !== void 0 || c.title !== void 0;
 					if (c.title !== void 0) task.title = text(c.title, "名称", 120, true);
 					if (c.draft !== void 0) task.draft = text(c.draft, "输入草稿", MAX_TEXT);
 					if (c.overview !== void 0) {
@@ -1116,7 +1131,14 @@ var RequirementsService = class {
 						task.overview = overview;
 					}
 					if (c.settings !== void 0) task.settings = this.settings(c.settings);
-					if (c.mode !== void 0) task.mode = enumValue(c.mode, ["quick", "guided"], "guided");
+					if (c.mode !== void 0) {
+						const mode = enumValue(c.mode, ["quick", "guided"], "guided");
+						if (mode !== task.mode && task.run?.status === "running") throw new InputError("本轮分析正在运行，请等待完成或先停止，再切换分析方式", 409);
+						if (mode !== task.mode) {
+							task.mode = mode;
+							this.event(task, "change", `切换分析方式为${mode === "quick" ? "快速整理" : "引导分析"}，已有内容保留`);
+						}
+					}
 					if (changed) this.event(task, "change", "更新分析信息与选项");
 					break;
 				case "material.save": {

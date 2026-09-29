@@ -126,6 +126,7 @@ export function apply(ctx: Context): void {
     requirementHistory.leave()
     const row = localConversations.getSnapshot().items.find(item => item.id === id)
     if (!row) return
+    requirementViewKey = `requirements-local-${id}-${++requirementNavigation}`
     start.reset()
     localConversations.open(id)
     roleSelection.select(row.role)
@@ -240,12 +241,18 @@ export function apply(ctx: Context): void {
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
         <div className={styles.conversationContent}>{noSession && requirementSnapshot.activeId && !requirement ? <p role="status">{requirementSnapshot.error || '正在恢复需求分析…'}<button onClick={() => { void requirementHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showRequirements
-          ? <RequirementsAssistant key={analysisViewKey} taskId={requirement?.id} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={analysisVersion?.version} assistant={analysisVersion} loadModels={loadMeetingModels} onCommit={task => {
+          ? <RequirementsAssistant key={analysisViewKey} taskId={requirement?.id} draftKey={local?.id ?? analysisViewKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={analysisVersion?.version} assistant={analysisVersion} loadModels={loadMeetingModels} onDraftChange={value => {
+            if (analysisViewKey !== requirementViewKey || sessions.list.getSnapshot().current !== undefined || requirementHistory.getSnapshot().activeId) return
+            const row = localConversations.active()
+            if (row?.kind === 'draft' && row.role === effectiveRole && row.draft !== value) localConversations.setDraft(row.id, value)
+          }} onCommit={task => {
             const activeId = requirementHistory.getSnapshot().activeId
             const current = analysisViewKey === requirementViewKey && sessions.list.getSnapshot().current === undefined && (requirement ? activeId === requirement.id : revision === draftKey && roleSelection.getSnapshot() === effectiveRole && (!activeId || activeId === task.id))
-            const local = localConversations.active(); if (current && local?.kind === 'draft') localConversations.commitChat(local.id)
+            const origin = localSnapshot.items.find(row => row.id === local?.id)
+            const retained = origin && localConversations.getSnapshot().items.find(row => row.id === origin.id)
+            if (retained?.kind === 'draft' && retained.role === effectiveRole && (current || retained.draft === origin?.draft)) localConversations.commitChat(retained.id)
             requirementHistory.upsert(task, current)
-          }} onReset={() => startFreshChat(effectiveRole)}/>
+          }}/>
           : noSession && (local?.kind === 'demo' || effectiveRole === MEETING_DEMO_ROLE_ID)
           ? <MeetingDemo key={draftKey} initialState={local?.meeting} assistant={meetingVersion} roleVersion={meetingVersion?.version} loadModels={loadMeetingModels} onSnapshot={state => {
             const row = localConversations.active() ?? localConversations.start(MEETING_DEMO_ROLE_ID)

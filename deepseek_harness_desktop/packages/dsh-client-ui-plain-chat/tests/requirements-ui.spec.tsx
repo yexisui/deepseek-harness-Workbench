@@ -13,24 +13,32 @@ const reqId = '10000000-0000-4000-8000-000000000002'
 const now = '2026-09-29T08:00:00.000Z'
 function fixture(): RequirementTask { return { schema: 1, id: taskId, revision: 1, dataRevision: 1, title: '报销需求分析', mode: 'guided', roleId: 'builtin-analyst', roleVersion: 2, capabilityId: 'requirements-analysis', capabilityVersion: 1, authorityAt: 1, roleGuidance: { name: '需求分析助手', duties: '', requirements: '', format: '' }, createdAt: now, updatedAt: now, settings: defaultRequirementSettings(), draft: '', overview: emptyRequirementOverview(), requirements: [{ ...emptyRequirement(), id: reqId, number: 'REQ-001', title: '提交报销', description: '员工在线提交申请', acceptance: '填写必填字段后可提交' }], flows: [], rules: [], questions: [], materials: [], messages: [], events: [], versions: [] } }
 function json(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } }) }
-function server(initial = fixture(), onCommand?: (command: RequirementCommand, task: RequirementTask) => Response | void) {
+function server(initial = fixture(), onCommand?: (command: RequirementCommand, task: RequirementTask) => Response | void, onCreate?: (body: Record<string, unknown>, attempt: number) => Response | void) {
   let task = structuredClone(initial)
   const commands: RequirementCommand[] = []
+  const creates: Record<string, unknown>[] = []
   let createBody: Record<string, unknown> = {}
   const fetch = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
     const url = String(input)
     if (url.includes('/config?')) return json({ ready: true, message: '需求分析能力可用', modelConfigured: true, defaults: { depth: 'standard', questionStyle: 'short', model: '' }, revision: 1, maxTextChars: 100000 })
     if (url.endsWith(`/task/${taskId}`)) return json(task)
-    if (url.endsWith('/create')) { createBody = JSON.parse(String(init?.body)); task = { ...task, requirements: [], title: String(createBody.title), mode: createBody.mode as 'guided' | 'quick' }; return json(task) }
+    if (url.endsWith('/create')) {
+      createBody = JSON.parse(String(init?.body)); creates.push(createBody)
+      const override = onCreate?.(createBody, creates.length); if (override) return override
+      task = { ...task, requirements: [], title: String(createBody.title), mode: createBody.mode as 'guided' | 'quick', draft: String(createBody.draft ?? '') }
+      return json(task)
+    }
     if (url.endsWith('/command')) {
       const body = JSON.parse(String(init?.body)) as { id: string; revision: number; command: RequirementCommand }
       commands.push(body.command)
       if (body.revision !== task.revision) return json({ error: '分析记录已更新' }, 409)
       const override = onCommand?.(body.command, task); if (override) return override
       const c = body.command
-      if (c.type === 'save') { if (c.draft !== undefined) task.draft = c.draft; if (c.settings) task.settings = c.settings; if (c.overview) task.overview = c.overview }
+      if (c.type === 'save') { if (c.draft !== undefined) task.draft = c.draft; if (c.settings) task.settings = c.settings; if (c.overview) task.overview = c.overview; if (c.mode) task.mode = c.mode }
       if (c.type === 'run') { task.draft = ''; task.messages.push({ id: 'm1', role: 'user', text: c.instruction, createdAt: now, context: c.context }); task.run = { id: c.requestId, operation: c.operation, status: 'ready', startedAt: now, model: c.model || 'default', instruction: c.instruction, baseRevision: task.dataRevision } }
-      if (c.type === 'requirement.save') { const r = task.requirements.find(r => r.id === c.requirement.id); if (r) Object.assign(r, c.requirement) }
+      if (c.type === 'run.stop' && task.run) task.run.status = 'stopped'
+      if (c.type === 'requirement.save') { const r = task.requirements.find(r => r.id === c.requirement.id); if (r) Object.assign(r, c.requirement); else task.requirements.push({ ...emptyRequirement(), ...c.requirement, id: reqId, number: 'REQ-001' }) }
+      if (c.type === 'material.save') task.materials.push({ ...c.material, id: 'material-1', revision: 1, history: [] })
       if (c.type === 'proposal.apply') task.proposal!.items.forEach(item => { if (c.ids.includes(item.id)) item.accepted = true })
       if (c.type === 'question.answer') { const q = task.questions.find(q => q.id === c.id)!; q.answer = c.answer; q.status = 'answered' }
       if (c.type === 'question.status') task.questions.find(q => q.id === c.id)!.status = c.status
@@ -41,17 +49,20 @@ function server(initial = fixture(), onCommand?: (command: RequirementCommand, t
     throw new Error(`Unexpected request: ${url}`)
   })
   vi.stubGlobal('fetch', fetch)
-  return { commands, fetch, get task() { return task }, get createBody() { return createBody } }
+  return { commands, creates, fetch, get task() { return task }, get createBody() { return createBody } }
 }
 async function render(props: Partial<React.ComponentProps<typeof RequirementsAssistant>> = {}) {
   root = createRoot(host)
   await act(async () => { root!.render(<RequirementsAssistant roleId="builtin-analyst" roleVersion={2} {...props}/>); await Promise.resolve() })
 }
 async function click(label: string, scope: Element = host) {
-  const element = Array.from(scope.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent?.trim() === label || button.getAttribute('aria-label') === label)
+  const element = button(label, scope)
   expect(element, `button ${label}`).toBeTruthy()
   await act(async () => { element!.click(); await Promise.resolve() })
 }
+function button(label: string, scope: Element = host) { return Array.from(scope.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent?.trim() === label || button.getAttribute('aria-label') === label) }
+async function remount(props: Partial<React.ComponentProps<typeof RequirementsAssistant>> = {}) { await act(async () => root!.unmount()); root = undefined; await render(props) }
+async function elapse(ms: number) { await act(async () => { await vi.advanceTimersByTimeAsync(ms) }) }
 async function fill(label: string, text: string) {
   const element = host.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`[aria-label="${label}"]`)!
   expect(element, `field ${label}`).toBeTruthy()
@@ -71,6 +82,158 @@ it('creates a real analysis from the inherited input and sends the selected publ
   expect(api.commands).toContainEqual(expect.objectContaining({ type: 'run', operation: 'clarify', instruction: '希望员工在线报销' }))
   expect(onCommit).toHaveBeenCalledWith(expect.objectContaining({ id: taskId }))
   expect(host.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('')
+})
+
+it('selects either analysis mode without creating a record, opening an editor or invoking the model', async () => {
+  const api = server(), onCommit = vi.fn()
+  await render({ draftKey: 'choose-only', onCommit })
+  expect(host.textContent).toContain('选择分析方式')
+  await click('选择快速整理')
+  expect(host.querySelector('[role=dialog]')).toBeNull()
+  expect(button('切换分析方式')).toBeTruthy()
+  await click('切换分析方式'); await click('选择引导分析')
+  await click('切换分析方式'); await click('返回对话')
+  expect(api.creates).toEqual([])
+  expect(api.commands).toEqual([])
+  expect(onCommit).not.toHaveBeenCalled()
+})
+
+it('keeps the current task, draft and confirmed content while revisiting the chooser and changing only the next analysis mode', async () => {
+  const task = fixture(); task.draft = '还需要核实审批人的权限'; task.requirements[0].status = 'confirmed'
+  task.materials = [{ id: 'mat1', name: '访谈原稿', text: '员工提交报销', kind: 'text', revision: 1, history: [] }]
+  task.overview = { ...task.overview, goal: '减少人工传递', scope: '部门报销' }
+  task.flows = [{ id: 'flow1', name: '提交申请', actor: '员工', action: '提交', condition: '必填完整', result: '进入审批', next: '部门审核', exception: '退回', requirementIds: [reqId] }]
+  task.rules = [{ id: 'rule1', name: '附件要求', condition: '有费用', action: '提供凭证', exception: '待补件', requirementIds: [reqId], sources: [] }]
+  task.questions = [{ id: 'question1', number: 'Q-001', question: '是否支持代理提交？', reason: '待补充', options: [], answer: '', status: 'open', blocking: false, requirementIds: [reqId], sources: [] }]
+  task.messages = [{ id: 'message1', role: 'user', text: '先整理报销功能', createdAt: now }]
+  task.proposal = { id: 'proposal1', baseRevision: 1, summary: '新的建议待采用', createdAt: now, items: [{ id: 'candidate1', kind: 'overview', value: { ...task.overview, goal: '缩短处理时间' } }] }
+  task.versions = [{ id: 'version1', number: 1, title: task.title, note: '已确认基线', createdAt: now, selectedIds: [reqId], data: { overview: task.overview, requirements: task.requirements, flows: [], rules: [], questions: [] }, materials: task.materials, settings: task.settings, markdown: '# 已确认版本' }]
+  task.document = { markdown: '# 报销需求', dataRevision: 1, depth: 'standard', selectedIds: [reqId], createdAt: now }
+  const api = server(task), before = structuredClone(task)
+  await render({ taskId })
+  await click('切换分析方式')
+  expect(host.textContent).toContain('选择接下来如何分析')
+  expect(host.textContent).toContain('报销需求分析')
+  expect(button('选择引导分析')?.getAttribute('aria-pressed')).toBe('true')
+  await click('需求工作区'); await click('对话')
+  expect(button('选择快速整理')).toBeTruthy()
+  await remount({ taskId })
+  expect(button('选择快速整理')).toBeTruthy()
+  expect(api.commands).toEqual([])
+  expect(api.task.updatedAt).toBe(now)
+  await click('返回对话')
+  expect(host.textContent).toContain('新的建议待采用')
+  expect(host.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe(before.draft)
+  await click('切换分析方式'); await click('选择快速整理')
+  expect(api.commands).toEqual([{ type: 'save', mode: 'quick' }])
+  expect(api.creates).toEqual([])
+  for (const key of ['id', 'title', 'draft', 'overview', 'requirements', 'materials', 'messages', 'flows', 'rules', 'questions', 'document', 'proposal', 'versions'] as const) expect(api.task[key]).toEqual(before[key])
+  await click('切换分析方式'); await click('选择快速整理')
+  expect(api.commands).toHaveLength(1)
+  expect(host.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe(before.draft)
+})
+
+it('allows opening the mode chooser during a running analysis while keeping both choices disabled and Stop available', async () => {
+  const task = fixture(); task.run = { id: 'run1', operation: 'analyze', status: 'running', startedAt: now, model: 'test/model', instruction: '整理现有需求', baseRevision: 1 }
+  const api = server(task); await render({ taskId })
+  await click('切换分析方式')
+  expect(button('选择快速整理')?.disabled).toBe(true)
+  expect(button('选择引导分析')?.disabled).toBe(true)
+  expect(button('停止')?.disabled).toBe(false)
+  await click('选择快速整理')
+  expect(api.commands).toEqual([])
+  expect(api.task.run?.status).toBe('running')
+  await click('停止')
+  expect(api.commands).toEqual([{ type: 'run.stop' }])
+  expect(api.task.run?.status).toBe('stopped')
+  expect(button('选择快速整理')?.disabled).toBe(false)
+  expect(api.creates).toEqual([])
+})
+
+it('persists a new nonempty draft once after typing settles, including its mode and idempotency token', async () => {
+  vi.useFakeTimers()
+  const api = server(), onDraftChange = vi.fn()
+  await render({ draftKey: 'new-draft-a', onDraftChange })
+  await click('选择快速整理')
+  await fill('需求分析输入', '报销'); await elapse(500)
+  await fill('需求分析输入', '报销应支持退回补充'); await elapse(500)
+  expect(api.creates).toHaveLength(0)
+  await elapse(1000)
+  expect(api.creates).toHaveLength(1)
+  expect(api.createBody).toMatchObject({ mode: 'quick', draft: '报销应支持退回补充', roleId: 'builtin-analyst', roleVersion: 2, requestId: expect.any(String) })
+  expect(api.createBody.requestId).toMatch(/^[a-f0-9-]{36}$/i)
+  expect(api.task.draft).toBe('报销应支持退回补充')
+  expect(onDraftChange).toHaveBeenLastCalledWith('报销应支持退回补充')
+  await elapse(5000)
+  expect(api.creates).toHaveLength(1)
+  expect(api.commands.filter(command => command.type === 'run')).toEqual([])
+  expect(host.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('报销应支持退回补充')
+})
+
+it('keeps a failed new draft editable and retries creation with the same request ID', async () => {
+  vi.useFakeTimers()
+  const api = server(fixture(), undefined, (_body, attempt) => attempt === 1 ? json({ error: '草稿保存暂时不可用' }, 503) : undefined)
+  await render({ draftKey: 'retry-draft' })
+  await fill('需求分析输入', '第一次输入保留'); await elapse(1500)
+  expect(api.creates).toHaveLength(1)
+  expect(host.querySelector('[role=alert]')?.textContent).toContain('草稿保存暂时不可用')
+  expect(host.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('第一次输入保留')
+  await elapse(5000)
+  expect(api.creates).toHaveLength(1)
+  await fill('需求分析输入', '失败后继续补充的业务想法')
+  await click('重试保存草稿')
+  expect(api.creates).toHaveLength(2)
+  expect(api.creates[1].requestId).toBe(api.creates[0].requestId)
+  expect(api.task.draft).toBe('失败后继续补充的业务想法')
+  expect(api.commands.filter(command => command.type === 'run')).toEqual([])
+  expect(host.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('失败后继续补充的业务想法')
+})
+
+it('creates only when material content is saved, keeping an opened or canceled material editor local', async () => {
+  const api = server()
+  await render({ draftKey: 'material-draft' })
+  await click('添加需求资料')
+  expect(host.querySelector('[role=dialog]')).not.toBeNull()
+  await click('取消')
+  expect(api.creates).toEqual([])
+  await click('选择快速整理'); await click('＋ 粘贴资料')
+  await fill('资料名称', '访谈原稿'); await fill('资料原文', '员工提交申请后，由部门负责人审批。')
+  expect(api.creates).toEqual([])
+  await click('保存修改')
+  expect(api.creates).toHaveLength(1)
+  expect(api.commands).toEqual([{ type: 'material.save', material: expect.objectContaining({ name: '访谈原稿', text: '员工提交申请后，由部门负责人审批。' }) }])
+  expect(api.task.materials[0].name).toBe('访谈原稿')
+})
+
+it('creates the first manually saved requirement without starting an analysis', async () => {
+  const api = server()
+  await render({ draftKey: 'manual-requirement' })
+  await click('需求工作区'); await click('需求清单'); await click('＋ 新增需求')
+  await fill('需求名称', '提交报销申请'); await fill('需求描述', '员工在线填写并提交报销')
+  expect(api.creates).toEqual([])
+  await click('保存修改')
+  expect(api.creates).toHaveLength(1)
+  expect(api.commands).toEqual([{ type: 'requirement.save', requirement: expect.objectContaining({ title: '提交报销申请' }) }])
+  expect(api.task.requirements[0].title).toBe('提交报销申请')
+})
+
+it('isolates unsaved text and the selected view between two temporary conversation keys', async () => {
+  vi.useFakeTimers()
+  const api = server()
+  await render({ draftKey: 'draft-a' })
+  await click('选择快速整理'); await fill('需求分析输入', '甲会话未发送输入')
+  await remount({ draftKey: 'draft-b' })
+  expect(host.textContent).toContain('选择分析方式')
+  expect(host.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('')
+  await fill('需求分析输入', '乙会话未发送输入')
+  await remount({ draftKey: 'draft-a' })
+  expect(host.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('甲会话未发送输入')
+  expect(button('切换分析方式')).toBeTruthy()
+  expect(button('选择快速整理')).toBeUndefined()
+  await remount({ draftKey: 'draft-b' })
+  expect(host.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('乙会话未发送输入')
+  expect(button('选择快速整理')).toBeTruthy()
+  expect(api.creates).toEqual([])
 })
 
 it('keeps the six workspace tabs keyboard accessible and edits a requirement with real context IDs', async () => {

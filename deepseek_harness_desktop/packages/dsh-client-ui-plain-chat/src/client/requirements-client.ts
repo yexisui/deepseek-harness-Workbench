@@ -15,7 +15,7 @@ export const getRequirementConfig = (roleId: string) => request<RequirementAvail
 export const getRequirementTask = (id: string) => request<RequirementTask>(`/task/${encodeURIComponent(id)}`)
 export const listRequirementTasks = ({ offset = 0, limit = 40 }: { offset?: number; limit?: number } = {}) => request<{ items: RequirementSummary[]; total: number }>(`/tasks?offset=${offset}&limit=${limit}`)
 export const deleteRequirementTask = (id: string) => request<{ ok: boolean }>(`/task/${encodeURIComponent(id)}`, { method: 'DELETE' })
-export const createRequirementTask = (body: { roleId: string; roleVersion?: number; mode: 'quick' | 'guided'; title: string; settings?: RequirementSettings }) => post<RequirementTask>('/create', body)
+export const createRequirementTask = (body: { roleId: string; roleVersion?: number; mode: 'quick' | 'guided'; title: string; settings?: RequirementSettings; requestId?: string; draft?: string }) => post<RequirementTask>('/create', body)
 export const commandRequirementTask = (id: string, revision: number, command: RequirementCommand) => post<RequirementTask>('/command', { id, revision, command })
 export const summarizeRequirementTask = (task: RequirementTask): RequirementSummary => ({ id: task.id, title: task.title, mode: task.mode, updatedAt: task.updatedAt, roleId: task.roleId, roleVersion: task.roleVersion, confirmed: task.requirements.filter(r => !r.removed && r.status === 'confirmed').length, total: task.requirements.filter(r => !r.removed).length, openQuestions: task.questions.filter(q => !['resolved', 'dismissed'].includes(q.status)).length, running: task.run?.status === 'running' })
 

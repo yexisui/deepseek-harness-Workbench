@@ -27,6 +27,46 @@ async function finished(service:RequirementsService,id:string) {
 const basic={title:'提交申请',description:'员工提交完整申请后进入审批。',acceptance:'提交后保存申请并显示待审批。',actor:'员工'}
 
 describe('persistent requirements workflow',()=>{
+  it('creates one persisted record for repeated draft requests and never overwrites newer work on retry',async()=>{
+    const env=await setup(),requestId=randomUUID()
+    const request={roleId:REQUIREMENTS_ROLE_ID,requestId,mode:'guided',title:'预约草稿',draft:'希望统一管理会议室预约'}
+    const [first,repeated]=await Promise.all([env.service.create(request),env.service.create(request)])
+    expect(first.id).toBe(requestId);expect(repeated).toEqual(first)
+    expect((await env.service.get(first.id)).draft).toBe(request.draft)
+    const changed=await env.command(first,{type:'save',draft:'新增设备借用要求'})
+    await env.service.close()
+    const reopened=new RequirementsService(env.root,async()=>'',()=>env.state);services.push(reopened);await reopened.init()
+    expect(await reopened.create(request)).toEqual(changed)
+    expect((await reopened.list()).total).toBe(2)
+    await expect(reopened.create({...request,requestId:'../../outside'})).rejects.toThrow('创建请求标识')
+    await expect(reopened.create({...request,requestId:randomUUID(),draft:'x'.repeat(60001)})).rejects.toThrow('输入草稿')
+    expect((await reopened.list()).total).toBe(2)
+    env.state.roles.find(r=>r.id===REQUIREMENTS_ROLE_ID)!.enabled=false
+    await expect(reopened.create(request)).rejects.toThrow('岗位未发布')
+  })
+  it('changes future analysis mode while preserving confirmed work, document versions and pending suggestions',async()=>{
+    const env=await setup(async()=>JSON.stringify({summary:'待采用的补充',items:[{kind:'requirement',value:{...basic,title:'查看办理进度'}}]}))
+    let task=await env.command(env.task,{type:'requirement.save',requirement:basic})
+    task=await env.command(task,{type:'requirement.status',ids:[task.requirements[0]!.id],status:'confirmed'})
+    task=await env.command(task,{type:'version.create',selectedIds:[task.requirements[0]!.id],note:'首轮确认'})
+    task=await env.command(task,{type:'document.generate',depth:'standard'})
+    task=await env.command(task,{type:'run',operation:'clarify',instruction:'提出补充需求',requestId:randomUUID()})
+    task=await finished(env.service,task.id)
+    const before=structuredClone(task)
+    task=await env.command(task,{type:'save',mode:'quick'})
+    expect(task.mode).toBe('quick');expect(task.dataRevision).toBe(before.dataRevision)
+    for(const key of ['requirements','materials','questions','flows','rules','versions','messages','proposal','document'] as const)expect(task[key]).toEqual(before[key])
+    task=await env.command(task,{type:'proposal.apply',proposalId:task.proposal!.id,ids:task.proposal!.items.map(item=>item.id)})
+    expect(task.requirements[0]!.status).toBe('confirmed');expect(task.requirements).toHaveLength(2)
+  })
+  it('requires stopping the active run before changing its analysis mode',async()=>{
+    const env=await setup(async(_p,_m,signal)=>new Promise((_resolve,reject)=>signal?.addEventListener('abort',()=>reject(new Error('stopped')))))
+    let task=await env.command(env.task,{type:'run',operation:'clarify',instruction:'澄清目标',requestId:randomUUID()})
+    await expect(env.command(task,{type:'save',mode:'quick'})).rejects.toMatchObject({status:409})
+    expect((await env.service.get(task.id)).mode).toBe('guided')
+    task=await env.command(task,{type:'run.stop'})
+    expect((await env.command(task,{type:'save',mode:'quick'})).mode).toBe('quick')
+  })
   it('reports service availability independently of the built-in role and applies role checks when requested',async()=>{
     const env=await setup()
     env.state.roles.find(r=>r.id===REQUIREMENTS_ROLE_ID)!.enabled=false

@@ -123,9 +123,22 @@ export class RequirementsService {
     return this.serialized(async () => {
       const d = object(raw), roleId = str(d.roleId,'岗位标识',90) || REQUIREMENTS_ROLE_ID
       const role = this.role(roleId,d.roleVersion === undefined ? undefined : integer(d.roleVersion))
+      // A browser draft retains its UUID until creation succeeds, including after reload.
+      // Retrying a lost response must reopen that record instead of creating another one.
+      const requestId = d.requestId === undefined ? undefined : text(d.requestId,'创建请求标识',36,true).toLowerCase()
+      if (requestId && !UUID.test(requestId)) throw new InputError('创建请求标识无效')
+      if (requestId) {
+        let existing: RequirementTask | undefined
+        try { existing = await this.get(requestId) } catch (error) { if (!(error instanceof InputError && error.status === 404)) throw error }
+        if (existing) {
+          if (existing.roleId !== roleId || existing.roleVersion !== role.version) throw new InputError('此草稿已关联另一岗位版本，请打开已保存的需求记录继续',409)
+          this.authorize(existing)
+          return existing
+        }
+      }
       const binding = role.capabilities.find(b=>b.capabilityId === REQUIREMENTS_CAPABILITY_ID)!
       const settings = this.settings({ ...defaultRequirementSettings(), ...this.configuration.defaults, ...object(d.settings ?? {}) })
-      const task: RequirementTask = { schema:1,id:randomUUID(),revision:0,dataRevision:0,title:str(d.title,'名称',120) || '新需求分析', mode:enumValue(d.mode,['quick','guided'],'guided'), roleId,roleVersion:role.version,capabilityId:binding.capabilityId,capabilityVersion:binding.version,authorityAt:Date.now(),roleGuidance:{name:role.name,duties:role.duties,requirements:role.requirements,format:role.format},createdAt:now(),updatedAt:now(),settings,draft:'',overview:emptyRequirementOverview(),requirements:[],materials:[],flows:[],rules:[],questions:[],messages:[],events:[],versions:[] }
+      const task: RequirementTask = { schema:1,id:requestId ?? randomUUID(),revision:0,dataRevision:0,title:str(d.title,'名称',120) || '新需求分析', mode:enumValue(d.mode,['quick','guided'],'guided'), roleId,roleVersion:role.version,capabilityId:binding.capabilityId,capabilityVersion:binding.version,authorityAt:Date.now(),roleGuidance:{name:role.name,duties:role.duties,requirements:role.requirements,format:role.format},createdAt:now(),updatedAt:now(),settings,draft:str(d.draft,'输入草稿',MAX_TEXT),overview:emptyRequirementOverview(),requirements:[],materials:[],flows:[],rules:[],questions:[],messages:[],events:[],versions:[] }
       this.event(task,'change',`创建${task.mode === 'quick' ? '快速整理' : '引导分析'}任务`)
       await this.atomic(this.path(task.id),task); return task
     })
@@ -209,12 +222,16 @@ export class RequirementsService {
       let changed=true, launch=false
       switch(c.type) {
         case 'save': {
-          changed=c.overview!==undefined||c.settings!==undefined||c.title!==undefined||c.mode!==undefined
+          changed=c.overview!==undefined||c.settings!==undefined||c.title!==undefined
           if(c.title!==undefined) task.title=text(c.title,'名称',120,true)
           if(c.draft!==undefined) task.draft=text(c.draft,'输入草稿',MAX_TEXT)
           if(c.overview!==undefined){const overview=this.overview(c.overview);if(JSON.stringify(overview)!==JSON.stringify(task.overview))this.review(task);task.overview=overview}
           if(c.settings!==undefined)task.settings=this.settings(c.settings)
-          if(c.mode!==undefined)task.mode=enumValue(c.mode,['quick','guided'],'guided')
+          if(c.mode!==undefined) {
+            const mode=enumValue(c.mode,['quick','guided'],'guided')
+            if(mode!==task.mode && task.run?.status==='running') throw new InputError('本轮分析正在运行，请等待完成或先停止，再切换分析方式',409)
+            if(mode!==task.mode) { task.mode=mode; this.event(task,'change',`切换分析方式为${mode==='quick'?'快速整理':'引导分析'}，已有内容保留`) }
+          }
           if(changed)this.event(task,'change','更新分析信息与选项')
           break
         }

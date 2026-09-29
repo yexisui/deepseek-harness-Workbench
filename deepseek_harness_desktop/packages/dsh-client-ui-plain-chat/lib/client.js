@@ -5997,7 +5997,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css.mjs
-		const css$3 = ".P-xFQa_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#546da9);--accent-text:var(--dsw-alias-brand-primary,var(--accent));--soft:color-mix(in srgb,var(--accent) 6%,var(--surface));color:var(--ink);background:var(--dsw-alias-bg-layer-1,var(--surface));font:inherit;flex-direction:column;width:100%;height:100%;min-height:0;font-size:13px;display:flex;overflow:hidden}.P-xFQa_root *{box-sizing:border-box}.P-xFQa_root button,.P-xFQa_root input,.P-xFQa_root textarea,.P-xFQa_root select{font:inherit}.P-xFQa_root button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 11px;line-height:1.35;transition:border-color .15s,background .15s}.P-xFQa_root button:hover:not(:disabled){border-color:var(--accent);color:var(--accent-text);background:var(--soft)}.P-xFQa_root button:disabled{opacity:.45;cursor:not-allowed}.P-xFQa_root :is(button,input,textarea,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}.P-xFQa_root input:not([type=checkbox]),.P-xFQa_root textarea,.P-xFQa_root select{border:1px solid var(--border);color:var(--ink);background:var(--surface);border-radius:8px;min-width:0;padding:9px 11px}.P-xFQa_root input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex:none;width:15px;height:15px}.P-xFQa_root textarea{resize:vertical;width:100%;line-height:1.65}.P-xFQa_root h2{margin:0 0 6px;font-size:20px;font-weight:650;line-height:1.4}.P-xFQa_root h3{margin:0 0 8px;font-size:14px;font-weight:650;line-height:1.6}.P-xFQa_root p{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;line-height:1.75}.P-xFQa_root small{color:var(--muted);font-size:11px;line-height:1.6}.P-xFQa_root summary{cursor:pointer}.P-xFQa_root details>summary{padding:8px 0}.P-xFQa_primary{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;font-weight:600!important}.P-xFQa_muted{color:var(--muted);font-size:12px;line-height:1.7}.P-xFQa_block{margin-top:5px;display:block}.P-xFQa_heading{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;gap:16px;min-height:66px;padding:13px 28px;display:flex}.P-xFQa_heading>div:first-child{flex-direction:column;gap:4px;min-width:0;display:flex}.P-xFQa_heading strong{text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:650;overflow:hidden}.P-xFQa_saveState{color:var(--muted);font-size:10px}.P-xFQa_heading button{padding:6px 8px;font-size:11px}.P-xFQa_countBadge{border:1px solid var(--border);color:var(--muted);white-space:nowrap;border-radius:6px;padding:4px 7px;font-size:10px}.P-xFQa_tabs{border-bottom:1px solid var(--border);scrollbar-width:thin;flex:none;gap:27px;min-height:43px;padding:0 28px;display:flex;overflow-x:auto}.P-xFQa_tabs button{color:var(--muted);white-space:nowrap;background:0 0;border:0;border-bottom:2px solid #0000;border-radius:0;flex:none;padding:11px 0;font-size:13px}.P-xFQa_tabs button[aria-selected=true]{border-bottom-color:var(--accent);color:var(--ink);font-weight:650}.P-xFQa_tabs button:hover:not(:disabled){border-bottom-color:var(--accent);background:0 0}.P-xFQa_subtabs{background:var(--soft);flex:none}.P-xFQa_subtabs .P-xFQa_tabs{gap:24px;min-height:42px}.P-xFQa_subtabs .P-xFQa_tabs button{font-size:12px}.P-xFQa_scroll{overscroll-behavior:contain;scroll-behavior:smooth;flex:1;min-height:0;overflow:auto}.P-xFQa_chat{width:min(930px,100% - 64px);margin:auto;padding:30px 0}.P-xFQa_intro{align-items:flex-start;gap:15px;margin:3px 0 24px;display:flex}.P-xFQa_intro>span:first-child{border-radius:12px;flex:none;width:38px;height:38px}.P-xFQa_intro>div{min-width:0}.P-xFQa_intro small{font-size:11px;font-weight:650}.P-xFQa_intro h2{margin:4px 0 8px;font-size:21px}.P-xFQa_intro p{color:var(--muted);font-size:13px}.P-xFQa_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:24px 0;display:grid}.P-xFQa_modes button{text-align:left;border-color:color-mix(in srgb,var(--accent) 28%,var(--border));border-radius:14px;flex-direction:column;align-items:flex-start;min-height:190px;padding:22px;transition:transform .2s,border-color .2s;display:flex;box-shadow:0 4px 20px #182c5006}.P-xFQa_modes button:hover:not(:disabled){transform:translateY(-2px)}.P-xFQa_modes button>span{color:var(--accent-text);background:var(--soft);border-radius:10px;place-items:center;width:34px;height:34px;margin-bottom:13px;font-size:21px;display:grid}.P-xFQa_modes b{font-size:16px}.P-xFQa_modes p{color:var(--muted);font-size:12px}.P-xFQa_modes em{color:var(--accent-text);margin-top:auto;padding-top:15px;font-size:11px;font-style:normal}.P-xFQa_workflow{color:var(--muted);justify-content:center;align-items:center;gap:14px;padding:10px 0;font-size:11px;display:flex}.P-xFQa_workflow i{color:var(--border);font-style:normal}.P-xFQa_toolbar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}.P-xFQa_toolbar button{padding:6px 9px;font-size:11px}.P-xFQa_tag,.P-xFQa_status,.P-xFQa_warningTag{border:1px solid var(--border);width:max-content;color:var(--muted);white-space:nowrap;border-radius:6px;align-items:center;padding:3px 7px;font-size:10px;line-height:1.6;display:inline-flex}.P-xFQa_status[data-status=confirmed],.P-xFQa_status[data-status=resolved]{color:#3e9273;border-color:color-mix(in srgb,#4d9c78 25%,var(--border));background:color-mix(in srgb,#4d9c78 6%,var(--surface))}.P-xFQa_status[data-status=review],.P-xFQa_warningTag{color:#ad7839;background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-color:color-mix(in srgb,#c79b4a 30%,var(--border))}.P-xFQa_card{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:16px 0;padding:19px 21px}.P-xFQa_card p{font-size:12px}.P-xFQa_sectionHead{justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;display:flex}.P-xFQa_sectionHead>div:first-child{min-width:0}.P-xFQa_sectionHead h3{margin-bottom:0}.P-xFQa_sectionHead p{color:var(--muted);margin:4px 0 0;font-size:12px}.P-xFQa_sectionHead button{white-space:nowrap;font-size:11px}.P-xFQa_userMessage{border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));background:var(--soft);border-radius:14px 14px 4px;max-width:82%;margin:22px 0 22px auto;padding:13px 17px}.P-xFQa_assistantMessage{margin:24px 0;padding:0 4px}.P-xFQa_assistantMessage small{font-weight:600}.P-xFQa_assistantMessage p,.P-xFQa_userMessage p{margin:5px 0}.P-xFQa_progress{border:1px solid var(--border);border-radius:12px;align-items:center;gap:14px;margin:20px 0;padding:17px;display:flex}.P-xFQa_progress>div{flex:1}.P-xFQa_progress p{color:var(--muted);margin:4px 0 0;font-size:11px}.P-xFQa_spinner{border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;width:20px;height:20px;animation:1.1s linear infinite P-xFQa_spin}@keyframes P-xFQa_spin{to{transform:rotate(360deg)}}.P-xFQa_runError,.P-xFQa_error{color:#b25555;background:color-mix(in srgb,#c46565 7%,var(--surface));border:1px solid color-mix(in srgb,#c46565 25%,var(--border));border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.7}.P-xFQa_runError{margin:18px 0}.P-xFQa_error{white-space:pre-wrap;flex:none;justify-content:space-between;gap:10px;max-height:180px;margin:9px 20px;display:flex;overflow:auto}.P-xFQa_error button,.P-xFQa_notice button{color:inherit;background:0 0;border:0;align-self:flex-start;padding:0 4px}.P-xFQa_notice{background:var(--soft);color:var(--accent-text);border-radius:7px;flex:none;justify-content:space-between;gap:10px;margin:7px 20px;padding:8px 12px;font-size:12px;display:flex}.P-xFQa_availability{background:var(--soft);color:var(--muted);border-bottom:1px solid var(--border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:8px 28px;font-size:11px;display:flex}.P-xFQa_availability button{padding:4px 8px;font-size:11px}.P-xFQa_proposal{border:1px solid var(--border);border-radius:9px;margin:10px 0;padding:4px 13px}.P-xFQa_proposal summary{align-items:center;gap:8px;display:flex}.P-xFQa_proposal summary strong{overflow-wrap:anywhere;flex:1;font-size:12px}.P-xFQa_proposal summary small{white-space:nowrap;font-size:10px}.P-xFQa_details{grid-template-columns:92px minmax(0,1fr);gap:8px 12px;margin:12px 0;font-size:12px;line-height:1.65;display:grid}.P-xFQa_details dt{color:var(--muted)}.P-xFQa_details dd{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.P-xFQa_before{background:color-mix(in srgb,#c79b4a 6%,var(--surface));color:var(--muted);border-left:2px solid var(--border);margin-bottom:5px;padding:4px 7px}.P-xFQa_sources{flex-wrap:wrap;gap:6px;margin:5px 0;display:flex}.P-xFQa_sources button{color:var(--accent-text);background:0 0;border:0;padding:2px 0;font-size:10px}.P-xFQa_questionPreview{border-top:1px solid var(--border);padding:12px 0}.P-xFQa_questionPreview b{font-size:12px}.P-xFQa_questionPreview p{color:var(--muted);font-size:11px}.P-xFQa_questionPreview button{margin-right:8px;font-size:11px}.P-xFQa_workspace{width:min(1180px,100% - 56px);margin:0 auto;padding:26px 0 36px}.P-xFQa_stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0;display:grid}.P-xFQa_stats button{border-radius:12px;flex-direction:column;align-items:flex-start;padding:19px 18px;display:flex}.P-xFQa_stats strong{color:var(--accent-text);letter-spacing:-.5px;font-size:27px;font-weight:600}.P-xFQa_stats strong small{font-size:13px;font-weight:400}.P-xFQa_stats span{color:var(--muted);margin-top:6px;font-size:11px}.P-xFQa_twoColumns{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;display:grid}.P-xFQa_twoColumns .P-xFQa_card{margin:7px 0}.P-xFQa_compactList{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.8}.P-xFQa_compactList li{padding:5px 0}.P-xFQa_compactList time{color:var(--muted);margin-right:8px;font-size:10px}.P-xFQa_dimmed{opacity:.65}.P-xFQa_excerpt{-webkit-line-clamp:2;color:var(--muted);-webkit-box-orient:vertical;max-width:440px;display:-webkit-box;overflow:hidden;font-size:11px!important}.P-xFQa_filters{flex-wrap:wrap;gap:9px;margin:18px 0;display:flex}.P-xFQa_filters input{flex:1;min-width:150px;max-width:430px}.P-xFQa_filters select{min-width:130px}.P-xFQa_selectionBar{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--soft);border-radius:9px;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;padding:10px 13px;display:flex}.P-xFQa_selectionBar>span{color:var(--accent-text);margin-right:8px;font-size:11px}.P-xFQa_selectionBar button{padding:5px 8px;font-size:11px}.P-xFQa_tableWrap{border:1px solid var(--border);border-radius:11px;margin-top:15px;overflow:auto}.P-xFQa_table{border-collapse:collapse;width:100%;min-width:700px;font-size:12px}.P-xFQa_table th{text-align:left;background:var(--soft);color:var(--muted);white-space:nowrap;padding:11px 12px;font-size:11px;font-weight:500}.P-xFQa_table td{border-top:1px solid var(--border);vertical-align:top;padding:13px 12px}.P-xFQa_table td:first-child{width:34px}.P-xFQa_table td:nth-child(2){width:40%}.P-xFQa_table td:last-child{min-width:130px}.P-xFQa_rowTitle{color:var(--ink);text-align:left;flex-direction:column;gap:3px;display:flex;background:0 0!important;border:0!important;padding:0!important}.P-xFQa_rowTitle small{color:var(--accent-text);font-size:10px}.P-xFQa_rowTitle strong{font-size:13px;font-weight:600}.P-xFQa_rowActions{flex-wrap:wrap;gap:5px;display:flex}.P-xFQa_rowActions button{padding:4px 6px;font-size:10px}.P-xFQa_rowActions details{width:100%}.P-xFQa_rowActions summary{color:var(--muted);font-size:10px;padding:5px 0!important}.P-xFQa_rowActions details>div{flex-wrap:wrap;gap:5px;margin-top:3px;display:flex}.P-xFQa_flowCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;gap:14px;margin:15px 0;padding:19px;display:flex}.P-xFQa_flowCard>div{flex:1;min-width:0}.P-xFQa_flowCard p{font-size:12px}.P-xFQa_stepNumber{background:var(--soft);width:29px;height:29px;color:var(--accent-text);border-radius:9px;flex:none;place-items:center;font-size:12px;display:grid}.P-xFQa_flowDetails{color:var(--muted);grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 20px;margin:10px 0;font-size:11px;line-height:1.75;display:grid}.P-xFQa_choices{flex-wrap:wrap;gap:7px;margin:11px 0;display:flex}.P-xFQa_choices button{color:var(--accent-text);background:var(--soft);font-size:11px}.P-xFQa_field{flex-direction:column;gap:7px;min-width:0;margin:15px 0;display:flex}.P-xFQa_field>span{font-size:12px;font-weight:550}.P-xFQa_field>span small{color:var(--muted);font-size:10px;font-weight:400}.P-xFQa_field textarea{min-height:90px}.P-xFQa_field input,.P-xFQa_field select{width:100%}.P-xFQa_check{align-items:center;gap:6px;font-size:12px;display:inline-flex}.P-xFQa_relations{border:1px solid var(--border);border-radius:9px;margin:16px 0;padding:10px 12px}.P-xFQa_relations legend{color:var(--muted);padding:0 6px;font-size:12px}.P-xFQa_relations label{align-items:center;gap:8px;padding:6px 0;font-size:12px;display:flex}.P-xFQa_documentControls{border:1px solid var(--border);background:var(--soft);border-radius:11px;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0;padding:8px 16px 16px;display:flex}.P-xFQa_documentControls .P-xFQa_field{flex:1;min-width:140px;margin:5px 0 0}.P-xFQa_documentControls button{min-height:35px;font-size:12px}.P-xFQa_document{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:20px 0;padding:35px 42px;font-size:12px;line-height:1.85}.P-xFQa_document h1{margin:0 0 20px;font-size:23px}.P-xFQa_document h2{color:var(--accent-text);border-bottom:1px solid var(--border);margin-top:24px;padding-bottom:9px;font-size:17px}.P-xFQa_document h3{margin-top:18px;font-size:14px}.P-xFQa_document p{margin:4px 0}.P-xFQa_docGap{height:5px}.P-xFQa_warning{color:#ad7839;border:1px solid color-mix(in srgb,#c79b4a 35%,var(--border));background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-radius:8px;margin:12px 0;padding:11px 14px;font-size:12px;line-height:1.7}.P-xFQa_versionRow{border-top:1px solid var(--border);align-items:center;gap:10px;padding:12px 0;display:flex}.P-xFQa_versionRow>div{flex:1;min-width:0}.P-xFQa_versionRow strong{font-size:12px;display:block}.P-xFQa_versionRow small{margin-top:4px;display:block}.P-xFQa_versionRow button{font-size:11px}.P-xFQa_timeline{margin:16px 0;padding:10px 0;list-style:none}.P-xFQa_timeline li{border-top:1px solid var(--border);gap:20px;padding:13px 0;display:flex}.P-xFQa_timeline time{color:var(--muted);flex:none;width:110px;padding-top:4px;font-size:11px}.P-xFQa_timeline p{margin:0;font-size:12px}.P-xFQa_timeline button{color:var(--accent-text);background:0 0;border:0;padding:5px 0;font-size:10px}.P-xFQa_composerWrap{flex:none;width:min(970px,100% - 44px);margin:auto;padding:6px 0 14px}.P-xFQa_quickActions{flex-wrap:wrap;gap:6px;margin-bottom:9px;display:flex}.P-xFQa_quickActions button{color:var(--muted);background:0 0;border-radius:7px;padding:5px 9px;font-size:10px}.P-xFQa_composer{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5010}.P-xFQa_composer>textarea{background:0 0;border:0;border-radius:0;min-height:65px;max-height:160px;padding:2px 0;font-size:14px}.P-xFQa_composer>textarea:focus-visible{outline-offset:2px;outline-width:1px}.P-xFQa_composer>textarea::placeholder{color:var(--muted)}.P-xFQa_composerTools,.P-xFQa_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.P-xFQa_composerTools button{color:var(--accent-text);background:0 0;border:0;padding:2px 5px;font-size:22px}.P-xFQa_composerTools select{color:var(--muted);border:0;max-width:200px;padding:4px 3px;font-size:10px}.P-xFQa_composerTools small{font-size:10px}.P-xFQa_composerTools .P-xFQa_send{background:var(--accent);color:#fff;border-radius:50%;width:35px;height:35px;font-size:24px}.P-xFQa_contextNote{background:var(--soft);color:var(--accent-text);border-radius:7px;justify-content:space-between;gap:10px;margin-bottom:8px;padding:7px 10px;font-size:11px;display:flex}.P-xFQa_contextNote button{color:var(--accent-text);background:0 0;border:0;padding:0 4px}.P-xFQa_empty{text-align:center;color:var(--muted);flex-direction:column;align-items:center;padding:55px 20px;font-size:12px;line-height:1.8;display:flex}.P-xFQa_empty>span{opacity:.4;padding-bottom:10px;font-size:33px}.P-xFQa_empty h3{color:var(--ink);font-size:15px}.P-xFQa_empty button{margin-top:12px}.P-xFQa_overlay{z-index:1300;backdrop-filter:blur(2px);background:#13213555;justify-content:center;align-items:center;padding:24px;display:flex;position:fixed;inset:0}.P-xFQa_dialog{border:1px solid var(--border);background:var(--surface);width:min(760px,100%);max-height:calc(100dvh - 48px);color:var(--ink);border-radius:15px;flex-direction:column;display:flex;overflow:hidden;box-shadow:0 20px 70px #1118273d}.P-xFQa_dialog:focus{outline:none}.P-xFQa_dialog>header{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;padding:16px 23px;display:flex}.P-xFQa_dialog>header h2{margin:0;font-size:16px}.P-xFQa_dialog>header button{color:var(--muted);background:0 0;border:0;padding:0 5px;font-size:22px}.P-xFQa_dialogBody{min-height:0;padding:12px 24px 22px;overflow:auto}.P-xFQa_dialogBody>.P-xFQa_error{margin:2px 0 10px}.P-xFQa_dialogBody>details{border-top:1px solid var(--border);margin:16px 0}.P-xFQa_dialogBody>details>summary{font-size:13px;font-weight:600}.P-xFQa_dialog>footer{border-top:1px solid var(--border);flex-wrap:wrap;flex:none;justify-content:flex-end;align-items:center;gap:9px;padding:14px 22px;display:flex}.P-xFQa_dialog>footer>span{margin-right:auto;font-size:10px}.P-xFQa_dialog blockquote{border-left:3px solid var(--accent);background:var(--soft);white-space:pre-wrap;margin:14px 0;padding:12px 15px;line-height:1.8}.P-xFQa_rawText{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0;font-size:12px;line-height:1.85}.P-xFQa_conflict{border:1px solid var(--border);background:var(--soft);border-radius:9px;padding:14px}.P-xFQa_conflict button{font-size:11px}@media (width<=850px){.P-xFQa_heading{padding:12px 18px}.P-xFQa_heading .P-xFQa_countBadge{display:none}.P-xFQa_tabs{gap:22px;padding:0 18px}.P-xFQa_chat{width:calc(100% - 38px)}.P-xFQa_workspace{width:calc(100% - 36px)}.P-xFQa_sectionHead{flex-wrap:wrap}.P-xFQa_stats{gap:8px}.P-xFQa_stats button{padding:15px 12px}.P-xFQa_document{padding:26px}.P-xFQa_flowDetails{grid-template-columns:1fr}}@media (width<=600px){.P-xFQa_root{font-size:12px}.P-xFQa_heading{gap:8px;min-height:58px}.P-xFQa_heading strong{font-size:13px}.P-xFQa_heading .P-xFQa_toolbar{flex:none;gap:4px}.P-xFQa_heading button{padding:5px;font-size:10px}.P-xFQa_tabs,.P-xFQa_subtabs .P-xFQa_tabs{gap:23px;padding:0 15px}.P-xFQa_chat{width:calc(100% - 28px);padding:21px 0}.P-xFQa_intro{gap:10px}.P-xFQa_intro h2{font-size:18px}.P-xFQa_intro p{font-size:11px}.P-xFQa_intro>span:first-child{width:30px;height:30px}.P-xFQa_modes{grid-template-columns:1fr;gap:10px;margin-top:16px}.P-xFQa_modes button{min-height:145px;padding:16px}.P-xFQa_modes button>span{width:26px;height:26px;margin-bottom:9px;font-size:17px}.P-xFQa_modes b{font-size:14px}.P-xFQa_modes em{padding-top:8px}.P-xFQa_workflow{gap:8px;font-size:10px}.P-xFQa_card{padding:15px}.P-xFQa_workspace{width:calc(100% - 28px);padding:20px 0}.P-xFQa_twoColumns{grid-template-columns:1fr}.P-xFQa_stats{grid-template-columns:repeat(2,minmax(0,1fr))}.P-xFQa_stats strong{font-size:24px}.P-xFQa_table{min-width:640px}.P-xFQa_table td,.P-xFQa_table th{padding:10px}.P-xFQa_composerWrap{width:calc(100% - 20px);padding-bottom:8px}.P-xFQa_quickActions{gap:5px}.P-xFQa_quickActions button{padding:5px 6px;font-size:9px}.P-xFQa_composer{border-radius:15px;padding:10px 12px}.P-xFQa_composer>textarea{min-height:58px;font-size:13px}.P-xFQa_composerTools small{display:none}.P-xFQa_composerTools select{max-width:185px}.P-xFQa_error,.P-xFQa_notice{margin:6px 12px;font-size:11px}.P-xFQa_availability{padding:8px 14px}.P-xFQa_proposal{padding:2px 10px}.P-xFQa_proposal summary{flex-wrap:wrap;gap:6px}.P-xFQa_proposal summary strong{flex-basis:60%}.P-xFQa_proposal summary small{padding-left:22px}.P-xFQa_details{grid-template-columns:75px minmax(0,1fr);gap:7px 9px;font-size:11px}.P-xFQa_flowCard{gap:10px;padding:14px}.P-xFQa_stepNumber{width:24px;height:24px}.P-xFQa_flowCard .P-xFQa_sectionHead{margin-bottom:6px}.P-xFQa_flowCard .P-xFQa_toolbar{gap:5px}.P-xFQa_document{padding:22px 18px}.P-xFQa_document h1{font-size:19px}.P-xFQa_document h2{font-size:15px}.P-xFQa_versionRow{flex-wrap:wrap}.P-xFQa_versionRow>div{flex-basis:100%}.P-xFQa_timeline li{flex-direction:column;gap:3px}.P-xFQa_timeline time{width:auto}.P-xFQa_overlay{padding:8px}.P-xFQa_dialog{border-radius:12px;max-height:calc(100dvh - 16px)}.P-xFQa_dialog>header{padding:13px 16px}.P-xFQa_dialogBody{padding:9px 16px 18px}.P-xFQa_dialog>footer{padding:12px 16px}.P-xFQa_dialog>footer>span{display:none}}@media (prefers-reduced-motion:reduce){.P-xFQa_root button,.P-xFQa_modes button{transition:none}.P-xFQa_modes button:hover:not(:disabled){transform:none}.P-xFQa_spinner{animation:none}.P-xFQa_scroll{scroll-behavior:auto}}";
+		const css$3 = ".P-xFQa_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#546da9);--accent-text:var(--dsw-alias-brand-primary,var(--accent));--soft:color-mix(in srgb,var(--accent) 6%,var(--surface));color:var(--ink);background:var(--dsw-alias-bg-layer-1,var(--surface));font:inherit;flex-direction:column;width:100%;height:100%;min-height:0;font-size:13px;display:flex;overflow:hidden}.P-xFQa_root *{box-sizing:border-box}.P-xFQa_root button,.P-xFQa_root input,.P-xFQa_root textarea,.P-xFQa_root select{font:inherit}.P-xFQa_root button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 11px;line-height:1.35;transition:border-color .15s,background .15s}.P-xFQa_root button:hover:not(:disabled){border-color:var(--accent);color:var(--accent-text);background:var(--soft)}.P-xFQa_root button:disabled{opacity:.45;cursor:not-allowed}.P-xFQa_root :is(button,input,textarea,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}.P-xFQa_root input:not([type=checkbox]),.P-xFQa_root textarea,.P-xFQa_root select{border:1px solid var(--border);color:var(--ink);background:var(--surface);border-radius:8px;min-width:0;padding:9px 11px}.P-xFQa_root input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex:none;width:15px;height:15px}.P-xFQa_root textarea{resize:vertical;width:100%;line-height:1.65}.P-xFQa_root h2{margin:0 0 6px;font-size:20px;font-weight:650;line-height:1.4}.P-xFQa_root h3{margin:0 0 8px;font-size:14px;font-weight:650;line-height:1.6}.P-xFQa_root p{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;line-height:1.75}.P-xFQa_root small{color:var(--muted);font-size:11px;line-height:1.6}.P-xFQa_root summary{cursor:pointer}.P-xFQa_root details>summary{padding:8px 0}.P-xFQa_primary{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;font-weight:600!important}.P-xFQa_muted{color:var(--muted);font-size:12px;line-height:1.7}.P-xFQa_block{margin-top:5px;display:block}.P-xFQa_heading{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;gap:16px;min-height:66px;padding:13px 28px;display:flex}.P-xFQa_heading>div:first-child{flex-direction:column;gap:4px;min-width:0;display:flex}.P-xFQa_heading strong{text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:650;overflow:hidden}.P-xFQa_saveState{color:var(--muted);font-size:10px}.P-xFQa_heading button{padding:6px 8px;font-size:11px}.P-xFQa_countBadge{border:1px solid var(--border);color:var(--muted);white-space:nowrap;border-radius:6px;padding:4px 7px;font-size:10px}.P-xFQa_tabs{border-bottom:1px solid var(--border);scrollbar-width:thin;flex:none;gap:27px;min-height:43px;padding:0 28px;display:flex;overflow-x:auto}.P-xFQa_tabs button{color:var(--muted);white-space:nowrap;background:0 0;border:0;border-bottom:2px solid #0000;border-radius:0;flex:none;padding:11px 0;font-size:13px}.P-xFQa_tabs button[aria-selected=true]{border-bottom-color:var(--accent);color:var(--ink);font-weight:650}.P-xFQa_tabs button:hover:not(:disabled){border-bottom-color:var(--accent);background:0 0}.P-xFQa_subtabs{background:var(--soft);flex:none}.P-xFQa_subtabs .P-xFQa_tabs{gap:24px;min-height:42px}.P-xFQa_subtabs .P-xFQa_tabs button{font-size:12px}.P-xFQa_scroll{overscroll-behavior:contain;scroll-behavior:smooth;flex:1;min-height:0;overflow:auto}.P-xFQa_chat{width:min(930px,100% - 64px);margin:auto;padding:30px 0}.P-xFQa_intro{align-items:flex-start;gap:15px;margin:3px 0 24px;display:flex}.P-xFQa_intro>span:first-child{border-radius:12px;flex:none;width:38px;height:38px}.P-xFQa_intro>div{min-width:0}.P-xFQa_intro small{font-size:11px;font-weight:650}.P-xFQa_intro h2{margin:4px 0 8px;font-size:21px}.P-xFQa_intro p{color:var(--muted);font-size:13px}.P-xFQa_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:24px 0;display:grid}.P-xFQa_modes button{text-align:left;border-color:color-mix(in srgb,var(--accent) 28%,var(--border));border-radius:14px;flex-direction:column;align-items:flex-start;min-height:190px;padding:22px;transition:transform .2s,border-color .2s;display:flex;box-shadow:0 4px 20px #182c5006}.P-xFQa_modes button:hover:not(:disabled){transform:translateY(-2px)}.P-xFQa_modes button>span{color:var(--accent-text);background:var(--soft);border-radius:10px;place-items:center;width:34px;height:34px;margin-bottom:13px;font-size:21px;display:grid}.P-xFQa_modes b{font-size:16px}.P-xFQa_modes p{color:var(--muted);font-size:12px}.P-xFQa_modes em{color:var(--accent-text);margin-top:auto;padding-top:15px;font-size:11px;font-style:normal}.P-xFQa_modes button[aria-pressed=true]{border-color:var(--accent);background:var(--soft)}.P-xFQa_modes b small{color:var(--accent-text);margin-left:6px;font-size:10px;font-weight:500}.P-xFQa_chooser{padding:20px 0}.P-xFQa_chooser .P-xFQa_intro{margin:0 0 16px}.P-xFQa_chooser .P-xFQa_intro h2{margin-bottom:6px}.P-xFQa_chooser .P-xFQa_chooserSummary{margin:12px 0;padding:12px 16px}.P-xFQa_chooser .P-xFQa_modes{margin:12px 0}.P-xFQa_chooser .P-xFQa_modes button{min-height:150px;padding:16px}.P-xFQa_chooser .P-xFQa_modes button>span{width:28px;height:28px;margin-bottom:8px;font-size:18px}.P-xFQa_chooser .P-xFQa_modes b{font-size:15px}.P-xFQa_chooser .P-xFQa_modes p{margin:6px 0}.P-xFQa_chooser .P-xFQa_modes em{padding-top:8px}.P-xFQa_chooserSummary{background:var(--soft);border:1px solid var(--border);border-radius:12px;justify-content:space-between;align-items:center;gap:16px;margin:20px 0;padding:17px 20px;display:flex}.P-xFQa_chooserSummary>div{min-width:0}.P-xFQa_chooserSummary strong{overflow-wrap:anywhere;font-size:14px}.P-xFQa_chooserSummary p{color:var(--muted);margin:5px 0 0;font-size:11px}.P-xFQa_chooserSummary button{flex:none;font-size:12px}.P-xFQa_chooserReturn{justify-content:space-between;align-items:center;gap:12px;margin:18px 0;display:flex}.P-xFQa_chooserReturn button{font-size:11px}.P-xFQa_draftRetry{color:var(--muted);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:3px 20px;padding:8px 13px;font-size:11px;display:flex}.P-xFQa_draftRetry button{padding:5px 9px;font-size:11px}.P-xFQa_workflow{color:var(--muted);justify-content:center;align-items:center;gap:14px;padding:10px 0;font-size:11px;display:flex}.P-xFQa_workflow i{color:var(--border);font-style:normal}.P-xFQa_toolbar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}.P-xFQa_toolbar button{padding:6px 9px;font-size:11px}.P-xFQa_tag,.P-xFQa_status,.P-xFQa_warningTag{border:1px solid var(--border);width:max-content;color:var(--muted);white-space:nowrap;border-radius:6px;align-items:center;padding:3px 7px;font-size:10px;line-height:1.6;display:inline-flex}.P-xFQa_status[data-status=confirmed],.P-xFQa_status[data-status=resolved]{color:#3e9273;border-color:color-mix(in srgb,#4d9c78 25%,var(--border));background:color-mix(in srgb,#4d9c78 6%,var(--surface))}.P-xFQa_status[data-status=review],.P-xFQa_warningTag{color:#ad7839;background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-color:color-mix(in srgb,#c79b4a 30%,var(--border))}.P-xFQa_card{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:16px 0;padding:19px 21px}.P-xFQa_card p{font-size:12px}.P-xFQa_sectionHead{justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;display:flex}.P-xFQa_sectionHead>div:first-child{min-width:0}.P-xFQa_sectionHead h3{margin-bottom:0}.P-xFQa_sectionHead p{color:var(--muted);margin:4px 0 0;font-size:12px}.P-xFQa_sectionHead button{white-space:nowrap;font-size:11px}.P-xFQa_userMessage{border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));background:var(--soft);border-radius:14px 14px 4px;max-width:82%;margin:22px 0 22px auto;padding:13px 17px}.P-xFQa_assistantMessage{margin:24px 0;padding:0 4px}.P-xFQa_assistantMessage small{font-weight:600}.P-xFQa_assistantMessage p,.P-xFQa_userMessage p{margin:5px 0}.P-xFQa_progress{border:1px solid var(--border);border-radius:12px;align-items:center;gap:14px;margin:20px 0;padding:17px;display:flex}.P-xFQa_progress>div{flex:1}.P-xFQa_progress p{color:var(--muted);margin:4px 0 0;font-size:11px}.P-xFQa_spinner{border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;width:20px;height:20px;animation:1.1s linear infinite P-xFQa_spin}@keyframes P-xFQa_spin{to{transform:rotate(360deg)}}.P-xFQa_runError,.P-xFQa_error{color:#b25555;background:color-mix(in srgb,#c46565 7%,var(--surface));border:1px solid color-mix(in srgb,#c46565 25%,var(--border));border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.7}.P-xFQa_runError{margin:18px 0}.P-xFQa_error{white-space:pre-wrap;flex:none;justify-content:space-between;gap:10px;max-height:180px;margin:9px 20px;display:flex;overflow:auto}.P-xFQa_error button,.P-xFQa_notice button{color:inherit;background:0 0;border:0;align-self:flex-start;padding:0 4px}.P-xFQa_notice{background:var(--soft);color:var(--accent-text);border-radius:7px;flex:none;justify-content:space-between;gap:10px;margin:7px 20px;padding:8px 12px;font-size:12px;display:flex}.P-xFQa_availability{background:var(--soft);color:var(--muted);border-bottom:1px solid var(--border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:8px 28px;font-size:11px;display:flex}.P-xFQa_availability button{padding:4px 8px;font-size:11px}.P-xFQa_proposal{border:1px solid var(--border);border-radius:9px;margin:10px 0;padding:4px 13px}.P-xFQa_proposal summary{align-items:center;gap:8px;display:flex}.P-xFQa_proposal summary strong{overflow-wrap:anywhere;flex:1;font-size:12px}.P-xFQa_proposal summary small{white-space:nowrap;font-size:10px}.P-xFQa_details{grid-template-columns:92px minmax(0,1fr);gap:8px 12px;margin:12px 0;font-size:12px;line-height:1.65;display:grid}.P-xFQa_details dt{color:var(--muted)}.P-xFQa_details dd{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.P-xFQa_before{background:color-mix(in srgb,#c79b4a 6%,var(--surface));color:var(--muted);border-left:2px solid var(--border);margin-bottom:5px;padding:4px 7px}.P-xFQa_sources{flex-wrap:wrap;gap:6px;margin:5px 0;display:flex}.P-xFQa_sources button{color:var(--accent-text);background:0 0;border:0;padding:2px 0;font-size:10px}.P-xFQa_questionPreview{border-top:1px solid var(--border);padding:12px 0}.P-xFQa_questionPreview b{font-size:12px}.P-xFQa_questionPreview p{color:var(--muted);font-size:11px}.P-xFQa_questionPreview button{margin-right:8px;font-size:11px}.P-xFQa_workspace{width:min(1180px,100% - 56px);margin:0 auto;padding:26px 0 36px}.P-xFQa_stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0;display:grid}.P-xFQa_stats button{border-radius:12px;flex-direction:column;align-items:flex-start;padding:19px 18px;display:flex}.P-xFQa_stats strong{color:var(--accent-text);letter-spacing:-.5px;font-size:27px;font-weight:600}.P-xFQa_stats strong small{font-size:13px;font-weight:400}.P-xFQa_stats span{color:var(--muted);margin-top:6px;font-size:11px}.P-xFQa_twoColumns{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;display:grid}.P-xFQa_twoColumns .P-xFQa_card{margin:7px 0}.P-xFQa_compactList{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.8}.P-xFQa_compactList li{padding:5px 0}.P-xFQa_compactList time{color:var(--muted);margin-right:8px;font-size:10px}.P-xFQa_dimmed{opacity:.65}.P-xFQa_excerpt{-webkit-line-clamp:2;color:var(--muted);-webkit-box-orient:vertical;max-width:440px;display:-webkit-box;overflow:hidden;font-size:11px!important}.P-xFQa_filters{flex-wrap:wrap;gap:9px;margin:18px 0;display:flex}.P-xFQa_filters input{flex:1;min-width:150px;max-width:430px}.P-xFQa_filters select{min-width:130px}.P-xFQa_selectionBar{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--soft);border-radius:9px;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;padding:10px 13px;display:flex}.P-xFQa_selectionBar>span{color:var(--accent-text);margin-right:8px;font-size:11px}.P-xFQa_selectionBar button{padding:5px 8px;font-size:11px}.P-xFQa_tableWrap{border:1px solid var(--border);border-radius:11px;margin-top:15px;overflow:auto}.P-xFQa_table{border-collapse:collapse;width:100%;min-width:700px;font-size:12px}.P-xFQa_table th{text-align:left;background:var(--soft);color:var(--muted);white-space:nowrap;padding:11px 12px;font-size:11px;font-weight:500}.P-xFQa_table td{border-top:1px solid var(--border);vertical-align:top;padding:13px 12px}.P-xFQa_table td:first-child{width:34px}.P-xFQa_table td:nth-child(2){width:40%}.P-xFQa_table td:last-child{min-width:130px}.P-xFQa_rowTitle{color:var(--ink);text-align:left;flex-direction:column;gap:3px;display:flex;background:0 0!important;border:0!important;padding:0!important}.P-xFQa_rowTitle small{color:var(--accent-text);font-size:10px}.P-xFQa_rowTitle strong{font-size:13px;font-weight:600}.P-xFQa_rowActions{flex-wrap:wrap;gap:5px;display:flex}.P-xFQa_rowActions button{padding:4px 6px;font-size:10px}.P-xFQa_rowActions details{width:100%}.P-xFQa_rowActions summary{color:var(--muted);font-size:10px;padding:5px 0!important}.P-xFQa_rowActions details>div{flex-wrap:wrap;gap:5px;margin-top:3px;display:flex}.P-xFQa_flowCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;gap:14px;margin:15px 0;padding:19px;display:flex}.P-xFQa_flowCard>div{flex:1;min-width:0}.P-xFQa_flowCard p{font-size:12px}.P-xFQa_stepNumber{background:var(--soft);width:29px;height:29px;color:var(--accent-text);border-radius:9px;flex:none;place-items:center;font-size:12px;display:grid}.P-xFQa_flowDetails{color:var(--muted);grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 20px;margin:10px 0;font-size:11px;line-height:1.75;display:grid}.P-xFQa_choices{flex-wrap:wrap;gap:7px;margin:11px 0;display:flex}.P-xFQa_choices button{color:var(--accent-text);background:var(--soft);font-size:11px}.P-xFQa_field{flex-direction:column;gap:7px;min-width:0;margin:15px 0;display:flex}.P-xFQa_field>span{font-size:12px;font-weight:550}.P-xFQa_field>span small{color:var(--muted);font-size:10px;font-weight:400}.P-xFQa_field textarea{min-height:90px}.P-xFQa_field input,.P-xFQa_field select{width:100%}.P-xFQa_check{align-items:center;gap:6px;font-size:12px;display:inline-flex}.P-xFQa_relations{border:1px solid var(--border);border-radius:9px;margin:16px 0;padding:10px 12px}.P-xFQa_relations legend{color:var(--muted);padding:0 6px;font-size:12px}.P-xFQa_relations label{align-items:center;gap:8px;padding:6px 0;font-size:12px;display:flex}.P-xFQa_documentControls{border:1px solid var(--border);background:var(--soft);border-radius:11px;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0;padding:8px 16px 16px;display:flex}.P-xFQa_documentControls .P-xFQa_field{flex:1;min-width:140px;margin:5px 0 0}.P-xFQa_documentControls button{min-height:35px;font-size:12px}.P-xFQa_document{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:20px 0;padding:35px 42px;font-size:12px;line-height:1.85}.P-xFQa_document h1{margin:0 0 20px;font-size:23px}.P-xFQa_document h2{color:var(--accent-text);border-bottom:1px solid var(--border);margin-top:24px;padding-bottom:9px;font-size:17px}.P-xFQa_document h3{margin-top:18px;font-size:14px}.P-xFQa_document p{margin:4px 0}.P-xFQa_docGap{height:5px}.P-xFQa_warning{color:#ad7839;border:1px solid color-mix(in srgb,#c79b4a 35%,var(--border));background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-radius:8px;margin:12px 0;padding:11px 14px;font-size:12px;line-height:1.7}.P-xFQa_versionRow{border-top:1px solid var(--border);align-items:center;gap:10px;padding:12px 0;display:flex}.P-xFQa_versionRow>div{flex:1;min-width:0}.P-xFQa_versionRow strong{font-size:12px;display:block}.P-xFQa_versionRow small{margin-top:4px;display:block}.P-xFQa_versionRow button{font-size:11px}.P-xFQa_timeline{margin:16px 0;padding:10px 0;list-style:none}.P-xFQa_timeline li{border-top:1px solid var(--border);gap:20px;padding:13px 0;display:flex}.P-xFQa_timeline time{color:var(--muted);flex:none;width:110px;padding-top:4px;font-size:11px}.P-xFQa_timeline p{margin:0;font-size:12px}.P-xFQa_timeline button{color:var(--accent-text);background:0 0;border:0;padding:5px 0;font-size:10px}.P-xFQa_composerWrap{flex:none;width:min(970px,100% - 44px);margin:auto;padding:6px 0 14px}.P-xFQa_quickActions{flex-wrap:wrap;gap:6px;margin-bottom:9px;display:flex}.P-xFQa_quickActions button{color:var(--muted);background:0 0;border-radius:7px;padding:5px 9px;font-size:10px}.P-xFQa_composer{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5010}.P-xFQa_composer>textarea{background:0 0;border:0;border-radius:0;min-height:65px;max-height:160px;padding:2px 0;font-size:14px}.P-xFQa_composer>textarea:focus-visible{outline-offset:2px;outline-width:1px}.P-xFQa_composer>textarea::placeholder{color:var(--muted)}.P-xFQa_composerTools,.P-xFQa_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.P-xFQa_composerTools button{color:var(--accent-text);background:0 0;border:0;padding:2px 5px;font-size:22px}.P-xFQa_composerTools select{color:var(--muted);border:0;max-width:200px;padding:4px 3px;font-size:10px}.P-xFQa_composerTools small{font-size:10px}.P-xFQa_composerTools .P-xFQa_send{background:var(--accent);color:#fff;border-radius:50%;width:35px;height:35px;font-size:24px}.P-xFQa_contextNote{background:var(--soft);color:var(--accent-text);border-radius:7px;justify-content:space-between;gap:10px;margin-bottom:8px;padding:7px 10px;font-size:11px;display:flex}.P-xFQa_contextNote button{color:var(--accent-text);background:0 0;border:0;padding:0 4px}.P-xFQa_empty{text-align:center;color:var(--muted);flex-direction:column;align-items:center;padding:55px 20px;font-size:12px;line-height:1.8;display:flex}.P-xFQa_empty>span{opacity:.4;padding-bottom:10px;font-size:33px}.P-xFQa_empty h3{color:var(--ink);font-size:15px}.P-xFQa_empty button{margin-top:12px}.P-xFQa_overlay{z-index:1300;backdrop-filter:blur(2px);background:#13213555;justify-content:center;align-items:center;padding:24px;display:flex;position:fixed;inset:0}.P-xFQa_dialog{border:1px solid var(--border);background:var(--surface);width:min(760px,100%);max-height:calc(100dvh - 48px);color:var(--ink);border-radius:15px;flex-direction:column;display:flex;overflow:hidden;box-shadow:0 20px 70px #1118273d}.P-xFQa_dialog:focus{outline:none}.P-xFQa_dialog>header{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;padding:16px 23px;display:flex}.P-xFQa_dialog>header h2{margin:0;font-size:16px}.P-xFQa_dialog>header button{color:var(--muted);background:0 0;border:0;padding:0 5px;font-size:22px}.P-xFQa_dialogBody{min-height:0;padding:12px 24px 22px;overflow:auto}.P-xFQa_dialogBody>.P-xFQa_error{margin:2px 0 10px}.P-xFQa_dialogBody>details{border-top:1px solid var(--border);margin:16px 0}.P-xFQa_dialogBody>details>summary{font-size:13px;font-weight:600}.P-xFQa_dialog>footer{border-top:1px solid var(--border);flex-wrap:wrap;flex:none;justify-content:flex-end;align-items:center;gap:9px;padding:14px 22px;display:flex}.P-xFQa_dialog>footer>span{margin-right:auto;font-size:10px}.P-xFQa_dialog blockquote{border-left:3px solid var(--accent);background:var(--soft);white-space:pre-wrap;margin:14px 0;padding:12px 15px;line-height:1.8}.P-xFQa_rawText{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0;font-size:12px;line-height:1.85}.P-xFQa_conflict{border:1px solid var(--border);background:var(--soft);border-radius:9px;padding:14px}.P-xFQa_conflict button{font-size:11px}@media (width<=850px){.P-xFQa_heading{padding:12px 18px}.P-xFQa_heading .P-xFQa_countBadge{display:none}.P-xFQa_tabs{gap:22px;padding:0 18px}.P-xFQa_chat{width:calc(100% - 38px)}.P-xFQa_workspace{width:calc(100% - 36px)}.P-xFQa_sectionHead{flex-wrap:wrap}.P-xFQa_stats{gap:8px}.P-xFQa_stats button{padding:15px 12px}.P-xFQa_document{padding:26px}.P-xFQa_flowDetails{grid-template-columns:1fr}}@media (width<=600px){.P-xFQa_root{font-size:12px}.P-xFQa_heading{gap:8px;min-height:58px}.P-xFQa_heading strong{font-size:13px}.P-xFQa_heading .P-xFQa_toolbar{flex:none;gap:4px}.P-xFQa_heading button{padding:5px;font-size:10px}.P-xFQa_tabs,.P-xFQa_subtabs .P-xFQa_tabs{gap:23px;padding:0 15px}.P-xFQa_chat{width:calc(100% - 28px);padding:21px 0}.P-xFQa_intro{gap:10px}.P-xFQa_intro h2{font-size:18px}.P-xFQa_intro p{font-size:11px}.P-xFQa_intro>span:first-child{width:30px;height:30px}.P-xFQa_modes{grid-template-columns:1fr;gap:10px;margin-top:16px}.P-xFQa_modes button{min-height:145px;padding:16px}.P-xFQa_modes button>span{width:26px;height:26px;margin-bottom:9px;font-size:17px}.P-xFQa_modes b{font-size:14px}.P-xFQa_modes em{padding-top:8px}.P-xFQa_workflow{gap:8px;font-size:10px}.P-xFQa_card{padding:15px}.P-xFQa_workspace{width:calc(100% - 28px);padding:20px 0}.P-xFQa_twoColumns{grid-template-columns:1fr}.P-xFQa_stats{grid-template-columns:repeat(2,minmax(0,1fr))}.P-xFQa_stats strong{font-size:24px}.P-xFQa_table{min-width:640px}.P-xFQa_table td,.P-xFQa_table th{padding:10px}.P-xFQa_composerWrap{width:calc(100% - 20px);padding-bottom:8px}.P-xFQa_quickActions{gap:5px}.P-xFQa_quickActions button{padding:5px 6px;font-size:9px}.P-xFQa_composer{border-radius:15px;padding:10px 12px}.P-xFQa_composer>textarea{min-height:58px;font-size:13px}.P-xFQa_composerTools small{display:none}.P-xFQa_composerTools select{max-width:185px}.P-xFQa_error,.P-xFQa_notice{margin:6px 12px;font-size:11px}.P-xFQa_availability{padding:8px 14px}.P-xFQa_proposal{padding:2px 10px}.P-xFQa_proposal summary{flex-wrap:wrap;gap:6px}.P-xFQa_proposal summary strong{flex-basis:60%}.P-xFQa_proposal summary small{padding-left:22px}.P-xFQa_details{grid-template-columns:75px minmax(0,1fr);gap:7px 9px;font-size:11px}.P-xFQa_flowCard{gap:10px;padding:14px}.P-xFQa_stepNumber{width:24px;height:24px}.P-xFQa_flowCard .P-xFQa_sectionHead{margin-bottom:6px}.P-xFQa_flowCard .P-xFQa_toolbar{gap:5px}.P-xFQa_document{padding:22px 18px}.P-xFQa_document h1{font-size:19px}.P-xFQa_document h2{font-size:15px}.P-xFQa_versionRow{flex-wrap:wrap}.P-xFQa_versionRow>div{flex-basis:100%}.P-xFQa_timeline li{flex-direction:column;gap:3px}.P-xFQa_timeline time{width:auto}.P-xFQa_overlay{padding:8px}.P-xFQa_dialog{border-radius:12px;max-height:calc(100dvh - 16px)}.P-xFQa_dialog>header{padding:13px 16px}.P-xFQa_dialogBody{padding:9px 16px 18px}.P-xFQa_dialog>footer{padding:12px 16px}.P-xFQa_dialog>footer>span{display:none}}@media (prefers-reduced-motion:reduce){.P-xFQa_root button,.P-xFQa_modes button{transition:none}.P-xFQa_modes button:hover:not(:disabled){transform:none}.P-xFQa_spinner{animation:none}.P-xFQa_scroll{scroll-behavior:auto}}";
 		const tagId$3 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
 			const tag = document.createElement("style");
@@ -6015,6 +6015,9 @@ window.__ModuleLoader__.load({
 			"chat": "P-xFQa_chat",
 			"check": "P-xFQa_check",
 			"choices": "P-xFQa_choices",
+			"chooser": "P-xFQa_chooser",
+			"chooserReturn": "P-xFQa_chooserReturn",
+			"chooserSummary": "P-xFQa_chooserSummary",
 			"compactList": "P-xFQa_compactList",
 			"composer": "P-xFQa_composer",
 			"composerTools": "P-xFQa_composerTools",
@@ -6029,6 +6032,7 @@ window.__ModuleLoader__.load({
 			"docGap": "P-xFQa_docGap",
 			"document": "P-xFQa_document",
 			"documentControls": "P-xFQa_documentControls",
+			"draftRetry": "P-xFQa_draftRetry",
 			"empty": "P-xFQa_empty",
 			"error": "P-xFQa_error",
 			"excerpt": "P-xFQa_excerpt",
@@ -6311,19 +6315,28 @@ window.__ModuleLoader__.load({
 				children: text.split("\n").map((line, i) => line.startsWith("### ") ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: line.slice(4) }, i) : line.startsWith("## ") ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: line.slice(3) }, i) : line.startsWith("# ") ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("h1", { children: line.slice(2) }, i) : line ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: line }, i) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { className: RequirementsAssistant_module_css_default.docGap }, i))
 			});
 		}
-		function RequirementsAssistant({ taskId, initialDraft, roleId, roleVersion, assistant, loadModels, onCommit, onReset }) {
-			const storageKey = (0, react.useRef)(`workbench-requirement-edit:${taskId || `new:${roleId}`}`);
+		function RequirementsAssistant({ taskId, draftKey, initialDraft, roleId, roleVersion, assistant, loadModels, onCommit, onDraftChange }) {
+			const instanceId = (0, react.useRef)(draftKey ?? id());
+			const storageKey = (0, react.useRef)(`workbench-requirement-edit:${taskId || `new:${instanceId.current}`}`);
 			const initial = (0, react.useRef)(restoreLocal(storageKey.current));
+			const creationId = (0, react.useRef)(initial.current.creationId ?? id());
+			const creationPromise = (0, react.useRef)();
 			const [task, setTask] = (0, react.useState)(null);
 			const taskRef = (0, react.useRef)(null);
 			const commitRef = (0, react.useRef)(onCommit);
 			commitRef.current = onCommit;
+			const draftChangeRef = (0, react.useRef)(onDraftChange);
+			draftChangeRef.current = onDraftChange;
 			const mounted = (0, react.useRef)(true);
 			const [availability, setAvailability] = (0, react.useState)(null);
 			const [models, setModels] = (0, react.useState)([]);
 			const [tab, setTab] = (0, react.useState)("chat");
 			const [workspace, setWorkspace] = (0, react.useState)("overview");
 			const [mode, setMode] = (0, react.useState)(initial.current.mode ?? "guided");
+			const modeRef = (0, react.useRef)(mode);
+			modeRef.current = mode;
+			const [modeSelected, setModeSelected] = (0, react.useState)(initial.current.modeSelected ?? !!taskId);
+			const [chatView, setChatView] = (0, react.useState)(initial.current.chatView ?? (taskId ? "work" : "chooser"));
 			const [draft, setDraft] = (0, react.useState)(initial.current.draft ?? (taskId ? "" : initialDraft) ?? "");
 			const draftRef = (0, react.useRef)(draft);
 			draftRef.current = draft;
@@ -6337,6 +6350,7 @@ window.__ModuleLoader__.load({
 			const [loading, setLoading] = (0, react.useState)(!!taskId);
 			const [busy, setBusy] = (0, react.useState)(false);
 			const busyRef = (0, react.useRef)(false);
+			const [draftSaveFailed, setDraftSaveFailed] = (0, react.useState)(false);
 			const [selected, setSelected] = (0, react.useState)([]);
 			const [proposalSelection, setProposalSelection] = (0, react.useState)([]);
 			const [search, setSearch] = (0, react.useState)("");
@@ -6351,6 +6365,13 @@ window.__ModuleLoader__.load({
 			const [confirm, setConfirm] = (0, react.useState)();
 			const fileInput = (0, react.useRef)(null);
 			const composer = (0, react.useRef)(null);
+			const scrollArea = (0, react.useRef)(null);
+			const chooserHeading = (0, react.useRef)(null);
+			const chatScroll = (0, react.useRef)({
+				chooser: 0,
+				work: 0
+			});
+			const focusChatView = (0, react.useRef)(false);
 			const assistantName = assistant?.name ?? "需求分析助手";
 			const running = task?.run?.status === "running";
 			const requirements = task ? activeRequirements(task) : [];
@@ -6360,10 +6381,42 @@ window.__ModuleLoader__.load({
 			const allSelected = documentRange === "confirmed" ? requirements.filter((r) => r.status === "confirmed").map((r) => r.id) : documentRange === "selected" ? selectedIds : void 0;
 			const viewedVersion = task?.versions.find((v) => v.id === versionId);
 			const preview = task ? viewedVersion?.markdown ?? task.document?.markdown ?? "" : "";
-			const hasUnsavedDraft = !!task && task.draft !== draft;
+			const hasUnsavedDraft = task ? task.draft !== draft : !!draft.trim();
+			const localDraft = (0, react.useRef)({});
+			localDraft.current = {
+				draft,
+				editor,
+				mode,
+				modeSelected,
+				chatView,
+				creationId: creationId.current,
+				context,
+				answers
+			};
+			function rememberCurrent() {
+				rememberLocal(storageKey.current, localDraft.current);
+			}
+			function updateDraft(value) {
+				draftRef.current = value;
+				setDraft(value);
+				localDraft.current = {
+					...localDraft.current,
+					draft: value
+				};
+				rememberCurrent();
+				if (mounted.current) draftChangeRef.current?.(value);
+			}
 			const acceptTask = (next) => {
 				if (taskRef.current && next.id === taskRef.current.id && next.revision < taskRef.current.revision) return;
 				taskRef.current = next;
+				const key = `workbench-requirement-edit:${next.id}`;
+				if (storageKey.current !== key) {
+					rememberLocal(key, localDraft.current);
+					try {
+						sessionStorage.removeItem(storageKey.current);
+					} catch {}
+					storageKey.current = key;
+				}
 				if (mounted.current) setTask(next);
 				commitRef.current?.(summarizeRequirementTask(next));
 			};
@@ -6386,6 +6439,7 @@ window.__ModuleLoader__.load({
 					if (mounted.current) {
 						acceptTask(value);
 						setMode(value.mode);
+						setModeSelected(true);
 						setDocumentDepth(value.settings.depth);
 						if (initial.current.draft === void 0) setDraft(value.draft);
 					}
@@ -6399,31 +6453,25 @@ window.__ModuleLoader__.load({
 				};
 			}, []);
 			(0, react.useEffect)(() => {
-				if (!task) return;
-				const key = `workbench-requirement-edit:${task.id}`;
-				if (storageKey.current !== key) {
-					try {
-						sessionStorage.removeItem(storageKey.current);
-					} catch {}
-					storageKey.current = key;
-				}
-			}, [task?.id]);
-			(0, react.useEffect)(() => {
-				rememberLocal(storageKey.current, {
-					draft,
-					editor,
-					mode,
-					context,
-					answers
-				});
+				rememberCurrent();
 			}, [
 				draft,
 				editor,
 				mode,
+				modeSelected,
+				chatView,
 				context,
 				answers,
 				task?.id
 			]);
+			(0, react.useLayoutEffect)(() => {
+				if (tab !== "chat") return;
+				if (scrollArea.current) scrollArea.current.scrollTop = chatScroll.current[chatView];
+				if (focusChatView.current) {
+					(chatView === "chooser" ? chooserHeading.current : composer.current)?.focus({ preventScroll: true });
+					focusChatView.current = false;
+				}
+			}, [tab, chatView]);
 			(0, react.useEffect)(() => {
 				if (!task?.id || !running) return;
 				const refresh = async () => {
@@ -6442,12 +6490,9 @@ window.__ModuleLoader__.load({
 				setProposalSelection(task?.proposal?.items.filter((i) => !i.accepted && !i.rejected).map((i) => i.id) ?? []);
 			}, [task?.proposal?.id]);
 			(0, react.useEffect)(() => {
-				if (!task || task.draft === draft || busy || running || error) return;
+				if (loading || taskId && !task || !hasUnsavedDraft || busy || running || draftSaveFailed) return;
 				const timer = window.setTimeout(() => {
-					command({
-						type: "save",
-						draft
-					}, void 0, true);
+					persistDraft();
 				}, 1e3);
 				return () => clearTimeout(timer);
 			}, [
@@ -6455,11 +6500,12 @@ window.__ModuleLoader__.load({
 				task?.draft,
 				busy,
 				running,
-				error
+				loading,
+				draftSaveFailed
 			]);
 			(0, react.useEffect)(() => {
 				const beforeUnload = (e) => {
-					if (editorRef.current || taskRef.current && taskRef.current.draft !== draftRef.current) {
+					if (editorRef.current || (taskRef.current ? taskRef.current.draft !== draftRef.current : draftRef.current.trim())) {
 						e.preventDefault();
 						e.returnValue = "";
 					}
@@ -6493,51 +6539,107 @@ window.__ModuleLoader__.load({
 					if (mounted.current) setBusy(false);
 				}
 			}
-			async function ensureTask(selectedMode = mode) {
+			async function ensureTask(titleHint) {
 				if (taskRef.current) return taskRef.current;
-				if (busyRef.current) return;
+				if (creationPromise.current) return creationPromise.current;
+				if (busyRef.current || taskId && !taskRef.current) return;
 				busyRef.current = true;
 				setBusy(true);
 				setError("");
-				try {
-					const settings = {
-						...defaultRequirementSettings(),
-						...availability?.defaults
-					};
-					const created = await createRequirementTask({
-						roleId,
-						roleVersion,
-						mode: selectedMode,
-						title: draft.trim().slice(0, 32) || "新的需求分析",
-						settings
-					});
-					acceptTask(created);
-					setMode(selectedMode);
-					return created;
-				} catch (e) {
-					setError(e instanceof Error ? e.message : String(e));
-					return;
-				} finally {
-					busyRef.current = false;
-					if (mounted.current) setBusy(false);
-				}
+				rememberCurrent();
+				const pending = (async () => {
+					try {
+						const settings = {
+							...defaultRequirementSettings(),
+							...availability?.defaults
+						};
+						const created = await createRequirementTask({
+							roleId,
+							roleVersion,
+							mode: modeRef.current,
+							title: (draftRef.current.trim() || titleHint || "新的需求分析").slice(0, 32),
+							settings,
+							requestId: creationId.current,
+							draft: draftRef.current
+						});
+						acceptTask(created);
+						if (mounted.current) {
+							setMode(created.mode);
+							setModeSelected(true);
+						}
+						return created;
+					} catch (e) {
+						if (mounted.current) {
+							setError(e instanceof Error ? e.message : String(e));
+							setDraftSaveFailed(!!draftRef.current.trim());
+						}
+						return;
+					} finally {
+						busyRef.current = false;
+						creationPromise.current = void 0;
+						if (mounted.current) setBusy(false);
+					}
+				})();
+				creationPromise.current = pending;
+				return pending;
+			}
+			async function persistDraft(retry = false) {
+				if (busyRef.current && !creationPromise.current) return;
+				setDraftSaveFailed(false);
+				if (retry) setError("");
+				if (!taskRef.current && !draftRef.current.trim()) return;
+				const current = await ensureTask();
+				if (!current) return;
+				if (current.draft === draftRef.current) return;
+				const saved = await command({
+					type: "save",
+					draft: draftRef.current
+				}, void 0, true);
+				if (mounted.current) setDraftSaveFailed(!saved);
 			}
 			async function begin(selectedMode) {
-				if (await ensureTask(selectedMode)) {
-					setTab("chat");
-					if (selectedMode === "quick") setEditor({
-						kind: "material",
-						value: {
-							name: "",
-							kind: "text",
-							text: ""
-						}
-					});
-					else {
-						setNotice("先描述你想解决的问题、当前做法或业务目标。");
-						composer.current?.focus();
-					}
+				if (busyRef.current || taskRef.current?.run?.status === "running") return;
+				if (taskRef.current && selectedMode !== taskRef.current.mode) {
+					if (!await command({
+						type: "save",
+						mode: selectedMode
+					})) return;
+					setNotice(`已切换为${selectedMode === "quick" ? "快速整理" : "引导分析"}，当前内容已保留。`);
 				}
+				modeRef.current = selectedMode;
+				setMode(selectedMode);
+				setModeSelected(true);
+				focusChatView.current = true;
+				setChatView("work");
+				setTab("chat");
+				localDraft.current = {
+					...localDraft.current,
+					mode: selectedMode,
+					modeSelected: true,
+					chatView: "work"
+				};
+				rememberCurrent();
+				composer.current?.focus();
+			}
+			function showChooser() {
+				focusChatView.current = true;
+				setChatView("chooser");
+				setTab("chat");
+				localDraft.current = {
+					...localDraft.current,
+					chatView: "chooser"
+				};
+				rememberCurrent();
+			}
+			function showWork() {
+				focusChatView.current = true;
+				setChatView("work");
+				setTab("chat");
+				localDraft.current = {
+					...localDraft.current,
+					chatView: "work"
+				};
+				rememberCurrent();
 			}
 			async function run(operation, instruction = draft, scope = context) {
 				if (!instruction.trim() || running || busyRef.current) return;
@@ -6551,8 +6653,9 @@ window.__ModuleLoader__.load({
 					model: current.settings.model || void 0,
 					requestId: id()
 				})) {
-					if (instruction === draftRef.current) setDraft("");
-					setTab("chat");
+					if (instruction === draftRef.current) updateDraft("");
+					setModeSelected(true);
+					showWork();
 				}
 			}
 			async function importFile(file) {
@@ -6569,18 +6672,16 @@ window.__ModuleLoader__.load({
 				try {
 					const text = await file.text();
 					if (text.includes("\0") || text.length > max) throw new Error(`请使用 UTF-8 文本文件，每份不超过 ${max.toLocaleString()} 字符。`);
-					if (await ensureTask()) {
-						setEditor({
-							kind: "material",
-							value: {
-								name: file.name,
-								kind: /\.txt$/i.test(file.name) ? "txt" : "markdown",
-								text
-							}
-						});
-						setTab("workspace");
-						setWorkspace("materials");
-					}
+					setEditor({
+						kind: "material",
+						value: {
+							name: file.name,
+							kind: /\.txt$/i.test(file.name) ? "txt" : "markdown",
+							text
+						}
+					});
+					setTab("workspace");
+					setWorkspace("materials");
 				} catch (e) {
 					setError(e instanceof Error ? e.message : String(e));
 				}
@@ -6634,7 +6735,7 @@ window.__ModuleLoader__.load({
 				return (edit.kind === "requirement" ? current.requirements : edit.kind === "material" ? current.materials : edit.kind === "flow" ? current.flows : edit.kind === "rule" ? current.rules : edit.kind === "question" ? current.questions : []).find((row) => row.id === edit.value.id);
 			}
 			async function saveEditor() {
-				if (!editor) return;
+				if (!editor || busyRef.current) return;
 				const latest = currentEditorObject(editor);
 				if (editor.base && JSON.stringify(editor.base) !== JSON.stringify(latest) && !editor.conflict) {
 					setEditor({
@@ -6736,6 +6837,7 @@ window.__ModuleLoader__.load({
 					selectedIds: v.ids,
 					note: str("note")
 				};
+				if (!await ensureTask(editor.kind === "material" ? str("name") : editor.kind === "requirement" ? str("title") : void 0)) return;
 				const result = await command(value, editor.kind === "version" ? "确认版本已保存，可在需求文档中查看和导出。" : "修改已保存。");
 				if (result) {
 					setEditor(void 0);
@@ -6749,7 +6851,7 @@ window.__ModuleLoader__.load({
 			}
 			function discuss(objectId) {
 				setContext(objectId);
-				setTab("chat");
+				showWork();
 				composer.current?.focus();
 			}
 			function goto(next) {
@@ -7135,7 +7237,109 @@ window.__ModuleLoader__.load({
 					]
 				});
 			};
-			const chatView = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+			const chooserView = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: `${RequirementsAssistant_module_css_default.chat} ${RequirementsAssistant_module_css_default.chooser}`,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: RequirementsAssistant_module_css_default.intro,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleAppearanceIcon, {
+							color: assistant?.color ?? "#9b77bc",
+							icon: assistant?.icon ?? {
+								kind: "builtin",
+								id: "analyst"
+							}
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: assistantName }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", {
+								ref: chooserHeading,
+								tabIndex: -1,
+								children: task ? "选择接下来如何分析" : "选择分析方式"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: task ? "继续处理当前需求，已有资料和结果已保留。" : "提供业务描述、会议纪要或需求初稿，一起梳理流程、功能和需要确认的问题。" })
+						] })]
+					}),
+					task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+						className: RequirementsAssistant_module_css_default.chooserSummary,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: task.title }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+							task.materials.filter((m) => !m.removed).length,
+							" 份资料 · ",
+							requirements.length,
+							" 条需求 · ",
+							pendingQuestions.length,
+							" 个待确认问题"
+						] })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							onClick: showWork,
+							children: "返回对话"
+						})]
+					}),
+					!task && modeSelected && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: RequirementsAssistant_module_css_default.chooserReturn,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+							className: RequirementsAssistant_module_css_default.muted,
+							children: ["当前方式：", mode === "quick" ? "快速整理" : "引导分析"]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							onClick: showWork,
+							children: "返回对话"
+						})]
+					}),
+					running && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+						className: RequirementsAssistant_module_css_default.progress,
+						role: "status",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: RequirementsAssistant_module_css_default.spinner }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: [
+								"正在",
+								operationNames[task.run.operation],
+								"…"
+							] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "本轮结束后可切换分析方式，也可以先停止本轮分析。" })] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								disabled: busy,
+								onClick: () => void command({ type: "run.stop" }, "本轮分析已停止，原资料和已保存结果保留。"),
+								children: "停止"
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: RequirementsAssistant_module_css_default.modes,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							"aria-label": "选择快速整理",
+							"aria-pressed": modeSelected && mode === "quick",
+							disabled: busy || loading || running,
+							onClick: () => void begin("quick"),
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "▤" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("b", { children: ["快速整理 ", modeSelected && mode === "quick" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "当前使用" })] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "已有业务描述、会议纪要或需求初稿，优先整理需求清单和待确认问题。" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("em", { children: "选择快速整理 →" })
+							]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							"aria-label": "选择引导分析",
+							"aria-pressed": modeSelected && mode === "guided",
+							disabled: busy || loading || running,
+							onClick: () => void begin("guided"),
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "☷" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("b", { children: ["引导分析 ", modeSelected && mode === "guided" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "当前使用" })] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "从目标和当前问题出发，逐步明确流程、范围与验收。" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("em", { children: "选择引导分析 →" })
+							]
+						})]
+					}),
+					!task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: RequirementsAssistant_module_css_default.workflow,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "提供想法" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", { children: "→" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "澄清问题" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", { children: "→" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "核对需求" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", { children: "→" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "形成文档" })
+						]
+					})
+				]
+			});
+			const workView = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: RequirementsAssistant_module_css_default.chat,
 				children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -7152,56 +7356,46 @@ window.__ModuleLoader__.load({
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "提供业务描述、会议纪要或需求初稿，一起梳理流程、功能和需要确认的问题。" })
 						] })]
 					}),
-					!task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: RequirementsAssistant_module_css_default.modes,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-							disabled: busy || loading,
-							onClick: () => void begin("quick"),
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "▤" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("b", { children: "快速整理" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "已有描述、纪要或初稿，先整理需求清单。" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("em", { children: "添加资料开始 →" })
-							]
-						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-							disabled: busy || loading,
-							onClick: () => void begin("guided"),
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "☷" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("b", { children: "引导分析" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "从一个想法出发，逐步明确目标、流程和验收。" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("em", { children: "描述想法开始 →" })
-							]
-						})]
-					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: RequirementsAssistant_module_css_default.workflow,
+					!task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: RequirementsAssistant_module_css_default.toolbar,
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+							className: RequirementsAssistant_module_css_default.tag,
+							children: ["当前方式：", mode === "quick" ? "快速整理" : "引导分析"]
+						})
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+						className: RequirementsAssistant_module_css_default.card,
 						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "提供想法" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", { children: "→" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "澄清问题" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", { children: "→" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "核对需求" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", { children: "→" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "形成文档" })
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: mode === "quick" ? "准备好资料后，开始整理" : "先告诉我想解决什么问题" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: RequirementsAssistant_module_css_default.muted,
+								children: mode === "quick" ? "粘贴业务描述、会议纪要，或导入文本文件。保存资料后可主动开始整理。" : "描述当前做法、需要解决的问题和业务目标。你也可以先补充资料或手工记录一条需求。"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: RequirementsAssistant_module_css_default.toolbar,
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										onClick: () => openEditor("material"),
+										children: "＋ 粘贴资料"
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										onClick: () => fileInput.current?.click(),
+										children: "添加 TXT / Markdown"
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										onClick: () => openEditor("requirement"),
+										children: "＋ 新增需求"
+									})
+								]
+							})
 						]
 					})] }),
 					task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: RequirementsAssistant_module_css_default.toolbar,
 							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 									className: RequirementsAssistant_module_css_default.tag,
-									children: task.mode === "quick" ? "快速整理" : "引导分析"
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-									disabled: busy || running,
-									onClick: () => void command({
-										type: "save",
-										mode: task.mode === "quick" ? "guided" : "quick"
-									}, "整理方式已切换，已有内容已保留。").then((value) => {
-										if (value) setMode(value.mode);
-									}),
-									children: ["切换为", task.mode === "quick" ? "引导分析" : "快速整理"]
+									children: ["当前方式：", task.mode === "quick" ? "快速整理" : "引导分析"]
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 									className: RequirementsAssistant_module_css_default.muted,
@@ -8141,8 +8335,8 @@ window.__ModuleLoader__.load({
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							onClick: () => {
 								setContext("");
-								setDraft(`请根据需求文档${viewedVersion ? ` V${viewedVersion.number}` : "当前草稿"}提出修改建议：`);
-								setTab("chat");
+								updateDraft(`请根据需求文档${viewedVersion ? ` V${viewedVersion.number}` : "当前草稿"}提出修改建议：`);
+								showWork();
 							},
 							children: "讨论文档内容"
 						})
@@ -8195,10 +8389,10 @@ window.__ModuleLoader__.load({
 						className: RequirementsAssistant_module_css_default.heading,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: task?.title ?? assistantName }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 							className: RequirementsAssistant_module_css_default.saveState,
-							children: loading ? "正在读取…" : busy ? "正在保存…" : hasUnsavedDraft ? "输入草稿待保存" : task ? `已保存 · ${time(task.updatedAt)}` : "新的需求分析"
+							children: loading ? "正在读取…" : busy ? "正在保存…" : draftSaveFailed ? "草稿保存失败 · 本地输入已保留" : hasUnsavedDraft ? "输入草稿待保存" : task ? `已保存 · ${time(task.updatedAt)}` : chatView === "chooser" ? "选择分析方式，也可以直接描述你的想法" : "当前会话 · 尚未保存业务内容"
 						})] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: RequirementsAssistant_module_css_default.toolbar,
-							children: [task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+							children: [task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [requirements.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 								className: RequirementsAssistant_module_css_default.countBadge,
 								children: [
 									requirements.filter((r) => r.status === "confirmed").length,
@@ -8209,10 +8403,9 @@ window.__ModuleLoader__.load({
 							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								onClick: () => openEditor("settings", task.settings),
 								children: "分析设置"
-							})] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								disabled: busy,
-								onClick: () => onReset?.(),
-								children: "新建分析"
+							})] }), chatView === "work" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: showChooser,
+								children: "切换分析方式"
 							})]
 						})]
 					}),
@@ -8229,6 +8422,15 @@ window.__ModuleLoader__.load({
 							"aria-label": "关闭错误提示",
 							onClick: () => setError(""),
 							children: "×"
+						})]
+					}),
+					draftSaveFailed && !editor && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: RequirementsAssistant_module_css_default.draftRetry,
+						role: "status",
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "未保存的输入仍保留在当前会话。" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy || loading,
+							onClick: () => void persistDraft(true),
+							children: "重试保存草稿"
 						})]
 					}),
 					notice && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -8260,7 +8462,11 @@ window.__ModuleLoader__.load({
 						})
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("main", {
+						ref: scrollArea,
 						className: RequirementsAssistant_module_css_default.scroll,
+						onScroll: (event) => {
+							if (tab === "chat") chatScroll.current[chatView] = event.currentTarget.scrollTop;
+						},
 						role: "tabpanel",
 						"aria-label": tab === "workspace" ? workspaceTabs.find(([key]) => key === workspace)?.[1] : mainTabs.find(([key]) => key === tab)?.[1],
 						children: loading ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Empty, { title: "正在读取已保存的分析…" }) : taskId && !task ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Empty, {
@@ -8281,14 +8487,29 @@ window.__ModuleLoader__.load({
 								},
 								children: "重新读取"
 							})
-						}) : tab === "chat" ? chatView : !task ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Empty, {
-							title: "先建立一个需求分析",
-							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								className: RequirementsAssistant_module_css_default.primary,
-								disabled: busy,
-								onClick: () => void ensureTask(),
-								children: "创建分析工作区"
-							})
+						}) : tab === "chat" ? chatView === "chooser" ? chooserView : workView : !task ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Empty, {
+							title: tab === "trace" ? "尚无操作记录" : "添加资料或记录第一条需求",
+							children: tab === "trace" ? "保存业务内容后，这里显示实际操作记录。" : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "确认保存后，可以在当前会话继续整理和编辑。" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: RequirementsAssistant_module_css_default.toolbar,
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										disabled: busy,
+										onClick: () => openEditor("material"),
+										children: "＋ 粘贴资料"
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										disabled: busy,
+										onClick: () => fileInput.current?.click(),
+										children: "添加 TXT / Markdown"
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										className: RequirementsAssistant_module_css_default.primary,
+										disabled: busy,
+										onClick: () => openEditor("requirement"),
+										children: "＋ 新增需求"
+									})
+								]
+							})] })
 						}) : tab === "workspace" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 							className: RequirementsAssistant_module_css_default.workspace,
 							children: {
@@ -8305,7 +8526,7 @@ window.__ModuleLoader__.load({
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 									className: RequirementsAssistant_module_css_default.sectionHead,
 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "操作轨迹" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "这里记录服务端实际完成的操作及处理结果。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										onClick: () => setTab("chat"),
+										onClick: showWork,
 										children: "返回对话继续讨论"
 									})]
 								}),
@@ -8354,7 +8575,7 @@ window.__ModuleLoader__.load({
 					}),
 					tab === "chat" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: RequirementsAssistant_module_css_default.composerWrap,
-						children: [task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						children: [task && chatView === "work" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: RequirementsAssistant_module_css_default.quickActions,
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
@@ -8396,12 +8617,12 @@ window.__ModuleLoader__.load({
 									ref: composer,
 									"aria-label": "需求分析输入",
 									value: draft,
-									placeholder: task?.mode === "quick" ? "补充需求描述，或告诉我需要修改哪一项…" : "描述你的想法、当前问题或希望实现的功能…",
-									onChange: (e) => setDraft(e.target.value),
+									placeholder: mode === "quick" ? "补充需求描述，或告诉我需要修改哪一项…" : "描述你的想法、当前问题或希望实现的功能…",
+									onChange: (e) => updateDraft(e.target.value),
 									onKeyDown: (e) => {
 										if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
 											e.preventDefault();
-											run(context ? "revise" : task?.mode === "quick" ? "analyze" : "clarify");
+											run(context ? "revise" : mode === "quick" ? "analyze" : "clarify");
 										}
 									}
 								}),
@@ -8410,9 +8631,7 @@ window.__ModuleLoader__.load({
 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 										"aria-label": "添加需求资料",
 										disabled: busy || loading,
-										onClick: async () => {
-											if (await ensureTask()) openEditor("material");
-										},
+										onClick: () => openEditor("material"),
 										children: "＋"
 									}), task && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
 										"aria-label": "本次分析模型",
@@ -8433,7 +8652,7 @@ window.__ModuleLoader__.load({
 										className: RequirementsAssistant_module_css_default.send,
 										"aria-label": "发送需求分析消息",
 										disabled: busy || running || loading || !draft.trim(),
-										onClick: () => void run(context ? "revise" : task?.mode === "quick" ? "analyze" : "clarify"),
+										onClick: () => void run(context ? "revise" : mode === "quick" ? "analyze" : "clarify"),
 										children: "↑"
 									})] })]
 								})
@@ -10728,6 +10947,7 @@ window.__ModuleLoader__.load({
 				requirementHistory.leave();
 				const row = localConversations.getSnapshot().items.find((item) => item.id === id);
 				if (!row) return;
+				requirementViewKey = `requirements-local-${id}-${++requirementNavigation}`;
 				start.reset();
 				localConversations.open(id);
 				roleSelection.select(row.role);
@@ -10904,19 +11124,25 @@ window.__ModuleLoader__.load({
 									]
 								}) : noSession && showRequirements ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RequirementsAssistant, {
 									taskId: requirement?.id,
+									draftKey: local?.id ?? analysisViewKey,
 									initialDraft: local?.kind === "draft" ? local.draft : void 0,
 									roleId: effectiveRole,
 									roleVersion: analysisVersion?.version,
 									assistant: analysisVersion,
 									loadModels: loadMeetingModels,
+									onDraftChange: (value) => {
+										if (analysisViewKey !== requirementViewKey || sessions.list.getSnapshot().current !== void 0 || requirementHistory.getSnapshot().activeId) return;
+										const row = localConversations.active();
+										if (row?.kind === "draft" && row.role === effectiveRole && row.draft !== value) localConversations.setDraft(row.id, value);
+									},
 									onCommit: (task) => {
 										const activeId = requirementHistory.getSnapshot().activeId;
 										const current = analysisViewKey === requirementViewKey && sessions.list.getSnapshot().current === void 0 && (requirement ? activeId === requirement.id : revision === draftKey && roleSelection.getSnapshot() === effectiveRole && (!activeId || activeId === task.id));
-										const local = localConversations.active();
-										if (current && local?.kind === "draft") localConversations.commitChat(local.id);
+										const origin = localSnapshot.items.find((row) => row.id === local?.id);
+										const retained = origin && localConversations.getSnapshot().items.find((row) => row.id === origin.id);
+										if (retained?.kind === "draft" && retained.role === effectiveRole && (current || retained.draft === origin?.draft)) localConversations.commitChat(retained.id);
 										requirementHistory.upsert(task, current);
-									},
-									onReset: () => startFreshChat(effectiveRole)
+									}
 								}, analysisViewKey) : noSession && (local?.kind === "demo" || effectiveRole === MEETING_DEMO_ROLE_ID) ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MeetingDemo, {
 									initialState: local?.meeting,
 									assistant: meetingVersion,

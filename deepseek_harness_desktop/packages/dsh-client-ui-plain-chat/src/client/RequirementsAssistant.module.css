@@ -45,6 +45,22 @@
 .modes b { font-size:16px; }
 .modes p { color:var(--muted); font-size:12px; }
 .modes em { font-size:11px; color:var(--accent-text); font-style:normal; margin-top:auto; padding-top:15px; }
+.modes button[aria-pressed=true] { border-color:var(--accent); background:var(--soft); }
+.modes b small { margin-left:6px; font-size:10px; font-weight:500; color:var(--accent-text); }
+.chooser { padding:20px 0; }
+.chooser .intro { margin:0 0 16px; }
+.chooser .intro h2 { margin-bottom:6px; }
+.chooser .chooserSummary { padding:12px 16px; margin:12px 0; }
+.chooser .modes { margin:12px 0; }
+.chooser .modes button { min-height:150px; padding:16px; }
+.chooser .modes button>span { width:28px; height:28px; font-size:18px; margin-bottom:8px; }
+.chooser .modes b { font-size:15px; }
+.chooser .modes p { margin:6px 0; }
+.chooser .modes em { padding-top:8px; }
+.chooserSummary { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:17px 20px; margin:20px 0; background:var(--soft); border:1px solid var(--border); border-radius:12px; }
+.chooserSummary>div { min-width:0; }.chooserSummary strong { font-size:14px; overflow-wrap:anywhere; }.chooserSummary p { color:var(--muted); font-size:11px; margin:5px 0 0; }.chooserSummary button { flex:none; font-size:12px; }
+.chooserReturn { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:18px 0; }.chooserReturn button { font-size:11px; }
+.draftRetry { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:8px 13px; margin:3px 20px; color:var(--muted); font-size:11px; border:1px solid var(--border); border-radius:8px; }.draftRetry button { font-size:11px; padding:5px 9px; }
 .workflow { display:flex; align-items:center; justify-content:center; gap:14px; color:var(--muted); font-size:11px; padding:10px 0; }
 .workflow i { font-style:normal; color:var(--border); }
 .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
