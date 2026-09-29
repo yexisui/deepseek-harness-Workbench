@@ -41,7 +41,13 @@ describe('capability named-route authentication', () => {
     expect(inject).toContain('connection')
     for (const rejection of [401, 403]) {
       mocks.requestRejection.mockReturnValue(rejection)
-      for (const [path, method] of [['/api/capabilities/state', 'GET'], [`/api/capabilities/icons/${'a'.repeat(64)}`, 'GET'], ['/api/capabilities/icons', 'POST'], ['/api/capabilities/command', 'POST'], ['/api/capabilities/connect', 'POST'], ['/api/capabilities/stop', 'POST']]) {
+      for (const [path, method] of [
+        ['/api/capabilities/state', 'GET'], [`/api/capabilities/icons/${'a'.repeat(64)}`, 'GET'], ['/api/capabilities/icons', 'POST'],
+        ['/api/capabilities/command', 'POST'], ['/api/capabilities/connect', 'POST'], ['/api/capabilities/stop', 'POST'],
+        ['/api/capabilities/requirements/config', 'GET'], ['/api/capabilities/requirements/config', 'POST'],
+        ['/api/capabilities/requirements/tasks', 'GET'], ['/api/capabilities/requirements/task/123', 'GET'],
+        ['/api/capabilities/requirements/task/123', 'DELETE'], ['/api/capabilities/requirements/create', 'POST'], ['/api/capabilities/requirements/command', 'POST'],
+      ]) {
         const input = request(path!, method, 'malformed JSON must never be read'), res = response()
         await handler(input.req, res)
         expect(res.writeHead).toHaveBeenCalledWith(rejection, expect.objectContaining({ 'cache-control': 'no-store' }))

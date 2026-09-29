@@ -7,6 +7,7 @@ import { Modal } from './PreviewModal.tsx'
 import { useCapabilityDefinition } from './useCapabilityDefinition.ts'
 import { CapabilityGlyph, type WorkbenchItem } from './ManagedWorkbench.tsx'
 import { ComponentEnvironment, componentService } from './ComponentService.tsx'
+import type { RequirementAvailability } from '../../../dsh-capabilities/src/core/requirements-model.ts'
 import type { MeetingAvailability } from './meeting-capability-status.ts'
 import s from './ManagedCapabilities.module.css'
 
@@ -62,18 +63,18 @@ export function SupportInspector({ id, draft, data, change }: { id: string; draf
   return <><h3>{dependencyName(id)}</h3><p className={s.muted}>{id}</p><p>必需支持组件</p><p>当前系统：{status?.loaded ? '已加载' : status?.installed ? '已安装，未加载' : status ? '未安装' : '尚未检测'}</p><p>当前能力：{!users.length ? '尚无业务组件需要' : missing ? '缺少关联' : '已关联'}</p><p>由{users.map(c => c.name).join('、') || '对应业务组件'}使用。</p>{users.length > 0 && missing && <button className={s.button} onClick={() => change(addAssociation(draft, id))}>补回组件</button>}<p className={s.muted}>移除当前能力中的关联不会停用共享服务。展示顺序不代表执行顺序。</p></>
 }
 
-export function BusinessInspector({ component, draft, capabilityId, data, meetingStatus, onConfigure, children }: { component: Component; draft: Definition; capabilityId?: string; data: Snapshot; meetingStatus?: MeetingAvailability | null; onConfigure?: () => void; children?: React.ReactNode }) {
-  const part = draft.components.find(p => p.componentId === component.id), info = componentService(component, { data, meetingStatus })
+export function BusinessInspector({ component, draft, capabilityId, data, meetingStatus, requirementsStatus, onConfigure, children }: { component: Component; draft: Definition; capabilityId?: string; data: Snapshot; meetingStatus?: MeetingAvailability | null; requirementsStatus?: RequirementAvailability | null; onConfigure?: () => void; children?: React.ReactNode }) {
+  const part = draft.components.find(p => p.componentId === component.id), info = componentService(component, { data, meetingStatus, requirementsStatus })
   return <><h3>{component.name}</h3><p className={s.muted}>{component.sourceLabel} · v{component.version}</p><p>{info.description}</p>
     {requiredComponents(capabilityId).some(c => c.id === component.id) && <p className={s.notice}>必需组件 · 可从草稿移除，补回组件并选择动作后才能发布。</p>}
     {children ?? <p>当前动作：{part?.actions.map(a => actionNames[a]).join('、') || '未选择动作'}</p>}
     {component.dependencies.length > 0 && <><h4>依赖要求</h4><ul className={s.list}>{component.dependencies.map(dep => <li key={dep}>{dependencyName(dep)} · {dep.startsWith('@') ? missingDependencies(draft).includes(dep) ? '缺少关联' : part ? '已关联' : '待添加' : '运行环境'}</li>)}</ul><p className={s.muted}>添加业务组件时自动关联支持组件；缺少必需组件的草稿暂时无法发布。</p></>}
     <p className={s.muted}>组件展示顺序不代表执行顺序。配置状态与草稿完整性分别检查。</p>
-    <ComponentEnvironment component={component} data={data} meetingStatus={meetingStatus} onConfigure={onConfigure}/>
+    <ComponentEnvironment component={component} data={data} meetingStatus={meetingStatus} requirementsStatus={requirementsStatus} onConfigure={onConfigure}/>
   </>
 }
 
-export function ComponentRelations({ data, capabilityId, onEdit, meetingStatus, onConfigure }: { data: Snapshot; capabilityId: string; onEdit: () => void; meetingStatus?: MeetingAvailability | null; onConfigure?: () => void }) {
+export function ComponentRelations({ data, capabilityId, onEdit, meetingStatus, requirementsStatus, onConfigure }: { data: Snapshot; capabilityId: string; onEdit: () => void; meetingStatus?: MeetingAvailability | null; requirementsStatus?: RequirementAvailability | null; onConfigure?: () => void }) {
   const cap = data.state.capabilities.find(c => c.id === capabilityId)!
   const { draft, change, dirty, revision, discard } = useCapabilityDefinition(capabilityId, data)
   const edit = useAssociationEditing(draft, change, capabilityId)
@@ -96,7 +97,7 @@ export function ComponentRelations({ data, capabilityId, onEdit, meetingStatus, 
       {edit.feedback}<MissingAssociations draft={draft} change={change} capabilityId={capabilityId} disabled={disabled}/>
       {compositionItems(draft, capabilityId).map(item => {
         const business = components.find(c => c.id === item.id), status = data.dependencies?.find(d => d.id === (business?.provider ?? item.id))
-        const info = business && componentService(business, { data, meetingStatus })
+        const info = business && componentService(business, { data, meetingStatus, requirementsStatus })
         const required = requiredComponents(capabilityId).some(c => c.id === item.id)
         return <div className={s.associationRow} key={item.id} data-association={item.id}><div className={s.associationIdentity}><CapabilityGlyph kind={item.icon}/><div><strong>{item.name}</strong><span className={s.badge}>{business ? required ? '必需组件' : '业务组件' : '必需支持'}</span><small>{business ? `${business.sourceLabel} · v${business.version}` : item.id}</small><small>{item.subtitle}</small><small>{info?.status ?? `${status?.pendingRestart ? '待重启' : status?.loaded ? '系统已加载' : status?.installed ? '系统已安装' : status ? '系统未安装' : '状态待检测'}${status?.version ? ` · ${status.version}` : ''}`}</small></div></div><div className={s.associationActions}><button className={s.button} onClick={() => business && !business.pluginModule ? setInspecting(business) : openCapabilityLink({ section: 'plugins', moduleName: business?.pluginModule ?? item.id, capabilityId })}>{business && !business.pluginModule ? '查看详情' : '查看组件 ↗'}</button>{info?.configuration && onConfigure && <button className={s.button} onClick={onConfigure}>{info.configuration}</button>}<button className={`${s.iconButton} ${s.removeAction}`} title={`移除关联：${item.name}`} aria-label={`移除关联：${item.name}`} onClick={() => edit.request(item.id)}><CapabilityActionIcon kind="remove"/></button></div></div>
       })}
@@ -104,8 +105,8 @@ export function ComponentRelations({ data, capabilityId, onEdit, meetingStatus, 
     </fieldset>
     {(dirty || message) && <div className={s.compositionToolbar}><span role="status">{statusMessage}</span>{dirty && <div className={s.actions}><button className={s.button} disabled={disabled} onClick={() => setDiscarding(true)}>放弃修改</button><button className={`${s.button} ${s.primary}`} disabled={disabled} onClick={() => void save()}>{busy ? '保存中…' : '保存草稿'}</button></div>}</div>}
     {dirty && revision !== data.state.revision && <p className={s.error}>配置已在其他页面变化。当前草稿保留；请在组合编辑器核对最新配置后再保存。</p>}
-    {availableComponents(capabilityId).filter((c, i, all) => all.findIndex(other => other.management === c.management) === i).map(component => <ComponentEnvironment key={component.id} component={component} data={data} meetingStatus={meetingStatus} onConfigure={onConfigure} disabled={!!cap.removedAt}/>)}
-    {inspecting && <Modal title="组件详情" closeLabel="关闭组件详情" onClose={() => setInspecting(null)}><div className={`${s.page} ${s.dialogBody}`}><BusinessInspector component={inspecting} draft={draft} capabilityId={capabilityId} data={data} meetingStatus={meetingStatus} onConfigure={onConfigure ? () => { setInspecting(null); onConfigure() } : undefined}/></div></Modal>}
+    {availableComponents(capabilityId).filter((c, i, all) => all.findIndex(other => other.management === c.management) === i).map(component => <ComponentEnvironment key={component.id} component={component} data={data} meetingStatus={meetingStatus} requirementsStatus={requirementsStatus} onConfigure={onConfigure} disabled={!!cap.removedAt}/>)}
+    {inspecting && <Modal title="组件详情" closeLabel="关闭组件详情" onClose={() => setInspecting(null)}><div className={`${s.page} ${s.dialogBody}`}><BusinessInspector component={inspecting} draft={draft} capabilityId={capabilityId} data={data} meetingStatus={meetingStatus} requirementsStatus={requirementsStatus} onConfigure={onConfigure ? () => { setInspecting(null); onConfigure() } : undefined}/></div></Modal>}
     {edit.dialog}
     {discarding && <Modal title="放弃本次组件修改？" closeLabel="继续编辑" onClose={() => setDiscarding(false)}><div className={`${s.page} ${s.dialogBody}`}><p>将恢复至上次保存的能力草稿，包括本次未保存的名称、说明和组件调整。</p><div className={s.confirmActions}><button className={s.button} onClick={() => setDiscarding(false)}>继续编辑</button><button className={s.button} onClick={() => { discard(); setMessage(''); setDiscarding(false) }}>放弃修改</button></div></div></Modal>}
   </section>

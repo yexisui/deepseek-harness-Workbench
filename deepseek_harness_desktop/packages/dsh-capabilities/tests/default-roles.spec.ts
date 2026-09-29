@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { initialState, type State } from '../src/core/model.ts'
 import { MEETING_CAPABILITY_ID, MEETING_ROLE_ID } from '../src/core/default-roles.ts'
+import { REQUIREMENTS_CAPABILITY_ID, REQUIREMENTS_ROLE_ID } from '../src/core/requirements-model.ts'
 import { allowedActions, browserActions } from '../src/core/policy.ts'
 import { CapabilityStore } from '../src/host/store.ts'
 import { writePresets } from '../src/host/presets.ts'
@@ -28,7 +29,7 @@ describe('restoring managed role assistants', () => {
     await writePresets(directory, state)
     for (const role of state.roles) {
       expect(role.versions).toHaveLength(1)
-      expect(role.versions[0]!.capabilities).toEqual(role.id === MEETING_ROLE_ID ? [{ capabilityId: MEETING_CAPABILITY_ID, version: 1, enabled: true }] : [])
+      expect(role.versions[0]!.capabilities).toEqual(role.id === MEETING_ROLE_ID ? [{ capabilityId: MEETING_CAPABILITY_ID, version: 1, enabled: true }] : role.id === REQUIREMENTS_ROLE_ID ? [{ capabilityId: REQUIREMENTS_CAPABILITY_ID, version: 1, enabled: true }] : [])
       expect(browserActions(allowedActions(state, role.id, role.versions[0]!))).toEqual([])
       const source = JSON.parse(await readFile(join(directory, '.agent-presets', role.versions[0]!.preset, 'agent.cordis.yml'), 'utf8'))
       for (const field of ['name', 'duties', 'requirements', 'format'] as const) expect(source[0].config.prefix).toContain(role.draft[field])

@@ -14,6 +14,9 @@ import { registerCapabilityCenter } from './capability-settings.tsx'
 import { AgentPresetDisclosure } from './RoleAssistants.tsx'
 import { ManagedCenter } from './ManagedCenter.tsx'
 import { BrowserTaskStatus, ManagedCurrentAssistant, ManagedRolePicker, ManagedRolesSection, MEETING_DEMO_ROLE_ID } from './ManagedRoles.tsx'
+import { RequirementsAssistant } from './RequirementsAssistant.tsx'
+import { createRequirementHistory } from './requirement-history.ts'
+import { usesRequirements } from './requirements-routing.ts'
 import { MeetingDemo } from './MeetingDemo.tsx'
 import { LocalConversationRows } from './LocalConversationRows.tsx'
 import { NativeConversationRemoval } from './NativeConversationRemoval.tsx'
@@ -54,6 +57,11 @@ export function apply(ctx: Context): void {
   const clearSavedDraft = () => { try { sessionStorage.removeItem('workbench-chat-draft') } catch { /* Optional storage. */ } }
   const roleSelection = createRoleSelection<string>()
   const localConversations = createLocalConversations()
+  const requirementHistory = createRequirementHistory()
+  let requirementViewKey = `requirements-${requirementHistory.getSnapshot().activeId ?? 'initial'}`
+  let requirementNavigation = 0
+  if (sessions.list.getSnapshot().current !== undefined || localConversations.active()) requirementHistory.leave()
+  ctx.effect(() => { void requirementHistory.load(); const refresh = () => { void requirementHistory.load() }; window.addEventListener("focus", refresh); return () => window.removeEventListener("focus", refresh) }, "plain-chat: requirement history")
   const resumedLocal = localConversations.active()
   if (resumedLocal && sessions.list.getSnapshot().current === undefined) roleSelection.select(resumedLocal.role)
   else if (resumedLocal) localConversations.leave()
@@ -85,6 +93,8 @@ export function apply(ctx: Context): void {
   const selectRole = (id: string) => {
     if (id === roleSelection.getSnapshot()) return
     start.reset()
+    requirementHistory.leave()
+    requirementViewKey = `requirements-${id}-${++requirementNavigation}`
     roleSelection.select(id)
     if (sessions.list.getSnapshot().current === undefined) {
       const active = localConversations.active()
@@ -95,6 +105,8 @@ export function apply(ctx: Context): void {
   // Both the main New button and the ungrouped chat-row + open a fresh draft.
   // A new draft always begins in free chat; published sessions keep their own preset.
   const startFreshChat = (role = 'chat') => {
+    requirementViewKey = `requirements-new-${role}-${++requirementNavigation}`
+    requirementHistory.leave()
     start.reset()
     clearSavedDraft()
     localConversations.start(role)
@@ -105,6 +117,13 @@ export function apply(ctx: Context): void {
     layout.selectPanel(null)
   }
   const openLocalConversation = (id: string) => {
+    const requirement = requirementHistory.getSnapshot().items.find(item => item.id === id)
+    if (requirement) {
+      requirementViewKey = `requirements-${id}-${++requirementNavigation}`
+      start.reset(); localConversations.leave(); requirementHistory.open(id); roleSelection.select(requirement.roleId); clearSavedDraft()
+      revision++; listeners.forEach(fn => fn()); sessions.clear(); layout.selectPanel(null); return
+    }
+    requirementHistory.leave()
     const row = localConversations.getSnapshot().items.find(item => item.id === id)
     if (!row) return
     start.reset()
@@ -117,6 +136,14 @@ export function apply(ctx: Context): void {
     layout.selectPanel(null)
   }
   const removeLocalConversation = (id: string) => {
+    const requirement = requirementHistory.getSnapshot().items.find(item => item.id === id)
+    if (requirement) {
+      if (!window.confirm(`移除“${requirement.title}”？这将删除此需求分析的资料、对话、需求条目和确认版本，无法撤销。`)) return
+      const active = requirementHistory.getSnapshot().activeId === id
+      const navigation = requirementViewKey
+      void requirementHistory.remove(id).then(() => { if (active && navigation === requirementViewKey && sessions.list.getSnapshot().current === undefined) startFreshChat() }).catch(error => window.alert(error instanceof Error ? error.message : String(error)))
+      return
+    }
     const row = localConversations.getSnapshot().items.find(item => item.id === id)
     const meetingId = row?.meeting && typeof row.meeting === 'object' ? (row.meeting as { jobId?: unknown }).jobId : undefined
     if (typeof meetingId === 'string') void fetch(`/api/capabilities/meeting/job/${encodeURIComponent(meetingId)}`, { method: 'DELETE', credentials: 'same-origin' }).catch(() => {})
@@ -128,7 +155,7 @@ export function apply(ctx: Context): void {
   }
   ctx.effect(() => {
     const unsubscribe = sessions.list.subscribe(() => {
-      if (sessions.list.getSnapshot().current !== undefined && localConversations.active()) localConversations.leave()
+      if (sessions.list.getSnapshot().current !== undefined) { if (localConversations.active()) localConversations.leave(); if (requirementHistory.getSnapshot().activeId) requirementHistory.leave() }
     })
     return unsubscribe
   }, 'plain-chat: local draft lifecycle')
@@ -158,8 +185,14 @@ export function apply(ctx: Context): void {
       const selectedRole = useSyncExternalStore(roleSelection.subscribe, roleSelection.getSnapshot)
       const localSnapshot = useSyncExternalStore(localConversations.subscribe, localConversations.getSnapshot)
       const local = localSnapshot.items.find(row => row.id === localSnapshot.activeId)
-      const effectiveRole = local?.role ?? selectedRole
+      const requirementSnapshot = useSyncExternalStore(requirementHistory.subscribe, requirementHistory.getSnapshot)
+      const requirement = requirementSnapshot.items.find(row => row.id === requirementSnapshot.activeId)
+      const effectiveRole = requirement?.roleId ?? local?.role ?? selectedRole
       const capabilities = useSyncExternalStore(capabilityClient.subscribe, capabilityClient.getSnapshot)
+      const analysisRole = capabilities.data?.state.roles.find(role => role.id === effectiveRole)
+      const analysisVersion = requirement ? analysisRole?.versions.find(version => version.version === requirement.roleVersion) : analysisRole && latest(analysisRole.versions)
+      const analysisViewKey = requirementViewKey
+      const showRequirements = Boolean(requirement) || usesRequirements(capabilities.data?.state, analysisVersion)
       const meetingRole = capabilities.data?.state.roles.find(role => role.id === MEETING_DEMO_ROLE_ID)
       const savedMeetingVersion = local?.meeting && typeof local.meeting === 'object' ? (local.meeting as { roleVersion?: unknown }).roleVersion : undefined
       const meetingVersion = meetingRole?.versions.find(version => version.version === savedMeetingVersion) ?? (meetingRole && latest(meetingRole.versions))
@@ -203,10 +236,17 @@ export function apply(ctx: Context): void {
         if (binding && local?.kind === 'draft') localConversations.commitChat(local.id)
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && effectiveRole === MEETING_DEMO_ROLE_ID ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /></div>
+        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && showRequirements ? analysisVersion?.preset : noSession && effectiveRole === MEETING_DEMO_ROLE_ID ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /></div>
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
-        <div className={styles.conversationContent}>{noSession && (local?.kind === 'demo' || effectiveRole === MEETING_DEMO_ROLE_ID)
+        <div className={styles.conversationContent}>{noSession && requirementSnapshot.activeId && !requirement ? <p role="status">{requirementSnapshot.error || '正在恢复需求分析…'}<button onClick={() => { void requirementHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showRequirements
+          ? <RequirementsAssistant key={analysisViewKey} taskId={requirement?.id} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={analysisVersion?.version} assistant={analysisVersion} loadModels={loadMeetingModels} onCommit={task => {
+            const activeId = requirementHistory.getSnapshot().activeId
+            const current = analysisViewKey === requirementViewKey && sessions.list.getSnapshot().current === undefined && (requirement ? activeId === requirement.id : revision === draftKey && roleSelection.getSnapshot() === effectiveRole && (!activeId || activeId === task.id))
+            const local = localConversations.active(); if (current && local?.kind === 'draft') localConversations.commitChat(local.id)
+            requirementHistory.upsert(task, current)
+          }} onReset={() => startFreshChat(effectiveRole)}/>
+          : noSession && (local?.kind === 'demo' || effectiveRole === MEETING_DEMO_ROLE_ID)
           ? <MeetingDemo key={draftKey} initialState={local?.meeting} assistant={meetingVersion} roleVersion={meetingVersion?.version} loadModels={loadMeetingModels} onSnapshot={state => {
             const row = localConversations.active() ?? localConversations.start(MEETING_DEMO_ROLE_ID)
             localConversations.setMeeting(row.id, state, state.draft)
@@ -229,6 +269,8 @@ export function apply(ctx: Context): void {
 
   ctx.effect(() => decorateSlot(registry, 'sidebar.workspaces', 'WorkspaceBrowser', Original => function ChatHistory(props: any) {
     const local = useSyncExternalStore(localConversations.subscribe, localConversations.getSnapshot)
+    const requirements = useSyncExternalStore(requirementHistory.subscribe, requirementHistory.getSnapshot)
+    const historyRows = [...local.items, ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
     const [host, setHost] = useState<HTMLDivElement | null>(null)
     const translate = (key: string, ...args: unknown[]) => key === 'group.ungrouped' ? t('history') : props.t(key, ...args)
     // The upstream ungrouped row renders a + button but deliberately gives it
@@ -243,10 +285,10 @@ export function apply(ctx: Context): void {
       const header = button?.closest<HTMLElement>('[role="treeitem"]')
       if (header?.getAttribute('aria-expanded') === 'false') header.click()
     }
-    const open = (id: string) => { start.reset(); localConversations.leave(); clearSavedDraft(); props.open(id) }
+    const open = (id: string) => { start.reset(); localConversations.leave(); requirementHistory.leave(); clearSavedDraft(); props.open(id) }
     return <div ref={setHost} style={{ display: 'contents' }} onClickCapture={onClickCapture}>
       <Original {...props} t={translate} open={open} />
-      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={local.items} activeId={local.activeId} onOpen={openLocalConversation} onRemove={removeLocalConversation}/>
+      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation}/>
       <NativeConversationRemoval sessions={sessions}/>
     </div>
   }), 'plain-chat: history label')

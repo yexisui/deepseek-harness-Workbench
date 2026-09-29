@@ -7,6 +7,7 @@ import { apply } from '../src/client/apply.tsx'
 import { zh, type ChatKey } from '../src/client/locales.ts'
 import { capabilityClient, editorDrafts } from '../src/client/capability-client.ts'
 import { initialState, emptyRole } from '../../dsh-capabilities/src/core/model.ts'
+import { defaultRequirementSettings, emptyRequirementOverview, type RequirementTask } from '../../dsh-capabilities/src/core/requirements-model.ts'
 
 type Props = Record<string, any>
 type Binding = { sessionId: string; ctx: object }
@@ -123,7 +124,11 @@ describe('ordinary chat UI integration', () => {
     const state = initialState()
     const definition = { ...emptyRole(), name: '网页助手', capabilities: [{ capabilityId: 'browser', version: 1, enabled: true }] }
     state.roles.push({ id: 'reader', enabled: true, draft: definition, versions: [{ ...definition, version: 1, preset: 'workbench-role-reader-v1', createdAt: state.updatedAt }] })
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ state, components: [], health: { state: 'disconnected', message: '浏览器待连接' }, tasks: [] }) })))
+    vi.stubGlobal('fetch', vi.fn(async (url: string | URL | Request) => {
+      if (String(url).includes('/requirements/tasks?')) return { ok: true, json: async () => ({ items: [], total: 0 }) }
+      if (String(url).includes('/requirements/config')) return { ok: true, json: async () => ({ ready: true, modelConfigured: true, defaults: { depth: 'standard', questionStyle: 'short', model: '' }, revision: 0, maxTextChars: 60000 }) }
+      return { ok: true, json: async () => ({ state, components: [], health: { state: 'disconnected', message: '浏览器待连接' }, tasks: [] }) }
+    }))
     vi.stubGlobal('EventSource', class extends EventTarget { close = vi.fn() })
     await capabilityClient.refresh()
     ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -500,6 +505,36 @@ describe('ordinary chat UI integration', () => {
     expect(container.querySelector('[data-meeting-demo="true"]')).toBeNull()
     expect(container.querySelector('[data-dsh-part="composer"]')).not.toBeNull()
     expect(app.remoteCreate).not.toHaveBeenCalled()
+  })
+
+  it('opens the requirements workspace and keeps the first creation dialog mounted through the server history update', async () => {
+    const original = vi.mocked(fetch).getMockImplementation()!
+    let created: RequirementTask | undefined
+    vi.mocked(fetch).mockImplementation(async (url, options) => {
+      if (String(url).endsWith('/requirements/create')) {
+        const body = JSON.parse(String(options?.body)), now = new Date().toISOString()
+        created = { schema: 1, id: '10000000-0000-4000-8000-000000000001', revision: 0, dataRevision: 0, title: body.title, mode: body.mode, roleId: body.roleId, roleVersion: body.roleVersion, capabilityId: 'requirements-analysis', capabilityVersion: 1, authorityAt: Date.now(), roleGuidance: { name: '需求分析助手', duties: '', requirements: '', format: '' }, createdAt: now, updatedAt: now, settings: defaultRequirementSettings(), overview: emptyRequirementOverview(), draft: '', requirements: [], materials: [], questions: [], flows: [], rules: [], messages: [], events: [], versions: [] }
+        return { ok: true, json: async () => created } as Response
+      }
+      if (String(url).includes('/requirements/task/')) return { ok: true, json: async () => created } as Response
+      return original(url, options)
+    })
+    await renderWithSidebarAndRoles()
+    await type('保留原来写下的业务想法')
+    await click('button[aria-label="选定助手：需求分析助手"]')
+    expect(container.querySelector('[data-requirements-assistant]')).not.toBeNull()
+    expect(container.querySelector<HTMLTextAreaElement>('[data-requirements-assistant] textarea')!.value).toBe('保留原来写下的业务想法')
+    const quick = Array.from(container.querySelectorAll<HTMLButtonElement>('[data-requirements-assistant] button')).find(button => button.textContent?.includes('添加资料开始'))!
+    await act(async () => { quick.click() })
+    expect(document.querySelector('[role="dialog"][aria-label="资料内容"]')).not.toBeNull()
+    expect(container.querySelector('[data-local-conversations]')!.textContent).toContain('需求')
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+    await act(async () => { (document.querySelector('[aria-label="关闭面板"]') as HTMLButtonElement).click() })
+    await click('[data-action="new"]')
+    expect(container.querySelector('[data-requirements-assistant]')).toBeNull()
+    await click('[data-chat-group] [aria-label="打开本地会话：保留原来写下的业务想法"]')
+    expect(container.querySelector('[data-requirements-assistant]')).not.toBeNull()
+    expect(container.textContent).toContain('需求工作区')
   })
 
   it('shows a clear configuration state instead of a sample transcript', async () => {

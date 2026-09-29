@@ -1,6 +1,6 @@
 {
-  "name": "@linxin666/dsh-capabilities", "version": "0.1.0-local.9", "private": true,
-  "description": "岗位能力、版本、授权与 BrowserSkill 接入服务", "type": "module",
+  "name": "@linxin666/dsh-capabilities", "version": "0.1.0-local.10", "private": true,
+  "description": "岗位能力、版本、授权、会议纪要与需求分析服务", "type": "module",
   "main": "lib/index.js", "exports": { ".": "./lib/index.js", "./policy": "./lib/policy.js", "./browser": "./lib/browser.js", "./package.json": "./package.json" },
   "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
   "scripts": { "build": "tsdown", "typecheck": "tsc --noEmit", "test": "vitest run" },

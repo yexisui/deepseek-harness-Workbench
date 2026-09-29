@@ -3,10 +3,17 @@ import { type Component, type Snapshot } from '../../../dsh-capabilities/src/cor
 import type { MeetingAvailability } from './meeting-capability-status.ts'
 import s from './ManagedCapabilities.module.css'
 
-type Context = { data: Snapshot; meetingStatus?: MeetingAvailability | null }
+import type { RequirementAvailability } from '../../../dsh-capabilities/src/core/requirements-model.ts'
+type Context = { data: Snapshot; meetingStatus?: MeetingAvailability | null; requirementsStatus?: RequirementAvailability | null }
 type Presentation = { description: string; status: string; title: string; name: string; detail: string; configuration?: string; publishNotice: string }
 /** Module differences live here; shared composition views never assume a browser environment. */
 const adapters: Record<Component['management'], (context: Context) => Presentation> = {
+  requirements: ({ requirementsStatus }) => ({
+    description: '在需求工作区澄清问题、整理来源与条目、确认版本并生成需求文档。可由多个岗位引用同一能力；暂不支持复制或与浏览器执行能力混用。',
+    status: requirementsStatus?.message ?? '正在读取需求分析配置…', title: '需求分析服务', name: '工作台模型与需求存储',
+    detail: '整理深度、提问节奏和默认模型在同一配置入口保存。配置存在不代表模型实际调用已经通过。', configuration: '配置服务',
+    publishNotice: '必须保留需求分析服务和动作才可发布。已保存任务与确认版本保留；岗位引用更新后新分析采用新版本。',
+  }),
   browser: ({ data }) => ({
     description: '通过 BrowserSkill 在独立浏览器窗口中执行已授权的网页动作。',
     status: data.health.message, title: '浏览器环境', name: '本机 CLI 与浏览器扩展',
@@ -23,7 +30,7 @@ const adapters: Record<Component['management'], (context: Context) => Presentati
   }),
 }
 export function componentService(component: Component, context: Context): Presentation { return adapters[component.management](context) }
-export function ComponentEnvironment({ component, data, meetingStatus, onConfigure, disabled = false }: Context & { component: Component; onConfigure?: () => void; disabled?: boolean }) {
-  const info = componentService(component, { data, meetingStatus })
+export function ComponentEnvironment({ component, data, meetingStatus, requirementsStatus, onConfigure, disabled = false }: Context & { component: Component; onConfigure?: () => void; disabled?: boolean }) {
+  const info = componentService(component, { data, meetingStatus, requirementsStatus })
   return <div data-component-environment={component.management}><h4>{info.title}</h4><div className={s.row}><div><strong>{info.name}</strong><small>{info.status}</small><small>{info.detail}</small></div>{info.configuration && onConfigure && <button className={s.button} disabled={disabled} onClick={onConfigure}>{info.configuration}</button>}</div></div>
 }

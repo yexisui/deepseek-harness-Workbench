@@ -1,6 +1,7 @@
 import { components, type Definition, type RoleDefinition, type State } from './model.ts'
 import { compatibilityIssues, dependencyName, missingAssociations, supportDependencies } from './composition.ts'
 import { roleIconIds, roleIconAssetIdPattern, type RoleIconSpec } from './appearance.ts'
+import { REQUIREMENTS_CAPABILITY_ID } from './requirements-model.ts'
 export class InputError extends Error { constructor(message: string, readonly status = 400) { super(message) } }
 export function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new InputError('需要有效的对象')
@@ -65,4 +66,9 @@ export function roleDefinition(value: unknown, state: State): RoleDefinition {
 export function issues(definition: Definition, capabilityId?: string): string[] {
   const missing = missingAssociations(definition, capabilityId)
   return [...compatibilityIssues(definition, capabilityId), ...(definition.components.length === 0 && !missing.length ? ['尚未添加组件'] : definition.components.flatMap(p => p.actions.length ? [] : ['至少选择一个业务动作'])), ...missing.map(id => `缺少必需组件：${components.find(c => c.id === id)?.name ?? dependencyName(id)}，补回后才能发布`)]
+}
+export function roleCompositionIssues(value: RoleDefinition): string[] {
+  const active = value.capabilities.filter(binding => binding.enabled)
+  return active.some(binding => binding.capabilityId === REQUIREMENTS_CAPABILITY_ID) && active.some(binding => binding.capabilityId !== REQUIREMENTS_CAPABILITY_ID)
+    ? ['需求分析使用独立工作区，暂不支持与其他执行能力混用。请停用或移除其他能力后发布；草稿可以继续保存。'] : []
 }

@@ -1,4 +1,5 @@
 import type { Role, RoleDefinition } from './model.ts'
+import { REQUIREMENTS_CAPABILITY_ID } from './requirements-model.ts'
 
 // Keep the original local conversation role ID so saved meeting history remains readable.
 export const MEETING_ROLE_ID = 'meeting-minutes-demo'
@@ -10,7 +11,7 @@ const definitions: Array<{ id: string; definition: RoleDefinition }> = [
     name: '需求分析助手', color: '#4F73E8',
     duties: '协助梳理核电企业办公业务的软件需求，理解业务目标、使用角色与操作流程，整理功能清单和待确认事项。',
     requirements: '区分明确需求与待确认事项，不自行补充业务规则。\n信息不足时先提出澄清问题，使用业务人员易懂的语言。',
-    format: '一、业务目标\n二、操作步骤\n三、功能清单\n四、待确认事项', capabilities: [],
+    format: '一、业务目标\n二、操作步骤\n三、功能清单\n四、待确认事项', capabilities: [{ capabilityId: REQUIREMENTS_CAPABILITY_ID, version: 1, enabled: true }],
   } },
   { id: 'builtin-marketing', definition: {
     name: '市场部助手', color: '#E58A32',

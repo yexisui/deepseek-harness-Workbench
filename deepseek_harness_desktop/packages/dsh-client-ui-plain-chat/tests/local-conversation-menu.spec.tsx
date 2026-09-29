@@ -51,3 +51,57 @@ it('dismisses the menu with Escape without removing the row', async () => {
   expect(onRemove).not.toHaveBeenCalled()
   expect(document.activeElement).toBe(trigger)
 })
+
+it('renders the first saved requirement when the native history has no chat group', async () => {
+  await act(async () => {
+    host.querySelector('[role="treeitem"]')!.parentElement!.remove()
+    const empty = document.createElement('div'); empty.textContent = '暂无会话'; host.appendChild(empty)
+    root.render(<LocalConversationRows host={host} label="聊天中新建会话"
+      rows={[{ id: 'requirements-1', role: 'builtin-analyst', kind: 'requirements', title: '报销需求', draft: '', updatedAt: 1 }]}
+      activeId="requirements-1" onOpen={onOpen} onRemove={onRemove}/>)
+  })
+  const rows = host.querySelector<HTMLElement>('[data-local-conversation-placement="standalone"]')!
+  expect(rows).not.toBeNull()
+  expect(rows.hidden).toBe(false)
+  expect(rows.textContent).toContain('报销需求')
+  const open = rows.querySelector<HTMLButtonElement>('button[aria-label="打开本地会话：报销需求"]')!
+  expect(open.getAttribute('aria-current')).toBe('page')
+  await act(async () => open.click())
+  expect(onOpen).toHaveBeenCalledExactlyOnceWith('requirements-1')
+})
+
+it('moves saved rows into a newly available native group and restores them if the group disappears', async () => {
+  await act(async () => { host.querySelector('[role="treeitem"]')!.parentElement!.remove() })
+  const rows = host.querySelector<HTMLElement>('[data-local-conversation-host]')!
+  expect(rows.dataset.localConversationPlacement).toBe('standalone')
+  const group = document.createElement('div')
+  group.innerHTML = '<div role="treeitem" aria-expanded="false"><button aria-label="聊天中新建会话">+</button></div>'
+  await act(async () => { host.insertBefore(group, rows) })
+  expect(host.querySelectorAll('[data-local-conversation-host]')).toHaveLength(1)
+  expect(rows.parentElement).toBe(group)
+  expect(rows.hidden).toBe(true)
+  await act(async () => { group.firstElementChild!.setAttribute('aria-expanded', 'true') })
+  expect(rows.hidden).toBe(false)
+  await act(async () => { group.remove() })
+  expect(rows.parentElement).toBe(host)
+  expect(rows.hidden).toBe(false)
+  expect(rows.textContent).toContain('新对话')
+})
+
+it('places saved records at the top of the native flex history tree and restores only its empty placeholder', async () => {
+  await act(async () => {
+    host.innerHTML = '<div class="bhn1Oq_treeBody bhn1Oq_wide"><div class="bhn1Oq_list" role="tree" aria-label="会话"><div class="bhn1Oq_empty" style="display:flex">暂无会话</div></div><span class="bhn1Oq_fade"></span></div>'
+  })
+  const tree = host.querySelector<HTMLElement>('[role="tree"]')!
+  const placeholder = tree.querySelector<HTMLElement>('.bhn1Oq_empty')!
+  expect(tree.firstElementChild?.getAttribute('data-local-conversation-host')).toBe('true')
+  expect(tree.textContent).toContain('新对话')
+  expect(tree.hidden).toBe(false)
+  expect(placeholder.hidden).toBe(true)
+  expect(placeholder.style.display).toBe('none')
+  await act(async () => root.render(<LocalConversationRows host={host} label="聊天中新建会话" rows={[]} activeId={null} onOpen={onOpen} onRemove={onRemove}/>))
+  expect(tree.querySelector('[data-local-conversations]')).toBeNull()
+  expect(tree.hidden).toBe(false)
+  expect(placeholder.hidden).toBe(false)
+  expect(placeholder.style.display).toBe('flex')
+})

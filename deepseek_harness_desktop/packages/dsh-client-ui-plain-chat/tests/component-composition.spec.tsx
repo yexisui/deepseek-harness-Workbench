@@ -28,6 +28,7 @@ describe('editable component relationships', () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string, options?: RequestInit) => {
       if (url.endsWith('/state')) return { ok: true, json: async () => snapshot() }
       if (url.endsWith('/meeting/config')) return { ok: true, json: async () => ({ ready: false, state: 'unconfigured', message: '请配置识别接口', editable: true, hasKey: true, keySource: 'saved', configSource: 'saved', revision: 1 }) }
+      if (url.endsWith('/requirements/config')) return { ok: true, json: async () => ({ ready: true, modelConfigured: true, message: '模型已配置，实际调用待验证', revision: 0, maxTextChars: 160000, defaults: { depth: 'standard', questionStyle: 'short', model: '' } }) }
       if (url.endsWith('/command')) {
         const { revision, command } = JSON.parse(String(options?.body))
         if (error) return { ok: false, json: async () => ({ error }) }
@@ -51,6 +52,28 @@ describe('editable component relationships', () => {
   })
   const openMeeting = async (key = 'meeting') => act(async () => root.render(<ManagedCenter key={key} initialId={MEETING_CAPABILITY_ID}/>))
   const meetingDraft = () => editorDrafts.get(`capability:${MEETING_CAPABILITY_ID}`)!.value as Snapshot['state']['capabilities'][number]['draft']
+
+  it('uses the same editor and configuration roundtrip for requirement service while isolating published authority', async () => {
+    await act(async () => root.render(<ManagedCenter key="requirements" initialId="requirements-analysis"/>))
+    await click('关联组件')
+    expect(container.querySelector('[data-component-environment="requirements"]')).not.toBeNull()
+    expect(container.textContent).not.toContain('浏览器未连接')
+    await click('移除关联：需求分析服务'); await click('移除关联')
+    await click('保存草稿')
+    expect(store.snapshot().capabilities.find(c => c.id === 'requirements-analysis')!.draft.components).toHaveLength(0)
+    expect(store.snapshot().capabilities.find(c => c.id === 'requirements-analysis')!.versions.at(-1)!.components).toHaveLength(1)
+    await act(async () => root.render(<ManagedCenter key="requirements-reopen" initialId="requirements-analysis"/>))
+    await click('关联组件'); expect(container.textContent).toContain('草稿缺少 1 个必需组件')
+    await click('编辑组件组合')
+    expect(button('检查并发布').disabled).toBe(true)
+    await click('添加 需求分析服务')
+    expect(document.querySelectorAll('[data-composition-row="requirements-service"]')).toHaveLength(1)
+    await click('配置服务', document.querySelector('dialog')!)
+    expect(container.textContent).toContain('默认整理深度')
+    await click('← 返回组件组合')
+    expect(document.querySelectorAll('[data-composition-row="requirements-service"]')).toHaveLength(1)
+    expect(button('检查并发布').disabled).toBe(false)
+  })
 
   it('uses the shared component list for meeting service, with real details and required removal confirmation', async () => {
     await openMeeting(); await click('关联组件')
