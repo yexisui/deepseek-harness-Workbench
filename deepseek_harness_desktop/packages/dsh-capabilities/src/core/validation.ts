@@ -2,6 +2,7 @@ import { components, type Definition, type RoleDefinition, type State } from './
 import { compatibilityIssues, dependencyName, missingAssociations, supportDependencies } from './composition.ts'
 import { roleIconIds, roleIconAssetIdPattern, type RoleIconSpec } from './appearance.ts'
 import { REQUIREMENTS_CAPABILITY_ID } from './requirements-model.ts'
+import { DEVELOPER_CAPABILITY_ID } from './developer-model.ts'
 export class InputError extends Error { constructor(message: string, readonly status = 400) { super(message) } }
 export function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new InputError('需要有效的对象')
@@ -69,6 +70,7 @@ export function issues(definition: Definition, capabilityId?: string): string[] 
 }
 export function roleCompositionIssues(value: RoleDefinition): string[] {
   const active = value.capabilities.filter(binding => binding.enabled)
+  if (active.some(binding => binding.capabilityId === DEVELOPER_CAPABILITY_ID) && active.some(binding => binding.capabilityId !== DEVELOPER_CAPABILITY_ID)) return ['开发工作区暂不支持与其他执行能力混用；草稿可以保存，请停用其他能力后发布。']
   return active.some(binding => binding.capabilityId === REQUIREMENTS_CAPABILITY_ID) && active.some(binding => binding.capabilityId !== REQUIREMENTS_CAPABILITY_ID)
     ? ['需求分析使用独立工作区，暂不支持与其他执行能力混用。请停用或移除其他能力后发布；草稿可以继续保存。'] : []
 }

@@ -27,6 +27,7 @@ import {
   type WorktreeAddResult, type WorktreeListView, type WorktreeRemoveResult,
 } from '../core/types.ts'
 import { isManagedWorktreeOf, repoWorktreesDir, worktreePathFor } from './worktree-home.ts'
+import { WorkspaceFiles } from './workspace-files.ts'
 
 /** One finished git invocation (shared runner plumbing). */
 export type { GitRunResult, GitRunner } from './git-runner.ts'
@@ -65,7 +66,11 @@ export type WorkspaceGate = (path: string) => Promise<WorkspaceVerdict>
  * @returns the runner.
  */
 export function subprocessRunner(ctx: Context): GitRunner {
-  return sharedSubprocessRunner(ctx, { spawnArgv: (argv) => gitSpawnArgv(process.platform, argv) })
+  // The SDK scrubs credential-shaped *_KEY_* variables, but preserves
+  // GIT_CONFIG_COUNT. A half-forwarded config tuple makes every Git command
+  // fail before repository discovery. Use normal Git config files in children.
+  const subprocess = { spawn: (spec: Parameters<Context['subprocess']['spawn']>[0]) => ctx.subprocess.spawn({ ...spec, env: { GIT_CONFIG_COUNT: undefined, GIT_CONFIG_PARAMETERS: undefined, GIT_OPTIONAL_LOCKS: '0' } }) }
+  return sharedSubprocessRunner({ subprocess }, { spawnArgv: (argv) => gitSpawnArgv(process.platform, argv) })
 }
 
 /** HEAD is the symbolic value `git rev-parse --abbrev-ref HEAD` prints when detached. */
@@ -83,6 +88,7 @@ const WORKSPACE_UNKNOWN: GitError = {
  * and rejects non-repositories with `null` (or a rejection for mutations).
  */
 export class GitService {
+  readonly workspace: WorkspaceFiles
   /**
    * @param runner - the spawn seam.
    * @param gate - workspace-membership gate (host: canonical path ∈ registered workspace paths).
@@ -90,7 +96,7 @@ export class GitService {
   constructor(
     private readonly runner: GitRunner,
     private readonly gate: WorkspaceGate,
-  ) {}
+  ) { this.workspace = new WorkspaceFiles(runner, gate) }
 
   /** Status work currently running for each requested workspace path. */
   private readonly statusFlights = new Map<string, Promise<RepoStatus | null>>()
@@ -207,6 +213,7 @@ export class GitService {
    * @param branch - existing local branch name.
    */
   async switchBranch(path: string, branch: string): Promise<SwitchResult> {
+    if (await this.workspace.busy(path).catch(() => false)) return { ok: false, error: { code: 'operation-in-progress', message: '开发或验证正在使用此目录，请先停止执行' } }
     const gated = await this.gate(path)
     if (!gated.ok) return { ok: false, error: WORKSPACE_UNKNOWN }
     const root = await this.repoRoot(gated.canonical)
@@ -237,6 +244,7 @@ export class GitService {
    * @param name - proposed branch name.
    */
   async createBranch(path: string, name: string): Promise<SwitchResult> {
+    if (await this.workspace.busy(path).catch(() => false)) return { ok: false, error: { code: 'operation-in-progress', message: '开发或验证正在使用此目录，请先停止执行' } }
     const mirrorReason = validateBranchName(name)
     if (mirrorReason !== null) {
       return { ok: false, error: { code: 'invalid-branch-name', message: `invalid branch name: ${mirrorReason}` } }

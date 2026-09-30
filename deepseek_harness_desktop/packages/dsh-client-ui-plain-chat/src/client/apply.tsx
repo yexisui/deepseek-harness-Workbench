@@ -14,6 +14,8 @@ import { registerCapabilityCenter } from './capability-settings.tsx'
 import { AgentPresetDisclosure } from './RoleAssistants.tsx'
 import { ManagedCenter } from './ManagedCenter.tsx'
 import { BrowserTaskStatus, ManagedCurrentAssistant, ManagedRolePicker, ManagedRolesSection, MEETING_DEMO_ROLE_ID } from './ManagedRoles.tsx'
+import { DeveloperAssistant } from './DeveloperAssistant.tsx'
+import { createDeveloperHistory, usesDeveloper } from './developer-client.ts'
 import { RequirementsAssistant } from './RequirementsAssistant.tsx'
 import { createRequirementHistory } from './requirement-history.ts'
 import { usesRequirements } from './requirements-routing.ts'
@@ -58,6 +60,11 @@ export function apply(ctx: Context): void {
   const roleSelection = createRoleSelection<string>()
   const localConversations = createLocalConversations()
   const requirementHistory = createRequirementHistory()
+  const developerHistory = createDeveloperHistory()
+  let developerNavigation = 0
+  let developerViewKey = `developer-${developerHistory.getSnapshot().activeId ?? "initial"}`
+  if (sessions.list.getSnapshot().current !== undefined || localConversations.active()) developerHistory.leave()
+  ctx.effect(() => { void developerHistory.load(); const refresh = () => { void developerHistory.load() }; window.addEventListener("focus", refresh); return () => window.removeEventListener("focus", refresh) }, "plain-chat: developer history")
   let requirementViewKey = `requirements-${requirementHistory.getSnapshot().activeId ?? 'initial'}`
   let requirementNavigation = 0
   if (sessions.list.getSnapshot().current !== undefined || localConversations.active()) requirementHistory.leave()
@@ -94,6 +101,7 @@ export function apply(ctx: Context): void {
     if (id === roleSelection.getSnapshot()) return
     start.reset()
     requirementHistory.leave()
+    developerHistory.leave(); developerViewKey = `developer-new-${++developerNavigation}`
     requirementViewKey = `requirements-${id}-${++requirementNavigation}`
     roleSelection.select(id)
     if (sessions.list.getSnapshot().current === undefined) {
@@ -107,6 +115,7 @@ export function apply(ctx: Context): void {
   const startFreshChat = (role = 'chat') => {
     requirementViewKey = `requirements-new-${role}-${++requirementNavigation}`
     requirementHistory.leave()
+    developerHistory.leave(); developerViewKey = `developer-new-${++developerNavigation}`
     start.reset()
     clearSavedDraft()
     localConversations.start(role)
@@ -117,6 +126,13 @@ export function apply(ctx: Context): void {
     layout.selectPanel(null)
   }
   const openLocalConversation = (id: string) => {
+    const developer = developerHistory.getSnapshot().items.find(item => item.id === id)
+    if (developer) {
+      developerViewKey = `developer-${id}-${++developerNavigation}`
+      start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.open(id); roleSelection.select(developer.roleId); clearSavedDraft()
+      revision++; listeners.forEach(fn => fn()); sessions.clear(); layout.selectPanel(null); return
+    }
+    developerHistory.leave(); developerViewKey = `developer-local-${id}-${++developerNavigation}`
     const requirement = requirementHistory.getSnapshot().items.find(item => item.id === id)
     if (requirement) {
       requirementViewKey = `requirements-${id}-${++requirementNavigation}`
@@ -137,6 +153,13 @@ export function apply(ctx: Context): void {
     layout.selectPanel(null)
   }
   const removeLocalConversation = (id: string) => {
+    const developer = developerHistory.getSnapshot().items.find(item => item.id === id)
+    if (developer) {
+      if (!window.confirm(`移除“${developer.title}”的开发记录？代码、提交和工作目录保留；此对话和运行记录将被删除。`)) return
+      const active = developerHistory.getSnapshot().activeId === id, navigation = developerViewKey
+      void developerHistory.remove(id).then(() => { if (active && navigation === developerViewKey) startFreshChat() }).catch(error => window.alert(error instanceof Error ? error.message : String(error)))
+      return
+    }
     const requirement = requirementHistory.getSnapshot().items.find(item => item.id === id)
     if (requirement) {
       if (!window.confirm(`移除“${requirement.title}”？这将删除此需求分析的资料、对话、需求条目和确认版本，无法撤销。`)) return
@@ -156,7 +179,7 @@ export function apply(ctx: Context): void {
   }
   ctx.effect(() => {
     const unsubscribe = sessions.list.subscribe(() => {
-      if (sessions.list.getSnapshot().current !== undefined) { if (localConversations.active()) localConversations.leave(); if (requirementHistory.getSnapshot().activeId) requirementHistory.leave() }
+      if (sessions.list.getSnapshot().current !== undefined) { if (localConversations.active()) localConversations.leave(); if (requirementHistory.getSnapshot().activeId) requirementHistory.leave(); if (developerHistory.getSnapshot().activeId) developerHistory.leave() }
     })
     return unsubscribe
   }, 'plain-chat: local draft lifecycle')
@@ -188,10 +211,15 @@ export function apply(ctx: Context): void {
       const local = localSnapshot.items.find(row => row.id === localSnapshot.activeId)
       const requirementSnapshot = useSyncExternalStore(requirementHistory.subscribe, requirementHistory.getSnapshot)
       const requirement = requirementSnapshot.items.find(row => row.id === requirementSnapshot.activeId)
-      const effectiveRole = requirement?.roleId ?? local?.role ?? selectedRole
+      const developerSnapshot = useSyncExternalStore(developerHistory.subscribe, developerHistory.getSnapshot)
+      const developer = developerSnapshot.items.find(row => row.id === developerSnapshot.activeId)
+      const developerKey = developerViewKey
+      const effectiveRole = developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole
       const capabilities = useSyncExternalStore(capabilityClient.subscribe, capabilityClient.getSnapshot)
       const analysisRole = capabilities.data?.state.roles.find(role => role.id === effectiveRole)
       const analysisVersion = requirement ? analysisRole?.versions.find(version => version.version === requirement.roleVersion) : analysisRole && latest(analysisRole.versions)
+      const developerVersion = developer ? analysisRole?.versions.find(v => v.version === developer.roleVersion) : analysisRole && latest(analysisRole.versions)
+      const showDeveloper = Boolean(developer) || usesDeveloper(capabilities.data?.state, developerVersion)
       const analysisViewKey = requirementViewKey
       const showRequirements = Boolean(requirement) || usesRequirements(capabilities.data?.state, analysisVersion)
       const meetingRole = capabilities.data?.state.roles.find(role => role.id === MEETING_DEMO_ROLE_ID)
@@ -237,10 +265,21 @@ export function apply(ctx: Context): void {
         if (binding && local?.kind === 'draft') localConversations.commitChat(local.id)
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && showRequirements ? analysisVersion?.preset : noSession && effectiveRole === MEETING_DEMO_ROLE_ID ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /></div>
+        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && effectiveRole === MEETING_DEMO_ROLE_ID ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /></div>
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
-        <div className={styles.conversationContent}>{noSession && requirementSnapshot.activeId && !requirement ? <p role="status">{requirementSnapshot.error || '正在恢复需求分析…'}<button onClick={() => { void requirementHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showRequirements
+        <div className={styles.conversationContent}>{noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
+          ? <DeveloperAssistant key={developerKey} taskId={developer?.id} draftKey={local?.id ?? developerKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={developerVersion?.version} loadModels={loadMeetingModels} onDraftChange={value => {
+            if (developerKey !== developerViewKey || sessions.list.getSnapshot().current !== undefined || developerHistory.getSnapshot().activeId) return
+            const row = localConversations.active()
+            if (row?.kind === 'draft' && row.role === effectiveRole && row.draft !== value) localConversations.setDraft(row.id, value)
+          }} onCommit={task => {
+            const current = developerKey === developerViewKey && sessions.list.getSnapshot().current === undefined && roleSelection.getSnapshot() === effectiveRole
+            const origin = local && localConversations.getSnapshot().items.find(row => row.id === local.id)
+            if (current && origin?.kind === 'draft') localConversations.commitChat(origin.id)
+            developerHistory.upsert(task, current)
+          }}/>
+          : noSession && requirementSnapshot.activeId && !requirement ? <p role="status">{requirementSnapshot.error || '正在恢复需求分析…'}<button onClick={() => { void requirementHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showRequirements
           ? <RequirementsAssistant key={analysisViewKey} taskId={requirement?.id} draftKey={local?.id ?? analysisViewKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={analysisVersion?.version} assistant={analysisVersion} loadModels={loadMeetingModels} onDraftChange={value => {
             if (analysisViewKey !== requirementViewKey || sessions.list.getSnapshot().current !== undefined || requirementHistory.getSnapshot().activeId) return
             const row = localConversations.active()
@@ -277,7 +316,8 @@ export function apply(ctx: Context): void {
   ctx.effect(() => decorateSlot(registry, 'sidebar.workspaces', 'WorkspaceBrowser', Original => function ChatHistory(props: any) {
     const local = useSyncExternalStore(localConversations.subscribe, localConversations.getSnapshot)
     const requirements = useSyncExternalStore(requirementHistory.subscribe, requirementHistory.getSnapshot)
-    const historyRows = [...local.items, ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
+    const developers = useSyncExternalStore(developerHistory.subscribe, developerHistory.getSnapshot)
+    const historyRows = [...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
     const [host, setHost] = useState<HTMLDivElement | null>(null)
     const translate = (key: string, ...args: unknown[]) => key === 'group.ungrouped' ? t('history') : props.t(key, ...args)
     // The upstream ungrouped row renders a + button but deliberately gives it
@@ -292,10 +332,10 @@ export function apply(ctx: Context): void {
       const header = button?.closest<HTMLElement>('[role="treeitem"]')
       if (header?.getAttribute('aria-expanded') === 'false') header.click()
     }
-    const open = (id: string) => { start.reset(); localConversations.leave(); requirementHistory.leave(); clearSavedDraft(); props.open(id) }
+    const open = (id: string) => { start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
     return <div ref={setHost} style={{ display: 'contents' }} onClickCapture={onClickCapture}>
       <Original {...props} t={translate} open={open} />
-      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation}/>
+      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation}/>
       <NativeConversationRemoval sessions={sessions}/>
     </div>
   }), 'plain-chat: history label')

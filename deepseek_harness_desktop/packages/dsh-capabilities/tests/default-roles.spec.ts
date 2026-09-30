@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { initialState, type State } from '../src/core/model.ts'
 import { MEETING_CAPABILITY_ID, MEETING_ROLE_ID } from '../src/core/default-roles.ts'
 import { REQUIREMENTS_CAPABILITY_ID, REQUIREMENTS_ROLE_ID } from '../src/core/requirements-model.ts'
+import { DEVELOPER_CAPABILITY_ID, DEVELOPER_ROLE_ID } from '../src/core/developer-model.ts'
 import { allowedActions, browserActions } from '../src/core/policy.ts'
 import { CapabilityStore } from '../src/host/store.ts'
 import { writePresets } from '../src/host/presets.ts'
@@ -21,6 +22,24 @@ async function legacy(state: State) {
   return directory
 }
 describe('restoring managed role assistants', () => {
+  it('migrates the developer binding once without publishing unfinished draft fields or replacing past versions', async () => {
+    const before = initialState(), role = before.roles.find(r => r.id === DEVELOPER_ROLE_ID)!
+    delete before.developerCapabilityVersion
+    before.capabilities = before.capabilities.filter(c => c.id !== DEVELOPER_CAPABILITY_ID)
+    role.draft.capabilities = []; role.versions[0]!.capabilities = []
+    role.draft.name = '尚未发布的自定义名称'; role.draft.requirements = '保留未完成内容'
+    const oldVersion = structuredClone(role.versions[0])
+    const directory = await mkdtemp(join(tmpdir(), 'dsh-developer-migration-'))
+    await writeFile(join(directory, 'state.json'), JSON.stringify(before))
+    const store = await open(directory), migrated = store.snapshot(), updated = migrated.roles.find(r => r.id === DEVELOPER_ROLE_ID)!
+    expect(updated.draft.name).toBe(role.draft.name); expect(updated.draft.requirements).toBe(role.draft.requirements)
+    expect(updated.versions[0]).toEqual(oldVersion)
+    expect(updated.versions[1]!.name).toBe(oldVersion!.name)
+    expect(updated.versions[1]!.capabilities).toEqual([{ capabilityId: DEVELOPER_CAPABILITY_ID, version: 1, enabled: true }])
+    expect(migrated.roles.filter(r => r.id !== DEVELOPER_ROLE_ID)).toEqual(before.roles.filter(r => r.id !== DEVELOPER_ROLE_ID))
+    expect(JSON.parse(await readFile(join(directory, 'state-before-developer-capability-v1.json'), 'utf8'))).toEqual(before)
+    await store.close(); expect((await open(directory)).snapshot()).toEqual(migrated)
+  })
   it('creates usable published defaults with original copy and colors and without granting tools', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'dsh-role-defaults-')), store = await open(directory), state = store.snapshot()
     expect(state.roles.map(r => [r.draft.name, r.draft.color])).toEqual([
@@ -29,7 +48,7 @@ describe('restoring managed role assistants', () => {
     await writePresets(directory, state)
     for (const role of state.roles) {
       expect(role.versions).toHaveLength(1)
-      expect(role.versions[0]!.capabilities).toEqual(role.id === MEETING_ROLE_ID ? [{ capabilityId: MEETING_CAPABILITY_ID, version: 1, enabled: true }] : role.id === REQUIREMENTS_ROLE_ID ? [{ capabilityId: REQUIREMENTS_CAPABILITY_ID, version: 1, enabled: true }] : [])
+      expect(role.versions[0]!.capabilities).toEqual(role.id === MEETING_ROLE_ID ? [{ capabilityId: MEETING_CAPABILITY_ID, version: 1, enabled: true }] : role.id === DEVELOPER_ROLE_ID ? [{ capabilityId: DEVELOPER_CAPABILITY_ID, version: 1, enabled: true }] : role.id === REQUIREMENTS_ROLE_ID ? [{ capabilityId: REQUIREMENTS_CAPABILITY_ID, version: 1, enabled: true }] : [])
       expect(browserActions(allowedActions(state, role.id, role.versions[0]!))).toEqual([])
       const source = JSON.parse(await readFile(join(directory, '.agent-presets', role.versions[0]!.preset, 'agent.cordis.yml'), 'utf8'))
       for (const field of ['name', 'duties', 'requirements', 'format'] as const) expect(source[0].config.prefix).toContain(role.draft[field])

@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { LocalConversation } from './local-conversations.ts'
-export type ConversationHistoryRow = Omit<LocalConversation, 'kind'> & { kind: LocalConversation['kind'] | 'requirements' }
+export type ConversationHistoryRow = Omit<LocalConversation, 'kind'> & { kind: LocalConversation['kind'] | 'requirements' | 'developer' }
 import s from './LocalConversationRows.module.css'
 
 /** Share the native Chat group when present; saved records also need a home in an empty tree. */
@@ -100,7 +100,7 @@ export function LocalConversationRows({ host, label, rows, activeId, onOpen, onR
     {standalone && <div className={s.fallbackHeading}>{fallbackLabel}</div>}
     {rows.map(row => <div className={`${s.row} ${activeId === row.id ? s.active : ''}`} key={row.id}>
       <button type="button" className={s.open} onClick={() => onOpen(row.id)} aria-label={`打开本地会话：${row.title}`} aria-current={activeId === row.id ? 'page' : undefined}>
-        <span className={s.icon} aria-hidden="true">{row.kind === 'requirements' ? '▧' : row.kind === 'demo' ? '▤' : '◌'}</span><span className={s.title}>{row.title}</span><small>{row.kind === 'requirements' ? '需求' : row.kind === 'demo' ? '演示' : row.draft.trim() ? '草稿' : '临时'}</small>
+        <span className={s.icon} aria-hidden="true">{row.kind === 'developer' ? '⌘' : row.kind === 'requirements' ? '▧' : row.kind === 'demo' ? '▤' : '◌'}</span><span className={s.title}>{row.title}</span><small>{row.kind === 'developer' ? '开发' : row.kind === 'requirements' ? '需求' : row.kind === 'demo' ? '演示' : row.draft.trim() ? '草稿' : '临时'}</small>
       </button>
       <button type="button" className={s.menuTrigger} onClick={event => openMenu(row.id, event.currentTarget)} aria-label={`会话操作：${row.title}`} aria-haspopup="menu" aria-expanded={menu?.id === row.id}>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3" cy="8" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="13" cy="8" r="1.2"/></svg>

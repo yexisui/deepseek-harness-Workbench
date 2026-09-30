@@ -29,6 +29,7 @@ import { mountOnce } from './mount-once.ts'
 
 /** Required services: the route registry, the managed subprocess seam, and the workspace registry. */
 export const inject = ['webServer', 'subprocess', 'workspaceRegistry']
+declare module '@deepseek-ai/cordis' { interface Context { workbenchGit: GitService } }
 
 /** Plugin config (settings-editable through the Web settings card). */
 export interface Config {
@@ -89,6 +90,8 @@ export const apply = mountOnce('@linxin666/dsh-client-ui-git-graph', applyImpl)
 
 function applyImpl(ctx: Context, config?: Config): void {
   const service = new GitService(subprocessRunner(ctx), createWorkspaceGate(ctx))
+  ctx.provide('workbenchGit', service)
+  ctx.effect(() => () => service.workspace.close(), 'git workspace file observers')
 
   // The live config source: installSection swaps it when the user
   // edits the settings card; onChange re-syncs derived registrations.

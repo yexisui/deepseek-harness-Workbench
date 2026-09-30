@@ -8,6 +8,7 @@ type Context = { data: Snapshot; meetingStatus?: MeetingAvailability | null; req
 type Presentation = { description: string; status: string; title: string; name: string; detail: string; configuration?: string; publishNotice: string }
 /** Module differences live here; shared composition views never assume a browser environment. */
 const adapters: Record<Component['management'], (context: Context) => Presentation> = {
+  developer: () => ({ description: '在开发工作区读取项目、按任务授权编辑、查看真实 Git 差异并运行已确认的检查。', status: '项目和服务可用性在开发工作区实际检测', title: '开发工作区服务', name: '项目文件、共享 Git 服务与验证进程', detail: '模型沿用工作台账户。验证命令、编辑器在每个项目的“项目设置”统一保存；每个开发任务默认只读。', publishNotice: '三个必需组件和动作齐全后才能发布。草稿编辑不影响已发布任务；历史版本和代码保留。' }),
   requirements: ({ requirementsStatus }) => ({
     description: '在需求工作区澄清问题、整理来源与条目、确认版本并生成需求文档。可由多个岗位引用同一能力；暂不支持复制或与浏览器执行能力混用。',
     status: requirementsStatus?.message ?? '正在读取需求分析配置…', title: '需求分析服务', name: '工作台模型与需求存储',

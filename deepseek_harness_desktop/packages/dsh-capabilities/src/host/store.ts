@@ -3,6 +3,8 @@ import { mkdir, readFile, open, rename, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 import { capabilityDeletionReferences, initialState, latest, meetingCapability, requirementsCapability, type State, type Command, type Role, type RoleDefinition } from '../core/model.ts'
 import { REQUIREMENTS_CAPABILITY_ID, REQUIREMENTS_ROLE_ID } from '../core/requirements-model.ts'
+import { DEVELOPER_CAPABILITY_ID, DEVELOPER_ROLE_ID } from '../core/developer-model.ts'
+import { developerCapability } from '../core/model.ts'
 import { defaultRoles, MEETING_CAPABILITY_ID, MEETING_ROLE_ID } from '../core/default-roles.ts'
 import { bool, definition, id, InputError, integer, issues, list, object, roleDefinition, roleCompositionIssues, text } from '../core/validation.ts'
 import { RoleIconStore } from './icons.ts'
@@ -37,6 +39,7 @@ export class CapabilityStore {
         if (raw.defaultRolesVersion !== undefined && raw.defaultRolesVersion !== 1 && raw.defaultRolesVersion !== 2) throw new Error('Unsupported default role migration')
         if (raw.meetingCapabilityVersion !== undefined && raw.meetingCapabilityVersion !== 1) throw new Error('Unsupported meeting capability migration')
         if (raw.requirementsCapabilityVersion !== undefined && raw.requirementsCapabilityVersion !== 1) throw new Error('Unsupported requirements capability migration')
+        if (raw.developerCapabilityVersion !== undefined && raw.developerCapabilityVersion !== 1) throw new Error('Unsupported developer capability migration')
         if (raw.stoppedSessions !== undefined && (!Array.isArray(raw.stoppedSessions) || raw.stoppedSessions.some((value: unknown) => typeof value !== 'string' || !value || value.length > 150))) throw new Error('Invalid stopped session data')
         if (raw.revokedAt !== undefined && Object.entries(object(raw.revokedAt)).some(([key, value]) => !/^(role|capability):[a-z][a-z0-9-]*$/.test(key) || !Number.isSafeInteger(value) || Number(value) < 0)) throw new Error('Invalid revocation data')
         // Validate persisted references too. Invalid state must never become execution authority.
@@ -81,6 +84,20 @@ export class CapabilityStore {
         const backup = await open(join(this.directory, 'state-before-requirements-capability-v1.json'), 'wx').catch(error => { if (error.code !== 'EEXIST') throw error; return undefined })
         if (backup) { try { await backup.writeFile(JSON.stringify(this.state, null, 2)); await backup.sync() } finally { await backup.close() } }
         await this.persist(next); this.state = next
+      }
+      if (this.state.developerCapabilityVersion !== 1) {
+        const next = this.snapshot(), now = new Date().toISOString()
+        if (!next.capabilities.some(cap => cap.id === DEVELOPER_CAPABILITY_ID)) next.capabilities.push(developerCapability(now))
+        const role = next.roles.find(item => item.id === DEVELOPER_ROLE_ID), current = role && latest(role.versions)
+        const binding = { capabilityId: DEVELOPER_CAPABILITY_ID, version: 1, enabled: true }
+        if (role && current && !current.capabilities.some(item => item.enabled)) {
+          // An unfinished role draft is never published by a migration.
+          if (!role.draft.capabilities.some(item => item.enabled) && !role.draft.capabilities.some(item => item.capabilityId === binding.capabilityId)) role.draft.capabilities.push(structuredClone(binding))
+          this.publishRole(role, { ...structuredClone(current), capabilities: [...current.capabilities, binding] }, now)
+        }
+        const backup = await open(join(this.directory, 'state-before-developer-capability-v1.json'), 'wx').catch(error => { if (error.code !== 'EEXIST') throw error; return undefined })
+        if (backup) { try { await backup.writeFile(JSON.stringify(this.state, null, 2)); await backup.sync() } finally { await backup.close() } }
+        next.developerCapabilityVersion = 1; next.revision++; next.updatedAt = now; await this.persist(next); this.state = next
       }
       if (this.state.defaultRolesVersion !== 2) {
         // V1 users already have four managed roles. Add the meeting role under its
@@ -147,6 +164,7 @@ export class CapabilityStore {
         const original = next.capabilities.find(c => c.id === target)
         if (!original) throw new InputError('能力不存在', 404)
         if (target === MEETING_CAPABILITY_ID) throw new InputError('内置会议录音转写不能复制；可编辑说明和服务配置')
+        if (target === DEVELOPER_CAPABILITY_ID) throw new InputError('开发工作区使用专用执行路由，暂不支持复制；可由多个岗位引用同一能力')
         if (target === REQUIREMENTS_CAPABILITY_ID) throw new InputError('需求分析服务使用独立工作区，暂不支持复制能力或混合浏览器流程；可由多个岗位引用同一已发布能力')
         if (original.removedAt) throw new InputError('此能力已移除，请先恢复后再复制')
         target = `local-${randomUUID()}`

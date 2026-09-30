@@ -1,5 +1,6 @@
 import type { Role, RoleDefinition } from './model.ts'
 import { REQUIREMENTS_CAPABILITY_ID } from './requirements-model.ts'
+import { DEVELOPER_CAPABILITY_ID } from './developer-model.ts'
 
 // Keep the original local conversation role ID so saved meeting history remains readable.
 export const MEETING_ROLE_ID = 'meeting-minutes-demo'
@@ -29,7 +30,7 @@ const definitions: Array<{ id: string; definition: RoleDefinition }> = [
     name: '开发助手', color: '#22A58B',
     duties: '协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。',
     requirements: '结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。',
-    format: '一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项', capabilities: [],
+    format: '一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项', capabilities: [{ capabilityId: DEVELOPER_CAPABILITY_ID, version: 1, enabled: true }],
   } },
   { id: MEETING_ROLE_ID, definition: {
     name: '会议纪要助手', color: '#6683bd', icon: { kind: 'builtin', id: 'document' },
