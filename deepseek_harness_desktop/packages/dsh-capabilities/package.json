@@ -1,6 +1,6 @@
 {
   "name": "@linxin666/dsh-capabilities",
-  "version": "0.1.0-local.12",
+  "version": "0.1.0-local.13",
   "private": true,
   "description": "岗位能力、版本、授权、会议纪要与需求分析服务",
   "type": "module",

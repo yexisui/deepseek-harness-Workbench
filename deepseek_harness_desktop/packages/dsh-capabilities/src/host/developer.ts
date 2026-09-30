@@ -221,6 +221,7 @@ export class DeveloperService {
   }) }
   private async develop(id: string, roundId: string, signal: AbortSignal) {
     const observed = new Map<string, string>(), evidence: unknown[] = []
+    let formatRetries = 0
     try {
       let task = await this.get(id)
       const listing = await this.git.workspace.files(task.cwd)
@@ -234,7 +235,13 @@ export class DeveloperService {
         const output = await this.model(prompt, task.model, signal); signal.throwIfAborted()
         let command: Record<string, unknown>
         try { command = object(JSON.parse(output.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, ''))) }
-        catch { throw new InputError('模型未返回有效的开发指令，已停止；已有写入保留') }
+        catch {
+          if (formatRetries >= 2 || step === 23) throw new InputError('模型未返回有效的开发指令，重试后已停止；已有写入保留')
+          formatRetries++
+          evidence.push({ error: '上次输出不是单个有效 JSON 对象，未执行任何操作。请按系统指定的 action 格式重新输出；中文分析放入 finish 的 message 字段。岗位输出格式仅约束 message，不替代外层 JSON。' })
+          await this.update(id, current => this.event(current, 'system', `模型返回格式无效，正在重试（${formatRetries}/2）`))
+          continue
+        }
         if (command.action === 'finish') {
           await this.update(id, current => { current.messages.push({ id: randomUUID(), role: 'assistant', text: text(command.message, '回答', 40000, true), at: now() }) }); break
         }

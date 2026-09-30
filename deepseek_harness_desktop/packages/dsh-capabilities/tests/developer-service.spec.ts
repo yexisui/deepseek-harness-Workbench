@@ -61,6 +61,34 @@ it('stops model calls and does not replay them on reopen', async () => {
   await service.send(task.id, { requestId: randomUUID(), message: 'long task' }); const result = await service.stop(task.id)
   expect(result.rounds[0]!.status).toBe('stopped'); expect((await service.get(task.id)).messages).toHaveLength(1)
 }, 30000)
+it('retries malformed model responses without executing embedded commands or duplicating user messages', async () => {
+  const task = await create(); let calls = 0
+  model = async prompt => {
+    calls++
+    if (calls === 1) return '分析如下：{"action":"write","path":"main.ts","content":"must not execute"}'
+    expect(JSON.parse(prompt).operations.at(-1).error).toContain('未执行任何操作')
+    return JSON.stringify({ action: 'finish', message: '只读分析完成' })
+  }
+  await service.send(task.id, { requestId: randomUUID(), message: 'explain' }); const result = await done(task.id)
+  expect(calls).toBe(2); expect(result.rounds[0]!.status).toBe('done'); expect(result.rounds[0]!.writes).toEqual([])
+  expect(result.messages.filter(m => m.role === 'user')).toHaveLength(1)
+  expect(result.events.some(e => e.text.includes('正在重试（1/2）'))).toBe(true)
+  expect(await readFile(join(repo, 'main.ts'), 'utf8')).toBe('original\n')
+}, 30000)
+it('bounds format retries and retains successful writes if the model keeps returning invalid JSON', async () => {
+  let task = await create(); task = await service.configureTask(task.id, task.revision, { permission: 'edit' }); let calls = 0
+  model = async () => {
+    calls++
+    if (calls === 1) return JSON.stringify({ action: 'read', path: 'main.ts' })
+    if (calls === 2) return JSON.stringify({ action: 'write', path: 'main.ts', content: 'completed before format failure\n' })
+    return '{invalid'
+  }
+  await service.send(task.id, { requestId: randomUUID(), message: 'edit' }); const result = await done(task.id)
+  expect(calls).toBe(5); expect(result.rounds[0]!.status).toBe('failed'); expect(result.rounds[0]!.writes).toHaveLength(1)
+  expect(result.rounds[0]!.error).toContain('重试后已停止'); expect(result.rounds[0]!.after).toBeTruthy()
+  expect(await readFile(join(repo, 'main.ts'), 'utf8')).toBe('completed before format failure\n')
+  expect(await git.workspace.busy(repo)).toBe(false)
+}, 30000)
 it('runs only confirmed project commands and binds results to the actual directory and code fingerprint', async () => {
   const task = await create()
   await expect(service.verify(task.id, 'unknown', randomUUID())).rejects.toThrow('确认验证命令')
