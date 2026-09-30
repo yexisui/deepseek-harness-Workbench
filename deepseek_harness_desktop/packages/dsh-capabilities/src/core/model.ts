@@ -12,7 +12,7 @@ export type Binding = { capabilityId: string; version: number; enabled: boolean;
 export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec; duties: string; requirements: string; format: string; capabilities: Binding[] }
 export type RoleVersion = RoleDefinition & { version: number; preset: string; createdAt: string }
 export type Role = { id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
-export type State = { schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
+export type State = { componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
 export type Component = {
   id: string; name: string; provider: string; version: string; actions: readonly Action[]; dependencies: readonly string[]
   icon: 'browser' | 'audio' | 'document'; sourceLabel: string; management: 'browser' | 'meeting-asr' | 'requirements' | 'developer'; pluginModule?: string
@@ -60,7 +60,7 @@ export type Command =
 export type Health = { checkedAt: string | null; installed: boolean; loaded: boolean; state: 'unknown' | 'missing' | 'disconnected' | 'ready' | 'degraded'; message: string; cliVersion?: string; browsers: { id: string; name: string }[] }
 export type Task = { sessionId: string; roleId: string; roleVersion: number; name: string; status: 'idle' | 'running' | 'stopping' | 'stopped' | 'error'; error?: string; action?: string; browserSessions: string[] }
 export type DependencyHealth = { id: string; installed: boolean; loaded: boolean; version?: string; pendingRestart: boolean }
-export type Snapshot = { compositionVersion?: 1 | 2; state: State; components: readonly Component[]; health: Health; tasks: Task[]; dependencies?: DependencyHealth[] }
+export type Snapshot = { compositionVersion?: 1 | 2; state: State; components: readonly Component[]; health: Health; tasks: Task[]; dependencies?: DependencyHealth[]; registry?: import("./component-registry.ts").ComponentRegistry; componentActivities?: import("./component-registry.ts").ComponentActivity[] }
 
 export function resolveBinding(state: State, binding: Binding): Version | undefined {
   return state.capabilities.find(c => c.id === binding.capabilityId)?.versions.find(v => v.version === binding.version)
@@ -79,8 +79,7 @@ export function capabilityDeletionReferences(state: State, capabilityId: string)
 }
 export function references(state: State, componentId: string, tasks: Task[] = []) {
   const capabilities = state.capabilities.filter(c => c.draft.components.some(p => p.componentId === componentId) || c.versions.some(v => v.components.some(p => p.componentId === componentId)))
-  const ids = new Set(capabilities.map(c => c.id))
-  const roles = state.roles.filter(r => r.draft.capabilities.some(b => ids.has(b.capabilityId)) || latest(r.versions)?.capabilities.some(b => ids.has(b.capabilityId)))
-  const active = tasks.filter(t => !['stopped'].includes(t.status) && state.roles.find(r => r.id === t.roleId)?.versions.find(v => v.version === t.roleVersion)?.capabilities.some(b => ids.has(b.capabilityId)))
+  const roles = state.roles.filter(r => r.draft.capabilities.some(b => resolveBinding(state, b)?.components.some(p => p.componentId === componentId)) || r.versions.some(v => v.capabilities.some(b => resolveBinding(state, b)?.components.some(p => p.componentId === componentId))))
+  const active = tasks.filter(t => !['stopped'].includes(t.status) && state.roles.find(r => r.id === t.roleId)?.versions.find(v => v.version === t.roleVersion)?.capabilities.some(b => b.enabled && resolveBinding(state, b)?.components.some(p => p.componentId === componentId)))
   return { capabilities, roles, tasks: active }
 }

@@ -54,7 +54,7 @@ export class CapabilityStore {
         this.state = initialState(); await this.persist(this.state)
       }
       if (this.state.meetingCapabilityVersion !== 1) {
-        const next = this.snapshot(), now = new Date().toISOString()
+        const next = this.mutableSnapshot(), now = new Date().toISOString()
         if (!next.capabilities.some(cap => cap.id === MEETING_CAPABILITY_ID)) next.capabilities.push(meetingCapability(now))
         const role = next.roles.find(item => item.id === MEETING_ROLE_ID)
         if (role && !role.draft.capabilities.some(binding => binding.capabilityId === MEETING_CAPABILITY_ID)) {
@@ -69,7 +69,7 @@ export class CapabilityStore {
         await this.persist(next); this.state = next
       }
       if (this.state.requirementsCapabilityVersion !== 1) {
-        const next = this.snapshot(), now = new Date().toISOString()
+        const next = this.mutableSnapshot(), now = new Date().toISOString()
         if (!next.capabilities.some(cap => cap.id === REQUIREMENTS_CAPABILITY_ID)) next.capabilities.push(requirementsCapability(now))
         const role = next.roles.find(item => item.id === REQUIREMENTS_ROLE_ID)
         const current = role && latest(role.versions)
@@ -86,7 +86,7 @@ export class CapabilityStore {
         await this.persist(next); this.state = next
       }
       if (this.state.developerCapabilityVersion !== 1) {
-        const next = this.snapshot(), now = new Date().toISOString()
+        const next = this.mutableSnapshot(), now = new Date().toISOString()
         if (!next.capabilities.some(cap => cap.id === DEVELOPER_CAPABILITY_ID)) next.capabilities.push(developerCapability(now))
         const role = next.roles.find(item => item.id === DEVELOPER_ROLE_ID), current = role && latest(role.versions)
         const binding = { capabilityId: DEVELOPER_CAPABILITY_ID, version: 1, enabled: true }
@@ -102,7 +102,7 @@ export class CapabilityStore {
       if (this.state.defaultRolesVersion !== 2) {
         // V1 users already have four managed roles. Add the meeting role under its
         // existing conversation ID without touching their drafts or history.
-        const next = this.snapshot(), now = new Date().toISOString()
+        const next = this.mutableSnapshot(), now = new Date().toISOString()
         const defaults = defaultRoles(now).filter(role => this.state.defaultRolesVersion !== 1 || role.id === MEETING_ROLE_ID)
         next.roles.push(...defaults.filter(role => !next.roles.some(existing => existing.id === role.id || (role.id !== MEETING_ROLE_ID && existing.draft.name.trim() === role.draft.name))))
         next.defaultRolesVersion = 2; next.revision++; next.updatedAt = now
@@ -112,14 +112,20 @@ export class CapabilityStore {
       }
     } catch (error) { await this.close(); throw error }
   }
-  snapshot(): State { return structuredClone(this.state) }
+  componentRestrictions: () => NonNullable<State['componentRestrictions']> = () => ({})
+  publishIssues: (ids: string[]) => string[] = () => []
+  private mutableSnapshot(): State { return structuredClone(this.state) }
+  snapshot(): State { return { ...this.mutableSnapshot(), componentRestrictions: this.componentRestrictions() } }
+  notify() { this.listeners.forEach(fn => fn()) }
+  exclusive<T>(run: () => Promise<T>): Promise<T> { const attempt = this.tail.then(run); this.tail = attempt.then(() => {}, () => {}); return attempt }
+
   subscribe(fn: () => void) { this.listeners.add(fn); return () => { this.listeners.delete(fn) } }
   revokeSession(sessionId: string): Promise<void> {
     const run = async () => {
       if (!this.lock) throw new InputError('能力服务未运行', 503)
       text(sessionId, '会话标识', 150, true)
       if (this.state.stoppedSessions?.includes(sessionId)) return
-      const next = this.snapshot()
+      const next = this.mutableSnapshot()
       next.stoppedSessions = [...(next.stoppedSessions ?? []), sessionId]
       await this.persist(next); this.state = next
     }
@@ -136,12 +142,14 @@ export class CapabilityStore {
     const run = async () => {
       if (!this.lock) throw new InputError('能力服务未运行', 503)
       if (integer(expectedRevision) !== this.state.revision) throw new InputError('配置已被其他页面更新，请刷新后重试；当前草稿仍保留。', 409)
-      const command = object(raw) as unknown as Command, next = this.snapshot(), now = new Date().toISOString()
+      const command = object(raw) as unknown as Command, next = this.mutableSnapshot(), now = new Date().toISOString()
       let target = 'id' in command && command.id !== undefined ? id(command.id) : `local-${randomUUID()}`
       if (command.type === 'capability.save') {
         const value = definition(command.definition), publish = bool(command.publish)
         // Incomplete drafts are editable; unsupported execution combinations are never accepted.
-        const problems = publish ? issues(value, target) : compatibilityIssues(value, target)
+        const previous = next.capabilities.find(c => c.id === target)?.draft
+        const newlyAdded = value.components.filter(p => !previous?.components.some(old => old.componentId === p.componentId)).map(p => p.componentId)
+        const problems = [...(publish ? issues(value, target) : compatibilityIssues(value, target)), ...this.publishIssues(publish ? value.components.map(p => p.componentId) : newlyAdded)]
         if (problems.length) throw new InputError(problems.join('；'))
         let cap = next.capabilities.find(c => c.id === target)
         if (command.id && !cap) throw new InputError('能力不存在', 404)
@@ -222,6 +230,9 @@ export class CapabilityStore {
         let role = next.roles.find(r => r.id === target)
         if (command.id && !role) throw new InputError('岗位不存在', 404)
         const existingBindings = [...(role?.draft.capabilities ?? []), ...(role ? latest(role.versions)?.capabilities ?? [] : [])]
+        const newComponents = value.capabilities.filter(binding => !existingBindings.some(old => old.capabilityId === binding.capabilityId && old.version === binding.version)).flatMap(binding => next.capabilities.find(c => c.id === binding.capabilityId)?.versions.find(v => v.version === binding.version)?.components.map(p => p.componentId) ?? [])
+        const registryProblems = this.publishIssues(newComponents)
+        if (registryProblems.length) throw new InputError(registryProblems.join('；'))
         if (value.capabilities.some(binding => next.capabilities.find(c => c.id === binding.capabilityId)?.removedAt && !existingBindings.some(existing => existing.capabilityId === binding.capabilityId && existing.version === binding.version))) throw new InputError('不能添加已移除的能力，请先在能力中心恢复')
         if (!role) { role = { id: target, enabled: true, draft: value, versions: [] }; next.roles.push(role) }
         role.draft = value

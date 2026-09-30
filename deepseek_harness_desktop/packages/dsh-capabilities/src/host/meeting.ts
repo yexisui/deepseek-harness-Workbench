@@ -76,16 +76,18 @@ function parseMinutes(raw: string, segments: MeetingSegment[]): MeetingMinutes {
 export class MeetingService {
   private running = new Set<string>()
   private deleted = new Set<string>()
-  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined) {}
+  private controllers = new Map<string, AbortController>()
+  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined) {}
   private config() { return config(this.asrSettings?.()) }
   private capabilityError(): string | undefined {
     if (!this.currentState) return
     const cap = this.currentState().capabilities.find(item => item.id === MEETING_CAPABILITY_ID)
     if (!cap || cap.removedAt) return '会议录音转写能力已移除，请在能力中心恢复'
+    if (this.currentState?.().componentRestrictions?.['meeting-asr']?.enabled === false) return '录音转写组件已全局停用'
     if (!cap.enabled) return '会议录音转写能力已停用，请在能力中心启用'
     if (!latest(cap.versions)?.components.some(part => part.componentId === 'meeting-asr' && part.actions.includes('transcribe'))) return '会议录音转写能力未发布可用的转写动作'
   }
-  private role(version?: unknown): MeetingRole | undefined {
+  private role(version?: unknown, createdAt?: string): MeetingRole | undefined {
     const unavailable = this.capabilityError()
     if (unavailable) throw new InputError(unavailable, 409)
     if (!this.currentRole) return undefined
@@ -93,6 +95,7 @@ export class MeetingService {
     if (!role?.enabled) throw new InputError('会议纪要助手已停用，请在岗位助手中启用后重试', 409)
     const binding = latest(role.versions)?.capabilities.find(item => item.capabilityId === MEETING_CAPABILITY_ID)
     if (this.currentState && (!binding?.enabled || (binding.actions && !binding.actions.includes('transcribe')))) throw new InputError('会议纪要助手未启用录音转写能力，请在岗位中检查关联', 409)
+    if (createdAt && (this.currentState?.().componentRestrictions?.['meeting-asr']?.revokedAt ?? -1) >= Date.parse(createdAt)) throw new InputError('此会议任务的组件授权已撤销，请新建任务继续使用', 409)
     const published = version === undefined ? latest(role.versions) : role.versions.find(item => item.version === version)
     if (!published) throw new InputError('会议纪要岗位版本不存在，请重新选择岗位', 409)
     return { version: published.version, name: published.name, duties: published.duties, requirements: published.requirements, format: published.format }
@@ -155,7 +158,7 @@ export class MeetingService {
   }
   async upload(id: string, req: IncomingMessage) {
     const job = await this.get(id)
-    this.role(job.role?.version)
+    this.role(job.role?.version, job.createdAt)
     if (job.status !== 'uploading') throw new InputError('此任务无法重复上传', 409)
     const path = this.audio(job), temp = `${path}.upload`
     const handle = await import('node:fs').then(fs => fs.createWriteStream(temp, { flags: 'wx' }))
@@ -180,7 +183,7 @@ export class MeetingService {
   }
   async retry(id: string) {
     const job = await this.get(id)
-    this.role(job.role?.version)
+    this.role(job.role?.version, job.createdAt)
     if (job.status !== 'error') throw new InputError('只有失败的任务可以重试', 409)
     if (!job.size) throw new InputError('请重新选择录音上传', 409)
     job.status = job.segments.length ? 'transcribed' : 'transcribing'; delete job.error; await this.save(job)
@@ -190,6 +193,7 @@ export class MeetingService {
   private async transcribe(id: string) {
     if (this.running.has(id)) return
     this.running.add(id)
+    const controller = new AbortController(); this.controllers.set(id, controller)
     try {
       const job = await this.get(id), { endpoint, apiKey, model, format } = this.config()
       if (!endpoint || !model) throw new Error('请先配置语音识别接口和模型')
@@ -197,7 +201,7 @@ export class MeetingService {
       form.set('model', model)
       form.set('response_format', format)
       form.set('file', await openAsBlob(this.audio(job)), job.fileName)
-      const sent = await fetch(endpoint, { method: 'POST', headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}, body: form, signal: AbortSignal.timeout(20 * 60_000) })
+      const sent = await fetch(endpoint, { method: 'POST', headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}, body: form, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20 * 60_000)]) })
       const response = await sent.text()
       if (!sent.ok) throw new Error(`语音识别失败（${sent.status}）：${response.slice(0, 300)}`)
       let transcript: any
@@ -205,16 +209,17 @@ export class MeetingService {
       const segments = parseSegments(transcript)
       if (!segments.length) throw new Error('未识别到可用语音，请检查录音内容')
       const latest = await this.get(id)
+      controller.signal.throwIfAborted(); this.role(latest.role?.version, latest.createdAt)
       latest.segments = segments; latest.status = 'transcribed'; await this.save(latest)
       if (latest.mode === 'quick') await this.generate(id)
     } catch (error) { if (!this.deleted.has(id)) { const job = await this.get(id); job.status = 'error'; job.error = errorText(error); await this.save(job) } }
-    finally { this.running.delete(id) }
+    finally { this.running.delete(id); this.controllers.delete(id) }
   }
-  private ask(prompt: string, modelRoute: string) { return this.workbenchText(prompt, modelRoute) }
+  private ask(prompt: string, modelRoute: string, signal?: AbortSignal) { return this.workbenchText(prompt, modelRoute, signal) }
   private transcriptText(rows: MeetingSegment[]) { return rows.map(row => `[${row.id} ${Math.floor(row.start / 60000).toString().padStart(2, '0')}:${Math.floor(row.start % 60000 / 1000).toString().padStart(2, '0')} ${row.speaker}] ${row.text}`).join('\n') }
   async generate(id: string, edited?: MeetingSegment[], instruction?: string, summaryModel?: string) {
     const job = await this.get(id)
-    this.role(job.role?.version)
+    this.role(job.role?.version, job.createdAt)
     if (!['transcribed', 'ready', 'error'].includes(job.status) || !job.segments.length) throw new InputError('请先完成录音转写', 409)
     if (edited) {
       if (edited.length !== job.segments.length || edited.some((row, index) => row.id !== job.segments[index].id)) throw new InputError('转写片段与原录音不一致')
@@ -226,22 +231,26 @@ export class MeetingService {
     return job
   }
   private async finishGenerate(job: MeetingJob, instruction?: string) {
+    const controller = new AbortController(); this.controllers.set(job.id, controller)
     try {
       const text = this.transcriptText(job.segments)
       const chunks = text.match(/[\s\S]{1,16000}/g) ?? []
       let source = text
       if (chunks.length > 1) {
         const summaries: string[] = []
-        for (let i = 0; i < chunks.length; i++) summaries.push(await this.ask(`以下是会议转写第 ${i + 1}/${chunks.length} 段。请保留事实、发言人、任务、时间和 [s编号] 引用，压缩为不超过 3000 字的中文摘要；只返回 JSON：{"summary":"..."}\n${chunks[i]}`, job.summaryModel))
+        for (let i = 0; i < chunks.length; i++) summaries.push(await this.ask(`以下是会议转写第 ${i + 1}/${chunks.length} 段。请保留事实、发言人、任务、时间和 [s编号] 引用，压缩为不超过 3000 字的中文摘要；只返回 JSON：{"summary":"..."}\n${chunks[i]}`, job.summaryModel, controller.signal))
         source = summaries.join('\n')
       }
       const previous = job.minutes ? `\n现有纪要：${JSON.stringify(job.minutes)}` : ''
       const roleGuidance = job.role ? `岗位：${job.role.name}。职责：${job.role.duties}。工作要求：${job.role.requirements}。输出偏好：${job.role.format}。\n` : ''
       const prompt = `${roleGuidance}用途：${job.audience || '通用会议纪要'}；重点：${job.focus || '结论与待办'}。${instruction ? `用户修改要求：${string(instruction, 1000)}。` : ''}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`
-      const minutes = parseMinutes(await this.ask(prompt, job.summaryModel), job.segments)
+      const minutes = parseMinutes(await this.ask(prompt, job.summaryModel, controller.signal), job.segments)
+      controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt)
       job.minutes = minutes; job.status = 'ready'; await this.save(job)
-    } catch (error) { job.status = 'error'; job.error = errorText(error); await this.save(job) }
+    } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? '组件已停用，本次处理已停止；历史结果保留' : errorText(error); await this.save(job) } finally { if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
   }
+  async componentActivities() { return Promise.all([...this.controllers.keys()].map(async id => { const job = await this.get(id); return { id, name: job.fileName, kind: 'meeting', status: job.status, componentIds: ['meeting-asr'] } })) }
+  async stopComponents(ids: string[]) { if (ids.includes('meeting-asr')) this.controllers.forEach(controller => controller.abort()) }
   async serveAudio(id: string, req: IncomingMessage, res: ServerResponse) {
     const job = await this.get(id), path = this.audio(job), size = (await stat(path)).size
     const match = /^bytes=(\d+)-(\d*)$/.exec(req.headers.range ?? '')

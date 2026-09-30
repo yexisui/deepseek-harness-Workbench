@@ -12,17 +12,17 @@ import type { MeetingAvailability } from './meeting-capability-status.ts'
 import s from './ManagedCapabilities.module.css'
 
 export const associationName = (id: string) => components.find(c => c.id === id)?.name ?? dependencyName(id)
-export function compositionItems(draft: Definition, capabilityId?: string): WorkbenchItem[] {
+export function compositionItems(draft: Definition, capabilityId?: string, data?: Snapshot): WorkbenchItem[] {
   return compositionIds(draft).map(id => {
     const part = draft.components.find(p => p.componentId === id)
-    return { id, name: associationName(id), icon: components.find(c => c.id === id)?.icon ?? 'support', subtitle: part ? `${requiredComponents(capabilityId).some(c => c.id === id) ? '必需组件' : '业务组件'} · ${part.actions.map(a => actionNames[a]).join(' · ') || '未选择动作'}` : `必需支持 · ${dependencyUsers(draft, id).map(c => c.name).join('、')}` }
+    return { id, name: data?.components.find(c=>c.id===id)?.name ?? associationName(id), icon: components.find(c => c.id === id)?.icon ?? 'support', subtitle: part ? `${requiredComponents(capabilityId).some(c => c.id === id) ? '必需组件' : '业务组件'} · ${part.actions.map(a => actionNames[a]).join(' · ') || '未选择动作'}` : `必需支持 · ${dependencyUsers(draft, id).map(c => c.name).join('、')}` }
   })
 }
-export function compositionLibrary(draft: Definition, capabilityId?: string): WorkbenchItem[] {
-  const business = availableComponents(capabilityId)
+export function compositionLibrary(draft: Definition, capabilityId?: string, data?: Snapshot): WorkbenchItem[] {
+  const business = availableComponents(capabilityId).map(c=>data?.components.find(d=>d.id===c.id)??c)
   const support = [...new Set(business.flatMap(c => c.dependencies.filter(id => id.startsWith('@'))))]
   const needed = supportDependencies(draft)
-  return [...business.map(c => ({ id: c.id, name: c.name, icon: c.icon, subtitle: `v${c.version} · ${c.sourceLabel}`, group: '业务组件' })),
+  return [...business.map(c => ({ id: c.id, name: c.name, icon: c.icon, subtitle: data?.registry?.metadata[c.id]?.retiredAt?'已移入回收站':data?.registry?.metadata[c.id]?.enabled===false?'全局停用':`v${c.version} · ${c.sourceLabel}`, disabled: !!data?.registry?.metadata[c.id]?.retiredAt || data?.registry?.metadata[c.id]?.enabled===false, group: '业务组件' })),
     ...support.map(id => ({ id, name: dependencyName(id), icon: 'support' as const, subtitle: needed.includes(id) ? missingDependencies(draft).includes(id) ? '缺少关联 · 拖入补回' : '必需支持' : '先添加对应业务组件', disabled: !needed.includes(id), group: '支持组件' }))]
 }
 const compositionKey = (value: Definition) => JSON.stringify([value.components, value.excludedDependencies, value.componentOrder])
@@ -91,11 +91,11 @@ export function ComponentRelations({ data, capabilityId, onEdit, meetingStatus, 
   const statusMessage = dirty && message === '草稿已保存。已发布版本保持原状。' ? '有未保存的组件修改' : message || '有未保存的组件修改'
   return <section aria-label="关联组件组合">
     {!compositionSupported(data, capabilityId) && <p className={s.notice} role="status">组件组合服务待更新。请保存当前工作并正常重启工作台后编辑，避免旧服务忽略新的关联配置。</p>}
-    <div className={s.heading}><div><h3>当前组件组合</h3><small className={s.muted}>草稿 · {compositionIds(draft).length} 个关联 · {referenced.length} 个岗位引用</small></div><button className={s.button} disabled={disabled} onClick={onEdit}>编辑组件组合</button></div>
+    <div className={s.heading}><div><h3>当前组件组合</h3><small className={s.muted}>草稿 · {compositionIds(draft).length} 个关联 · {referenced.length} 个岗位引用</small></div><button className={s.button} disabled={disabled} onClick={onEdit}>编辑组件组合</button><button className={s.button} onClick={()=>openCapabilityLink({section:'component-center',componentId:draft.components[0]?.componentId})}>管理组件库 ↗</button></div>
     <p className={s.muted}>拖入和排序可在组合编辑器中完成。移除关联只修改当前能力草稿。</p>
     <fieldset className={s.compositionFieldset} disabled={disabled}>
       {edit.feedback}<MissingAssociations draft={draft} change={change} capabilityId={capabilityId} disabled={disabled}/>
-      {compositionItems(draft, capabilityId).map(item => {
+      {compositionItems(draft, capabilityId, data).map(item => {
         const business = components.find(c => c.id === item.id), status = data.dependencies?.find(d => d.id === (business?.provider ?? item.id))
         const info = business && componentService(business, { data, meetingStatus, requirementsStatus })
         const required = requiredComponents(capabilityId).some(c => c.id === item.id)

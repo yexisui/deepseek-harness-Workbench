@@ -89,7 +89,7 @@ export class RequirementsService {
       if (roleId) this.role(roleId)
       else {
         const capability = this.state().capabilities.find(c => c.id === REQUIREMENTS_CAPABILITY_ID)
-        if (!capability?.enabled || capability.removedAt || !actionsOf(latest(capability.versions)).includes('analyze-requirements')) {
+        if (this.state().componentRestrictions?.['requirements-service']?.enabled === false || !capability?.enabled || capability.removedAt || !actionsOf(latest(capability.versions)).includes('analyze-requirements')) {
           throw new InputError('需求分析能力未发布可用动作或已停用；请在能力中心检查', 409)
         }
       }
@@ -394,5 +394,7 @@ export class RequirementsService {
       })
     }
   }
+  async componentActivities() { return Promise.all([...this.running.keys()].map(async id => ({ id, name: (await this.get(id)).title, kind: 'requirements', status: 'running', componentIds: ['requirements-service'] }))) }
+  async stopComponents(ids: string[]) { if (!ids.includes('requirements-service')) return; await this.serialized(async () => { for (const [id, run] of this.running) { run.controller.abort(); const task = await this.get(id); if (task.run?.status === 'running') { task.run.status = 'stopped'; task.run.finishedAt = now(); this.event(task, 'analysis', '组件已全局停用，已停止接收本次分析结果'); await this.write(task) } }; this.running.clear() }) }
   async close() { this.closed=true;for(const run of this.running.values())run.controller.abort();await this.tail;this.running.clear() }
 }

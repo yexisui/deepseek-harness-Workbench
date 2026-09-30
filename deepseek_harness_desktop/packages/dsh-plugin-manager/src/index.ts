@@ -57,10 +57,14 @@ function applyImpl(ctx: Context): void {
 
   ctx.effect(() => {
     const beforeCapabilityChange = async (moduleName: string) => {
-      const service = ctx.get('capabilities' as never) as unknown as { assertPluginChange?: (name: string) => void } | undefined
-      service?.assertPluginChange?.(moduleName)
+      const service = ctx.get('capabilities' as never) as unknown as { assertPluginChange?: (name: string) => void | Promise<void> } | undefined
+      await service?.assertPluginChange?.(moduleName)
     }
-    const routes = [...makeGatewayRoutes({ facts, gateway, cliAvailable, offline, beforeCapabilityChange }), ...makeLocalManagementRoutes(offline, gateway, inventory, beforeCapabilityChange)]
+    const routes = [...makeGatewayRoutes({ facts, gateway, cliAvailable, offline, beforeCapabilityChange }), ...makeLocalManagementRoutes(offline, gateway, inventory, beforeCapabilityChange, async () => {
+      const presets = ctx.get('agentPresets' as never) as unknown as { compositionInventory(): Promise<{ id: string; name?: string; isDefault: boolean; broken?: string; rows: { entryId: string | null; moduleName: string; enabled: boolean | 'conditional'; fiberState?: number }[] }[]> } | undefined
+      if (!presets) return []
+      return (await presets.compositionInventory()).map(p => ({ id: p.id, name: p.name ?? p.id, isDefault: p.isDefault, broken: p.broken, rows: p.rows.map((e,i) => ({ entryId: e.entryId ?? 'row-'+i, moduleName: e.moduleName, enabled: e.enabled === true, fiberPhase: e.enabled === 'conditional' ? 'conditional' : e.fiberState === undefined ? null : ['pending','loading','active','failed',null,'unloading'][e.fiberState] ?? null })) }))
+    })]
     const disposers = routes.map(route => ctx.webServer.register(route))
     disposers.push(registerWorkshopServiceRoutes(dirname(dirname(facts.profileDir)), routes))
     return () => {

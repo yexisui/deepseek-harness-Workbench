@@ -158,3 +158,7 @@ button[aria-expanded=true] > .chevron { transform: rotate(90deg); color: var(--t
   .root *, .root *::before, .root *::after { animation: none !important; transition: none !important; }
   .branchButton:hover .branchIcon { transform: none; }
 }
+
+.relationBadges {display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}.relationBadges span {font-size:12px;padding:3px 7px;border-radius:6px;color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc)}
+
+.card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}

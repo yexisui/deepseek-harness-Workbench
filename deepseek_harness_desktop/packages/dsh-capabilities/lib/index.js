@@ -463,6 +463,9 @@ function requirementsCapability(now) {
 		}]
 	};
 }
+function resolveBinding(state, binding) {
+	return state.capabilities.find((c) => c.id === binding.capabilityId)?.versions.find((v) => v.version === binding.version);
+}
 function actionsOf(definition) {
 	return [...new Set(definition?.components.flatMap((part) => {
 		return components.find((c) => c.id === part.componentId)?.dependencies.some((dep) => definition.excludedDependencies?.includes(dep)) ? [] : part.actions;
@@ -472,70 +475,12 @@ function actionsOf(definition) {
 function capabilityDeletionReferences(state, capabilityId) {
 	return state.roles.filter((role) => role.draft.capabilities.some((binding) => binding.capabilityId === capabilityId) || role.versions.some((version) => version.capabilities.some((binding) => binding.capabilityId === capabilityId)));
 }
-//#endregion
-//#region src/core/policy.ts
-function roleForPreset(state, preset) {
-	for (const role of state.roles) {
-		const version = role.versions.find((v) => v.preset === preset);
-		if (version) return {
-			role,
-			version
-		};
-	}
-}
-/** Revocation also covers historical sessions that were not loaded at the time of a toggle. */
-function wasRevoked(state, roleId, snapshot, createdAt) {
-	return [`role:${roleId}`, ...snapshot.capabilities.filter((b) => b.enabled).map((b) => `capability:${b.capabilityId}`)].some((key) => (state.revokedAt?.[key] ?? -1) >= createdAt);
-}
-/** Snapshot ∩ current restrictions. Later additions can never expand an existing session. */
-function allowedActions(state, roleId, snapshot) {
-	const role = state.roles.find((r) => r.id === roleId), current = role && latest(role.versions);
-	if (!role?.enabled || !current) return [];
-	const allowed = /* @__PURE__ */ new Set();
-	for (const old of snapshot.capabilities) {
-		const now = current.capabilities.find((b) => b.capabilityId === old.capabilityId);
-		const cap = state.capabilities.find((c) => c.id === old.capabilityId);
-		if (!old.enabled || !now?.enabled || !cap?.enabled || cap.removedAt) continue;
-		const original = cap.versions.find((v) => v.version === old.version);
-		const ceilings = cap.versions.filter((v) => v.version >= old.version).map(actionsOf);
-		const roleCeilings = role.versions.filter((v) => v.version >= snapshot.version).map((v) => {
-			const binding = v.capabilities.find((b) => b.capabilityId === old.capabilityId);
-			return binding?.enabled ? binding.actions ?? actionsOf(cap.versions.find((c) => c.version === binding.version)) : [];
-		});
-		for (const action of old.actions ?? actionsOf(original)) if (actionsOf(original).includes(action) && [...ceilings, ...roleCeilings].every((a) => a.includes(action))) allowed.add(action);
-	}
-	return [...allowed];
-}
-function browserActions(actions) {
-	return actions.filter((action) => action === "navigate" || action === "read" || action === "screenshot");
-}
-function requiredAction(tool, args) {
-	if (tool === "browser_session" && [
-		"start",
-		"stop",
-		"list"
-	].includes(String(args.action))) return args.url === void 0 ? "session" : "navigate";
-	if (tool === "browser_page" && args.action === "navigate") return "navigate";
-	if (tool === "browser_inspect" && [
-		"observe",
-		"snapshot",
-		"html"
-	].includes(String(args.action))) return "read";
-	if (tool === "browser_inspect" && args.action === "screenshot") return "screenshot";
-}
-function callViolation(tool, args, allowed, owned) {
-	const action = requiredAction(tool, args);
-	if (!action || (action === "session" ? browserActions(allowed).length === 0 : !allowed.includes(action))) return "此岗位未获准执行该浏览器动作，或对应能力已停用。";
-	if ("tabId" in args || "device" in args) return "首期仅操作本会话创建的默认页面，不接受其他标签页或设备设置。";
-	if (tool === "browser_session" && ["start", "list"].includes(String(args.action))) {
-		if (args.session !== void 0) return "创建或列出会话时不能指定其他会话标识。";
-	} else if (typeof args.session !== "string" || !owned.includes(args.session)) return "必须显式传入本岗位会话创建的浏览器 session，不能使用其他会话的窗口。";
-	if (args.url !== void 0) try {
-		const url = new URL(String(args.url));
-		if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) return "仅支持没有嵌入凭据的 HTTP(S) 网页地址。";
-	} catch {
-		return "网页地址无效。";
-	}
+function references(state, componentId, tasks = []) {
+	return {
+		capabilities: state.capabilities.filter((c) => c.draft.components.some((p) => p.componentId === componentId) || c.versions.some((v) => v.components.some((p) => p.componentId === componentId))),
+		roles: state.roles.filter((r) => r.draft.capabilities.some((b) => resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)) || r.versions.some((v) => v.capabilities.some((b) => resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)))),
+		tasks: tasks.filter((t) => !["stopped"].includes(t.status) && state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.some((b) => b.enabled && resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)))
+	};
 }
 //#endregion
 //#region src/core/composition.ts
@@ -560,6 +505,62 @@ function supportDependencies(value) {
 }
 function missingDependencies(value) {
 	return supportDependencies(value).filter((id) => value.excludedDependencies?.includes(id));
+}
+//#endregion
+//#region src/core/component-registry.ts
+/** Exact exported module identities. A parent package is never an implicit match for a child export. */
+function pluginRelations(component) {
+	return [
+		{
+			moduleName: component.provider,
+			role: "provider",
+			required: true,
+			reason: `提供${component.name}的业务动作`
+		},
+		...component.pluginModule ? [{
+			moduleName: component.pluginModule,
+			role: "adapter",
+			required: true,
+			reason: "按岗位授权加载动作并连接能力工作区"
+		}] : [],
+		...component.dependencies.filter((id) => id.startsWith("@")).map((moduleName) => ({
+			moduleName,
+			role: "support",
+			required: true,
+			reason: `支持${component.name}的运行`
+		}))
+	];
+}
+function relatedComponents(moduleName, catalog = components) {
+	return catalog.filter((c) => pluginRelations(c).some((r) => r.moduleName === moduleName));
+}
+const emptyRegistry = () => ({
+	schema: 1,
+	revision: 0,
+	metadata: {},
+	candidates: [],
+	events: [],
+	operations: []
+});
+function registryCatalog(registry) {
+	return components.map((c) => ({
+		...c,
+		name: registry.metadata[c.id]?.name || c.name
+	}));
+}
+function componentPublishIssues(state, registry, ids) {
+	return ids.flatMap((id) => {
+		const meta = registry.metadata[id];
+		return meta?.retiredAt ? [`${components.find((c) => c.id === id)?.name ?? id}已移入回收站，请恢复后发布`] : meta?.enabled === false ? [`${components.find((c) => c.id === id)?.name ?? id}已全局停用，请启用后发布`] : [];
+	});
+}
+function componentRestrictionKeys(state, roleVersion) {
+	return [...new Set(roleVersion.capabilities.filter((b) => b.enabled).flatMap((b) => resolveBinding(state, b)?.components.map((p) => p.componentId) ?? []))];
+}
+/** Package operations affect every explicit export supplied by that package. UI module matching stays exact. */
+const modulePackage = (moduleName) => moduleName.split("/").slice(0, moduleName.startsWith("@") ? 2 : 1).join("/");
+function packageComponents(packageId, catalog = components) {
+	return catalog.filter((c) => pluginRelations(c).some((r) => modulePackage(r.moduleName) === packageId));
 }
 //#endregion
 //#region src/core/appearance.ts
@@ -703,6 +704,222 @@ function roleCompositionIssues(value) {
 	return active.some((binding) => binding.capabilityId === "requirements-analysis") && active.some((binding) => binding.capabilityId !== "requirements-analysis") ? ["需求分析使用独立工作区，暂不支持与其他执行能力混用。请停用或移除其他能力后发布；草稿可以继续保存。"] : [];
 }
 //#endregion
+//#region src/host/component-registry.ts
+/** Uses the capability store's writer queue and lock; no second writer or execution configuration copy. */
+var ComponentRegistryStore = class {
+	directory;
+	state;
+	activities;
+	value = emptyRegistry();
+	constructor(directory, state, activities) {
+		this.directory = directory;
+		this.state = state;
+		this.activities = activities;
+	}
+	async init() {
+		await mkdir(this.directory, { recursive: true });
+		try {
+			const value = JSON.parse(await readFile(join(this.directory, "component-registry.json"), "utf8"));
+			if (value.schema !== 1 || !Number.isInteger(value.revision) || !value.metadata || !Array.isArray(value.candidates) || !Array.isArray(value.events) || !Array.isArray(value.operations)) throw new Error("组件登记格式不受支持");
+			this.value = value;
+		} catch (error) {
+			if (error.code !== "ENOENT") throw error;
+		}
+	}
+	snapshot() {
+		return structuredClone(this.value);
+	}
+	async preview(id, action) {
+		if (![
+			"retire",
+			"restore",
+			"disable",
+			"enable",
+			"purge"
+		].includes(action)) throw new InputError("组件操作无效");
+		if (!components.some((c) => c.id === id) && !this.value.candidates.some((c) => c.id === id)) throw new InputError("组件不存在", 404);
+		const state = this.state(), refs = references(state, id), activities = (await this.activities()).filter((t) => t.componentIds.includes(id));
+		const result = {
+			id,
+			action,
+			revision: this.value.revision,
+			stateRevision: state.revision,
+			capabilities: refs.capabilities.map((c) => ({
+				id: c.id,
+				name: c.draft.name,
+				removed: !!c.removedAt,
+				versions: c.versions.filter((v) => v.components.some((p) => p.componentId === id)).map((v) => v.version),
+				draft: c.draft.components.some((p) => p.componentId === id)
+			})),
+			roles: refs.roles.map((r) => ({
+				id: r.id,
+				name: r.draft.name
+			})),
+			activities
+		};
+		return {
+			...result,
+			token: createHash("sha256").update(JSON.stringify(result)).digest("hex")
+		};
+	}
+	async command(raw) {
+		const command = object(raw), operation = text(command.operationId, "操作标识", 80, true);
+		if (!/^[a-zA-Z0-9-]{16,80}$/.test(operation)) throw new InputError("操作标识无效");
+		if (this.value.operations.includes(operation)) return this.snapshot();
+		const next = this.snapshot(), at = (/* @__PURE__ */ new Date()).toISOString();
+		const id = text(command.id ?? "", "组件标识", 100);
+		const known = components.some((c) => c.id === id), candidate = next.candidates.find((c) => c.id === id);
+		if (command.type === "candidate.add") {
+			if (integer(command.revision) !== next.revision) throw new InputError("组件清单已更新，请刷新后重试", 409);
+			if (next.candidates.length >= 500) throw new InputError("候选组件数量已达上限");
+			const provider = text(command.provider, "提供插件", 250, true);
+			if (!/^(@[a-z0-9_.-]+\/)?[a-z0-9_.-]+(\/[a-z0-9_.-]+)*$/i.test(provider)) throw new InputError("请填写完整插件包名或导出模块名");
+			next.candidates.push({
+				id: "candidate-" + randomUUID(),
+				name: text(command.name, "名称", 80, true),
+				description: text(command.description, "说明", 1e3),
+				category: text(command.category, "分类", 80) || "未分类",
+				provider,
+				createdAt: at
+			});
+		} else {
+			if (!known && !candidate) throw new InputError("组件不存在", 404);
+			if (command.type === "metadata.save") {
+				const patch = object(command.patch), base = object(command.base);
+				const target = known ? next.metadata[id] ?? {} : candidate;
+				for (const key of Object.keys(patch)) {
+					if (![
+						"name",
+						"description",
+						"category",
+						"pinned"
+					].includes(key)) throw new InputError("不允许修改运行标识或动作契约");
+					const field = key;
+					if (integer(command.revision) !== next.revision && target[field] !== base[field]) throw new InputError("同一字段已在其他页面修改；当前编辑内容仍保留，请重新核对", 409);
+					const value = field === "pinned" ? bool(patch[field]) : text(patch[field], field, field === "description" ? 1e3 : 80, field === "name");
+					Object.assign(target, { [field]: value });
+				}
+				if (known) next.metadata[id] = target;
+			} else {
+				const action = text(command.type, "操作", 80, true).replace("component.", "");
+				const preview = await this.preview(id, action);
+				if (command.token !== preview.token || command.confirm !== true) throw new InputError("引用或活动任务已变化，请重新检查影响范围", 409);
+				if (action === "purge") {
+					if (known) throw new InputError("内置组件由插件提供，不能单独永久删除；请使用回收站或插件管理");
+					if (!candidate?.retiredAt || preview.capabilities.length || preview.roles.length || preview.activities.length) throw new InputError("请先移入回收站并解除全部历史引用");
+					next.candidates = next.candidates.filter((c) => c.id !== id);
+				} else {
+					const target = known ? next.metadata[id] ?? {} : candidate;
+					if (action === "retire") target.retiredAt = at;
+					else if (action === "restore") delete target.retiredAt;
+					else if (known && action === "disable") Object.assign(target, {
+						enabled: false,
+						revokedAt: Date.now()
+					});
+					else if (known && action === "enable") Object.assign(target, { enabled: true });
+					else throw new InputError("候选组件尚未接入运行适配器");
+					if (known) next.metadata[id] = target;
+				}
+			}
+		}
+		next.revision++;
+		next.operations = [...next.operations.slice(-499), operation];
+		next.events = [...next.events.slice(-999), {
+			id: operation,
+			componentId: id || next.candidates.at(-1).id,
+			at,
+			action: String(command.type)
+		}];
+		await this.persist(next);
+		this.value = next;
+		return this.snapshot();
+	}
+	async persist(value) {
+		const temp = join(this.directory, `components-${randomUUID()}.tmp`), handle = await open(temp, "wx");
+		try {
+			await handle.writeFile(JSON.stringify(value, null, 2));
+			await handle.sync();
+		} finally {
+			await handle.close();
+		}
+		try {
+			await rename(temp, join(this.directory, "component-registry.json"));
+		} catch (error) {
+			await unlink(temp).catch(() => {});
+			throw error;
+		}
+	}
+};
+//#endregion
+//#region src/core/policy.ts
+function roleForPreset(state, preset) {
+	for (const role of state.roles) {
+		const version = role.versions.find((v) => v.preset === preset);
+		if (version) return {
+			role,
+			version
+		};
+	}
+}
+/** Revocation also covers historical sessions that were not loaded at the time of a toggle. */
+function wasRevoked(state, roleId, snapshot, createdAt) {
+	return [`role:${roleId}`, ...snapshot.capabilities.filter((b) => b.enabled).map((b) => `capability:${b.capabilityId}`)].some((key) => (state.revokedAt?.[key] ?? -1) >= createdAt) || componentRestrictionKeys(state, snapshot).some((id) => (state.componentRestrictions?.[id]?.revokedAt ?? -1) >= createdAt);
+}
+/** Snapshot ∩ current restrictions. Later additions can never expand an existing session. */
+function allowedActions(state, roleId, snapshot) {
+	const role = state.roles.find((r) => r.id === roleId), current = role && latest(role.versions);
+	if (!role?.enabled || !current) return [];
+	const activeActions = (value) => actionsOf(value && {
+		...value,
+		components: value.components.filter((p) => state.componentRestrictions?.[p.componentId]?.enabled !== false)
+	});
+	const allowed = /* @__PURE__ */ new Set();
+	for (const old of snapshot.capabilities) {
+		const now = current.capabilities.find((b) => b.capabilityId === old.capabilityId);
+		const cap = state.capabilities.find((c) => c.id === old.capabilityId);
+		if (!old.enabled || !now?.enabled || !cap?.enabled || cap.removedAt) continue;
+		const original = cap.versions.find((v) => v.version === old.version);
+		const ceilings = cap.versions.filter((v) => v.version >= old.version).map(activeActions);
+		const roleCeilings = role.versions.filter((v) => v.version >= snapshot.version).map((v) => {
+			const binding = v.capabilities.find((b) => b.capabilityId === old.capabilityId);
+			return binding?.enabled ? binding.actions ?? activeActions(cap.versions.find((c) => c.version === binding.version)) : [];
+		});
+		for (const action of old.actions ?? activeActions(original)) if (activeActions(original).includes(action) && [...ceilings, ...roleCeilings].every((a) => a.includes(action))) allowed.add(action);
+	}
+	return [...allowed];
+}
+function browserActions(actions) {
+	return actions.filter((action) => action === "navigate" || action === "read" || action === "screenshot");
+}
+function requiredAction(tool, args) {
+	if (tool === "browser_session" && [
+		"start",
+		"stop",
+		"list"
+	].includes(String(args.action))) return args.url === void 0 ? "session" : "navigate";
+	if (tool === "browser_page" && args.action === "navigate") return "navigate";
+	if (tool === "browser_inspect" && [
+		"observe",
+		"snapshot",
+		"html"
+	].includes(String(args.action))) return "read";
+	if (tool === "browser_inspect" && args.action === "screenshot") return "screenshot";
+}
+function callViolation(tool, args, allowed, owned) {
+	const action = requiredAction(tool, args);
+	if (!action || (action === "session" ? browserActions(allowed).length === 0 : !allowed.includes(action))) return "此岗位未获准执行该浏览器动作，或对应能力已停用。";
+	if ("tabId" in args || "device" in args) return "首期仅操作本会话创建的默认页面，不接受其他标签页或设备设置。";
+	if (tool === "browser_session" && ["start", "list"].includes(String(args.action))) {
+		if (args.session !== void 0) return "创建或列出会话时不能指定其他会话标识。";
+	} else if (typeof args.session !== "string" || !owned.includes(args.session)) return "必须显式传入本岗位会话创建的浏览器 session，不能使用其他会话的窗口。";
+	if (args.url !== void 0) try {
+		const url = new URL(String(args.url));
+		if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) return "仅支持没有嵌入凭据的 HTTP(S) 网页地址。";
+	} catch {
+		return "网页地址无效。";
+	}
+}
+//#endregion
 //#region src/host/requirements.ts
 const UUID$1 = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const MAX_TEXT = 6e4;
@@ -841,7 +1058,7 @@ var RequirementsService = class {
 			if (roleId) this.role(roleId);
 			else {
 				const capability = this.state().capabilities.find((c) => c.id === REQUIREMENTS_CAPABILITY_ID);
-				if (!capability?.enabled || capability.removedAt || !actionsOf(latest(capability.versions)).includes("analyze-requirements")) throw new InputError("需求分析能力未发布可用动作或已停用；请在能力中心检查", 409);
+				if (this.state().componentRestrictions?.["requirements-service"]?.enabled === false || !capability?.enabled || capability.removedAt || !actionsOf(latest(capability.versions)).includes("analyze-requirements")) throw new InputError("需求分析能力未发布可用动作或已停用；请在能力中心检查", 409);
 			}
 		} catch (error) {
 			ready = false;
@@ -1754,6 +1971,31 @@ var RequirementsService = class {
 			});
 		}
 	}
+	async componentActivities() {
+		return Promise.all([...this.running.keys()].map(async (id) => ({
+			id,
+			name: (await this.get(id)).title,
+			kind: "requirements",
+			status: "running",
+			componentIds: ["requirements-service"]
+		})));
+	}
+	async stopComponents(ids) {
+		if (!ids.includes("requirements-service")) return;
+		await this.serialized(async () => {
+			for (const [id, run] of this.running) {
+				run.controller.abort();
+				const task = await this.get(id);
+				if (task.run?.status === "running") {
+					task.run.status = "stopped";
+					task.run.finishedAt = now$1();
+					this.event(task, "analysis", "组件已全局停用，已停止接收本次分析结果");
+					await this.write(task);
+				}
+			}
+			this.running.clear();
+		});
+	}
 	async close() {
 		this.closed = true;
 		for (const run of this.running.values()) run.controller.abort();
@@ -2464,6 +2706,26 @@ var DeveloperService = class {
 			return task;
 		});
 	}
+	async componentActivities() {
+		return Promise.all([...this.running.keys()].map(async (id) => {
+			return {
+				id,
+				name: (await this.get(id)).title,
+				kind: "developer",
+				status: "running",
+				componentIds: [
+					"developer-files",
+					"developer-git",
+					"developer-checks"
+				]
+			};
+		}));
+	}
+	async stopComponents(ids) {
+		const runs = (await this.componentActivities()).filter((t) => t.componentIds.some((id) => ids.includes(id))).map((t) => this.running.get(t.id)).filter(Boolean);
+		runs.forEach((run) => run.controller.abort());
+		await Promise.allSettled(runs.map((run) => run.promise));
+	}
 	async close() {
 		this.closed = true;
 		for (const run of this.running.values()) run.controller.abort();
@@ -2896,7 +3158,7 @@ var CapabilityStore = class {
 				await this.persist(this.state);
 			}
 			if (this.state.meetingCapabilityVersion !== 1) {
-				const next = this.snapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
+				const next = this.mutableSnapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
 				if (!next.capabilities.some((cap) => cap.id === "meeting-transcription")) next.capabilities.push(meetingCapability(now));
 				const role = next.roles.find((item) => item.id === MEETING_ROLE_ID);
 				if (role && !role.draft.capabilities.some((binding) => binding.capabilityId === "meeting-transcription")) {
@@ -2924,7 +3186,7 @@ var CapabilityStore = class {
 				this.state = next;
 			}
 			if (this.state.requirementsCapabilityVersion !== 1) {
-				const next = this.snapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
+				const next = this.mutableSnapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
 				if (!next.capabilities.some((cap) => cap.id === "requirements-analysis")) next.capabilities.push(requirementsCapability(now));
 				const role = next.roles.find((item) => item.id === REQUIREMENTS_ROLE_ID);
 				const current = role && latest(role.versions);
@@ -2956,7 +3218,7 @@ var CapabilityStore = class {
 				this.state = next;
 			}
 			if (this.state.developerCapabilityVersion !== 1) {
-				const next = this.snapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
+				const next = this.mutableSnapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
 				if (!next.capabilities.some((cap) => cap.id === "developer-workspace")) next.capabilities.push(developerCapability(now));
 				const role = next.roles.find((item) => item.id === DEVELOPER_ROLE_ID), current = role && latest(role.versions);
 				const binding = {
@@ -2987,7 +3249,7 @@ var CapabilityStore = class {
 				this.state = next;
 			}
 			if (this.state.defaultRolesVersion !== 2) {
-				const next = this.snapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
+				const next = this.mutableSnapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
 				const defaults = defaultRoles(now).filter((role) => this.state.defaultRolesVersion !== 1 || role.id === "meeting-minutes-demo");
 				next.roles.push(...defaults.filter((role) => !next.roles.some((existing) => existing.id === role.id || role.id !== "meeting-minutes-demo" && existing.draft.name.trim() === role.draft.name)));
 				next.defaultRolesVersion = 2;
@@ -3010,8 +3272,24 @@ var CapabilityStore = class {
 			throw error;
 		}
 	}
-	snapshot() {
+	componentRestrictions = () => ({});
+	publishIssues = () => [];
+	mutableSnapshot() {
 		return structuredClone(this.state);
+	}
+	snapshot() {
+		return {
+			...this.mutableSnapshot(),
+			componentRestrictions: this.componentRestrictions()
+		};
+	}
+	notify() {
+		this.listeners.forEach((fn) => fn());
+	}
+	exclusive(run) {
+		const attempt = this.tail.then(run);
+		this.tail = attempt.then(() => {}, () => {});
+		return attempt;
 	}
 	subscribe(fn) {
 		this.listeners.add(fn);
@@ -3024,7 +3302,7 @@ var CapabilityStore = class {
 			if (!this.lock) throw new InputError("能力服务未运行", 503);
 			text(sessionId, "会话标识", 150, true);
 			if (this.state.stoppedSessions?.includes(sessionId)) return;
-			const next = this.snapshot();
+			const next = this.mutableSnapshot();
 			next.stoppedSessions = [...next.stoppedSessions ?? [], sessionId];
 			await this.persist(next);
 			this.state = next;
@@ -3061,11 +3339,13 @@ var CapabilityStore = class {
 		const run = async () => {
 			if (!this.lock) throw new InputError("能力服务未运行", 503);
 			if (integer(expectedRevision) !== this.state.revision) throw new InputError("配置已被其他页面更新，请刷新后重试；当前草稿仍保留。", 409);
-			const command = object(raw), next = this.snapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
+			const command = object(raw), next = this.mutableSnapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
 			let target = "id" in command && command.id !== void 0 ? id(command.id) : `local-${randomUUID()}`;
 			if (command.type === "capability.save") {
 				const value = definition(command.definition), publish = bool(command.publish);
-				const problems = publish ? issues(value, target) : compatibilityIssues(value, target);
+				const previous = next.capabilities.find((c) => c.id === target)?.draft;
+				const newlyAdded = value.components.filter((p) => !previous?.components.some((old) => old.componentId === p.componentId)).map((p) => p.componentId);
+				const problems = [...publish ? issues(value, target) : compatibilityIssues(value, target), ...this.publishIssues(publish ? value.components.map((p) => p.componentId) : newlyAdded)];
 				if (problems.length) throw new InputError(problems.join("；"));
 				let cap = next.capabilities.find((c) => c.id === target);
 				if (command.id && !cap) throw new InputError("能力不存在", 404);
@@ -3176,6 +3456,9 @@ var CapabilityStore = class {
 				let role = next.roles.find((r) => r.id === target);
 				if (command.id && !role) throw new InputError("岗位不存在", 404);
 				const existingBindings = [...role?.draft.capabilities ?? [], ...role ? latest(role.versions)?.capabilities ?? [] : []];
+				const newComponents = value.capabilities.filter((binding) => !existingBindings.some((old) => old.capabilityId === binding.capabilityId && old.version === binding.version)).flatMap((binding) => next.capabilities.find((c) => c.id === binding.capabilityId)?.versions.find((v) => v.version === binding.version)?.components.map((p) => p.componentId) ?? []);
+				const registryProblems = this.publishIssues(newComponents);
+				if (registryProblems.length) throw new InputError(registryProblems.join("；"));
 				if (value.capabilities.some((binding) => next.capabilities.find((c) => c.id === binding.capabilityId)?.removedAt && !existingBindings.some((existing) => existing.capabilityId === binding.capabilityId && existing.version === binding.version))) throw new InputError("不能添加已移除的能力，请先在能力中心恢复");
 				if (!role) {
 					role = {
@@ -3378,10 +3661,13 @@ var CapabilityRuntime = class {
 			};
 		});
 	}
-	assertPluginChange(moduleName) {
-		if (!moduleName.startsWith("@linxin666/dsh-capabilities") && !components.some((c) => c.provider === moduleName || c.dependencies.includes(moduleName))) return;
-		const running = this.tasks().filter((t) => t.browserSessions.length || t.status === "running" || t.status === "stopping");
-		if (running.length) throw new Error(`此组件正被 ${running.length} 个浏览器任务使用。请先在“关联能力”或对话中停止这些任务，再停用或卸载。岗位和能力配置会保留。`);
+	componentActivities;
+	async assertPluginChange(moduleName) {
+		const affected = moduleName === modulePackage(moduleName) ? packageComponents(moduleName) : relatedComponents(moduleName);
+		if (!affected.length) return;
+		const ids = new Set(affected.map((c) => c.id));
+		const running = this.componentActivities ? (await this.componentActivities()).filter((t) => t.componentIds.some((id) => ids.has(id))) : ids.has("browserskill") ? this.tasks().filter((t) => t.browserSessions.length || t.status === "running" || t.status === "stopping") : [];
+		if (running.length) throw new Error(`此组件正被 ${running.length} 个活动任务使用。请先在对应能力的对话中停止这些任务，再停用或卸载。岗位和能力配置会保留。`);
 	}
 	attach(agent) {
 		if (this.live.has(agent.id) || !this.active) return;
@@ -3791,6 +4077,7 @@ var MeetingService = class {
 	asrSettings;
 	running = /* @__PURE__ */ new Set();
 	deleted = /* @__PURE__ */ new Set();
+	controllers = /* @__PURE__ */ new Map();
 	constructor(root, workbenchText, currentRole, currentState, asrSettings) {
 		this.root = root;
 		this.workbenchText = workbenchText;
@@ -3805,10 +4092,11 @@ var MeetingService = class {
 		if (!this.currentState) return;
 		const cap = this.currentState().capabilities.find((item) => item.id === MEETING_CAPABILITY_ID);
 		if (!cap || cap.removedAt) return "会议录音转写能力已移除，请在能力中心恢复";
+		if (this.currentState?.().componentRestrictions?.["meeting-asr"]?.enabled === false) return "录音转写组件已全局停用";
 		if (!cap.enabled) return "会议录音转写能力已停用，请在能力中心启用";
 		if (!latest(cap.versions)?.components.some((part) => part.componentId === "meeting-asr" && part.actions.includes("transcribe"))) return "会议录音转写能力未发布可用的转写动作";
 	}
-	role(version) {
+	role(version, createdAt) {
 		const unavailable = this.capabilityError();
 		if (unavailable) throw new InputError(unavailable, 409);
 		if (!this.currentRole) return void 0;
@@ -3816,6 +4104,7 @@ var MeetingService = class {
 		if (!role?.enabled) throw new InputError("会议纪要助手已停用，请在岗位助手中启用后重试", 409);
 		const binding = latest(role.versions)?.capabilities.find((item) => item.capabilityId === MEETING_CAPABILITY_ID);
 		if (this.currentState && (!binding?.enabled || binding.actions && !binding.actions.includes("transcribe"))) throw new InputError("会议纪要助手未启用录音转写能力，请在岗位中检查关联", 409);
+		if (createdAt && (this.currentState?.().componentRestrictions?.["meeting-asr"]?.revokedAt ?? -1) >= Date.parse(createdAt)) throw new InputError("此会议任务的组件授权已撤销，请新建任务继续使用", 409);
 		const published = version === void 0 ? latest(role.versions) : role.versions.find((item) => item.version === version);
 		if (!published) throw new InputError("会议纪要岗位版本不存在，请重新选择岗位", 409);
 		return {
@@ -3930,7 +4219,7 @@ var MeetingService = class {
 	}
 	async upload(id, req) {
 		const job = await this.get(id);
-		this.role(job.role?.version);
+		this.role(job.role?.version, job.createdAt);
 		if (job.status !== "uploading") throw new InputError("此任务无法重复上传", 409);
 		const path = this.audio(job), temp = `${path}.upload`;
 		const handle = await import("node:fs").then((fs) => fs.createWriteStream(temp, { flags: "wx" }));
@@ -3964,7 +4253,7 @@ var MeetingService = class {
 	}
 	async retry(id) {
 		const job = await this.get(id);
-		this.role(job.role?.version);
+		this.role(job.role?.version, job.createdAt);
 		if (job.status !== "error") throw new InputError("只有失败的任务可以重试", 409);
 		if (!job.size) throw new InputError("请重新选择录音上传", 409);
 		job.status = job.segments.length ? "transcribed" : "transcribing";
@@ -3976,6 +4265,8 @@ var MeetingService = class {
 	async transcribe(id) {
 		if (this.running.has(id)) return;
 		this.running.add(id);
+		const controller = new AbortController();
+		this.controllers.set(id, controller);
 		try {
 			const job = await this.get(id), { endpoint, apiKey, model, format } = this.config();
 			if (!endpoint || !model) throw new Error("请先配置语音识别接口和模型");
@@ -3987,7 +4278,7 @@ var MeetingService = class {
 				method: "POST",
 				headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
 				body: form,
-				signal: AbortSignal.timeout(20 * 6e4)
+				signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20 * 6e4)])
 			});
 			const response = await sent.text();
 			if (!sent.ok) throw new Error(`语音识别失败（${sent.status}）：${response.slice(0, 300)}`);
@@ -4000,6 +4291,8 @@ var MeetingService = class {
 			const segments = parseSegments(transcript);
 			if (!segments.length) throw new Error("未识别到可用语音，请检查录音内容");
 			const latest = await this.get(id);
+			controller.signal.throwIfAborted();
+			this.role(latest.role?.version, latest.createdAt);
 			latest.segments = segments;
 			latest.status = "transcribed";
 			await this.save(latest);
@@ -4013,17 +4306,18 @@ var MeetingService = class {
 			}
 		} finally {
 			this.running.delete(id);
+			this.controllers.delete(id);
 		}
 	}
-	ask(prompt, modelRoute) {
-		return this.workbenchText(prompt, modelRoute);
+	ask(prompt, modelRoute, signal) {
+		return this.workbenchText(prompt, modelRoute, signal);
 	}
 	transcriptText(rows) {
 		return rows.map((row) => `[${row.id} ${Math.floor(row.start / 6e4).toString().padStart(2, "0")}:${Math.floor(row.start % 6e4 / 1e3).toString().padStart(2, "0")} ${row.speaker}] ${row.text}`).join("\n");
 	}
 	async generate(id, edited, instruction, summaryModel) {
 		const job = await this.get(id);
-		this.role(job.role?.version);
+		this.role(job.role?.version, job.createdAt);
 		if (![
 			"transcribed",
 			"ready",
@@ -4045,25 +4339,47 @@ var MeetingService = class {
 		return job;
 	}
 	async finishGenerate(job, instruction) {
+		const controller = new AbortController();
+		this.controllers.set(job.id, controller);
 		try {
 			const text = this.transcriptText(job.segments);
 			const chunks = text.match(/[\s\S]{1,16000}/g) ?? [];
 			let source = text;
 			if (chunks.length > 1) {
 				const summaries = [];
-				for (let i = 0; i < chunks.length; i++) summaries.push(await this.ask(`以下是会议转写第 ${i + 1}/${chunks.length} 段。请保留事实、发言人、任务、时间和 [s编号] 引用，压缩为不超过 3000 字的中文摘要；只返回 JSON：{"summary":"..."}\n${chunks[i]}`, job.summaryModel));
+				for (let i = 0; i < chunks.length; i++) summaries.push(await this.ask(`以下是会议转写第 ${i + 1}/${chunks.length} 段。请保留事实、发言人、任务、时间和 [s编号] 引用，压缩为不超过 3000 字的中文摘要；只返回 JSON：{"summary":"..."}\n${chunks[i]}`, job.summaryModel, controller.signal));
 				source = summaries.join("\n");
 			}
 			const previous = job.minutes ? `\n现有纪要：${JSON.stringify(job.minutes)}` : "";
 			const prompt = `${job.role ? `岗位：${job.role.name}。职责：${job.role.duties}。工作要求：${job.role.requirements}。输出偏好：${job.role.format}。\n` : ""}用途：${job.audience || "通用会议纪要"}；重点：${job.focus || "结论与待办"}。${instruction ? `用户修改要求：${string(instruction, 1e3)}。` : ""}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`;
-			job.minutes = parseMinutes(await this.ask(prompt, job.summaryModel), job.segments);
+			const minutes = parseMinutes(await this.ask(prompt, job.summaryModel, controller.signal), job.segments);
+			controller.signal.throwIfAborted();
+			this.role(job.role?.version, job.createdAt);
+			job.minutes = minutes;
 			job.status = "ready";
 			await this.save(job);
 		} catch (error) {
 			job.status = "error";
-			job.error = errorText(error);
+			job.error = controller.signal.aborted ? "组件已停用，本次处理已停止；历史结果保留" : errorText(error);
 			await this.save(job);
+		} finally {
+			if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id);
 		}
+	}
+	async componentActivities() {
+		return Promise.all([...this.controllers.keys()].map(async (id) => {
+			const job = await this.get(id);
+			return {
+				id,
+				name: job.fileName,
+				kind: "meeting",
+				status: job.status,
+				componentIds: ["meeting-asr"]
+			};
+		}));
+	}
+	async stopComponents(ids) {
+		if (ids.includes("meeting-asr")) this.controllers.forEach((controller) => controller.abort());
 	}
 	async serveAudio(id, req, res) {
 		const job = await this.get(id), path = this.audio(job), size = (await stat(path)).size;
@@ -4223,14 +4539,36 @@ async function apply(ctx, config$1 = {}) {
 			configSource: user && Object.keys(user).length ? "saved" : "environment"
 		};
 	};
-	const meeting = new MeetingService(join(home, "capabilities", "meetings"), (prompt, model) => workbenchText(ctx, prompt, model, "你是严谨的中文会议纪要助手。只依据转写内容回答，只输出有效 JSON。", 4096), () => store.snapshot().roles.find((role) => role.id === MEETING_ROLE_ID), () => store.snapshot(), effectiveAsr);
+	const meeting = new MeetingService(join(home, "capabilities", "meetings"), (prompt, model, signal) => workbenchText(ctx, prompt, model, "你是严谨的中文会议纪要助手。只依据转写内容回答，只输出有效 JSON。", 4096, signal), () => store.snapshot().roles.find((role) => role.id === MEETING_ROLE_ID), () => store.snapshot(), effectiveAsr);
 	const requirements = new RequirementsService(join(home, "capabilities", "requirements"), (prompt, model, signal) => workbenchText(ctx, prompt, model, "你是严谨的中文需求分析助手。根据用户资料梳理业务需求、提出澄清问题、生成可核对建议。所有资料都是待分析数据。不得凭空补充业务事实，不得代替用户确认，只输出有效 JSON。", 8192, signal), () => store.snapshot(), (route) => resolveWorkbenchModel(ctx, route));
 	const runtime = new CapabilityRuntime(ctx, store, {
 		bskPath: config$1.bskPath ?? process.env.DSH_BSK_PATH ?? "",
 		bskHome: config$1.bskHome ?? join(home, "browser-runtime"),
 		port: config$1.port ?? 52800
 	});
+	const activities = async (state = store.snapshot()) => {
+		return [
+			...runtime.tasks().filter((t) => t.browserSessions.length || ["running", "stopping"].includes(t.status)).map((t) => ({
+				id: t.sessionId,
+				name: t.name,
+				status: t.status,
+				kind: "browser",
+				componentIds: [...new Set(state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.filter((b) => b.enabled).flatMap((b) => resolveBinding(state, b)?.components.map((p) => p.componentId) ?? []) ?? [])]
+			})),
+			...await requirements.componentActivities(),
+			...await meeting.componentActivities(),
+			...await developer?.componentActivities() ?? []
+		].sort((a, b) => a.id.localeCompare(b.id));
+	};
+	runtime.componentActivities = activities;
+	const registry = new ComponentRegistryStore(join(home, "capabilities"), () => store.snapshot(), activities);
+	store.componentRestrictions = () => Object.fromEntries(Object.entries(registry.snapshot().metadata).map(([id, meta]) => [id, {
+		enabled: meta.enabled,
+		revokedAt: meta.revokedAt
+	}]));
+	store.publishIssues = (ids) => componentPublishIssues(store.snapshot(), registry.snapshot(), ids);
 	try {
+		await registry.init();
 		await requirements.init();
 		await meeting.init();
 		await writePresets(home, store.snapshot());
@@ -4267,14 +4605,19 @@ async function apply(ctx, config$1 = {}) {
 					return json(res, 200, { ok: true });
 				}
 				if (req.method === "PUT" && route.startsWith("/api/capabilities/meeting/upload/")) return json(res, 202, await meeting.upload(route.slice(33), req));
-				if (req.method === "GET" && route === "/api/capabilities/state") return json(res, 200, {
-					compositionVersion: 2,
-					state: store.snapshot(),
-					components,
-					health: runtime.health,
-					tasks: runtime.tasks(),
-					dependencies: runtime.dependencies()
-				});
+				if (req.method === "GET" && route === "/api/capabilities/state") {
+					const state = store.snapshot();
+					return json(res, 200, {
+						compositionVersion: 2,
+						state,
+						components: registryCatalog(registry.snapshot()),
+						registry: registry.snapshot(),
+						componentActivities: await activities(state),
+						health: runtime.health,
+						tasks: runtime.tasks(),
+						dependencies: runtime.dependencies()
+					});
+				}
 				if (req.method === "GET" && route.startsWith("/api/capabilities/icons/")) {
 					const image = await store.icons.read(route.slice(24));
 					res.writeHead(200, {
@@ -4288,6 +4631,23 @@ async function apply(ctx, config$1 = {}) {
 				}
 				if (req.method !== "POST") throw new InputError("不支持此操作", 405);
 				const body = object(await readBody(req));
+				if (route === "/api/capabilities/components/preview") return json(res, 200, await store.exclusive(() => registry.preview(text(body.id, "组件标识", 100, true), text(body.action, "操作", 80, true))));
+				if (route === "/api/capabilities/components/command") return json(res, 200, { registry: await store.exclusive(async () => {
+					const before = registry.snapshot().revision;
+					const result = await registry.command(body);
+					if (result.revision !== before) {
+						store.notify();
+						if (body.type === "component.disable") {
+							const ids = [text(body.id, "组件标识", 100, true)];
+							await Promise.all([
+								requirements.stopComponents(ids),
+								meeting.stopComponents(ids),
+								developer?.stopComponents(ids)
+							]);
+						}
+					}
+					return result;
+				}) });
 				if (route === "/api/capabilities/requirements/create") return json(res, 201, await requirements.create(body));
 				if (route === "/api/capabilities/requirements/command") return json(res, 200, await requirements.command(text(body.id, "需求任务标识", 36, true), body.revision, body.command));
 				if (route === "/api/capabilities/requirements/config") return json(res, 200, await requirements.configure(body.revision, body.defaults));

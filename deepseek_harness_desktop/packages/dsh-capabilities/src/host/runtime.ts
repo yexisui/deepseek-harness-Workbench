@@ -8,6 +8,7 @@ import type {} from '@deepseek-ai/dsh-skill'
 import { defineTool, type ToolDefinition, type ToolExecution, type ToolRunContext } from '@deepseek-ai/dsh-tools'
 import type * as BrowserSkill from '@wxg-prc-cpg/browser-skill-dsh-plugin'
 import { allowedActions, browserActions, callViolation, roleForPreset, wasRevoked } from '../core/policy.ts'
+import { relatedComponents, packageComponents, modulePackage, type ComponentActivity } from '../core/component-registry.ts'
 import { browserPackage, components, type DependencyHealth, type Health, type RoleVersion, type Task } from '../core/model.ts'
 import type { CapabilityStore } from './store.ts'
 
@@ -84,10 +85,13 @@ export class CapabilityRuntime {
       return { id, installed, loaded, version, pendingRestart: loaded && !installed }
     })
   }
-  assertPluginChange(moduleName: string) {
-    if (!moduleName.startsWith('@linxin666/dsh-capabilities') && !components.some(c => c.provider === moduleName || c.dependencies.includes(moduleName))) return
-    const running = this.tasks().filter(t => t.browserSessions.length || t.status === 'running' || t.status === 'stopping')
-    if (running.length) throw new Error(`此组件正被 ${running.length} 个浏览器任务使用。请先在“关联能力”或对话中停止这些任务，再停用或卸载。岗位和能力配置会保留。`)
+  componentActivities?: () => Promise<ComponentActivity[]>
+  async assertPluginChange(moduleName: string) {
+    const affected = moduleName === modulePackage(moduleName) ? packageComponents(moduleName) : relatedComponents(moduleName)
+    if (!affected.length) return
+    const ids = new Set(affected.map(c => c.id))
+    const running = this.componentActivities ? (await this.componentActivities()).filter(t => t.componentIds.some(id => ids.has(id))) : ids.has('browserskill') ? this.tasks().filter(t => t.browserSessions.length || t.status === 'running' || t.status === 'stopping') : []
+    if (running.length) throw new Error(`此组件正被 ${running.length} 个活动任务使用。请先在对应能力的对话中停止这些任务，再停用或卸载。岗位和能力配置会保留。`)
   }
   private attach(agent: Agent) {
     if (this.live.has(agent.id) || !this.active) return

@@ -26,6 +26,15 @@ async function finished(service:RequirementsService,id:string) {
 }
 const basic={title:'提交申请',description:'员工提交完整申请后进入审批。',acceptance:'提交后保存申请并显示待审批。',actor:'员工'}
 
+it('cancels the actual analysis when its component is globally stopped and retains the saved draft',async()=>{
+ let signal:AbortSignal|undefined
+ const env=await setup(async(_prompt,_route,provided)=>{signal=provided;return new Promise((_resolve,reject)=>provided!.addEventListener('abort',()=>reject(new Error('已停止')),{once:true}))})
+ const started=await env.command(env.task,{type:'run',operation:'analyze',requestId:randomUUID(),instruction:'整理业务目标'})
+ expect((await env.service.componentActivities())[0].componentIds).toEqual(['requirements-service'])
+ await env.service.stopComponents(['requirements-service'])
+ expect(signal?.aborted).toBe(true);expect((await env.service.get(started.id)).run?.status).toBe('stopped');expect((await env.service.get(started.id)).title).toBe('报销需求')
+})
+
 describe('persistent requirements workflow',()=>{
   it('creates one persisted record for repeated draft requests and never overwrites newer work on retry',async()=>{
     const env=await setup(),requestId=randomUUID()

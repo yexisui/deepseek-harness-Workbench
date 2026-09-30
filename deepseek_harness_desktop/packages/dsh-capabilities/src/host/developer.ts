@@ -294,5 +294,9 @@ export class DeveloperService {
       await this.update(id, current => { const check = current.checks.find(c => c.id === requestId)!; check.output = output + (error ? '\n' + error : ''); check.exitCode = exitCode; check.finishedAt = now(); check.status = signal.aborted ? 'stopped' : exitCode === 0 && !error ? 'passed' : 'failed'; check.changedDuringRun = after?.fingerprint !== state.fingerprint; this.event(current, 'run', `${command.name}：${check.status}${check.changedDuringRun ? '；运行期间代码有变化' : ''}`) })
     }); return task
   }) }
+  async componentActivities() {
+    return Promise.all([...this.running.keys()].map(async id => { const task = await this.get(id); return { id, name: task.title, kind: 'developer', status: 'running', componentIds: ['developer-files', 'developer-git', 'developer-checks'] } }))
+  }
+  async stopComponents(ids: string[]) { const activities = await this.componentActivities(); const runs = activities.filter(t => t.componentIds.some(id => ids.includes(id))).map(t => this.running.get(t.id)).filter(Boolean); runs.forEach(run => run!.controller.abort()); await Promise.allSettled(runs.map(run => run!.promise)) }
   async close() { this.closed = true; for (const run of this.running.values()) run.controller.abort(); await Promise.allSettled([...this.running.values()].map(run => run.promise)); await this.tail }
 }

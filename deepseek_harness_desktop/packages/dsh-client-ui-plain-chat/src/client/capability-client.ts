@@ -24,6 +24,8 @@ export const capabilityClient = {
     const result = await request<{ id: string }>('command', { revision, command })
     await capabilityClient.refresh(); return result.id
   },
+  async componentCommand(command: Record<string,unknown>) { try { const result = await request('components/command', command); await capabilityClient.refresh(); return result } catch(error) { await capabilityClient.refresh(); throw error } },
+  async componentPreview(id: string, action: string): Promise<any> { return request('components/preview', { id, action }) },
   async check(connect = false) { await request(connect ? 'connect' : 'check', {}); await capabilityClient.refresh() },
   async stop(sessionId: string) { await request('stop', { sessionId }); await capabilityClient.refresh() },
   async uploadRoleIcon(dataUrl: string): Promise<string> {
@@ -44,7 +46,7 @@ export function useCapabilities() {
   return state
 }
 export const editorDrafts = new Map<string, { value: unknown; revision: number }>()
-export type CapabilityLink = { section: 'capability-center' | 'plugins'; capabilityId?: string; moduleName?: string }
+export type CapabilityLink = { section: 'capability-center' | 'plugins' | 'component-center'; capabilityId?: string; moduleName?: string; componentId?: string; tab?: string; entryId?: string; scope?: string; returnTo?: 'component-center'; edit?: boolean; addComponent?: boolean }
 export function openCapabilityLink(link: CapabilityLink) {
   try { sessionStorage.setItem('workbench-capability-link', JSON.stringify(link)) } catch { /* Optional navigation memory. */ }
   window.dispatchEvent(new CustomEvent('workbench-capability-link', { detail: link }))

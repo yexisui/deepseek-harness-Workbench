@@ -1,3 +1,4 @@
+import { componentRestrictionKeys } from './component-registry.ts'
 import { actionsOf, latest, type Action, type State, type RoleVersion } from './model.ts'
 
 export function roleForPreset(state: State, preset?: string | null) {
@@ -6,25 +7,26 @@ export function roleForPreset(state: State, preset?: string | null) {
 /** Revocation also covers historical sessions that were not loaded at the time of a toggle. */
 export function wasRevoked(state: State, roleId: string, snapshot: RoleVersion, createdAt: number): boolean {
   return [`role:${roleId}`, ...snapshot.capabilities.filter(b => b.enabled).map(b => `capability:${b.capabilityId}`)]
-    .some(key => (state.revokedAt?.[key] ?? -1) >= createdAt)
+    .some(key => (state.revokedAt?.[key] ?? -1) >= createdAt) || componentRestrictionKeys(state, snapshot).some(id => (state.componentRestrictions?.[id]?.revokedAt ?? -1) >= createdAt)
 }
 /** Snapshot ∩ current restrictions. Later additions can never expand an existing session. */
 export function allowedActions(state: State, roleId: string, snapshot: RoleVersion): Action[] {
   const role = state.roles.find(r => r.id === roleId), current = role && latest(role.versions)
   if (!role?.enabled || !current) return []
+  const activeActions = (value?: import("./model.ts").Definition) => actionsOf(value && { ...value, components: value.components.filter(p => state.componentRestrictions?.[p.componentId]?.enabled !== false) })
   const allowed = new Set<Action>()
   for (const old of snapshot.capabilities) {
     const now = current.capabilities.find(b => b.capabilityId === old.capabilityId)
     const cap = state.capabilities.find(c => c.id === old.capabilityId)
     if (!old.enabled || !now?.enabled || !cap?.enabled || cap.removedAt) continue
     const original = cap.versions.find(v => v.version === old.version)
-    const ceilings = cap.versions.filter(v => v.version >= old.version).map(actionsOf)
+    const ceilings = cap.versions.filter(v => v.version >= old.version).map(activeActions)
     // A revoke followed by a later re-grant must not resurrect permissions in an old session.
     const roleCeilings = role.versions.filter(v => v.version >= snapshot.version).map(v => {
       const binding = v.capabilities.find(b => b.capabilityId === old.capabilityId)
-      return binding?.enabled ? binding.actions ?? actionsOf(cap.versions.find(c => c.version === binding.version)) : []
+      return binding?.enabled ? binding.actions ?? activeActions(cap.versions.find(c => c.version === binding.version)) : []
     })
-    for (const action of old.actions ?? actionsOf(original)) if (actionsOf(original).includes(action) && [...ceilings, ...roleCeilings].every(a => a.includes(action))) allowed.add(action)
+    for (const action of old.actions ?? activeActions(original)) if (activeActions(original).includes(action) && [...ceilings, ...roleCeilings].every(a => a.includes(action))) allowed.add(action)
   }
   return [...allowed]
 }

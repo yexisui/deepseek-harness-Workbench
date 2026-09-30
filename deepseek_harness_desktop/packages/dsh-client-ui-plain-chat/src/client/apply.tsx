@@ -10,7 +10,8 @@ import { decorateSlot, type Registry } from './slot-adapter.ts'
 import { DraftComposer } from './DraftComposer.tsx'
 import { withAppearanceNavigation } from './AppearanceNavigation.tsx'
 import { CapabilityPreviewContext, createCapabilityPreview } from './capability-preview.tsx'
-import { registerCapabilityCenter } from './capability-settings.tsx'
+import { ComponentCenter } from './ComponentCenter.tsx'
+import { registerCapabilityCenter, registerComponentCenter } from './capability-settings.tsx'
 import { AgentPresetDisclosure } from './RoleAssistants.tsx'
 import { ManagedCenter } from './ManagedCenter.tsx'
 import { BrowserTaskStatus, ManagedCurrentAssistant, ManagedRolePicker, ManagedRolesSection, MEETING_DEMO_ROLE_ID } from './ManagedRoles.tsx'
@@ -186,6 +187,7 @@ export function apply(ctx: Context): void {
   const registry = ctx.slots as unknown as Registry
   const capabilityPreview = createCapabilityPreview()
   registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <ManagedCenter />)
+  registerComponentCenter(ctx.slots as unknown as Parameters<typeof registerComponentCenter>[0], () => <ComponentCenter />)
   const settingsNavigation = createSettingsNavigation()
   ctx.effect(() => {
     const open = (event: Event) => settingsNavigation.openSection((event as CustomEvent<CapabilityLink>).detail.section)
