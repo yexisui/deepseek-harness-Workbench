@@ -1,0 +1,6 @@
+import { expect, it } from 'vitest'
+import { componentRollbackIssue } from '../src/core/component-compatibility.ts'
+const name='@linxin666/dsh-capabilities',old={version:'0.1.0-local.13'}
+it('permits the exact baseline when no component authority restriction has been introduced',()=>{expect(componentRollbackIssue(name,old,undefined)).toBeUndefined();expect(componentRollbackIssue(name,old,{schema:1,metadata:{x:{name:'用户名称',pinned:true}}})).toBeUndefined()})
+it('blocks downgrade after disable, retirement or retained revocation, including after re-enable',()=>{for(const meta of [{enabled:false},{retiredAt:'2026-10-01'},{enabled:true,revokedAt:1}])expect(componentRollbackIssue(name,old,{schema:1,metadata:{x:meta}})).toContain('不能回退')})
+it('permits a compatible revision or declared protocol and protects unknown registry schemas',()=>{const registry={schema:1,metadata:{x:{revokedAt:1}}};expect(componentRollbackIssue(name,{version:'0.1.0-local.14'},registry)).toBeUndefined();expect(componentRollbackIssue(name,{version:'1.0.0',dshComponentRegistryVersion:1},registry)).toBeUndefined();expect(componentRollbackIssue(name,old,{schema:2,metadata:{}})).toContain('不能回退');expect(componentRollbackIssue('other-package',old,registry)).toBeUndefined()})

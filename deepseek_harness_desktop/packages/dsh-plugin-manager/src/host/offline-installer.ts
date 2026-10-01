@@ -9,6 +9,7 @@ import type { ProfileFacts } from './profile.ts'
 import type { InventoryEntry } from '../core/classification.ts'
 import type { GatewayJob } from './gateway.ts'
 import type { InstalledPluginItem } from '../core/protocol.ts'
+import { componentRollbackIssue } from '../core/component-compatibility.ts'
 
 interface Version {path:string;version:string;hash:string;format:'zip'|'folder';entries:OfflinePreview['entries'];files:Record<string,string>}
 interface Managed {current:Version;previous?:Version;installedAt:string}
@@ -113,6 +114,11 @@ export class OfflineInstaller {
   validateLocalId('plugin',name);const registry=this.registry(),item=registry.plugins[name]
   if(!item?.previous)throw Error('此插件没有可回退的受管版本。')
   this.verifyVersion(item.previous)
+  const componentRegistry=path.join(this.home,'capabilities','component-registry.json')
+  if(name==='@linxin666/dsh-capabilities'&&existsSync(componentRegistry)){
+   const issue=componentRollbackIssue(name,json(path.join(item.previous.path,'package.json')),json(componentRegistry))
+   if(issue)throw Error(issue)
+  }
   const old=item.current;item.current=item.previous;item.previous=old;this.transaction(name,item.current,registry);return this.item(name)
  }
  remove(name:string):InstalledPluginItem {
