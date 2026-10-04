@@ -370,7 +370,7 @@ describe('ordinary chat UI integration', () => {
     await act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('[data-meeting-demo] button')).find(button => button.textContent?.includes('快速生成'))!.click() })
     expect(container.querySelector('[data-chat-group] [aria-current="page"]')!.textContent).toContain('会议纪要 · 快速生成')
     await click('[data-action="open-existing"]')
-    expect(container.querySelector('[data-chat-group] [aria-label^="打开本地会话"]')!.textContent).toContain('演示')
+    expect(container.querySelector('[data-chat-group] [aria-label^="打开本地会话"]')!.querySelector('small')!.textContent).toBe('会议')
     await renderWithSidebarAndRoles({ ...app.props, sessionId: 'older' })
     await click('[data-chat-group] [aria-label^="打开本地会话"]')
     await renderWithSidebarAndRoles(app.props)
