@@ -1,4 +1,4 @@
-import React, { useState, useSyncExternalStore } from 'react'
+import React, { useMemo, useState, useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
@@ -13,6 +13,7 @@ import { CapabilityPreviewContext, createCapabilityPreview } from './capability-
 import { ComponentCenter } from './ComponentCenter.tsx'
 import { registerComponentInventory } from './component-inventory-slot.tsx'
 import { registerCapabilityCenter, registerComponentCenter } from './capability-settings.tsx'
+import { nativePresetHook } from './native-preset-view.ts'
 import { AgentPresetDisclosure } from './RoleAssistants.tsx'
 import { ManagedCenter } from './ManagedCenter.tsx'
 import { BrowserTaskStatus, ManagedCurrentAssistant, ManagedRolePicker, ManagedRolesSection, MEETING_DEMO_ROLE_ID } from './ManagedRoles.tsx'
@@ -220,7 +221,8 @@ export function apply(ctx: Context): void {
   // Keep the official roster and its injected actions; this addition is UI-only.
   ctx.effect(() => decorateSlot(registry, 'settings.section', 'AgentPresetSection', Original => function RolePresetSection(props: any) {
     const selected = useSyncExternalStore(roleSelection.subscribe, roleSelection.getSnapshot)
-    return <><ManagedRolesSection selected={selected} onSelect={selectRole} /><AgentPresetDisclosure t={t}><Original {...props} /></AgentPresetDisclosure></>
+    const useNativePresets = useMemo(() => props.useAgentPresetSection ? nativePresetHook(props.useAgentPresetSection) : undefined, [props.useAgentPresetSection])
+    return <><ManagedRolesSection selected={selected} onSelect={selectRole} /><AgentPresetDisclosure t={t}><Original {...props} useAgentPresetSection={useNativePresets} /></AgentPresetDisclosure></>
   }), 'plain-chat: role assistant settings preview')
 
   // These resident entries own private inject callbacks and child declarations.
