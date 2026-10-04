@@ -252,7 +252,7 @@ export class MeetingService {
       if(reviewed?.decision==='clarify')throw new InputError('JEV 纪要复核需要确认，未覆盖已有纪要：'+reviewed.summary,409)
       controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt)
       job.minutes = minutes; job.status = 'ready'; await this.save(job)
-    } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? '组件已停用，本次处理已停止；历史结果保留' : errorText(error); await this.save(job) } finally { if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
+    } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? '组件已停用，本次处理已停止；历史结果保留' : errorText(error); await this.save(job) } finally { jev?.finish(); if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
   }
   async componentActivities() { return Promise.all([...this.controllers.keys()].map(async id => { const job = await this.get(id); return { id, name: job.fileName, kind: 'meeting', status: job.status, componentIds: ['meeting-asr'] } })) }
   async stopComponents(ids: string[]) { if (ids.includes('meeting-asr')) this.controllers.forEach(controller => controller.abort()) }

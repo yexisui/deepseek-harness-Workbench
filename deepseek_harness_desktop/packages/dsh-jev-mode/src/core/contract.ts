@@ -33,6 +33,12 @@ export function decision(raw: string): Decision {
   return {decision:d.decision,summary:d.summary,missing:d.missing,checks:d.checks}
 }
 export type JevTrace = { id: string; at: string; runId: string; scope: string; stage: 'begin'|'action'|'review'; revision: number; config: JevConfig; status: 'allowed'|'clarify'|'blocked'|'error'; summary: string; decision?: Decision; elapsedMs: number }
-export type JevStatus = { config: SavedConfig; state: 'off'|'ready'|'unavailable'; message: string; descriptor: typeof descriptor; traces: JevTrace[] }
+export type JevDiagnostic = { id: string; config: JevConfig; startedAt: string; finishedAt?: string; status: 'checking'|'passed'|'failed'|'cancelled'; message: string; elapsedMs: number; decision?: Decision }
+export type JevConnection = { state: 'unconfigured'|'unverified'|'checking'|'ready'|'error'; message: string; checkedAt?: string }
+export type JevActiveRun = { id: string; scope: string; revision: number; enabled: boolean; model: string; startedAt: string; checkingSince?: string; stage?: JevTrace['stage']; phase: 'working'|'checking'; lastStatus?: JevTrace['status'] }
+export type JevStatus = { config: SavedConfig; state: 'off'|'ready'|'unavailable'; message: string; descriptor: typeof descriptor; traces: JevTrace[]; connection?: JevConnection; diagnostic?: JevDiagnostic; active?: JevActiveRun[] }
+export type JevModel = { id: string; name: string; reasoning?: JevConfig['reasoningEffort'][] }
+export type JevAccount = { id: string; name: string; available: boolean; models: JevModel[]; message?: string }
+export const connectionConfig = (value: JevConfig) => JSON.stringify({...value,enabled:false})
 /** Future official implementations register this same contract explicitly; no official client is shipped. */
 export interface JevBackend { id: JevConfig['backend']; assess(input: { stage: JevTrace['stage']; scope: string; context: string; config: JevConfig }, signal: AbortSignal): Promise<Decision> }

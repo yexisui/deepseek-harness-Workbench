@@ -13,6 +13,7 @@ export function installNative(ctx:Context,service:JevService) {
       const accepted=await next();if(accepted.kind!=='enter')return accepted
       let entry=runs.get(agent.id)
       if(!entry||entry.turn!==turn){
+        entry?.run.finish()
         entry={turn,run:service.begin('native:'+agent.id),reviewed:false,input:messages,start:agent.session.snapshotEvents().length};runs.set(agent.id,entry)
         const result=await entry.run.check('begin',{messages:accepted.messages},signal),wasEnabled=previous.get(agent.id)??agent.session.snapshotEvents().some(e=>e.type==='user/message'&&e.data.source.kind==='plugin'&&e.data.source.plugin==='@linxin666/dsh-jev-mode');previous.set(agent.id,entry.run.enabled)
         if(result)return {...accepted,messages:[...accepted.messages,notice(`JEV 本轮已开启（配置 v${entry.run.snapshot.revision}，决策模型 ${entry.run.snapshot.value.model}）。沿用岗位职责与权限；依据不足先澄清。${entry.run.guidance()}`)]}
@@ -33,8 +34,8 @@ export function installNative(ctx:Context,service:JevService) {
       const result=await entry.run.check('review',{input:entry.input,results:events},signal)
       if(result?.decision==='clarify'){entry.restrictTools=true;agent.steer(notice(`JEV 结果复核提示：${result.summary}。补充待确认项，纠正缺乏证据的完成声明；保留已经执行动作的真实状态，不要再次自动执行。`))}
     }),
-    ctx.on('agent/status',({agent,status})=>{if(status==='idle')runs.delete(agent.id)}),
-    ctx.on('agent/disposed',({agent})=>{runs.delete(agent.id);previous.delete(agent.id)}),
+    ctx.on('agent/status',({agent,status})=>{if(status==='idle'){runs.get(agent.id)?.run.finish();runs.delete(agent.id)}}),
+    ctx.on('agent/disposed',({agent})=>{runs.get(agent.id)?.run.finish();runs.delete(agent.id);previous.delete(agent.id)}),
   ]
-  return ()=>{disposers.forEach(dispose=>dispose());runs.clear();previous.clear()}
+  return ()=>{disposers.forEach(dispose=>dispose());runs.forEach(entry=>entry.run.finish());runs.clear();previous.clear()}
 }

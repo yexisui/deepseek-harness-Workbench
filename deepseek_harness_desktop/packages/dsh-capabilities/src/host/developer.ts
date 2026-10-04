@@ -279,7 +279,7 @@ export class DeveloperService {
         try { round.after = await this.snapshot(task.cwd) } catch { /* Missing directory does not erase the failure record. */ }
         this.event(task, 'system', round.error)
       })
-    }
+    } finally { jev?.finish() }
   }
   async verify(id: string, commandId: string, requestId: string) { return this.serialized(async () => {
     const task = await this.get(id)

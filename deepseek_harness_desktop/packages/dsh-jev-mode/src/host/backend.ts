@@ -1,7 +1,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-llm'
 import type {} from '@deepseek-ai/dsh-settings'
-import { decision, JevError, type JevBackend, type JevConfig } from '../core/contract.ts'
+import { decision, JevError, type JevBackend, type JevConfig, type JevModel } from '../core/contract.ts'
 import { endpoint, intranetJson } from './intranet.ts'
 export function account(ctx: Context,modelRoute: string) {
   const slash=modelRoute.indexOf('/');if(slash<1||!modelRoute.slice(slash+1))throw new JevError('请为 JEV 单独选择一个内网决策模型')
@@ -16,13 +16,14 @@ export function account(ctx: Context,modelRoute: string) {
   // Credential is read only in-process from the selected account, never stored in JEV config or trace.
   const key=typeof profile.apiKey==='string'?profile.apiKey:''
   // Read configured names only. Opening JEV settings must never run provider discovery.
-  const models:{id:string;name:string}[]=Array.isArray(profile.models)?profile.models.filter((m:any)=>m&&typeof m.id==='string'&&m.id.length<=250).map((m:any)=>({id:provider+'/'+m.id,name:typeof m.name==='string'?m.name.slice(0,250):m.id})):[]
+  const models:JevModel[]=Array.isArray(profile.models)?profile.models.filter((m:any)=>m&&typeof m.id==='string'&&m.id.length<=250).map((m:any)=>({id:provider+'/'+m.id,name:typeof m.name==='string'?m.name.slice(0,250):m.id,...(m.reasoning===false?{reasoning:[]}:Array.isArray(m.reasoningEfforts)?{reasoning:m.reasoningEfforts.filter((v:unknown)=>['low','medium','high'].includes(String(v)))}:{})})):[]
   return {url,model,key,models,credentialRef:typeof profile.apiKeyEnv==='string'?profile.apiKeyEnv:''}
 }
 export class SelfOwnedBackend implements JevBackend {
   readonly id='self-owned'
   constructor(private ctx: Context) {}
   ready(config:JevConfig) {account(this.ctx,config.model)}
+  identity(config:JevConfig) {const a=account(this.ctx,config.model);return JSON.stringify([a.url.href,a.key,a.credentialRef])}
   async assess(input: Parameters<JevBackend['assess']>[0],signal:AbortSignal) {
     const selected=account(this.ctx,input.config.model)
     const credentials=this.ctx.get('credentials') as unknown as {resolve(ref:string):Promise<{value:string}|undefined>}|undefined
