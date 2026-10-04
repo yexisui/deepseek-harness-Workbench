@@ -2089,7 +2089,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-plugin-manager/src/client/inventory-tree.module.css.mjs
-		const css$11 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}";
+		const css$11 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=639px){.Z_0aEG_root[data-component-id] .Z_0aEG_moduleList,.Z_0aEG_root[data-component-id] .Z_0aEG_grid{grid-template-columns:1fr}}";
 		const tagId$11 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-plugin-manager/src/client/inventory-tree.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$11) + "]") === null) {
 			const tag = document.createElement("style");
@@ -2334,12 +2334,14 @@ window.__ModuleLoader__.load({
 			} catch {}
 			window.dispatchEvent(new CustomEvent("workbench-capability-link", { detail }));
 		}
-		function CapabilityReferences({ moduleName, data, componentId }) {
+		function CapabilityReferences({ moduleName, data, componentId, open, onOpenChange }) {
 			if (!data?.components?.length || !data.state?.capabilities) return null;
 			const catalog = componentId ? data.components.filter((c) => c.id === componentId) : data.components;
 			const refs = pluginReferences(data.state, moduleName, data.tasks, catalog);
 			if (!refs.components.length) return null;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+				open,
+				onToggle: onOpenChange ? (event) => onOpenChange(event.currentTarget.open) : void 0,
 				style: {
 					marginTop: 10,
 					paddingTop: 8,
@@ -2443,7 +2445,13 @@ window.__ModuleLoader__.load({
 				} catch {
 					return "";
 				}
-			}), [chosen, setChosen] = (0, react.useState)(""), [selected, setSelected] = (0, react.useState)([]), [target, setTarget] = (0, react.useState)("");
+			}), [chosen, setChosen] = (0, react.useState)(() => {
+				try {
+					return compact ? String(JSON.parse(sessionStorage.getItem("component-plugin-view:" + componentId) ?? "{}").chosen ?? "") : "";
+				} catch {
+					return "";
+				}
+			}), [selected, setSelected] = (0, react.useState)([]), [target, setTarget] = (0, react.useState)("");
 			(0, react.useEffect)(() => {
 				const select = (event) => {
 					try {
@@ -2536,6 +2544,10 @@ window.__ModuleLoader__.load({
 					if (!compact) localStorage.setItem("dsh-plugin-tree-open", JSON.stringify(next));
 				} catch {}
 			};
+			const rememberOpen = (key, open) => setOpened((previous) => previous[key] === open ? previous : {
+				...previous,
+				[key]: open
+			});
 			const rows = (snapshot?.entries ?? []).filter(related);
 			const relevantPresets = presets.filter((p) => p.rows.some(related));
 			const selectedPreset = descriptor ? relevantPresets.find((p) => p.id === chosen) ?? relevantPresets.find((p) => p.isDefault) ?? relevantPresets[0] : preset;
@@ -2553,7 +2565,7 @@ window.__ModuleLoader__.load({
 				categoryLabel(e)
 			].join(" ").toLocaleLowerCase().includes(q);
 			const card = (e, session = false) => {
-				const key = entryKey(e), fact = entryFacts(e), provided = !e.enabled ? memberships.get(e.moduleName) : void 0;
+				const key = entryKey(e), fact = entryFacts(e), provided = !e.enabled ? memberships.get(e.moduleName) : void 0, scope = session ? selectedPreset?.id : "global", identityKey = "identity:" + scope + ":" + e.entryId, referencesKey = "references:" + scope + ":" + e.entryId;
 				return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: inventory_tree_module_css_default.card,
 					"data-entry-id": e.entryId,
@@ -2569,7 +2581,8 @@ window.__ModuleLoader__.load({
 							}), "选择"]
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
-							open: focusEntry?.id === e.entryId && focusEntry.scope === (session ? selectedPreset?.id : "global") ? true : void 0,
+							open: focusEntry?.id === e.entryId && focusEntry.scope === (session ? selectedPreset?.id : "global") ? true : compact ? !!opened[identityKey] : void 0,
+							onToggle: compact ? (event) => rememberOpen(identityKey, event.currentTarget.open) : void 0,
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: e.moduleName.replace(/^@deepseek-ai\/(?:dsh-)?/, "").replace(/^@linxin666\/dsh-/, "") }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 								className: inventory_tree_module_css_default.badge,
 								"data-state": e.fiberPhase === "failed" ? "failed" : e.enabled ? "active" : "disabled",
@@ -2605,7 +2618,9 @@ window.__ModuleLoader__.load({
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityReferences, {
 							moduleName: e.moduleName,
 							componentId: descriptor?.id,
-							data: capabilityData
+							data: capabilityData,
+							open: compact ? !!opened[referencesKey] : void 0,
+							onOpenChange: compact ? (open) => rememberOpen(referencesKey, open) : void 0
 						})
 					]
 				}, (session ? "session:" : "") + e.entryId);
@@ -2708,6 +2723,7 @@ window.__ModuleLoader__.load({
 			}).length : 0;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: inventory_tree_module_css_default.root,
+				"data-component-id": compact ? relatedId : void 0,
 				children: [
 					!compact && capabilityData && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						className: inventory_tree_module_css_default.toolButton,
@@ -3075,6 +3091,8 @@ window.__ModuleLoader__.load({
 						}),
 						absent.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 							className: inventory_tree_module_css_default.branch,
+							open: compact ? !!opened.sources : void 0,
+							onToggle: compact ? (event) => rememberOpen("sources", event.currentTarget.open) : void 0,
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
 									"来源包与待检测声明 · ",
@@ -4554,7 +4572,11 @@ window.__ModuleLoader__.load({
 			})
 		};
 		function componentService(component, context) {
-			return adapters[component.management](context);
+			const presentation = adapters[component.management](context);
+			return {
+				...presentation,
+				summary: component.actions.length ? component.actions.map((action) => actionNames[action]).join("、") : presentation.description
+			};
 		}
 		function ComponentEnvironment({ component, data, meetingStatus, requirementsStatus, onConfigure, disabled = false }) {
 			const info = componentService(component, {
@@ -4771,7 +4793,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ComponentCenter.module.css.mjs
-		const css$7 = ".F6QQQW_toolbar{align-items:center;gap:12px;display:flex}.F6QQQW_toolbar input{flex:1;min-width:100px}.F6QQQW_toolbar select{border:1px solid var(--dsw-alias-border-l2,#dce2ed);background:var(--dsw-alias-bg-layer-2,#fff);color:inherit;border-radius:8px;padding:9px}.F6QQQW_layout{grid-template-columns:minmax(250px,34%) minmax(0,1fr);align-items:start;gap:20px;display:grid}.F6QQQW_list,.F6QQQW_detail{border:1px solid var(--dsw-alias-border-l2,#dce2ed);background:var(--dsw-alias-bg-layer-2,#fff);border-radius:14px;min-width:0}.F6QQQW_list{max-height:70vh;overflow:auto}.F6QQQW_list>p{padding:0 18px}.F6QQQW_item{border-top:1px solid var(--dsw-alias-border-l2,#dce2ed);overflow-wrap:anywhere;padding:18px}.F6QQQW_item[data-selected=true]{background:var(--dsw-alias-bg-active,#edf1ff)}.F6QQQW_itemHeading{align-items:flex-start;gap:8px;display:flex}.F6QQQW_name{color:inherit;font:inherit;text-align:left;cursor:pointer;background:0 0;border:0;flex:1;align-items:center;gap:12px;display:flex}.F6QQQW_chipRow{flex-wrap:wrap;align-items:center;gap:5px;margin-top:9px;display:flex}.F6QQQW_chipRow small{min-width:52px;color:var(--dsw-alias-label-secondary,#7a859b)}.F6QQQW_chip{border:1px solid var(--dsw-alias-border-l2,#dce2ed);color:inherit;font:inherit;cursor:pointer;overflow-wrap:anywhere;background:0 0;border-radius:6px;padding:3px 6px;font-size:12px}.F6QQQW_detail{min-height:400px;padding:22px}.F6QQQW_detailTabs{flex-wrap:wrap;margin-top:18px}.F6QQQW_environment{border-top:1px solid var(--dsw-alias-border-l2,#dce2ed);margin-top:18px;padding-top:14px}.F6QQQW_menu{position:relative}.F6QQQW_menu>div{z-index:2;background:var(--dsw-alias-bg-layer-2,#fff);border:1px solid var(--dsw-alias-border-l2,#dce2ed);border-radius:10px;min-width:150px;padding:8px;display:grid;position:absolute;top:100%;right:0;box-shadow:0 8px 22px #0002}.F6QQQW_menu button{color:inherit;cursor:pointer;text-align:left;background:0 0;border:0;padding:10px}.F6QQQW_menu summary{cursor:pointer;list-style:none}@media (width<=900px){.F6QQQW_layout{grid-template-columns:1fr}.F6QQQW_list{max-height:40vh}.F6QQQW_toolbar{flex-wrap:wrap}.F6QQQW_detail{padding:16px}}";
+		const css$7 = ".F6QQQW_root{flex-direction:column;gap:12px;width:100%;min-height:0;display:flex;container-type:inline-size}.F6QQQW_root [hidden]{display:none!important}.F6QQQW_root .F6QQQW_heading{gap:12px;margin:0}.F6QQQW_heading h2{font-size:22px}.F6QQQW_heading>div:first-child{min-width:0}.F6QQQW_heading>div:last-child{gap:8px}.F6QQQW_toolbar{flex:none;align-items:center;gap:10px;display:flex}.F6QQQW_toolbar input{flex:1;min-width:120px;margin:0}.F6QQQW_toolbar select,.F6QQQW_tabPicker select{border:1px solid var(--role-border);background:var(--role-bg);color:inherit;font:inherit;border-radius:8px;max-width:100%;padding:9px}.F6QQQW_root .F6QQQW_filters{flex-wrap:nowrap;flex:none;margin:0;overflow-x:auto}.F6QQQW_filters button{white-space:nowrap;padding:8px 11px}.F6QQQW_layout{flex:1;grid-template-columns:minmax(0,1fr);gap:20px;min-height:0;display:grid}.F6QQQW_root[data-layout=wide] .F6QQQW_layout{grid-template-columns:300px minmax(0,1fr)}.F6QQQW_list,.F6QQQW_detail{background:var(--role-bg);border:1px solid var(--role-border);border-radius:12px;min-width:0;min-height:0}.F6QQQW_list{overscroll-behavior:contain;scrollbar-gutter:stable;overflow:auto}.F6QQQW_list>p{border-bottom:1px solid var(--role-border);margin:0;padding:12px 16px;font-size:12px}.F6QQQW_item{border-bottom:1px solid var(--role-border);overflow-wrap:anywhere;padding:12px 16px}.F6QQQW_item:last-child{border-bottom:0}.F6QQQW_item[data-selected=true]{background:var(--dsw-alias-bg-active,#edf1ff)}.F6QQQW_itemHeading{align-items:flex-start;gap:8px;display:flex}.F6QQQW_name{color:inherit;font:inherit;text-align:left;cursor:pointer;background:0 0;border:0;flex:1;align-items:center;gap:10px;min-width:0;padding:0;display:flex}.F6QQQW_name>svg,.F6QQQW_name>span{flex-shrink:0}.F6QQQW_root .F6QQQW_metadata{margin:4px 0;font-size:12px}.F6QQQW_root .F6QQQW_summary{white-space:nowrap;text-overflow:ellipsis;color:var(--role-muted);margin:4px 0 6px;font-size:13px;overflow:hidden}.F6QQQW_chipRow{flex-wrap:wrap;align-items:baseline;gap:5px;margin-top:5px;display:flex}.F6QQQW_chipRow small{min-width:52px;color:var(--role-muted);font-size:12px}.F6QQQW_chip{border:1px solid var(--role-border);color:inherit;font:inherit;cursor:pointer;overflow-wrap:anywhere;background:0 0;border-radius:5px;max-width:100%;padding:2px 6px;font-size:12px}.F6QQQW_detail{flex-direction:column;display:flex}.F6QQQW_detailHeader{flex:none;padding:16px 20px 0}.F6QQQW_detailNavigation{justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;display:flex}.F6QQQW_previousNext{gap:6px;margin-left:auto;display:flex}.F6QQQW_root .F6QQQW_detailTitle{margin:0}.F6QQQW_detailTitle h3{overflow-wrap:anywhere;font-size:20px}.F6QQQW_detailTitle p{margin:4px 0 0;font-size:13px}.F6QQQW_detailActions{gap:8px;margin-top:12px}.F6QQQW_root .F6QQQW_detailTabs{flex-wrap:nowrap;gap:0;margin:12px 0 0;overflow-x:auto}.F6QQQW_detailTabs button{white-space:nowrap;flex:none;padding:9px 10px}.F6QQQW_tabPicker{align-items:center;gap:10px;margin:12px 0;font-size:13px;display:flex}.F6QQQW_tabPicker select{flex:1;min-width:0}.F6QQQW_detailBody{overscroll-behavior:contain;scrollbar-gutter:stable;flex:1;min-height:0;padding:16px 20px 20px;overflow:auto}.F6QQQW_detailBody>p:first-child{margin-top:0}.F6QQQW_overviewReferences{border-top:1px solid var(--role-border);flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px;padding-top:12px;display:flex}.F6QQQW_environment{border-top:1px solid var(--role-border);margin-top:18px;padding-top:14px}.F6QQQW_menu{position:relative}.F6QQQW_menu>div{z-index:2;background:var(--role-bg);border:1px solid var(--role-border);border-radius:10px;min-width:150px;padding:8px;display:grid;position:absolute;top:100%;right:0;box-shadow:0 8px 22px #0002}.F6QQQW_menu button{color:inherit;cursor:pointer;text-align:left;background:0 0;border:0;padding:10px}.F6QQQW_menu summary{cursor:pointer;list-style:none}@container (width<=559px){.F6QQQW_toolbar{flex-wrap:wrap}.F6QQQW_toolbar input{flex-basis:100%}.F6QQQW_heading>div:last-child{flex-wrap:wrap}.F6QQQW_detailHeader{padding:12px 14px 0}.F6QQQW_detailBody{padding:12px 14px 16px}.F6QQQW_detailNavigation{flex-wrap:wrap}}@media (pointer:coarse){.F6QQQW_root button,.F6QQQW_root .F6QQQW_menu summary{min-height:44px}.F6QQQW_root input,.F6QQQW_root select{font-size:16px}}";
 		const tagId$7 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ComponentCenter.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$7) + "]") === null) {
 			const tag = document.createElement("style");
@@ -4784,19 +4806,94 @@ window.__ModuleLoader__.load({
 			"chip": "F6QQQW_chip",
 			"chipRow": "F6QQQW_chipRow",
 			"detail": "F6QQQW_detail",
+			"detailActions": "F6QQQW_detailActions",
+			"detailBody": "F6QQQW_detailBody",
+			"detailHeader": "F6QQQW_detailHeader",
+			"detailNavigation": "F6QQQW_detailNavigation",
 			"detailTabs": "F6QQQW_detailTabs",
+			"detailTitle": "F6QQQW_detailTitle",
 			"environment": "F6QQQW_environment",
+			"filters": "F6QQQW_filters",
+			"heading": "F6QQQW_heading",
 			"item": "F6QQQW_item",
 			"itemHeading": "F6QQQW_itemHeading",
 			"layout": "F6QQQW_layout",
 			"list": "F6QQQW_list",
 			"menu": "F6QQQW_menu",
+			"metadata": "F6QQQW_metadata",
 			"name": "F6QQQW_name",
+			"overviewReferences": "F6QQQW_overviewReferences",
+			"previousNext": "F6QQQW_previousNext",
+			"root": "F6QQQW_root",
+			"summary": "F6QQQW_summary",
+			"tabPicker": "F6QQQW_tabPicker",
 			"toolbar": "F6QQQW_toolbar"
 		};
 		//#endregion
+		//#region src/client/component-center-layout.ts
+		const fallback = /* @__PURE__ */ new Map();
+		function readCenterView(key) {
+			try {
+				const value = JSON.parse(sessionStorage.getItem("workbench-component-center:" + key) ?? "{}");
+				return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+			} catch {
+				return fallback.get(key) ?? {};
+			}
+		}
+		function rememberCenterView(key, view) {
+			fallback.set(key, view);
+			try {
+				sessionStorage.setItem("workbench-component-center:" + key, JSON.stringify(view));
+			} catch {}
+		}
+		/** The settings sidebar and dialog header consume space independently of the viewport. */
+		function useCenterLayout(ref, active) {
+			const [layout, setLayout] = (0, react.useState)({
+				width: 0,
+				height: void 0,
+				wide: false,
+				narrow: false
+			});
+			(0, react.useLayoutEffect)(() => {
+				const element = ref.current;
+				if (!active || !element) return;
+				const boundaries = [];
+				for (let parent = element.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
+					const style = getComputedStyle(parent);
+					if (/auto|scroll|hidden|clip/.test(style.overflowY) || parent.matches("dialog,[role=\"dialog\"]")) boundaries.push(parent);
+				}
+				const measure = () => {
+					const rect = element.getBoundingClientRect(), width = Math.round(rect.width || element.clientWidth);
+					let bottom = window.visualViewport ? window.visualViewport.height + window.visualViewport.offsetTop : window.innerHeight;
+					for (const parent of boundaries) {
+						const bound = parent.getBoundingClientRect();
+						if (bound.height > 0) bottom = Math.min(bottom, bound.bottom);
+					}
+					const height = width > 0 && bottom > rect.top ? Math.max(0, Math.floor(bottom - rect.top - 16)) : void 0;
+					setLayout((previous) => previous.width === width && previous.height === height ? previous : {
+						width,
+						height,
+						wide: width >= 1040,
+						narrow: width > 0 && width < 560
+					});
+				};
+				measure();
+				const observer = typeof ResizeObserver === "undefined" ? void 0 : new ResizeObserver(measure);
+				observer?.observe(element);
+				if (element.parentElement) observer?.observe(element.parentElement);
+				for (const boundary of boundaries) observer?.observe(boundary);
+				window.addEventListener("resize", measure);
+				window.visualViewport?.addEventListener("resize", measure);
+				return () => {
+					observer?.disconnect();
+					window.removeEventListener("resize", measure);
+					window.visualViewport?.removeEventListener("resize", measure);
+				};
+			}, [active, ref]);
+			return layout;
+		}
+		//#endregion
 		//#region src/client/ComponentCenter.tsx
-		const centerViews = /* @__PURE__ */ new Map();
 		const tabs$1 = [
 			["overview", "概览"],
 			["actions", "动作"],
@@ -4816,10 +4913,18 @@ window.__ModuleLoader__.load({
 		function ComponentCenter({ embedded = false, initialId, onClose }) {
 			const { data, error } = useCapabilities(), { status: meetingStatus } = useMeetingAvailability(data?.state.revision);
 			const { status: requirementsStatus } = useRequirementAvailability(data?.state.revision);
-			const viewKey = embedded ? "embedded" : "root", savedView = centerViews.get(viewKey);
+			const viewKey = embedded ? "embedded" : "root";
+			const [savedView] = (0, react.useState)(() => readCenterView(viewKey));
+			const link = lastCapabilityLink(), linked = link?.section === "component-center" && !!link.componentId;
+			const [pane, setPane] = (0, react.useState)(initialId || linked ? "detail" : savedView.pane ?? "list");
+			const rootRef = (0, react.useRef)(null), listRef = (0, react.useRef)(null), detailRef = (0, react.useRef)(null), bodyRef = (0, react.useRef)(null);
+			const tabMemory = (0, react.useRef)(savedView.tabs ?? {}), scrollMemory = (0, react.useRef)(savedView.scroll ?? {}), focusOnReturn = (0, react.useRef)(false), visibleIds = (0, react.useRef)(/* @__PURE__ */ new Set());
+			const [folds, setFolds] = (0, react.useState)(savedView.folds ?? {});
+			const layout = useCenterLayout(rootRef, !!data);
 			const [selected, setSelected] = (0, react.useState)(initialId ?? lastCapabilityLink()?.componentId ?? savedView?.selected ?? "developer-files");
 			const [tab, setTab] = (0, react.useState)(lastCapabilityLink()?.section === "component-center" ? lastCapabilityLink()?.tab ?? "overview" : savedView?.tab ?? "overview");
-			const [query, setQuery] = (0, react.useState)(savedView?.query ?? ""), [filter, setFilter] = (0, react.useState)(savedView?.filter ?? "all"), [category, setCategory] = (0, react.useState)(savedView?.category ?? "");
+			const changedLink = linked && link.componentId !== savedView.selected;
+			const [query, setQuery] = (0, react.useState)(changedLink ? "" : savedView.query ?? ""), [filter, setFilter] = (0, react.useState)(changedLink ? "all" : savedView.filter ?? "all"), [category, setCategory] = (0, react.useState)(changedLink ? "" : savedView.category ?? "");
 			const [editor, setEditor] = (0, react.useState)(), [adding, setAdding] = (0, react.useState)(false), [targeting, setTargeting] = (0, react.useState)(false);
 			const [candidateOperationId, setCandidateOperationId] = (0, react.useState)("");
 			const [candidate, setCandidate] = (0, react.useState)({
@@ -4830,32 +4935,77 @@ window.__ModuleLoader__.load({
 			});
 			const [preview, setPreview] = (0, react.useState)(), [busy, setBusy] = (0, react.useState)(false), [message, setMessage] = (0, react.useState)("");
 			const [pendingOperation, setPendingOperation] = (0, react.useState)();
-			(0, react.useEffect)(() => {
-				const open = (event) => {
-					const link = event.detail;
-					if (link?.section === "component-center") {
-						if (link.componentId) setSelected(link.componentId);
-						if (link.tab) setTab(link.tab);
-					}
-				};
-				window.addEventListener("workbench-capability-link", open);
-				return () => window.removeEventListener("workbench-capability-link", open);
-			}, []);
-			(0, react.useEffect)(() => {
-				centerViews.set(viewKey, {
-					selected,
-					tab,
-					query,
-					filter,
-					category
-				});
-			}, [
+			const remember = () => rememberCenterView(viewKey, {
+				selected,
+				tab,
+				query,
+				filter,
+				category,
+				pane,
+				tabs: tabMemory.current,
+				scroll: scrollMemory.current,
+				folds
+			});
+			const captureScroll = () => {
+				if (listRef.current && !listRef.current.hidden) scrollMemory.current.list = listRef.current.scrollTop;
+				if (detailRef.current && !detailRef.current.hidden && bodyRef.current) scrollMemory.current[selected + ":" + tab] = bodyRef.current.scrollTop;
+			};
+			const selectComponent = (id, nextTab) => {
+				captureScroll();
+				tabMemory.current[selected] = tab;
+				setSelected(id);
+				setTab(nextTab ?? tabMemory.current[id] ?? "overview");
+				setPane("detail");
+			};
+			const selectTab = (next) => {
+				captureScroll();
+				tabMemory.current[selected] = next;
+				setTab(next);
+			};
+			const returnToList = () => {
+				captureScroll();
+				focusOnReturn.current = true;
+				setPane("list");
+			};
+			(0, react.useEffect)(() => remember(), [
 				viewKey,
 				selected,
 				tab,
 				query,
 				filter,
-				category
+				category,
+				pane,
+				folds
+			]);
+			(0, react.useEffect)(() => {
+				const open = (event) => {
+					const next = event.detail;
+					if (next?.section !== "component-center") return;
+					if (next.componentId) {
+						if (!visibleIds.current.has(next.componentId)) {
+							setQuery("");
+							setFilter("all");
+							setCategory("");
+						}
+						selectComponent(next.componentId, next.tab);
+					} else if (next.tab) selectTab(next.tab);
+				};
+				window.addEventListener("workbench-capability-link", open);
+				return () => window.removeEventListener("workbench-capability-link", open);
+			}, [selected, tab]);
+			(0, react.useLayoutEffect)(() => {
+				if (listRef.current && !listRef.current.hidden) listRef.current.scrollTop = scrollMemory.current.list ?? 0;
+				if (bodyRef.current && detailRef.current && !detailRef.current.hidden) bodyRef.current.scrollTop = scrollMemory.current[selected + ":" + tab] ?? 0;
+				if (focusOnReturn.current && listRef.current && !listRef.current.hidden) {
+					focusOnReturn.current = false;
+					Array.from(listRef.current.querySelectorAll("[data-component-open]")).find((button) => button.dataset.componentOpen === selected)?.focus({ preventScroll: true });
+				}
+			}, [
+				selected,
+				tab,
+				pane,
+				layout.wide,
+				!!data
 			]);
 			if (!data) return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: ManagedCapabilities_module_css_default.page,
@@ -4969,18 +5119,34 @@ window.__ModuleLoader__.load({
 				const text = [
 					c.name,
 					m.description,
+					catalog.some((d) => d.id === c.id) ? componentService(c, {
+						data,
+						meetingStatus,
+						requirementsStatus
+					}).description : "",
+					catalog.some((d) => d.id === c.id) ? componentService(c, {
+						data,
+						meetingStatus,
+						requirementsStatus
+					}).summary : "",
 					c.provider,
 					...catalog.some((d) => d.id === c.id) ? pluginRelations(c).map((p) => p.moduleName) : [],
 					...catalog.some((d) => d.id === c.id) ? adaptedCapabilities(data.state, c).map((cap) => cap.draft.name) : []
 				].join(" ").toLocaleLowerCase();
 				return (filter === "removed" ? !!m.retiredAt : !m.retiredAt) && (filter !== "pinned" || m.pinned) && (filter !== "unused" || !r.capabilities.length) && (filter !== "candidate" || isCandidate) && (filter !== "pending" || isCandidate || m.enabled === false || c.management === "browser" && data.health.state !== "ready" || c.management === "meeting-asr" && !meetingStatus?.ready || c.management === "requirements" && !requirementsStatus?.ready) && (!category || (m.category ?? "未分类") === category) && text.includes(query.trim().toLocaleLowerCase());
 			}).sort((a, b) => Number(Boolean(metadata(b.id).pinned ?? b.pinned)) - Number(Boolean(metadata(a.id).pinned ?? a.pinned)));
+			visibleIds.current = new Set(visible.map((c) => c.id));
+			const visibleCurrent = !!current && visibleIds.current.has(selected), selectedIndex = visible.findIndex((c) => c.id === selected);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
-				className: ManagedCapabilities_module_css_default.page,
+				ref: rootRef,
+				className: [ManagedCapabilities_module_css_default.page, ComponentCenter_module_css_default.root].join(" "),
 				"data-component-center": true,
+				"data-layout": layout.wide ? "wide" : "single",
+				"data-pane": pane,
+				style: { height: layout.height },
 				children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: ManagedCapabilities_module_css_default.heading,
+						className: `${ManagedCapabilities_module_css_default.heading} ${ComponentCenter_module_css_default.heading}`,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "组件中心" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 							className: ManagedCapabilities_module_css_default.muted,
 							children: "整理组件，查看适配能力、插件来源与使用关系。"
@@ -5020,6 +5186,7 @@ window.__ModuleLoader__.load({
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ComponentCenter_module_css_default.toolbar,
+						hidden: !layout.wide && pane === "detail",
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 								className: ManagedCapabilities_module_css_default.search,
@@ -5046,7 +5213,8 @@ window.__ModuleLoader__.load({
 						]
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-						className: ManagedCapabilities_module_css_default.tabs,
+						className: `${ManagedCapabilities_module_css_default.tabs} ${ComponentCenter_module_css_default.filters}`,
+						hidden: !layout.wide && pane === "detail",
 						children: [
 							["all", "全部"],
 							["pinned", "收藏"],
@@ -5063,9 +5231,15 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ComponentCenter_module_css_default.layout,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							ref: listRef,
 							className: ComponentCenter_module_css_default.list,
 							role: "list",
 							"aria-label": "组件清单",
+							hidden: !layout.wide && pane === "detail",
+							onScroll: () => {
+								scrollMemory.current.list = listRef.current.scrollTop;
+								remember();
+							},
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
 									className: ManagedCapabilities_module_css_default.muted,
@@ -5082,15 +5256,16 @@ window.__ModuleLoader__.load({
 										className: ComponentCenter_module_css_default.item,
 										"data-selected": selected === c.id,
 										role: "listitem",
+										onClick: (event) => {
+											if (!event.target.closest("button,a,input,select,summary")) selectComponent(c.id);
+										},
 										children: [
 											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 												className: ComponentCenter_module_css_default.itemHeading,
 												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 													className: ComponentCenter_module_css_default.name,
-													onClick: () => {
-														setSelected(c.id);
-														setTab("overview");
-													},
+													"data-component-open": c.id,
+													onClick: () => selectComponent(c.id),
 													children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: d?.icon ?? "document" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: c.name })]
 												}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 													className: `${ManagedCapabilities_module_css_default.iconButton} ${m.pinned ? ManagedCapabilities_module_css_default.pinned : ""}`,
@@ -5103,7 +5278,7 @@ window.__ModuleLoader__.load({
 												})]
 											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-												className: ManagedCapabilities_module_css_default.muted,
+												className: `${ManagedCapabilities_module_css_default.muted} ${ComponentCenter_module_css_default.metadata}`,
 												children: [
 													d?.sourceLabel ?? "候选登记",
 													" · ",
@@ -5112,11 +5287,19 @@ window.__ModuleLoader__.load({
 													m.retiredAt ? " · 已移除" : ""
 												]
 											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: m.description ?? (d ? componentService(d, {
-												data,
-												meetingStatus,
-												requirementsStatus
-											}).description : c.description) }),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+												className: ComponentCenter_module_css_default.summary,
+												title: m.description ?? (d ? componentService(d, {
+													data,
+													meetingStatus,
+													requirementsStatus
+												}).description : c.description),
+												children: m.description ?? (d ? componentService(d, {
+													data,
+													meetingStatus,
+													requirementsStatus
+												}).summary : c.description)
+											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 												className: ComponentCenter_module_css_default.chipRow,
 												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "适配能力" }), caps.length ? caps.map((cap) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
@@ -5138,10 +5321,7 @@ window.__ModuleLoader__.load({
 												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "对应插件" }), (d ? pluginRelations(d).filter((r) => r.role !== "support").map((r) => r.moduleName) : [c.provider]).map((p) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 													className: ComponentCenter_module_css_default.chip,
 													title: p,
-													onClick: () => {
-														setSelected(c.id);
-														setTab("plugins");
-													},
+													onClick: () => selectComponent(c.id, "plugins"),
 													children: p.replace(/^@[^/]+\/dsh-/, "").replace(/^@[^/]+\//, "")
 												}, p))]
 											})
@@ -5154,188 +5334,253 @@ window.__ModuleLoader__.load({
 								})
 							]
 						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							ref: detailRef,
 							className: ComponentCenter_module_css_default.detail,
-							children: !current ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "从左侧选择组件。" }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-									className: ManagedCapabilities_module_css_default.heading,
-									children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: name }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-										className: ManagedCapabilities_module_css_default.muted,
-										children: [
-											descriptor?.sourceLabel ?? "候选组件",
-											" · ",
-											meta.retiredAt ? "已移入回收站" : meta.enabled === false ? "全局停用" : descriptor ? "已登记" : "待接入执行适配器"
-										]
-									})] })
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: ManagedCapabilities_module_css_default.actions,
-									children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											className: ManagedCapabilities_module_css_default.button,
-											disabled: !supported || busy,
-											onClick: edit,
-											children: "整理信息"
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
-											disabled: !descriptor || !!meta.retiredAt || meta.enabled === false || !supported,
-											onClick: () => setTargeting(true),
-											children: "添加到能力"
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
-											className: ComponentCenter_module_css_default.menu,
-											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", {
-												className: ManagedCapabilities_module_css_default.button,
-												children: "更多操作"
-											}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
-												meta.retiredAt ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													disabled: !supported || busy,
-													onClick: () => inspect(selected, "restore"),
-													children: "恢复组件"
-												}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													disabled: !supported || busy,
-													onClick: () => inspect(selected, "retire"),
-													children: "移入回收站"
-												}),
-												descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													disabled: !supported || busy,
-													onClick: () => inspect(selected, meta.enabled === false ? "enable" : "disable"),
-													children: meta.enabled === false ? "启用组件" : "全局停用"
-												}),
-												!descriptor && meta.retiredAt && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													disabled: !supported || busy,
-													onClick: () => inspect(selected, "purge"),
-													children: "永久删除候选登记"
-												})
-											] })]
-										})
-									]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-									className: `${ManagedCapabilities_module_css_default.tabs} ${ComponentCenter_module_css_default.detailTabs}`,
-									children: tabs$1.map(([key, label]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										"aria-pressed": tab === key,
-										onClick: () => setTab(key),
-										children: label
-									}, key))
-								}),
-								tab === "overview" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: description || "尚未填写用途说明。" }),
+							hidden: !layout.wide && pane === "list",
+							"data-center-detail": true,
+							children: !visibleCurrent ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.empty,
+								children: "选择列表中的组件查看详情。"
+							}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: ComponentCenter_module_css_default.detailHeader,
+								children: [
 									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-										className: ManagedCapabilities_module_css_default.row,
-										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
-											"适配 ",
-											adapted.length,
-											" 项能力 · 被 ",
-											refs.capabilities.length,
-											" 项能力引用（含历史版本）"
-										] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										className: ComponentCenter_module_css_default.detailNavigation,
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											className: ManagedCapabilities_module_css_default.button,
-											onClick: () => setTab("usage"),
-											children: "查看使用关系"
+											onClick: returnToList,
+											hidden: layout.wide,
+											children: "← 返回组件列表"
+										}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											className: ComponentCenter_module_css_default.previousNext,
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												className: ManagedCapabilities_module_css_default.button,
+												"aria-label": "上一个组件",
+												disabled: selectedIndex <= 0,
+												onClick: () => selectComponent(visible[selectedIndex - 1].id),
+												children: "上一项"
+											}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												className: ManagedCapabilities_module_css_default.button,
+												"aria-label": "下一个组件",
+												disabled: selectedIndex < 0 || selectedIndex === visible.length - 1,
+												onClick: () => selectComponent(visible[selectedIndex + 1].id),
+												children: "下一项"
+											})]
 										})]
 									}),
-									!descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-										className: ManagedCapabilities_module_css_default.notice,
-										children: "此项是候选登记。安装插件后仍需接入真实动作契约及服务适配器，才能装配和执行。"
-									})
-								] }),
-								tab === "actions" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor?.actions.map((action) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-									className: ManagedCapabilities_module_css_default.row,
-									children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: actionNames[action] }),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: action }),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "已适配动作；任务执行仍按岗位、已发布能力版本和任务授权检查。" })
-									] })
-								}, action)), !descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "尚未接入可执行动作。" })] }),
-								tab === "configuration" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor && service ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentEnvironment, {
-									component: descriptor,
-									data,
-									meetingStatus,
-									requirementsStatus,
-									onConfigure: configure
-								}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "候选组件没有可用的服务配置入口。" }), descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									onClick: configure,
-									children: "前往所属能力配置 ↗"
-								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									className: ManagedCapabilities_module_css_default.muted,
-									children: "提供插件的加载状态见“插件与依赖”；本页使用对应能力的同一份配置。"
-								})] })] }),
-								tab === "plugins" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryTree, {
-									list: readPluginInventory,
-									componentId: selected,
-									componentData: data,
-									compact: true
-								}, selected) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-									"候选来源：",
-									localCandidate?.provider,
-									"。尚未登记执行关系。"
-								] }), descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
-									className: ComponentCenter_module_css_default.environment,
-									children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "服务与环境" }),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-											"由 ",
-											descriptor.sourceLabel,
-											" 处理业务动作。服务配置由所属能力统一管理。"
-										] }),
-										descriptor.dependencies.filter((id) => !id.startsWith("@")).map((id) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-											id,
-											" · 环境要求",
-											descriptor.management === "browser" ? ` · ${data.health.message}` : ""
-										] }, id)),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											className: ManagedCapabilities_module_css_default.button,
-											onClick: configure,
-											children: "前往服务配置 ↗"
-										})
-									]
-								})] }),
-								tab === "usage" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "能力引用（含草稿与历史版本）" }),
-									refs.capabilities.map((c) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-										className: ManagedCapabilities_module_css_default.row,
-										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: [c.draft.name, c.removedAt ? " · 已移除" : ""] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [c.draft.components.some((p) => p.componentId === selected) ? "草稿引用 · " : "", c.versions.filter((v) => v.components.some((p) => p.componentId === selected)).map((v) => "v" + v.version).join("、") || "无已发布引用"] })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											className: ManagedCapabilities_module_css_default.button,
-											onClick: () => openCapabilityLink({
-												section: "capability-center",
-												capabilityId: c.id,
-												componentId: selected,
-												returnTo: "component-center"
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										className: [ManagedCapabilities_module_css_default.heading, ComponentCenter_module_css_default.detailTitle].join(" "),
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: name }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+											className: ManagedCapabilities_module_css_default.muted,
+											children: [
+												descriptor?.sourceLabel ?? "候选组件",
+												" · ",
+												meta.retiredAt ? "已移入回收站" : meta.enabled === false ? "全局停用" : descriptor ? "已登记" : "待接入执行适配器"
+											]
+										})] })
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+										className: `${ManagedCapabilities_module_css_default.actions} ${ComponentCenter_module_css_default.detailActions}`,
+										children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
+												disabled: !descriptor || !!meta.retiredAt || meta.enabled === false || !supported,
+												onClick: () => setTargeting(true),
+												children: "添加到能力"
 											}),
-											children: "查看能力 ↗"
-										})]
-									}, c.id)),
-									!refs.capabilities.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "暂无引用。" }),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "岗位引用" }),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: refs.roles.map((r) => r.draft.name).join("、") || "暂无岗位引用。" }),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "活动任务" }),
-									activities ? activities.length ? activities.map((t) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-										t.name,
-										" · ",
-										t.status
-									] }, t.kind + ":" + t.id)) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "当前没有正在运行的相关任务。" }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "活动任务检测服务待更新，数量未知。" })
-								] }),
-								tab === "versions" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-										"动作契约版本：",
-										descriptor?.version ?? "未接入",
-										" · 组合协议：",
-										descriptor?.compositionVersion ?? "未接入"
-									] }),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-										className: ManagedCapabilities_module_css_default.muted,
-										children: "插件实现版本及升级、回退由插件管理维护。整理名称和说明不会发布能力，也不会扩大已有会话权限。"
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												className: ManagedCapabilities_module_css_default.button,
+												disabled: !supported || busy,
+												onClick: edit,
+												children: "整理信息"
+											}),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+												className: ComponentCenter_module_css_default.menu,
+												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", {
+													className: ManagedCapabilities_module_css_default.button,
+													children: "更多操作"
+												}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+													meta.retiredAt ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														disabled: !supported || busy,
+														onClick: () => inspect(selected, "restore"),
+														children: "恢复组件"
+													}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														disabled: !supported || busy,
+														onClick: () => inspect(selected, "retire"),
+														children: "移入回收站"
+													}),
+													descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														disabled: !supported || busy,
+														onClick: () => inspect(selected, meta.enabled === false ? "enable" : "disable"),
+														children: meta.enabled === false ? "启用组件" : "全局停用"
+													}),
+													!descriptor && meta.retiredAt && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														disabled: !supported || busy,
+														onClick: () => inspect(selected, "purge"),
+														children: "永久删除候选登记"
+													})
+												] })]
+											})
+										]
 									}),
-									registry?.events.filter((e) => e.componentId === selected).slice().reverse().map((e) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-										new Date(e.at).toLocaleString(),
-										" · ",
-										e.action
-									] }, e.id)),
-									!registry?.events.some((e) => e.componentId === selected) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "暂无组件登记变更记录。" })
-								] })
-							] })
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										className: [ManagedCapabilities_module_css_default.tabs, ComponentCenter_module_css_default.detailTabs].join(" "),
+										hidden: layout.narrow,
+										"aria-label": "组件详情栏目",
+										children: tabs$1.map(([key, label]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											"aria-pressed": tab === key,
+											onClick: () => selectTab(key),
+											children: label
+										}, key))
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+										className: ComponentCenter_module_css_default.tabPicker,
+										hidden: !layout.narrow,
+										children: ["详情栏目", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
+											"aria-label": "组件详情栏目",
+											value: tab,
+											onChange: (event) => selectTab(event.target.value),
+											children: tabs$1.map(([key, label]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+												value: key,
+												children: label
+											}, key))
+										})]
+									})
+								]
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								ref: bodyRef,
+								className: ComponentCenter_module_css_default.detailBody,
+								onScroll: () => {
+									scrollMemory.current[selected + ":" + tab] = bodyRef.current.scrollTop;
+									remember();
+								},
+								children: [
+									tab === "overview" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: description || "尚未填写用途说明。" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											className: ComponentCenter_module_css_default.overviewReferences,
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
+												"适配 ",
+												adapted.length,
+												" 项能力 · 被 ",
+												refs.capabilities.length,
+												" 项能力引用（含历史版本）"
+											] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												className: ManagedCapabilities_module_css_default.button,
+												onClick: () => selectTab("usage"),
+												children: "查看使用关系"
+											})]
+										}),
+										!descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+											className: ManagedCapabilities_module_css_default.notice,
+											children: "此项是候选登记。安装插件后仍需接入真实动作契约及服务适配器，才能装配和执行。"
+										})
+									] }),
+									tab === "actions" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor?.actions.map((action) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										className: ManagedCapabilities_module_css_default.row,
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: actionNames[action] }),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: action }),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "已适配动作；任务执行仍按岗位、已发布能力版本和任务授权检查。" })
+										] })
+									}, action)), !descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "尚未接入可执行动作。" })] }),
+									tab === "configuration" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor && service ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentEnvironment, {
+										component: descriptor,
+										data,
+										meetingStatus,
+										requirementsStatus,
+										onConfigure: configure
+									}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "候选组件没有可用的服务配置入口。" }), descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										className: ManagedCapabilities_module_css_default.button,
+										onClick: configure,
+										children: "前往所属能力配置 ↗"
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+										className: ManagedCapabilities_module_css_default.muted,
+										children: "提供插件的加载状态见“插件与依赖”；本页使用对应能力的同一份配置。"
+									})] })] }),
+									tab === "plugins" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryTree, {
+										list: readPluginInventory,
+										componentId: selected,
+										componentData: data,
+										compact: true
+									}, selected) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+										"候选来源：",
+										localCandidate?.provider,
+										"。尚未登记执行关系。"
+									] }), descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+										className: ComponentCenter_module_css_default.environment,
+										open: !!folds[selected],
+										onToggle: (event) => {
+											const open = event.currentTarget.open;
+											setFolds((previous) => previous[selected] === open ? previous : {
+												...previous,
+												[selected]: open
+											});
+										},
+										children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "服务与环境" }),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+												"由 ",
+												descriptor.sourceLabel,
+												" 处理业务动作。服务配置由所属能力统一管理。"
+											] }),
+											descriptor.dependencies.filter((id) => !id.startsWith("@")).map((id) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+												id,
+												" · 环境要求",
+												descriptor.management === "browser" ? ` · ${data.health.message}` : ""
+											] }, id)),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												className: ManagedCapabilities_module_css_default.button,
+												onClick: configure,
+												children: "前往服务配置 ↗"
+											})
+										]
+									})] }),
+									tab === "usage" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "能力引用（含草稿与历史版本）" }),
+										refs.capabilities.map((c) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											className: ManagedCapabilities_module_css_default.row,
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: [c.draft.name, c.removedAt ? " · 已移除" : ""] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [c.draft.components.some((p) => p.componentId === selected) ? "草稿引用 · " : "", c.versions.filter((v) => v.components.some((p) => p.componentId === selected)).map((v) => "v" + v.version).join("、") || "无已发布引用"] })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												className: ManagedCapabilities_module_css_default.button,
+												onClick: () => openCapabilityLink({
+													section: "capability-center",
+													capabilityId: c.id,
+													componentId: selected,
+													returnTo: "component-center"
+												}),
+												children: "查看能力 ↗"
+											})]
+										}, c.id)),
+										!refs.capabilities.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "暂无引用。" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "岗位引用" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: refs.roles.map((r) => r.draft.name).join("、") || "暂无岗位引用。" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h4", { children: "活动任务" }),
+										activities ? activities.length ? activities.map((t) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+											t.name,
+											" · ",
+											t.status
+										] }, t.kind + ":" + t.id)) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "当前没有正在运行的相关任务。" }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "活动任务检测服务待更新，数量未知。" })
+									] }),
+									tab === "versions" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+											"动作契约版本：",
+											descriptor?.version ?? "未接入",
+											" · 组合协议：",
+											descriptor?.compositionVersion ?? "未接入"
+										] }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+											className: ManagedCapabilities_module_css_default.muted,
+											children: "插件实现版本及升级、回退由插件管理维护。整理名称和说明不会发布能力，也不会扩大已有会话权限。"
+										}),
+										registry?.events.filter((e) => e.componentId === selected).slice().reverse().map((e) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+											new Date(e.at).toLocaleString(),
+											" · ",
+											e.action
+										] }, e.id)),
+										!registry?.events.some((e) => e.componentId === selected) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "暂无组件登记变更记录。" })
+									] })
+								]
+							})] })
 						})]
 					}),
 					editor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$1, {

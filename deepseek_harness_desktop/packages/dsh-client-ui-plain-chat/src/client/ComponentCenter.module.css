@@ -1,3 +1,59 @@
-.toolbar{display:flex;gap:12px;align-items:center}.toolbar input{flex:1;min-width:100px}.toolbar select{padding:9px;border:1px solid var(--dsw-alias-border-l2,#dce2ed);border-radius:8px;background:var(--dsw-alias-bg-layer-2,#fff);color:inherit}
-.layout{display:grid;grid-template-columns:minmax(250px,34%) minmax(0,1fr);gap:20px;align-items:start}.list,.detail{border:1px solid var(--dsw-alias-border-l2,#dce2ed);border-radius:14px;background:var(--dsw-alias-bg-layer-2,#fff);min-width:0}.list{max-height:70vh;overflow:auto}.list>p{padding:0 18px}.item{padding:18px;border-top:1px solid var(--dsw-alias-border-l2,#dce2ed);overflow-wrap:anywhere}.item[data-selected=true]{background:var(--dsw-alias-bg-active,#edf1ff)}.itemHeading{display:flex;align-items:flex-start;gap:8px}.name{border:0;background:transparent;color:inherit;font:inherit;display:flex;align-items:center;gap:12px;text-align:left;flex:1;cursor:pointer}.chipRow{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:9px}.chipRow small{min-width:52px;color:var(--dsw-alias-label-secondary,#7a859b)}.chip{border:1px solid var(--dsw-alias-border-l2,#dce2ed);background:transparent;border-radius:6px;padding:3px 6px;color:inherit;font:inherit;font-size:12px;cursor:pointer;overflow-wrap:anywhere}.detail{padding:22px;min-height:400px}.detailTabs{flex-wrap:wrap;margin-top:18px}.environment{margin-top:18px;border-top:1px solid var(--dsw-alias-border-l2,#dce2ed);padding-top:14px}.menu{position:relative}.menu>div{position:absolute;right:0;top:100%;z-index:2;display:grid;min-width:150px;background:var(--dsw-alias-bg-layer-2,#fff);border:1px solid var(--dsw-alias-border-l2,#dce2ed);border-radius:10px;padding:8px;box-shadow:0 8px 22px #0002}.menu button{background:transparent;border:0;color:inherit;padding:10px;cursor:pointer;text-align:left}.menu summary{list-style:none;cursor:pointer}
-@media(max-width:900px){.layout{grid-template-columns:1fr}.list{max-height:40vh}.toolbar{flex-wrap:wrap}.detail{padding:16px}}
+.root { display:flex; flex-direction:column; gap:12px; min-height:0; width:100%; container-type:inline-size; }
+.root [hidden] { display:none !important; }
+.root .heading { margin:0; gap:12px; }
+.heading h2 { font-size:22px; }
+.heading > div:first-child { min-width:0; }
+.heading > div:last-child { gap:8px; }
+.toolbar { display:flex; gap:10px; align-items:center; flex:none; }
+.toolbar input { flex:1; min-width:120px; margin:0; }
+.toolbar select,.tabPicker select { padding:9px; border:1px solid var(--role-border); border-radius:8px; background:var(--role-bg); color:inherit; font:inherit; max-width:100%; }
+.root .filters { flex-wrap:nowrap; margin:0; overflow-x:auto; flex:none; }
+.filters button { white-space:nowrap; padding:8px 11px; }
+.layout { display:grid; grid-template-columns:minmax(0,1fr); min-height:0; flex:1; gap:20px; }
+.root[data-layout=wide] .layout { grid-template-columns:300px minmax(0,1fr); }
+.list,.detail { min-width:0; min-height:0; background:var(--role-bg); border:1px solid var(--role-border); border-radius:12px; }
+.list { overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }
+.list > p { margin:0; padding:12px 16px; font-size:12px; border-bottom:1px solid var(--role-border); }
+.item { padding:12px 16px; border-bottom:1px solid var(--role-border); overflow-wrap:anywhere; }
+.item:last-child { border-bottom:0; }
+.item[data-selected=true] { background:var(--dsw-alias-bg-active,#edf1ff); }
+.itemHeading { display:flex; align-items:flex-start; gap:8px; }
+.name { border:0; padding:0; background:transparent; color:inherit; font:inherit; display:flex; align-items:center; gap:10px; text-align:left; flex:1; min-width:0; cursor:pointer; }
+.name > svg,.name > span { flex-shrink:0; }
+.root .metadata { margin:4px 0; font-size:12px; }
+.root .summary { margin:4px 0 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; color:var(--role-muted); }
+.chipRow { display:flex; align-items:baseline; flex-wrap:wrap; gap:5px; margin-top:5px; }
+.chipRow small { min-width:52px; font-size:12px; color:var(--role-muted); }
+.chip { border:1px solid var(--role-border); background:transparent; border-radius:5px; padding:2px 6px; color:inherit; font:inherit; font-size:12px; cursor:pointer; overflow-wrap:anywhere; max-width:100%; }
+.detail { display:flex; flex-direction:column; }
+.detailHeader { flex:none; padding:16px 20px 0; }
+.detailNavigation { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+.previousNext { display:flex; gap:6px; margin-left:auto; }
+.root .detailTitle { margin:0; }
+.detailTitle h3 { font-size:20px; overflow-wrap:anywhere; }
+.detailTitle p { margin:4px 0 0; font-size:13px; }
+.detailActions { margin-top:12px; gap:8px; }
+.root .detailTabs { flex-wrap:nowrap; margin:12px 0 0; overflow-x:auto; gap:0; }
+.detailTabs button { flex:none; white-space:nowrap; padding:9px 10px; }
+.tabPicker { display:flex; align-items:center; gap:10px; margin:12px 0; font-size:13px; }
+.tabPicker select { flex:1; min-width:0; }
+.detailBody { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; padding:16px 20px 20px; }
+.detailBody > p:first-child { margin-top:0; }
+.overviewReferences { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding-top:12px; border-top:1px solid var(--role-border); margin-top:16px; }
+.environment { margin-top:18px; border-top:1px solid var(--role-border); padding-top:14px; }
+.menu { position:relative; }
+.menu > div { position:absolute; right:0; top:100%; z-index:2; display:grid; min-width:150px; background:var(--role-bg); border:1px solid var(--role-border); border-radius:10px; padding:8px; box-shadow:0 8px 22px #0002; }
+.menu button { background:transparent; border:0; color:inherit; padding:10px; cursor:pointer; text-align:left; }
+.menu summary { list-style:none; cursor:pointer; }
+@container (max-width:559px) {
+  .toolbar { flex-wrap:wrap; }
+  .toolbar input { flex-basis:100%; }
+  .heading > div:last-child { flex-wrap:wrap; }
+  .detailHeader { padding:12px 14px 0; }
+  .detailBody { padding:12px 14px 16px; }
+  .detailNavigation { flex-wrap:wrap; }
+}
+@media (pointer:coarse) {
+  .root button,.root .menu summary { min-height:44px; }
+  .root input,.root select { font-size:16px; }
+}

@@ -1,11 +1,11 @@
 import React from 'react'
-import { type Component, type Snapshot } from '../../../dsh-capabilities/src/core/model.ts'
+import { actionNames, type Component, type Snapshot } from '../../../dsh-capabilities/src/core/model.ts'
 import type { MeetingAvailability } from './meeting-capability-status.ts'
 import s from './ManagedCapabilities.module.css'
 
 import type { RequirementAvailability } from '../../../dsh-capabilities/src/core/requirements-model.ts'
 type Context = { data: Snapshot; meetingStatus?: MeetingAvailability | null; requirementsStatus?: RequirementAvailability | null }
-type Presentation = { description: string; status: string; title: string; name: string; detail: string; configuration?: string; publishNotice: string }
+type Presentation = { description: string; summary?: string; status: string; title: string; name: string; detail: string; configuration?: string; publishNotice: string }
 /** Module differences live here; shared composition views never assume a browser environment. */
 const adapters: Record<Component['management'], (context: Context) => Presentation> = {
   developer: () => ({ description: '在开发工作区读取项目、按任务授权编辑、查看真实 Git 差异并运行已确认的检查。', status: '项目和服务可用性在开发工作区实际检测', title: '开发工作区服务', name: '项目文件、共享 Git 服务与验证进程', detail: '模型沿用工作台账户。验证命令、编辑器在每个项目的“项目设置”统一保存；每个开发任务默认只读。', publishNotice: '三个必需组件和动作齐全后才能发布。草稿编辑不影响已发布任务；历史版本和代码保留。' }),
@@ -30,7 +30,10 @@ const adapters: Record<Component['management'], (context: Context) => Presentati
     publishNotice: '当前会议流程必须保留转写组件和动作。发布新的能力版本不会清除录音、转写、纪要或服务配置；岗位是否采用新版本由下方选择决定。',
   }),
 }
-export function componentService(component: Component, context: Context): Presentation { return adapters[component.management](context) }
+export function componentService(component: Component, context: Context): Presentation {
+  const presentation = adapters[component.management](context)
+  return { ...presentation, summary: component.actions.length ? component.actions.map(action => actionNames[action]).join('、') : presentation.description }
+}
 export function ComponentEnvironment({ component, data, meetingStatus, requirementsStatus, onConfigure, disabled = false }: Context & { component: Component; onConfigure?: () => void; disabled?: boolean }) {
   const info = componentService(component, { data, meetingStatus, requirementsStatus })
   return <div data-component-environment={component.management}><h4>{info.title}</h4><div className={s.row}><div><strong>{info.name}</strong><small>{info.status}</small><small>{info.detail}</small></div>{info.configuration && onConfigure && <button className={s.button} disabled={disabled} onClick={onConfigure}>{info.configuration}</button>}</div></div>
