@@ -1,7 +1,7 @@
 import { consumeNavigation, pendingNavigation, requestLeave, restoredFrame, useNavigationFrame, type NavigationLocation } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
 import { componentPublishIssues } from '../../../dsh-capabilities/src/core/component-registry.ts'
 import React, { useEffect, useState } from 'react'
-import { actionsOf, actionNames, emptyRole, latest, resolveBinding, type RoleDefinition } from '../../../dsh-capabilities/src/core/model.ts'
+import { actionsOf, actionNames, emptyRole, latest, rolePresentation, roleHasUnpublishedChanges, resolveBinding, type RoleDefinition } from '../../../dsh-capabilities/src/core/model.ts'
 import { MEETING_CAPABILITY_ID, MEETING_ROLE_ID } from '../../../dsh-capabilities/src/core/default-roles.ts'
 import { capabilityClient, editorDrafts, useCapabilities } from './capability-client.ts'
 import { ActionFields, ManagedCenter } from './ManagedCenter.tsx'
@@ -89,7 +89,7 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
   return <section className={r.section}>
     <div className={r.sectionHeader}><div><h2>岗位助手</h2><p>为每一类工作，准备一位熟悉职责的助手。</p></div><button className={r.primary} onClick={() => setEditor({})}>＋ 创建岗位助手</button></div>
     {(error || message) && <p role="alert" className={s.error}>{message || error}</p>}
-    <div className={r.selectionStatus}><span role="status">{selected === 'chat' ? `已选定：${freeChat.name}` : selectedRole ? `已选定：${selectedRole.draft.name}` : data ? '当前岗位暂不可用' : '正在读取选定岗位…'}</span>{selected !== 'chat' && <button className={r.textButton} onClick={() => onSelect('chat')}>返回自由聊天</button>}</div>
+    <div className={r.selectionStatus}><span role="status">{selected === 'chat' ? `已选定：${freeChat.name}` : selectedRole ? `已选定：${rolePresentation(selectedRole).name}` : data ? '当前岗位暂不可用' : '正在读取选定岗位…'}</span>{selected !== 'chat' && <button className={r.textButton} onClick={() => onSelect('chat')}>返回自由聊天</button>}</div>
     <div className={r.cards}>
       {/* 基础聊天沿用 chat / workbench-chat，不创建可发布、停用的岗位记录。 */}
       <article data-role-id="chat" aria-label={freeChat.name} className={`${r.roleCard} ${selected === 'chat' ? r.selectedCard : ''}`} style={appearanceStyle(freeChat.color)}>
@@ -102,14 +102,14 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
         <div className={r.cardControls}><p className={r.chatCardNote}>无需岗位配置，随时开始聊天。</p></div>
       </article>
       {displayedRoles.map(role => {
-      const published = latest(role.versions), selectable = role.enabled && !!published, chosen = selectable && selected === role.id
-      return <article key={role.id} data-role-id={role.id} aria-label={role.draft.name} className={`${r.roleCard} ${chosen ? r.selectedCard : ''}`} style={appearanceStyle(role.draft.color)}>
+      const displayed = rolePresentation(role), published = latest(role.versions), selectable = role.enabled && !!published, chosen = selectable && selected === role.id
+      return <article key={role.id} data-role-id={role.id} aria-label={displayed.name} className={`${r.roleCard} ${chosen ? r.selectedCard : ''}`} style={appearanceStyle(displayed.color)}>
         <div className={r.cardBody}>
           {/* 正文选择与管理操作分开，编辑/停用不会触发卡片选择。 */}
-          <button type="button" className={r.cardSelect} aria-label={`选定助手：${role.draft.name}`} aria-pressed={chosen} disabled={!selectable} onClick={() => onSelect(role.id)}/>
-          <div className={r.cardTop}><RoleAppearanceIcon roleId={role.id} icon={role.draft.icon} color={role.draft.color}/><span className={`${r.exampleBadge} ${chosen ? r.selectedBadge : ''}`}>{chosen ? '✓ 已选定' : !role.enabled ? '已停用' : published ? '岗位助手' : '草稿'}</span></div>
-          <h3>{role.draft.name}</h3><p className={r.cardSummary} title={role.draft.duties}>{role.draft.duties || '点击编辑岗位，填写职责与工作要求。'}</p>
-          <div className={r.tags}><span>{published ? `已发布 v${published.version}` : '未发布'}</span>{role.id === MEETING_ROLE_ID ? <><span>快速生成 · 引导整理</span><span title={meetingStatus?.message}>{meetingStatus?.ready === true ? '录音转写已配置' : meetingStatus?.state === 'disabled' ? '录音转写不可用' : meetingStatus?.ready === false ? '录音转写待配置' : '正在检测录音转写'}</span></> : usesRequirements(data?.state, published) ? <><span>快速整理 · 引导分析</span><span>需求工作区</span></> : role.id === 'builtin-analyst' ? <><span>{role.draft.capabilities.length} 个能力</span><span>可编辑岗位，选择需求分析能力</span></> : <><span>{role.draft.capabilities.length} 个能力</span><span>{data?.tasks.filter(t => t.roleId === role.id && t.status !== 'stopped').length ?? 0} 个活动会话</span></>}</div>
+          <button type="button" className={r.cardSelect} aria-label={`选定助手：${displayed.name}`} aria-pressed={chosen} disabled={!selectable} onClick={() => onSelect(role.id)}/>
+          <div className={r.cardTop}><RoleAppearanceIcon roleId={role.id} icon={displayed.icon} color={displayed.color}/><span className={`${r.exampleBadge} ${chosen ? r.selectedBadge : ''}`}>{chosen ? '✓ 已选定' : !role.enabled ? '已停用' : published ? '岗位助手' : '草稿'}</span></div>
+          <h3>{displayed.name}</h3><p className={r.cardSummary} title={displayed.duties}>{displayed.duties || '点击编辑岗位，填写职责与工作要求。'}</p>
+          <div className={r.tags}>{roleHasUnpublishedChanges(role) && <span>有未发布修改</span>}<span>{published ? `已发布 v${published.version}` : '未发布'}</span>{role.id === MEETING_ROLE_ID ? <><span>快速生成 · 引导整理</span><span title={meetingStatus?.message}>{meetingStatus?.ready === true ? '录音转写已配置' : meetingStatus?.state === 'disabled' ? '录音转写不可用' : meetingStatus?.ready === false ? '录音转写待配置' : '正在检测录音转写'}</span></> : usesRequirements(data?.state, published) ? <><span>快速整理 · 引导分析</span><span>需求工作区</span></> : role.id === 'builtin-analyst' ? <><span>{displayed.capabilities.length} 个能力</span><span>可编辑岗位，选择需求分析能力</span></> : <><span>{displayed.capabilities.length} 个能力</span><span>{data?.tasks.filter(t => t.roleId === role.id && t.status !== 'stopped').length ?? 0} 个活动会话</span></>}</div>
         </div>
         <div className={r.cardControls}><button className={r.cardAction} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} disabled={role.id === MEETING_ROLE_ID} title={role.id === MEETING_ROLE_ID ? "会议使用专用流程，请编辑原岗位并发布新版本" : "复制当前已发布配置为独立草稿"} onClick={() => void copyRole(role.id)}>复制岗位</button><button className={r.textButton} onClick={() => void toggleRole(role.id, !role.enabled)}>{role.enabled ? '停用' : '启用'}</button></div>
       </article>
@@ -121,15 +121,15 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
 }
 export function ManagedRolePicker({ selected, onSelect, t }: { selected: string; onSelect: (id: string) => void; t: (key: ChatKey) => string }) {
   const { data } = useCapabilities(), [open, setOpen] = useState(false), [editor, setEditor] = useState(false)
-  const role = data?.state.roles.find(role => role.id === selected)
+  const role = data?.state.roles.find(role => role.id === selected), displayed = role && rolePresentation(role)
   return <>
     <button className={r.picker} aria-haspopup="dialog" onClick={() => setOpen(true)}>
-      <RoleAppearanceIcon roleId={role?.id ?? 'chat'} icon={role?.draft.icon} color={role?.draft.color ?? freeChat.color}/><span>{role?.draft.name ?? t('mode')}</span><span>⌄</span>
+      <RoleAppearanceIcon roleId={role?.id ?? 'chat'} icon={displayed?.icon} color={displayed?.color ?? freeChat.color}/><span>{displayed?.name ?? t('mode')}</span><span>⌄</span>
     </button>
     {open && <Modal title="选择岗位助手" closeLabel="关闭" onClose={() => setOpen(false)}><div className={`${s.page} ${s.dialogBody}`}>
       <button className={s.choice} aria-pressed={selected === 'chat'} onClick={() => { onSelect('chat'); setOpen(false) }}><div><RoleAppearanceIcon roleId="chat" color={freeChat.color}/></div><span><strong>{freeChat.name}</strong><small>{freeChat.description}</small></span></button>
       {[...(data?.state.roles ?? [])].sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID)).filter(role => role.enabled && role.versions.length).map(role => <button className={s.choice} key={role.id} aria-pressed={selected === role.id} onClick={() => { onSelect(role.id); setOpen(false) }}>
-        <div><RoleAppearanceIcon roleId={role.id} icon={role.draft.icon} color={role.draft.color}/></div><span><strong>{latest(role.versions)!.name}</strong><small>{role.id === MEETING_ROLE_ID ? `v${latest(role.versions)!.version} · 快速生成 / 引导整理` : usesRequirements(data?.state, latest(role.versions)) ? `v${latest(role.versions)!.version} · 快速整理 / 引导分析` : `v${latest(role.versions)!.version} · ${latest(role.versions)!.capabilities.length} 个能力`}</small></span>
+        <div><RoleAppearanceIcon roleId={role.id} icon={rolePresentation(role).icon} color={rolePresentation(role).color}/></div><span><strong>{latest(role.versions)!.name}</strong><small>{role.id === MEETING_ROLE_ID ? `v${latest(role.versions)!.version} · 快速生成 / 引导整理` : usesRequirements(data?.state, latest(role.versions)) ? `v${latest(role.versions)!.version} · 快速整理 / 引导分析` : `v${latest(role.versions)!.version} · ${latest(role.versions)!.capabilities.length} 个能力`}</small></span>
       </button>)}
       <button className={s.button} onClick={() => setEditor(true)}>＋ 创建岗位助手</button><p className={s.muted}>选择仅用于下一次新对话，当前对话的岗位不会改变。</p>
     </div></Modal>}
@@ -142,7 +142,7 @@ export function ManagedCurrentAssistant({ selected, onOpen, preset }: { selected
   // A new draft shows the current choice from the role picker.
   const role = data?.state.roles.find(role => role.id === selected)
   const version = preset ? role?.versions.find(version => version.preset === preset) : undefined
-  const appearance = version ?? role?.draft
+  const appearance = version ?? (role && rolePresentation(role))
   const name = appearance?.name ?? freeChat.name, color = appearance?.color ?? freeChat.color
   const iconSpec = appearance?.icon
   const icon = roleAppearanceIconId(role?.id ?? 'chat', iconSpec)

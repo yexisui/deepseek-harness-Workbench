@@ -84,3 +84,9 @@ export function references(state: State, componentId: string, tasks: Task[] = []
   const active = tasks.filter(t => !['stopped'].includes(t.status) && state.roles.find(r => r.id === t.roleId)?.versions.find(v => v.version === t.roleVersion)?.capabilities.some(b => b.enabled && resolveBinding(state, b)?.components.some(p => p.componentId === componentId)))
   return { capabilities, roles, tasks: active }
 }
+
+export const rolePresentation = (role: Role): RoleDefinition => latest(role.versions) ?? role.draft
+export function roleHasUnpublishedChanges(role: Role) {
+  const published = latest(role.versions)
+  return !!published && (['name', 'color', 'icon', 'duties', 'requirements', 'format', 'capabilities'] as const).some(key => JSON.stringify(role.draft[key]) !== JSON.stringify(published[key]))
+}
