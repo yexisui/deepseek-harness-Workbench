@@ -78,6 +78,21 @@ export class MeetingService {
   private running = new Set<string>()
   private deleted = new Set<string>()
   private controllers = new Map<string, AbortController>()
+  private pending = new Map<string, Set<Promise<unknown>>>()
+  private removing = new Set<string>()
+  private uploads = new Map<string, IncomingMessage>()
+  private track<T>(id: string, run: () => Promise<T>): Promise<T> {
+    if (this.removing.has(id) || this.deleted.has(id)) return Promise.reject(new InputError('此会议正在移除或已删除', 409))
+    const pending = this.pending.get(id) ?? new Set<Promise<unknown>>()
+    this.pending.set(id, pending)
+    const task = Promise.resolve().then(() => {
+      if (this.removing.has(id) || this.deleted.has(id)) throw new InputError('此会议正在移除或已删除', 409)
+      return run()
+    })
+    pending.add(task)
+    void task.finally(() => { pending.delete(task); if (!pending.size && this.pending.get(id) === pending) this.pending.delete(id) }).catch(() => {})
+    return task
+  }
   constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly jev?: JevService) {}
   private config() { return config(this.asrSettings?.()) }
   private capabilityError(): string | undefined {
@@ -140,10 +155,25 @@ export class MeetingService {
     await writeFile(this.path(job.id), JSON.stringify(job))
   }
   async remove(id: string) {
-    const job = await this.get(id)
-    this.deleted.add(id)
-    await rm(this.audio(job), { force: true })
-    await rm(this.path(id), { force: true })
+    if (this.removing.has(id)) throw new InputError('会议正在移除，请稍后重试', 409)
+    this.removing.add(id)
+    try {
+      let job: MeetingJob
+      try { job = await this.get(id) } catch (error) { if (error instanceof InputError && error.status === 404) return; throw error }
+      this.controllers.get(id)?.abort(new Error('会议已请求移除'))
+      this.uploads.get(id)?.destroy(new Error('会议已请求移除'))
+      let timeout: ReturnType<typeof setTimeout> | undefined
+      try {
+        await Promise.race([
+          Promise.allSettled([...(this.pending.get(id) ?? [])]),
+          new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new InputError('任务尚未确认停止，会议记录保留，请稍后重试', 409)), 10000) }),
+        ])
+      } finally { clearTimeout(timeout) }
+      await rm(this.audio(job), { force: true })
+      await rm(`${this.audio(job)}.upload`, { force: true })
+      await rm(this.path(id), { force: true })
+      this.deleted.add(id)
+    } finally { this.removing.delete(id) }
   }
   async create(input: unknown) {
     if (!this.availability().ready) throw new InputError(this.availability().message, 503)
@@ -158,6 +188,11 @@ export class MeetingService {
     return job
   }
   async upload(id: string, req: IncomingMessage) {
+    this.uploads.set(id, req)
+    try { return await this.track(id, () => this.uploadAudio(id, req)) }
+    finally { if (this.uploads.get(id) === req) this.uploads.delete(id) }
+  }
+  private async uploadAudio(id: string, req: IncomingMessage) {
     const job = await this.get(id)
     this.role(job.role?.version, job.createdAt)
     if (job.status !== 'uploading') throw new InputError('此任务无法重复上传', 409)
@@ -178,7 +213,7 @@ export class MeetingService {
       await rename(temp, path)
       job.size = bytes; job.status = 'transcribing'; delete job.error
       await this.save(job)
-      void this.transcribe(job.id)
+      void this.track(job.id, () => this.transcribe(job.id)).catch(() => {})
       return job
     } catch (error) { handle.destroy(); await rm(temp, { force: true }); job.status = 'error'; job.error = errorText(error); await this.save(job); throw error }
   }
@@ -188,7 +223,7 @@ export class MeetingService {
     if (job.status !== 'error') throw new InputError('只有失败的任务可以重试', 409)
     if (!job.size) throw new InputError('请重新选择录音上传', 409)
     job.status = job.segments.length ? 'transcribed' : 'transcribing'; delete job.error; await this.save(job)
-    if (!job.segments.length) void this.transcribe(id)
+    if (!job.segments.length) void this.track(id, () => this.transcribe(id)).catch(() => {})
     return job
   }
   private async transcribe(id: string) {
@@ -219,6 +254,9 @@ export class MeetingService {
   private ask(prompt: string, modelRoute: string, signal?: AbortSignal) { return this.workbenchText(prompt, modelRoute, signal) }
   private transcriptText(rows: MeetingSegment[]) { return rows.map(row => `[${row.id} ${Math.floor(row.start / 60000).toString().padStart(2, '0')}:${Math.floor(row.start % 60000 / 1000).toString().padStart(2, '0')} ${row.speaker}] ${row.text}`).join('\n') }
   async generate(id: string, edited?: MeetingSegment[], instruction?: string, summaryModel?: string) {
+    return this.track(id, () => this.startGenerate(id, edited, instruction, summaryModel))
+  }
+  private async startGenerate(id: string, edited?: MeetingSegment[], instruction?: string, summaryModel?: string) {
     const job = await this.get(id)
     this.role(job.role?.version, job.createdAt)
     if (!['transcribed', 'ready', 'error'].includes(job.status) || !job.segments.length) throw new InputError('请先完成录音转写', 409)
@@ -228,7 +266,7 @@ export class MeetingService {
     }
     if (summaryModel !== undefined) job.summaryModel = string(summaryModel, 200)
     job.status = 'generating'; delete job.error; await this.save(job)
-    void this.finishGenerate(job, instruction)
+    void this.track(id, () => this.finishGenerate(job, instruction)).catch(() => {})
     return job
   }
   private async finishGenerate(job: MeetingJob, instruction?: string) {
@@ -254,7 +292,13 @@ export class MeetingService {
       job.minutes = minutes; job.status = 'ready'; await this.save(job)
     } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? '组件已停用，本次处理已停止；历史结果保留' : errorText(error); await this.save(job) } finally { jev?.finish(); if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
   }
-  async componentActivities() { return Promise.all([...this.controllers.keys()].map(async id => { const job = await this.get(id); return { id, name: job.fileName, kind: 'meeting', status: job.status, componentIds: ['meeting-asr'] } })) }
+  async componentActivities() {
+    const rows = await Promise.all([...this.controllers.keys()].map(async id => {
+      try { const job = await this.get(id); return { id, name: job.fileName, kind: 'meeting', status: job.status, componentIds: ['meeting-asr'] } }
+      catch { return { id, name: '会议任务（记录暂不可读）', kind: 'meeting', status: 'stopping', componentIds: ['meeting-asr'] } }
+    }))
+    return rows
+  }
   async stopComponents(ids: string[]) { if (ids.includes('meeting-asr')) this.controllers.forEach(controller => controller.abort()) }
   async serveAudio(id: string, req: IncomingMessage, res: ServerResponse) {
     const job = await this.get(id), path = this.audio(job), size = (await stat(path)).size

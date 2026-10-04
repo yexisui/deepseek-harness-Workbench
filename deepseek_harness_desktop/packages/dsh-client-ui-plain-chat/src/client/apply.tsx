@@ -25,6 +25,7 @@ import { MeetingDemo } from './MeetingDemo.tsx'
 import { LocalConversationRows } from './LocalConversationRows.tsx'
 import { NativeConversationRemoval } from './NativeConversationRemoval.tsx'
 import { createLocalConversations } from './local-conversations.ts'
+import { removeMeetingConversation } from './meeting-removal.ts'
 import { BrowserObservation } from './BrowserObservation.tsx'
 import { capabilityClient, type CapabilityLink } from './capability-client.ts'
 import { latest } from '../../../dsh-capabilities/src/core/model.ts'
@@ -174,12 +175,16 @@ export function apply(ctx: Context): void {
     }
     const row = localConversations.getSnapshot().items.find(item => item.id === id)
     const meetingId = row?.meeting && typeof row.meeting === 'object' ? (row.meeting as { jobId?: unknown }).jobId : undefined
-    if (typeof meetingId === 'string') void fetch(`/api/capabilities/meeting/job/${encodeURIComponent(meetingId)}`, { method: 'DELETE', credentials: 'same-origin' }).catch(() => {})
-    const active = localConversations.getSnapshot().activeId === id
-    localConversations.remove(id)
-    if (!active) return
-    start.reset(); clearSavedDraft(); roleSelection.select('chat')
-    revision++; listeners.forEach(fn => fn())
+    const remove = () => {
+      const active = localConversations.getSnapshot().activeId === id
+      localConversations.remove(id)
+      if (!active || sessions.list.getSnapshot().current !== undefined) return
+      start.reset(); clearSavedDraft(); roleSelection.select('chat')
+      revision++; listeners.forEach(fn => fn())
+    }
+    if (typeof meetingId === 'string') {
+      void removeMeetingConversation(meetingId, row?.title ?? '会议', remove).catch(error => window.alert(error instanceof Error ? error.message : String(error)))
+    } else if (window.confirm('移除此对话及未发送内容？此操作无法撤销。')) remove()
   }
   ctx.effect(() => {
     const unsubscribe = sessions.list.subscribe(() => {
