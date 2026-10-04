@@ -15,7 +15,7 @@ type Action = Item & { owner: string; deadline: string }
 type Minutes = { title: string; overview: string; decisions: Item[]; actions: Action[]; unknown: Item[] }
 type Job = { id: string; fileName: string; size: number; status: 'uploading' | 'transcribing' | 'transcribed' | 'generating' | 'ready' | 'error'; error?: string; segments: Segment[]; minutes?: Minutes }
 type Availability = { ready: boolean; message: string; maxBytes: number; provider: string }
-export type MeetingDemoState = { mode: Mode; phase: Phase; audience: string; focus: string; summaryModel: string; messages: Message[]; trace: string[]; draft: string; jobId: string | null; showTranscript: boolean; roleVersion?: number }
+export type MeetingDemoState = { mode: Mode; phase: Phase; audience: string; focus: string; summaryModel: string; messages: Message[]; trace: string[]; draft: string; jobId: string | null; showTranscript: boolean; roleVersion?: number; tab?: 'chat'|'trace' }
 
 const endpoint = '/api/capabilities/meeting'
 const formatTime = (ms: number) => `${Math.floor(ms / 60000).toString().padStart(2, '0')}:${Math.floor(ms % 60000 / 1000).toString().padStart(2, '0')}`
@@ -54,7 +54,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
   const [models, setModels] = useState<Array<{ id: string; name: string }>>([])
   const [messages, setMessages] = useState<Message[]>(initial.current?.messages ?? [{ id: 0, kind: 'intro' }])
   const [trace, setTrace] = useState<string[]>(initial.current?.trace ?? ['打开会议纪要助手'])
-  const [tab, setTab] = useState<'chat' | 'trace'>('chat')
+  const [tab, setTab] = useState<'chat' | 'trace'>(initial.current?.tab === 'trace'?'trace':'chat')
   const [draft, setDraft] = useState(initial.current?.draft ?? '')
   const [jobId, setJobId] = useState<string | null>(initial.current?.jobId ?? null)
   const [job, setJob] = useState<Job | null>(null)
@@ -70,7 +70,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
   const snapshotCallback = useRef(onSnapshot)
   snapshotCallback.current = onSnapshot
 
-  useEffect(() => { snapshotCallback.current?.({ mode, phase, audience, focus, summaryModel, messages, trace, draft, jobId, showTranscript, roleVersion }) }, [mode, phase, audience, focus, summaryModel, messages, trace, draft, jobId, showTranscript, roleVersion])
+  useEffect(() => { snapshotCallback.current?.({ mode, phase, audience, focus, summaryModel, messages, trace, draft, jobId, showTranscript, roleVersion, tab }) }, [mode, phase, audience, focus, summaryModel, messages, trace, draft, jobId, showTranscript, roleVersion, tab])
   useEffect(() => { void api<Availability>('/config').then(setAvailability).catch(error => setAvailability({ ready: false, message: String(error), maxBytes: 0, provider: '自定义语音识别接口' })) }, [])
   useEffect(() => { if (loadModels) void loadModels().then(setModels).catch(() => setModels([])) }, [loadModels])
   useEffect(() => {

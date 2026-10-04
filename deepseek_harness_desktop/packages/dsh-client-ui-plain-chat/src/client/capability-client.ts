@@ -46,9 +46,5 @@ export function useCapabilities() {
   return state
 }
 export const editorDrafts = new Map<string, { value: unknown; revision: number }>()
-export type CapabilityLink = { section: 'capability-center' | 'plugins' | 'component-center'; capabilityId?: string; moduleName?: string; componentId?: string; tab?: string; entryId?: string; scope?: string; returnTo?: 'component-center'; edit?: boolean; addComponent?: boolean }
-export function openCapabilityLink(link: CapabilityLink) {
-  try { sessionStorage.setItem('workbench-capability-link', JSON.stringify(link)) } catch { /* Optional navigation memory. */ }
-  window.dispatchEvent(new CustomEvent('workbench-capability-link', { detail: link }))
-}
-export function lastCapabilityLink(): CapabilityLink | undefined { try { return JSON.parse(sessionStorage.getItem('workbench-capability-link') ?? 'null') ?? undefined } catch { return undefined } }
+export type { WorkbenchLink as CapabilityLink } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
+export { openWorkbenchLink as openCapabilityLink, pendingNavigation as lastCapabilityLink } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'

@@ -1,3 +1,4 @@
+import { useLeaveGuard } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
 import { useState } from 'react'
 import type { MeetingAvailability } from './meeting-capability-status.ts'
 import s from './ManagedCapabilities.module.css'
@@ -32,6 +33,7 @@ export function MeetingAsrSettings({ status, refresh, disabled, onEditingChange 
     setKeyDraft(''); setKeyDirty(false); setKeyVisible(false); setError(''); setNotice(''); setEditing(true); onEditingChange?.(true)
   }
   const stop = () => { setEditing(false); setKeyDraft(''); setKeyVisible(false); setKeyDirty(false); setError(''); onEditingChange?.(false) }
+  useLeaveGuard(editing, stop)
   const toggleKey = async () => {
     if (keyVisible) { setKeyVisible(false); if (!keyDirty) setKeyDraft(''); return }
     if (!keyDraft && status?.keySource === 'saved') {

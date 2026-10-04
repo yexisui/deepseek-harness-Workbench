@@ -1,4 +1,5 @@
 import type { PreviewRole } from './role-catalog.ts'
+import { requestLeave } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
 
 /** Shared UI state; never changes a host preset or existing session. */
 export function createRoleSelection<T extends string = PreviewRole>() {
@@ -18,8 +19,8 @@ export function createSettingsNavigation() {
     getSnapshot: () => revision,
     subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener) } },
     getSection: () => section,
-    openSection: (value: string) => { section = value; revision++; listeners.forEach(listener => listener()) },
-    openPresets: () => { section = 'agent-presets'; revision++; listeners.forEach(listener => listener()) },
+    openSection: (value: string) => { if (!requestLeave()) return; section = value; revision++; listeners.forEach(listener => listener()) },
+    openPresets: () => { if (!requestLeave()) return; section = 'agent-presets'; revision++; listeners.forEach(listener => listener()) },
   }
 }
 export type SettingsNavigation = ReturnType<typeof createSettingsNavigation>

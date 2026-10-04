@@ -1,3 +1,4 @@
+import { requestLeave } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
 import React, { Children, cloneElement, isValidElement, useEffect, useRef, useSyncExternalStore, type ReactElement, type ReactNode } from 'react'
 import type { SettingsNavigation } from './role-ui-state.ts'
 import styles from './AppearanceNavigation.module.css'
@@ -49,7 +50,10 @@ export function withAppearanceNavigation(Original: View, label: () => string, na
         // Calling the known function component here preserves its hooks in this wrapper.
         panels.set(Panel, function AppearanceSettingsPanel(props: any) { return groupNavigation(Panel(props), label()) })
       }
-      return React.createElement(panels.get(Panel)!, { ...node.props, key: node.key })
+      return React.createElement(panels.get(Panel)!, { ...node.props, key: node.key,
+        onSelect: (...args: any[]) => { if (requestLeave()) node.props.onSelect?.(...args) },
+        onClose: (...args: any[]) => { if (requestLeave()) node.props.onClose?.(...args) },
+      })
     }
     return node.props.children === undefined ? node : cloneElement(node, {}, Children.map(node.props.children, transform))
   }
@@ -58,6 +62,7 @@ export function withAppearanceNavigation(Original: View, label: () => string, na
   return function AppearanceSettingsRoot(props: any) {
     const request = useSyncExternalStore(subscribe, snapshot)
     const handled = useRef(0)
+    useEffect(()=>{const escape=(event:KeyboardEvent)=>{if(event.key!=='Escape'||(event.target as Element)?.closest?.('dialog'))return;if(!requestLeave()){event.preventDefault();event.stopImmediatePropagation()}};document.addEventListener('keydown',escape,true);return()=>document.removeEventListener('keydown',escape,true)},[])
     const tree = Original(props)
     let panel: ReactElement<NodeProps> | undefined
     let trigger: ReactElement<NodeProps> | undefined

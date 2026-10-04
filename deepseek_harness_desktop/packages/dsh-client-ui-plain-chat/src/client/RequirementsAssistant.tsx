@@ -11,7 +11,7 @@ type MainTab = 'chat' | 'workspace' | 'trace'
 type WorkspaceTab = 'overview' | 'materials' | 'requirements' | 'flows' | 'questions' | 'document'
 type EditorKind = 'overview' | 'settings' | 'material' | 'requirement' | 'flow' | 'rule' | 'question' | 'split' | 'merge' | 'version'
 type Editor = { kind: EditorKind; value: Record<string, unknown>; base?: Record<string, unknown>; conflict?: boolean }
-type LocalDraft = { draft?: string; editor?: Editor; mode?: 'quick' | 'guided'; modeSelected?: boolean; chatView?: 'chooser' | 'work'; creationId?: string; context?: string; answers?: Record<string, string> }
+type LocalDraft = { draft?: string; editor?: Editor; mode?: 'quick' | 'guided'; modeSelected?: boolean; chatView?: 'chooser' | 'work'; creationId?: string; context?: string; answers?: Record<string, string>; tab?: MainTab; workspace?: WorkspaceTab; search?: string; statusFilter?: string; flowView?: 'flows'|'rules'; questionFilter?: string; documentDepth?: RequirementSettings['depth']; documentRange?: 'all'|'confirmed'|'selected'; versionId?: string; traceFilter?: string; selected?: string[]; scroll?: Record<string,number> }
 const mainTabs = [['chat', '对话'], ['workspace', '需求工作区'], ['trace', '轨迹']] as const
 const workspaceTabs = [['overview', '概览'], ['materials', '资料'], ['requirements', '需求清单'], ['flows', '流程与规则'], ['questions', '待确认'], ['document', '需求文档']] as const
 const priorityNames = { must: '必须', should: '应该', could: '可以' }
@@ -59,8 +59,8 @@ export function RequirementsAssistant({ taskId, draftKey, initialDraft, roleId, 
   const mounted = useRef(true)
   const [availability, setAvailability] = useState<RequirementAvailability | null>(null)
   const [models, setModels] = useState<Array<{ id: string; name: string }>>([])
-  const [tab, setTab] = useState<MainTab>('chat')
-  const [workspace, setWorkspace] = useState<WorkspaceTab>('overview')
+  const [tab, setTab] = useState<MainTab>(initial.current.tab ?? 'chat')
+  const [workspace, setWorkspace] = useState<WorkspaceTab>(initial.current.workspace ?? 'overview')
   const [mode, setMode] = useState<'quick' | 'guided'>(initial.current.mode ?? 'guided')
   const modeRef = useRef(mode); modeRef.current = mode
   const [modeSelected, setModeSelected] = useState(initial.current.modeSelected ?? !!taskId)
@@ -77,23 +77,24 @@ export function RequirementsAssistant({ taskId, draftKey, initialDraft, roleId, 
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
   const [draftSaveFailed, setDraftSaveFailed] = useState(false)
-  const [selected, setSelected] = useState<string[]>([])
+  const [selected, setSelected] = useState<string[]>(initial.current.selected ?? [])
   const [proposalSelection, setProposalSelection] = useState<string[]>([])
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [flowView, setFlowView] = useState<'flows' | 'rules'>('flows')
-  const [questionFilter, setQuestionFilter] = useState('active')
+  const [search, setSearch] = useState(initial.current.search ?? '')
+  const [statusFilter, setStatusFilter] = useState(initial.current.statusFilter ?? 'all')
+  const [flowView, setFlowView] = useState<'flows' | 'rules'>(initial.current.flowView ?? 'flows')
+  const [questionFilter, setQuestionFilter] = useState(initial.current.questionFilter ?? 'active')
   const [answers, setAnswers] = useState<Record<string, string>>(initial.current.answers ?? {})
-  const [documentDepth, setDocumentDepth] = useState<RequirementSettings['depth']>('standard')
-  const [documentRange, setDocumentRange] = useState<'all' | 'confirmed' | 'selected'>('all')
-  const [versionId, setVersionId] = useState('')
-  const [traceFilter, setTraceFilter] = useState('all')
+  const [documentDepth, setDocumentDepth] = useState<RequirementSettings['depth']>(initial.current.documentDepth ?? 'standard')
+  const [documentRange, setDocumentRange] = useState<'all' | 'confirmed' | 'selected'>(initial.current.documentRange ?? 'all')
+  const [versionId, setVersionId] = useState(initial.current.versionId ?? '')
+  const [traceFilter, setTraceFilter] = useState(initial.current.traceFilter ?? 'all')
   const [confirm, setConfirm] = useState<{ title: string; detail: string; command: RequirementCommand }>()
   const fileInput = useRef<HTMLInputElement>(null)
   const composer = useRef<HTMLTextAreaElement>(null)
   const scrollArea = useRef<HTMLElement>(null)
   const chooserHeading = useRef<HTMLHeadingElement>(null)
-  const chatScroll = useRef({ chooser: 0, work: 0 })
+  const chatScroll = useRef({chooser:initial.current.scroll?.['chat:chooser']??0,work:initial.current.scroll?.['chat:work']??0}), positions=useRef(initial.current.scroll??{})
+  const positionKey=tab==='workspace'?'workspace:'+workspace:tab==='chat'?'chat:'+chatView:tab
   const focusChatView = useRef(false)
   const assistantName = assistant?.name ?? '需求分析助手'
   const running = task?.run?.status === 'running'
@@ -106,7 +107,7 @@ export function RequirementsAssistant({ taskId, draftKey, initialDraft, roleId, 
   const preview = task ? viewedVersion?.markdown ?? task.document?.markdown ?? '' : ''
   const hasUnsavedDraft = task ? task.draft !== draft : !!draft.trim()
   const localDraft = useRef<LocalDraft>({})
-  localDraft.current = { draft, editor, mode, modeSelected, chatView, creationId: creationId.current, context, answers }
+  localDraft.current = { draft, editor, mode, modeSelected, chatView, creationId: creationId.current, context, answers, tab, workspace, search, statusFilter, flowView, questionFilter, documentDepth, documentRange, versionId, traceFilter, selected, scroll:positions.current }
   function rememberCurrent() { rememberLocal(storageKey.current, localDraft.current) }
   function updateDraft(value: string) {
     draftRef.current = value; setDraft(value)
@@ -127,17 +128,16 @@ export function RequirementsAssistant({ taskId, draftKey, initialDraft, roleId, 
   }
   useEffect(() => {
     mounted.current = true
-    void getRequirementConfig(roleId).then(value => { if (mounted.current) { setAvailability(value); if (!taskId) setDocumentDepth(value.defaults.depth) } }).catch(e => { if (mounted.current) setError(String(e.message ?? e)) })
+    void getRequirementConfig(roleId).then(value => { if (mounted.current) { setAvailability(value); if (!taskId && initial.current.documentDepth === undefined) setDocumentDepth(value.defaults.depth) } }).catch(e => { if (mounted.current) setError(String(e.message ?? e)) })
     if (loadModels) void loadModels().then(value => { if (mounted.current) setModels(value) }).catch(e => { if (mounted.current) setNotice(`模型列表暂不可用：${e.message ?? e}，仍可使用工作台默认模型。`) })
-    if (taskId) void getRequirementTask(taskId).then(value => { if (mounted.current) { acceptTask(value); setMode(value.mode); setModeSelected(true); setDocumentDepth(value.settings.depth); if (initial.current.draft === undefined) setDraft(value.draft) } }).catch(e => { if (mounted.current) setError(String(e.message ?? e)) }).finally(() => { if (mounted.current) setLoading(false) })
+    if (taskId) void getRequirementTask(taskId).then(value => { if (mounted.current) { acceptTask(value); setMode(value.mode); setModeSelected(true); if(initial.current.documentDepth === undefined)setDocumentDepth(value.settings.depth); if (initial.current.draft === undefined) setDraft(value.draft) } }).catch(e => { if (mounted.current) setError(String(e.message ?? e)) }).finally(() => { if (mounted.current) setLoading(false) })
     return () => { mounted.current = false }
   }, [])
-  useEffect(() => { rememberCurrent() }, [draft, editor, mode, modeSelected, chatView, context, answers, task?.id])
+  useEffect(() => { rememberCurrent() }, [draft, editor, mode, modeSelected, chatView, context, answers, task?.id, tab, workspace, search, statusFilter, flowView, questionFilter, documentDepth, documentRange, versionId, traceFilter, selected])
   useLayoutEffect(() => {
-    if (tab !== 'chat') return
-    if (scrollArea.current) scrollArea.current.scrollTop = chatScroll.current[chatView]
+    if (scrollArea.current) scrollArea.current.scrollTop = positions.current[positionKey]??0
     if (focusChatView.current) { (chatView === 'chooser' ? chooserHeading.current : composer.current)?.focus({ preventScroll: true }); focusChatView.current = false }
-  }, [tab, chatView])
+  }, [positionKey, loading])
   useEffect(() => {
     if (!task?.id || !running) return
     const refresh = async () => { if (busyRef.current) return; try { const value = await getRequirementTask(task.id); if (mounted.current) acceptTask(value) } catch (e) { if (mounted.current) setError(`任务状态读取失败：${e instanceof Error ? e.message : e}`) } }
@@ -335,7 +335,7 @@ export function RequirementsAssistant({ taskId, draftKey, initialDraft, roleId, 
     {notice && <div className={s.notice} role="status">{notice}<button aria-label="关闭提示" onClick={() => setNotice('')}>×</button></div>}
     {availability && !availability.ready && <div className={s.availability}><span>{availability.message}</span><button onClick={() => openCapabilityLink({ section: 'capability-center', capabilityId: REQUIREMENTS_CAPABILITY_ID })}>查看能力配置</button></div>}
     {tab === 'workspace' && <div className={s.subtabs}><TabBar items={workspaceTabs} value={workspace} label="需求工作区页面" onChange={setWorkspace}/></div>}
-    <main ref={scrollArea} className={s.scroll} onScroll={event => { if (tab === 'chat') chatScroll.current[chatView] = event.currentTarget.scrollTop }} role="tabpanel" aria-label={tab === 'workspace' ? workspaceTabs.find(([key]) => key === workspace)?.[1] : mainTabs.find(([key]) => key === tab)?.[1]}>{loading ? <Empty title="正在读取已保存的分析…"/> : taskId && !task ? <Empty title="分析记录暂时无法读取"><button onClick={async () => { setLoading(true); try { const next = await getRequirementTask(taskId); acceptTask(next); setDraft(initial.current.draft ?? next.draft); setError('') } catch (e) { setError(e instanceof Error ? e.message : String(e)) } finally { setLoading(false) } }}>重新读取</button></Empty> : tab === 'chat' ? chatView === 'chooser' ? chooserView : workView : !task ? <Empty title={tab === 'trace' ? '尚无操作记录' : '添加资料或记录第一条需求'}>{tab === 'trace' ? '保存业务内容后，这里显示实际操作记录。' : <><p>确认保存后，可以在当前会话继续整理和编辑。</p><div className={s.toolbar}><button disabled={busy} onClick={() => openEditor('material')}>＋ 粘贴资料</button><button disabled={busy} onClick={() => fileInput.current?.click()}>添加 TXT / Markdown</button><button className={s.primary} disabled={busy} onClick={() => openEditor('requirement')}>＋ 新增需求</button></div></>}</Empty> : tab === 'workspace' ? <div className={s.workspace}>{({ overview: overviewView, materials: materialsView, requirements: requirementsView, flows: flowsView, questions: questionsView, document: documentsView })[workspace]}</div> : <div className={s.workspace}><div className={s.sectionHead}><div><h2>操作轨迹</h2><p>这里记录服务端实际完成的操作及处理结果。</p></div><button onClick={showWork}>返回对话继续讨论</button></div><select aria-label="轨迹类型筛选" value={traceFilter} onChange={e => setTraceFilter(e.target.value)}><option value="all">全部操作</option>{Object.entries({ material: '资料', analysis: '分析', change: '修改', confirm: '确认', version: '版本', export: '导出' }).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</select><ol className={s.timeline}>{[...task.events].reverse().filter(event => traceFilter === 'all' || event.kind === traceFilter).map(event => <li key={event.id}><time>{time(event.at)}</time><div><p>{event.text}</p>{event.objectId && <button onClick={() => { const r = task.requirements.find(r => r.id === event.objectId), m = task.materials.find(m => m.id === event.objectId), q = task.questions.find(q => q.id === event.objectId), v = task.versions.find(v => v.id === event.objectId), f = task.flows.find(f => f.id === event.objectId), rule = task.rules.find(rule => rule.id === event.objectId); if (r) openEditor('requirement', r); else if (m) openEditor('material', m); else if (q) { goto('questions'); setQuestionFilter('all') } else if (v) { setVersionId(v.id); goto('document') } else if (f) openEditor('flow', f); else if (rule) openEditor('rule', rule); else setNotice('该操作对象的内容已变更，历史事件仍保留在轨迹中。') }}>查看关联内容 →</button>}</div></li>)}</ol>{!task.events.length && <Empty title="尚无操作记录"/>}</div>}</main>
+    <main ref={scrollArea} className={s.scroll} onScroll={event => { positions.current[positionKey]=event.currentTarget.scrollTop;if(tab==='chat')chatScroll.current[chatView]=event.currentTarget.scrollTop;rememberCurrent() }} role="tabpanel" aria-label={tab === 'workspace' ? workspaceTabs.find(([key]) => key === workspace)?.[1] : mainTabs.find(([key]) => key === tab)?.[1]}>{loading ? <Empty title="正在读取已保存的分析…"/> : taskId && !task ? <Empty title="分析记录暂时无法读取"><button onClick={async () => { setLoading(true); try { const next = await getRequirementTask(taskId); acceptTask(next); setDraft(initial.current.draft ?? next.draft); setError('') } catch (e) { setError(e instanceof Error ? e.message : String(e)) } finally { setLoading(false) } }}>重新读取</button></Empty> : tab === 'chat' ? chatView === 'chooser' ? chooserView : workView : !task ? <Empty title={tab === 'trace' ? '尚无操作记录' : '添加资料或记录第一条需求'}>{tab === 'trace' ? '保存业务内容后，这里显示实际操作记录。' : <><p>确认保存后，可以在当前会话继续整理和编辑。</p><div className={s.toolbar}><button disabled={busy} onClick={() => openEditor('material')}>＋ 粘贴资料</button><button disabled={busy} onClick={() => fileInput.current?.click()}>添加 TXT / Markdown</button><button className={s.primary} disabled={busy} onClick={() => openEditor('requirement')}>＋ 新增需求</button></div></>}</Empty> : tab === 'workspace' ? <div className={s.workspace}>{({ overview: overviewView, materials: materialsView, requirements: requirementsView, flows: flowsView, questions: questionsView, document: documentsView })[workspace]}</div> : <div className={s.workspace}><div className={s.sectionHead}><div><h2>操作轨迹</h2><p>这里记录服务端实际完成的操作及处理结果。</p></div><button onClick={showWork}>返回对话继续讨论</button></div><select aria-label="轨迹类型筛选" value={traceFilter} onChange={e => setTraceFilter(e.target.value)}><option value="all">全部操作</option>{Object.entries({ material: '资料', analysis: '分析', change: '修改', confirm: '确认', version: '版本', export: '导出' }).map(([key, value]) => <option key={key} value={key}>{value}</option>)}</select><ol className={s.timeline}>{[...task.events].reverse().filter(event => traceFilter === 'all' || event.kind === traceFilter).map(event => <li key={event.id}><time>{time(event.at)}</time><div><p>{event.text}</p>{event.objectId && <button onClick={() => { const r = task.requirements.find(r => r.id === event.objectId), m = task.materials.find(m => m.id === event.objectId), q = task.questions.find(q => q.id === event.objectId), v = task.versions.find(v => v.id === event.objectId), f = task.flows.find(f => f.id === event.objectId), rule = task.rules.find(rule => rule.id === event.objectId); if (r) openEditor('requirement', r); else if (m) openEditor('material', m); else if (q) { goto('questions'); setQuestionFilter('all') } else if (v) { setVersionId(v.id); goto('document') } else if (f) openEditor('flow', f); else if (rule) openEditor('rule', rule); else setNotice('该操作对象的内容已变更，历史事件仍保留在轨迹中。') }}>查看关联内容 →</button>}</div></li>)}</ol>{!task.events.length && <Empty title="尚无操作记录"/>}</div>}</main>
     {tab === 'chat' && <div className={s.composerWrap}>{task && chatView === 'work' && <div className={s.quickActions}><button disabled={busy || running} onClick={() => void run('analyze', '请根据现有资料和对话整理需求清单，明确来源，并将不确定内容作为问题。')}>整理需求清单</button><button disabled={busy || running} onClick={() => void run('clarify', '请根据当前目标、角色、范围、流程、规则和验收中仍缺失的信息，继续提出需要确认的关键问题。')}>继续澄清</button><button disabled={busy || running} onClick={() => void run('check', '请检查当前需求中的权限、异常、数据校验、重复或冲突，提出有依据的修改建议和待确认问题。')}>检查遗漏</button><button onClick={() => goto('document')}>生成需求文档</button></div>}<div className={s.composer}>{context && <div className={s.contextNote}>当前讨论：{contextLabel(context)}<button aria-label="取消当前讨论对象" onClick={() => setContext('')}>×</button></div>}<textarea ref={composer} aria-label="需求分析输入" value={draft} placeholder={mode === 'quick' ? '补充需求描述，或告诉我需要修改哪一项…' : '描述你的想法、当前问题或希望实现的功能…'} onChange={e => updateDraft(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) { e.preventDefault(); void run(context ? 'revise' : mode === 'quick' ? 'analyze' : 'clarify') } }}/><div className={s.composerTools}><div><button aria-label="添加需求资料" disabled={busy || loading} onClick={() => openEditor('material')}>＋</button>{task && <select aria-label="本次分析模型" disabled={busy || running} value={task.settings.model} onChange={e => void command({ type: 'save', settings: { ...task.settings, model: e.target.value } })}>{modelOptions.map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select>}</div><div><small>{running ? '分析期间可继续输入草稿' : 'Enter 发送 · Shift+Enter 换行'}</small><button className={s.send} aria-label="发送需求分析消息" disabled={busy || running || loading || !draft.trim()} onClick={() => void run(context ? 'revise' : mode === 'quick' ? 'analyze' : 'clarify')}>↑</button></div></div></div></div>}
     <input ref={fileInput} type="file" hidden accept=".txt,.md,.markdown,text/plain,text/markdown" onChange={e => { void importFile(e.target.files?.[0]); e.target.value = '' }}/>
     {renderEditor()}

@@ -1,3 +1,4 @@
+import { useLeaveGuard } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
 import React, { useCallback, useEffect, useState } from 'react'
 import type { RequirementAvailability, RequirementDefaults } from '../../../dsh-capabilities/src/core/requirements-model.ts'
 import s from './ManagedCapabilities.module.css'
@@ -20,6 +21,7 @@ export function useRequirementAvailability(revision?: number) {
 export function RequirementsSettings({ status, onSaved, disabled = false, onEditingChange }: { status: RequirementAvailability | null; onSaved: (status: RequirementAvailability) => void; disabled?: boolean; onEditingChange: (dirty: boolean) => void }) {
   const [draft, setDraft] = useState<RequirementDefaults | null>(null), [revision, setRevision] = useState(0)
   const [busy, setBusy] = useState(false), [message, setMessage] = useState('')
+  useLeaveGuard(draft !== null, () => setDraft(null))
   const value = draft ?? status?.defaults
   useEffect(() => { onEditingChange(draft !== null); return () => onEditingChange(false) }, [draft, onEditingChange])
   if (!value || !status) return <p role="status">正在读取需求分析配置…</p>

@@ -1,3 +1,4 @@
+import { consumeNavigation, legacyOrigin, pendingNavigation, restoredFrame, returnNavigation, useLeaveGuard, useNavigationFrame } from './workbench-navigation.ts'
 import React, { useEffect, useMemo, useState } from 'react'
 import { entryKey, entryFacts, removeCategory, type Classification, type InventoryEntry } from '../core/classification.ts'
 import css from './inventory-tree.module.css'
@@ -19,18 +20,24 @@ async function classificationRequest(body?:Classification):Promise<Classificatio
 function shift<T>(items:T[],index:number,delta:number):T[]{const result=[...items],other=index+delta;if(other<0||other>=items.length)return result;[result[index],result[other]]=[result[other]!,result[index]!];return result}
 export async function readPluginInventory():Promise<InventorySnapshot>{ const r=await fetch('/api/plugin-manager/inventory');const data=await r.json();if(!r.ok)throw Error(data.error??'插件清单读取失败');return data }
 export function InventoryTree({list,presetName,componentId,componentData,compact=false}:Props){
+ const [entry]=useState(()=>compact?undefined:pendingNavigation('plugins'))
+ const [saved]=useState(()=>{try{return restoredFrame(entry?.restore,'plugins')?.view ?? JSON.parse(sessionStorage.getItem('workbench-plugin-view')??'{}')}catch{return {}}})
+ const [origin,setOrigin]=useState(restoredFrame(entry?.restore,'plugins')?.origin ?? legacyOrigin(entry))
  const polledData=useCapabilityReferences(); const capabilityData=componentData??polledData
- const [relatedId,setRelatedId]=useState(componentId)
+ const [relatedId,setRelatedId]=useState(componentId ?? saved.relatedId)
  const descriptor=capabilityData?.components?.find(c=>c.id===(componentId??relatedId))
  const relations=descriptor?pluginRelations(descriptor):[]
  const related=(e:InventoryEntry)=>!descriptor||relations.some(r=>r.moduleName===e.moduleName)
  const [snapshot,setSnapshot]=useState<InventorySnapshot>(),[config,setConfig]=useState<Classification>(),[draft,setDraft]=useState<Classification>()
- const [focusEntry,setFocusEntry]=useState<{id:string;scope:string}>()
- const [query,setQuery]=useState(()=>{try{return compact?String(JSON.parse(sessionStorage.getItem('component-plugin-view:'+componentId)??'{}').query??''):''}catch{return ''}}),[chosen,setChosen]=useState(()=>{try{return compact?String(JSON.parse(sessionStorage.getItem('component-plugin-view:'+componentId)??'{}').chosen??''):''}catch{return ''}}),[selected,setSelected]=useState<string[]>([]),[target,setTarget]=useState('')
- useEffect(()=>{const select=(event?:Event)=>{try{const link=event?(event as CustomEvent).detail:JSON.parse(sessionStorage.getItem('workbench-capability-link')??'null');if(!compact&&link?.section==='plugins'&&link.moduleName){setQuery(link.moduleName);setRelatedId(link.componentId);if(link.scope&&link.scope!=='global')setChosen(link.scope);if(link.entryId)setFocusEntry({id:link.entryId,scope:link.scope??'global'});setOpened(old=>({...old,global:true}))}}catch{/* Optional navigation memory. */}};select();window.addEventListener('workbench-capability-link',select);return()=>window.removeEventListener('workbench-capability-link',select)},[compact])
+ const [focusEntry,setFocusEntry]=useState<{id:string;scope:string} | undefined>(saved.focusEntry)
+ const [query,setQuery]=useState(()=>{try{return compact?String(JSON.parse(sessionStorage.getItem('component-plugin-view:'+componentId)??'{}').query??''):saved.query??''}catch{return ''}}),[chosen,setChosen]=useState(()=>{try{return compact?String(JSON.parse(sessionStorage.getItem('component-plugin-view:'+componentId)??'{}').chosen??''):saved.chosen??''}catch{return ''}}),[selected,setSelected]=useState<string[]>([]),[target,setTarget]=useState('')
+ useEffect(()=>{if(compact)return;const select=(link:any)=>{if(link?.section!=='plugins')return;const frame=restoredFrame(link.restore,'plugins'),view=frame?.view;setOrigin(frame?.origin??legacyOrigin(link));if(view){setQuery(view.query??'');setRelatedId(view.relatedId);setFocusEntry(view.focusEntry);setChosen(view.chosen??'');setOpened(view.opened??{})}else{setQuery(link.moduleName??'');setRelatedId(link.componentId);setFocusEntry(link.entryId?{id:link.entryId,scope:link.scope??'global'}:undefined);if(link.scope&&link.scope!=='global')setChosen(link.scope);setOpened(old=>({...old,global:true}))}consumeNavigation(link)};select(entry);const listener=(event:Event)=>select((event as CustomEvent).detail);window.addEventListener('workbench-capability-link',listener);return()=>window.removeEventListener('workbench-capability-link',listener)},[compact,entry])
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[remove,setRemove]=useState<{id:string;group:boolean}>(),[removeTarget,setRemoveTarget]=useState('')
- const [opened,setOpened]=useState<Record<string,boolean>>(()=>{try{return compact?{global:true,...JSON.parse(sessionStorage.getItem('component-plugin-view:'+componentId)??'{}').opened}:JSON.parse(localStorage.getItem('dsh-plugin-tree-open')??'{}')}catch{return {}}})
+ const [opened,setOpened]=useState<Record<string,boolean>>(()=>{try{return compact?{global:true,...JSON.parse(sessionStorage.getItem('component-plugin-view:'+componentId)??'{}').opened}:restoredFrame(entry?.restore,'plugins')?.view?.opened??JSON.parse(localStorage.getItem('dsh-plugin-tree-open')??'{}')}catch{return {}}})
  useEffect(()=>{if(compact){try{sessionStorage.setItem('component-plugin-view:'+componentId,JSON.stringify({query,opened,chosen}))}catch{}}},[compact,componentId,query,opened,chosen])
+ useLeaveGuard(!!draft,()=>setDraft(undefined))
+ useNavigationFrame('plugins',0,()=>({section:'plugins',label:'插件管理',origin,view:{query,opened,chosen,relatedId,focusEntry}}),!compact)
+ useEffect(()=>{if(!compact){try{sessionStorage.setItem('workbench-plugin-view',JSON.stringify({query,opened,chosen,relatedId,focusEntry}))}catch{}}},[compact,query,opened,chosen,relatedId,focusEntry])
  const refresh=async()=>{setError('');try{const [s,c]=await Promise.all([inventoryRequest(list),classificationRequest()]);setSnapshot(s);setConfig(c)}catch(e){setError(String(e))}}
  useEffect(()=>{let current=true;Promise.all([inventoryRequest(list),classificationRequest()]).then(([s,c])=>{if(current){setSnapshot(s);setConfig(c)}}).catch(e=>{if(current)setError(String(e))});return()=>{current=false}},[list])
  const current=draft??config
@@ -79,7 +86,7 @@ export function InventoryTree({list,presetName,componentId,componentData,compact
  const differences=draft&&config?Object.keys({...config.assignments,...draft.assignments}).filter(k=>config.assignments[k]!==draft.assignments[k]).length:0
  const removeCount=remove&&current?rows.filter(r=>{const m=current.modules.find(m=>m.id===current.assignments[entryKey(r)]);return remove.group?m?.groupId===remove.id:m?.id===remove.id}).length:0
  return <div className={css.root} data-component-id={compact?relatedId:undefined} data-inventory-ready={!!snapshot&&!!current}>
-  {!compact&&capabilityData&&<button className={css.toolButton} onClick={()=>{let id:string|undefined;try{id=JSON.parse(sessionStorage.getItem('workbench-capability-link')??'null')?.capabilityId}catch{}relatedId?capabilityLink('component-center',undefined,undefined,{componentId:relatedId,tab:'plugins'}):capabilityLink('capability-center',id)}}>{relatedId?'← 返回组件中心':'← 返回能力中心'}</button>}
+  {!compact&&origin&&<button className={css.toolButton} onClick={()=>returnNavigation(origin)}>← 返回{origin.label}</button>}
   <div className={css.toolbar}><label className={css.search}><InventoryIcon name="search"/><input type="search" aria-label="搜索插件" placeholder="搜索插件、用途或模块" value={query} onChange={e=>setQuery(e.target.value)}/></label><button className={css.toolButton} disabled={busy||!!draft} onClick={()=>void refresh()}><InventoryIcon name="refresh"/>刷新</button><button hidden={compact} className={css.toolButton} disabled={!config||busy||!!draft} onClick={()=>{setDraft(structuredClone(config!));setSelected([])}}><InventoryIcon name="grid"/>管理分类</button></div>
   {descriptor&&<p className={css.scopeDescription}>当前组件：{descriptor.name} · 仅显示精确关联的插件和预设条目{!compact&&<button className={css.toolButton} onClick={()=>{setRelatedId(undefined);setFocusEntry(undefined);setQuery('')}}>查看全部插件</button>}</p>}
   {error&&<p role="alert" className={css.error}>{error}</p>}

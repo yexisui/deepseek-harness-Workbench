@@ -231,6 +231,149 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region ../dsh-plugin-manager/src/client/workbench-navigation.ts
+		const storeKey = Symbol.for("dsh.workbench.navigation.v1");
+		function store() {
+			const host = window;
+			return host[storeKey] ??= {
+				frames: /* @__PURE__ */ new Map(),
+				guards: /* @__PURE__ */ new Map()
+			};
+		}
+		const key = "workbench-capability-link";
+		function pendingNavigation(section) {
+			try {
+				const value = JSON.parse(sessionStorage.getItem(key) ?? "null");
+				return value && typeof value.section === "string" && (!section || value.section === section) ? value : void 0;
+			} catch {
+				return;
+			}
+		}
+		function consumeNavigation(link) {
+			if (!link) return;
+			const current = pendingNavigation();
+			if (current && JSON.stringify(current) === JSON.stringify(link)) try {
+				sessionStorage.removeItem(key);
+			} catch {}
+		}
+		function restoredFrame(location, kind) {
+			return location?.frames?.find((frame) => frame.kind === kind);
+		}
+		function useNavigationFrame(kind, depth, read, enabled = true) {
+			const current = (0, react.useRef)(read);
+			current.current = read;
+			(0, react.useLayoutEffect)(() => {
+				if (!enabled) return;
+				const id = Symbol(kind);
+				store().frames.set(id, {
+					depth,
+					read: () => ({
+						kind,
+						...current.current()
+					})
+				});
+				return () => {
+					store().frames.delete(id);
+				};
+			}, [
+				kind,
+				depth,
+				enabled
+			]);
+		}
+		function useLeaveGuard(dirty, discard) {
+			const current = (0, react.useRef)({
+				dirty,
+				discard
+			});
+			current.current = {
+				dirty,
+				discard
+			};
+			(0, react.useLayoutEffect)(() => {
+				const id = Symbol("guard");
+				store().guards.set(id, {
+					dirty: () => current.current.dirty,
+					discard: () => {
+						const discard = current.current.discard;
+						current.current.dirty = false;
+						discard();
+					}
+				});
+				const beforeLink = (event) => {
+					if (!requestLeave()) {
+						consumeNavigation(event.detail);
+						event.stopImmediatePropagation();
+					}
+				};
+				window.addEventListener("workbench-capability-link", beforeLink, true);
+				return () => {
+					store().guards.delete(id);
+					window.removeEventListener("workbench-capability-link", beforeLink, true);
+				};
+			}, []);
+		}
+		function requestLeave() {
+			if (typeof window === "undefined") return true;
+			const dirty = [...store().guards.values()].filter((guard) => guard.dirty());
+			if (!dirty.length) return true;
+			if (!window.confirm("当前配置尚未保存，确定放弃修改并离开？")) return false;
+			dirty.forEach((guard) => guard.discard());
+			return true;
+		}
+		function captureNavigation() {
+			const frames = [...store().frames.values()].sort((a, b) => a.depth - b.depth).map((entry) => entry.read());
+			if (!frames.length) return void 0;
+			return {
+				section: frames[0].section,
+				label: frames[0].label,
+				frames
+			};
+		}
+		function openWorkbenchLink(target) {
+			const origin = target.restore ? target.origin : target.origin ?? captureNavigation();
+			if (!requestLeave()) return false;
+			const link = {
+				...target,
+				requestId: crypto.randomUUID(),
+				origin
+			};
+			try {
+				sessionStorage.setItem(key, JSON.stringify(link));
+			} catch {}
+			window.dispatchEvent(new CustomEvent("workbench-capability-link", { detail: link }));
+			return true;
+		}
+		function returnNavigation(origin) {
+			if (!origin) return false;
+			const component = restoredFrame(origin, "components")?.view, capability = restoredFrame(origin, "capabilities")?.view;
+			return openWorkbenchLink({
+				section: origin.section,
+				componentId: component?.selected,
+				capabilityId: capability?.selected,
+				tab: component?.tab ?? capability?.tab,
+				restore: origin,
+				origin: origin.frames.at(-1)?.origin
+			});
+		}
+		function legacyOrigin(link) {
+			if (link?.origin) return link.origin;
+			if (link?.returnTo === "component-center" || link?.section === "plugins" && link.componentId) return {
+				section: "component-center",
+				label: "组件中心",
+				frames: [{
+					kind: "components",
+					section: "component-center",
+					label: "组件中心",
+					view: {
+						selected: link.componentId,
+						pane: "detail",
+						...link.section === "plugins" ? { tab: "plugins" } : {}
+					}
+				}]
+			};
+		}
+		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/AppearanceNavigation.module.css.mjs
 		const css$12 = ".W_oMjq_group{width:100%;min-width:0}.W_oMjq_heading{box-sizing:border-box;cursor:pointer;align-items:center;gap:10px;width:100%;list-style:none;display:flex}.W_oMjq_heading::-webkit-details-marker{display:none}.W_oMjq_heading>svg{flex-shrink:0}.W_oMjq_heading:focus-visible{outline:2px solid var(--dsw-alias-button-primary-fill,#4263ba);outline-offset:-2px;border-radius:8px}.W_oMjq_chevron{opacity:.65;margin-left:auto}.W_oMjq_group[open]>.W_oMjq_heading .W_oMjq_chevron{transform:rotate(90deg)}.W_oMjq_children{border-left:1px solid var(--dsw-alias-border-l2,#dfe4ed);flex-direction:column;gap:4px;margin:4px 0 6px 17px;padding-left:10px;display:flex}.W_oMjq_children>button{box-sizing:border-box;width:100%;font-size:13px}";
 		const tagId$12 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/AppearanceNavigation.module.css";
@@ -344,7 +487,13 @@ window.__ModuleLoader__.load({
 					});
 					return react.default.createElement(panels.get(Panel), {
 						...node.props,
-						key: node.key
+						key: node.key,
+						onSelect: (...args) => {
+							if (requestLeave()) node.props.onSelect?.(...args);
+						},
+						onClose: (...args) => {
+							if (requestLeave()) node.props.onClose?.(...args);
+						}
 					});
 				}
 				return node.props.children === void 0 ? node : (0, react.cloneElement)(node, {}, react.Children.map(node.props.children, transform));
@@ -354,6 +503,17 @@ window.__ModuleLoader__.load({
 			return function AppearanceSettingsRoot(props) {
 				const request = (0, react.useSyncExternalStore)(subscribe, snapshot);
 				const handled = (0, react.useRef)(0);
+				(0, react.useEffect)(() => {
+					const escape = (event) => {
+						if (event.key !== "Escape" || event.target?.closest?.("dialog")) return;
+						if (!requestLeave()) {
+							event.preventDefault();
+							event.stopImmediatePropagation();
+						}
+					};
+					document.addEventListener("keydown", escape, true);
+					return () => document.removeEventListener("keydown", escape, true);
+				}, []);
 				const tree = Original(props);
 				let panel;
 				let trigger;
@@ -2323,16 +2483,12 @@ window.__ModuleLoader__.load({
 			return data;
 		}
 		function capabilityLink(section, capabilityId, moduleName, context) {
-			const detail = {
+			return openWorkbenchLink({
 				section,
 				capabilityId,
 				moduleName,
 				...context
-			};
-			try {
-				sessionStorage.setItem("workbench-capability-link", JSON.stringify(detail));
-			} catch {}
-			window.dispatchEvent(new CustomEvent("workbench-capability-link", { detail }));
+			});
 		}
 		function CapabilityReferences({ moduleName, data, componentId, open, onOpenChange }) {
 			if (!data?.components?.length || !data.state?.capabilities) return null;
@@ -2371,7 +2527,10 @@ window.__ModuleLoader__.load({
 					] }, c.id)), "此组件被以下能力复用。全局停用或卸载会影响这些引用，配置会保留。"] }),
 					refs.capabilities.map((cap) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 						type: "button",
-						onClick: () => capabilityLink("capability-center", cap.id),
+						onClick: () => capabilityLink("capability-center", cap.id, void 0, componentId ? {
+							componentId,
+							returnTo: "component-center"
+						} : void 0),
 						children: [cap.draft.name, " ↗"]
 					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [" · ", cap.enabled ? "启用" : "停用"] })] }, cap.id)),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["岗位：", refs.roles.map((r) => r.draft.name).join("、") || "暂无"] }),
@@ -2431,57 +2590,75 @@ window.__ModuleLoader__.load({
 			return data;
 		}
 		function InventoryTree({ list, presetName, componentId, componentData, compact = false }) {
+			const [entry] = (0, react.useState)(() => compact ? void 0 : pendingNavigation("plugins"));
+			const [saved] = (0, react.useState)(() => {
+				try {
+					return restoredFrame(entry?.restore, "plugins")?.view ?? JSON.parse(sessionStorage.getItem("workbench-plugin-view") ?? "{}");
+				} catch {
+					return {};
+				}
+			});
+			const [origin, setOrigin] = (0, react.useState)(restoredFrame(entry?.restore, "plugins")?.origin ?? legacyOrigin(entry));
 			const polledData = useCapabilityReferences();
 			const capabilityData = componentData ?? polledData;
-			const [relatedId, setRelatedId] = (0, react.useState)(componentId);
+			const [relatedId, setRelatedId] = (0, react.useState)(componentId ?? saved.relatedId);
 			const descriptor = capabilityData?.components?.find((c) => c.id === (componentId ?? relatedId));
 			const relations = descriptor ? pluginRelations(descriptor) : [];
 			const related = (e) => !descriptor || relations.some((r) => r.moduleName === e.moduleName);
 			const [snapshot, setSnapshot] = (0, react.useState)(), [config, setConfig] = (0, react.useState)(), [draft, setDraft] = (0, react.useState)();
-			const [focusEntry, setFocusEntry] = (0, react.useState)();
+			const [focusEntry, setFocusEntry] = (0, react.useState)(saved.focusEntry);
 			const [query, setQuery] = (0, react.useState)(() => {
 				try {
-					return compact ? String(JSON.parse(sessionStorage.getItem("component-plugin-view:" + componentId) ?? "{}").query ?? "") : "";
+					return compact ? String(JSON.parse(sessionStorage.getItem("component-plugin-view:" + componentId) ?? "{}").query ?? "") : saved.query ?? "";
 				} catch {
 					return "";
 				}
 			}), [chosen, setChosen] = (0, react.useState)(() => {
 				try {
-					return compact ? String(JSON.parse(sessionStorage.getItem("component-plugin-view:" + componentId) ?? "{}").chosen ?? "") : "";
+					return compact ? String(JSON.parse(sessionStorage.getItem("component-plugin-view:" + componentId) ?? "{}").chosen ?? "") : saved.chosen ?? "";
 				} catch {
 					return "";
 				}
 			}), [selected, setSelected] = (0, react.useState)([]), [target, setTarget] = (0, react.useState)("");
 			(0, react.useEffect)(() => {
-				const select = (event) => {
-					try {
-						const link = event ? event.detail : JSON.parse(sessionStorage.getItem("workbench-capability-link") ?? "null");
-						if (!compact && link?.section === "plugins" && link.moduleName) {
-							setQuery(link.moduleName);
-							setRelatedId(link.componentId);
-							if (link.scope && link.scope !== "global") setChosen(link.scope);
-							if (link.entryId) setFocusEntry({
-								id: link.entryId,
-								scope: link.scope ?? "global"
-							});
-							setOpened((old) => ({
-								...old,
-								global: true
-							}));
-						}
-					} catch {}
+				if (compact) return;
+				const select = (link) => {
+					if (link?.section !== "plugins") return;
+					const frame = restoredFrame(link.restore, "plugins"), view = frame?.view;
+					setOrigin(frame?.origin ?? legacyOrigin(link));
+					if (view) {
+						setQuery(view.query ?? "");
+						setRelatedId(view.relatedId);
+						setFocusEntry(view.focusEntry);
+						setChosen(view.chosen ?? "");
+						setOpened(view.opened ?? {});
+					} else {
+						setQuery(link.moduleName ?? "");
+						setRelatedId(link.componentId);
+						setFocusEntry(link.entryId ? {
+							id: link.entryId,
+							scope: link.scope ?? "global"
+						} : void 0);
+						if (link.scope && link.scope !== "global") setChosen(link.scope);
+						setOpened((old) => ({
+							...old,
+							global: true
+						}));
+					}
+					consumeNavigation(link);
 				};
-				select();
-				window.addEventListener("workbench-capability-link", select);
-				return () => window.removeEventListener("workbench-capability-link", select);
-			}, [compact]);
+				select(entry);
+				const listener = (event) => select(event.detail);
+				window.addEventListener("workbench-capability-link", listener);
+				return () => window.removeEventListener("workbench-capability-link", listener);
+			}, [compact, entry]);
 			const [error, setError] = (0, react.useState)(""), [busy, setBusy] = (0, react.useState)(false), [remove, setRemove] = (0, react.useState)(), [removeTarget, setRemoveTarget] = (0, react.useState)("");
 			const [opened, setOpened] = (0, react.useState)(() => {
 				try {
 					return compact ? {
 						global: true,
 						...JSON.parse(sessionStorage.getItem("component-plugin-view:" + componentId) ?? "{}").opened
-					} : JSON.parse(localStorage.getItem("dsh-plugin-tree-open") ?? "{}");
+					} : restoredFrame(entry?.restore, "plugins")?.view?.opened ?? JSON.parse(localStorage.getItem("dsh-plugin-tree-open") ?? "{}");
 				} catch {
 					return {};
 				}
@@ -2500,6 +2677,37 @@ window.__ModuleLoader__.load({
 				query,
 				opened,
 				chosen
+			]);
+			useLeaveGuard(!!draft, () => setDraft(void 0));
+			useNavigationFrame("plugins", 0, () => ({
+				section: "plugins",
+				label: "插件管理",
+				origin,
+				view: {
+					query,
+					opened,
+					chosen,
+					relatedId,
+					focusEntry
+				}
+			}), !compact);
+			(0, react.useEffect)(() => {
+				if (!compact) try {
+					sessionStorage.setItem("workbench-plugin-view", JSON.stringify({
+						query,
+						opened,
+						chosen,
+						relatedId,
+						focusEntry
+					}));
+				} catch {}
+			}, [
+				compact,
+				query,
+				opened,
+				chosen,
+				relatedId,
+				focusEntry
 			]);
 			const refresh = async () => {
 				setError("");
@@ -2726,19 +2934,10 @@ window.__ModuleLoader__.load({
 				"data-component-id": compact ? relatedId : void 0,
 				"data-inventory-ready": !!snapshot && !!current,
 				children: [
-					!compact && capabilityData && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					!compact && origin && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 						className: inventory_tree_module_css_default.toolButton,
-						onClick: () => {
-							let id;
-							try {
-								id = JSON.parse(sessionStorage.getItem("workbench-capability-link") ?? "null")?.capabilityId;
-							} catch {}
-							relatedId ? capabilityLink("component-center", void 0, void 0, {
-								componentId: relatedId,
-								tab: "plugins"
-							}) : capabilityLink("capability-center", id);
-						},
-						children: relatedId ? "← 返回组件中心" : "← 返回能力中心"
+						onClick: () => returnNavigation(origin),
+						children: ["← 返回", origin.label]
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: inventory_tree_module_css_default.toolbar,
@@ -3290,19 +3489,6 @@ window.__ModuleLoader__.load({
 			return state;
 		}
 		const editorDrafts = /* @__PURE__ */ new Map();
-		function openCapabilityLink(link) {
-			try {
-				sessionStorage.setItem("workbench-capability-link", JSON.stringify(link));
-			} catch {}
-			window.dispatchEvent(new CustomEvent("workbench-capability-link", { detail: link }));
-		}
-		function lastCapabilityLink() {
-			try {
-				return JSON.parse(sessionStorage.getItem("workbench-capability-link") ?? "null") ?? void 0;
-			} catch {
-				return;
-			}
-		}
 		//#endregion
 		//#region src/client/useCapabilityPanels.ts
 		const minimum = {
@@ -4662,6 +4848,7 @@ window.__ModuleLoader__.load({
 		function RequirementsSettings({ status, onSaved, disabled = false, onEditingChange }) {
 			const [draft, setDraft] = (0, react.useState)(null), [revision, setRevision] = (0, react.useState)(0);
 			const [busy, setBusy] = (0, react.useState)(false), [message, setMessage] = (0, react.useState)("");
+			useLeaveGuard(draft !== null, () => setDraft(null));
 			const value = draft ?? status?.defaults;
 			(0, react.useEffect)(() => {
 				onEditingChange(draft !== null);
@@ -4911,31 +5098,76 @@ window.__ModuleLoader__.load({
 			purge: "永久删除"
 		};
 		/** A catalog over the same execution descriptors, service adapters and plugin classification. */
-		function ComponentCenter({ embedded = false, initialId, onClose }) {
+		function ComponentCenter({ embedded = false, initialId, onClose, restore }) {
 			const { data, error } = useCapabilities(), { status: meetingStatus } = useMeetingAvailability(data?.state.revision);
 			const { status: requirementsStatus } = useRequirementAvailability(data?.state.revision);
 			const viewKey = embedded ? "embedded" : "root";
-			const [savedView] = (0, react.useState)(() => readCenterView(viewKey));
-			const link = lastCapabilityLink(), linked = link?.section === "component-center" && !!link.componentId;
-			const [pane, setPane] = (0, react.useState)(initialId || linked ? "detail" : savedView.pane ?? "list");
+			const [link] = (0, react.useState)(() => embedded ? void 0 : pendingNavigation("component-center"));
+			const [savedView] = (0, react.useState)(() => ({
+				...readCenterView(viewKey),
+				...restoredFrame(restore ?? link?.restore, "components")?.view
+			}));
+			const [origin, setOrigin] = (0, react.useState)(restoredFrame(restore ?? link?.restore, "components")?.origin ?? legacyOrigin(link));
+			const linked = link?.section === "component-center" && !!link.componentId;
+			(0, react.useEffect)(() => consumeNavigation(link), [link]);
+			const [pane, setPane] = (0, react.useState)(savedView.pane && (restore || link?.restore) ? savedView.pane : initialId || linked ? "detail" : savedView.pane ?? "list");
 			const rootRef = (0, react.useRef)(null), listRef = (0, react.useRef)(null), detailRef = (0, react.useRef)(null), bodyRef = (0, react.useRef)(null);
 			const tabMemory = (0, react.useRef)(savedView.tabs ?? {}), scrollMemory = (0, react.useRef)(savedView.scroll ?? {}), focusOnReturn = (0, react.useRef)(false), visibleIds = (0, react.useRef)(/* @__PURE__ */ new Set());
 			const [folds, setFolds] = (0, react.useState)(savedView.folds ?? {});
 			const layout = useCenterLayout(rootRef, !!data);
-			const [selected, setSelected] = (0, react.useState)(initialId ?? lastCapabilityLink()?.componentId ?? savedView?.selected ?? "developer-files");
-			const [tab, setTab] = (0, react.useState)(lastCapabilityLink()?.section === "component-center" ? lastCapabilityLink()?.tab ?? "overview" : savedView?.tab ?? "overview");
+			const [selected, setSelected] = (0, react.useState)((restore || link?.restore ? savedView.selected : void 0) ?? initialId ?? link?.componentId ?? savedView?.selected ?? "developer-files");
+			const [tab, setTab] = (0, react.useState)(link?.tab ?? savedView.tabs?.[link?.componentId ?? initialId ?? savedView.selected] ?? savedView.tab ?? "overview");
 			const changedLink = linked && link.componentId !== savedView.selected;
 			const [query, setQuery] = (0, react.useState)(changedLink ? "" : savedView.query ?? ""), [filter, setFilter] = (0, react.useState)(changedLink ? "all" : savedView.filter ?? "all"), [category, setCategory] = (0, react.useState)(changedLink ? "" : savedView.category ?? "");
-			const [editor, setEditor] = (0, react.useState)(), [adding, setAdding] = (0, react.useState)(false), [targeting, setTargeting] = (0, react.useState)(false);
-			const [candidateOperationId, setCandidateOperationId] = (0, react.useState)("");
-			const [candidate, setCandidate] = (0, react.useState)({
-				name: "",
-				description: "",
-				category: "未分类",
-				provider: ""
-			});
+			const [editor, setEditor] = (0, react.useState)(savedView.editor), [adding, setAdding] = (0, react.useState)(!!savedView.adding), [targeting, setTargeting] = (0, react.useState)(false);
+			const [candidateOperationId, setCandidateOperationId] = (0, react.useState)(savedView.candidateOperationId ?? "");
+			const [candidate, setCandidate] = (0, react.useState)(savedView.candidate ?? (() => {
+				try {
+					return JSON.parse(sessionStorage.getItem("workbench-component-candidate:" + viewKey) ?? "null")?.value ?? {
+						name: "",
+						description: "",
+						category: "未分类",
+						provider: ""
+					};
+				} catch {
+					return {
+						name: "",
+						description: "",
+						category: "未分类",
+						provider: ""
+					};
+				}
+			}));
 			const [preview, setPreview] = (0, react.useState)(), [busy, setBusy] = (0, react.useState)(false), [message, setMessage] = (0, react.useState)("");
 			const [pendingOperation, setPendingOperation] = (0, react.useState)();
+			useLeaveGuard(!!editor, () => setEditor(void 0));
+			useNavigationFrame("components", embedded ? 40 : 0, () => {
+				captureScroll();
+				return {
+					section: "component-center",
+					label: "组件中心",
+					origin,
+					view: {
+						selected,
+						tab,
+						query,
+						filter,
+						category,
+						pane,
+						tabs: tabMemory.current,
+						scroll: scrollMemory.current,
+						folds,
+						adding,
+						candidate,
+						candidateOperationId
+					}
+				};
+			});
+			(0, react.useEffect)(() => {
+				try {
+					sessionStorage.setItem("workbench-component-candidate:" + viewKey, JSON.stringify({ value: candidate }));
+				} catch {}
+			}, [candidate, viewKey]);
 			const remember = () => rememberCenterView(viewKey, {
 				selected,
 				tab,
@@ -4981,8 +5213,25 @@ window.__ModuleLoader__.load({
 			(0, react.useEffect)(() => {
 				const open = (event) => {
 					const next = event.detail;
-					if (next?.section !== "component-center") return;
-					if (next.componentId) {
+					if (embedded || next?.section !== "component-center") return;
+					setOrigin(restoredFrame(next.restore, "components")?.origin ?? legacyOrigin(next));
+					const saved = restoredFrame(next.restore, "components")?.view;
+					if (saved) {
+						captureScroll();
+						tabMemory.current = saved.tabs ?? {};
+						scrollMemory.current = saved.scroll ?? {};
+						setSelected(saved.selected);
+						setTab(saved.tab ?? "overview");
+						setPane(saved.pane ?? "list");
+						setQuery(saved.query ?? "");
+						setFilter(saved.filter ?? "all");
+						setCategory(saved.category ?? "");
+						setFolds(saved.folds ?? {});
+						setAdding(!!saved.adding);
+						if (saved.candidate) setCandidate(saved.candidate);
+						setCandidateOperationId(saved.candidateOperationId ?? "");
+						setEditor(saved.editor);
+					} else if (next.componentId) {
 						if (!visibleIds.current.has(next.componentId)) {
 							setQuery("");
 							setFilter("all");
@@ -4990,6 +5239,7 @@ window.__ModuleLoader__.load({
 						}
 						selectComponent(next.componentId, next.tab);
 					} else if (next.tab) selectTab(next.tab);
+					consumeNavigation(next);
 				};
 				window.addEventListener("workbench-capability-link", open);
 				return () => window.removeEventListener("workbench-capability-link", open);
@@ -5122,7 +5372,7 @@ window.__ModuleLoader__.load({
 			});
 			const configure = () => {
 				const cap = adapted[0] ?? refs.capabilities.find((c) => !c.removedAt);
-				if (cap) openCapabilityLink({
+				if (cap) openWorkbenchLink({
 					section: "capability-center",
 					capabilityId: cap.id,
 					tab: descriptor?.management === "browser" ? "overview" : "defaults",
@@ -5171,6 +5421,11 @@ window.__ModuleLoader__.load({
 						})] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.actions,
 							children: [
+								!embedded && origin && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									onClick: () => returnNavigation(origin),
+									children: ["← 返回", origin.label]
+								}),
 								onClose && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									className: ManagedCapabilities_module_css_default.button,
 									onClick: onClose,
@@ -5178,7 +5433,7 @@ window.__ModuleLoader__.load({
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									className: ManagedCapabilities_module_css_default.button,
-									onClick: () => openCapabilityLink({ section: "capability-center" }),
+									onClick: () => openWorkbenchLink({ section: "capability-center" }),
 									children: "能力中心 ↗"
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
@@ -5322,7 +5577,7 @@ window.__ModuleLoader__.load({
 												className: ComponentCenter_module_css_default.chipRow,
 												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "适配能力" }), caps.length ? caps.map((cap) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 													className: ComponentCenter_module_css_default.chip,
-													onClick: () => openCapabilityLink({
+													onClick: () => openWorkbenchLink({
 														section: "capability-center",
 														capabilityId: cap.id,
 														componentId: c.id,
@@ -5560,7 +5815,7 @@ window.__ModuleLoader__.load({
 											className: ManagedCapabilities_module_css_default.row,
 											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: [c.draft.name, c.removedAt ? " · 已移除" : ""] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [c.draft.components.some((p) => p.componentId === selected) ? "草稿引用 · " : "", c.versions.filter((v) => v.components.some((p) => p.componentId === selected)).map((v) => "v" + v.version).join("、") || "无已发布引用"] })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 												className: ManagedCapabilities_module_css_default.button,
-												onClick: () => openCapabilityLink({
+												onClick: () => openWorkbenchLink({
 													section: "capability-center",
 													capabilityId: c.id,
 													componentId: selected,
@@ -5726,7 +5981,7 @@ window.__ModuleLoader__.load({
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									className: ManagedCapabilities_module_css_default.button,
-									onClick: () => openCapabilityLink({
+									onClick: () => openWorkbenchLink({
 										section: "plugins",
 										moduleName: candidate.provider || void 0
 									}),
@@ -5747,7 +6002,7 @@ window.__ModuleLoader__.load({
 									className: ManagedCapabilities_module_css_default.row,
 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: c.draft.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 										className: ManagedCapabilities_module_css_default.button,
-										onClick: () => openCapabilityLink({
+										onClick: () => openWorkbenchLink({
 											section: "capability-center",
 											capabilityId: c.id,
 											componentId: selected,
@@ -5815,12 +6070,46 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region ../dsh-plugin-manager/src/client/CapabilityNavigation.tsx
+		/** rc.2 slot seam: select the inventory using its own tab callback, retaining SDK state. */
+		function withCapabilityNavigation(Original) {
+			return function CapabilityPluginSection(props) {
+				const [request, setRequest] = (0, react.useState)(() => pendingNavigation("plugins")), handled = (0, react.useRef)();
+				const tree = Original(props);
+				let select;
+				const find = (node) => {
+					if (!(0, react.isValidElement)(node)) return;
+					if (node.props.role === "tab" && String(node.props.id).endsWith("-tab-all")) select = node.props.onClick;
+					react.Children.forEach(node.props.children, find);
+				};
+				find(tree);
+				(0, react.useEffect)(() => {
+					const listener = (event) => {
+						if (event.detail?.section === "plugins") setRequest(event.detail);
+					};
+					window.addEventListener("workbench-capability-link", listener);
+					return () => window.removeEventListener("workbench-capability-link", listener);
+				}, []);
+				(0, react.useEffect)(() => {
+					if (handled.current === request || !select || request?.section !== "plugins") return;
+					handled.current = request;
+					select();
+				}, [request, select]);
+				return tree;
+			};
+		}
+		//#endregion
 		//#region src/client/component-inventory-slot.tsx
 		/** Older aggregate bundles embed an inventory copy; retain its slot owner and injected services. */
 		function registerComponentInventory(registry) {
-			return decorateSlot(registry, "settings.plugins.tab", "InventoryTree", () => function ComponentInventory(props) {
+			const section = decorateSlot(registry, "settings.section", "CapabilityPluginSection", withCapabilityNavigation);
+			const inventory = decorateSlot(registry, "settings.plugins.tab", "InventoryTree", () => function ComponentInventory(props) {
 				return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryTree, { ...props });
 			});
+			return () => {
+				inventory();
+				section();
+			};
 		}
 		//#endregion
 		//#region src/client/capability-settings.tsx
@@ -6025,6 +6314,12 @@ window.__ModuleLoader__.load({
 		/** One form and API for the workspace and the capability's default-configuration page. */
 		function DeveloperProjectSettings({ cwd: initial, disabled = false, onSaved, onEditingChange }) {
 			const [cwd, setCwd] = (0, react.useState)(initial ?? ""), [projects, setProjects] = (0, react.useState)([]), [config, setConfig] = (0, react.useState)(null), [error, setError] = (0, react.useState)(""), [busy, setBusy] = (0, react.useState)(false);
+			const [dirty, setDirty] = (0, react.useState)(false);
+			useLeaveGuard(dirty, () => {
+				setDirty(false);
+				onEditingChange?.(false);
+			});
+			(0, react.useEffect)(() => () => onEditingChange?.(false), [onEditingChange]);
 			(0, react.useEffect)(() => {
 				if (!initial) developerApi("projects").then(setProjects).catch((e) => setError(e.message));
 			}, [initial]);
@@ -6042,6 +6337,7 @@ window.__ModuleLoader__.load({
 			}, [cwd]);
 			const change = (value) => {
 				setConfig(value);
+				setDirty(true);
 				onEditingChange?.(true);
 			};
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -6051,7 +6347,9 @@ window.__ModuleLoader__.load({
 					!initial && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", { children: ["项目", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
 						"aria-label": "配置的项目",
 						value: cwd,
-						onChange: (e) => setCwd(e.target.value),
+						onChange: (e) => {
+							if (requestLeave()) setCwd(e.target.value);
+						},
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
 							value: "",
 							children: "选择已登记项目"
@@ -6162,6 +6460,7 @@ window.__ModuleLoader__.load({
 									}
 								}).then((c) => {
 									setConfig(c);
+									setDirty(false);
 									onEditingChange?.(false);
 									onSaved?.();
 								}).catch((e) => setError(e.message)).finally(() => setBusy(false));
@@ -6238,6 +6537,7 @@ window.__ModuleLoader__.load({
 				setError("");
 				onEditingChange?.(false);
 			};
+			useLeaveGuard(editing, stop);
 			const toggleKey = async () => {
 				if (keyVisible) {
 					setKeyVisible(false);
@@ -6787,7 +7087,7 @@ window.__ModuleLoader__.load({
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: ManagedCapabilities_module_css_default.button,
-								onClick: () => openCapabilityLink({
+								onClick: () => openWorkbenchLink({
 									section: "component-center",
 									componentId: draft.components[0]?.componentId
 								}),
@@ -6838,7 +7138,7 @@ window.__ModuleLoader__.load({
 										children: [
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 												className: ManagedCapabilities_module_css_default.button,
-												onClick: () => business && !business.pluginModule ? setInspecting(business) : openCapabilityLink({
+												onClick: () => business && !business.pluginModule ? setInspecting(business) : openWorkbenchLink({
 													section: "plugins",
 													moduleName: business?.pluginModule ?? item.id,
 													capabilityId
@@ -7940,7 +8240,7 @@ window.__ModuleLoader__.load({
 		function useMeetingStatus() {
 			return useMeetingAvailability().status;
 		}
-		function ManagedRoleEditor({ id, onClose }) {
+		function ManagedRoleEditor({ id, onClose, restore }) {
 			const { data } = useCapabilities();
 			(0, react.useEffect)(() => {
 				const navigate = (event) => {
@@ -7952,15 +8252,19 @@ window.__ModuleLoader__.load({
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$1, {
 				title: id ? "编辑岗位助手" : "创建岗位助手",
 				closeLabel: "关闭岗位编辑",
-				onClose,
+				onClose: () => {
+					if (requestLeave()) onClose();
+				},
 				wide: true,
 				children: data ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleForm, {
 					id,
+					restore,
 					onClose
 				}, id ?? "new") : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "正在读取岗位…" })
 			});
 		}
-		function RoleForm({ id, onClose }) {
+		function RoleForm({ id, onClose, restore }) {
+			const restored = restoredFrame(restore, "role-editor")?.view;
 			const { data } = useCapabilities(), state = data.state, role = state.roles.find((r) => r.id === id), key = `role:${id ?? "new"}`, cached = editorDrafts.get(key);
 			const meetingStatus = useMeetingStatus();
 			const { status: requirementsStatus } = useRequirementAvailability(state.revision);
@@ -7971,8 +8275,17 @@ window.__ModuleLoader__.load({
 			}));
 			const [appearanceBusy, setAppearanceBusy] = (0, react.useState)(false);
 			const [appearanceRevision, setAppearanceRevision] = (0, react.useState)(0);
-			const [revision, setRevision] = (0, react.useState)(cached?.revision ?? state.revision), [selected, setSelected] = (0, react.useState)(id === "meeting-minutes-demo" ? MEETING_CAPABILITY_ID : draft.capabilities[0]?.capabilityId ?? null);
-			const [center, setCenter] = (0, react.useState)(false), [busy, setBusy] = (0, react.useState)(false), [error, setError] = (0, react.useState)(""), [review, setReview] = (0, react.useState)(false);
+			const [revision, setRevision] = (0, react.useState)(cached?.revision ?? state.revision), [selected, setSelected] = (0, react.useState)(restored?.selected ?? (id === "meeting-minutes-demo" ? "meeting-transcription" : draft.capabilities[0]?.capabilityId ?? null));
+			const [center, setCenter] = (0, react.useState)(!!restored?.center), [busy, setBusy] = (0, react.useState)(false), [error, setError] = (0, react.useState)(""), [review, setReview] = (0, react.useState)(false);
+			useNavigationFrame("role-editor", 10, () => ({
+				section: "agent-presets",
+				label: "岗位编辑",
+				view: {
+					id,
+					center,
+					selected
+				}
+			}));
 			const change = (value) => {
 				setDraft(value);
 				editorDrafts.set(key, {
@@ -8320,15 +8633,20 @@ window.__ModuleLoader__.load({
 				center && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$1, {
 					title: "能力中心",
 					closeLabel: "返回岗位",
-					onClose: () => setCenter(false),
+					onClose: () => {
+						if (requestLeave()) setCenter(false);
+					},
 					children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.dialogBody}`,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							className: ManagedCapabilities_module_css_default.button,
-							onClick: () => setCenter(false),
+							onClick: () => {
+								if (requestLeave()) setCenter(false);
+							},
 							children: "← 返回岗位，保留草稿"
 						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCenter, {
 							embedded: true,
+							restore,
 							initialId: selected ?? void 0
 						})]
 					})
@@ -8376,7 +8694,24 @@ window.__ModuleLoader__.load({
 			] });
 		}
 		function ManagedRolesSection({ selected, onSelect }) {
-			const { data, error } = useCapabilities(), [editor, setEditor] = (0, react.useState)(null), [message, setMessage] = (0, react.useState)("");
+			const [entry] = (0, react.useState)(() => pendingNavigation("agent-presets")), [restoration, setRestoration] = (0, react.useState)(entry?.restore);
+			const { data, error } = useCapabilities(), [editor, setEditor] = (0, react.useState)(() => {
+				const frame = restoredFrame(entry?.restore, "role-editor");
+				return frame ? { id: frame.view?.id } : null;
+			}), [message, setMessage] = (0, react.useState)("");
+			(0, react.useEffect)(() => {
+				consumeNavigation(entry);
+				const open = (event) => {
+					const link = event.detail;
+					if (link?.section !== "agent-presets") return;
+					const frame = restoredFrame(link.restore, "role-editor");
+					setRestoration(link.restore);
+					setEditor(frame ? { id: frame.view?.id } : null);
+					consumeNavigation(link);
+				};
+				window.addEventListener("workbench-capability-link", open);
+				return () => window.removeEventListener("workbench-capability-link", open);
+			}, [entry]);
 			const meetingStatus = useMeetingStatus();
 			const displayedRoles = [...data?.state.roles ?? []].sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID));
 			const selectedRole = data?.state.roles.find((role) => role.id === selected && role.enabled && role.versions.length);
@@ -8537,6 +8872,7 @@ window.__ModuleLoader__.load({
 						children: "点击卡片选定助手；选择会用于下一次新对话，当前对话保持不变。"
 					}),
 					editor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRoleEditor, {
+						restore: restoration,
 						id: editor.id,
 						onClose: () => setEditor(null)
 					})
@@ -8949,15 +9285,24 @@ window.__ModuleLoader__.load({
 				}), actionNames[action]]
 			}, action)) });
 		}
-		function CapabilityEditor({ id, data, onClose, onSaved, compositionFocus = false, meetingStatus, requirementsStatus, onConfigure, requestedComponentId }) {
+		function CapabilityEditor({ id, data, onClose, onSaved, compositionFocus = false, meetingStatus, requirementsStatus, onConfigure, requestedComponentId, restore }) {
 			const cap = data.state.capabilities.find((c) => c.id === id);
 			const { draft, revision, change, rebase } = useCapabilityDefinition(id, data);
 			const associationEdit = useAssociationEditing(draft, change, id);
-			const [managingComponents, setManagingComponents] = (0, react.useState)(false);
+			const [managingComponents, setManagingComponents] = (0, react.useState)(!!restoredFrame(restore, "components"));
+			useNavigationFrame("capability-editor", 30, () => ({
+				section: "capability-center",
+				label: "能力编辑",
+				view: {
+					id,
+					managingComponents,
+					selected
+				}
+			}));
 			(0, react.useEffect)(() => {
 				if (requestedComponentId && availableComponents(id).some((c) => c.id === requestedComponentId) && !data.registry?.metadata[requestedComponentId]?.retiredAt && data.registry?.metadata[requestedComponentId]?.enabled !== false) change(addAssociation(draft, requestedComponentId));
 			}, [requestedComponentId]);
-			const [selected, setSelected] = (0, react.useState)(draft.components[0]?.componentId ?? null);
+			const [selected, setSelected] = (0, react.useState)(restoredFrame(restore, "capability-editor")?.view?.selected ?? draft.components[0]?.componentId ?? null);
 			const [busy, setBusy] = (0, react.useState)(false), [message, setMessage] = (0, react.useState)(""), [review, setReview] = (0, react.useState)(false), [applyRoles, setApplyRoles] = (0, react.useState)([]);
 			const part = draft.components.find((p) => p.componentId === selected), descriptor = data.components.find((c) => c.id === selected);
 			const publishProblems = [...issues(draft, id), ...data.registry ? componentPublishIssues(data.state, data.registry, draft.components.map((p) => p.componentId)) : []];
@@ -9157,6 +9502,7 @@ window.__ModuleLoader__.load({
 							wide: true,
 							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentCenter, {
 								embedded: true,
+								restore,
 								initialId: selected ?? void 0,
 								onClose: () => setManagingComponents(false)
 							})
@@ -9216,25 +9562,51 @@ window.__ModuleLoader__.load({
 				})
 			});
 		}
-		function ManagedCenter({ initialId, embedded = false }) {
+		function ManagedCenter({ initialId, embedded = false, restore }) {
+			const [entry] = (0, react.useState)(() => embedded ? void 0 : pendingNavigation("capability-center"));
+			const [restoration, setRestoration] = (0, react.useState)(restore ?? entry?.restore);
+			const saved = restoredFrame(restoration, "capabilities")?.view ?? {};
+			const [origin, setOrigin] = (0, react.useState)(restoredFrame(restoration, "capabilities")?.origin ?? legacyOrigin(entry));
+			(0, react.useEffect)(() => {
+				consumeNavigation(entry);
+			}, [entry]);
 			const { data, error } = useCapabilities();
 			const { status: meetingStatus, refresh: refreshMeeting } = useMeetingAvailability(data?.state.revision);
 			const { status: requirementsStatus, refresh: refreshRequirements, error: requirementsError, accept: acceptRequirementsConfig } = useRequirementAvailability(data?.state.revision);
-			const [selected, setSelected] = (0, react.useState)(initialId ?? lastCapabilityLink()?.capabilityId ?? null), [tab, setTab] = (0, react.useState)(lastCapabilityLink()?.section === "capability-center" ? lastCapabilityLink()?.tab ?? "overview" : "overview"), [query, setQuery] = (0, react.useState)(""), [filter, setFilter] = (0, react.useState)("all");
-			const [editor, setEditor] = (0, react.useState)(lastCapabilityLink()?.section === "capability-center" && lastCapabilityLink()?.edit ? {
-				id: lastCapabilityLink()?.capabilityId,
+			const [selected, setSelected] = (0, react.useState)(saved.selected ?? initialId ?? entry?.capabilityId ?? null), [tab, setTab] = (0, react.useState)(saved.tab ?? entry?.tab ?? "overview"), [query, setQuery] = (0, react.useState)(saved.query ?? ""), [filter, setFilter] = (0, react.useState)(saved.filter ?? "all");
+			const [editor, setEditor] = (0, react.useState)(saved.editor ?? (entry?.edit ? {
+				id: entry.capabilityId,
 				compositionFocus: true,
-				requestedComponentId: lastCapabilityLink()?.addComponent ? lastCapabilityLink()?.componentId : void 0
-			} : null), [role, setRole] = (0, react.useState)(null), [message, setMessage] = (0, react.useState)(""), [busy, setBusy] = (0, react.useState)(false);
+				requestedComponentId: entry.addComponent ? entry.componentId : void 0
+			} : null)), [role, setRole] = (0, react.useState)(saved.role ?? null), [message, setMessage] = (0, react.useState)(""), [busy, setBusy] = (0, react.useState)(false);
 			const [removing, setRemoving] = (0, react.useState)(null), [notice, setNotice] = (0, react.useState)("");
 			const [meetingEditing, setMeetingEditing] = (0, react.useState)(false);
-			const [compositionReturn, setCompositionReturn] = (0, react.useState)(null);
+			const [compositionReturn, setCompositionReturn] = (0, react.useState)(saved.compositionReturn ?? null);
 			const meetingNavigate = (action) => {
-				if (!meetingEditing || window.confirm("服务配置尚未保存，确定放弃修改？")) {
+				if (requestLeave()) {
 					setMeetingEditing(false);
 					action();
 				}
 			};
+			useNavigationFrame("capabilities", embedded ? 20 : 0, () => ({
+				section: "capability-center",
+				label: "能力中心",
+				origin,
+				view: {
+					selected,
+					tab,
+					query,
+					filter,
+					editor,
+					role,
+					compositionReturn
+				}
+			}));
+			const back = origin && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+				className: ManagedCapabilities_module_css_default.button,
+				onClick: () => returnNavigation(origin),
+				children: ["← 返回", origin.label]
+			});
 			const configureComponents = (from) => meetingNavigate(() => {
 				setCompositionReturn(from);
 				setEditor(null);
@@ -9249,21 +9621,30 @@ window.__ModuleLoader__.load({
 				setCompositionReturn(null);
 			});
 			(0, react.useEffect)(() => {
+				if (embedded) return;
 				const open = (event) => {
 					const link = event.detail;
-					if (link.section === "capability-center") {
-						setSelected(link.capabilityId ?? null);
-						if (link.tab) setTab(link.tab);
-						if (link.edit) setEditor({
-							id: link.capabilityId,
-							compositionFocus: true,
-							requestedComponentId: link.addComponent ? link.componentId : void 0
-						});
-					}
+					if (link.section !== "capability-center") return;
+					const frame = restoredFrame(link.restore, "capabilities");
+					const next = frame?.view;
+					setOrigin(frame?.origin ?? legacyOrigin(link));
+					setRestoration(link.restore);
+					setSelected(next?.selected ?? link.capabilityId ?? null);
+					setTab(next?.tab ?? link.tab ?? "overview");
+					setQuery(next?.query ?? "");
+					setFilter(next?.filter ?? "all");
+					setRole(next?.role ?? null);
+					setCompositionReturn(next?.compositionReturn ?? null);
+					setEditor(next?.editor ?? (link.edit ? {
+						id: link.capabilityId,
+						compositionFocus: true,
+						requestedComponentId: link.addComponent ? link.componentId : void 0
+					} : null));
+					consumeNavigation(link);
 				};
 				window.addEventListener("workbench-capability-link", open);
 				return () => window.removeEventListener("workbench-capability-link", open);
-			}, []);
+			}, [embedded]);
 			const run = async (fn) => {
 				setBusy(true);
 				setMessage("");
@@ -9291,7 +9672,7 @@ window.__ModuleLoader__.load({
 			const linked = (id) => capabilityImpact(data, id).roles;
 			const removedCount = data.state.capabilities.filter((c) => c.removedAt).length;
 			const visible = data.state.capabilities.filter((c) => (filter === "removed" ? Boolean(c.removedAt) : !c.removedAt) && (filter !== "pinned" || c.pinned) && (filter !== "pending" || !c.enabled || !c.versions.length || (c.id === "developer-workspace" ? false : c.id === "requirements-analysis" ? !requirementsStatus?.ready : c.id === "meeting-transcription" ? !meetingStatus?.ready : data.health.state !== "ready")) && (filter !== "unused" || !linked(c.id).length) && `${c.draft.name} ${c.draft.description}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())).sort((a, b) => Number(b.pinned) - Number(a.pinned));
-			const restore = (id) => void run(async () => {
+			const restoreCapability = (id) => void run(async () => {
 				await capabilityClient.command({
 					type: "capability.restore",
 					id
@@ -9307,14 +9688,7 @@ window.__ModuleLoader__.load({
 				"data-meeting-capability-detail": item.id === "meeting-transcription" || void 0,
 				"data-workflow-capability-detail": item.id,
 				children: [
-					lastCapabilityLink()?.returnTo === "component-center" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						className: ManagedCapabilities_module_css_default.button,
-						onClick: () => meetingNavigate(() => openCapabilityLink({
-							section: "component-center",
-							componentId: lastCapabilityLink()?.componentId
-						})),
-						children: "← 返回组件中心"
-					}),
+					back,
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						className: ManagedCapabilities_module_css_default.button,
 						onClick: () => meetingNavigate(() => setSelected(null)),
@@ -9334,7 +9708,7 @@ window.__ModuleLoader__.load({
 							children: item.removedAt ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: ManagedCapabilities_module_css_default.button,
 								disabled: busy,
-								onClick: () => restore(item.id),
+								onClick: () => restoreCapability(item.id),
 								children: "恢复能力"
 							}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: ManagedCapabilities_module_css_default.button,
@@ -9480,13 +9854,18 @@ window.__ModuleLoader__.load({
 						compositionFocus: editor.compositionFocus,
 						requestedComponentId: editor.requestedComponentId,
 						data,
+						restore: restoration,
 						meetingStatus,
 						requirementsStatus,
 						onConfigure: () => configureComponents("editor"),
-						onClose: () => setEditor(null),
+						onClose: () => {
+							setEditor(null);
+							setRestoration(void 0);
+						},
 						onSaved: setSelected
 					}, editor.id ?? "new"),
 					role && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRoleEditor, {
+						restore: restoration,
 						id: role,
 						onClose: () => setRole(null)
 					})
@@ -9496,6 +9875,7 @@ window.__ModuleLoader__.load({
 				className: ManagedCapabilities_module_css_default.page,
 				"data-capability-center": true,
 				children: [
+					back,
 					!embedded && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ManagedCapabilities_module_css_default.heading,
 						children: [
@@ -9510,7 +9890,7 @@ window.__ModuleLoader__.load({
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: ManagedCapabilities_module_css_default.button,
-								onClick: () => openCapabilityLink({ section: "component-center" }),
+								onClick: () => openWorkbenchLink({ section: "component-center" }),
 								children: "组件中心 ↗"
 							})
 						]
@@ -9549,7 +9929,7 @@ window.__ModuleLoader__.load({
 								children: item.removedAt ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 									className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.inlineAction}`,
 									disabled: busy,
-									onClick: () => restore(item.id),
+									onClick: () => restoreCapability(item.id),
 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "restore" }), "恢复能力"]
 								}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
@@ -9768,7 +10148,7 @@ window.__ModuleLoader__.load({
 										setRemoving(c.id);
 										setNotice("");
 									},
-									onRestore: () => restore(c.id)
+									onRestore: () => restoreCapability(c.id)
 								}, c.id))
 							}),
 							!visible.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
@@ -9799,13 +10179,18 @@ window.__ModuleLoader__.load({
 						id: editor.id,
 						compositionFocus: editor.compositionFocus,
 						data,
+						restore: restoration,
 						meetingStatus,
 						requirementsStatus,
 						onConfigure: () => configureComponents("editor"),
-						onClose: () => setEditor(null),
+						onClose: () => {
+							setEditor(null);
+							setRestoration(void 0);
+						},
 						onSaved: setSelected
 					}, editor.id ?? "new"),
 					role && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRoleEditor, {
+						restore: restoration,
 						id: role,
 						onClose: () => setRole(null)
 					})
@@ -9896,6 +10281,8 @@ window.__ModuleLoader__.load({
 					model: "",
 					contexts: [],
 					chat: true,
+					versionTab: "commits",
+					runTab: "checks",
 					...JSON.parse(sessionStorage.getItem(key) ?? "{}")
 				};
 			} catch {
@@ -9907,7 +10294,9 @@ window.__ModuleLoader__.load({
 					draft,
 					model: "",
 					contexts: [],
-					chat: true
+					chat: true,
+					versionTab: "commits",
+					runTab: "checks"
 				};
 			}
 		}
@@ -9948,7 +10337,8 @@ window.__ModuleLoader__.load({
 			const [error, setError] = (0, react.useState)(""), [busy, setBusy] = (0, react.useState)(false), [refreshing, setRefreshing] = (0, react.useState)(false), [updated, setUpdated] = (0, react.useState)(""), [epoch, setEpoch] = (0, react.useState)(0), [fileEpoch, setFileEpoch] = (0, react.useState)(0);
 			const [search, setSearch] = (0, react.useState)(""), [matches, setMatches] = (0, react.useState)(null), [changed, setChanged] = (0, react.useState)([]), [compareLabel, setCompareLabel] = (0, react.useState)("");
 			const [file, setFile] = (0, react.useState)(null), [diff, setDiff] = (0, react.useState)(null), [showDiff, setShowDiff] = (0, react.useState)(false), [split, setSplit] = (0, react.useState)(false), [opened, setOpened] = (0, react.useState)([]), [group, setGroup] = (0, react.useState)("unstaged");
-			const [base, setBase] = (0, react.useState)(""), [selectedRound, setSelectedRound] = (0, react.useState)(""), [checkpoint, setCheckpoint] = (0, react.useState)(""), [versionTab, setVersionTab] = (0, react.useState)("commits"), [runTab, setRunTab] = (0, react.useState)("checks");
+			const [base, setBase] = (0, react.useState)(""), [selectedRound, setSelectedRound] = (0, react.useState)(""), [checkpoint, setCheckpoint] = (0, react.useState)("");
+			const versionTab = view.versionTab, runTab = view.runTab, setVersionTab = (versionTab) => set({ versionTab }), setRunTab = (runTab) => set({ runTab });
 			const [graph, setGraph] = (0, react.useState)(null), [branches, setBranches] = (0, react.useState)(null), [worktrees, setWorktrees] = (0, react.useState)(null);
 			const [commit, setCommit] = (0, react.useState)(""), [runId, setRunId] = (0, react.useState)(""), [project, setProject] = (0, react.useState)(null), [showFiles, setShowFiles] = (0, react.useState)(false);
 			const [dialog, setDialog] = (0, react.useState)(""), [name, setName] = (0, react.useState)(""), [message, setMessage] = (0, react.useState)(""), [preview, setPreview] = (0, react.useState)(null), [previewDiffs, setPreviewDiffs] = (0, react.useState)([]);
@@ -10282,7 +10672,9 @@ window.__ModuleLoader__.load({
 				set({
 					contexts: [...view.contexts.filter((c) => !(c.path === context.path && c.start === context.start && c.side === context.side)), context].slice(-12),
 					draft: instruction ? `${instruction} ${view.path}:${start}-${end}\n${view.draft}` : view.draft,
-					chat: true
+					chat: true,
+					versionTab: "commits",
+					runTab: "checks"
 				});
 			};
 			const send = () => void run(async () => {
@@ -11067,6 +11459,8 @@ window.__ModuleLoader__.load({
 												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 													onClick: () => set({
 														chat: true,
+														versionTab: "commits",
+														runTab: "checks",
 														draft: `请分析这次验证输出：\n${selectedCheck.command}\n${selectedCheck.output.slice(-12e3)}`
 													}),
 													children: "围绕输出讨论"
@@ -11796,8 +12190,8 @@ window.__ModuleLoader__.load({
 			const mounted = (0, react.useRef)(true);
 			const [availability, setAvailability] = (0, react.useState)(null);
 			const [models, setModels] = (0, react.useState)([]);
-			const [tab, setTab] = (0, react.useState)("chat");
-			const [workspace, setWorkspace] = (0, react.useState)("overview");
+			const [tab, setTab] = (0, react.useState)(initial.current.tab ?? "chat");
+			const [workspace, setWorkspace] = (0, react.useState)(initial.current.workspace ?? "overview");
 			const [mode, setMode] = (0, react.useState)(initial.current.mode ?? "guided");
 			const modeRef = (0, react.useRef)(mode);
 			modeRef.current = mode;
@@ -11817,26 +12211,27 @@ window.__ModuleLoader__.load({
 			const [busy, setBusy] = (0, react.useState)(false);
 			const busyRef = (0, react.useRef)(false);
 			const [draftSaveFailed, setDraftSaveFailed] = (0, react.useState)(false);
-			const [selected, setSelected] = (0, react.useState)([]);
+			const [selected, setSelected] = (0, react.useState)(initial.current.selected ?? []);
 			const [proposalSelection, setProposalSelection] = (0, react.useState)([]);
-			const [search, setSearch] = (0, react.useState)("");
-			const [statusFilter, setStatusFilter] = (0, react.useState)("all");
-			const [flowView, setFlowView] = (0, react.useState)("flows");
-			const [questionFilter, setQuestionFilter] = (0, react.useState)("active");
+			const [search, setSearch] = (0, react.useState)(initial.current.search ?? "");
+			const [statusFilter, setStatusFilter] = (0, react.useState)(initial.current.statusFilter ?? "all");
+			const [flowView, setFlowView] = (0, react.useState)(initial.current.flowView ?? "flows");
+			const [questionFilter, setQuestionFilter] = (0, react.useState)(initial.current.questionFilter ?? "active");
 			const [answers, setAnswers] = (0, react.useState)(initial.current.answers ?? {});
-			const [documentDepth, setDocumentDepth] = (0, react.useState)("standard");
-			const [documentRange, setDocumentRange] = (0, react.useState)("all");
-			const [versionId, setVersionId] = (0, react.useState)("");
-			const [traceFilter, setTraceFilter] = (0, react.useState)("all");
+			const [documentDepth, setDocumentDepth] = (0, react.useState)(initial.current.documentDepth ?? "standard");
+			const [documentRange, setDocumentRange] = (0, react.useState)(initial.current.documentRange ?? "all");
+			const [versionId, setVersionId] = (0, react.useState)(initial.current.versionId ?? "");
+			const [traceFilter, setTraceFilter] = (0, react.useState)(initial.current.traceFilter ?? "all");
 			const [confirm, setConfirm] = (0, react.useState)();
 			const fileInput = (0, react.useRef)(null);
 			const composer = (0, react.useRef)(null);
 			const scrollArea = (0, react.useRef)(null);
 			const chooserHeading = (0, react.useRef)(null);
 			const chatScroll = (0, react.useRef)({
-				chooser: 0,
-				work: 0
-			});
+				chooser: initial.current.scroll?.["chat:chooser"] ?? 0,
+				work: initial.current.scroll?.["chat:work"] ?? 0
+			}), positions = (0, react.useRef)(initial.current.scroll ?? {});
+			const positionKey = tab === "workspace" ? "workspace:" + workspace : tab === "chat" ? "chat:" + chatView : tab;
 			const focusChatView = (0, react.useRef)(false);
 			const assistantName = assistant?.name ?? "需求分析助手";
 			const running = task?.run?.status === "running";
@@ -11857,7 +12252,19 @@ window.__ModuleLoader__.load({
 				chatView,
 				creationId: creationId.current,
 				context,
-				answers
+				answers,
+				tab,
+				workspace,
+				search,
+				statusFilter,
+				flowView,
+				questionFilter,
+				documentDepth,
+				documentRange,
+				versionId,
+				traceFilter,
+				selected,
+				scroll: positions.current
 			};
 			function rememberCurrent() {
 				rememberLocal(storageKey.current, localDraft.current);
@@ -11891,7 +12298,7 @@ window.__ModuleLoader__.load({
 				getRequirementConfig(roleId).then((value) => {
 					if (mounted.current) {
 						setAvailability(value);
-						if (!taskId) setDocumentDepth(value.defaults.depth);
+						if (!taskId && initial.current.documentDepth === void 0) setDocumentDepth(value.defaults.depth);
 					}
 				}).catch((e) => {
 					if (mounted.current) setError(String(e.message ?? e));
@@ -11906,7 +12313,7 @@ window.__ModuleLoader__.load({
 						acceptTask(value);
 						setMode(value.mode);
 						setModeSelected(true);
-						setDocumentDepth(value.settings.depth);
+						if (initial.current.documentDepth === void 0) setDocumentDepth(value.settings.depth);
 						if (initial.current.draft === void 0) setDraft(value.draft);
 					}
 				}).catch((e) => {
@@ -11928,16 +12335,26 @@ window.__ModuleLoader__.load({
 				chatView,
 				context,
 				answers,
-				task?.id
+				task?.id,
+				tab,
+				workspace,
+				search,
+				statusFilter,
+				flowView,
+				questionFilter,
+				documentDepth,
+				documentRange,
+				versionId,
+				traceFilter,
+				selected
 			]);
 			(0, react.useLayoutEffect)(() => {
-				if (tab !== "chat") return;
-				if (scrollArea.current) scrollArea.current.scrollTop = chatScroll.current[chatView];
+				if (scrollArea.current) scrollArea.current.scrollTop = positions.current[positionKey] ?? 0;
 				if (focusChatView.current) {
 					(chatView === "chooser" ? chooserHeading.current : composer.current)?.focus({ preventScroll: true });
 					focusChatView.current = false;
 				}
-			}, [tab, chatView]);
+			}, [positionKey, loading]);
 			(0, react.useEffect)(() => {
 				if (!task?.id || !running) return;
 				const refresh = async () => {
@@ -13911,7 +14328,7 @@ window.__ModuleLoader__.load({
 					availability && !availability.ready && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: RequirementsAssistant_module_css_default.availability,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: availability.message }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							onClick: () => openCapabilityLink({
+							onClick: () => openWorkbenchLink({
 								section: "capability-center",
 								capabilityId: "requirements-analysis"
 							}),
@@ -13931,7 +14348,9 @@ window.__ModuleLoader__.load({
 						ref: scrollArea,
 						className: RequirementsAssistant_module_css_default.scroll,
 						onScroll: (event) => {
+							positions.current[positionKey] = event.currentTarget.scrollTop;
 							if (tab === "chat") chatScroll.current[chatView] = event.currentTarget.scrollTop;
+							rememberCurrent();
 						},
 						role: "tabpanel",
 						"aria-label": tab === "workspace" ? workspaceTabs.find(([key]) => key === workspace)?.[1] : mainTabs.find(([key]) => key === tab)?.[1],
@@ -14419,7 +14838,7 @@ window.__ModuleLoader__.load({
 				kind: "intro"
 			}]);
 			const [trace, setTrace] = (0, react.useState)(initial.current?.trace ?? ["打开会议纪要助手"]);
-			const [tab, setTab] = (0, react.useState)("chat");
+			const [tab, setTab] = (0, react.useState)(initial.current?.tab === "trace" ? "trace" : "chat");
 			const [draft, setDraft] = (0, react.useState)(initial.current?.draft ?? "");
 			const [jobId, setJobId] = (0, react.useState)(initial.current?.jobId ?? null);
 			const [job, setJob] = (0, react.useState)(null);
@@ -14446,7 +14865,8 @@ window.__ModuleLoader__.load({
 					draft,
 					jobId,
 					showTranscript,
-					roleVersion
+					roleVersion,
+					tab
 				});
 			}, [
 				mode,
@@ -14459,7 +14879,8 @@ window.__ModuleLoader__.load({
 				draft,
 				jobId,
 				showTranscript,
-				roleVersion
+				roleVersion,
+				tab
 			]);
 			(0, react.useEffect)(() => {
 				api("/config").then(setAvailability).catch((error) => setAvailability({
@@ -14979,7 +15400,7 @@ window.__ModuleLoader__.load({
 							}),
 							!availability?.ready && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								type: "button",
-								onClick: () => openCapabilityLink({
+								onClick: () => openWorkbenchLink({
 									section: "capability-center",
 									capabilityId: "meeting-transcription"
 								}),
@@ -15781,11 +16202,13 @@ window.__ModuleLoader__.load({
 				},
 				getSection: () => section,
 				openSection: (value) => {
+					if (!requestLeave()) return;
 					section = value;
 					revision++;
 					listeners.forEach((listener) => listener());
 				},
 				openPresets: () => {
+					if (!requestLeave()) return;
 					section = "agent-presets";
 					revision++;
 					listeners.forEach((listener) => listener());

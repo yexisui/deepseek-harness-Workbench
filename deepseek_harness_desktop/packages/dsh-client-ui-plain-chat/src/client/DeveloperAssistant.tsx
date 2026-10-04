@@ -10,9 +10,9 @@ import s from './DeveloperAssistant.module.css'
 const tabs = [['develop', '开发'], ['changes', '变更'], ['versions', '版本'], ['runs', '运行']]
 const scopes = [['round', '本轮变更'], ['task', '任务累计'], ['uncommitted', '未提交'], ['branch', '分支比较']]
 type Props = { taskId?: string; draftKey: string; roleId: string; roleVersion?: number; initialDraft?: string; onDraftChange?: (value: string) => void; loadModels: () => Promise<{ id: string; name: string }[]>; onCommit: (task: DeveloperTask) => void }
-type Preference = { cwd: string; tab: string; scope: string; path: string; draft: string; model: string; contexts: DeveloperContext[]; chat: boolean }
+type Preference = { cwd: string; tab: string; scope: string; path: string; draft: string; model: string; contexts: DeveloperContext[]; chat: boolean; versionTab: string; runTab: string }
 function saved(key: string, draft = ''): Preference {
-  try { const raw = JSON.parse(sessionStorage.getItem(key) ?? '{}'); return { cwd: '', tab: 'develop', scope: 'uncommitted', path: '', draft, model: '', contexts: [], chat: true, ...raw } } catch { return { cwd: '', tab: 'develop', scope: 'uncommitted', path: '', draft, model: '', contexts: [], chat: true } }
+  try { const raw = JSON.parse(sessionStorage.getItem(key) ?? '{}'); return { cwd: '', tab: 'develop', scope: 'uncommitted', path: '', draft, model: '', contexts: [], chat: true, versionTab: 'commits', runTab: 'checks', ...raw } } catch { return { cwd: '', tab: 'develop', scope: 'uncommitted', path: '', draft, model: '', contexts: [], chat: true, versionTab: 'commits', runTab: 'checks' } }
 }
 function Tabs({ values, value, onChange, label }: { values: string[][]; value: string; onChange: (value: string) => void; label: string }) {
   return <div className={s.tabs} role="tablist" aria-label={label}>{values.map(([id, title], index) => <button role="tab" key={id} aria-selected={value === id} tabIndex={value === id ? 0 : -1} onClick={() => onChange(id!)} onKeyDown={e => {
@@ -30,7 +30,8 @@ export function DeveloperAssistant(props: Props) {
   const [error, setError] = useState(''), [busy, setBusy] = useState(false), [refreshing, setRefreshing] = useState(false), [updated, setUpdated] = useState(''), [epoch, setEpoch] = useState(0), [fileEpoch, setFileEpoch] = useState(0)
   const [search, setSearch] = useState(''), [matches, setMatches] = useState<{ path: string; line: number; text: string }[] | null>(null), [changed, setChanged] = useState<string[]>([]), [compareLabel, setCompareLabel] = useState('')
   const [file, setFile] = useState<FileView | null>(null), [diff, setDiff] = useState<WorkspaceDiff | null>(null), [showDiff, setShowDiff] = useState(false), [split, setSplit] = useState(false), [opened, setOpened] = useState<string[]>([]), [group, setGroup] = useState('unstaged')
-  const [base, setBase] = useState(''), [selectedRound, setSelectedRound] = useState(''), [checkpoint, setCheckpoint] = useState(''), [versionTab, setVersionTab] = useState('commits'), [runTab, setRunTab] = useState('checks')
+  const [base, setBase] = useState(''), [selectedRound, setSelectedRound] = useState(''), [checkpoint, setCheckpoint] = useState('')
+  const versionTab=view.versionTab,runTab=view.runTab,setVersionTab=(versionTab:string)=>set({versionTab}),setRunTab=(runTab:string)=>set({runTab})
   const [graph, setGraph] = useState<GraphView | null>(null), [branches, setBranches] = useState<BranchesView | null>(null), [worktrees, setWorktrees] = useState<(WorktreeListView & { tasks?: { id: string; title: string; cwd: string; running: boolean }[] }) | null>(null)
   const [commit, setCommit] = useState(''), [runId, setRunId] = useState(''), [project, setProject] = useState<(DeveloperProject & { candidates: unknown[] }) | null>(null), [showFiles, setShowFiles] = useState(false)
   const [dialog, setDialog] = useState(''), [name, setName] = useState(''), [message, setMessage] = useState(''), [preview, setPreview] = useState<CommitPreview | null>(null), [previewDiffs, setPreviewDiffs] = useState<WorkspaceDiff[]>([])
@@ -120,7 +121,7 @@ export function DeveloperAssistant(props: Props) {
     if (!content || content.reason) return
     const lines = content.text.split('\n'), start = selectedLines?.start ?? 1, end = selectedLines?.end ?? Math.min(lines.length, 160)
     const context: DeveloperContext = { path: view.path, side, version: content.version, start, end, text: lines.slice(start - 1, end).join('\n').slice(0, 16000) }
-    set({ contexts: [...view.contexts.filter(c => !(c.path === context.path && c.start === context.start && c.side === context.side)), context].slice(-12), draft: instruction ? `${instruction} ${view.path}:${start}-${end}\n${view.draft}` : view.draft, chat: true })
+    set({ contexts: [...view.contexts.filter(c => !(c.path === context.path && c.start === context.start && c.side === context.side)), context].slice(-12), draft: instruction ? `${instruction} ${view.path}:${start}-${end}\n${view.draft}` : view.draft, chat: true, versionTab: 'commits', runTab: 'checks' })
   }
   const send = () => void run(async () => {
     if (!view.draft.trim()) return
@@ -174,7 +175,7 @@ export function DeveloperAssistant(props: Props) {
           </>}
           {view.tab === 'runs' && <><Tabs label="运行页面" values={[["checks", "验证记录"], ["output", "终端输出"], ["events", "操作轨迹"]]} value={runTab} onChange={setRunTab}/><div className={s.scroll}>
             {runTab === 'checks' && <><div className={s.codeBar}><h3>项目检查</h3><button onClick={() => setDialog('settings')}>配置命令</button>{project?.commands.map(c => <button disabled={busy || running} key={c.id} onClick={() => void run(() => taskAction('verify', { commandId: c.id, requestId: crypto.randomUUID() }))}>运行 {c.name}</button>)}</div>{!project?.commands.length && <p>尚未确认验证命令。可从项目 package.json 中选择脚本，或在项目设置中添加命令。</p>}{task?.checks.slice().reverse().map(c => <div className={s.card} key={c.id}><strong>{c.name} · {statusText(c)}</strong><code>{c.command}</code><small>{c.cwd} · 代码 {c.fingerprint.slice(0, 10)} · {new Date(c.at).toLocaleString()}</small><small>验证对象为工作目录中纳入比较的文件；凭据与生成物不计入指纹。暂存区内容需单独检查。</small><button onClick={() => { setRunId(c.id); setRunTab('output') }}>查看输出</button>{c.status === 'running' && <button disabled={busy} onClick={() => void run(() => taskAction('stop'))}>停止检查</button>}</div>)}</>}
-            {runTab === 'output' && <><select aria-label="选择进程输出" value={selectedCheck?.id ?? ''} onChange={e => setRunId(e.target.value)}>{task?.checks.map(c => <option key={c.id} value={c.id}>{c.name} · {new Date(c.at).toLocaleString()}</option>)}</select>{selectedCheck ? <><p>{statusText(selectedCheck)} · 退出码 {selectedCheck.exitCode ?? '—'}</p><pre className={s.terminal}>{selectedCheck.output || '等待进程输出…'}</pre><button onClick={() => set({ chat: true, draft: `请分析这次验证输出：\n${selectedCheck.command}\n${selectedCheck.output.slice(-12000)}` })}>围绕输出讨论</button></> : <p>尚无运行输出</p>}</>}
+            {runTab === 'output' && <><select aria-label="选择进程输出" value={selectedCheck?.id ?? ''} onChange={e => setRunId(e.target.value)}>{task?.checks.map(c => <option key={c.id} value={c.id}>{c.name} · {new Date(c.at).toLocaleString()}</option>)}</select>{selectedCheck ? <><p>{statusText(selectedCheck)} · 退出码 {selectedCheck.exitCode ?? '—'}</p><pre className={s.terminal}>{selectedCheck.output || '等待进程输出…'}</pre><button onClick={() => set({ chat: true, versionTab: 'commits', runTab: 'checks', draft: `请分析这次验证输出：\n${selectedCheck.command}\n${selectedCheck.output.slice(-12000)}` })}>围绕输出讨论</button></> : <p>尚无运行输出</p>}</>}
             {runTab === 'events' && task?.events.slice().reverse().map(e => <div className={s.row} key={e.id}><div><small>{new Date(e.at).toLocaleTimeString()} · {e.kind}</small><span>{e.text}</span></div>{e.path && <button onClick={() => { chooseFile(e.path!); set({ tab: 'changes', scope: 'uncommitted' }) }}>{e.path}</button>}</div>)}
           </div></>}
         </main>

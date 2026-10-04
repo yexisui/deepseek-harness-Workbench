@@ -1,3 +1,4 @@
+import { consumeNavigation, legacyOrigin, pendingNavigation, restoredFrame, returnNavigation, useLeaveGuard, useNavigationFrame, type NavigationLocation } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { actionNames, components, references, type Component } from '../../../dsh-capabilities/src/core/model.ts'
 import { adaptedCapabilities, pluginRelations, type Candidate, type ComponentMetadata } from '../../../dsh-capabilities/src/core/component-registry.ts'
@@ -18,26 +19,32 @@ type Editor = { operationId: string; id: string; revision: number; base: Compone
 type Preview = { id: string; action: string; token: string; revision: number; stateRevision: number; capabilities: { id: string; name: string; draft: boolean; versions: number[]; removed: boolean }[]; roles: { id: string; name: string }[]; activities: { id: string; name: string; kind: string; status: string }[] }
 const operationNames: Record<string,string> = { retire: '移入回收站', restore: '恢复组件', disable: '全局停用', enable: '启用组件', purge: '永久删除' }
 /** A catalog over the same execution descriptors, service adapters and plugin classification. */
-export function ComponentCenter({ embedded = false, initialId, onClose }: { embedded?: boolean; initialId?: string; onClose?: () => void }) {
+export function ComponentCenter({ embedded = false, initialId, onClose, restore }: { embedded?: boolean; initialId?: string; onClose?: () => void; restore?: NavigationLocation }) {
   const { data, error } = useCapabilities(), { status: meetingStatus } = useMeetingAvailability(data?.state.revision)
   const { status: requirementsStatus } = useRequirementAvailability(data?.state.revision)
   const viewKey=embedded?'embedded':'root'
-  const [savedView] = useState(()=>readCenterView(viewKey))
-  const link=lastCapabilityLink(), linked=link?.section==='component-center'&&!!link.componentId
-  const [pane,setPane] = useState<'list'|'detail'>(initialId||linked?'detail':savedView.pane??'list')
+  const [link] = useState(()=>embedded?undefined:pendingNavigation('component-center'))
+  const [savedView] = useState(()=>({...readCenterView(viewKey),...restoredFrame(restore ?? link?.restore,'components')?.view}))
+  const [origin,setOrigin]=useState(restoredFrame(restore??link?.restore,'components')?.origin ?? legacyOrigin(link))
+  const linked=link?.section==='component-center'&&!!link.componentId
+  useEffect(()=>consumeNavigation(link),[link])
+  const [pane,setPane] = useState<'list'|'detail'>(savedView.pane && (restore || link?.restore) ? savedView.pane : initialId||linked?'detail':savedView.pane??'list')
   const rootRef=useRef<HTMLElement>(null), listRef=useRef<HTMLDivElement>(null), detailRef=useRef<HTMLDivElement>(null), bodyRef=useRef<HTMLDivElement>(null)
   const tabMemory=useRef(savedView.tabs??{}), scrollMemory=useRef(savedView.scroll??{}), focusOnReturn=useRef(false), visibleIds=useRef(new Set<string>())
   const [folds,setFolds]=useState<Record<string,boolean>>(savedView.folds??{})
   const layout=useCenterLayout(rootRef,!!data)
-  const [selected,setSelected] = useState(initialId ?? lastCapabilityLink()?.componentId ?? savedView?.selected ?? 'developer-files')
-  const [tab,setTab] = useState(lastCapabilityLink()?.section === 'component-center' ? lastCapabilityLink()?.tab ?? 'overview' : savedView?.tab ?? 'overview')
+  const [selected,setSelected] = useState((restore || link?.restore ? savedView.selected : undefined) ?? initialId ?? link?.componentId ?? savedView?.selected ?? 'developer-files')
+  const [tab,setTab] = useState(link?.tab ?? savedView.tabs?.[link?.componentId ?? initialId ?? savedView.selected] ?? savedView.tab ?? 'overview')
   const changedLink=linked&&link.componentId!==savedView.selected
   const [query,setQuery] = useState(changedLink?'':savedView.query??''), [filter,setFilter] = useState(changedLink?'all':savedView.filter??'all'), [category,setCategory] = useState(changedLink?'':savedView.category??'')
-  const [editor,setEditor] = useState<Editor>(), [adding,setAdding] = useState(false), [targeting,setTargeting] = useState(false)
-  const [candidateOperationId,setCandidateOperationId] = useState('')
-  const [candidate,setCandidate] = useState({ name:'',description:'',category:'未分类',provider:'' })
+  const [editor,setEditor] = useState<Editor | undefined>(savedView.editor), [adding,setAdding] = useState(!!savedView.adding), [targeting,setTargeting] = useState(false)
+  const [candidateOperationId,setCandidateOperationId] = useState(savedView.candidateOperationId ?? '')
+  const [candidate,setCandidate] = useState(savedView.candidate ?? (()=>{try{return JSON.parse(sessionStorage.getItem('workbench-component-candidate:'+viewKey)??'null')?.value ?? {name:'',description:'',category:'未分类',provider:''}}catch{return {name:'',description:'',category:'未分类',provider:''}}}))
   const [preview,setPreview] = useState<Preview>(), [busy,setBusy] = useState(false), [message,setMessage] = useState('')
   const [pendingOperation,setPendingOperation] = useState<{ key:string; id:string }>()
+  useLeaveGuard(!!editor,()=>setEditor(undefined))
+  useNavigationFrame('components',embedded?40:0,()=>{captureScroll();return {section:'component-center',label:'组件中心',origin,view:{selected,tab,query,filter,category,pane,tabs:tabMemory.current,scroll:scrollMemory.current,folds,adding,candidate,candidateOperationId}}})
+  useEffect(()=>{try{sessionStorage.setItem('workbench-component-candidate:'+viewKey,JSON.stringify({value:candidate}))}catch{}},[candidate,viewKey])
   const remember=()=>rememberCenterView(viewKey,{selected,tab,query,filter,category,pane,tabs:tabMemory.current,scroll:scrollMemory.current,folds})
   const captureScroll=()=>{
     if(listRef.current&&!listRef.current.hidden)scrollMemory.current.list=listRef.current.scrollTop
@@ -48,9 +55,12 @@ export function ComponentCenter({ embedded = false, initialId, onClose }: { embe
   const returnToList=()=>{captureScroll();focusOnReturn.current=true;setPane('list')}
   useEffect(()=>remember(),[viewKey,selected,tab,query,filter,category,pane,folds])
   useEffect(() => {
-    const open=(event:Event)=>{const next=(event as CustomEvent).detail;if(next?.section!=='component-center')return
-      if(next.componentId){if(!visibleIds.current.has(next.componentId)){setQuery('');setFilter('all');setCategory('')}selectComponent(next.componentId,next.tab)}
+    const open=(event:Event)=>{const next=(event as CustomEvent).detail;if(embedded||next?.section!=='component-center')return
+      setOrigin(restoredFrame(next.restore,'components')?.origin??legacyOrigin(next));const saved=restoredFrame(next.restore,'components')?.view
+      if(saved){captureScroll();tabMemory.current=saved.tabs??{};scrollMemory.current=saved.scroll??{};setSelected(saved.selected);setTab(saved.tab??'overview');setPane(saved.pane??'list');setQuery(saved.query??'');setFilter(saved.filter??'all');setCategory(saved.category??'');setFolds(saved.folds??{});setAdding(!!saved.adding);if(saved.candidate)setCandidate(saved.candidate);setCandidateOperationId(saved.candidateOperationId??'');setEditor(saved.editor)}
+      else if(next.componentId){if(!visibleIds.current.has(next.componentId)){setQuery('');setFilter('all');setCategory('')}selectComponent(next.componentId,next.tab)}
       else if(next.tab)selectTab(next.tab)
+      consumeNavigation(next)
     }
     window.addEventListener('workbench-capability-link',open);return()=>window.removeEventListener('workbench-capability-link',open)
   },[selected,tab])
@@ -96,7 +106,7 @@ export function ComponentCenter({ embedded = false, initialId, onClose }: { embe
   visibleIds.current=new Set(visible.map(c=>c.id))
   const visibleCurrent=!!current&&visibleIds.current.has(selected), selectedIndex=visible.findIndex(c=>c.id===selected)
   return <section ref={rootRef} className={[s.page,css.root].join(' ')} data-component-center data-layout={layout.wide?'wide':'single'} data-pane={pane} style={{height:layout.height}}>
-    <div className={`${s.heading} ${css.heading}`}><div><h2>组件中心</h2><span className={s.muted}>整理组件，查看适配能力、插件来源与使用关系。</span></div><div className={s.actions}>{onClose&&<button className={s.button} onClick={onClose}>返回组件组合</button>}<button className={s.button} onClick={()=>openCapabilityLink({section:'capability-center'})}>能力中心 ↗</button><button className={`${s.button} ${s.primary}`} disabled={!supported} onClick={()=>{setCandidateOperationId(crypto.randomUUID());setAdding(true)}}>＋ 添加组件</button></div></div>
+    <div className={`${s.heading} ${css.heading}`}><div><h2>组件中心</h2><span className={s.muted}>整理组件，查看适配能力、插件来源与使用关系。</span></div><div className={s.actions}>{!embedded&&origin&&<button className={s.button} onClick={()=>returnNavigation(origin)}>← 返回{origin.label}</button>}{onClose&&<button className={s.button} onClick={onClose}>返回组件组合</button>}<button className={s.button} onClick={()=>openCapabilityLink({section:'capability-center'})}>能力中心 ↗</button><button className={`${s.button} ${s.primary}`} disabled={!supported} onClick={()=>{setCandidateOperationId(crypto.randomUUID());setAdding(true)}}>＋ 添加组件</button></div></div>
     {!supported&&<p className={s.notice}>组件登记服务待更新。可以浏览现有组件；正常重启工作台后再编辑登记信息。</p>}
     {(message||error)&&<p role={message.includes('已')?'status':'alert'} className={s.notice}>{message||error}</p>}
     <div className={css.toolbar} hidden={!layout.wide&&pane==='detail'}><input className={s.search} type="search" aria-label="搜索组件" placeholder="搜索名称、用途、适配能力或提供插件" value={query} onChange={e=>setQuery(e.target.value)}/><select aria-label="组件分类" value={category} onChange={e=>setCategory(e.target.value)}><option value="">全部分类</option>{[...new Set(entries.map(c=>(metadata(c.id).category??(c as Candidate).category??'未分类')))].map(c=><option key={c}>{c}</option>)}</select><button className={s.button} onClick={()=>void capabilityClient.refresh()}>刷新</button></div>
