@@ -396,7 +396,7 @@ export class RequirementsService {
       })
     }
   }
-  async componentActivities() { return Promise.all([...this.running.keys()].map(async id => ({ id, name: (await this.get(id)).title, kind: 'requirements', status: 'running', componentIds: ['requirements-service'] }))) }
+  async componentActivities() { return Promise.all([...this.running.keys()].map(async id => { const task = await this.get(id); return { id, roleId: task.roleId, roleVersion: task.roleVersion, name: task.title, kind: 'requirements', status: 'running', componentIds: ['requirements-service'] } })) }
   async stopComponents(ids: string[]) { if (!ids.includes('requirements-service')) return; await this.serialized(async () => { for (const [id, run] of this.running) { run.controller.abort(); const task = await this.get(id); if (task.run?.status === 'running') { task.run.status = 'stopped'; task.run.finishedAt = now(); this.event(task, 'analysis', '组件已全局停用，已停止接收本次分析结果'); await this.write(task) } }; this.running.clear() }) }
   async close() { this.closed=true;for(const run of this.running.values())run.controller.abort();await this.tail;this.running.clear() }
 }

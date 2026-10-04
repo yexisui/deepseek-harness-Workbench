@@ -16,6 +16,7 @@ import { REQUIREMENTS_CAPABILITY_ID } from '../../../dsh-capabilities/src/core/r
 import { roleCompositionIssues } from '../../../dsh-capabilities/src/core/validation.ts'
 import { useRequirementAvailability } from './RequirementsSettings.tsx'
 import { usesRequirements } from './requirements-routing.ts'
+import { RoleImpactDialog, roleActivities } from './RoleImpactDialog.tsx'
 import { capabilityPresentation } from './capability-presentation.ts'
 import { useMeetingAvailability } from './meeting-capability-status.ts'
 
@@ -78,6 +79,7 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
   const [entry]=useState(()=>pendingNavigation('agent-presets')), [restoration,setRestoration]=useState(entry?.restore)
   const { data, error } = useCapabilities(), [editor, setEditor] = useState<{ id?: string } | null>(()=>{const frame=restoredFrame(entry?.restore,'role-editor');return frame?{id:frame.view?.id}:null}), [message, setMessage] = useState('')
   useEffect(()=>{consumeNavigation(entry);const open=(event:Event)=>{const link=(event as CustomEvent).detail;if(link?.section!=='agent-presets')return;const frame=restoredFrame(link.restore,'role-editor');setRestoration(link.restore);setEditor(frame?{id:frame.view?.id}:null);consumeNavigation(link)};window.addEventListener('workbench-capability-link',open);return()=>window.removeEventListener('workbench-capability-link',open)},[entry])
+  const [pendingDisable, setPendingDisable] = useState<string | null>(null)
   const meetingStatus = useMeetingStatus()
   const displayedRoles = [...(data?.state.roles ?? [])].sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID))
   const selectedRole = data?.state.roles.find(role => role.id === selected && role.enabled && role.versions.length)
@@ -111,13 +113,14 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
           <button type="button" className={r.cardSelect} aria-label={`选定助手：${displayed.name}`} aria-pressed={chosen} disabled={!selectable} onClick={() => onSelect(role.id)}/>
           <div className={r.cardTop}><RoleAppearanceIcon roleId={role.id} icon={displayed.icon} color={displayed.color}/><span className={`${r.exampleBadge} ${chosen ? r.selectedBadge : ''}`}>{chosen ? '✓ 已选定' : !role.enabled ? '已停用' : published ? '岗位助手' : '草稿'}</span></div>
           <h3>{displayed.name}</h3><p className={r.cardSummary} title={displayed.duties}>{displayed.duties || '点击编辑岗位，填写职责与工作要求。'}</p>
-          <div className={r.tags}>{roleHasUnpublishedChanges(role) && <span>有未发布修改</span>}<span>{published ? `已发布 v${published.version}` : '未发布'}</span>{role.id === MEETING_ROLE_ID ? <><span>快速生成 · 引导整理</span><span title={meetingStatus?.message}>{meetingStatus?.ready === true ? '录音转写已配置' : meetingStatus?.state === 'disabled' ? '录音转写不可用' : meetingStatus?.ready === false ? '录音转写待配置' : '正在检测录音转写'}</span></> : usesRequirements(data?.state, published) ? <><span>快速整理 · 引导分析</span><span>需求工作区</span></> : role.id === 'builtin-analyst' ? <><span>{displayed.capabilities.length} 个能力</span><span>可编辑岗位，选择需求分析能力</span></> : <><span>{displayed.capabilities.length} 个能力</span><span>{data?.tasks.filter(t => t.roleId === role.id && t.status !== 'stopped').length ?? 0} 个活动会话</span></>}</div>
+          <div className={r.tags}>{roleHasUnpublishedChanges(role) && <span>有未发布修改</span>}<span>{published ? `已发布 v${published.version}` : '未发布'}</span>{role.id === MEETING_ROLE_ID ? <><span>快速生成 · 引导整理</span><span title={meetingStatus?.message}>{meetingStatus?.ready === true ? '录音转写已配置' : meetingStatus?.state === 'disabled' ? '录音转写不可用' : meetingStatus?.ready === false ? '录音转写待配置' : '正在检测录音转写'}</span></> : usesRequirements(data?.state, published) ? <><span>快速整理 · 引导分析</span><span>需求工作区</span></> : role.id === 'builtin-analyst' ? <><span>{displayed.capabilities.length} 个能力</span><span>可编辑岗位，选择需求分析能力</span></> : <><span>{displayed.capabilities.length} 个能力</span></>}<span>{roleActivities(data!, role.id).length} 个活动任务</span></div>
         </div>
-        <div className={r.cardControls}><button className={r.cardAction} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} disabled={role.id === MEETING_ROLE_ID} title={role.id === MEETING_ROLE_ID ? "会议使用专用流程，请编辑原岗位并发布新版本" : "复制当前已发布配置为独立草稿"} onClick={() => void copyRole(role.id)}>复制岗位</button><button className={r.textButton} onClick={() => void toggleRole(role.id, !role.enabled)}>{role.enabled ? '停用' : '启用'}</button></div>
+        <div className={r.cardControls}><button className={r.cardAction} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} disabled={role.id === MEETING_ROLE_ID} title={role.id === MEETING_ROLE_ID ? "会议使用专用流程，请编辑原岗位并发布新版本" : "复制当前已发布配置为独立草稿"} onClick={() => void copyRole(role.id)}>复制岗位</button><button className={r.textButton} onClick={() => role.enabled ? setPendingDisable(role.id) : void toggleRole(role.id, true)}>{role.enabled ? '停用' : '启用'}</button></div>
       </article>
     })}</div>
     {data && !data.state.roles.length && <p className={s.empty}>还没有保存的岗位助手。创建后即可装配能力。</p>}
     <p className={r.sectionNote}>点击卡片选定助手；选择会用于下一次新对话，当前对话保持不变。</p>
+    {data && pendingDisable && <RoleImpactDialog data={data} roleId={pendingDisable} onClose={() => setPendingDisable(null)} onDone={() => { if (selected === pendingDisable) onSelect('chat'); setPendingDisable(null) }}/> }
     {editor && <ManagedRoleEditor restore={restoration} id={editor.id} onClose={() => setEditor(null)}/>}
   </section>
 }

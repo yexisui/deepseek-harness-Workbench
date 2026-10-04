@@ -6,7 +6,7 @@ import type { JevService } from '../../../dsh-jev-mode/src/host/service.ts'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { latest, type Role, type State } from '../core/model.ts'
 import { allowedActions, wasRevoked } from '../core/policy.ts'
-import { MEETING_CAPABILITY_ID } from '../core/default-roles.ts'
+import { MEETING_CAPABILITY_ID, MEETING_ROLE_ID } from '../core/default-roles.ts'
 import { InputError } from '../core/validation.ts'
 
 export type MeetingSegment = { id: string; start: number; end: number; speaker: string; text: string }
@@ -299,8 +299,8 @@ export class MeetingService {
   }
   async componentActivities() {
     const rows = await Promise.all([...this.controllers.keys()].map(async id => {
-      try { const job = await this.get(id); return { id, name: job.fileName, kind: 'meeting', status: job.status, componentIds: ['meeting-asr'] } }
-      catch { return { id, name: '会议任务（记录暂不可读）', kind: 'meeting', status: 'stopping', componentIds: ['meeting-asr'] } }
+      try { const job = await this.get(id); return { id, roleId: MEETING_ROLE_ID, roleVersion: job.role?.version, name: job.fileName, kind: 'meeting', status: job.status, componentIds: ['meeting-asr'] } }
+      catch { return { id, roleId: MEETING_ROLE_ID, name: '会议任务（记录暂不可读）', kind: 'meeting', status: 'stopping', componentIds: ['meeting-asr'] } }
     }))
     return rows
   }

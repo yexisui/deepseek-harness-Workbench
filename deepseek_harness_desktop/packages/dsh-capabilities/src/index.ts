@@ -92,7 +92,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
     () => store.snapshot(), route => resolveWorkbenchModel(ctx, route), jev)
   const runtime = new CapabilityRuntime(ctx, store, { bskPath: config.bskPath ?? process.env.DSH_BSK_PATH ?? '', bskHome: config.bskHome ?? join(home, 'browser-runtime'), port: config.port ?? 52800 })
   const activities = async (state = store.snapshot()) => {
-    const browser = runtime.tasks().filter(t => t.browserSessions.length || ['running', 'stopping'].includes(t.status)).map(t => ({ id: t.sessionId, name: t.name, status: t.status, kind: 'browser', componentIds: [...new Set(state.roles.find(r => r.id === t.roleId)?.versions.find(v => v.version === t.roleVersion)?.capabilities.filter(b => b.enabled).flatMap(b => resolveBinding(state, b)?.components.map(p => p.componentId) ?? []) ?? [])] }))
+    const browser = runtime.tasks().filter(t => t.browserSessions.length || ['running', 'stopping'].includes(t.status)).map(t => ({ id: t.sessionId, roleId: t.roleId, roleVersion: t.roleVersion, name: t.name, status: t.status, kind: 'browser', componentIds: [...new Set(state.roles.find(r => r.id === t.roleId)?.versions.find(v => v.version === t.roleVersion)?.capabilities.filter(b => b.enabled).flatMap(b => resolveBinding(state, b)?.components.map(p => p.componentId) ?? []) ?? [])] }))
     return [...browser, ...await requirements.componentActivities(), ...await meeting.componentActivities(), ...await developer?.componentActivities() ?? []].sort((a,b) => a.id.localeCompare(b.id))
   }
   runtime.componentActivities = activities

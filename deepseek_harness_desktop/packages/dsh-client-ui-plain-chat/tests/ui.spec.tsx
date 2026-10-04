@@ -457,6 +457,9 @@ describe('ordinary chat UI integration', () => {
     await act(async () => { Array.from(customRole.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent === '停用')!.click() })
     expect(container.querySelector(selected)!.getAttribute('aria-pressed')).toBe('true')
     expect(customRole.querySelector('button[aria-pressed]')!.getAttribute('aria-pressed')).toBe('false')
+    expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.body && JSON.parse(String(options.body)).command?.type === 'role.toggle')).toBe(false)
+    expect(document.querySelector('dialog')!.textContent).toContain('历史任务')
+    await act(async () => { Array.from(document.querySelectorAll<HTMLButtonElement>('dialog button')).find(b => b.textContent === '确认停用')!.click() })
     expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.body && JSON.parse(String(options.body)).command?.type === 'role.toggle')).toBe(true)
     expect(app.remoteCreate).not.toHaveBeenCalled()
   })
@@ -474,6 +477,7 @@ describe('ordinary chat UI integration', () => {
     await act(async () => { Array.from(document.querySelectorAll<HTMLButtonElement>('dialog button')).find(button => button.textContent === '保存草稿')!.click() })
     expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.body && JSON.parse(String(options.body)).command?.id === 'meeting-minutes-demo' && JSON.parse(String(options.body)).command?.type === 'role.save')).toBe(true)
     await act(async () => { Array.from(card.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent === '停用')!.click() })
+    await act(async () => { Array.from(document.querySelectorAll<HTMLButtonElement>('dialog button')).find(b => b.textContent === '确认停用')!.click() })
     expect(vi.mocked(fetch).mock.calls.some(([, options]) => options?.body && JSON.parse(String(options.body)).command?.id === 'meeting-minutes-demo' && JSON.parse(String(options.body)).command?.type === 'role.toggle')).toBe(true)
   })
 

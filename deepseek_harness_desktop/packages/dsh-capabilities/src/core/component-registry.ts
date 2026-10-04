@@ -25,7 +25,7 @@ export function pluginReferences(state: State, moduleName: string, tasks: Task[]
 }
 export type ComponentMetadata = { name?: string; description?: string; category?: string; pinned?: boolean; retiredAt?: string; enabled?: boolean; revokedAt?: number }
 export type Candidate = ComponentMetadata & { id: string; name: string; description: string; category: string; provider: string; createdAt: string }
-export type ComponentActivity = { id: string; componentIds: string[]; name: string; status: string; kind: string }
+export type ComponentActivity = { roleId?: string; roleVersion?: number; id: string; componentIds: string[]; name: string; status: string; kind: string }
 export type RegistryEvent = { id: string; at: string; componentId: string; action: string }
 export type ComponentRegistry = { schema: 1; revision: number; metadata: Record<string, ComponentMetadata>; candidates: Candidate[]; events: RegistryEvent[]; operations: string[] }
 export const emptyRegistry = (): ComponentRegistry => ({ schema: 1, revision: 0, metadata: {}, candidates: [], events: [], operations: [] })
