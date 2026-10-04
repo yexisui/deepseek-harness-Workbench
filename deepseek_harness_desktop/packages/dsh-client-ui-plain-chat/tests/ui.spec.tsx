@@ -8,6 +8,8 @@ import { zh, type ChatKey } from '../src/client/locales.ts'
 import { capabilityClient, editorDrafts } from '../src/client/capability-client.ts'
 import { initialState, emptyRole } from '../../dsh-capabilities/src/core/model.ts'
 import { defaultRequirementSettings, emptyRequirementOverview, type RequirementTask } from '../../dsh-capabilities/src/core/requirements-model.ts'
+import { defaults as jevDefaults, descriptor as jevDescriptor, type JevStatus } from '../../dsh-jev-mode/src/core/contract.ts'
+import { jevClient } from '../../dsh-jev-mode/src/ui/client.ts'
 
 type Props = Record<string, any>
 type Binding = { sessionId: string; ctx: object }
@@ -189,6 +191,28 @@ describe('ordinary chat UI integration', () => {
     expect(container.textContent).toContain('选择工作区（可选）')
     expect(container.textContent).toContain('自由聊天')
     expect(app.remoteCreate).not.toHaveBeenCalled()
+  })
+
+  it('keeps the global JEV switch and decision model across actual role selection and new chat', async () => {
+    const original=globalThis.fetch
+    let saved:JevStatus={state:'off',message:'fixture',config:{schema:1,revision:0,value:{...jevDefaults,model:'intranet/decision'}},descriptor:jevDescriptor,traces:[]}
+    vi.stubGlobal('fetch',vi.fn(async(url:any,options:any)=>{
+      if(String(url).startsWith('/api/jev-mode/')){
+        if(options?.method==='POST'){const body=JSON.parse(options.body);saved={...saved,state:body.value.enabled?'ready':'off',config:{...saved.config,revision:saved.config.revision+1,value:body.value}}}
+        return {ok:true,json:async()=>saved}
+      }
+      return original(url,options)
+    }))
+    await jevClient.refresh();await renderWithSidebarAndRoles()
+    await click('[role="switch"][aria-label="JEV 模式"]')
+    expect(container.querySelector('[role="switch"]')?.getAttribute('aria-checked')).toBe('true')
+    await click('[data-role-id="reader"] button[aria-pressed]')
+    expect(container.querySelector('[role="switch"]')?.getAttribute('aria-checked')).toBe('true')
+    await click('[data-action="new"]')
+    expect(container.querySelector('[role="switch"]')?.getAttribute('aria-checked')).toBe('true')
+    expect(saved.config.value.model).toBe('intranet/decision')
+    await click('[role="switch"][aria-label="JEV 模式"]')
+    expect(saved.config.value.enabled).toBe(false)
   })
 
   it('deduplicates rapid sends and creates the explicit chat preset before submitting', async () => {

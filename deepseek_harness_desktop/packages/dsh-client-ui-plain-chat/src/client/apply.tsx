@@ -32,6 +32,7 @@ import { createRoleSelection, createSettingsNavigation } from './role-ui-state.t
 import { en, zh, type ChatKey } from './locales.ts'
 import { ru } from '../../../dsh-i18n/src/client/ru/plain-chat.ts'
 import styles from './Chat.module.css'
+import { JevToggle, JevActivity, JevSettings } from '../../../dsh-jev-mode/src/ui/JevControls.tsx'
 
 export const inject = ['slots', 'locale', 'sessions', 'conversation', 'layout', 'remote', 'remote.session']
 const NS = 'workbench-chat'
@@ -189,6 +190,7 @@ export function apply(ctx: Context): void {
   ctx.effect(() => registerComponentInventory(registry), 'plain-chat: shared component inventory compatibility')
   const capabilityPreview = createCapabilityPreview()
   registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <ManagedCenter />)
+  ctx.slots.inject('settings.section', () => ctx.slots.register({name:'settings.section',id:'jev-mode',order:23,label:()=> 'JEV 模式',locale:NS}, () => <JevSettings/>))
   registerComponentCenter(ctx.slots as unknown as Parameters<typeof registerComponentCenter>[0], () => <ComponentCenter />)
   const settingsNavigation = createSettingsNavigation()
   ctx.effect(() => {
@@ -269,7 +271,8 @@ export function apply(ctx: Context): void {
         if (binding && local?.kind === 'draft') localConversations.commitChat(local.id)
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && effectiveRole === MEETING_DEMO_ROLE_ID ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /></div>
+        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && effectiveRole === MEETING_DEMO_ROLE_ID ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /><JevToggle/></div>
+        <JevActivity scope={!noSession?'native:'+props.sessionId:developer?'developer:'+developer.id:requirement?'requirements:'+requirement.id:(local?.meeting as {jobId?:string}|undefined)?.jobId?'meeting:'+(local!.meeting as {jobId:string}).jobId:undefined}/>
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
         <div className={styles.conversationContent}>{noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper

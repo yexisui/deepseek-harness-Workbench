@@ -15,7 +15,9 @@ export function account(ctx: Context,modelRoute: string) {
   const url=endpoint(profile.baseURL ?? profile.baseUrl ?? '')
   // Credential is read only in-process from the selected account, never stored in JEV config or trace.
   const key=typeof profile.apiKey==='string'?profile.apiKey:''
-  return {url,model,key,credentialRef:typeof profile.apiKeyEnv==='string'?profile.apiKeyEnv:''}
+  // Read configured names only. Opening JEV settings must never run provider discovery.
+  const models:{id:string;name:string}[]=Array.isArray(profile.models)?profile.models.filter((m:any)=>m&&typeof m.id==='string'&&m.id.length<=250).map((m:any)=>({id:provider+'/'+m.id,name:typeof m.name==='string'?m.name.slice(0,250):m.id})):[]
+  return {url,model,key,models,credentialRef:typeof profile.apiKeyEnv==='string'?profile.apiKeyEnv:''}
 }
 export class SelfOwnedBackend implements JevBackend {
   readonly id='self-owned'

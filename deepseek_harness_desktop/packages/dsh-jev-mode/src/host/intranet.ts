@@ -22,7 +22,7 @@ export async function intranetJson(url: URL,body: unknown,key: string,signal: Ab
   if(!addresses.length||addresses.some(a=>!privateAddress(a.address)))throw new JevError('JEV 模型域名未完全解析到内网地址，已拒绝请求')
   const target=addresses[0]!,payload=Buffer.from(JSON.stringify(body))
   return new Promise((resolve,reject)=>{
-    const req=(url.protocol==='https:'?httpsRequest:httpRequest)(url,{method:'POST',agent:false,signal,lookup:((_h:unknown,_o:unknown,done:any)=>done(null,target.address,target.family)) as any,headers:{'content-type':'application/json','content-length':payload.length,'user-agent':'DeepSeek-Harness-JEV/0.1',...(key?{authorization:'Bearer '+key}:{})}},res=>{
+    const req=(url.protocol==='https:'?httpsRequest:httpRequest)(url,{method:'POST',agent:false,signal,lookup:((_h:unknown,options:any,done:any)=>options?.all?done(null,[target]):done(null,target.address,target.family)) as any,headers:{'content-type':'application/json','content-length':payload.length,'user-agent':'DeepSeek-Harness-JEV/0.1',...(key?{authorization:'Bearer '+key}:{})}},res=>{
       if(res.statusCode!==200){res.resume();reject(new JevError(`内网 JEV 请求失败（HTTP ${res.statusCode}）；没有切换其他服务`));return}
       let size=0;const chunks:Buffer[]=[]
       res.on('data',chunk=>{size+=chunk.length;if(size>256*1024){req.destroy();reject(new JevError('JEV 返回超出限制'))}else chunks.push(chunk)})

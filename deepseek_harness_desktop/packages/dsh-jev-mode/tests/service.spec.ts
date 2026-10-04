@@ -1,5 +1,7 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+// Deterministic DNS keeps this socket test offline and compatible with IPv4-only sandboxes.
+vi.mock('node:dns/promises',()=>({lookup:vi.fn(async()=>[{address:'127.0.0.1',family:4}])}))
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -8,6 +10,7 @@ import { defaults, decision, type JevBackend, type Decision } from '../src/core/
 import { JevStore } from '../src/host/store.ts'
 import { JevService } from '../src/host/service.ts'
 import { endpoint, intranetJson, privateAddress } from '../src/host/intranet.ts'
+import { account } from '../src/host/backend.ts'
 const roots:string[]=[]
 afterEach(async()=>{await Promise.all(roots.splice(0).map(p=>rm(p,{recursive:true,force:true})))})
 const allowed:Decision={decision:'allow',summary:'有输入依据',missing:[],checks:[{criterion:'目标与证据',verdict:'supported',evidence:'用户输入'}]}
@@ -25,9 +28,10 @@ describe('bounded, truthful decisions',()=>{
   it('rejects malformed or contradictory structured judgments',()=>{expect(()=>decision('hello')).toThrow('JSON');expect(()=>decision(JSON.stringify({...allowed,missing:['unknown']}))).toThrow('不一致');expect(()=>decision(JSON.stringify({...allowed,checks:[]}))).toThrow('结构无效')})
 })
 describe('intranet transport',()=>{
+  it('reads model choices from local settings without calling model discovery',()=>{const ctx={get:(name:string)=>name==='llm'?{listConfigurableProviders:()=>[{provider:'lan',settingsNs:'models',settingsPath:['lan']}],listModels:()=>{throw Error('Discovery must not run')}}:name==='settings'?{get:()=>({lan:{baseURL:'http://127.0.0.1/v1',models:[{id:'reasoner',name:'内网模型'}]}})}:undefined};expect(account(ctx as any,'lan/reasoner').models).toEqual([{id:'lan/reasoner',name:'内网模型'}])})
   it('rejects public IPs, credentials in URL and metadata/link-local ranges',()=>{for(const ip of ['8.8.8.8','169.254.169.254','100.64.0.1','2001:4860:4860::8888'])expect(privateAddress(ip)).toBe(false);for(const ip of ['127.0.0.1','10.1.2.3','172.16.1.1','192.168.1.1','::1','fd00::1'])expect(privateAddress(ip)).toBe(true);expect(()=>endpoint('https://api.typesafe.ai')).not.toThrow();expect(()=>endpoint('http://8.8.8.8/v1')).toThrow('公网');expect(()=>endpoint('http://user:key@127.0.0.1')).toThrow('凭据')})
   it('calls a real loopback server and refuses redirect without forwarding credentials',async()=>{
-    let calls=0;const server=createServer((req,res)=>{calls++;if(req.url?.startsWith('/redirect')){res.writeHead(302,{location:'https://api.typesafe.ai'});res.end();return}expect(req.headers.authorization).toBe('Bearer internal-key');res.end(JSON.stringify({choices:[{message:{content:JSON.stringify(allowed)}}]}))});await new Promise<void>(r=>server.listen(0,'127.0.0.1',r));const port=(server.address() as any).port
-    try{expect(decision(await intranetJson(endpoint(`http://127.0.0.1:${port}/v1`),{},'internal-key',new AbortController().signal))).toEqual(allowed);await expect(intranetJson(endpoint(`http://127.0.0.1:${port}/redirect`),{},'internal-key',new AbortController().signal)).rejects.toThrow('302');expect(calls).toBe(2)}finally{await new Promise<void>(r=>server.close(()=>r()))}
+    let calls=0;const server=createServer((req,res)=>{calls++;if(req.url?.startsWith('/redirect')){res.writeHead(302,{location:'https://api.typesafe.ai'});res.end();return}expect(req.headers.authorization).toBe('Bearer internal-key');res.end(JSON.stringify({choices:[{message:{content:JSON.stringify(allowed)}}]}))});await new Promise<void>(r=>server.listen(0,r));const port=(server.address() as any).port
+    try{for(const host of ['127.0.0.1','localhost'])expect(decision(await intranetJson(endpoint(`http://${host}:${port}/v1`),{},'internal-key',new AbortController().signal))).toEqual(allowed);await expect(intranetJson(endpoint(`http://127.0.0.1:${port}/redirect`),{},'internal-key',new AbortController().signal)).rejects.toThrow('302');expect(calls).toBe(3)}finally{await new Promise<void>(r=>server.close(()=>r()))}
   })
 })

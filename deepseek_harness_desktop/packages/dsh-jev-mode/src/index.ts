@@ -30,7 +30,7 @@ export async function apply(ctx:Context){
       if(req.method==='GET'&&url.pathname==='/api/jev-mode/state')return json(res,200,service.status(url.searchParams.get('scope')??undefined))
       if(req.method==='GET'&&url.pathname==='/api/jev-mode/accounts'){
         const routes=ctx.get('llm')?.listConfigurableProviders()??[]
-        return json(res,200,routes.map(route=>{try{account(ctx,route.provider+'/configured-model');return {id:route.provider,name:route.displayName,available:true}}catch(e){return {id:route.provider,name:route.displayName,available:false,message:(e as Error).message}}}))
+        return json(res,200,routes.map(route=>{try{const selected=account(ctx,route.provider+'/configured-model');return {id:route.provider,name:route.displayName,available:true,models:selected.models}}catch(e){return {id:route.provider,name:route.displayName,available:false,models:[],message:(e as Error).message}}}))
       }
       if(req.method==='POST'&&url.pathname==='/api/jev-mode/config'){const body=await readBody(req);await store.update(body.revision,body.value);return json(res,200,service.status())}
       if(req.method==='POST'&&url.pathname==='/api/jev-mode/check'){await readBody(req);const run=service.begin('diagnostic');if(!run.enabled)throw new JevError('请先保存并开启 JEV');await run.check('begin','连通性测试：用户要求将“你好”作为问候语复述，不执行工具、不修改文件。');return json(res,200,service.status())}
