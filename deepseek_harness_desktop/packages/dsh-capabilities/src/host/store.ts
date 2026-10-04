@@ -237,6 +237,13 @@ export class CapabilityStore {
         if (!role) { role = { id: target, enabled: true, draft: value, versions: [] }; next.roles.push(role) }
         role.draft = value
         if (publish) this.publishRole(role, value, now)
+      } else if (command.type === 'role.copy') {
+        const original = next.roles.find(role => role.id === target)
+        if (!original) throw new InputError('岗位不存在', 404)
+        if (target === MEETING_ROLE_ID) throw new InputError('会议纪要使用专用流程，暂不支持复制岗位；可在原岗位中编辑并发布新版本')
+        const definition = structuredClone(latest(original.versions) ?? original.draft)
+        target = 'local-' + randomUUID()
+        next.roles.push({ id: target, enabled: true, draft: { ...definition, name: (definition.name + ' 副本').slice(0, 80) }, versions: [] })
       } else if (command.type === 'role.toggle') {
         const role = next.roles.find(r => r.id === target)
         if (!role) throw new InputError('岗位不存在', 404)

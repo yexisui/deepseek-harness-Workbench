@@ -56,6 +56,7 @@ export type Command =
   | { type: 'capability.restoreMany'; ids: string[] }
   | { type: 'capability.purge'; ids: string[] }
   | { type: 'role.save'; id?: string; definition: RoleDefinition; publish: boolean }
+  | { type: 'role.copy'; id: string }
   | { type: 'role.toggle'; id: string; enabled: boolean }
 export type Health = { checkedAt: string | null; installed: boolean; loaded: boolean; state: 'unknown' | 'missing' | 'disconnected' | 'ready' | 'degraded'; message: string; cliVersion?: string; browsers: { id: string; name: string }[] }
 export type Task = { sessionId: string; roleId: string; roleVersion: number; name: string; status: 'idle' | 'running' | 'stopping' | 'stopped' | 'error'; error?: string; action?: string; browserSessions: string[] }

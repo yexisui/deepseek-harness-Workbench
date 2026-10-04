@@ -10,3 +10,13 @@ export function protectManagedDeletion(service: { remove(id: string): Promise<vo
   service.remove = guarded
   return () => { if (service.remove === guarded) service.remove = original }
 }
+
+export function protectManagedCopy(service: { copy(from: string, id: string, name?: string): Promise<void> }) {
+  const original = service.copy
+  const guarded = async function(this: typeof service, from: string, id: string, name?: string) {
+    if (managedPreset(from) || id.startsWith('workbench-role-')) throw new InputError('岗位预设不能在此复制，请使用岗位卡片上的“复制岗位”并发布副本。', 409)
+    return original.call(this, from, id, name)
+  }
+  service.copy = guarded
+  return () => { if (service.copy === guarded) service.copy = original }
+}

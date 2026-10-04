@@ -79,6 +79,7 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
   const meetingStatus = useMeetingStatus()
   const displayedRoles = [...(data?.state.roles ?? [])].sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID))
   const selectedRole = data?.state.roles.find(role => role.id === selected && role.enabled && role.versions.length)
+  const copyRole = async (id: string) => { try { const copied = await capabilityClient.command({ type: 'role.copy', id }); setEditor({ id: copied }) } catch (error) { setMessage(error instanceof Error ? error.message : String(error)) } }
   const toggleRole = async (id: string, enabled: boolean) => {
     try {
       await capabilityClient.command({ type: 'role.toggle', id, enabled })
@@ -110,7 +111,7 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
           <h3>{role.draft.name}</h3><p className={r.cardSummary} title={role.draft.duties}>{role.draft.duties || '点击编辑岗位，填写职责与工作要求。'}</p>
           <div className={r.tags}><span>{published ? `已发布 v${published.version}` : '未发布'}</span>{role.id === MEETING_ROLE_ID ? <><span>快速生成 · 引导整理</span><span title={meetingStatus?.message}>{meetingStatus?.ready === true ? '录音转写已配置' : meetingStatus?.state === 'disabled' ? '录音转写不可用' : meetingStatus?.ready === false ? '录音转写待配置' : '正在检测录音转写'}</span></> : usesRequirements(data?.state, published) ? <><span>快速整理 · 引导分析</span><span>需求工作区</span></> : role.id === 'builtin-analyst' ? <><span>{role.draft.capabilities.length} 个能力</span><span>可编辑岗位，选择需求分析能力</span></> : <><span>{role.draft.capabilities.length} 个能力</span><span>{data?.tasks.filter(t => t.roleId === role.id && t.status !== 'stopped').length ?? 0} 个活动会话</span></>}</div>
         </div>
-        <div className={r.cardControls}><button className={r.cardAction} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} onClick={() => void toggleRole(role.id, !role.enabled)}>{role.enabled ? '停用' : '启用'}</button></div>
+        <div className={r.cardControls}><button className={r.cardAction} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} disabled={role.id === MEETING_ROLE_ID} title={role.id === MEETING_ROLE_ID ? "会议使用专用流程，请编辑原岗位并发布新版本" : "复制当前已发布配置为独立草稿"} onClick={() => void copyRole(role.id)}>复制岗位</button><button className={r.textButton} onClick={() => void toggleRole(role.id, !role.enabled)}>{role.enabled ? '停用' : '启用'}</button></div>
       </article>
     })}</div>
     {data && !data.state.roles.length && <p className={s.empty}>还没有保存的岗位助手。创建后即可装配能力。</p>}

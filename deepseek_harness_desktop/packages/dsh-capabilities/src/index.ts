@@ -19,7 +19,7 @@ import { MEETING_ROLE_ID } from './core/default-roles.ts'
 import { InputError, object, text } from './core/validation.ts'
 import { CapabilityStore } from './host/store.ts'
 import { CapabilityRuntime } from './host/runtime.ts'
-import { protectManagedDeletion } from './host/native-preset-adapter.ts'
+import { protectManagedCopy, protectManagedDeletion } from './host/native-preset-adapter.ts'
 import { writePresets } from './host/presets.ts'
 import { fence, json, readBody } from './host/http.ts'
 import { MeetingService, config as resolveAsrConfig, type MeetingAsrConfig, type MeetingSegment } from './host/meeting.ts'
@@ -105,6 +105,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   } catch (error) { await requirements.close(); await runtime.dispose(); await store.close(); throw error }
   ctx.effect(() => store.subscribe(() => { void meeting.reconcile() }), 'meeting authorization lifecycle')
   ctx.effect(() => protectManagedDeletion(ctx.agentPresets), 'managed preset deletion guard')
+  ctx.effect(() => protectManagedCopy(ctx.agentPresets), 'managed preset copy guard')
   ctx.provide('capabilities', runtime)
   ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/api/capabilities', handler: async (req, res) => {
     try {
