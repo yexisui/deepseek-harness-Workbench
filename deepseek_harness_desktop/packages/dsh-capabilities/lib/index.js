@@ -1979,13 +1979,18 @@ var RequirementsService = class {
 		}
 	}
 	async componentActivities() {
-		return Promise.all([...this.running.keys()].map(async (id) => ({
-			id,
-			name: (await this.get(id)).title,
-			kind: "requirements",
-			status: "running",
-			componentIds: ["requirements-service"]
-		})));
+		return Promise.all([...this.running.keys()].map(async (id) => {
+			const task = await this.get(id);
+			return {
+				id,
+				roleId: task.roleId,
+				roleVersion: task.roleVersion,
+				name: task.title,
+				kind: "requirements",
+				status: "running",
+				componentIds: ["requirements-service"]
+			};
+		}));
 	}
 	async stopComponents(ids) {
 		if (!ids.includes("requirements-service")) return;
@@ -2741,9 +2746,12 @@ var DeveloperService = class {
 	}
 	async componentActivities() {
 		return Promise.all([...this.running.keys()].map(async (id) => {
+			const task = await this.get(id);
 			return {
 				id,
-				name: (await this.get(id)).title,
+				roleId: task.roleId,
+				roleVersion: task.roleVersion,
+				name: task.title,
 				kind: "developer",
 				status: "running",
 				componentIds: [
@@ -3177,6 +3185,7 @@ var CapabilityStore = class {
 					}
 				}
 				for (const role of this.state.roles) {
+					if (role.archivedAt !== void 0 && (typeof role.archivedAt !== "string" || !Number.isFinite(Date.parse(role.archivedAt)) || role.enabled)) throw new Error("Invalid archived role data");
 					id(role.id);
 					bool(role.enabled);
 					roleDefinition(role.draft, this.state);
@@ -3488,6 +3497,7 @@ var CapabilityStore = class {
 				if (value.icon?.kind === "png") await this.icons.read(value.icon.assetId);
 				let role = next.roles.find((r) => r.id === target);
 				if (command.id && !role) throw new InputError("岗位不存在", 404);
+				if (role?.archivedAt) throw new InputError("岗位已归档，请先恢复后编辑");
 				const existingBindings = [...role?.draft.capabilities ?? [], ...role ? latest(role.versions)?.capabilities ?? [] : []];
 				const newComponents = value.capabilities.filter((binding) => !existingBindings.some((old) => old.capabilityId === binding.capabilityId && old.version === binding.version)).flatMap((binding) => next.capabilities.find((c) => c.id === binding.capabilityId)?.versions.find((v) => v.version === binding.version)?.components.map((p) => p.componentId) ?? []);
 				const registryProblems = this.publishIssues(newComponents);
@@ -3504,9 +3514,39 @@ var CapabilityStore = class {
 				}
 				role.draft = value;
 				if (publish) this.publishRole(role, value, now);
+			} else if (command.type === "role.copy") {
+				const original = next.roles.find((role) => role.id === target);
+				if (!original) throw new InputError("岗位不存在", 404);
+				if (original.archivedAt) throw new InputError("岗位已归档，请先恢复后复制");
+				if (target === "meeting-minutes-demo") throw new InputError("会议纪要使用专用流程，暂不支持复制岗位；可在原岗位中编辑并发布新版本");
+				const definition = structuredClone(latest(original.versions) ?? original.draft);
+				target = "local-" + randomUUID();
+				next.roles.push({
+					id: target,
+					enabled: true,
+					draft: {
+						...definition,
+						name: (definition.name + " 副本").slice(0, 80)
+					},
+					versions: []
+				});
+			} else if (command.type === "role.archive" || command.type === "role.restore") {
+				const role = next.roles.find((role) => role.id === target);
+				if (!role) throw new InputError("岗位不存在", 404);
+				if (command.type === "role.archive") {
+					if (role.archivedAt) throw new InputError("岗位已归档");
+					role.archivedAt = now;
+					role.enabled = false;
+					(next.revokedAt ??= {})["role:" + target] = Date.parse(now);
+				} else {
+					if (!role.archivedAt) throw new InputError("岗位未归档");
+					delete role.archivedAt;
+					role.enabled = false;
+				}
 			} else if (command.type === "role.toggle") {
 				const role = next.roles.find((r) => r.id === target);
 				if (!role) throw new InputError("岗位不存在", 404);
+				if (role.archivedAt) throw new InputError("岗位已归档，请先恢复后启用");
 				role.enabled = bool(command.enabled);
 				if (!role.enabled) (next.revokedAt ??= {})[`role:${target}`] = Date.parse(now);
 			} else throw new InputError("未知操作");
@@ -3967,6 +4007,32 @@ var CapabilityRuntime = class {
 	}
 };
 //#endregion
+//#region src/host/native-preset-adapter.ts
+/** Guard the native mutation seam, retaining resolution of immutable presets for old sessions. */
+const managedPreset = (id) => /^workbench-role-[a-z][a-z0-9-]*-v[1-9][0-9]*$/.test(id);
+function protectManagedDeletion(service) {
+	const original = service.remove;
+	const guarded = async function(id) {
+		if (managedPreset(id)) throw new InputError("此预设是岗位的历史版本，不能直接删除。请在岗位助手中停用或归档岗位。", 409);
+		return original.call(this, id);
+	};
+	service.remove = guarded;
+	return () => {
+		if (service.remove === guarded) service.remove = original;
+	};
+}
+function protectManagedCopy(service) {
+	const original = service.copy;
+	const guarded = async function(from, id, name) {
+		if (managedPreset(from) || id.startsWith("workbench-role-")) throw new InputError("岗位预设不能在此复制，请使用岗位卡片上的“复制岗位”并发布副本。", 409);
+		return original.call(this, from, id, name);
+	};
+	service.copy = guarded;
+	return () => {
+		if (service.copy === guarded) service.copy = original;
+	};
+}
+//#endregion
 //#region src/host/presets.ts
 /** Each published role owns an immutable preset path; active sessions retain their version. */
 async function writePresets(home, state) {
@@ -4112,6 +4178,24 @@ var MeetingService = class {
 	running = /* @__PURE__ */ new Set();
 	deleted = /* @__PURE__ */ new Set();
 	controllers = /* @__PURE__ */ new Map();
+	pending = /* @__PURE__ */ new Map();
+	removing = /* @__PURE__ */ new Set();
+	uploads = /* @__PURE__ */ new Map();
+	track(id, run) {
+		if (this.removing.has(id) || this.deleted.has(id)) return Promise.reject(new InputError("此会议正在移除或已删除", 409));
+		const pending = this.pending.get(id) ?? /* @__PURE__ */ new Set();
+		this.pending.set(id, pending);
+		const task = Promise.resolve().then(() => {
+			if (this.removing.has(id) || this.deleted.has(id)) throw new InputError("此会议正在移除或已删除", 409);
+			return run();
+		});
+		pending.add(task);
+		task.finally(() => {
+			pending.delete(task);
+			if (!pending.size && this.pending.get(id) === pending) this.pending.delete(id);
+		}).catch(() => {});
+		return task;
+	}
 	constructor(root, workbenchText, currentRole, currentState, asrSettings, jev) {
 		this.root = root;
 		this.workbenchText = workbenchText;
@@ -4139,9 +4223,13 @@ var MeetingService = class {
 		if (!role?.enabled) throw new InputError("会议纪要助手已停用，请在岗位助手中启用后重试", 409);
 		const binding = latest(role.versions)?.capabilities.find((item) => item.capabilityId === MEETING_CAPABILITY_ID);
 		if (this.currentState && (!binding?.enabled || binding.actions && !binding.actions.includes("transcribe"))) throw new InputError("会议纪要助手未启用录音转写能力，请在岗位中检查关联", 409);
-		if (createdAt && (this.currentState?.().componentRestrictions?.["meeting-asr"]?.revokedAt ?? -1) >= Date.parse(createdAt)) throw new InputError("此会议任务的组件授权已撤销，请新建任务继续使用", 409);
 		const published = version === void 0 ? latest(role.versions) : role.versions.find((item) => item.version === version);
 		if (!published) throw new InputError("会议纪要岗位版本不存在，请重新选择岗位", 409);
+		if (this.currentState) {
+			const state = this.currentState();
+			if (createdAt && wasRevoked(state, role.id, published, Date.parse(createdAt))) throw new InputError("此会议任务的授权已撤销，请新建会议继续使用", 409);
+			if (!allowedActions(state, role.id, published).includes("transcribe")) throw new InputError("此会议岗位版本的转写权限已撤销或未获授权，请新建会议继续使用", 409);
+		}
 		return {
 			version: published.version,
 			name: published.name,
@@ -4221,10 +4309,33 @@ var MeetingService = class {
 		await writeFile(this.path(job.id), JSON.stringify(job));
 	}
 	async remove(id) {
-		const job = await this.get(id);
-		this.deleted.add(id);
-		await rm(this.audio(job), { force: true });
-		await rm(this.path(id), { force: true });
+		if (this.removing.has(id)) throw new InputError("会议正在移除，请稍后重试", 409);
+		this.removing.add(id);
+		try {
+			let job;
+			try {
+				job = await this.get(id);
+			} catch (error) {
+				if (error instanceof InputError && error.status === 404) return;
+				throw error;
+			}
+			this.controllers.get(id)?.abort(/* @__PURE__ */ new Error("会议已请求移除"));
+			this.uploads.get(id)?.destroy(/* @__PURE__ */ new Error("会议已请求移除"));
+			let timeout;
+			try {
+				await Promise.race([Promise.allSettled([...this.pending.get(id) ?? []]), new Promise((_, reject) => {
+					timeout = setTimeout(() => reject(new InputError("任务尚未确认停止，会议记录保留，请稍后重试", 409)), 1e4);
+				})]);
+			} finally {
+				clearTimeout(timeout);
+			}
+			await rm(this.audio(job), { force: true });
+			await rm(`${this.audio(job)}.upload`, { force: true });
+			await rm(this.path(id), { force: true });
+			this.deleted.add(id);
+		} finally {
+			this.removing.delete(id);
+		}
 	}
 	async create(input) {
 		if (!this.availability().ready) throw new InputError(this.availability().message, 503);
@@ -4253,6 +4364,14 @@ var MeetingService = class {
 		return job;
 	}
 	async upload(id, req) {
+		this.uploads.set(id, req);
+		try {
+			return await this.track(id, () => this.uploadAudio(id, req));
+		} finally {
+			if (this.uploads.get(id) === req) this.uploads.delete(id);
+		}
+	}
+	async uploadAudio(id, req) {
 		const job = await this.get(id);
 		this.role(job.role?.version, job.createdAt);
 		if (job.status !== "uploading") throw new InputError("此任务无法重复上传", 409);
@@ -4275,7 +4394,7 @@ var MeetingService = class {
 			job.status = "transcribing";
 			delete job.error;
 			await this.save(job);
-			this.transcribe(job.id);
+			this.track(job.id, () => this.transcribe(job.id)).catch(() => {});
 			return job;
 		} catch (error) {
 			handle.destroy();
@@ -4294,7 +4413,7 @@ var MeetingService = class {
 		job.status = job.segments.length ? "transcribed" : "transcribing";
 		delete job.error;
 		await this.save(job);
-		if (!job.segments.length) this.transcribe(id);
+		if (!job.segments.length) this.track(id, () => this.transcribe(id)).catch(() => {});
 		return job;
 	}
 	async transcribe(id) {
@@ -4351,6 +4470,9 @@ var MeetingService = class {
 		return rows.map((row) => `[${row.id} ${Math.floor(row.start / 6e4).toString().padStart(2, "0")}:${Math.floor(row.start % 6e4 / 1e3).toString().padStart(2, "0")} ${row.speaker}] ${row.text}`).join("\n");
 	}
 	async generate(id, edited, instruction, summaryModel) {
+		return this.track(id, () => this.startGenerate(id, edited, instruction, summaryModel));
+	}
+	async startGenerate(id, edited, instruction, summaryModel) {
 		const job = await this.get(id);
 		this.role(job.role?.version, job.createdAt);
 		if (![
@@ -4370,7 +4492,7 @@ var MeetingService = class {
 		job.status = "generating";
 		delete job.error;
 		await this.save(job);
-		this.finishGenerate(job, instruction);
+		this.track(id, () => this.finishGenerate(job, instruction)).catch(() => {});
 		return job;
 	}
 	async finishGenerate(job, instruction) {
@@ -4415,15 +4537,38 @@ var MeetingService = class {
 		}
 	}
 	async componentActivities() {
-		return Promise.all([...this.controllers.keys()].map(async (id) => {
-			const job = await this.get(id);
-			return {
-				id,
-				name: job.fileName,
-				kind: "meeting",
-				status: job.status,
-				componentIds: ["meeting-asr"]
-			};
+		return await Promise.all([...this.controllers.keys()].map(async (id) => {
+			try {
+				const job = await this.get(id);
+				return {
+					id,
+					roleId: MEETING_ROLE_ID,
+					roleVersion: job.role?.version,
+					name: job.fileName,
+					kind: "meeting",
+					status: job.status,
+					componentIds: ["meeting-asr"]
+				};
+			} catch {
+				return {
+					id,
+					roleId: MEETING_ROLE_ID,
+					name: "会议任务（记录暂不可读）",
+					kind: "meeting",
+					status: "stopping",
+					componentIds: ["meeting-asr"]
+				};
+			}
+		}));
+	}
+	async reconcile() {
+		await Promise.all([...this.controllers].map(async ([id, controller]) => {
+			try {
+				const job = await this.get(id);
+				this.role(job.role?.version, job.createdAt);
+			} catch {
+				controller.abort();
+			}
 		}));
 	}
 	async stopComponents(ids) {
@@ -5435,6 +5580,8 @@ async function apply(ctx, config = {}) {
 		return [
 			...runtime.tasks().filter((t) => t.browserSessions.length || ["running", "stopping"].includes(t.status)).map((t) => ({
 				id: t.sessionId,
+				roleId: t.roleId,
+				roleVersion: t.roleVersion,
 				name: t.name,
 				status: t.status,
 				kind: "browser",
@@ -5464,6 +5611,11 @@ async function apply(ctx, config = {}) {
 		await store.close();
 		throw error;
 	}
+	ctx.effect(() => store.subscribe(() => {
+		meeting.reconcile();
+	}), "meeting authorization lifecycle");
+	ctx.effect(() => protectManagedDeletion(ctx.agentPresets), "managed preset deletion guard");
+	ctx.effect(() => protectManagedCopy(ctx.agentPresets), "managed preset copy guard");
 	ctx.provide("capabilities", runtime);
 	ctx.effect(() => ctx.webServer.register({
 		kind: "prefix",

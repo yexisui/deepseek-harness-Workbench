@@ -131,6 +131,8 @@
 .chosen .radio { color:white; border-color:var(--role-accent); background:var(--role-accent); }
 .choiceTools { display:flex; justify-content:space-between; gap:16px; border-bottom:1px solid var(--role-border); padding:2px 0 14px; }
 .textButton, .back { padding:6px 0; border:0; background:transparent; color:var(--role-accent); font:inherit; font-size:12px; cursor:pointer; }
+.section > .textButton { color:var(--role-text); }
+.section > .textButton:focus-visible { outline-color:var(--role-text); }
 .back { align-self:flex-start; margin:14px 26px 0; }
 .section button:focus-visible, .dialog button:focus-visible, .picker:focus-visible { outline:2px solid var(--role-accent); outline-offset:3px; }
 @media(max-width:680px) { .cards, .editorGrid { grid-template-columns:1fr; } .sectionHeader { align-items:flex-start; flex-direction:column; gap:14px; } .createCard { padding:22px; } .dialogHeader { padding:16px; } .editorScroll, .choices { padding:16px; } .footer { padding:14px 16px; align-items:flex-end; flex-direction:column; gap:10px; } .notice { align-items:flex-start; } .dialog { max-height:calc(100dvh - 24px); } .livePreview { padding:16px; } }

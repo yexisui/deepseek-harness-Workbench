@@ -4,7 +4,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 
 const mocks = vi.hoisted(() => ({
-  store: { init: vi.fn(), close: vi.fn(), snapshot: vi.fn(), command: vi.fn(), icons: { upload: vi.fn(), read: vi.fn() } },
+  store: { subscribe: vi.fn(() => () => {}), init: vi.fn(), close: vi.fn(), snapshot: vi.fn(), command: vi.fn(), icons: { upload: vi.fn(), read: vi.fn() } },
   runtime: { init: vi.fn(), dispose: vi.fn(), tasks: vi.fn(), dependencies: vi.fn(), check: vi.fn(), connect: vi.fn(), stop: vi.fn(), health: { state: 'unknown' } },
   writePresets: vi.fn(), requestRejection: vi.fn(),
 }))
@@ -22,6 +22,7 @@ beforeEach(async () => {
   mocks.store.snapshot.mockReturnValue({ revision: 10 })
   mocks.runtime.tasks.mockReturnValue([]); mocks.runtime.dependencies.mockReturnValue([])
   const ctx = {
+    agentPresets: { remove: vi.fn(), copy: vi.fn() },
     webServer: { register: vi.fn((route: { handler: Handler }) => { handler = route.handler; return () => {} }) },
     connection: { requestRejection: mocks.requestRejection }, inject: vi.fn(), provide: vi.fn(), effect: (effect: () => unknown) => effect(),
   } as unknown as Context

@@ -842,6 +842,19 @@ window.__ModuleLoader__.load({
 				tasks: tasks.filter((t) => !["stopped"].includes(t.status) && state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.some((b) => b.enabled && resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)))
 			};
 		}
+		const rolePresentation = (role) => latest(role.versions) ?? role.draft;
+		function roleHasUnpublishedChanges(role) {
+			const published = latest(role.versions);
+			return !!published && [
+				"name",
+				"color",
+				"icon",
+				"duties",
+				"requirements",
+				"format",
+				"capabilities"
+			].some((key) => JSON.stringify(role.draft[key]) !== JSON.stringify(published[key]));
+		}
 		//#endregion
 		//#region ../dsh-capabilities/src/core/composition.ts
 		function availableComponents(capabilityId) {
@@ -4266,8 +4279,55 @@ window.__ModuleLoader__.load({
 			] });
 		}
 		//#endregion
+		//#region src/client/capability-presentation.ts
+		/** One presentation contract for cards and role composition, keyed by component descriptors. */
+		function capabilityPresentation(data, capability, version = latest(capability.versions), meeting, requirements) {
+			const parts = version?.components ?? capability.draft.components;
+			const descriptors = parts.map((part) => data.components.find((component) => component.id === part.componentId));
+			const management = descriptors[0]?.management;
+			const icon = descriptors[0]?.icon ?? "document";
+			let label, message;
+			if (!parts.length || descriptors.some((value) => !value)) {
+				label = "组件待适配";
+				message = "部分组件尚未适配，请在组件中心检查。";
+			} else if (descriptors.some((value) => value?.management !== management)) {
+				label = "分项检测";
+				message = "此能力包含不同服务，请在组件中心分别检查。";
+			} else if (management === "developer") {
+				label = "项目内检测";
+				message = "进入开发对话并绑定项目后检测文件、Git 和验证环境；默认只读。";
+			} else if (management === "requirements") {
+				label = requirements?.ready ? "可使用" : requirements ? "待配置" : "检测中";
+				message = requirements?.message ?? "正在读取需求分析配置…";
+			} else if (management === "meeting-asr") {
+				label = meeting?.ready ? "已配置" : meeting?.state === "disabled" ? "不可用" : meeting ? "待配置" : "检测中";
+				message = meeting?.message ?? "正在检查语音识别配置…";
+			} else {
+				label = data.health.state === "ready" ? "可使用" : "待连接";
+				message = data.health.message;
+			}
+			if (capability.removedAt) {
+				label = "已移除";
+				message = "能力已移除，请在能力中心恢复。";
+			} else if (!capability.enabled) {
+				label = "已停用";
+				message = "能力已停用，请在能力中心启用。";
+			} else if (!version) {
+				label = "草稿";
+				message = "能力尚未发布。";
+			} else if (parts.some((part) => data.state.componentRestrictions?.[part.componentId]?.enabled === false)) {
+				label = "组件已停用";
+				message = "关联组件已全局停用，请在组件中心检查。";
+			}
+			return {
+				icon,
+				label,
+				message
+			};
+		}
+		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css.mjs
-		const css$10 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:32px;height:32px;display:inline-flex;position:relative}.eqpZFq_recycleSelect input{opacity:0;cursor:pointer;z-index:1;width:100%;height:100%;margin:0;position:absolute;inset:0}.eqpZFq_selectionMark{box-sizing:border-box;border:1px solid var(--role-muted);background:var(--role-bg);border-radius:5px;justify-content:center;align-items:center;width:20px;height:20px;display:flex}.eqpZFq_selectionMark svg{fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;width:18px;height:18px}.eqpZFq_recycleSelect input:checked+.eqpZFq_selectionMark,.eqpZFq_recycleSelect input:indeterminate+.eqpZFq_selectionMark{color:#fff;background:#344575;border-color:#7585b1}.eqpZFq_recycleSelect input:focus-visible+.eqpZFq_selectionMark{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_recycleSelect input:disabled{cursor:default}.eqpZFq_recycleSelect input:disabled+.eqpZFq_selectionMark{opacity:.45}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}.eqpZFq_compositionFieldset{border:0;min-width:0;margin:0;padding:0}.eqpZFq_compositionInfo{border:1px solid var(--role-border);border-radius:9px;margin-bottom:18px;padding:12px}.eqpZFq_compositionInfo summary{color:var(--role-muted);cursor:pointer;font-size:12px}.eqpZFq_compositionInfo[open] summary{margin-bottom:16px}.eqpZFq_associationRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;padding:14px 16px;display:flex}.eqpZFq_associationIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_associationIdentity>div{min-width:0}.eqpZFq_associationIdentity strong{margin-right:8px}.eqpZFq_associationIdentity small{color:var(--role-muted);overflow-wrap:anywhere;margin-top:5px;font-size:11px;display:block}.eqpZFq_associationSymbol{width:34px;height:34px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 10%,transparent);border-radius:8px;flex-shrink:0;place-items:center;font-size:22px;display:grid}.eqpZFq_associationActions{flex-shrink:0;align-items:center;gap:6px;display:flex}.eqpZFq_compositionFeedback,.eqpZFq_compositionToolbar{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;padding:12px;font-size:12px;display:flex}.eqpZFq_compositionToolbar{z-index:1;position:sticky;bottom:0;box-shadow:0 -5px 12px #00000008}.eqpZFq_missingAssociations{border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border));background:color-mix(in srgb,#be8432 8%,var(--role-bg));border-radius:9px;margin:10px 0;padding:12px;font-size:12px}.eqpZFq_missingRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;display:flex}.eqpZFq_missingRow small{color:var(--role-muted)}@media (width<=650px){.eqpZFq_associationRow{flex-wrap:wrap;align-items:flex-start;padding:12px}.eqpZFq_associationActions{margin-left:auto}}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}";
+		const css$10 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:32px;height:32px;display:inline-flex;position:relative}.eqpZFq_recycleSelect input{opacity:0;cursor:pointer;z-index:1;width:100%;height:100%;margin:0;position:absolute;inset:0}.eqpZFq_selectionMark{box-sizing:border-box;border:1px solid var(--role-muted);background:var(--role-bg);border-radius:5px;justify-content:center;align-items:center;width:20px;height:20px;display:flex}.eqpZFq_selectionMark svg{fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;width:18px;height:18px}.eqpZFq_recycleSelect input:checked+.eqpZFq_selectionMark,.eqpZFq_recycleSelect input:indeterminate+.eqpZFq_selectionMark{color:#fff;background:#344575;border-color:#7585b1}.eqpZFq_recycleSelect input:focus-visible+.eqpZFq_selectionMark{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_recycleSelect input:disabled{cursor:default}.eqpZFq_recycleSelect input:disabled+.eqpZFq_selectionMark{opacity:.45}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}.eqpZFq_compositionFieldset{border:0;min-width:0;margin:0;padding:0}.eqpZFq_compositionInfo{border:1px solid var(--role-border);border-radius:9px;margin-bottom:18px;padding:12px}.eqpZFq_compositionInfo summary{color:var(--role-muted);cursor:pointer;font-size:12px}.eqpZFq_compositionInfo[open] summary{margin-bottom:16px}.eqpZFq_associationRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;padding:14px 16px;display:flex}.eqpZFq_associationIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_associationIdentity>div{min-width:0}.eqpZFq_associationIdentity strong{margin-right:8px}.eqpZFq_associationIdentity small{color:var(--role-muted);overflow-wrap:anywhere;margin-top:5px;font-size:11px;display:block}.eqpZFq_associationSymbol{width:34px;height:34px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 10%,transparent);border-radius:8px;flex-shrink:0;place-items:center;font-size:22px;display:grid}.eqpZFq_associationActions{flex-shrink:0;align-items:center;gap:6px;display:flex}.eqpZFq_compositionFeedback,.eqpZFq_compositionToolbar{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;padding:12px;font-size:12px;display:flex}.eqpZFq_compositionToolbar{z-index:1;position:sticky;bottom:0;box-shadow:0 -5px 12px #00000008}.eqpZFq_missingAssociations{border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border));background:color-mix(in srgb,#be8432 8%,var(--role-bg));border-radius:9px;margin:10px 0;padding:12px;font-size:12px}.eqpZFq_missingRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;display:flex}.eqpZFq_missingRow small{color:var(--role-muted)}@media (width<=650px){.eqpZFq_associationRow{flex-wrap:wrap;align-items:flex-start;padding:12px}.eqpZFq_associationActions{margin-left:auto}}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}.eqpZFq_versionValue{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px}";
 		const tagId$10 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$10) + "]") === null) {
 			const tag = document.createElement("style");
@@ -4332,7 +4392,8 @@ window.__ModuleLoader__.load({
 			"status": "eqpZFq_status",
 			"tabs": "eqpZFq_tabs",
 			"tasks": "eqpZFq_tasks",
-			"time": "eqpZFq_time"
+			"time": "eqpZFq_time",
+			"versionValue": "eqpZFq_versionValue"
 		};
 		//#endregion
 		//#region src/client/CapabilitySelection.tsx
@@ -4366,7 +4427,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/Roles.module.css.mjs
-		const css$9 = ".fwzdhW_section,.fwzdhW_dialog,.fwzdhW_picker,.fwzdhW_presetDisclosure{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);font:inherit}.fwzdhW_section{box-sizing:border-box;width:100%;padding:4px 0 0}.fwzdhW_sectionHeader{justify-content:space-between;align-items:center;gap:20px;margin-bottom:22px;display:flex}.fwzdhW_titleRow{align-items:center;gap:12px;display:flex}.fwzdhW_section h2,.fwzdhW_dialog h2{letter-spacing:-.4px;margin:0;font-size:20px;font-weight:650}.fwzdhW_sectionHeader p{color:var(--role-muted);margin:8px 0 0;font-size:13px;line-height:1.7}.fwzdhW_previewBadge,.fwzdhW_exampleBadge{border:1px solid var(--role-border);color:var(--role-muted);white-space:nowrap;border-radius:6px;flex-shrink:0;align-items:center;padding:3px 8px;font-size:11px;font-weight:500;line-height:1.4;display:inline-flex}.fwzdhW_exampleBadge{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-color:#0000}.fwzdhW_primary,.fwzdhW_secondary{border:1px solid var(--role-border);font:inherit;cursor:pointer;white-space:nowrap;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:550}.fwzdhW_primary{background:var(--role-accent);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:#0000}.fwzdhW_secondary{background:var(--role-bg);color:var(--role-text)}.fwzdhW_primary:hover:not(:disabled){filter:brightness(1.08)}.fwzdhW_primary:disabled{opacity:.42;cursor:not-allowed}.fwzdhW_cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;display:grid}.fwzdhW_selectionStatus{min-height:30px;color:var(--role-muted);justify-content:space-between;align-items:center;gap:12px;margin:-4px 0 18px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_roleCard{transition:box-shadow .18s,border-color .18s;position:relative}.fwzdhW_cardSelect{z-index:1;cursor:pointer;background:0 0;border:0;border-radius:12px 12px 0 0;padding:0;position:absolute;inset:0 0 51px}.fwzdhW_cardSelect:hover{background:color-mix(in srgb,var(--role-color) 5%,transparent)}.fwzdhW_roleCard .fwzdhW_cardAction{z-index:2;position:relative}.fwzdhW_cardBody{border-radius:10px 10px 0 0;flex:1;margin:-22px -22px 0;padding:22px 22px 0;position:relative}.fwzdhW_cardBody .fwzdhW_cardSelect{border-radius:10px 10px 0 0;inset:0}.fwzdhW_cardSelect:disabled{cursor:default}.fwzdhW_cardSelect:disabled:hover{background:0 0}.fwzdhW_roleCard .fwzdhW_cardSummary{-webkit-line-clamp:3;overflow-wrap:anywhere;-webkit-box-orient:vertical;min-height:5.4em;display:-webkit-box;overflow:hidden}.fwzdhW_cardControls{z-index:2;border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border));align-items:center;gap:18px;display:flex;position:relative}.fwzdhW_cardControls .fwzdhW_cardAction{border-top:0;flex:1;width:auto;min-width:0}.fwzdhW_cardControls .fwzdhW_textButton{min-height:44px;color:var(--role-muted)}.fwzdhW_roleCard .fwzdhW_chatCardNote{padding:14px 0;font-size:12px}.fwzdhW_selectedCard{box-shadow:0 0 0 2px var(--role-color),0 7px 20px color-mix(in srgb,var(--role-color) 20%,transparent);animation:.3s ease-out fwzdhW_roleSelect}.fwzdhW_roleCard .fwzdhW_exampleBadge.fwzdhW_selectedBadge{background:var(--role-color);color:var(--role-on-color,white)}@keyframes fwzdhW_roleSelect{0%,to{transform:translate(0)}30%{transform:translate(-3px)}60%{transform:translate(3px)}}@media (prefers-reduced-motion:reduce){.fwzdhW_selectedCard{animation:none}}.fwzdhW_currentAssistant{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);box-sizing:border-box;border:1px solid color-mix(in srgb,var(--role-color) 22%,transparent);background:color-mix(in srgb,var(--role-bg) 88%,transparent);backdrop-filter:blur(12px);max-width:100%;min-height:38px;color:var(--role-text);text-align:left;font:inherit;cursor:pointer;border-radius:22px;align-items:center;gap:8px;padding:6px 12px 6px 7px;transition:background .16s,border-color .16s,box-shadow .16s;display:inline-flex;box-shadow:0 2px 8px #182c5008}.fwzdhW_currentAssistant:hover{background:color-mix(in srgb,var(--role-color) 8%,var(--role-bg));border-color:color-mix(in srgb,var(--role-color) 45%,transparent);box-shadow:0 3px 12px #182c5010}.fwzdhW_currentAssistant:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_currentAssistant .fwzdhW_icon{border-radius:50%;width:24px;height:24px}.fwzdhW_currentAssistant .fwzdhW_icon svg{width:15px;height:15px}.fwzdhW_currentText{text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:13px;font-weight:550;line-height:20px;overflow:hidden}.fwzdhW_currentHint{color:var(--role-muted);border-left:1px solid color-mix(in srgb,var(--role-muted) 20%,transparent);flex-shrink:0;padding:0 6px;font-size:10px;line-height:16px}.fwzdhW_currentArrow{width:14px;height:14px;color:var(--role-muted);flex-shrink:0}@media (width<=400px){.fwzdhW_currentHint{display:none}}.fwzdhW_roleCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:14px;flex-direction:column;min-width:0;padding:22px 22px 0;display:flex}.fwzdhW_cardTop{justify-content:space-between;align-items:center;gap:12px;display:flex}.fwzdhW_icon{width:42px;height:42px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));border-radius:11px;flex-shrink:0;justify-content:center;align-items:center;display:inline-flex}.fwzdhW_icon svg{width:23px;height:23px}.fwzdhW_icon img{object-fit:contain;width:100%;height:100%;padding:4px;display:block}.fwzdhW_currentAssistant .fwzdhW_icon img{padding:2px}.fwzdhW_icon{color:color-mix(in srgb,var(--role-color,var(--role-accent)) 65%,var(--role-text));background:color-mix(in srgb,var(--role-color,var(--role-accent)) 20%,var(--role-bg))}.fwzdhW_roleCard,.fwzdhW_livePreview{border-color:color-mix(in srgb,var(--role-color) 40%,var(--role-border));border-top:4px solid var(--role-color);background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg)))}.fwzdhW_roleCard .fwzdhW_exampleBadge,.fwzdhW_roleCard .fwzdhW_tags span{background:color-mix(in srgb,var(--role-color) 15%,var(--role-bg));color:color-mix(in srgb,var(--role-color) 45%,var(--role-text))}.fwzdhW_roleCard .fwzdhW_cardAction{color:color-mix(in srgb,var(--role-color) 55%,var(--role-text));border-top-color:color-mix(in srgb,var(--role-color) 25%,var(--role-border))}.fwzdhW_roleCard h3{margin:18px 0 8px;font-size:16px;font-weight:650}.fwzdhW_roleCard p{color:var(--role-muted);margin:0;font-size:13px;line-height:1.8}.fwzdhW_tags{flex-wrap:wrap;gap:7px;margin:18px 0 22px;display:flex}.fwzdhW_tags span{background:color-mix(in srgb,var(--role-muted) 8%,var(--role-bg));color:var(--role-muted);border-radius:5px;padding:4px 8px;font-size:11px}.fwzdhW_cardAction{border:0;border-top:1px solid var(--role-border);width:100%;color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;justify-content:space-between;align-items:center;margin-top:auto;padding:14px 0;font-size:13px;display:flex}.fwzdhW_createCard{border:1px dashed var(--role-border);width:100%;color:var(--role-muted);font:inherit;cursor:pointer;background:0 0;border-radius:14px;justify-content:flex-start;align-items:center;gap:13px;margin-top:16px;padding:16px 20px;display:flex}.fwzdhW_createCard:hover{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.fwzdhW_createCard strong{color:var(--role-text);font-size:14px;font-weight:550}.fwzdhW_createCard>span:last-child{text-align:left;font-size:12px;line-height:1.8}.fwzdhW_plus{border:1px solid var(--role-border);border-radius:50%;place-items:center;width:38px;height:38px;font-size:24px;font-weight:300;display:grid}.fwzdhW_createCard .fwzdhW_plus{flex-shrink:0;width:30px;height:30px}.fwzdhW_createCard strong{flex-shrink:0}@media (width<=680px){.fwzdhW_createCard{flex-wrap:wrap}.fwzdhW_createCard>span:last-child{width:100%}}.fwzdhW_sectionNote{color:var(--role-muted);margin:14px 0 0;font-size:12px;line-height:1.8}.fwzdhW_presetDisclosure{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;margin-top:24px}.fwzdhW_presetDisclosure>summary{cursor:pointer;justify-content:space-between;align-items:center;gap:16px;padding:14px 16px;font-size:14px;font-weight:550;list-style:none;display:flex}.fwzdhW_presetDisclosure>summary::-webkit-details-marker{display:none}.fwzdhW_presetDisclosure>summary:hover{background:color-mix(in srgb,var(--role-muted) 5%,transparent);border-radius:10px}.fwzdhW_presetDisclosure>summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px;border-radius:10px}.fwzdhW_disclosureChevron{width:16px;height:16px;color:var(--role-muted);flex-shrink:0}.fwzdhW_presetDisclosure[open]>summary .fwzdhW_disclosureChevron{transform:rotate(90deg)}.fwzdhW_disclosureContent{border-top:1px solid var(--role-border);padding:18px 16px}.fwzdhW_dialog{background:var(--role-bg);border:1px solid var(--role-border);border-radius:18px;width:560px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 40px);padding:0;overflow:auto;box-shadow:0 24px 90px #10223d30}.fwzdhW_dialog::backdrop{backdrop-filter:blur(3px);background:#0e18224d}.fwzdhW_dialog[open]{flex-direction:column;display:flex}.fwzdhW_wide{width:1240px;height:min(850px,100dvh - 40px);overflow:hidden}.fwzdhW_editorDetails{border:1px solid var(--role-border);border-radius:8px;padding:0 12px}.fwzdhW_editorDetails>summary{cursor:pointer;color:var(--role-muted);padding:10px 0;font-size:12px}.fwzdhW_editorDetails>fieldset,.fwzdhW_editorDetails>div{padding:8px 0 14px}.fwzdhW_colorSample{border-radius:50%;width:11px;height:11px;margin-left:10px;display:inline-block}.fwzdhW_dialogHeader{border-bottom:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:20px;padding:22px 26px;display:flex}.fwzdhW_dialogHeader h2{font-size:18px}.fwzdhW_close{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-radius:6px;width:32px;height:32px;font-size:25px;line-height:1}.fwzdhW_close:hover{background:color-mix(in srgb,var(--role-muted) 10%,var(--role-bg))}.fwzdhW_editorScroll{min-height:0;padding:20px 26px 24px;overflow:auto}.fwzdhW_intro{color:var(--role-muted);margin:0 0 16px;font-size:13px;line-height:1.8}.fwzdhW_notice{background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border:1px solid var(--role-border);color:var(--role-muted);border-radius:8px;align-items:center;gap:10px;margin-bottom:24px;padding:11px 13px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_editorGrid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:28px;display:grid}.fwzdhW_fields{flex-direction:column;gap:18px;display:flex}.fwzdhW_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.fwzdhW_field input,.fwzdhW_field textarea{box-sizing:border-box;border:1px solid var(--role-border);width:100%;color:var(--role-text);background:var(--role-bg);font:inherit;border-radius:8px;padding:10px 12px;font-weight:400;line-height:1.7}.fwzdhW_field textarea{resize:vertical;min-height:85px}.fwzdhW_field input::placeholder,.fwzdhW_field textarea::placeholder{color:var(--role-muted);opacity:.75}.fwzdhW_field input:focus,.fwzdhW_field textarea:focus{outline:2px solid color-mix(in srgb,var(--role-accent) 22%,transparent);border-color:var(--role-accent)}.fwzdhW_colorField{border:0;min-width:0;margin:0;padding:0}.fwzdhW_colorField legend{margin-bottom:10px;padding:0;font-size:13px;font-weight:550}.fwzdhW_palette{flex-wrap:wrap;gap:10px;display:flex}.fwzdhW_swatch{cursor:pointer;color:#fff;text-shadow:0 1px 2px #0007;border:2px solid #0000;border-radius:50%;place-items:center;width:28px;height:28px;padding:0;font-size:16px;display:grid}.fwzdhW_swatch[aria-pressed=true]{outline:2px solid var(--role-text);outline-offset:3px}.fwzdhW_customColor{flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;font-size:12px;display:flex}.fwzdhW_customColor label,.fwzdhW_customColor input{cursor:pointer}.fwzdhW_customColor input{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);border-radius:6px;width:34px;height:30px;padding:2px}.fwzdhW_customColor input:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_customColor code{color:var(--role-muted);font-size:12px}.fwzdhW_livePreview{overflow-wrap:anywhere;border-radius:12px;padding:20px}.fwzdhW_previewHeading{justify-content:space-between;align-items:center;font-size:12px;font-weight:600;display:flex}.fwzdhW_dot{background:var(--role-color,var(--role-accent));border-radius:50%;width:6px;height:6px}.fwzdhW_caption{color:var(--role-muted);margin:6px 0 0;font-size:12px;line-height:1.7}.fwzdhW_previewIdentity{align-items:center;gap:12px;margin:24px 0;display:flex}.fwzdhW_previewIdentity h3{margin:0;font-size:16px;font-weight:650}.fwzdhW_previewSection{margin-top:20px}.fwzdhW_previewSection h4{letter-spacing:.5px;color:var(--role-muted);margin:0 0 8px;font-size:11px;font-weight:500}.fwzdhW_previewSection p{white-space:pre-wrap;margin:0;font-size:12px;line-height:1.9}.fwzdhW_empty{color:var(--role-muted);opacity:.65}.fwzdhW_sessionHint{border-top:1px solid var(--role-border);color:var(--role-muted);margin:24px 0 0;padding-top:15px;font-size:11px;line-height:1.7}.fwzdhW_footer{border-top:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:16px;padding:16px 26px;display:flex}.fwzdhW_footer p{color:var(--role-muted);margin:0;font-size:11px;line-height:1.7}.fwzdhW_actions{gap:10px;display:flex}.fwzdhW_picker{border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:10px;align-items:center;gap:9px;padding:6px 10px 6px 6px;font-size:13px;display:inline-flex}.fwzdhW_picker .fwzdhW_icon{border-radius:6px;width:27px;height:27px}.fwzdhW_picker .fwzdhW_icon svg{width:17px;height:17px}.fwzdhW_choices{padding:22px 26px 26px;overflow:auto}.fwzdhW_choice{border:1px solid var(--role-border);text-align:left;background:var(--role-bg);width:100%;color:var(--role-text);font:inherit;cursor:pointer;border-radius:12px;align-items:center;gap:14px;margin-bottom:12px;padding:17px;display:flex}.fwzdhW_choice:hover,.fwzdhW_chosen{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg))}.fwzdhW_choiceText{flex-direction:column;flex:1;gap:8px;min-width:0;display:flex}.fwzdhW_choiceText strong{flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:600;display:flex}.fwzdhW_choiceText>span{color:var(--role-muted);font-size:12px;line-height:1.7}.fwzdhW_radio{border:1px solid var(--role-border);border-radius:50%;flex-shrink:0;place-items:center;width:19px;height:19px;font-size:12px;display:grid}.fwzdhW_chosen .fwzdhW_radio{color:#fff;border-color:var(--role-accent);background:var(--role-accent)}.fwzdhW_choiceTools{border-bottom:1px solid var(--role-border);justify-content:space-between;gap:16px;padding:2px 0 14px;display:flex}.fwzdhW_textButton,.fwzdhW_back{color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;border:0;padding:6px 0;font-size:12px}.fwzdhW_back{align-self:flex-start;margin:14px 26px 0}.fwzdhW_section button:focus-visible,.fwzdhW_dialog button:focus-visible,.fwzdhW_picker:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}@media (width<=680px){.fwzdhW_cards,.fwzdhW_editorGrid{grid-template-columns:1fr}.fwzdhW_sectionHeader{flex-direction:column;align-items:flex-start;gap:14px}.fwzdhW_createCard{padding:22px}.fwzdhW_dialogHeader,.fwzdhW_editorScroll,.fwzdhW_choices{padding:16px}.fwzdhW_footer{flex-direction:column;align-items:flex-end;gap:10px;padding:14px 16px}.fwzdhW_notice{align-items:flex-start}.fwzdhW_dialog{max-height:calc(100dvh - 24px)}.fwzdhW_livePreview{padding:16px}}";
+		const css$9 = ".fwzdhW_section,.fwzdhW_dialog,.fwzdhW_picker,.fwzdhW_presetDisclosure{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);font:inherit}.fwzdhW_section{box-sizing:border-box;width:100%;padding:4px 0 0}.fwzdhW_sectionHeader{justify-content:space-between;align-items:center;gap:20px;margin-bottom:22px;display:flex}.fwzdhW_titleRow{align-items:center;gap:12px;display:flex}.fwzdhW_section h2,.fwzdhW_dialog h2{letter-spacing:-.4px;margin:0;font-size:20px;font-weight:650}.fwzdhW_sectionHeader p{color:var(--role-muted);margin:8px 0 0;font-size:13px;line-height:1.7}.fwzdhW_previewBadge,.fwzdhW_exampleBadge{border:1px solid var(--role-border);color:var(--role-muted);white-space:nowrap;border-radius:6px;flex-shrink:0;align-items:center;padding:3px 8px;font-size:11px;font-weight:500;line-height:1.4;display:inline-flex}.fwzdhW_exampleBadge{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-color:#0000}.fwzdhW_primary,.fwzdhW_secondary{border:1px solid var(--role-border);font:inherit;cursor:pointer;white-space:nowrap;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:550}.fwzdhW_primary{background:var(--role-accent);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:#0000}.fwzdhW_secondary{background:var(--role-bg);color:var(--role-text)}.fwzdhW_primary:hover:not(:disabled){filter:brightness(1.08)}.fwzdhW_primary:disabled{opacity:.42;cursor:not-allowed}.fwzdhW_cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;display:grid}.fwzdhW_selectionStatus{min-height:30px;color:var(--role-muted);justify-content:space-between;align-items:center;gap:12px;margin:-4px 0 18px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_roleCard{transition:box-shadow .18s,border-color .18s;position:relative}.fwzdhW_cardSelect{z-index:1;cursor:pointer;background:0 0;border:0;border-radius:12px 12px 0 0;padding:0;position:absolute;inset:0 0 51px}.fwzdhW_cardSelect:hover{background:color-mix(in srgb,var(--role-color) 5%,transparent)}.fwzdhW_roleCard .fwzdhW_cardAction{z-index:2;position:relative}.fwzdhW_cardBody{border-radius:10px 10px 0 0;flex:1;margin:-22px -22px 0;padding:22px 22px 0;position:relative}.fwzdhW_cardBody .fwzdhW_cardSelect{border-radius:10px 10px 0 0;inset:0}.fwzdhW_cardSelect:disabled{cursor:default}.fwzdhW_cardSelect:disabled:hover{background:0 0}.fwzdhW_roleCard .fwzdhW_cardSummary{-webkit-line-clamp:3;overflow-wrap:anywhere;-webkit-box-orient:vertical;min-height:5.4em;display:-webkit-box;overflow:hidden}.fwzdhW_cardControls{z-index:2;border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border));flex-wrap:wrap;align-items:center;gap:8px 14px;display:flex;position:relative}.fwzdhW_cardControls .fwzdhW_cardAction{border-top:0;flex:1 0 100%;width:auto;min-width:0}.fwzdhW_cardControls .fwzdhW_textButton{min-height:44px;color:var(--role-muted)}.fwzdhW_roleCard .fwzdhW_chatCardNote{padding:14px 0;font-size:12px}.fwzdhW_selectedCard{box-shadow:0 0 0 2px var(--role-color),0 7px 20px color-mix(in srgb,var(--role-color) 20%,transparent);animation:.3s ease-out fwzdhW_roleSelect}.fwzdhW_roleCard .fwzdhW_exampleBadge.fwzdhW_selectedBadge{background:var(--role-color);color:var(--role-on-color,white)}@keyframes fwzdhW_roleSelect{0%,to{transform:translate(0)}30%{transform:translate(-3px)}60%{transform:translate(3px)}}@media (prefers-reduced-motion:reduce){.fwzdhW_selectedCard{animation:none}}.fwzdhW_currentAssistant{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);box-sizing:border-box;border:1px solid color-mix(in srgb,var(--role-color) 22%,transparent);background:color-mix(in srgb,var(--role-bg) 88%,transparent);backdrop-filter:blur(12px);max-width:100%;min-height:38px;color:var(--role-text);text-align:left;font:inherit;cursor:pointer;border-radius:22px;align-items:center;gap:8px;padding:6px 12px 6px 7px;transition:background .16s,border-color .16s,box-shadow .16s;display:inline-flex;box-shadow:0 2px 8px #182c5008}.fwzdhW_currentAssistant:hover{background:color-mix(in srgb,var(--role-color) 8%,var(--role-bg));border-color:color-mix(in srgb,var(--role-color) 45%,transparent);box-shadow:0 3px 12px #182c5010}.fwzdhW_currentAssistant:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_currentAssistant .fwzdhW_icon{border-radius:50%;width:24px;height:24px}.fwzdhW_currentAssistant .fwzdhW_icon svg{width:15px;height:15px}.fwzdhW_currentText{text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:13px;font-weight:550;line-height:20px;overflow:hidden}.fwzdhW_currentHint{color:var(--role-muted);border-left:1px solid color-mix(in srgb,var(--role-muted) 20%,transparent);flex-shrink:0;padding:0 6px;font-size:10px;line-height:16px}.fwzdhW_currentArrow{width:14px;height:14px;color:var(--role-muted);flex-shrink:0}@media (width<=400px){.fwzdhW_currentHint{display:none}}.fwzdhW_roleCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:14px;flex-direction:column;min-width:0;padding:22px 22px 0;display:flex}.fwzdhW_cardTop{justify-content:space-between;align-items:center;gap:12px;display:flex}.fwzdhW_icon{width:42px;height:42px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));border-radius:11px;flex-shrink:0;justify-content:center;align-items:center;display:inline-flex}.fwzdhW_icon svg{width:23px;height:23px}.fwzdhW_icon img{object-fit:contain;width:100%;height:100%;padding:4px;display:block}.fwzdhW_currentAssistant .fwzdhW_icon img{padding:2px}.fwzdhW_icon{color:color-mix(in srgb,var(--role-color,var(--role-accent)) 65%,var(--role-text));background:color-mix(in srgb,var(--role-color,var(--role-accent)) 20%,var(--role-bg))}.fwzdhW_roleCard,.fwzdhW_livePreview{border-color:color-mix(in srgb,var(--role-color) 40%,var(--role-border));border-top:4px solid var(--role-color);background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg)))}.fwzdhW_roleCard .fwzdhW_exampleBadge,.fwzdhW_roleCard .fwzdhW_tags span{background:color-mix(in srgb,var(--role-color) 15%,var(--role-bg));color:color-mix(in srgb,var(--role-color) 45%,var(--role-text))}.fwzdhW_roleCard .fwzdhW_cardAction{color:color-mix(in srgb,var(--role-color) 55%,var(--role-text));border-top-color:color-mix(in srgb,var(--role-color) 25%,var(--role-border))}.fwzdhW_roleCard h3{margin:18px 0 8px;font-size:16px;font-weight:650}.fwzdhW_roleCard p{color:var(--role-muted);margin:0;font-size:13px;line-height:1.8}.fwzdhW_tags{flex-wrap:wrap;gap:7px;margin:18px 0 22px;display:flex}.fwzdhW_tags span{background:color-mix(in srgb,var(--role-muted) 8%,var(--role-bg));color:var(--role-muted);border-radius:5px;padding:4px 8px;font-size:11px}.fwzdhW_cardAction{border:0;border-top:1px solid var(--role-border);width:100%;color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;justify-content:space-between;align-items:center;margin-top:auto;padding:14px 0;font-size:13px;display:flex}.fwzdhW_createCard{border:1px dashed var(--role-border);width:100%;color:var(--role-muted);font:inherit;cursor:pointer;background:0 0;border-radius:14px;justify-content:flex-start;align-items:center;gap:13px;margin-top:16px;padding:16px 20px;display:flex}.fwzdhW_createCard:hover{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.fwzdhW_createCard strong{color:var(--role-text);font-size:14px;font-weight:550}.fwzdhW_createCard>span:last-child{text-align:left;font-size:12px;line-height:1.8}.fwzdhW_plus{border:1px solid var(--role-border);border-radius:50%;place-items:center;width:38px;height:38px;font-size:24px;font-weight:300;display:grid}.fwzdhW_createCard .fwzdhW_plus{flex-shrink:0;width:30px;height:30px}.fwzdhW_createCard strong{flex-shrink:0}@media (width<=680px){.fwzdhW_createCard{flex-wrap:wrap}.fwzdhW_createCard>span:last-child{width:100%}}.fwzdhW_sectionNote{color:var(--role-muted);margin:14px 0 0;font-size:12px;line-height:1.8}.fwzdhW_presetDisclosure{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;margin-top:24px}.fwzdhW_presetDisclosure>summary{cursor:pointer;justify-content:space-between;align-items:center;gap:16px;padding:14px 16px;font-size:14px;font-weight:550;list-style:none;display:flex}.fwzdhW_presetDisclosure>summary::-webkit-details-marker{display:none}.fwzdhW_presetDisclosure>summary:hover{background:color-mix(in srgb,var(--role-muted) 5%,transparent);border-radius:10px}.fwzdhW_presetDisclosure>summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px;border-radius:10px}.fwzdhW_disclosureChevron{width:16px;height:16px;color:var(--role-muted);flex-shrink:0}.fwzdhW_presetDisclosure[open]>summary .fwzdhW_disclosureChevron{transform:rotate(90deg)}.fwzdhW_disclosureContent{border-top:1px solid var(--role-border);padding:18px 16px}.fwzdhW_dialog{background:var(--role-bg);border:1px solid var(--role-border);border-radius:18px;width:560px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 40px);padding:0;overflow:auto;box-shadow:0 24px 90px #10223d30}.fwzdhW_dialog::backdrop{backdrop-filter:blur(3px);background:#0e18224d}.fwzdhW_dialog[open]{flex-direction:column;display:flex}.fwzdhW_wide{width:1240px;height:min(850px,100dvh - 40px);overflow:hidden}.fwzdhW_editorDetails{border:1px solid var(--role-border);border-radius:8px;padding:0 12px}.fwzdhW_editorDetails>summary{cursor:pointer;color:var(--role-muted);padding:10px 0;font-size:12px}.fwzdhW_editorDetails>fieldset,.fwzdhW_editorDetails>div{padding:8px 0 14px}.fwzdhW_colorSample{border-radius:50%;width:11px;height:11px;margin-left:10px;display:inline-block}.fwzdhW_dialogHeader{border-bottom:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:20px;padding:22px 26px;display:flex}.fwzdhW_dialogHeader h2{font-size:18px}.fwzdhW_close{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-radius:6px;width:32px;height:32px;font-size:25px;line-height:1}.fwzdhW_close:hover{background:color-mix(in srgb,var(--role-muted) 10%,var(--role-bg))}.fwzdhW_editorScroll{min-height:0;padding:20px 26px 24px;overflow:auto}.fwzdhW_intro{color:var(--role-muted);margin:0 0 16px;font-size:13px;line-height:1.8}.fwzdhW_notice{background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border:1px solid var(--role-border);color:var(--role-muted);border-radius:8px;align-items:center;gap:10px;margin-bottom:24px;padding:11px 13px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_editorGrid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:28px;display:grid}.fwzdhW_fields{flex-direction:column;gap:18px;display:flex}.fwzdhW_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.fwzdhW_field input,.fwzdhW_field textarea{box-sizing:border-box;border:1px solid var(--role-border);width:100%;color:var(--role-text);background:var(--role-bg);font:inherit;border-radius:8px;padding:10px 12px;font-weight:400;line-height:1.7}.fwzdhW_field textarea{resize:vertical;min-height:85px}.fwzdhW_field input::placeholder,.fwzdhW_field textarea::placeholder{color:var(--role-muted);opacity:.75}.fwzdhW_field input:focus,.fwzdhW_field textarea:focus{outline:2px solid color-mix(in srgb,var(--role-accent) 22%,transparent);border-color:var(--role-accent)}.fwzdhW_colorField{border:0;min-width:0;margin:0;padding:0}.fwzdhW_colorField legend{margin-bottom:10px;padding:0;font-size:13px;font-weight:550}.fwzdhW_palette{flex-wrap:wrap;gap:10px;display:flex}.fwzdhW_swatch{cursor:pointer;color:#fff;text-shadow:0 1px 2px #0007;border:2px solid #0000;border-radius:50%;place-items:center;width:28px;height:28px;padding:0;font-size:16px;display:grid}.fwzdhW_swatch[aria-pressed=true]{outline:2px solid var(--role-text);outline-offset:3px}.fwzdhW_customColor{flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;font-size:12px;display:flex}.fwzdhW_customColor label,.fwzdhW_customColor input{cursor:pointer}.fwzdhW_customColor input{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);border-radius:6px;width:34px;height:30px;padding:2px}.fwzdhW_customColor input:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_customColor code{color:var(--role-muted);font-size:12px}.fwzdhW_livePreview{overflow-wrap:anywhere;border-radius:12px;padding:20px}.fwzdhW_previewHeading{justify-content:space-between;align-items:center;font-size:12px;font-weight:600;display:flex}.fwzdhW_dot{background:var(--role-color,var(--role-accent));border-radius:50%;width:6px;height:6px}.fwzdhW_caption{color:var(--role-muted);margin:6px 0 0;font-size:12px;line-height:1.7}.fwzdhW_previewIdentity{align-items:center;gap:12px;margin:24px 0;display:flex}.fwzdhW_previewIdentity h3{margin:0;font-size:16px;font-weight:650}.fwzdhW_previewSection{margin-top:20px}.fwzdhW_previewSection h4{letter-spacing:.5px;color:var(--role-muted);margin:0 0 8px;font-size:11px;font-weight:500}.fwzdhW_previewSection p{white-space:pre-wrap;margin:0;font-size:12px;line-height:1.9}.fwzdhW_empty{color:var(--role-muted);opacity:.65}.fwzdhW_sessionHint{border-top:1px solid var(--role-border);color:var(--role-muted);margin:24px 0 0;padding-top:15px;font-size:11px;line-height:1.7}.fwzdhW_footer{border-top:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:16px;padding:16px 26px;display:flex}.fwzdhW_footer p{color:var(--role-muted);margin:0;font-size:11px;line-height:1.7}.fwzdhW_actions{gap:10px;display:flex}.fwzdhW_picker{border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:10px;align-items:center;gap:9px;padding:6px 10px 6px 6px;font-size:13px;display:inline-flex}.fwzdhW_picker .fwzdhW_icon{border-radius:6px;width:27px;height:27px}.fwzdhW_picker .fwzdhW_icon svg{width:17px;height:17px}.fwzdhW_choices{padding:22px 26px 26px;overflow:auto}.fwzdhW_choice{border:1px solid var(--role-border);text-align:left;background:var(--role-bg);width:100%;color:var(--role-text);font:inherit;cursor:pointer;border-radius:12px;align-items:center;gap:14px;margin-bottom:12px;padding:17px;display:flex}.fwzdhW_choice:hover,.fwzdhW_chosen{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg))}.fwzdhW_choiceText{flex-direction:column;flex:1;gap:8px;min-width:0;display:flex}.fwzdhW_choiceText strong{flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:600;display:flex}.fwzdhW_choiceText>span{color:var(--role-muted);font-size:12px;line-height:1.7}.fwzdhW_radio{border:1px solid var(--role-border);border-radius:50%;flex-shrink:0;place-items:center;width:19px;height:19px;font-size:12px;display:grid}.fwzdhW_chosen .fwzdhW_radio{color:#fff;border-color:var(--role-accent);background:var(--role-accent)}.fwzdhW_choiceTools{border-bottom:1px solid var(--role-border);justify-content:space-between;gap:16px;padding:2px 0 14px;display:flex}.fwzdhW_textButton,.fwzdhW_back{color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;border:0;padding:6px 0;font-size:12px}.fwzdhW_section>.fwzdhW_textButton{color:var(--role-text)}.fwzdhW_section>.fwzdhW_textButton:focus-visible{outline-color:var(--role-text)}.fwzdhW_back{align-self:flex-start;margin:14px 26px 0}.fwzdhW_section button:focus-visible,.fwzdhW_dialog button:focus-visible,.fwzdhW_picker:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}@media (width<=680px){.fwzdhW_cards,.fwzdhW_editorGrid{grid-template-columns:1fr}.fwzdhW_sectionHeader{flex-direction:column;align-items:flex-start;gap:14px}.fwzdhW_createCard{padding:22px}.fwzdhW_dialogHeader,.fwzdhW_editorScroll,.fwzdhW_choices{padding:16px}.fwzdhW_footer{flex-direction:column;align-items:flex-end;gap:10px;padding:14px 16px}.fwzdhW_notice{align-items:flex-start}.fwzdhW_dialog{max-height:calc(100dvh - 24px)}.fwzdhW_livePreview{padding:16px}}";
 		const tagId$9 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Roles.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$9) + "]") === null) {
 			const tag = document.createElement("style");
@@ -4528,7 +4589,7 @@ window.__ModuleLoader__.load({
 			};
 		}
 		function ManagedCapabilityCard({ capability: c, data, busy, onManage, onPin, onRemove, onRestore, onPurge, selection, meetingStatus, requirementsStatus }) {
-			const status = c.removedAt ? "已移除" : !c.enabled ? "已停用" : !c.versions.length ? "草稿" : c.id === "developer-workspace" ? "项目内检测" : c.id === "requirements-analysis" ? requirementsStatus?.ready ? "可使用" : requirementsStatus ? "待配置" : "检测中" : c.id === "meeting-transcription" ? meetingStatus?.ready ? "已配置" : meetingStatus?.state === "disabled" ? "不可用" : meetingStatus ? "待配置" : "检测中" : data.health.state === "ready" ? "可使用" : "待连接";
+			const presentation = capabilityPresentation(data, c, latest(c.versions), meetingStatus, requirementsStatus), status = presentation.label;
 			const pinLabel = `${c.pinned ? "取消收藏" : "收藏能力"}：${c.draft.name}`;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
 				className: `${ManagedCapabilities_module_css_default.card} ${c.pinned && !c.removedAt ? ManagedCapabilities_module_css_default.pinnedCard : ""} ${selection?.checked ? ManagedCapabilities_module_css_default.selectedCard : ""}`,
@@ -4541,7 +4602,7 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ManagedCapabilities_module_css_default.cardTop,
 						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: c.id === "requirements-analysis" || c.id === "developer-workspace" ? "document" : c.id === "meeting-transcription" ? "audio" : "browser" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: presentation.icon }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 								className: ManagedCapabilities_module_css_default.cardSource,
 								children: c.source === "builtin" ? "内置能力" : "我的能力"
@@ -4575,7 +4636,7 @@ window.__ModuleLoader__.load({
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 								className: ManagedCapabilities_module_css_default.badge,
-								title: c.id === "requirements-analysis" ? requirementsStatus?.message : c.id === "meeting-transcription" ? meetingStatus?.message : void 0,
+								title: presentation.message,
 								children: status
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [capabilityImpact(data, c.id).roles.length, " 个岗位引用"] }),
@@ -7547,6 +7608,28 @@ window.__ModuleLoader__.load({
 			}, component));
 		}
 		//#endregion
+		//#region src/client/native-preset-view.ts
+		/** Presentation adapter only: native resolution and historical session presets remain intact. */
+		function isManagedPreset(id) {
+			return /^workbench-role-[a-z][a-z0-9-]*-v[1-9][0-9]*$/.test(id);
+		}
+		function nativePresetHook(useRoster) {
+			const projected = /* @__PURE__ */ new WeakMap();
+			return function useNativePresets(selector) {
+				return useRoster((snapshot) => {
+					let value = projected.get(snapshot);
+					if (!value) {
+						value = {
+							...snapshot,
+							rows: snapshot.rows.filter((row) => !isManagedPreset(row.id))
+						};
+						projected.set(snapshot, value);
+					}
+					return selector(value);
+				});
+			};
+		}
+		//#endregion
 		//#region src/client/role-catalog.ts
 		const roleIds = [
 			"analyst",
@@ -7637,9 +7720,12 @@ window.__ModuleLoader__.load({
 						strokeLinecap: "round",
 						strokeLinejoin: "round"
 					})
-				})] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				})] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: Roles_module_css_default.disclosureContent,
-					children
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: Roles_module_css_default.sectionNote,
+						children: "这里管理原生预设。原生默认预设仅在创建会话时没有指定岗位或预设才会采用；上方选定的岗位用于工作台下一次新对话，当前会话继续使用创建时的版本。岗位历史版本集中在岗位卡片的“版本”中查看。"
+					}), children]
 				})]
 			});
 		}
@@ -9645,6 +9731,191 @@ window.__ModuleLoader__.load({
 			return actionsOf(published).includes("analyze-requirements") && (!binding.actions || binding.actions.includes("analyze-requirements"));
 		}
 		//#endregion
+		//#region src/client/RoleImpactDialog.tsx
+		function roleActivities(data, roleId) {
+			const merged = /* @__PURE__ */ new Map();
+			for (const task of data.tasks.filter((t) => t.roleId === roleId && (["running", "stopping"].includes(t.status) || t.browserSessions.length))) merged.set("browser:" + task.sessionId, {
+				id: task.sessionId,
+				roleId,
+				roleVersion: task.roleVersion,
+				kind: "browser",
+				name: task.name,
+				status: task.status,
+				componentIds: []
+			});
+			for (const task of data.componentActivities ?? []) if (task.roleId === roleId) merged.set(task.kind + ":" + task.id, task);
+			return [...merged.values()];
+		}
+		function RoleImpactDialog({ data, roleId, action = "disable", onClose, onDone }) {
+			const [revision] = (0, react.useState)(data.state.revision), [busy, setBusy] = (0, react.useState)(false), [error, setError] = (0, react.useState)("");
+			const verb = action === "archive" ? "归档" : "停用";
+			const role = data.state.roles.find((role) => role.id === roleId), tasks = roleActivities(data, roleId);
+			const confirm = async () => {
+				setBusy(true);
+				setError("");
+				try {
+					await capabilityClient.command(action === "archive" ? {
+						type: "role.archive",
+						id: roleId
+					} : {
+						type: "role.toggle",
+						id: roleId,
+						enabled: false
+					}, revision);
+					onDone();
+				} catch (error) {
+					setError(error instanceof Error ? error.message : String(error));
+				} finally {
+					setBusy(false);
+				}
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$1, {
+				title: verb + "岗位",
+				closeLabel: "取消" + verb,
+				onClose: () => {
+					if (!busy) onClose();
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.dialogBody}`,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+							verb,
+							"“",
+							role && rolePresentation(role).name,
+							"”"
+						] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+							className: ManagedCapabilities_module_css_default.notice,
+							children: ["将阻止新建任务及历史任务的后续执行。配置与历史结果保留；重新启用只授权新任务，旧任务不会自动恢复权限。", action === "archive" && "归档后移入“已归档”，恢复后仍保持停用。"]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+							"当前检测到 ",
+							tasks.length,
+							" 个活动任务（包含保持打开的浏览器窗口）。"
+						] }),
+						tasks.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+							className: ManagedCapabilities_module_css_default.list,
+							children: tasks.map((task) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+								task.name,
+								" · ",
+								task.status
+							] }, task.kind + ":" + task.id))
+						}),
+						revision !== data.state.revision && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							role: "status",
+							children: "配置已变更，请关闭后重新核对。"
+						}),
+						error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							role: "alert",
+							children: error
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.confirmActions,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: busy,
+								onClick: onClose,
+								children: "取消"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.dangerButton}`,
+								disabled: busy || revision !== data.state.revision || !role,
+								onClick: () => void confirm(),
+								children: busy ? "正在" + verb + "…" : "确认" + verb
+							})]
+						})
+					]
+				})
+			});
+		}
+		//#endregion
+		//#region src/client/RoleVersions.tsx
+		const fields = {
+			name: "名称",
+			duties: "岗位职责",
+			requirements: "工作要求",
+			format: "输出格式",
+			color: "配色",
+			icon: "图标",
+			capabilities: "能力与动作范围"
+		};
+		function roleVersionChanges(version, previous) {
+			return previous ? Object.entries(fields).filter(([key]) => JSON.stringify(version[key]) !== JSON.stringify(previous[key])).map(([, label]) => label) : ["首次发布"];
+		}
+		function RoleVersionList({ data, role, onEdit }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+					className: ManagedCapabilities_module_css_default.notice,
+					children: "新对话采用最新发布版本；历史版本保留供旧会话引用。下方仅统计当前活动任务，不代表全部历史会话。"
+				}),
+				[...role.versions].reverse().map((version, index) => {
+					const previous = role.versions[role.versions.indexOf(version) - 1], changed = roleVersionChanges(version, previous);
+					const active = roleActivities(data, role.id).filter((task) => task.roleVersion === version.version);
+					return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+						open: index === 0,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+								"v",
+								version.version,
+								" · ",
+								version.name,
+								" · ",
+								new Date(version.createdAt).toLocaleString()
+							] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+								previous ? `较 v${previous.version}：` : "",
+								changed.length ? changed.join("、") : "配置无变化",
+								" · ",
+								active.length,
+								" 个活动任务引用"
+							] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dl", { children: [
+								"duties",
+								"requirements",
+								"format"
+							].map((field) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react.default.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: fields[field] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", {
+								className: ManagedCapabilities_module_css_default.versionValue,
+								children: version[field] || "未填写"
+							})] }, field)) }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+								className: ManagedCapabilities_module_css_default.list,
+								children: version.capabilities.map((binding) => {
+									const capability = resolveBinding(data.state, binding);
+									return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+										capability?.name ?? "能力缺失",
+										" · v",
+										binding.version,
+										" · ",
+										binding.enabled ? (binding.actions ?? actionsOf(capability)).map((action) => actionNames[action]).join("、") || "无执行动作" : "岗位中停用"
+									] }, binding.capabilityId);
+								})
+							}),
+							!role.archivedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								onClick: () => onEdit(version),
+								children: [
+									"从 v",
+									version.version,
+									" 恢复到编辑草稿"
+								]
+							})
+						]
+					}, version.version);
+				}),
+				!role.versions.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "此岗位尚未发布，只有草稿。" })
+			] });
+		}
+		function RoleVersionDialog(props) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$1, {
+				title: "岗位版本记录",
+				closeLabel: "关闭版本记录",
+				onClose: props.onClose,
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.dialogBody}`,
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleVersionList, { ...props })
+				})
+			});
+		}
+		//#endregion
 		//#region src/client/ManagedRoles.tsx
 		const freeChat = {
 			name: "自由聊天",
@@ -9709,6 +9980,11 @@ window.__ModuleLoader__.load({
 				});
 			};
 			const binding = draft.capabilities.find((b) => b.capabilityId === selected), cap = state.capabilities.find((c) => c.id === selected), version = binding && resolveBinding(state, binding);
+			const describe = (c, v = c && latest(c.versions)) => c ? capabilityPresentation(data, c, v, meetingStatus, requirementsStatus) : {
+				icon: "document",
+				label: "能力缺失",
+				message: "能力已不存在"
+			};
 			const updateBinding = (patch) => change({
 				...draft,
 				capabilities: draft.capabilities.map((b) => b.capabilityId === selected ? {
@@ -9749,17 +10025,17 @@ window.__ModuleLoader__.load({
 					library: state.capabilities.filter((c) => !c.removedAt && c.versions.length && (id === "meeting-minutes-demo" ? c.id === "meeting-transcription" : c.id !== "meeting-transcription")).map((c) => ({
 						id: c.id,
 						name: c.draft.name,
-						icon: c.id === "requirements-analysis" ? "document" : c.id === "meeting-transcription" ? "audio" : "browser",
+						icon: describe(c).icon,
 						subtitle: `v${latest(c.versions).version} · ${c.enabled ? "已发布" : "已停用"}`,
 						disabled: id === MEETING_ROLE_ID
 					})),
 					attached: draft.capabilities.map((b) => {
-						const c = state.capabilities.find((c) => c.id === b.capabilityId);
+						const c = state.capabilities.find((c) => c.id === b.capabilityId), presentation = describe(c, resolveBinding(state, b));
 						return {
 							id: b.capabilityId,
 							name: c?.draft.name ?? "能力缺失",
-							icon: b.capabilityId === "requirements-analysis" ? "document" : b.capabilityId === "meeting-transcription" ? "audio" : "browser",
-							subtitle: `v${b.version} · ${c?.removedAt ? "能力已移除" : !b.enabled ? "岗位中停用" : !c?.enabled ? "能力已停用" : b.capabilityId === "requirements-analysis" ? requirementsStatus?.ready ? "可使用" : "待配置" : b.capabilityId === "meeting-transcription" ? meetingStatus?.ready ? "已配置" : meetingStatus?.state === "disabled" ? "不可用" : "待配置" : data.health.state === "ready" ? "可使用" : "待连接"}`,
+							icon: presentation.icon,
+							subtitle: `v${b.version} · ${c?.removedAt ? "能力已移除" : !b.enabled ? "岗位中停用" : !c?.enabled ? "能力已停用" : presentation.label}`,
 							removable: b.capabilityId !== MEETING_CAPABILITY_ID
 						};
 					}),
@@ -9995,7 +10271,7 @@ window.__ModuleLoader__.load({
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 									className: ManagedCapabilities_module_css_default.notice,
-									children: cap.id === "requirements-analysis" ? requirementsStatus?.message ?? "正在读取需求配置…" : data.health.message
+									children: describe(cap, version).message
 								})
 							] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "先添加此能力，再设置岗位覆盖。" }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
@@ -10127,9 +10403,34 @@ window.__ModuleLoader__.load({
 				window.addEventListener("workbench-capability-link", open);
 				return () => window.removeEventListener("workbench-capability-link", open);
 			}, [entry]);
+			const [history, setHistory] = (0, react.useState)(null);
+			const historyRole = data?.state.roles.find((role) => role.id === history);
+			const [pendingAction, setPendingAction] = (0, react.useState)(null), [archived, setArchived] = (0, react.useState)(false);
 			const meetingStatus = useMeetingStatus();
-			const displayedRoles = [...data?.state.roles ?? []].sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID));
+			const displayedRoles = [...data?.state.roles ?? []].filter((role) => !!role.archivedAt === archived).sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID));
 			const selectedRole = data?.state.roles.find((role) => role.id === selected && role.enabled && role.versions.length);
+			const restoreRole = async (id) => {
+				try {
+					await capabilityClient.command({
+						type: "role.restore",
+						id
+					});
+					setArchived(false);
+				} catch (error) {
+					setMessage(error instanceof Error ? error.message : String(error));
+				}
+			};
+			const copyRole = async (id) => {
+				try {
+					const copied = await capabilityClient.command({
+						type: "role.copy",
+						id
+					});
+					setEditor({ id: copied });
+				} catch (error) {
+					setMessage(error instanceof Error ? error.message : String(error));
+				}
+			};
 			const toggleRole = async (id, enabled) => {
 				try {
 					await capabilityClient.command({
@@ -10162,16 +10463,22 @@ window.__ModuleLoader__.load({
 						className: Roles_module_css_default.selectionStatus,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 							role: "status",
-							children: selected === "chat" ? `已选定：${freeChat.name}` : selectedRole ? `已选定：${selectedRole.draft.name}` : data ? "当前岗位暂不可用" : "正在读取选定岗位…"
+							children: selected === "chat" ? `已选定：${freeChat.name}` : selectedRole ? `已选定：${rolePresentation(selectedRole).name}` : data ? "当前岗位暂不可用" : "正在读取选定岗位…"
 						}), selected !== "chat" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							className: Roles_module_css_default.textButton,
 							onClick: () => onSelect("chat"),
 							children: "返回自由聊天"
 						})]
 					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: Roles_module_css_default.textButton,
+						"aria-pressed": archived,
+						onClick: () => setArchived((value) => !value),
+						children: archived ? "返回可用岗位" : `已归档（${data?.state.roles.filter((role) => role.archivedAt).length ?? 0}）`
+					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: Roles_module_css_default.cards,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
+						children: [!archived && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
 							"data-role-id": "chat",
 							"aria-label": freeChat.name,
 							className: `${Roles_module_css_default.roleCard} ${selected === "chat" ? Roles_module_css_default.selectedCard : ""}`,
@@ -10218,19 +10525,19 @@ window.__ModuleLoader__.load({
 								})
 							})]
 						}), displayedRoles.map((role) => {
-							const published = latest(role.versions), selectable = role.enabled && !!published, chosen = selectable && selected === role.id;
+							const displayed = rolePresentation(role), published = latest(role.versions), selectable = role.enabled && !!published, chosen = selectable && selected === role.id;
 							return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
 								"data-role-id": role.id,
-								"aria-label": role.draft.name,
+								"aria-label": displayed.name,
 								className: `${Roles_module_css_default.roleCard} ${chosen ? Roles_module_css_default.selectedCard : ""}`,
-								style: appearanceStyle(role.draft.color),
+								style: appearanceStyle(displayed.color),
 								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 									className: Roles_module_css_default.cardBody,
 									children: [
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											type: "button",
 											className: Roles_module_css_default.cardSelect,
-											"aria-label": `选定助手：${role.draft.name}`,
+											"aria-label": `选定助手：${displayed.name}`,
 											"aria-pressed": chosen,
 											disabled: !selectable,
 											onClick: () => onSelect(role.id)
@@ -10239,41 +10546,77 @@ window.__ModuleLoader__.load({
 											className: Roles_module_css_default.cardTop,
 											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleAppearanceIcon, {
 												roleId: role.id,
-												icon: role.draft.icon,
-												color: role.draft.color
+												icon: displayed.icon,
+												color: displayed.color
 											}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 												className: `${Roles_module_css_default.exampleBadge} ${chosen ? Roles_module_css_default.selectedBadge : ""}`,
-												children: chosen ? "✓ 已选定" : !role.enabled ? "已停用" : published ? "岗位助手" : "草稿"
+												children: chosen ? "✓ 已选定" : role.archivedAt ? "已归档" : !role.enabled ? "已停用" : published ? "岗位助手" : "草稿"
 											})]
 										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: role.draft.name }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: displayed.name }),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 											className: Roles_module_css_default.cardSummary,
-											title: role.draft.duties,
-											children: role.draft.duties || "点击编辑岗位，填写职责与工作要求。"
+											title: displayed.duties,
+											children: displayed.duties || "点击编辑岗位，填写职责与工作要求。"
 										}),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 											className: Roles_module_css_default.tags,
-											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: published ? `已发布 v${published.version}` : "未发布" }), role.id === "meeting-minutes-demo" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "快速生成 · 引导整理" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												title: meetingStatus?.message,
-												children: meetingStatus?.ready === true ? "录音转写已配置" : meetingStatus?.state === "disabled" ? "录音转写不可用" : meetingStatus?.ready === false ? "录音转写待配置" : "正在检测录音转写"
-											})] }) : usesRequirements(data?.state, published) ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "快速整理 · 引导分析" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "需求工作区" })] }) : role.id === "builtin-analyst" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [role.draft.capabilities.length, " 个能力"] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "可编辑岗位，选择需求分析能力" })] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [role.draft.capabilities.length, " 个能力"] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [data?.tasks.filter((t) => t.roleId === role.id && t.status !== "stopped").length ?? 0, " 个活动会话"] })] })]
+											children: [
+												roleHasUnpublishedChanges(role) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "有未发布修改" }),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: published ? `已发布 v${published.version}` : "未发布" }),
+												role.id === "meeting-minutes-demo" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "快速生成 · 引导整理" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+													title: meetingStatus?.message,
+													children: meetingStatus?.ready === true ? "录音转写已配置" : meetingStatus?.state === "disabled" ? "录音转写不可用" : meetingStatus?.ready === false ? "录音转写待配置" : "正在检测录音转写"
+												})] }) : usesRequirements(data?.state, published) ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "快速整理 · 引导分析" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "需求工作区" })] }) : role.id === "builtin-analyst" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [displayed.capabilities.length, " 个能力"] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "可编辑岗位，选择需求分析能力" })] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [displayed.capabilities.length, " 个能力"] }) }),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [roleActivities(data, role.id).length, " 个活动任务"] })
+											]
 										})
 									]
 								}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 									className: Roles_module_css_default.cardControls,
-									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-										className: Roles_module_css_default.cardAction,
-										onClick: () => setEditor({ id: role.id }),
-										children: ["编辑岗位", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-											"aria-hidden": "true",
-											children: "↗"
-										})]
-									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										className: Roles_module_css_default.textButton,
-										onClick: () => void toggleRole(role.id, !role.enabled),
-										children: role.enabled ? "停用" : "启用"
-									})]
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+											className: Roles_module_css_default.cardAction,
+											disabled: !!role.archivedAt,
+											onClick: () => setEditor({ id: role.id }),
+											children: ["编辑岗位", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+												"aria-hidden": "true",
+												children: "↗"
+											})]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+											className: Roles_module_css_default.textButton,
+											onClick: () => setHistory(role.id),
+											children: [
+												"版本（",
+												role.versions.length,
+												"）"
+											]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											className: Roles_module_css_default.textButton,
+											disabled: !!role.archivedAt || role.id === "meeting-minutes-demo",
+											title: role.id === "meeting-minutes-demo" ? "会议使用专用流程，请编辑原岗位并发布新版本" : "复制当前已发布配置为独立草稿",
+											onClick: () => void copyRole(role.id),
+											children: "复制岗位"
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											className: Roles_module_css_default.textButton,
+											onClick: () => role.archivedAt ? void restoreRole(role.id) : role.enabled ? setPendingAction({
+												id: role.id,
+												action: "disable"
+											}) : void toggleRole(role.id, true),
+											children: role.archivedAt ? "恢复岗位" : role.enabled ? "停用" : "启用"
+										}),
+										!role.archivedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											className: Roles_module_css_default.textButton,
+											onClick: () => setPendingAction({
+												id: role.id,
+												action: "archive"
+											}),
+											children: "归档"
+										})
+									]
 								})]
 							}, role.id);
 						})]
@@ -10286,6 +10629,30 @@ window.__ModuleLoader__.load({
 						className: Roles_module_css_default.sectionNote,
 						children: "点击卡片选定助手；选择会用于下一次新对话，当前对话保持不变。"
 					}),
+					data && historyRole && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleVersionDialog, {
+						data,
+						role: historyRole,
+						onClose: () => setHistory(null),
+						onEdit: (version) => {
+							if ((editorDrafts.has("role:" + historyRole.id) || roleHasUnpublishedChanges(historyRole)) && !window.confirm("恢复历史版本将替换当前编辑草稿，已发布版本不受影响。是否继续？")) return;
+							editorDrafts.set("role:" + historyRole.id, {
+								value: structuredClone(version),
+								revision: data.state.revision
+							});
+							setEditor({ id: historyRole.id });
+							setHistory(null);
+						}
+					}),
+					data && pendingAction && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleImpactDialog, {
+						data,
+						roleId: pendingAction.id,
+						action: pendingAction.action,
+						onClose: () => setPendingAction(null),
+						onDone: () => {
+							if (selected === pendingAction.id) onSelect("chat");
+							setPendingAction(null);
+						}
+					}),
 					editor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRoleEditor, {
 						restore: restoration,
 						id: editor.id,
@@ -10296,7 +10663,7 @@ window.__ModuleLoader__.load({
 		}
 		function ManagedRolePicker({ selected, onSelect, t }) {
 			const { data } = useCapabilities(), [open, setOpen] = (0, react.useState)(false), [editor, setEditor] = (0, react.useState)(false);
-			const role = data?.state.roles.find((role) => role.id === selected);
+			const role = data?.state.roles.find((role) => role.id === selected), displayed = role && rolePresentation(role);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 					className: Roles_module_css_default.picker,
@@ -10305,10 +10672,10 @@ window.__ModuleLoader__.load({
 					children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleAppearanceIcon, {
 							roleId: role?.id ?? "chat",
-							icon: role?.draft.icon,
-							color: role?.draft.color ?? freeChat.color
+							icon: displayed?.icon,
+							color: displayed?.color ?? freeChat.color
 						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: role?.draft.name ?? t("mode") }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: displayed?.name ?? t("mode") }),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "⌄" })
 					]
 				}),
@@ -10340,8 +10707,8 @@ window.__ModuleLoader__.load({
 								},
 								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleAppearanceIcon, {
 									roleId: role.id,
-									icon: role.draft.icon,
-									color: role.draft.color
+									icon: rolePresentation(role).icon,
+									color: rolePresentation(role).color
 								}) }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: latest(role.versions).name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: role.id === "meeting-minutes-demo" ? `v${latest(role.versions).version} · 快速生成 / 引导整理` : usesRequirements(data?.state, latest(role.versions)) ? `v${latest(role.versions).version} · 快速整理 / 引导分析` : `v${latest(role.versions).version} · ${latest(role.versions).capabilities.length} 个能力` })] })]
 							}, role.id)),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
@@ -10362,7 +10729,7 @@ window.__ModuleLoader__.load({
 		function ManagedCurrentAssistant({ selected, onOpen, preset }) {
 			const { data } = useCapabilities();
 			const role = data?.state.roles.find((role) => role.id === selected);
-			const appearance = (preset ? role?.versions.find((version) => version.preset === preset) : void 0) ?? role?.draft;
+			const appearance = (preset ? role?.versions.find((version) => version.preset === preset) : void 0) ?? (role && rolePresentation(role));
 			const name = appearance?.name ?? freeChat.name, color = appearance?.color ?? freeChat.color;
 			const iconSpec = appearance?.icon;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
@@ -17124,7 +17491,7 @@ window.__ModuleLoader__.load({
 									className: LocalConversationRows_module_css_default.title,
 									children: row.title
 								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: row.kind === "developer" ? "开发" : row.kind === "requirements" ? "需求" : row.kind === "demo" ? "演示" : row.draft.trim() ? "草稿" : "临时" })
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: row.kind === "developer" ? "开发" : row.kind === "requirements" ? "需求" : row.kind === "demo" ? "会议" : row.draft.trim() ? "草稿" : "临时" })
 							]
 						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							type: "button",
@@ -17512,6 +17879,22 @@ window.__ModuleLoader__.load({
 				}),
 				commitChat: (id) => update(snapshot.items.filter((row) => row.id !== id), snapshot.activeId === id ? null : snapshot.activeId)
 			};
+		}
+		//#endregion
+		//#region src/client/meeting-removal.ts
+		/** Keep the conversation reachable until its server deletion is confirmed. */
+		async function removeMeetingConversation(jobId, title, removeLocal, confirm = (message) => window.confirm(message)) {
+			if (!confirm(`移除“${title}”？将停止正在处理的任务，并永久删除此会议的录音、转写和纪要，无法撤销。`)) return false;
+			const response = await fetch(`/api/capabilities/meeting/job/${encodeURIComponent(jobId)}`, {
+				method: "DELETE",
+				credentials: "same-origin"
+			});
+			if (!response.ok && response.status !== 404) {
+				const body = await response.json().catch(() => ({}));
+				throw new Error(body.error || `会议移除失败（${response.status}），原入口已保留`);
+			}
+			removeLocal();
+			return true;
 		}
 		//#endregion
 		//#region src/client/BrowserObservation.tsx
@@ -18324,18 +18707,18 @@ window.__ModuleLoader__.load({
 				}
 				const row = localConversations.getSnapshot().items.find((item) => item.id === id);
 				const meetingId = row?.meeting && typeof row.meeting === "object" ? row.meeting.jobId : void 0;
-				if (typeof meetingId === "string") fetch(`/api/capabilities/meeting/job/${encodeURIComponent(meetingId)}`, {
-					method: "DELETE",
-					credentials: "same-origin"
-				}).catch(() => {});
-				const active = localConversations.getSnapshot().activeId === id;
-				localConversations.remove(id);
-				if (!active) return;
-				start.reset();
-				clearSavedDraft();
-				roleSelection.select("chat");
-				revision++;
-				listeners.forEach((fn) => fn());
+				const remove = () => {
+					const active = localConversations.getSnapshot().activeId === id;
+					localConversations.remove(id);
+					if (!active || sessions.list.getSnapshot().current !== void 0) return;
+					start.reset();
+					clearSavedDraft();
+					roleSelection.select("chat");
+					revision++;
+					listeners.forEach((fn) => fn());
+				};
+				if (typeof meetingId === "string") removeMeetingConversation(meetingId, row?.title ?? "会议", remove).catch((error) => window.alert(error instanceof Error ? error.message : String(error)));
+				else if (window.confirm("移除此对话及未发送内容？此操作无法撤销。")) remove();
 			};
 			ctx.effect(() => {
 				return sessions.list.subscribe(() => {
@@ -18391,12 +18774,17 @@ window.__ModuleLoader__.load({
 			}, "plain-chat: capability links");
 			ctx.effect(() => decorateSlot(registry, "sidebar.settings", "SettingsRoot", (Original) => withAppearanceNavigation(Original, () => t("appearanceTitle"), settingsNavigation)), "plain-chat: appearance navigation group");
 			ctx.effect(() => decorateSlot(registry, "settings.section", "AgentPresetSection", (Original) => function RolePresetSection(props) {
+				const selected = (0, react.useSyncExternalStore)(roleSelection.subscribe, roleSelection.getSnapshot);
+				const useNativePresets = (0, react.useMemo)(() => props.useAgentPresetSection ? nativePresetHook(props.useAgentPresetSection) : void 0, [props.useAgentPresetSection]);
 				return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRolesSection, {
-					selected: (0, react.useSyncExternalStore)(roleSelection.subscribe, roleSelection.getSnapshot),
+					selected,
 					onSelect: selectRole
 				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(AgentPresetDisclosure, {
 					t,
-					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, { ...props })
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, {
+						...props,
+						useAgentPresetSection: useNativePresets
+					})
 				})] });
 			}), "plain-chat: role assistant settings preview");
 			ctx.effect(() => decorateSlot(registry, "main.conversation", "ConversationRoot", (Original) => {

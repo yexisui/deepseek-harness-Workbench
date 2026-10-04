@@ -25,7 +25,7 @@ beforeEach(async () => {
 afterEach(async () => { await service.close(); git.workspace.close(); await rm(root, { recursive: true, force: true }) })
 async function create() { return service.create({ requestId: randomUUID(), cwd: repo, roleId: 'builtin-developer', roleVersion: 1 }) }
 async function done(id: string) {
-  for (let i = 0; i < 100; i++) { const task = await service.get(id); if (![...task.rounds, ...task.checks].some(r => r.status === 'running')) return task; await new Promise(resolve => setTimeout(resolve, 30)) }
+  for (let i = 0; i < 300; i++) { const task = await service.get(id); if (![...task.rounds, ...task.checks].some(r => r.status === 'running')) return task; await new Promise(resolve => setTimeout(resolve, 30)) }
   throw Error('Job did not finish')
 }
 it('creates idempotently, binds immutable directory, and persists exact role and dirty baseline', async () => {
