@@ -24,6 +24,7 @@ export const capabilityClient = {
     const result = await request<{ id: string }>('command', { revision, command })
     await capabilityClient.refresh(); return result.id
   },
+  async repairPresets() { const result = await request<{ presetIssues: string[] }>('presets/repair', { revision: view.data?.state.revision }); await capabilityClient.refresh(); if (result.presetIssues.length) throw new Error(result.presetIssues.join('；')) },
   async componentCommand(command: Record<string,unknown>) { try { const result = await request('components/command', command); await capabilityClient.refresh(); return result } catch(error) { await capabilityClient.refresh(); throw error } },
   async componentPreview(id: string, action: string): Promise<any> { return request('components/preview', { id, action }) },
   async check(connect = false) { await request(connect ? 'connect' : 'check', {}); await capabilityClient.refresh() },

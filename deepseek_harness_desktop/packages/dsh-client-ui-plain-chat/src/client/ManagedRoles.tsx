@@ -97,6 +97,7 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
   return <section className={r.section}>
     <div className={r.sectionHeader}><div><h2>岗位助手</h2><p>为每一类工作，准备一位熟悉职责的助手。</p></div><button className={r.primary} onClick={() => setEditor({})}>＋ 创建岗位助手</button></div>
     {(error || message) && <p role="alert" className={s.error}>{message || error}</p>}
+    <PresetRepairNotice issues={data?.presetIssues ?? []}/>
     <div className={r.selectionStatus}><span role="status">{selected === 'chat' ? `已选定：${freeChat.name}` : selectedRole ? `已选定：${rolePresentation(selectedRole).name}` : data ? '当前岗位暂不可用' : '正在读取选定岗位…'}</span>{selected !== 'chat' && <button className={r.textButton} onClick={() => onSelect('chat')}>返回自由聊天</button>}</div>
     <button className={r.textButton} aria-pressed={archived} onClick={() => setArchived(value => !value)}>{archived ? '返回可用岗位' : `已归档（${data?.state.roles.filter(role => role.archivedAt).length ?? 0}）`}</button>
     <div className={r.cards}>
@@ -129,6 +130,21 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
     {data && pendingAction && <RoleImpactDialog data={data} roleId={pendingAction.id} action={pendingAction.action} onClose={() => setPendingAction(null)} onDone={() => { if (selected === pendingAction.id) onSelect('chat'); setPendingAction(null) }}/> }
     {editor && <ManagedRoleEditor restore={restoration} id={editor.id} onClose={() => setEditor(null)}/>}
   </section>
+}
+export function PresetRepairNotice({ issues }: { issues: string[] }) {
+  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState('')
+  const repair = async () => {
+    if (busy || !window.confirm('修复会先备份外部修改的预设文件，再按已发布岗位恢复。岗位、能力与会话数据保留。是否继续？')) return
+    setBusy(true); setError(''); setMessage('')
+    try { await capabilityClient.repairPresets(); setMessage('岗位预设已修复；被替换的原文件已备份。') }
+    catch (error) { setError(error instanceof Error ? error.message : String(error)) }
+    finally { setBusy(false) }
+  }
+  if (!issues.length && !error && !message) return null
+  return <div className={s.notice}>
+    {!!issues.length && <><p>部分历史岗位预设需要修复；其他配置仍可正常保存。</p><details><summary>查看 {issues.length} 项问题</summary><ul className={s.presetIssues}>{issues.map(issue => <li key={issue}>{issue}</li>)}</ul></details><button className={s.button} disabled={busy} onClick={() => void repair()}>{busy ? '正在备份并修复…' : '备份并修复岗位预设'}</button></>}
+    {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
+  </div>
 }
 export function ManagedRolePicker({ selected, onSelect, t }: { selected: string; onSelect: (id: string) => void; t: (key: ChatKey) => string }) {
   const { data } = useCapabilities(), [open, setOpen] = useState(false), [editor, setEditor] = useState(false)

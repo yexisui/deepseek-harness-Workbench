@@ -95,3 +95,4 @@
 @media(prefers-reduced-motion:reduce) { .iconButton { transition:none; } .iconButton:active { transform:none; } }
 
 .versionValue { white-space:pre-wrap; overflow-wrap:anywhere; margin:6px 0 14px; }
+.presetIssues { overflow-wrap:anywhere; padding-left:20px; }

@@ -4,13 +4,13 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
 
 const mocks = vi.hoisted(() => ({
-  store: { subscribe: vi.fn(() => () => {}), init: vi.fn(), close: vi.fn(), snapshot: vi.fn(), command: vi.fn(), icons: { upload: vi.fn(), read: vi.fn() } },
+  store: { exclusive: vi.fn(), subscribe: vi.fn(() => () => {}), init: vi.fn(), close: vi.fn(), snapshot: vi.fn(), command: vi.fn(), icons: { upload: vi.fn(), read: vi.fn() } },
   runtime: { init: vi.fn(), dispose: vi.fn(), tasks: vi.fn(), dependencies: vi.fn(), check: vi.fn(), connect: vi.fn(), stop: vi.fn(), health: { state: 'unknown' } },
   writePresets: vi.fn(), requestRejection: vi.fn(),
 }))
 vi.mock('../src/host/store.ts', () => ({ CapabilityStore: class { constructor() { return mocks.store } } }))
 vi.mock('../src/host/runtime.ts', () => ({ CapabilityRuntime: class { constructor() { return mocks.runtime } } }))
-vi.mock('../src/host/presets.ts', () => ({ writePresets: mocks.writePresets }))
+vi.mock('../src/host/presets.ts', () => ({ writePresets: mocks.writePresets, preparePresets: vi.fn() }))
 vi.mock('../../dsh-jev-mode/src/index.ts', () => ({ apply: async () => ({}) }))
 vi.mock('../../../shared/host/dsh-home.ts', () => ({ dshHome: () => `${process.env.TEMP}/dsh-route-auth-test` }))
 import { apply, inject } from '../src/index.ts'
@@ -20,6 +20,8 @@ let handler: Handler
 beforeEach(async () => {
   vi.resetAllMocks()
   mocks.store.snapshot.mockReturnValue({ revision: 10 })
+  mocks.store.exclusive.mockImplementation(async run => run())
+  mocks.writePresets.mockResolvedValue([])
   mocks.runtime.tasks.mockReturnValue([]); mocks.runtime.dependencies.mockReturnValue([])
   const ctx = {
     agentPresets: { remove: vi.fn(), copy: vi.fn() },
@@ -46,6 +48,7 @@ describe('capability named-route authentication', () => {
       for (const [path, method] of [
         ['/api/capabilities/state', 'GET'], [`/api/capabilities/icons/${'a'.repeat(64)}`, 'GET'], ['/api/capabilities/icons', 'POST'],
         ['/api/capabilities/command', 'POST'], ['/api/capabilities/connect', 'POST'], ['/api/capabilities/stop', 'POST'],
+        ['/api/capabilities/meeting/jobs', 'GET'], ['/api/capabilities/presets/repair', 'POST'],
         ['/api/capabilities/requirements/config', 'GET'], ['/api/capabilities/requirements/config', 'POST'],
         ['/api/capabilities/requirements/tasks', 'GET'], ['/api/capabilities/requirements/task/123', 'GET'],
         ['/api/capabilities/requirements/task/123', 'DELETE'], ['/api/capabilities/requirements/create', 'POST'], ['/api/capabilities/requirements/command', 'POST'],
@@ -90,8 +93,17 @@ describe('capability named-route authentication', () => {
     const save = request('/api/capabilities/command', 'POST', JSON.stringify({ revision: 10, command })), saved = response()
     await handler(save.req, saved)
     expect(mocks.store.command).toHaveBeenCalledWith(10, command)
-    expect(mocks.writePresets).toHaveBeenCalledWith(`${process.env.TEMP}/dsh-route-auth-test`, result.state)
+    expect(mocks.writePresets).not.toHaveBeenCalled()
     expect(saved.end).toHaveBeenCalledWith(JSON.stringify(result))
+  })
+
+  it('repairs presets only after authentication and a current revision check', async () => {
+    const stale=request('/api/capabilities/presets/repair','POST',JSON.stringify({revision:9})), rejected=response()
+    await handler(stale.req,rejected);expect(rejected.writeHead).toHaveBeenCalledWith(409,expect.any(Object));expect(mocks.writePresets).not.toHaveBeenCalled()
+    const current=request('/api/capabilities/presets/repair','POST',JSON.stringify({revision:10})), repaired=response()
+    await handler(current.req,repaired)
+    expect(mocks.writePresets).toHaveBeenCalledWith(`${process.env.TEMP}/dsh-route-auth-test`,{revision:10},true)
+    expect(repaired.end).toHaveBeenCalledWith(JSON.stringify({presetIssues:[]}));expect(mocks.store.command).not.toHaveBeenCalled()
   })
 
   it('retains the stricter loopback, same-origin and JSON fence even with an authenticated session', async () => {

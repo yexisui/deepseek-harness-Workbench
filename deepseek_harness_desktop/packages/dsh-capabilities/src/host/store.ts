@@ -113,6 +113,7 @@ export class CapabilityStore {
     } catch (error) { await this.close(); throw error }
   }
   componentRestrictions: () => NonNullable<State['componentRestrictions']> = () => ({})
+  prepareCommit: (next: State, previous: State) => Promise<undefined | (() => Promise<void>)> = async () => undefined
   publishIssues: (ids: string[]) => string[] = () => []
   private mutableSnapshot(): State { return structuredClone(this.state) }
   snapshot(): State { return { ...this.mutableSnapshot(), componentRestrictions: this.componentRestrictions() } }
@@ -265,8 +266,11 @@ export class CapabilityStore {
         if (!role.enabled) (next.revokedAt ??= {})[`role:${target}`] = Date.parse(now)
       } else throw new InputError('未知操作')
       next.revision++; next.updatedAt = now
-      await this.persist(next); this.state = next
-      for (const listener of this.listeners) listener()
+      const rollback = await this.prepareCommit(next, this.snapshot())
+      try { await this.persist(next) } catch (error) { await rollback?.(); throw error }
+      this.state = next
+      // Persistence is already committed. A notification failure must not report a failed save.
+      for (const listener of this.listeners) { try { listener() } catch { /* Other subscribers and the response still receive the committed state. */ } }
       return { state: this.snapshot(), id: target }
     }
     const attempt = this.tail.then(run); this.tail = attempt.catch(() => {}); return attempt

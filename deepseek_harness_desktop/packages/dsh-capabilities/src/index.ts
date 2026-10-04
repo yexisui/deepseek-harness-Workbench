@@ -20,7 +20,7 @@ import { InputError, object, text } from './core/validation.ts'
 import { CapabilityStore } from './host/store.ts'
 import { CapabilityRuntime } from './host/runtime.ts'
 import { protectManagedCopy, protectManagedDeletion } from './host/native-preset-adapter.ts'
-import { writePresets } from './host/presets.ts'
+import { preparePresets, writePresets } from './host/presets.ts'
 import { fence, json, readBody } from './host/http.ts'
 import { MeetingService, config as resolveAsrConfig, type MeetingAsrConfig, type MeetingSegment } from './host/meeting.ts'
 import { apply as installJev } from '../../dsh-jev-mode/src/index.ts'
@@ -99,9 +99,11 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   const registry = new ComponentRegistryStore(join(home, 'capabilities'), () => store.snapshot(), activities)
   store.componentRestrictions = () => Object.fromEntries(Object.entries(registry.snapshot().metadata).map(([id, meta]) => [id, { enabled: meta.enabled, revokedAt: meta.revokedAt }]))
   store.publishIssues = ids => componentPublishIssues(store.snapshot(), registry.snapshot(), ids)
+  let presetIssues: string[] = []
+  store.prepareCommit = (next, previous) => preparePresets(home, next, previous)
   try {
     await registry.init(); await requirements.init(); await meeting.init()
-    await writePresets(home, store.snapshot()); await runtime.init()
+    presetIssues = await writePresets(home, store.snapshot()); await runtime.init()
   } catch (error) { await requirements.close(); await runtime.dispose(); await store.close(); throw error }
   ctx.effect(() => store.subscribe(() => { void meeting.reconcile() }), 'meeting authorization lifecycle')
   ctx.effect(() => protectManagedDeletion(ctx.agentPresets), 'managed preset deletion guard')
@@ -131,7 +133,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (req.method === 'GET' && route.startsWith('/api/capabilities/meeting/audio/')) return await meeting.serveAudio(route.slice('/api/capabilities/meeting/audio/'.length), req, res)
       if (req.method === 'DELETE' && route.startsWith('/api/capabilities/meeting/job/')) { await meeting.remove(route.slice('/api/capabilities/meeting/job/'.length)); return json(res, 200, { ok: true }) }
       if (req.method === 'PUT' && route.startsWith('/api/capabilities/meeting/upload/')) return json(res, 202, await meeting.upload(route.slice('/api/capabilities/meeting/upload/'.length), req))
-      if (req.method === 'GET' && route === '/api/capabilities/state') { const state = store.snapshot(); return json(res, 200, { compositionVersion: 2, state, components: registryCatalog(registry.snapshot()), registry: registry.snapshot(), componentActivities: await activities(state), health: runtime.health, tasks: runtime.tasks(), dependencies: runtime.dependencies() }) }
+      if (req.method === 'GET' && route === '/api/capabilities/state') { const state = store.snapshot(); return json(res, 200, { compositionVersion: 2, presetIssues, state, components: registryCatalog(registry.snapshot()), registry: registry.snapshot(), componentActivities: await activities(state), health: runtime.health, tasks: runtime.tasks(), dependencies: runtime.dependencies() }) }
       if (req.method === 'GET' && route.startsWith('/api/capabilities/icons/')) {
         const image = await store.icons.read(route.slice('/api/capabilities/icons/'.length))
         res.writeHead(200, { 'content-type': 'image/png', 'content-length': image.length, 'cache-control': 'private, max-age=31536000, immutable', 'x-content-type-options': 'nosniff' }); res.end(image); return
@@ -183,7 +185,8 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
         return json(res, 202, await meeting.generate(id, segments, typeof body.instruction === 'string' ? body.instruction : undefined, typeof body.summaryModel === 'string' ? body.summaryModel : undefined))
       }
       if (route === '/api/capabilities/icons') return json(res, 200, await store.icons.upload(body.dataUrl))
-      if (route === '/api/capabilities/command') { const result = await store.command(body.revision, body.command); await writePresets(home, result.state); return json(res, 200, result) }
+      if (route === '/api/capabilities/presets/repair') return json(res, 200, await store.exclusive(async () => { if (body.revision !== store.snapshot().revision) throw new InputError('配置已更新，请刷新后重试', 409); presetIssues = await writePresets(home, store.snapshot(), true); return { presetIssues } }))
+      if (route === '/api/capabilities/command') return json(res, 200, await store.command(body.revision, body.command))
       if (route === '/api/capabilities/check') return json(res, 200, await runtime.check())
       if (route === '/api/capabilities/connect') return json(res, 200, await runtime.connect())
       if (route === '/api/capabilities/stop') { await runtime.stop(text(body.sessionId, '会话标识', 150, true)); return json(res, 200, { tasks: runtime.tasks() }) }

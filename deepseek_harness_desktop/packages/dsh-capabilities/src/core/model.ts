@@ -62,7 +62,7 @@ export type Command =
 export type Health = { checkedAt: string | null; installed: boolean; loaded: boolean; state: 'unknown' | 'missing' | 'disconnected' | 'ready' | 'degraded'; message: string; cliVersion?: string; browsers: { id: string; name: string }[] }
 export type Task = { sessionId: string; roleId: string; roleVersion: number; name: string; status: 'idle' | 'running' | 'stopping' | 'stopped' | 'error'; error?: string; action?: string; browserSessions: string[] }
 export type DependencyHealth = { id: string; installed: boolean; loaded: boolean; version?: string; pendingRestart: boolean }
-export type Snapshot = { compositionVersion?: 1 | 2; state: State; components: readonly Component[]; health: Health; tasks: Task[]; dependencies?: DependencyHealth[]; registry?: import("./component-registry.ts").ComponentRegistry; componentActivities?: import("./component-registry.ts").ComponentActivity[] }
+export type Snapshot = { presetIssues?: string[]; compositionVersion?: 1 | 2; state: State; components: readonly Component[]; health: Health; tasks: Task[]; dependencies?: DependencyHealth[]; registry?: import("./component-registry.ts").ComponentRegistry; componentActivities?: import("./component-registry.ts").ComponentActivity[] }
 
 export function resolveBinding(state: State, binding: Binding): Version | undefined {
   return state.capabilities.find(c => c.id === binding.capabilityId)?.versions.find(v => v.version === binding.version)
