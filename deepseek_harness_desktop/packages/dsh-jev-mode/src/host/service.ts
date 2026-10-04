@@ -6,7 +6,7 @@ export class JevRun {
   readonly snapshot: ReturnType<JevStore['snapshot']>
   private count=0
   private last:Decision|undefined
-  constructor(private service:JevService,readonly scope:string){this.snapshot=service.store.snapshot()}
+  constructor(private service:JevService,readonly scope:string){this.snapshot=service.store.snapshot();Object.freeze(this.snapshot.value);Object.freeze(this.snapshot)}
   get enabled(){return this.snapshot.value.enabled}
   guidance(){return this.last?`\nJEV 本轮附加审查（不能扩大岗位权限；事实仍须核对）：${JSON.stringify(this.last)}`:''}
   async check(stage:JevTrace['stage'],context:unknown,signal?:AbortSignal):Promise<Decision|undefined>{
@@ -21,7 +21,9 @@ export class JevRun {
       if(raw.length>cfg.maxContextChars&&stage==='action')throw new JevError('JEV 动作证据超出上下文限制；未完整审查，当前自动动作已停止')
       const combined=AbortSignal.any([...(signal?[signal]:[]),AbortSignal.timeout(cfg.timeoutMs)])
       result=await backend.assess({stage,scope:this.scope,config:cfg,context:raw.length>cfg.maxContextChars?raw.slice(0,cfg.maxContextChars)+'\n[内容已截断，缺失内容不能作为通过依据]':raw},combined)
-      combined.throwIfAborted();this.last=result;status=result.decision==='allow'?'allowed':result.decision==='clarify'?'clarify':'blocked';summary=result.summary
+      combined.throwIfAborted()
+      if(raw.length>cfg.maxContextChars&&result.decision==='allow')result={...result,decision:'clarify',summary:'检查上下文超出限制，无法确认完整结果。'+result.summary,missing:[...result.missing,'超出上下文上限的内容尚未核对']}
+      this.last=result;status=result.decision==='allow'?'allowed':result.decision==='clarify'?'clarify':'blocked';summary=result.summary
       if(result.decision==='block'||stage==='action'&&result.decision!=='allow')throw new JevError('JEV 已停止当前自动步骤：'+summary)
       return result
     }catch(error){if(status==='error')summary=error instanceof JevError?error.message:signal?.aborted?'JEV 检查已取消':'JEV 检查失败或超时；当前自动步骤已停止';throw new JevError(status==='error'?summary:'JEV 已停止当前自动步骤：'+summary)}
@@ -35,6 +37,8 @@ export class JevService {
   status(scope?:string):JevStatus {
     const config=this.store.snapshot();let state:JevStatus['state']=config.value.enabled?'ready':'off',message=config.value.enabled?'内网决策后端已配置；连接以实际检查结果为准':'已关闭；保留独立模型设置'
     if(config.value.enabled)try{if(!this.backends.has(config.value.backend))throw new JevError('官方 JEV 扩展尚未接入');this.ready(config.value)}catch(e){state='unavailable';message=(e as Error).message}
+    const last=this.store.history().at(-1)
+    if(state==='ready'&&last?.revision===config.revision&&last.status==='error'){state='unavailable';message=last.summary}
     return {config,state,message,descriptor,traces:this.store.history(scope)}
   }
   /** Explicit extension point. Installing an official backend does not change the default. */

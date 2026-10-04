@@ -2,6 +2,7 @@ import { createReadStream, openAsBlob } from 'node:fs'
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { randomUUID } from 'node:crypto'
+import type { JevService } from '../../../dsh-jev-mode/src/host/service.ts'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { latest, type Role, type State } from '../core/model.ts'
 import { MEETING_CAPABILITY_ID } from '../core/default-roles.ts'
@@ -77,7 +78,7 @@ export class MeetingService {
   private running = new Set<string>()
   private deleted = new Set<string>()
   private controllers = new Map<string, AbortController>()
-  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined) {}
+  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly jev?: JevService) {}
   private config() { return config(this.asrSettings?.()) }
   private capabilityError(): string | undefined {
     if (!this.currentState) return
@@ -232,8 +233,10 @@ export class MeetingService {
   }
   private async finishGenerate(job: MeetingJob, instruction?: string) {
     const controller = new AbortController(); this.controllers.set(job.id, controller)
+    const jev=this.jev?.begin('meeting:'+job.id)
     try {
       const text = this.transcriptText(job.segments)
+      await jev?.check('begin',{transcript:text,instruction,audience:job.audience,focus:job.focus},controller.signal)
       const chunks = text.match(/[\s\S]{1,16000}/g) ?? []
       let source = text
       if (chunks.length > 1) {
@@ -244,7 +247,9 @@ export class MeetingService {
       const previous = job.minutes ? `\n现有纪要：${JSON.stringify(job.minutes)}` : ''
       const roleGuidance = job.role ? `岗位：${job.role.name}。职责：${job.role.duties}。工作要求：${job.role.requirements}。输出偏好：${job.role.format}。\n` : ''
       const prompt = `${roleGuidance}用途：${job.audience || '通用会议纪要'}；重点：${job.focus || '结论与待办'}。${instruction ? `用户修改要求：${string(instruction, 1000)}。` : ''}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`
-      const minutes = parseMinutes(await this.ask(prompt, job.summaryModel, controller.signal), job.segments)
+      const minutes = parseMinutes(await this.ask(prompt+(jev?.guidance()??''), job.summaryModel, controller.signal), job.segments)
+      const reviewed=await jev?.check('review',{transcript:text,minutes},controller.signal)
+      if(reviewed?.decision==='clarify')throw new InputError('JEV 纪要复核需要确认，未覆盖已有纪要：'+reviewed.summary,409)
       controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt)
       job.minutes = minutes; job.status = 'ready'; await this.save(job)
     } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? '组件已停用，本次处理已停止；历史结果保留' : errorText(error); await this.save(job) } finally { if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }

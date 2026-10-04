@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../src/host/store.ts', () => ({ CapabilityStore: class { constructor() { return mocks.store } } }))
 vi.mock('../src/host/runtime.ts', () => ({ CapabilityRuntime: class { constructor() { return mocks.runtime } } }))
 vi.mock('../src/host/presets.ts', () => ({ writePresets: mocks.writePresets }))
+vi.mock('../../dsh-jev-mode/src/index.ts', () => ({ apply: async () => ({}) }))
 vi.mock('../../../shared/host/dsh-home.ts', () => ({ dshHome: () => `${process.env.TEMP}/dsh-route-auth-test` }))
 import { apply, inject } from '../src/index.ts'
 

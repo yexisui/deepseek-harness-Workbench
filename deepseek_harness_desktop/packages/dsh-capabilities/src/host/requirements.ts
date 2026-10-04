@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import type { JevService } from '../../../dsh-jev-mode/src/host/service.ts'
 import { mkdir, readFile, readdir, open, rename, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 import { actionsOf, latest, type State, type RoleVersion } from '../core/model.ts'
@@ -44,7 +45,7 @@ export class RequirementsService {
   private configuration = { revision: 0, defaults: { depth: 'standard', questionStyle: 'short', model: '' } as RequirementDefaults }
   private running = new Map<string, { controller: AbortController; promise?: Promise<void> }>()
   private closed = false
-  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route) {}
+  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly jev?: JevService) {}
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private path(id: string) { if (!UUID.test(id)) throw new InputError('需求任务标识无效'); return join(this.root, `${id}.json`) }
   private async atomic(file: string, value: unknown) {
@@ -377,7 +378,8 @@ export class RequirementsService {
   private async execute(snapshot:RequirementTask,controller:AbortController) {
     const runId=snapshot.run!.id
     try {
-      const response=await this.model(this.prompt(snapshot),snapshot.run!.model,controller.signal)
+      const prompt=this.prompt(snapshot)
+      const response=this.jev?await this.jev.text('requirements:'+snapshot.id,prompt,p=>this.model(p,snapshot.run!.model,controller.signal),controller.signal):await this.model(prompt,snapshot.run!.model,controller.signal)
       if(controller.signal.aborted)return
       const proposal=this.proposal(response,snapshot)
       await this.serialized(async()=>{
