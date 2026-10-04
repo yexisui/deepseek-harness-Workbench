@@ -35,6 +35,7 @@ import { createRoleSelection, createSettingsNavigation } from './role-ui-state.t
 import { en, zh, type ChatKey } from './locales.ts'
 import { ru } from '../../../dsh-i18n/src/client/ru/plain-chat.ts'
 import styles from './Chat.module.css'
+import historyStyles from './LocalConversationRows.module.css'
 import { JevToggle, JevActivity, JevSettings, JevModelReturn } from '../../../dsh-jev-mode/src/ui/JevControls.tsx'
 import { registerJevNavigation } from '../../../dsh-jev-mode/src/ui/view-model.ts'
 
@@ -368,7 +369,7 @@ export function apply(ctx: Context): void {
       <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
         {meetings.loading && <p role="status">正在读取会议记录…</p>}{meetings.error && <p role="alert">{meetings.error}</p>}
         {meetings.unreadableCount > 0 && <p role="status">{meetings.unreadableCount} 条会议记录暂不可读，原文件已保留。</p>}
-        {(meetings.hasMore || meetings.error) && <button disabled={meetings.loading} onClick={() => { void meetingHistory.load(!meetings.error) }}>{meetings.error ? '重试读取会议记录' : '加载更多会议记录'}</button>}
+        {(meetings.hasMore || meetings.error) && <button type="button" className={historyStyles.open} disabled={meetings.loading} onClick={() => { void meetingHistory.load(!meetings.error) }}>{meetings.error ? '重试读取会议记录' : '加载更多会议记录'}</button>}
       </> : null}/>
       <NativeConversationRemoval sessions={sessions}/>
     </div>
