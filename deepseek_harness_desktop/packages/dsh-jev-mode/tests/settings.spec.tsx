@@ -51,6 +51,16 @@ it('supports tab keyboard navigation and a real configuration action in the abou
   await render();const tab=container.querySelector<HTMLButtonElement>('[role="tab"]')!;await act(async()=>{tab.focus();tab.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}))})
   expect(document.activeElement?.textContent).toBe('模块与扩展');expect(container.textContent).toContain('Jev 官方服务 · 尚未接入');expect(container.querySelector('[role="tabpanel"]')?.getAttribute('aria-labelledby')).toBe('jev-tab-about');await click('配置与检查');expect(container.querySelector('[role="tab"][aria-selected="true"]')?.textContent).toBe('配置与状态')
 })
+it('waits for asynchronous model rows before restoring a saved scroll position',async()=>{
+  const original=globalThis.fetch;let release!:()=>void;const gate=new Promise<void>(resolve=>{release=resolve})
+  vi.stubGlobal('fetch',vi.fn(async(url:any,options:any)=>{if(String(url).endsWith('/accounts'))await gate;return original(url,options)}))
+  container.style.overflowY='auto';let top=0
+  Object.defineProperty(container,'scrollTop',{get:()=>top,set:(value:number)=>{top=container.textContent?.includes('模型一')?value:0},configurable:true})
+  openWorkbenchLink({section:'jev-mode',restore:{section:'jev-mode',label:'JEV 模式',frames:[{kind:'jev-mode',section:'jev-mode',label:'JEV 模式',view:{scroll:420}}]}})
+  await render();expect(top).toBe(0)
+  await act(async()=>{release();await delay()});expect(top).toBe(420)
+  top=180;container.dispatchEvent(new Event('scroll'));expect(captureNavigation()?.frames.at(-1)?.view.scroll).toBe(180)
+})
 it('blocks invalid limits with inline explanations instead of sending invalid JSON',async()=>{
   await render();const input=container.querySelector<HTMLInputElement>('input[type="number"]')!;await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,'2');input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}))})
   expect(container.textContent).toContain('超时应为 5–120 秒');expect(button('保存配置').disabled).toBe(true);expect(button('检查内网模型').disabled).toBe(true)

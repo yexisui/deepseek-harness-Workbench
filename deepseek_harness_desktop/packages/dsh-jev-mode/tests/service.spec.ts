@@ -28,6 +28,13 @@ describe('bounded, truthful decisions',()=>{
   it('rejects malformed or contradictory structured judgments',()=>{expect(()=>decision('hello')).toThrow('JSON');expect(()=>decision(JSON.stringify({...allowed,missing:['unknown']}))).toThrow('不一致');expect(()=>decision(JSON.stringify({...allowed,checks:[]}))).toThrow('结构无效')})
 })
 describe('intranet transport',()=>{
+  it('cancels an in-flight HTTP request by closing its socket',async()=>{
+    let arrived!:()=>void,closed!:()=>void
+    const received=new Promise<void>(r=>{arrived=r}),disconnected=new Promise<void>(r=>{closed=r})
+    const server=createServer((_req,res)=>{res.on('close',closed);arrived()});await new Promise<void>(r=>server.listen(0,'127.0.0.1',r))
+    const controller=new AbortController(),port=(server.address() as any).port
+    try{const request=intranetJson(endpoint(`http://127.0.0.1:${port}`),{},'',controller.signal);const rejected=expect(request).rejects.toThrow('取消');await received;controller.abort();await rejected;await disconnected}finally{server.closeAllConnections();await new Promise<void>(r=>server.close(()=>r()))}
+  })
   it('reads model choices from local settings without calling model discovery',()=>{const ctx={get:(name:string)=>name==='llm'?{listConfigurableProviders:()=>[{provider:'lan',settingsNs:'models',settingsPath:['lan']}],listModels:()=>{throw Error('Discovery must not run')}}:name==='settings'?{get:()=>({lan:{baseURL:'http://127.0.0.1/v1',models:[{id:'reasoner',name:'内网模型'}]}})}:undefined};expect(account(ctx as any,'lan/reasoner').models).toEqual([{id:'lan/reasoner',name:'内网模型'}])})
   it('rejects public IPs, credentials in URL and metadata/link-local ranges',()=>{for(const ip of ['8.8.8.8','169.254.169.254','100.64.0.1','2001:4860:4860::8888'])expect(privateAddress(ip)).toBe(false);for(const ip of ['127.0.0.1','10.1.2.3','172.16.1.1','192.168.1.1','::1','fd00::1'])expect(privateAddress(ip)).toBe(true);expect(()=>endpoint('https://api.typesafe.ai')).not.toThrow();expect(()=>endpoint('http://8.8.8.8/v1')).toThrow('公网');expect(()=>endpoint('http://user:key@127.0.0.1')).toThrow('凭据')})
   it('calls a real loopback server and refuses redirect without forwarding credentials',async()=>{

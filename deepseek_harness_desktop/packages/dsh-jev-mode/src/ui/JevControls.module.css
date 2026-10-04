@@ -1,6 +1,7 @@
 .control { display:inline-flex; align-items:center; flex-wrap:wrap; gap:6px; min-width:0; position:relative; }
 .toggle { display:inline-flex; align-items:center; gap:8px; min-height:36px; white-space:nowrap; }
-.toggle[aria-checked="true"] { color:var(--role-accent); border-color:currentColor; }
+.toggle[aria-checked="true"] { color:var(--role-text); border-color:var(--role-accent); }
+.toggle[aria-checked="true"] .track { background:var(--role-accent); opacity:1; }
 .toggle[data-unavailable="true"] { color:var(--dsw-alias-label-error,#b43f4c); }
 .track { width:26px; height:15px; border-radius:10px; background:currentColor; opacity:.75; display:inline-flex; align-items:center; padding:2px; box-sizing:border-box; }
 .track::after { content:""; width:11px; height:11px; border-radius:50%; background:var(--dsw-alias-bg-layer-2,#fff); transition:transform .15s; }
@@ -12,8 +13,8 @@
 .trace summary { cursor:pointer; line-height:1.6; }
 .compact { margin:0 28px 8px; font-size:12px; max-height:28vh; overflow:auto; flex-shrink:0; }
 .compact p { margin:6px 0; }
-.page { max-width:100%; overflow-wrap:anywhere; }
-.page [role="tab"][aria-selected="true"] { color:var(--role-accent); border-bottom-color:var(--role-accent); }
+.page { max-width:100%; overflow-wrap:anywhere; container-type:inline-size; }
+.page [role="tab"][aria-selected="true"] { color:var(--role-text); border-bottom-color:var(--role-accent); font-weight:600; }
 .page :is(button,input,select,summary,[tabindex]):focus-visible,.compact summary:focus-visible { outline:2px solid var(--role-accent); outline-offset:3px; }
 .page input,.page select { min-width:0; }
 .modelList { border:1px solid var(--role-border); border-radius:10px; max-height:270px; overflow:auto; padding:10px; }
@@ -31,3 +32,4 @@
 .returnBar { display:flex; align-items:center; flex-wrap:wrap; gap:12px; padding:10px 0 18px; }
 @media(max-width:650px){.control{gap:4px}.toggle{padding:6px 9px;font-size:12px}.compact{margin-left:16px;margin-right:16px}.workflow{grid-template-columns:1fr}.footer{justify-content:flex-start}}
 @media(prefers-reduced-motion:reduce){.track::after{transition:none}}
+@container(max-width:430px){.workflow{grid-template-columns:1fr}}

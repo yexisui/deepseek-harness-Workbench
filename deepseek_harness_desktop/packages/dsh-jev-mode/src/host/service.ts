@@ -83,8 +83,6 @@ export class JevService {
   begin(scope:string){return new JevRun(this,scope)}
   status(scope?:string):JevStatus {
     const config=this.store.snapshot(),connection=this.connection(config.value);let state:JevStatus['state']=config.value.enabled?(connection.state==='ready'?'ready':'unavailable'):'off',message=config.value.enabled?connection.message:'全局已关闭；保留模型设置，可独立检查连接'
-    const last=this.store.history().at(-1)
-    if(state==='ready'&&last?.revision===config.revision&&last.status==='error'){state='unavailable';message=last.summary}
     return {config,state,message,connection,diagnostic:this.diagnosticStatus(),active:[...this.active.values()].filter(r=>!scope||r.scope===scope).map(r=>({...r})),descriptor,traces:this.store.history(scope)}
   }
   /** Explicit extension point. Installing an official backend does not change the default. */

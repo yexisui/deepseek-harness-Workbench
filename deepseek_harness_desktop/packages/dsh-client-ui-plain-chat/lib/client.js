@@ -114,7 +114,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/Chat.module.css.mjs
-		const css$14 = ".yzXCLW_card{box-sizing:border-box;border:1px solid var(--dsw-alias-border-l2,#d5dbe7);background:var(--dsw-alias-bg-layer-2,#fff);width:100%;color:var(--dsw-alias-label-primary,#202938);border-radius:20px;padding:18px;box-shadow:0 3px 14px #182c5010}.yzXCLW_input{resize:vertical;box-sizing:border-box;width:100%;min-height:108px;max-height:300px;color:inherit;font:inherit;background:0 0;border:0;outline:none;line-height:1.6;display:block}.yzXCLW_input::placeholder{color:var(--dsw-alias-label-secondary,#78869f)}.yzXCLW_input:focus-visible{outline-offset:5px;border-radius:4px;outline:2px solid #8b9dd5}.yzXCLW_row{justify-content:space-between;align-items:center;gap:12px;margin-top:10px;display:flex}.yzXCLW_hint{opacity:.72;font-size:12px;line-height:1.6}.yzXCLW_send{background:var(--dsw-alias-button-primary-fill,#405eae);min-width:44px;min-height:44px;color:var(--dsw-alias-label-primary-foreground,#fff);cursor:pointer;border:0;border-radius:999px;flex-shrink:0;padding:10px 16px}.yzXCLW_send:hover{background:var(--dsw-alias-button-primary-hover,#334c91)}.yzXCLW_send:disabled{opacity:.45;cursor:default}.yzXCLW_error{color:#b53232;margin-top:10px;font-size:13px}.yzXCLW_badge{opacity:.8;font-size:14px}.yzXCLW_previewNotice{border-bottom:1px solid var(--dsw-alias-border-l2,#d5dbe7);color:var(--dsw-alias-label-secondary,#78869f);flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:14px;padding:0 0 14px;font-size:12px;line-height:1.7;display:flex}.yzXCLW_previewNotice button{color:var(--dsw-alias-button-primary-fill,#405eae);cursor:pointer;font:inherit;background:0 0;border:0;padding:3px 0}@media (width<=600px){.yzXCLW_card{padding:14px}.yzXCLW_row{align-items:flex-end}.yzXCLW_hint{font-size:11px}}.yzXCLW_conversationShell{flex-direction:column;min-width:0;height:100%;min-height:0;display:flex}.yzXCLW_assistantToolbar{flex:none;align-items:center;min-width:0;padding:20px 28px 8px;display:flex}.yzXCLW_conversationContent{flex:1;min-width:0;min-height:0}@media (width<=600px){.yzXCLW_assistantToolbar{padding:12px 16px 6px}}";
+		const css$14 = ".yzXCLW_card{box-sizing:border-box;border:1px solid var(--dsw-alias-border-l2,#d5dbe7);background:var(--dsw-alias-bg-layer-2,#fff);width:100%;color:var(--dsw-alias-label-primary,#202938);border-radius:20px;padding:18px;box-shadow:0 3px 14px #182c5010}.yzXCLW_input{resize:vertical;box-sizing:border-box;width:100%;min-height:108px;max-height:300px;color:inherit;font:inherit;background:0 0;border:0;outline:none;line-height:1.6;display:block}.yzXCLW_input::placeholder{color:var(--dsw-alias-label-secondary,#78869f)}.yzXCLW_input:focus-visible{outline-offset:5px;border-radius:4px;outline:2px solid #8b9dd5}.yzXCLW_row{justify-content:space-between;align-items:center;gap:12px;margin-top:10px;display:flex}.yzXCLW_hint{opacity:.72;font-size:12px;line-height:1.6}.yzXCLW_send{background:var(--dsw-alias-button-primary-fill,#405eae);min-width:44px;min-height:44px;color:var(--dsw-alias-label-primary-foreground,#fff);cursor:pointer;border:0;border-radius:999px;flex-shrink:0;padding:10px 16px}.yzXCLW_send:hover{background:var(--dsw-alias-button-primary-hover,#334c91)}.yzXCLW_send:disabled{opacity:.45;cursor:default}.yzXCLW_error{color:#b53232;margin-top:10px;font-size:13px}.yzXCLW_badge{opacity:.8;font-size:14px}.yzXCLW_previewNotice{border-bottom:1px solid var(--dsw-alias-border-l2,#d5dbe7);color:var(--dsw-alias-label-secondary,#78869f);flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:14px;padding:0 0 14px;font-size:12px;line-height:1.7;display:flex}.yzXCLW_previewNotice button{color:var(--dsw-alias-button-primary-fill,#405eae);cursor:pointer;font:inherit;background:0 0;border:0;padding:3px 0}@media (width<=600px){.yzXCLW_card{padding:14px}.yzXCLW_row{align-items:flex-end}.yzXCLW_hint{font-size:11px}}.yzXCLW_conversationShell{flex-direction:column;min-width:0;height:100%;min-height:0;display:flex}.yzXCLW_assistantToolbar{flex-wrap:wrap;flex:none;align-items:center;gap:8px 18px;min-width:0;padding:20px 28px 8px;display:flex}.yzXCLW_assistantToolbar>*{min-width:0;max-width:100%}.yzXCLW_conversationContent{flex:1;min-width:0;min-height:0}@media (width<=600px){.yzXCLW_assistantToolbar{padding:12px 16px 6px}}";
 		const tagId$14 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Chat.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$14) + "]") === null) {
 			const tag = document.createElement("style");
@@ -526,6 +526,11 @@ window.__ModuleLoader__.load({
 				find(tree);
 				(0, react.useEffect)(() => {
 					if (request === 0 || request === handled.current) return;
+					if (navigation?.getSection() === "") {
+						panel?.props.onClose?.();
+						handled.current = request;
+						return;
+					}
 					if (panel) {
 						panel.props.onSelect(navigation?.getSection() ?? "agent-presets");
 						handled.current = request;
@@ -4499,7 +4504,21 @@ window.__ModuleLoader__.load({
 				strokeLinecap: "round",
 				strokeLinejoin: "round",
 				"aria-hidden": "true",
-				children: kind === "pin" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M16 3 21 8l-4 1-3 5v3l-7-7h3l5-3z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m3 21 7-7" })] }) : kind === "remove" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" }) }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 4v6h6M3 10a9 9 0 1 1 1 8" }) })
+				children: kind === "settings" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M4 7h16M4 17h16" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "9",
+						cy: "7",
+						r: "3",
+						fill: "var(--role-bg)"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: "15",
+						cy: "17",
+						r: "3",
+						fill: "var(--role-bg)"
+					})
+				] }) : kind === "pin" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M16 3 21 8l-4 1-3 5v3l-7-7h3l5-3z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m3 21 7-7" })] }) : kind === "remove" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" }) }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 4v6h6M3 10a9 9 0 1 1 1 8" }) })
 			});
 		}
 		function capabilityImpact(data, id) {
@@ -5074,6 +5093,1344 @@ window.__ModuleLoader__.load({
 				maxContextChars: number("maxContextChars", 4e3, 64e3)
 			};
 		}
+		const connectionConfig = (value) => JSON.stringify({
+			...value,
+			enabled: false
+		});
+		//#endregion
+		//#region ../dsh-jev-mode/src/ui/client.ts
+		function createJevClient(request = (...args) => fetch(...args)) {
+			let view = {
+				data: null,
+				error: "",
+				readError: "",
+				saveError: "",
+				checkError: "",
+				busy: false,
+				checkBusy: false
+			}, sequence = 0, pending;
+			const listeners = /* @__PURE__ */ new Set();
+			const emit = (patch) => {
+				view = {
+					...view,
+					...patch
+				};
+				view.error = view.saveError || view.readError;
+				listeners.forEach((f) => f());
+			};
+			async function api(path, body) {
+				const response = await request("/api/jev-mode/" + path, {
+					credentials: "same-origin",
+					signal: AbortSignal.timeout(path === "check" ? 13e4 : 15e3),
+					...body === void 0 ? {} : {
+						method: "POST",
+						headers: { "content-type": "application/json" },
+						body: JSON.stringify(body)
+					}
+				});
+				const data = await response.json().catch(() => ({ error: "JEV 服务尚未加载，请在正常重启工作台后重试" }));
+				if (!response.ok) throw new Error(data.error ?? "JEV 请求失败");
+				return data;
+			}
+			const state = (data) => {
+				try {
+					config(data.config.value);
+					if (!Number.isSafeInteger(data.config.revision) || !Array.isArray(data.traces) || ![
+						"off",
+						"ready",
+						"unavailable"
+					].includes(data.state)) throw Error();
+					return data;
+				} catch {
+					throw new Error("JEV 服务响应无效，请在正常重启工作台后重新加载");
+				}
+			};
+			return {
+				getSnapshot: () => view,
+				subscribe: (fn) => {
+					listeners.add(fn);
+					return () => {
+						listeners.delete(fn);
+					};
+				},
+				api,
+				refresh() {
+					if (pending) return pending;
+					if (view.busy) return Promise.resolve();
+					const requestId = ++sequence;
+					pending = api("state").then(state).then((data) => {
+						if (requestId === sequence) emit({
+							data,
+							readError: ""
+						});
+					}).catch((e) => {
+						if (requestId === sequence) emit({ readError: String(e.message ?? e) });
+					}).finally(() => {
+						pending = void 0;
+					});
+					return pending;
+				},
+				clearSaveError() {
+					emit({ saveError: "" });
+				},
+				async save(value, revision = view.data?.config.revision) {
+					if (revision === void 0 || view.busy) throw new Error("JEV 配置尚未就绪");
+					++sequence;
+					emit({
+						busy: true,
+						saveError: ""
+					});
+					try {
+						const data = state(await api("config", {
+							revision,
+							value
+						}));
+						emit({ data });
+						return data;
+					} catch (e) {
+						emit({ saveError: e.message });
+						throw e;
+					} finally {
+						emit({ busy: false });
+					}
+				},
+				async check(value) {
+					emit({
+						checkBusy: true,
+						checkError: ""
+					});
+					try {
+						const diagnostic = await api("check", { value });
+						if (view.data) emit({ data: {
+							...view.data,
+							diagnostic
+						} });
+						return diagnostic;
+					} catch (e) {
+						emit({ checkError: e.message });
+						throw e;
+					} finally {
+						emit({ checkBusy: false });
+					}
+				},
+				async cancel(id) {
+					emit({
+						checkBusy: true,
+						checkError: ""
+					});
+					try {
+						const diagnostic = await api("check/cancel", { id });
+						if (view.data) emit({ data: {
+							...view.data,
+							diagnostic
+						} });
+					} catch (e) {
+						emit({ checkError: e.message });
+						throw e;
+					} finally {
+						emit({ checkBusy: false });
+					}
+				}
+			};
+		}
+		const jevClient = createJevClient();
+		let watchers = 0;
+		let stop;
+		function useJev() {
+			const view = (0, react.useSyncExternalStore)(jevClient.subscribe, jevClient.getSnapshot);
+			(0, react.useEffect)(() => {
+				if (watchers++ === 0) {
+					jevClient.refresh();
+					const refresh = () => {
+						if (!document.hidden) jevClient.refresh();
+					}, timer = window.setInterval(refresh, 1500);
+					window.addEventListener("focus", refresh);
+					stop = () => {
+						clearInterval(timer);
+						window.removeEventListener("focus", refresh);
+					};
+				}
+				return () => {
+					if (--watchers === 0) stop?.();
+				};
+			}, []);
+			return view;
+		}
+		function useJevScope(scope) {
+			const [view, setView] = (0, react.useState)({});
+			(0, react.useEffect)(() => {
+				if (!scope) return;
+				let live = true, running = false;
+				const read = async () => {
+					if (running || document.hidden) return;
+					running = true;
+					try {
+						const data = await jevClient.api("state?scope=" + encodeURIComponent(scope));
+						if (!data.config || !Array.isArray(data.traces)) throw new Error("JEV 会话状态响应无效");
+						if (live) setView({
+							scope,
+							data
+						});
+					} catch (e) {
+						if (live) setView((old) => ({
+							...old,
+							scope,
+							error: e.message
+						}));
+					} finally {
+						running = false;
+					}
+				};
+				read();
+				const timer = setInterval(() => void read(), 1500);
+				return () => {
+					live = false;
+					clearInterval(timer);
+				};
+			}, [scope]);
+			return view.scope === scope ? view : {};
+		}
+		//#endregion
+		//#region ../dsh-jev-mode/src/ui/view-model.ts
+		const stageName = {
+			begin: "任务评估",
+			action: "动作检查",
+			review: "结果复核"
+		};
+		const statusName = {
+			allowed: "通过",
+			clarify: "待确认",
+			blocked: "已阻止",
+			error: "未完成"
+		};
+		const connectionName = {
+			unconfigured: "待配置",
+			unverified: "待验证",
+			checking: "检查中",
+			ready: "检查通过",
+			error: "检查异常"
+		};
+		const fieldName = {
+			enabled: "全局开关",
+			backend: "接入方式",
+			model: "决策模型",
+			reasoningEffort: "思考强度",
+			timeoutMs: "检查超时",
+			maxChecks: "每轮检查次数",
+			maxContextChars: "上下文上限"
+		};
+		function fieldErrors(value) {
+			const errors = {};
+			if (value.model.length > 250 || /[\r\n]/.test(value.model)) errors.model = "模型标识不能超过 250 字符或包含换行";
+			for (const [key, min, max, label] of [
+				[
+					"timeoutMs",
+					5e3,
+					12e4,
+					"超时应为 5–120 秒"
+				],
+				[
+					"maxChecks",
+					3,
+					32,
+					"检查次数应为 3–32 的整数"
+				],
+				[
+					"maxContextChars",
+					4e3,
+					64e3,
+					"上下文应为 4000–64000 的整数"
+				]
+			]) if (!Number.isInteger(value[key]) || value[key] < min || value[key] > max) errors[key] = label;
+			return errors;
+		}
+		function modeLabel(data) {
+			return !data ? "正在加载" : data.config.value.enabled ? data.state === "unavailable" ? "开启 · 需处理" : "开启" : "关闭";
+		}
+		function scopeLabel(scope) {
+			return {
+				native: "聊天会话",
+				developer: "开发任务",
+				requirements: "需求分析",
+				meeting: "会议纪要",
+				diagnostic: "模型诊断"
+			}[scope.split(":")[0]] ?? "历史任务";
+		}
+		let resolveConversation = () => void 0;
+		function registerJevNavigation(resolve) {
+			resolveConversation = resolve;
+			return () => {
+				if (resolveConversation === resolve) resolveConversation = () => void 0;
+			};
+		}
+		function conversation(scope) {
+			return resolveConversation(scope) ?? { name: scopeLabel(scope) + "（未加载或已移除）" };
+		}
+		const emptyFilters = {
+			query: "",
+			stage: "",
+			status: "",
+			days: ""
+		};
+		//#endregion
+		//#region \0dsh-css:packages/dsh-jev-mode/src/ui/JevControls.module.css.mjs
+		const css$7 = ".R-v9Lq_control{flex-wrap:wrap;align-items:center;gap:6px;min-width:0;display:inline-flex;position:relative}.R-v9Lq_toggle{white-space:nowrap;align-items:center;gap:8px;min-height:36px;display:inline-flex}.R-v9Lq_toggle[aria-checked=true]{color:var(--role-text);border-color:var(--role-accent)}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track{background:var(--role-accent);opacity:1}.R-v9Lq_toggle[data-unavailable=true]{color:var(--dsw-alias-label-error,#b43f4c)}.R-v9Lq_track{opacity:.75;box-sizing:border-box;background:currentColor;border-radius:10px;align-items:center;width:26px;height:15px;padding:2px;display:inline-flex}.R-v9Lq_track:after{content:\"\";background:var(--dsw-alias-bg-layer-2,#fff);border-radius:50%;width:11px;height:11px;transition:transform .15s}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track:after{transform:translate(11px)}.R-v9Lq_error,.R-v9Lq_feedback{border:1px solid var(--role-border);background:var(--role-bg);overflow-wrap:anywhere;border-radius:8px;padding:10px 12px}.R-v9Lq_error{color:var(--dsw-alias-label-error,#b43f4c);border-color:currentColor}.R-v9Lq_control .R-v9Lq_error,.R-v9Lq_control .R-v9Lq_feedback{box-sizing:border-box;flex-basis:100%;max-width:min(100%,28rem);font-size:12px}.R-v9Lq_trace{border-bottom:1px solid var(--role-border);overflow-wrap:anywhere;padding:10px 0}.R-v9Lq_trace summary{cursor:pointer;line-height:1.6}.R-v9Lq_compact{flex-shrink:0;max-height:28vh;margin:0 28px 8px;font-size:12px;overflow:auto}.R-v9Lq_compact p{margin:6px 0}.R-v9Lq_page{overflow-wrap:anywhere;max-width:100%;container-type:inline-size}.R-v9Lq_page [role=tab][aria-selected=true]{color:var(--role-text);border-bottom-color:var(--role-accent);font-weight:600}.R-v9Lq_page :is(button,input,select,summary,[tabindex]):focus-visible,.R-v9Lq_compact summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.R-v9Lq_page input,.R-v9Lq_page select{min-width:0}.R-v9Lq_modelList{border:1px solid var(--role-border);border-radius:10px;max-height:270px;padding:10px;overflow:auto}.R-v9Lq_account{border-bottom:1px solid var(--role-border);padding:8px}.R-v9Lq_account:last-child{border-bottom:0}.R-v9Lq_account button{overflow-wrap:anywhere;min-width:0}.R-v9Lq_account button span{min-width:0}.R-v9Lq_account [aria-label=已选择]{flex:none}.R-v9Lq_footer{border-top:1px solid var(--role-border);background:var(--role-bg);z-index:1;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px;padding:14px 0;display:flex;position:sticky;bottom:0}.R-v9Lq_footer small{flex-basis:100%}.R-v9Lq_filters{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:12px;display:grid}.R-v9Lq_workflow{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0;list-style-position:inside;display:grid}.R-v9Lq_workflow li{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;padding:14px}.R-v9Lq_workflow p{margin-bottom:0;font-size:12px}.R-v9Lq_returnBar{flex-wrap:wrap;align-items:center;gap:12px;padding:10px 0 18px;display:flex}@media (width<=650px){.R-v9Lq_control{gap:4px}.R-v9Lq_toggle{padding:6px 9px;font-size:12px}.R-v9Lq_compact{margin-left:16px;margin-right:16px}.R-v9Lq_workflow{grid-template-columns:1fr}.R-v9Lq_footer{justify-content:flex-start}}@media (prefers-reduced-motion:reduce){.R-v9Lq_track:after{transition:none}}@container (width<=430px){.R-v9Lq_workflow{grid-template-columns:1fr}}";
+		const tagId$7 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-jev-mode/src/ui/JevControls.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$7) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$7;
+			tag.textContent = css$7;
+			document.head.appendChild(tag);
+		}
+		var JevControls_module_css_default = {
+			"account": "R-v9Lq_account",
+			"compact": "R-v9Lq_compact",
+			"control": "R-v9Lq_control",
+			"error": "R-v9Lq_error",
+			"feedback": "R-v9Lq_feedback",
+			"filters": "R-v9Lq_filters",
+			"footer": "R-v9Lq_footer",
+			"modelList": "R-v9Lq_modelList",
+			"page": "R-v9Lq_page",
+			"returnBar": "R-v9Lq_returnBar",
+			"toggle": "R-v9Lq_toggle",
+			"trace": "R-v9Lq_trace",
+			"track": "R-v9Lq_track",
+			"workflow": "R-v9Lq_workflow"
+		};
+		//#endregion
+		//#region ../dsh-jev-mode/src/ui/JevTraces.tsx
+		function JevTraceDetail({ trace, open, onToggle }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+				className: JevControls_module_css_default.trace,
+				open,
+				onToggle: (e) => onToggle?.(e.currentTarget.open),
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+						stageName[trace.stage],
+						" · ",
+						statusName[trace.status],
+						" · ",
+						trace.summary
+					] }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: [
+							new Date(trace.at).toLocaleString(),
+							" · ",
+							(trace.elapsedMs / 1e3).toFixed(1),
+							" 秒 · 配置 v",
+							trace.revision
+						]
+					}),
+					trace.decision?.checks.map((c, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+						c.criterion,
+						"：",
+						{
+							supported: "有依据",
+							uncertain: "待核对",
+							unsupported: "缺少依据"
+						}[c.verdict],
+						"。",
+						c.evidence
+					] }, i)),
+					trace.decision?.missing.map((m, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["待确认：", m] }, i)),
+					trace.status !== "allowed" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.notice,
+						children: trace.status === "clarify" ? "补充待确认信息后发起新一轮。" : trace.status === "blocked" ? "核对目标、权限和依据后再继续；已经完成的操作不会自动撤销。" : "检查取消、超时或失败时，不会自动视为通过；可在设置中检查模型，之后重试任务。"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "技术信息" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+						"模型：",
+						trace.config.model,
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("br", {}),
+						"会话：",
+						trace.scope,
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("br", {}),
+						"轮次：",
+						trace.runId
+					] })] })
+				]
+			});
+		}
+		function JevTraces({ traces, filters, setFilters, expanded, setExpanded }) {
+			const filtered = traces.filter((t) => (!filters.stage || t.stage === filters.stage) && (!filters.status || t.status === filters.status) && (!filters.days || Date.parse(t.at) >= Date.now() - Number(filters.days) * 864e5) && (!filters.query || [
+				conversation(t.scope).name,
+				t.summary,
+				t.config.model
+			].some((s) => s.toLowerCase().includes(filters.query.toLowerCase()))));
+			const groups = /* @__PURE__ */ new Map();
+			for (const trace of filtered.slice().reverse()) groups.set(trace.runId, [...groups.get(trace.runId) ?? [], trace]);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: `${ManagedCapabilities_module_css_default.fields} ${JevControls_module_css_default.filters}`,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: ["搜索会话或摘要", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+								value: filters.query,
+								onChange: (e) => setFilters({
+									...filters,
+									query: e.target.value
+								})
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: ["阶段", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+								value: filters.stage,
+								onChange: (e) => setFilters({
+									...filters,
+									stage: e.target.value
+								}),
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+									value: "",
+									children: "全部阶段"
+								}), Object.entries(stageName).map(([id, name]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+									value: id,
+									children: name
+								}, id))]
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: ["结果", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+								value: filters.status,
+								onChange: (e) => setFilters({
+									...filters,
+									status: e.target.value
+								}),
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+									value: "",
+									children: "全部结果"
+								}), Object.entries(statusName).map(([id, name]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+									value: id,
+									children: name
+								}, id))]
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: ["时间", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+								value: filters.days,
+								onChange: (e) => setFilters({
+									...filters,
+									days: e.target.value
+								}),
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: "",
+										children: "全部时间"
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: "1",
+										children: "最近一天"
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: "7",
+										children: "最近七天"
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: "30",
+										children: "最近三十天"
+									})
+								]
+							})]
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+					className: ManagedCapabilities_module_css_default.muted,
+					children: [
+						"本地最多保留最近 200 项，当前匹配 ",
+						filtered.length,
+						" 项。按会话轮次分组，展示判断依据摘要。"
+					]
+				}),
+				[...groups].map(([id, items]) => {
+					const target = conversation(items[0].scope);
+					return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
+						className: ManagedCapabilities_module_css_default.card,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: ManagedCapabilities_module_css_default.heading,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: target.name }), target.open && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									onClick: () => {
+										if (requestLeave()) target.open?.();
+									},
+									children: "返回对话 ↗"
+								})]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", {
+								className: ManagedCapabilities_module_css_default.muted,
+								children: [
+									new Date(items.at(-1).at).toLocaleString(),
+									" 开始的检查 · ",
+									items.length,
+									" 项"
+								]
+							}),
+							items.map((trace) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevTraceDetail, {
+								trace,
+								open: expanded.includes(trace.id),
+								onToggle: (open) => setExpanded(open ? [.../* @__PURE__ */ new Set([...expanded, trace.id])] : expanded.filter((id) => id !== trace.id))
+							}, trace.id))
+						]
+					}, id);
+				}),
+				!filtered.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+					className: ManagedCapabilities_module_css_default.empty,
+					children: "暂无匹配的检查记录。连接检查的结果位于“配置与状态”；任务记录在开启后的新轮次中产生。"
+				})
+			] });
+		}
+		//#endregion
+		//#region ../dsh-jev-mode/src/ui/JevAbout.tsx
+		function JevAbout({ data, technical, setTechnical, configure }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: ManagedCapabilities_module_css_default.row,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: [
+						"全局",
+						modeLabel(data),
+						" · ",
+						data?.connection ? connectionName[data.connection.state] : "正在加载"
+					] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: data?.config.value.model || "尚未选择决策模型" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						onClick: configure,
+						children: "配置与检查"
+					})]
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "开启后如何工作" }),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("ol", {
+					className: JevControls_module_css_default.workflow,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "任务评估" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "梳理目标、依据与缺失信息。" })] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "关键动作检查" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "执行前核对目标、权限和证据。" })] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "结果复核" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "检查结果与完成声明是否有依据。" })] })
+					]
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "岗位覆盖" }),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					className: ManagedCapabilities_module_css_default.grid,
+					children: [
+						["自由聊天与通用岗位", "开始评估、工具动作检查、结束复核。"],
+						["需求分析", "评估任务，复核通过后采用候选内容。"],
+						["开发助手", "写入前检查；仍须满足原岗位权限和文件版本要求。"],
+						["会议纪要", "依据转写内容复核，通过后保存新纪要。"]
+					].map(([title, text]) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
+						className: ManagedCapabilities_module_css_default.card,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: title }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: text }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+								className: ManagedCapabilities_module_css_default.muted,
+								children: "已接入 · 使用全局设置"
+							})
+						]
+					}, title))
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "无需逐个岗位绑定。JEV 不授予额外权限；检查失败会停止相关自动步骤，已经完成的操作不自动撤销。" }),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "模型接入与后续扩展" }),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: ManagedCapabilities_module_css_default.row,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "自有内网模型 · 当前接入方式" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "复用工作台模型账号和凭据，决策模型独立选择。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						onClick: () => openWorkbenchLink({ section: "models" }),
+						children: "管理模型账号 ↗"
+					})]
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: ManagedCapabilities_module_css_default.row,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "Jev 官方服务 · 尚未接入" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "已预留扩展接口，当前没有官网请求或官网 KEY 配置。后续接入需实现适配器。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						className: ManagedCapabilities_module_css_default.badge,
+						children: "预留"
+					})]
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+					className: ManagedCapabilities_module_css_default.compositionInfo,
+					open: technical,
+					onToggle: (e) => setTechnical(e.currentTarget.open),
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "技术信息与能力边界" }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+							descriptor.provider,
+							" · ",
+							descriptor.version
+						] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "代码、配置与轨迹独立管理。内网 Chat Completions 传输拒绝公网目标和重定向。模型判断不等同于官方 Jev 能力或实际测试通过；不保存完整思维过程。原生流式回答可能先于结束复核显示。" })
+					]
+				})
+			] });
+		}
+		//#endregion
+		//#region ../dsh-jev-mode/src/ui/JevModelFields.tsx
+		function JevModelFields({ value, accounts, loading, refresh, change }) {
+			const [query, setQuery] = (0, react.useState)(""), selected = accounts.flatMap((a) => a.models).find((m) => m.id === value.model);
+			const matches = (...values) => values.some((v) => v.toLowerCase().includes(query.toLowerCase()));
+			const visible = accounts.filter((a) => matches(a.name, a.id, ...a.models.flatMap((m) => [m.id, m.name]))), available = visible.filter((a) => a.available).sort((a, b) => Number(b.models.some((m) => m.id === value.model)) - Number(a.models.some((m) => m.id === value.model))), unavailable = visible.filter((a) => !a.available);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+					className: ManagedCapabilities_module_css_default.field,
+					children: ["搜索账号或模型", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+						value: query,
+						onChange: (e) => setQuery(e.target.value),
+						placeholder: "按名称或标识筛选本地模型"
+					})]
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: ManagedCapabilities_module_css_default.field,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "独立决策模型" }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+							"当前选择：",
+							selected?.name || value.model || "未选择",
+							selected ? " · " + value.model : "",
+							"。仅刷新本地配置，不联网发现模型。"
+						] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: JevControls_module_css_default.modelList,
+							role: "group",
+							"aria-label": "本地模型选项",
+							children: [available.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: JevControls_module_css_default.account,
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: a.name || a.id }),
+									a.models.filter((m) => matches(a.name, a.id, m.name, m.id)).map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+										className: ManagedCapabilities_module_css_default.choice,
+										"aria-pressed": value.model === m.id,
+										onClick: () => change({
+											model: m.id,
+											reasoningEffort: ""
+										}),
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [m.name, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: m.id })] }), value.model === m.id && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+											"aria-label": "已选择",
+											children: "✓"
+										})]
+									}, m.id)),
+									!a.models.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+										className: ManagedCapabilities_module_css_default.muted,
+										children: "尚未登记本地模型；可配置账号，或在高级设置填写模型标识。"
+									})
+								]
+							}, a.id)), !available.length && !loading && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: query ? "没有匹配的可选模型。" : "尚无可选模型，请配置内网模型账号。" })]
+						})
+					]
+				}),
+				!!unavailable.length && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+					className: ManagedCapabilities_module_css_default.compositionInfo,
+					open: query ? true : void 0,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+						"待配置或不可用账号（",
+						unavailable.length,
+						"）"
+					] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: JevControls_module_css_default.modelList,
+						children: unavailable.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: JevControls_module_css_default.account,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", {
+									className: ManagedCapabilities_module_css_default.muted,
+									children: a.name || a.id
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+									className: ManagedCapabilities_module_css_default.muted,
+									children: ["不可用：", a.message]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									onClick: () => openWorkbenchLink({ section: "models" }),
+									children: "配置此模型账号 ↗"
+								})
+							]
+						}, a.id))
+					})]
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: ManagedCapabilities_module_css_default.actions,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						disabled: loading,
+						onClick: refresh,
+						children: loading ? "读取中…" : "刷新本地模型"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						onClick: () => openWorkbenchLink({ section: "models" }),
+						children: "模型账号设置 ↗"
+					})]
+				})
+			] });
+		}
+		function JevAdvanced({ value, accounts, open, setOpen, change }) {
+			const invalid = fieldErrors(value), known = accounts.flatMap((a) => a.models).find((m) => m.id === value.model)?.reasoning;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+				className: ManagedCapabilities_module_css_default.compositionInfo,
+				open,
+				onToggle: (e) => setOpen(e.currentTarget.open),
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "高级设置" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: ManagedCapabilities_module_css_default.fields,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: [
+								"手动填写模型标识",
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									maxLength: 250,
+									value: value.model,
+									"aria-invalid": !!invalid.model,
+									placeholder: "提供方/模型标识",
+									onChange: (e) => change({ model: e.target.value })
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+									role: invalid.model ? "alert" : void 0,
+									children: invalid.model ?? "用于已配置内网账号中未登记的模型；仍需连接检查。"
+								})
+							]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: [
+								"决策模型思考强度",
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+									value: value.reasoningEffort,
+									onChange: (e) => change({ reasoningEffort: e.target.value }),
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: "",
+										children: "模型默认"
+									}), [
+										"low",
+										"medium",
+										"high"
+									].map((id, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: id,
+										disabled: known ? !known.includes(id) : value.reasoningEffort !== id,
+										children: [
+											"低",
+											"中",
+											"高"
+										][i]
+									}, id))]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: known === void 0 ? "本地配置未声明可用强度，优先采用模型默认；历史显式设置保留，可恢复默认。" : known.length ? "仅提供账号明确声明支持的强度。" : "此模型声明不支持思考强度，使用模型默认。" })
+							]
+						}),
+						[
+							[
+								"timeoutMs",
+								"单次检查超时（秒）",
+								5,
+								120,
+								1e3,
+								"检查超时会停止当前自动步骤。"
+							],
+							[
+								"maxChecks",
+								"每轮最多检查次数",
+								3,
+								32,
+								1,
+								"限制一轮中的额外模型调用。"
+							],
+							[
+								"maxContextChars",
+								"检查上下文字符上限",
+								4e3,
+								64e3,
+								1,
+								"过长动作证据会停止检查，避免遗漏依据。"
+							]
+						].map(([key, label, min, max, divisor, hint]) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: [
+								label,
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									type: "number",
+									min,
+									max,
+									step: 1,
+									value: Number.isFinite(value[key]) ? value[key] / divisor : "",
+									"aria-invalid": !!invalid[key],
+									"aria-describedby": "jev-error-" + key,
+									onChange: (e) => change({ [key]: e.target.value === "" ? NaN : Number(e.target.value) * divisor })
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+									id: "jev-error-" + key,
+									role: invalid[key] ? "alert" : void 0,
+									children: invalid[key] ?? hint
+								})
+							]
+						}, key))
+					]
+				})]
+			});
+		}
+		//#endregion
+		//#region ../dsh-jev-mode/src/ui/JevSettings.tsx
+		function initialView(link) {
+			const restored = restoredFrame(link?.restore, "jev-mode")?.view;
+			return {
+				tab: "configuration",
+				advanced: false,
+				technical: false,
+				filters: { ...emptyFilters },
+				expanded: [],
+				scroll: 0,
+				...restored,
+				...link?.tab ? { tab: link.tab } : {},
+				...link?.scope ? { scope: link.scope } : {}
+			};
+		}
+		function scrollParent(node) {
+			let p = node?.parentElement;
+			while (p) {
+				if (/auto|scroll/.test(getComputedStyle(p).overflowY)) return p;
+				p = p.parentElement;
+			}
+			return document.scrollingElement;
+		}
+		function JevSettings() {
+			const { data, readError, saveError, checkError, busy, checkBusy } = useJev();
+			const [entry] = (0, react.useState)(() => pendingNavigation("jev-mode")), [origin, setOrigin] = (0, react.useState)(entry?.origin), [view, setView] = (0, react.useState)(() => initialView(entry));
+			const [draft, setDraft] = (0, react.useState)(null), [base, setBase] = (0, react.useState)(null), [accounts, setAccounts] = (0, react.useState)([]), [accountError, setAccountError] = (0, react.useState)(""), [loadingAccounts, setLoadingAccounts] = (0, react.useState)(true), [message, setMessage] = (0, react.useState)(""), [checked, setChecked] = (0, react.useState)(null);
+			const root = (0, react.useRef)(null), scroll = (0, react.useRef)(view.scroll), pendingScroll = (0, react.useRef)(view.scroll), accountSequence = (0, react.useRef)(0);
+			const value = draft ?? data?.config.value, invalid = value ? fieldErrors(value) : {}, valid = Object.keys(invalid).length === 0, conflict = !!draft && base?.revision !== data?.config.revision;
+			const diagnostic = data?.diagnostic, checking = diagnostic?.status === "checking", candidateKey = value ? connectionConfig(value) : "";
+			const connection = !draft ? data?.connection : checked?.key === candidateKey ? checked.connection : void 0, canEnable = connection?.state === "ready" && !checking;
+			const patchView = (patch) => setView((v) => ({
+				...v,
+				...patch
+			}));
+			useLeaveGuard(!!draft, () => setDraft(null));
+			useNavigationFrame("jev-mode", 1, () => ({
+				section: "jev-mode",
+				label: "JEV 模式",
+				origin,
+				view: {
+					...view,
+					scroll: scroll.current
+				}
+			}));
+			(0, react.useLayoutEffect)(() => {
+				consumeNavigation(entry);
+				const host = scrollParent(root.current);
+				const track = () => {
+					if (pendingScroll.current === void 0) scroll.current = host?.scrollTop ?? 0;
+				};
+				host?.addEventListener("scroll", track);
+				return () => host?.removeEventListener("scroll", track);
+			}, []);
+			(0, react.useLayoutEffect)(() => {
+				if (!data || loadingAccounts || pendingScroll.current === void 0) return;
+				const host = scrollParent(root.current);
+				if (host) {
+					host.scrollTop = pendingScroll.current;
+					scroll.current = host.scrollTop;
+				}
+				pendingScroll.current = void 0;
+			}, [
+				data,
+				loadingAccounts,
+				view
+			]);
+			(0, react.useEffect)(() => {
+				const navigate = (event) => {
+					const link = event.detail;
+					if (link.section !== "jev-mode") return;
+					consumeNavigation(link);
+					setOrigin(link.origin);
+					const next = initialView(link);
+					pendingScroll.current = next.scroll;
+					setView(next);
+				};
+				window.addEventListener("workbench-capability-link", navigate);
+				return () => window.removeEventListener("workbench-capability-link", navigate);
+			}, []);
+			const refreshAccounts = async () => {
+				const seq = ++accountSequence.current;
+				setLoadingAccounts(true);
+				setAccountError("");
+				try {
+					const list = await jevClient.api("accounts");
+					if (seq === accountSequence.current) setAccounts(list);
+				} catch (e) {
+					if (seq === accountSequence.current) setAccountError(e.message);
+				} finally {
+					if (seq === accountSequence.current) setLoadingAccounts(false);
+				}
+			};
+			(0, react.useEffect)(() => {
+				refreshAccounts();
+				const focus = () => void refreshAccounts();
+				window.addEventListener("focus", focus);
+				return () => {
+					accountSequence.current++;
+					window.removeEventListener("focus", focus);
+				};
+			}, []);
+			(0, react.useEffect)(() => {
+				if (!value || !valid) return;
+				let live = true;
+				const timer = setTimeout(() => {
+					jevClient.api("connection", { value }).then((connection) => {
+						if (live) setChecked({
+							key: candidateKey,
+							connection
+						});
+					}).catch(() => {
+						if (live) setChecked(null);
+					});
+				}, 150);
+				return () => {
+					live = false;
+					clearTimeout(timer);
+				};
+			}, [
+				candidateKey,
+				valid,
+				diagnostic?.status,
+				accounts,
+				data?.config.revision
+			]);
+			const change = (patch) => {
+				if (!value || !data) return;
+				if (!draft) setBase({
+					revision: data.config.revision,
+					value: data.config.value
+				});
+				setDraft({
+					...value,
+					...patch
+				});
+				setMessage("");
+				jevClient.clearSaveError();
+			};
+			const save = async () => {
+				if (!draft || !base || !valid) return;
+				try {
+					await jevClient.save(draft, base.revision);
+					setDraft(null);
+					setBase(null);
+					setMessage("已保存；所有岗位从下一轮采用此设置");
+				} catch {
+					jevClient.refresh();
+				}
+			};
+			const test = () => {
+				if (value && valid) jevClient.check(value).then(() => jevClient.refresh()).catch(() => {});
+			};
+			const tabs = [
+				["configuration", "配置与状态"],
+				["traces", "运行轨迹"],
+				["about", "模块与扩展"]
+			];
+			const tabKeys = (event) => {
+				if (!(event.target instanceof HTMLElement) || event.target.getAttribute("role") !== "tab") return;
+				const index = tabs.findIndex(([id]) => id === view.tab), next = event.key === "Home" ? 0 : event.key === "End" ? 2 : event.key === "ArrowRight" ? (index + 1) % 3 : event.key === "ArrowLeft" ? (index + 2) % 3 : -1;
+				if (next < 0) return;
+				event.preventDefault();
+				patchView({ tab: tabs[next][0] });
+				event.currentTarget.querySelectorAll("[role=\"tab\"]")[next]?.focus();
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+				ref: root,
+				className: `${ManagedCapabilities_module_css_default.page} ${JevControls_module_css_default.page}`,
+				"data-jev-settings": true,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: ManagedCapabilities_module_css_default.heading,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "JEV 模式" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+							className: ManagedCapabilities_module_css_default.muted,
+							children: ["独立的全局附加功能 · ", modeLabel(data)]
+						})] }), origin && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							className: ManagedCapabilities_module_css_default.button,
+							onClick: () => returnNavigation(origin),
+							children: ["← 返回", origin.label]
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.notice,
+						children: "所有岗位共用开关和独立决策模型。切换岗位、新建会话和重启后沿用已保存设置；修改从下一轮生效，进行中的轮次保留启动时配置。"
+					}),
+					readError && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: JevControls_module_css_default.error,
+						role: "alert",
+						children: [
+							"状态读取失败：",
+							readError,
+							" ",
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								onClick: () => void jevClient.refresh(),
+								children: "重新读取"
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: ManagedCapabilities_module_css_default.tabs,
+						role: "tablist",
+						"aria-label": "JEV 设置栏目",
+						onKeyDown: tabKeys,
+						children: tabs.map(([id, label]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							id: "jev-tab-" + id,
+							role: "tab",
+							"aria-selected": view.tab === id,
+							"aria-controls": "jev-panel-" + id,
+							tabIndex: view.tab === id ? 0 : -1,
+							onClick: () => patchView({ tab: id }),
+							children: label
+						}, id))
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						id: "jev-panel-" + view.tab,
+						role: "tabpanel",
+						"aria-labelledby": "jev-tab-" + view.tab,
+						tabIndex: 0,
+						children: [
+							view.tab === "configuration" && (value ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: ManagedCapabilities_module_css_default.row,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: ["模型连接 · ", connection ? connectionName[connection.state] : "正在读取"] }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: connection?.message ?? "正在核对当前配置的检查记录" }),
+										connection?.checkedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["最近检查：", new Date(connection.checkedAt).toLocaleString()] })
+									] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										className: ManagedCapabilities_module_css_default.badge,
+										children: "自有内网模型"
+									})]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("fieldset", {
+									className: ManagedCapabilities_module_css_default.compositionFieldset,
+									disabled: busy,
+									children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+										className: ManagedCapabilities_module_css_default.fields,
+										children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevModelFields, {
+												value,
+												accounts,
+												loading: loadingAccounts,
+												refresh: () => void refreshAccounts(),
+												change
+											}),
+											accountError && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+												className: JevControls_module_css_default.error,
+												role: "alert",
+												children: ["模型列表读取失败：", accountError]
+											}),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+												className: ManagedCapabilities_module_css_default.card,
+												"aria-label": "模型连接检查",
+												children: [
+													/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+														className: ManagedCapabilities_module_css_default.actions,
+														children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+															className: ManagedCapabilities_module_css_default.button,
+															disabled: !value.model || !valid || checking || checkBusy,
+															onClick: test,
+															children: checking ? "正在检查…" : "检查内网模型"
+														}), checking && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+															className: ManagedCapabilities_module_css_default.button,
+															disabled: checkBusy,
+															onClick: () => void jevClient.cancel(diagnostic.id).then(() => jevClient.refresh()).catch(() => {}),
+															children: "取消检查"
+														})]
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+														className: ManagedCapabilities_module_css_default.muted,
+														children: "关闭模式时也可检查，使用当前输入的配置；不会保存草稿或开启全局模式。"
+													}),
+													diagnostic && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+														role: diagnostic.status === "failed" ? "alert" : "status",
+														className: diagnostic.status === "failed" ? JevControls_module_css_default.error : void 0,
+														children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+															diagnostic.message,
+															" · ",
+															(diagnostic.elapsedMs / 1e3).toFixed(1),
+															" 秒"
+														] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [
+															/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "检查详情" }),
+															/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+																diagnostic.config.model,
+																" · ",
+																new Date(diagnostic.startedAt).toLocaleString()
+															] }),
+															connectionConfig(diagnostic.config) !== candidateKey && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "这次结果对应先前的配置，请为当前输入重新检查。" }),
+															diagnostic.decision && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: diagnostic.decision.summary })
+														] })]
+													}),
+													checkError && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+														className: JevControls_module_css_default.error,
+														role: "alert",
+														children: checkError
+													})
+												]
+											}),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+												className: ManagedCapabilities_module_css_default.field,
+												children: [
+													"全局开关",
+													/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+														value: String(value.enabled),
+														onChange: (e) => change({ enabled: e.target.value === "true" }),
+														children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+															value: "false",
+															children: "关闭"
+														}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+															value: "true",
+															disabled: !canEnable && !value.enabled,
+															children: "开启"
+														})]
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: canEnable ? "连接检查已通过，可以开启并保存。" : "先检查当前模型配置，通过后可以开启；已有启用状态可随时关闭。" })
+												]
+											}),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevAdvanced, {
+												value,
+												accounts,
+												open: view.advanced,
+												setOpen: (advanced) => patchView({ advanced }),
+												change
+											})
+										]
+									})
+								}),
+								conflict && data && base && draft && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: ManagedCapabilities_module_css_default.notice,
+									role: "alert",
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "其他位置已更新配置，当前草稿仍保留。" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "核对下列差异后，以最新配置为基准继续编辑；相同字段仍保留你的输入，保存前请确认。" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", { children: Object.keys(fieldName).filter((key) => base.value[key] !== data.config.value[key] || base.value[key] !== draft[key]).map((key) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+											fieldName[key],
+											"：最新值 ",
+											String(data.config.value[key]) || "默认",
+											"；草稿值 ",
+											String(draft[key]) || "默认"
+										] }, key)) }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											className: ManagedCapabilities_module_css_default.button,
+											onClick: () => {
+												const rebased = { ...data.config.value };
+												for (const key of Object.keys(fieldName)) if (draft[key] !== base.value[key]) Object.assign(rebased, { [key]: draft[key] });
+												setDraft(rebased);
+												setBase({
+													revision: data.config.revision,
+													value: data.config.value
+												});
+												jevClient.clearSaveError();
+												setMessage("已加载最新基准并保留你的改动，请核对后保存");
+											},
+											children: "保留草稿，加载最新基准"
+										})
+									]
+								}),
+								saveError && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+									className: JevControls_module_css_default.error,
+									role: "alert",
+									children: ["保存失败：", saveError]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: JevControls_module_css_default.footer,
+									children: [
+										draft && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											className: ManagedCapabilities_module_css_default.button,
+											disabled: busy,
+											onClick: () => {
+												setDraft(null);
+												setBase(null);
+												jevClient.clearSaveError();
+												setMessage("已取消本页修改");
+											},
+											children: "取消修改"
+										}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
+											disabled: busy || conflict || !valid || value.enabled && !canEnable,
+											onClick: () => void save(),
+											children: "保存配置"
+										})] }),
+										message && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+											role: "status",
+											children: message
+										}),
+										draft && value.enabled && !canEnable && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "当前模型配置需要检查通过后才能保存为开启状态；也可以先关闭并保存。" })
+									]
+								})
+							] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								role: "status",
+								children: "正在读取配置…"
+							})),
+							view.tab === "traces" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [view.scope && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+								className: ManagedCapabilities_module_css_default.notice,
+								children: ["仅显示当前会话 ", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									onClick: () => patchView({ scope: void 0 }),
+									children: "查看全部会话"
+								})]
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevTraces, {
+								traces: (data?.traces ?? []).filter((t) => !view.scope || t.scope === view.scope),
+								filters: view.filters,
+								setFilters: (filters) => patchView({ filters }),
+								expanded: view.expanded,
+								setExpanded: (expanded) => patchView({ expanded })
+							})] }),
+							view.tab === "about" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevAbout, {
+								data,
+								technical: view.technical,
+								setTechnical: (technical) => patchView({ technical }),
+								configure: () => patchView({ tab: "configuration" })
+							})
+						]
+					})
+				]
+			});
+		}
+		//#endregion
+		//#region ../dsh-jev-mode/src/ui/JevControls.tsx
+		function JevToggle() {
+			const { data, error, busy } = useJev(), [notice, setNotice] = (0, react.useState)(""), enabled = data?.config.value.enabled ?? false;
+			const toggle = () => {
+				if (!data) return;
+				if (!enabled && data.connection?.state !== "ready") {
+					openWorkbenchLink({
+						section: "jev-mode",
+						tab: "configuration"
+					});
+					return;
+				}
+				jevClient.save({
+					...data.config.value,
+					enabled: !enabled
+				}).then(() => setNotice("已保存，从下一轮生效")).catch(() => {});
+			};
+			(0, react.useEffect)(() => {
+				if (!notice) return;
+				const t = setTimeout(() => setNotice(""), 6e3);
+				return () => clearTimeout(t);
+			}, [notice]);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: `${ManagedCapabilities_module_css_default.page} ${JevControls_module_css_default.control}`,
+				"data-jev-control": true,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						className: `${ManagedCapabilities_module_css_default.button} ${JevControls_module_css_default.toggle}`,
+						type: "button",
+						role: "switch",
+						"aria-label": "JEV 模式",
+						"aria-checked": enabled,
+						"data-unavailable": enabled && data?.state === "unavailable",
+						disabled: !data || busy,
+						title: !enabled && data?.connection?.state !== "ready" ? "先配置并检查内网模型" : data?.message ?? "正在加载 JEV 设置",
+						onClick: toggle,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: JevControls_module_css_default.track }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: ["JEV · ", modeLabel(data)] })]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						type: "button",
+						className: ManagedCapabilities_module_css_default.iconButton,
+						"aria-label": "JEV 设置",
+						title: "JEV 设置与运行轨迹",
+						onClick: () => openWorkbenchLink({ section: "jev-mode" }),
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "settings" })
+					}),
+					(error || notice) && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: error ? JevControls_module_css_default.error : JevControls_module_css_default.feedback,
+						role: error ? "alert" : "status",
+						children: [error || notice, error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: ManagedCapabilities_module_css_default.button,
+							onClick: () => openWorkbenchLink({ section: "jev-mode" }),
+							children: "查看设置"
+						})]
+					})
+				]
+			});
+		}
+		function JevActivity({ scope }) {
+			const { data, error } = useJevScope(scope), active = data?.active?.at(-1), trace = data?.traces.at(-1);
+			if (!scope || !active && !trace && !error) return null;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: `${ManagedCapabilities_module_css_default.page} ${JevControls_module_css_default.compact}`,
+				children: [
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						role: "alert",
+						children: ["本轮 JEV 状态暂时无法读取：", error]
+					}),
+					active && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						role: "status",
+						children: [
+							"本轮 JEV ",
+							active.enabled ? "开启" : "关闭",
+							" · 配置 v",
+							active.revision,
+							active.enabled ? " · " + (active.phase === "checking" ? `正在${stageName[active.stage]}（${Math.max(0, Math.floor((Date.now() - Date.parse(active.checkingSince)) / 1e3))} 秒）` : "等待业务步骤，检查结果见下方") : "",
+							data && active.revision !== data.config.revision ? "；全局设置已变化，下一轮生效。" : "",
+							active.enabled && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [" ", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								onClick: () => openWorkbenchLink({
+									section: "jev-mode",
+									tab: "traces",
+									scope
+								}),
+								children: "查看轨迹"
+							})] })
+						]
+					}),
+					active?.phase === "checking" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "立即停止请使用当前任务的“停止”按钮；全局开关不取消正在运行的轮次。" }),
+					trace && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: trace.runId === active?.id ? "本轮最近结果" : "历史检查结果（不是当前运行状态）"
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevTraceDetail, { trace })] })
+				]
+			});
+		}
+		function JevOverview() {
+			const { data, readError } = useJev();
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: ManagedCapabilities_module_css_default.row,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: ["JEV 模式 · 全局", modeLabel(data)] }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+						data?.config.value.model || "尚未选择决策模型",
+						" · ",
+						data?.connection ? connectionName[data.connection.state] : "正在读取状态"
+					] }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: readError || "所有岗位共用，无须逐个绑定组件。" })
+				] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					className: ManagedCapabilities_module_css_default.button,
+					onClick: () => openWorkbenchLink({ section: "jev-mode" }),
+					children: "配置与运行轨迹 ↗"
+				})]
+			});
+		}
+		/** Reuses the existing model settings; only adds a return path for a JEV-origin visit. */
+		function JevModelReturn({ children }) {
+			const [origin, setOrigin] = (0, react.useState)(() => {
+				const link = pendingNavigation("models");
+				return link?.origin?.section === "jev-mode" ? link.origin : void 0;
+			});
+			(0, react.useEffect)(() => {
+				const initial = pendingNavigation("models");
+				if (initial?.origin?.section === "jev-mode") consumeNavigation(initial);
+				const open = (event) => {
+					const link = event.detail;
+					if (link.section === "models") {
+						setOrigin(link.origin?.section === "jev-mode" ? link.origin : void 0);
+						if (link.origin?.section === "jev-mode") consumeNavigation(link);
+					}
+				};
+				window.addEventListener("workbench-capability-link", open);
+				return () => window.removeEventListener("workbench-capability-link", open);
+			}, []);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [origin && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: `${ManagedCapabilities_module_css_default.page} ${JevControls_module_css_default.returnBar}`,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					className: ManagedCapabilities_module_css_default.button,
+					onClick: () => returnNavigation(origin),
+					children: "← 返回 JEV 模式"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					className: ManagedCapabilities_module_css_default.muted,
+					children: "返回后刷新本地模型列表。"
+				})]
+			}), children] });
+		}
 		//#endregion
 		//#region src/client/component-center-layout.ts
 		const fallback = /* @__PURE__ */ new Map();
@@ -5346,16 +6703,16 @@ window.__ModuleLoader__.load({
 			const registry = data.registry, supported = !!registry;
 			const catalog = data.components.length ? data.components : components;
 			const metadata = (id) => registry?.metadata[id] ?? {};
-			const descriptor$1 = catalog.find((c) => c.id === selected), localCandidate = registry?.candidates.find((c) => c.id === selected);
-			const current = descriptor$1 ?? localCandidate, meta = descriptor$1 ? metadata(selected) : localCandidate ?? {}, name = current?.name ?? selected;
-			const service = descriptor$1 ? componentService(descriptor$1, {
+			const descriptor = catalog.find((c) => c.id === selected), localCandidate = registry?.candidates.find((c) => c.id === selected);
+			const current = descriptor ?? localCandidate, meta = descriptor ? metadata(selected) : localCandidate ?? {}, name = current?.name ?? selected;
+			const service = descriptor ? componentService(descriptor, {
 				data,
 				meetingStatus,
 				requirementsStatus
 			}) : void 0;
 			const description = meta.description ?? service?.description ?? "";
 			const refs = references(data.state, selected, data.tasks), activities = data.componentActivities?.filter((t) => t.componentIds.includes(selected));
-			const adapted = descriptor$1 ? adaptedCapabilities(data.state, descriptor$1) : [];
+			const adapted = descriptor ? adaptedCapabilities(data.state, descriptor) : [];
 			const run = async (fn) => {
 				setBusy(true);
 				setMessage("");
@@ -5432,7 +6789,7 @@ window.__ModuleLoader__.load({
 				if (cap) openWorkbenchLink({
 					section: "capability-center",
 					capabilityId: cap.id,
-					tab: descriptor$1?.management === "browser" ? "overview" : "defaults",
+					tab: descriptor?.management === "browser" ? "overview" : "defaults",
 					componentId: selected,
 					returnTo: "component-center"
 				});
@@ -5509,14 +6866,7 @@ window.__ModuleLoader__.load({
 						className: ManagedCapabilities_module_css_default.notice,
 						children: "组件登记服务待更新。可以浏览现有组件；正常重启工作台后再编辑登记信息。"
 					}),
-					!embedded && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: ManagedCapabilities_module_css_default.row,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: [descriptor.name, " · 全局附加功能"] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "独立配置，所有岗位共用，无须逐个绑定组件。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							className: ManagedCapabilities_module_css_default.button,
-							onClick: () => openWorkbenchLink({ section: "jev-mode" }),
-							children: "配置与运行轨迹 ↗"
-						})]
-					}),
+					!embedded && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevOverview, {}),
 					(message || error) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 						role: message.includes("已") ? "status" : "alert",
 						className: ManagedCapabilities_module_css_default.notice,
@@ -5711,9 +7061,9 @@ window.__ModuleLoader__.load({
 										children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: name }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
 											className: ManagedCapabilities_module_css_default.muted,
 											children: [
-												descriptor$1?.sourceLabel ?? "候选组件",
+												descriptor?.sourceLabel ?? "候选组件",
 												" · ",
-												meta.retiredAt ? "已移入回收站" : meta.enabled === false ? "全局停用" : descriptor$1 ? "已登记" : "待接入执行适配器"
+												meta.retiredAt ? "已移入回收站" : meta.enabled === false ? "全局停用" : descriptor ? "已登记" : "待接入执行适配器"
 											]
 										})] })
 									}),
@@ -5722,7 +7072,7 @@ window.__ModuleLoader__.load({
 										children: [
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 												className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
-												disabled: !descriptor$1 || !!meta.retiredAt || meta.enabled === false || !supported,
+												disabled: !descriptor || !!meta.retiredAt || meta.enabled === false || !supported,
 												onClick: () => setTargeting(true),
 												children: "添加到能力"
 											}),
@@ -5747,12 +7097,12 @@ window.__ModuleLoader__.load({
 														onClick: () => inspect(selected, "retire"),
 														children: "移入回收站"
 													}),
-													descriptor$1 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 														disabled: !supported || busy,
 														onClick: () => inspect(selected, meta.enabled === false ? "enable" : "disable"),
 														children: meta.enabled === false ? "启用组件" : "全局停用"
 													}),
-													!descriptor$1 && meta.retiredAt && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													!descriptor && meta.retiredAt && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 														disabled: !supported || busy,
 														onClick: () => inspect(selected, "purge"),
 														children: "永久删除候选登记"
@@ -5809,26 +7159,26 @@ window.__ModuleLoader__.load({
 												children: "查看使用关系"
 											})]
 										}),
-										!descriptor$1 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+										!descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 											className: ManagedCapabilities_module_css_default.notice,
 											children: "此项是候选登记。安装插件后仍需接入真实动作契约及服务适配器，才能装配和执行。"
 										})
 									] }),
-									tab === "actions" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor$1?.actions.map((action) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+									tab === "actions" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor?.actions.map((action) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 										className: ManagedCapabilities_module_css_default.row,
 										children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: actionNames[action] }),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: action }),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "已适配动作；任务执行仍按岗位、已发布能力版本和任务授权检查。" })
 										] })
-									}, action)), !descriptor$1 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "尚未接入可执行动作。" })] }),
-									tab === "configuration" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor$1 && service ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentEnvironment, {
-										component: descriptor$1,
+									}, action)), !descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "尚未接入可执行动作。" })] }),
+									tab === "configuration" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor && service ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentEnvironment, {
+										component: descriptor,
 										data,
 										meetingStatus,
 										requirementsStatus,
 										onConfigure: configure
-									}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "候选组件没有可用的服务配置入口。" }), descriptor$1 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "候选组件没有可用的服务配置入口。" }), descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 										className: ManagedCapabilities_module_css_default.button,
 										onClick: configure,
 										children: "前往所属能力配置 ↗"
@@ -5836,7 +7186,7 @@ window.__ModuleLoader__.load({
 										className: ManagedCapabilities_module_css_default.muted,
 										children: "提供插件的加载状态见“插件与依赖”；本页使用对应能力的同一份配置。"
 									})] })] }),
-									tab === "plugins" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor$1 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryTree, {
+									tab === "plugins" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [descriptor ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryTree, {
 										list: readPluginInventory,
 										componentId: selected,
 										componentData: data,
@@ -5845,7 +7195,7 @@ window.__ModuleLoader__.load({
 										"候选来源：",
 										localCandidate?.provider,
 										"。尚未登记执行关系。"
-									] }), descriptor$1 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+									] }), descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 										className: ComponentCenter_module_css_default.environment,
 										open: !!folds[selected],
 										onToggle: (event) => {
@@ -5859,13 +7209,13 @@ window.__ModuleLoader__.load({
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "服务与环境" }),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
 												"由 ",
-												descriptor$1.sourceLabel,
+												descriptor.sourceLabel,
 												" 处理业务动作。服务配置由所属能力统一管理。"
 											] }),
-											descriptor$1.dependencies.filter((id) => !id.startsWith("@")).map((id) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+											descriptor.dependencies.filter((id) => !id.startsWith("@")).map((id) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
 												id,
 												" · 环境要求",
-												descriptor$1.management === "browser" ? ` · ${data.health.message}` : ""
+												descriptor.management === "browser" ? ` · ${data.health.message}` : ""
 											] }, id)),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 												className: ManagedCapabilities_module_css_default.button,
@@ -5902,9 +7252,9 @@ window.__ModuleLoader__.load({
 									tab === "versions" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
 											"动作契约版本：",
-											descriptor$1?.version ?? "未接入",
+											descriptor?.version ?? "未接入",
 											" · 组合协议：",
-											descriptor$1?.compositionVersion ?? "未接入"
+											descriptor?.compositionVersion ?? "未接入"
 										] }),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 											className: ManagedCapabilities_module_css_default.muted,
@@ -6260,13 +7610,13 @@ window.__ModuleLoader__.load({
 		};
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/CapabilityCenter.module.css.mjs
-		const css$7 = ".T4-_kG_center{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);box-sizing:border-box;width:100%;min-width:0;font-family:inherit;font-size:13px;line-height:1.6;container-type:inline-size}.T4-_kG_center *{box-sizing:border-box}.T4-_kG_center button,.T4-_kG_center input,.T4-_kG_center textarea,.T4-_kG_center select{font:inherit}.T4-_kG_center button{cursor:pointer}.T4-_kG_center button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.T4-_kG_heading{justify-content:space-between;align-items:center;gap:16px;margin:4px 0 20px;display:flex}.T4-_kG_heading h2{align-items:center;gap:10px;margin:0;font-size:22px;font-weight:650;display:flex}.T4-_kG_heading h2 span{border:1px solid var(--role-border);color:var(--role-muted);border-radius:5px;padding:2px 6px;font-size:10px;font-weight:400}.T4-_kG_heading p{color:var(--role-muted);margin:7px 0 0;font-size:12px}.T4-_kG_mark{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));width:46px;height:46px;color:var(--role-accent);border-radius:14px;place-items:center;font-size:32px;display:grid}.T4-_kG_notice{color:var(--role-muted);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:8px;margin:0 0 20px;padding:11px 13px;font-size:11px}.T4-_kG_search{border:1px solid var(--role-border);border-radius:9px;align-items:center;gap:9px;padding:11px 13px;display:flex}.T4-_kG_search svg{width:17px;height:17px;color:var(--role-muted);flex-shrink:0}.T4-_kG_search input{color:var(--role-text);background:0 0;border:0;outline:0;width:100%;min-width:0;font-size:12px}.T4-_kG_search:focus-within{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent)}.T4-_kG_filters{flex-wrap:wrap;gap:6px;margin:15px 0 20px;display:flex}.T4-_kG_filters button{color:var(--role-muted);background:0 0;border:1px solid #0000;border-radius:7px;align-items:center;gap:6px;padding:6px 9px;font-size:12px;display:flex}.T4-_kG_filters button[aria-pressed=true]{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-color:color-mix(in srgb,var(--role-accent) 22%,var(--role-border))}.T4-_kG_filters span{opacity:.75;font-size:10px}.T4-_kG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;display:grid}.T4-_kG_card{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;min-width:0;padding:18px;transition:border-color .15s,box-shadow .15s}.T4-_kG_card:hover{border-color:color-mix(in srgb,var(--role-accent) 40%,var(--role-border));box-shadow:0 4px 14px #13223a08}.T4-_kG_cardHeading,.T4-_kG_detailHeader{align-items:center;gap:10px;display:flex}.T4-_kG_cardHeading>div,.T4-_kG_detailHeader>div{flex:1;min-width:0}.T4-_kG_cardHeading h3{overflow-wrap:anywhere;margin:0;font-size:14px}.T4-_kG_cardHeading small{color:var(--role-muted);font-size:11px}.T4-_kG_pin{width:28px;height:28px;color:var(--role-muted);background:0 0;border:0;border-radius:6px;flex-shrink:0;padding:0;font-size:22px!important}.T4-_kG_pin[aria-pressed=true]{color:var(--role-accent)}.T4-_kG_pin:hover{background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.T4-_kG_description{color:var(--role-muted);margin:15px 0;font-size:12px;line-height:1.7}.T4-_kG_cardStatus{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;gap:7px;margin-bottom:16px;font-size:10px;display:flex}.T4-_kG_cardStatus>span{align-items:center;gap:5px;display:flex}.T4-_kG_cardStatus button{color:var(--role-muted);background:0 0;border:0;padding:0;font-size:10px}.T4-_kG_cardStatus button:hover{color:var(--role-accent)}.T4-_kG_statusDot{background:#bd9650;border-radius:50%;flex-shrink:0;width:5px;height:5px;display:inline-block}.T4-_kG_configure{border:0;border-top:1px solid var(--role-border);width:100%;color:var(--role-accent);background:0 0;justify-content:space-between;align-items:center;padding:10px 0 0;display:flex;font-size:12px!important}.T4-_kG_back{color:var(--role-accent);background:0 0;border:0;margin:0 0 22px;padding:0;font-size:12px!important}.T4-_kG_detailHeader h3{margin:0;font-size:20px}.T4-_kG_detailHeader p{color:var(--role-muted);margin:2px 0 0;font-size:12px}.T4-_kG_tabs{border-bottom:1px solid var(--role-border);flex-wrap:wrap;gap:18px;margin-top:20px;display:flex}.T4-_kG_tabs button{color:var(--role-muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:9px 0 11px;font-size:12px}.T4-_kG_tabs button[aria-pressed=true]{color:var(--role-accent);border-color:var(--role-accent);font-weight:600}.T4-_kG_detailBody{padding:22px 0 8px}.T4-_kG_connection{border:1px solid var(--role-border);border-radius:10px;flex-wrap:wrap;align-items:baseline;gap:10px;padding:18px;display:flex}.T4-_kG_connection>div{flex:1;min-width:160px}.T4-_kG_connection strong{font-size:13px}.T4-_kG_connection p{color:var(--role-muted);margin:6px 0 0;font-size:12px}.T4-_kG_connection button{border:1px solid var(--role-border);color:var(--role-muted);cursor:default;background:0 0;border-radius:7px;padding:7px 10px;font-size:11px}.T4-_kG_overviewActions{grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 24px;display:grid}.T4-_kG_overviewActions button{border:1px solid var(--role-border);color:var(--role-text);background:0 0;border-radius:9px;justify-content:space-between;align-items:center;gap:8px;padding:14px;font-size:12px;display:flex}.T4-_kG_overviewActions span{color:var(--role-muted)}.T4-_kG_technical{color:var(--role-muted);border-top:1px solid var(--role-border);padding-top:15px;font-size:12px}.T4-_kG_technical summary{cursor:pointer}.T4-_kG_technical dl{grid-template-columns:100px 1fr;gap:10px;display:grid}.T4-_kG_technical dd{overflow-wrap:anywhere;color:var(--role-text);margin:0}.T4-_kG_hint{color:var(--role-muted);margin:0 0 20px;font-size:12px;line-height:1.8}.T4-_kG_draftNote{color:var(--role-muted);border-top:1px solid var(--role-border);padding:12px 0 0;font-size:11px}.T4-_kG_roleRow{border:1px solid var(--role-border);border-radius:9px;justify-content:space-between;align-items:center;gap:16px;margin-bottom:10px;padding:14px;display:flex}.T4-_kG_roleRow>div{min-width:0}.T4-_kG_roleRow strong{font-size:13px}.T4-_kG_roleRow small{color:var(--role-muted);margin-top:3px;font-size:11px;display:block}.T4-_kG_roleRow button,.T4-_kG_empty button{color:var(--role-accent);background:0 0;border:0;flex-shrink:0;padding:5px 0;font-size:11px}.T4-_kG_currentRole{background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));margin-bottom:20px}.T4-_kG_empty{text-align:center;color:var(--role-muted);padding:40px 16px;font-size:12px}.T4-_kG_empty strong{font-size:14px;font-weight:500}dialog.T4-_kG_overlayDialog{width:760px;overflow:hidden}.T4-_kG_overlayBody{overscroll-behavior:contain;min-height:0;padding:24px 28px;overflow:auto}.T4-_kG_overlayBack{color:var(--dsw-alias-button-primary-fill,#4263ba);font:inherit;cursor:pointer;background:0 0;border:0;margin:0 0 18px;padding:0;font-size:12px}@container (width<=480px){.T4-_kG_grid{grid-template-columns:1fr}.T4-_kG_mark{display:none}.T4-_kG_roleRow{flex-direction:column;align-items:flex-start;gap:6px}.T4-_kG_tabs{gap:13px}}@media (width<=620px){.T4-_kG_overlayBody{padding:18px 16px}}@media (prefers-reduced-motion:reduce){.T4-_kG_card{transition:none}}";
-		const tagId$7 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/CapabilityCenter.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$7) + "]") === null) {
+		const css$6 = ".T4-_kG_center{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);box-sizing:border-box;width:100%;min-width:0;font-family:inherit;font-size:13px;line-height:1.6;container-type:inline-size}.T4-_kG_center *{box-sizing:border-box}.T4-_kG_center button,.T4-_kG_center input,.T4-_kG_center textarea,.T4-_kG_center select{font:inherit}.T4-_kG_center button{cursor:pointer}.T4-_kG_center button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.T4-_kG_heading{justify-content:space-between;align-items:center;gap:16px;margin:4px 0 20px;display:flex}.T4-_kG_heading h2{align-items:center;gap:10px;margin:0;font-size:22px;font-weight:650;display:flex}.T4-_kG_heading h2 span{border:1px solid var(--role-border);color:var(--role-muted);border-radius:5px;padding:2px 6px;font-size:10px;font-weight:400}.T4-_kG_heading p{color:var(--role-muted);margin:7px 0 0;font-size:12px}.T4-_kG_mark{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));width:46px;height:46px;color:var(--role-accent);border-radius:14px;place-items:center;font-size:32px;display:grid}.T4-_kG_notice{color:var(--role-muted);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:8px;margin:0 0 20px;padding:11px 13px;font-size:11px}.T4-_kG_search{border:1px solid var(--role-border);border-radius:9px;align-items:center;gap:9px;padding:11px 13px;display:flex}.T4-_kG_search svg{width:17px;height:17px;color:var(--role-muted);flex-shrink:0}.T4-_kG_search input{color:var(--role-text);background:0 0;border:0;outline:0;width:100%;min-width:0;font-size:12px}.T4-_kG_search:focus-within{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent)}.T4-_kG_filters{flex-wrap:wrap;gap:6px;margin:15px 0 20px;display:flex}.T4-_kG_filters button{color:var(--role-muted);background:0 0;border:1px solid #0000;border-radius:7px;align-items:center;gap:6px;padding:6px 9px;font-size:12px;display:flex}.T4-_kG_filters button[aria-pressed=true]{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-color:color-mix(in srgb,var(--role-accent) 22%,var(--role-border))}.T4-_kG_filters span{opacity:.75;font-size:10px}.T4-_kG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;display:grid}.T4-_kG_card{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;min-width:0;padding:18px;transition:border-color .15s,box-shadow .15s}.T4-_kG_card:hover{border-color:color-mix(in srgb,var(--role-accent) 40%,var(--role-border));box-shadow:0 4px 14px #13223a08}.T4-_kG_cardHeading,.T4-_kG_detailHeader{align-items:center;gap:10px;display:flex}.T4-_kG_cardHeading>div,.T4-_kG_detailHeader>div{flex:1;min-width:0}.T4-_kG_cardHeading h3{overflow-wrap:anywhere;margin:0;font-size:14px}.T4-_kG_cardHeading small{color:var(--role-muted);font-size:11px}.T4-_kG_pin{width:28px;height:28px;color:var(--role-muted);background:0 0;border:0;border-radius:6px;flex-shrink:0;padding:0;font-size:22px!important}.T4-_kG_pin[aria-pressed=true]{color:var(--role-accent)}.T4-_kG_pin:hover{background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.T4-_kG_description{color:var(--role-muted);margin:15px 0;font-size:12px;line-height:1.7}.T4-_kG_cardStatus{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;gap:7px;margin-bottom:16px;font-size:10px;display:flex}.T4-_kG_cardStatus>span{align-items:center;gap:5px;display:flex}.T4-_kG_cardStatus button{color:var(--role-muted);background:0 0;border:0;padding:0;font-size:10px}.T4-_kG_cardStatus button:hover{color:var(--role-accent)}.T4-_kG_statusDot{background:#bd9650;border-radius:50%;flex-shrink:0;width:5px;height:5px;display:inline-block}.T4-_kG_configure{border:0;border-top:1px solid var(--role-border);width:100%;color:var(--role-accent);background:0 0;justify-content:space-between;align-items:center;padding:10px 0 0;display:flex;font-size:12px!important}.T4-_kG_back{color:var(--role-accent);background:0 0;border:0;margin:0 0 22px;padding:0;font-size:12px!important}.T4-_kG_detailHeader h3{margin:0;font-size:20px}.T4-_kG_detailHeader p{color:var(--role-muted);margin:2px 0 0;font-size:12px}.T4-_kG_tabs{border-bottom:1px solid var(--role-border);flex-wrap:wrap;gap:18px;margin-top:20px;display:flex}.T4-_kG_tabs button{color:var(--role-muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:9px 0 11px;font-size:12px}.T4-_kG_tabs button[aria-pressed=true]{color:var(--role-accent);border-color:var(--role-accent);font-weight:600}.T4-_kG_detailBody{padding:22px 0 8px}.T4-_kG_connection{border:1px solid var(--role-border);border-radius:10px;flex-wrap:wrap;align-items:baseline;gap:10px;padding:18px;display:flex}.T4-_kG_connection>div{flex:1;min-width:160px}.T4-_kG_connection strong{font-size:13px}.T4-_kG_connection p{color:var(--role-muted);margin:6px 0 0;font-size:12px}.T4-_kG_connection button{border:1px solid var(--role-border);color:var(--role-muted);cursor:default;background:0 0;border-radius:7px;padding:7px 10px;font-size:11px}.T4-_kG_overviewActions{grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 24px;display:grid}.T4-_kG_overviewActions button{border:1px solid var(--role-border);color:var(--role-text);background:0 0;border-radius:9px;justify-content:space-between;align-items:center;gap:8px;padding:14px;font-size:12px;display:flex}.T4-_kG_overviewActions span{color:var(--role-muted)}.T4-_kG_technical{color:var(--role-muted);border-top:1px solid var(--role-border);padding-top:15px;font-size:12px}.T4-_kG_technical summary{cursor:pointer}.T4-_kG_technical dl{grid-template-columns:100px 1fr;gap:10px;display:grid}.T4-_kG_technical dd{overflow-wrap:anywhere;color:var(--role-text);margin:0}.T4-_kG_hint{color:var(--role-muted);margin:0 0 20px;font-size:12px;line-height:1.8}.T4-_kG_draftNote{color:var(--role-muted);border-top:1px solid var(--role-border);padding:12px 0 0;font-size:11px}.T4-_kG_roleRow{border:1px solid var(--role-border);border-radius:9px;justify-content:space-between;align-items:center;gap:16px;margin-bottom:10px;padding:14px;display:flex}.T4-_kG_roleRow>div{min-width:0}.T4-_kG_roleRow strong{font-size:13px}.T4-_kG_roleRow small{color:var(--role-muted);margin-top:3px;font-size:11px;display:block}.T4-_kG_roleRow button,.T4-_kG_empty button{color:var(--role-accent);background:0 0;border:0;flex-shrink:0;padding:5px 0;font-size:11px}.T4-_kG_currentRole{background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));margin-bottom:20px}.T4-_kG_empty{text-align:center;color:var(--role-muted);padding:40px 16px;font-size:12px}.T4-_kG_empty strong{font-size:14px;font-weight:500}dialog.T4-_kG_overlayDialog{width:760px;overflow:hidden}.T4-_kG_overlayBody{overscroll-behavior:contain;min-height:0;padding:24px 28px;overflow:auto}.T4-_kG_overlayBack{color:var(--dsw-alias-button-primary-fill,#4263ba);font:inherit;cursor:pointer;background:0 0;border:0;margin:0 0 18px;padding:0;font-size:12px}@container (width<=480px){.T4-_kG_grid{grid-template-columns:1fr}.T4-_kG_mark{display:none}.T4-_kG_roleRow{flex-direction:column;align-items:flex-start;gap:6px}.T4-_kG_tabs{gap:13px}}@media (width<=620px){.T4-_kG_overlayBody{padding:18px 16px}}@media (prefers-reduced-motion:reduce){.T4-_kG_card{transition:none}}";
+		const tagId$6 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/CapabilityCenter.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$6) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$7;
-			tag.textContent = css$7;
+			tag.dataset.pluginCss = tagId$6;
+			tag.textContent = css$6;
 			document.head.appendChild(tag);
 		}
 		//#endregion
@@ -7705,13 +9055,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/RoleAppearanceEditor.module.css.mjs
-		const css$6 = ".UhGNxW_editor{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;min-width:0;overflow:hidden;container-type:inline-size}.UhGNxW_summary{cursor:pointer;min-height:48px;color:var(--role-text);align-items:center;gap:10px;padding:0 15px;font-size:13px;font-weight:550;list-style:none;display:flex}.UhGNxW_summary::-webkit-details-marker{display:none}.UhGNxW_chevron{font-size:21px;font-weight:400;transition:transform .15s}.UhGNxW_editor[open]>.UhGNxW_summary .UhGNxW_chevron{transform:rotate(90deg)}.UhGNxW_editor[open]>.UhGNxW_summary{border-bottom:1px solid var(--role-border)}.UhGNxW_summaryColor,.UhGNxW_colorSample{border:1px solid #7d879333;border-radius:6px;flex-shrink:0;width:18px;height:18px}.UhGNxW_summaryColor{margin-left:auto}.UhGNxW_summary .UhGNxW_summaryIcon{border-radius:7px;width:26px;height:26px}.UhGNxW_summary .UhGNxW_summaryIcon svg{width:16px;height:16px}.UhGNxW_layout{grid-template-columns:minmax(220px,1fr) minmax(210px,.85fr);gap:24px;padding:20px;display:grid}.UhGNxW_controls{min-width:0}.UhGNxW_editor h4{color:var(--role-text);margin:0;font-size:13px;font-weight:600}.UhGNxW_sectionHeading{justify-content:space-between;align-items:center;gap:10px;display:flex}.UhGNxW_sectionHeading>span{color:var(--role-muted);font-size:11px}.UhGNxW_honeycomb{flex-direction:column;align-items:center;padding:15px 0 10px;display:flex}.UhGNxW_hexRow{gap:3px;display:flex}.UhGNxW_hexRow+.UhGNxW_hexRow{margin-top:-5px}.UhGNxW_swatch{clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);cursor:pointer;border:0;place-items:center;width:32px;height:37px;padding:7px;transition:filter .15s;display:grid}.UhGNxW_swatch svg{fill:none;stroke:currentColor;stroke-width:3px;stroke-linecap:round;stroke-linejoin:round;width:19px;height:19px}.UhGNxW_swatch:hover{filter:brightness(1.14)}.UhGNxW_swatch[aria-pressed=true]{z-index:1;position:relative}.UhGNxW_swatch[aria-pressed=true]:after{content:\"\";clip-path:inherit;opacity:.12;background:currentColor;position:absolute;inset:2px}.UhGNxW_swatch:focus-visible{filter:brightness(.7);outline:0}.UhGNxW_rangeLabel{color:var(--role-text);flex-direction:column;gap:6px;margin:9px 0 13px;font-size:12px;font-weight:400;display:flex}.UhGNxW_rangeLabel>span{justify-content:space-between;gap:10px;display:flex}.UhGNxW_rangeLabel output{color:var(--role-muted)}.UhGNxW_editor .UhGNxW_rangeLabel input{width:100%;height:18px;accent-color:var(--role-accent);cursor:pointer;background:0 0;margin:0;padding:0}.UhGNxW_hexLabel{border:1px solid var(--role-border);color:var(--role-muted);border-radius:8px;align-items:center;gap:10px;padding:5px 10px;font-size:12px;display:flex}.UhGNxW_editor .UhGNxW_hexLabel input{width:auto;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;padding:5px 0;font:12px ui-monospace,monospace}.UhGNxW_hexLabel:focus-within{outline:2px solid var(--role-accent);outline-offset:2px}.UhGNxW_hexLabel input:focus{outline:0}.UhGNxW_iconSection{margin-top:23px}.UhGNxW_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:10px 0 12px;display:flex}.UhGNxW_tabs button{color:var(--role-muted);cursor:pointer;font:inherit;background:0 0;border:0;border-bottom:2px solid #0000;flex:1;padding:9px 5px;font-size:12px}.UhGNxW_tabs button[aria-selected=true]{color:var(--role-accent);border-bottom-color:var(--role-accent);font-weight:550}.UhGNxW_iconGrid{grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:7px;display:grid}.UhGNxW_iconGrid button{border:1px solid var(--role-border);min-width:0;color:var(--role-text);cursor:pointer;font:inherit;background:0 0;border-radius:9px;flex-direction:column;align-items:center;gap:5px;padding:8px 3px;font-size:10px;display:flex;position:relative}.UhGNxW_iconGrid button>span:first-child{background:0 0;border-radius:7px;width:28px;height:28px}.UhGNxW_iconGrid button svg{width:20px;height:20px}.UhGNxW_iconGrid button[aria-pressed=true]{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));border-color:var(--role-accent);box-shadow:inset 0 0 0 1px var(--role-accent)}.UhGNxW_iconCheck{color:var(--role-accent);font-size:9px;position:absolute;top:2px;right:4px}.UhGNxW_fileInput{opacity:0;pointer-events:none;width:1px;height:1px;position:absolute}.UhGNxW_uploadButton{border:1px dashed var(--role-border);width:100%;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg));font:inherit;cursor:pointer;border-radius:9px;justify-content:center;align-items:center;gap:8px;padding:13px 8px;font-size:12px;display:flex}.UhGNxW_uploadButton>span{font-size:20px}.UhGNxW_editor .UhGNxW_help{color:var(--role-muted);margin:9px 0 0;font-size:11px;font-weight:400;line-height:1.7}.UhGNxW_imageStage{border:1px solid var(--role-border);background-color:var(--role-bg);background-image:conic-gradient(color-mix(in srgb,var(--role-muted) 15%,transparent) 25%,transparent 0 50%,color-mix(in srgb,var(--role-muted) 15%,transparent) 0 75%,transparent 0);background-size:16px 16px;border-radius:10px;width:144px;height:144px;margin:15px auto;overflow:hidden}.UhGNxW_imageStage img{object-fit:contain;width:100%;height:100%}.UhGNxW_imageActions,.UhGNxW_footer{flex-wrap:wrap;justify-content:space-between;gap:8px;display:flex}.UhGNxW_imageActions button,.UhGNxW_footer button{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-text);cursor:pointer;font:inherit;border-radius:7px;padding:8px 10px;font-size:11px}.UhGNxW_imageActions .UhGNxW_applyButton{color:#fff;background:var(--role-accent);border-color:var(--role-accent)}.UhGNxW_imageActions button:disabled{opacity:.55;cursor:default}.UhGNxW_editor .UhGNxW_error{color:var(--dsw-alias-label-error,#b33c42);background:color-mix(in srgb,#b33c42 8%,var(--role-bg));border-radius:7px;margin:10px 0 0;padding:8px;font-size:12px;line-height:1.6}.UhGNxW_previews{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-muted) 3%,var(--role-bg));border-radius:12px;flex-direction:column;align-self:start;gap:12px;min-width:0;padding:16px;display:flex}.UhGNxW_previewCaption{color:var(--role-muted);margin:5px 0 -5px;font-size:11px}.UhGNxW_previewCard{border:1px solid color-mix(in srgb,var(--role-color) 40%,var(--role-border));border-top:4px solid var(--role-color);background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg)));border-radius:10px;padding:16px}.UhGNxW_previewCardTop{justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;display:flex}.UhGNxW_previewBadge{color:color-mix(in srgb,var(--role-color) 45%,var(--role-text));background:color-mix(in srgb,var(--role-color) 12%,var(--role-bg));border-radius:5px;padding:3px 6px;font-size:10px}.UhGNxW_previewCard>strong{color:var(--role-text);overflow-wrap:anywhere;font-size:15px}.UhGNxW_editor .UhGNxW_previewCard p{-webkit-line-clamp:3;color:var(--role-muted);overflow-wrap:anywhere;-webkit-box-orient:vertical;margin:8px 0 14px;font-size:12px;line-height:1.8;display:-webkit-box;overflow:hidden}.UhGNxW_previewSelected{border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border));color:color-mix(in srgb,var(--role-color) 55%,var(--role-text));padding-top:10px;font-size:11px}.UhGNxW_toolbarPreview,.UhGNxW_choicePreview{color:var(--role-text);background:var(--role-bg);border:1px solid color-mix(in srgb,var(--role-color) 40%,var(--role-border));align-items:center;gap:8px;padding:8px;display:flex}.UhGNxW_toolbarPreview{box-sizing:border-box;border-radius:24px;align-self:flex-start;max-width:100%;padding-right:12px}.UhGNxW_toolbarPreview strong,.UhGNxW_choicePreview strong{text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:12px;font-weight:550;overflow:hidden}.UhGNxW_choicePreview{border-radius:9px}.UhGNxW_choicePreview strong{flex:1}.UhGNxW_previewCheck{color:color-mix(in srgb,var(--role-color) 65%,var(--role-text))}.UhGNxW_localIcon{background:color-mix(in srgb,var(--role-color) 20%,var(--role-bg));border-radius:11px;flex-shrink:0;justify-content:center;align-items:center;width:42px;height:42px;display:inline-flex}.UhGNxW_localIcon img{box-sizing:border-box;object-fit:contain;width:100%;height:100%;padding:4px}.UhGNxW_previews .UhGNxW_smallIcon{border-radius:8px;width:28px;height:28px}.UhGNxW_previews .UhGNxW_smallIcon svg{width:18px;height:18px}.UhGNxW_previews .UhGNxW_smallIcon img{padding:2px}.UhGNxW_footer{border-top:1px solid var(--role-border);justify-content:flex-start;padding:12px 20px}.UhGNxW_footer button{color:var(--role-muted);background:0 0}.UhGNxW_editor button:focus-visible,.UhGNxW_summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:2px}@container (width<=590px){.UhGNxW_layout{grid-template-columns:1fr;gap:18px;padding:15px}.UhGNxW_controls{grid-template-columns:minmax(220px,1fr) minmax(190px,1fr);align-items:start;gap:22px;display:grid}.UhGNxW_iconSection{margin-top:0}}@container (width<=460px){.UhGNxW_controls{display:block}.UhGNxW_iconSection{margin-top:23px}.UhGNxW_layout{padding:12px}.UhGNxW_previews{padding:13px}.UhGNxW_footer{padding:12px}}@container (width<=280px){.UhGNxW_swatch{width:27px;height:31px;padding:5px}.UhGNxW_hexRow{gap:2px}.UhGNxW_hexRow+.UhGNxW_hexRow{margin-top:-4px}}@media (prefers-reduced-motion:reduce){.UhGNxW_chevron,.UhGNxW_swatch{transition:none}}";
-		const tagId$6 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/RoleAppearanceEditor.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$6) + "]") === null) {
+		const css$5 = ".UhGNxW_editor{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;min-width:0;overflow:hidden;container-type:inline-size}.UhGNxW_summary{cursor:pointer;min-height:48px;color:var(--role-text);align-items:center;gap:10px;padding:0 15px;font-size:13px;font-weight:550;list-style:none;display:flex}.UhGNxW_summary::-webkit-details-marker{display:none}.UhGNxW_chevron{font-size:21px;font-weight:400;transition:transform .15s}.UhGNxW_editor[open]>.UhGNxW_summary .UhGNxW_chevron{transform:rotate(90deg)}.UhGNxW_editor[open]>.UhGNxW_summary{border-bottom:1px solid var(--role-border)}.UhGNxW_summaryColor,.UhGNxW_colorSample{border:1px solid #7d879333;border-radius:6px;flex-shrink:0;width:18px;height:18px}.UhGNxW_summaryColor{margin-left:auto}.UhGNxW_summary .UhGNxW_summaryIcon{border-radius:7px;width:26px;height:26px}.UhGNxW_summary .UhGNxW_summaryIcon svg{width:16px;height:16px}.UhGNxW_layout{grid-template-columns:minmax(220px,1fr) minmax(210px,.85fr);gap:24px;padding:20px;display:grid}.UhGNxW_controls{min-width:0}.UhGNxW_editor h4{color:var(--role-text);margin:0;font-size:13px;font-weight:600}.UhGNxW_sectionHeading{justify-content:space-between;align-items:center;gap:10px;display:flex}.UhGNxW_sectionHeading>span{color:var(--role-muted);font-size:11px}.UhGNxW_honeycomb{flex-direction:column;align-items:center;padding:15px 0 10px;display:flex}.UhGNxW_hexRow{gap:3px;display:flex}.UhGNxW_hexRow+.UhGNxW_hexRow{margin-top:-5px}.UhGNxW_swatch{clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);cursor:pointer;border:0;place-items:center;width:32px;height:37px;padding:7px;transition:filter .15s;display:grid}.UhGNxW_swatch svg{fill:none;stroke:currentColor;stroke-width:3px;stroke-linecap:round;stroke-linejoin:round;width:19px;height:19px}.UhGNxW_swatch:hover{filter:brightness(1.14)}.UhGNxW_swatch[aria-pressed=true]{z-index:1;position:relative}.UhGNxW_swatch[aria-pressed=true]:after{content:\"\";clip-path:inherit;opacity:.12;background:currentColor;position:absolute;inset:2px}.UhGNxW_swatch:focus-visible{filter:brightness(.7);outline:0}.UhGNxW_rangeLabel{color:var(--role-text);flex-direction:column;gap:6px;margin:9px 0 13px;font-size:12px;font-weight:400;display:flex}.UhGNxW_rangeLabel>span{justify-content:space-between;gap:10px;display:flex}.UhGNxW_rangeLabel output{color:var(--role-muted)}.UhGNxW_editor .UhGNxW_rangeLabel input{width:100%;height:18px;accent-color:var(--role-accent);cursor:pointer;background:0 0;margin:0;padding:0}.UhGNxW_hexLabel{border:1px solid var(--role-border);color:var(--role-muted);border-radius:8px;align-items:center;gap:10px;padding:5px 10px;font-size:12px;display:flex}.UhGNxW_editor .UhGNxW_hexLabel input{width:auto;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;padding:5px 0;font:12px ui-monospace,monospace}.UhGNxW_hexLabel:focus-within{outline:2px solid var(--role-accent);outline-offset:2px}.UhGNxW_hexLabel input:focus{outline:0}.UhGNxW_iconSection{margin-top:23px}.UhGNxW_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:10px 0 12px;display:flex}.UhGNxW_tabs button{color:var(--role-muted);cursor:pointer;font:inherit;background:0 0;border:0;border-bottom:2px solid #0000;flex:1;padding:9px 5px;font-size:12px}.UhGNxW_tabs button[aria-selected=true]{color:var(--role-accent);border-bottom-color:var(--role-accent);font-weight:550}.UhGNxW_iconGrid{grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:7px;display:grid}.UhGNxW_iconGrid button{border:1px solid var(--role-border);min-width:0;color:var(--role-text);cursor:pointer;font:inherit;background:0 0;border-radius:9px;flex-direction:column;align-items:center;gap:5px;padding:8px 3px;font-size:10px;display:flex;position:relative}.UhGNxW_iconGrid button>span:first-child{background:0 0;border-radius:7px;width:28px;height:28px}.UhGNxW_iconGrid button svg{width:20px;height:20px}.UhGNxW_iconGrid button[aria-pressed=true]{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));border-color:var(--role-accent);box-shadow:inset 0 0 0 1px var(--role-accent)}.UhGNxW_iconCheck{color:var(--role-accent);font-size:9px;position:absolute;top:2px;right:4px}.UhGNxW_fileInput{opacity:0;pointer-events:none;width:1px;height:1px;position:absolute}.UhGNxW_uploadButton{border:1px dashed var(--role-border);width:100%;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg));font:inherit;cursor:pointer;border-radius:9px;justify-content:center;align-items:center;gap:8px;padding:13px 8px;font-size:12px;display:flex}.UhGNxW_uploadButton>span{font-size:20px}.UhGNxW_editor .UhGNxW_help{color:var(--role-muted);margin:9px 0 0;font-size:11px;font-weight:400;line-height:1.7}.UhGNxW_imageStage{border:1px solid var(--role-border);background-color:var(--role-bg);background-image:conic-gradient(color-mix(in srgb,var(--role-muted) 15%,transparent) 25%,transparent 0 50%,color-mix(in srgb,var(--role-muted) 15%,transparent) 0 75%,transparent 0);background-size:16px 16px;border-radius:10px;width:144px;height:144px;margin:15px auto;overflow:hidden}.UhGNxW_imageStage img{object-fit:contain;width:100%;height:100%}.UhGNxW_imageActions,.UhGNxW_footer{flex-wrap:wrap;justify-content:space-between;gap:8px;display:flex}.UhGNxW_imageActions button,.UhGNxW_footer button{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-text);cursor:pointer;font:inherit;border-radius:7px;padding:8px 10px;font-size:11px}.UhGNxW_imageActions .UhGNxW_applyButton{color:#fff;background:var(--role-accent);border-color:var(--role-accent)}.UhGNxW_imageActions button:disabled{opacity:.55;cursor:default}.UhGNxW_editor .UhGNxW_error{color:var(--dsw-alias-label-error,#b33c42);background:color-mix(in srgb,#b33c42 8%,var(--role-bg));border-radius:7px;margin:10px 0 0;padding:8px;font-size:12px;line-height:1.6}.UhGNxW_previews{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-muted) 3%,var(--role-bg));border-radius:12px;flex-direction:column;align-self:start;gap:12px;min-width:0;padding:16px;display:flex}.UhGNxW_previewCaption{color:var(--role-muted);margin:5px 0 -5px;font-size:11px}.UhGNxW_previewCard{border:1px solid color-mix(in srgb,var(--role-color) 40%,var(--role-border));border-top:4px solid var(--role-color);background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg)));border-radius:10px;padding:16px}.UhGNxW_previewCardTop{justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;display:flex}.UhGNxW_previewBadge{color:color-mix(in srgb,var(--role-color) 45%,var(--role-text));background:color-mix(in srgb,var(--role-color) 12%,var(--role-bg));border-radius:5px;padding:3px 6px;font-size:10px}.UhGNxW_previewCard>strong{color:var(--role-text);overflow-wrap:anywhere;font-size:15px}.UhGNxW_editor .UhGNxW_previewCard p{-webkit-line-clamp:3;color:var(--role-muted);overflow-wrap:anywhere;-webkit-box-orient:vertical;margin:8px 0 14px;font-size:12px;line-height:1.8;display:-webkit-box;overflow:hidden}.UhGNxW_previewSelected{border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border));color:color-mix(in srgb,var(--role-color) 55%,var(--role-text));padding-top:10px;font-size:11px}.UhGNxW_toolbarPreview,.UhGNxW_choicePreview{color:var(--role-text);background:var(--role-bg);border:1px solid color-mix(in srgb,var(--role-color) 40%,var(--role-border));align-items:center;gap:8px;padding:8px;display:flex}.UhGNxW_toolbarPreview{box-sizing:border-box;border-radius:24px;align-self:flex-start;max-width:100%;padding-right:12px}.UhGNxW_toolbarPreview strong,.UhGNxW_choicePreview strong{text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:12px;font-weight:550;overflow:hidden}.UhGNxW_choicePreview{border-radius:9px}.UhGNxW_choicePreview strong{flex:1}.UhGNxW_previewCheck{color:color-mix(in srgb,var(--role-color) 65%,var(--role-text))}.UhGNxW_localIcon{background:color-mix(in srgb,var(--role-color) 20%,var(--role-bg));border-radius:11px;flex-shrink:0;justify-content:center;align-items:center;width:42px;height:42px;display:inline-flex}.UhGNxW_localIcon img{box-sizing:border-box;object-fit:contain;width:100%;height:100%;padding:4px}.UhGNxW_previews .UhGNxW_smallIcon{border-radius:8px;width:28px;height:28px}.UhGNxW_previews .UhGNxW_smallIcon svg{width:18px;height:18px}.UhGNxW_previews .UhGNxW_smallIcon img{padding:2px}.UhGNxW_footer{border-top:1px solid var(--role-border);justify-content:flex-start;padding:12px 20px}.UhGNxW_footer button{color:var(--role-muted);background:0 0}.UhGNxW_editor button:focus-visible,.UhGNxW_summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:2px}@container (width<=590px){.UhGNxW_layout{grid-template-columns:1fr;gap:18px;padding:15px}.UhGNxW_controls{grid-template-columns:minmax(220px,1fr) minmax(190px,1fr);align-items:start;gap:22px;display:grid}.UhGNxW_iconSection{margin-top:0}}@container (width<=460px){.UhGNxW_controls{display:block}.UhGNxW_iconSection{margin-top:23px}.UhGNxW_layout{padding:12px}.UhGNxW_previews{padding:13px}.UhGNxW_footer{padding:12px}}@container (width<=280px){.UhGNxW_swatch{width:27px;height:31px;padding:5px}.UhGNxW_hexRow{gap:2px}.UhGNxW_hexRow+.UhGNxW_hexRow{margin-top:-4px}}@media (prefers-reduced-motion:reduce){.UhGNxW_chevron,.UhGNxW_swatch{transition:none}}";
+		const tagId$5 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/RoleAppearanceEditor.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$5) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$6;
-			tag.textContent = css$6;
+			tag.dataset.pluginCss = tagId$5;
+			tag.textContent = css$5;
 			document.head.appendChild(tag);
 		}
 		var RoleAppearanceEditor_module_css_default = {
@@ -10264,13 +11614,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/DeveloperAssistant.module.css.mjs
-		const css$5 = "._4WjmSG_workspace{--dev-accent:#22a58b;--dev-bg:var(--dsw-alias-bg-layer-2,#fff);--dev-panel:var(--dsw-alias-bg-layer-1,#f5f7f8);--dev-border:var(--dsw-alias-border-l2,#e2e6e8);--dev-text:var(--dsw-alias-label-primary,#263338);--dev-muted:var(--dsw-alias-label-secondary,#68777d);min-width:0;height:100%;min-height:460px;color:var(--dev-text);background:var(--dev-bg);flex-direction:column;font-size:13px;display:flex;overflow:hidden;container-type:inline-size}._4WjmSG_workspace *,._4WjmSG_dialog *{box-sizing:border-box}._4WjmSG_workspace button,._4WjmSG_dialog button{font:inherit;color:inherit;border:1px solid var(--dev-border,#dce3e5);background:var(--dev-bg,transparent);cursor:pointer;border-radius:7px;padding:6px 10px;line-height:1.4}._4WjmSG_workspace button:hover,._4WjmSG_dialog button:hover{background:#22a58b17}._4WjmSG_workspace button:disabled,._4WjmSG_dialog button:disabled{opacity:.48;cursor:default}._4WjmSG_workspace button:focus-visible,._4WjmSG_workspace input:focus-visible,._4WjmSG_workspace textarea:focus-visible,._4WjmSG_workspace select:focus-visible{outline:2px solid var(--dev-accent);outline-offset:2px}._4WjmSG_workspace button[aria-pressed=true]{color:var(--dev-accent);background:#22a58b17}._4WjmSG_workspace input,._4WjmSG_workspace select,._4WjmSG_workspace textarea,._4WjmSG_dialog input,._4WjmSG_dialog textarea,._4WjmSG_dialog select{font:inherit;color:inherit;background:var(--dev-bg,transparent);border:1px solid var(--dev-border,#dce3e5);border-radius:7px;min-width:0;max-width:100%;padding:8px}._4WjmSG_header{justify-content:space-between;align-items:center;gap:12px;padding:13px 20px 10px;display:flex}._4WjmSG_eyebrow{color:var(--dev-accent);letter-spacing:.12em;font-size:10px}._4WjmSG_header h2{margin:3px 0;font-size:18px;font-weight:650}._4WjmSG_actions,._4WjmSG_codeBar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}._4WjmSG_context{align-items:center;gap:7px;padding:0 20px 10px;display:flex}._4WjmSG_context>span{color:var(--dev-muted);white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:20px;font-size:11px;overflow:hidden}._4WjmSG_context>select{margin-left:auto}._4WjmSG_tabs{border-bottom:1px solid var(--dev-border);flex-shrink:0;gap:5px;padding:0 14px;display:flex;overflow-x:auto}._4WjmSG_tabs button{white-space:nowrap;color:var(--dev-muted);border:0;border-bottom:2px solid #0000;border-radius:0;padding:10px 15px}._4WjmSG_tabs button[aria-selected=true]{color:var(--dev-accent);border-bottom-color:var(--dev-accent);font-weight:650}._4WjmSG_refresh{background:var(--dev-panel);color:var(--dev-muted);justify-content:space-between;align-items:center;padding:5px 20px;font-size:11px;display:flex}._4WjmSG_refresh button{padding:2px 9px;font-size:11px}._4WjmSG_body{flex:1;grid-template-columns:minmax(0,1fr) 322px;min-height:0;display:grid;position:relative;overflow:hidden}._4WjmSG_noChat{grid-template-columns:minmax(0,1fr)}._4WjmSG_main{flex-direction:column;min-width:0;min-height:0;display:flex;overflow:hidden}._4WjmSG_editor{flex:1;min-width:0;min-height:0;display:flex;position:relative}._4WjmSG_files{border-right:1px solid var(--dev-border);background:var(--dev-panel);flex-direction:column;flex:0 0 200px;gap:8px;width:200px;min-height:0;padding:10px;display:flex}._4WjmSG_files ._4WjmSG_codeBar{border:0;justify-content:space-between;padding:0}._4WjmSG_files small{color:var(--dev-muted);font-size:10px}._4WjmSG_files ._4WjmSG_codeBar button{padding:2px 5px;font-size:10px}._4WjmSG_fileRows{flex:1;min-height:0;overflow:auto}._4WjmSG_fileRows button{text-align:left;overflow-wrap:anywhere;border:0;border-radius:5px;width:100%;padding:7px 5px;font-size:11px;display:block}._4WjmSG_fileRows small{display:block}._4WjmSG_fileRows h4{color:var(--dev-muted);margin:17px 4px 6px;font-size:11px}._4WjmSG_fileRows b{color:var(--dev-accent)}._4WjmSG_code{flex-direction:column;flex:1;min-width:0;min-height:0;display:flex;overflow:hidden}._4WjmSG_openFiles{background:var(--dev-panel);flex-shrink:0;display:flex;overflow-x:auto}._4WjmSG_openFiles>span{white-space:nowrap;display:flex}._4WjmSG_openFiles button{border-width:0 1px 1px 0;border-radius:0;font-size:11px}._4WjmSG_codeBar{border-bottom:1px solid var(--dev-border);flex-shrink:0;padding:8px 12px}._4WjmSG_codeBar strong{white-space:nowrap;text-overflow:ellipsis;max-width:260px;font-size:12px;overflow:hidden}._4WjmSG_codeBar small{color:var(--dev-muted);overflow-wrap:anywhere;font-size:10px}._4WjmSG_codeBar button{padding:3px 7px;font-size:11px}._4WjmSG_codeBar h3{margin:0 auto 0 0;font-size:14px}._4WjmSG_codeScroll{flex:1;min-height:0;padding:8px 0 20px;overflow:auto}._4WjmSG_codePane{min-width:0;overflow:auto}._4WjmSG_codeLine{align-items:baseline;min-height:22px;font:12px/1.8 Consolas,ui-monospace,monospace;display:flex}._4WjmSG_codeLine>button{font:inherit;min-width:50px;color:var(--dev-muted);background:0 0;border:0;border-radius:0;flex-shrink:0;padding:0 10px}._4WjmSG_codeLine code{white-space:pre;padding-right:18px}._4WjmSG_selectedLine{background:#22a58b26}._4WjmSG_split{grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:100%;display:grid}._4WjmSG_split>:first-child{border-right:1px solid var(--dev-border)}._4WjmSG_patch{white-space:pre;max-height:55vh;margin:0;padding:6px 14px;font:12px/1.8 Consolas,ui-monospace,monospace;overflow:auto}._4WjmSG_codeScroll>._4WjmSG_patch{max-height:none;overflow:visible}._4WjmSG_patch>span{min-width:fit-content;display:block}._4WjmSG_patch br{display:none}._4WjmSG_added{color:light-dark(#168365,#72cbb4);background:#22a58b21}._4WjmSG_removed{color:light-dark(#bf424c,#ec919b);background:#d4515b1a}._4WjmSG_hunk{color:light-dark(#557db7,#8faee0);background:#557db71a}._4WjmSG_chat{border-left:1px solid var(--dev-border);background:var(--dev-bg);flex-direction:column;min-height:0;display:flex;overflow:hidden}._4WjmSG_chat>._4WjmSG_codeBar{justify-content:space-between}._4WjmSG_messages{flex:1;min-height:0;padding:14px;overflow:auto}._4WjmSG_messages article{overflow-wrap:anywhere;margin-bottom:17px}._4WjmSG_messages small{color:var(--dev-muted);font-size:10px}._4WjmSG_messages p{white-space:pre-wrap;margin:5px 0;line-height:1.7}._4WjmSG_messages pre{white-space:pre-wrap;font-size:11px}._4WjmSG_userMessage{background:var(--dev-panel);border-radius:10px;padding:10px 12px}._4WjmSG_assistantMessage{padding:4px}._4WjmSG_execution{border:1px solid var(--dev-border);border-left:3px solid var(--dev-accent);border-radius:6px;padding:10px;font-size:11px}._4WjmSG_composer{border-top:1px solid var(--dev-border);flex-direction:column;gap:8px;padding:12px;display:flex}._4WjmSG_composer textarea{resize:vertical;width:100%;min-height:104px;max-height:240px;line-height:1.6}._4WjmSG_composer ._4WjmSG_actions{justify-content:space-between}._4WjmSG_composer small{color:var(--dev-muted);font-size:10px}._4WjmSG_contextChips{flex-wrap:wrap;gap:4px;display:flex}._4WjmSG_contextChips button{text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:10px;overflow:hidden}._4WjmSG_workspace ._4WjmSG_primary,._4WjmSG_dialog ._4WjmSG_primary{background:var(--dsw-alias-button-primary-fill,#168f77);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:#0000}._4WjmSG_workspace ._4WjmSG_primary:hover,._4WjmSG_dialog ._4WjmSG_primary:hover{background:var(--dsw-alias-button-primary-hover,#107c66)}._4WjmSG_footer{border-top:1px solid var(--dev-border);background:var(--dev-panel);color:var(--dev-muted);justify-content:space-between;align-items:center;gap:8px;padding:6px 14px;font-size:10px;display:flex}._4WjmSG_footer button{border:0;padding:2px;font-size:11px}._4WjmSG_empty{text-align:center;color:var(--dev-muted);padding:32px 22px;line-height:1.8}._4WjmSG_empty input,._4WjmSG_empty select{width:min(520px,100%);margin:12px auto;display:block}._4WjmSG_error{color:#c34350;overflow-wrap:anywhere;background:#c3435012;margin:0;padding:8px 14px;font-size:12px}._4WjmSG_notice{background:#bc8e3114;justify-content:space-between;gap:10px;padding:8px 15px;display:flex}._4WjmSG_scroll{flex:1;min-height:0;padding:16px;overflow:auto}._4WjmSG_row{border-bottom:1px solid var(--dev-border);overflow-wrap:anywhere;justify-content:space-between;align-items:center;gap:12px;padding:12px 2px;display:flex}._4WjmSG_row small,._4WjmSG_card small{color:var(--dev-muted);margin:4px 0;font-size:11px;display:block}._4WjmSG_card{border:1px solid var(--dev-border);overflow-wrap:anywhere;border-radius:9px;margin:12px 0;padding:15px}._4WjmSG_card code{margin:9px 0;font-size:12px;display:block}._4WjmSG_card p{font-size:12px}._4WjmSG_versionGrid{flex:1;grid-template-columns:245px minmax(0,1fr);min-height:0;display:grid}._4WjmSG_history{border-right:1px solid var(--dev-border);overflow:auto}._4WjmSG_history button{text-align:left;border-width:0 0 1px;border-radius:0;width:100%;padding:13px;display:block}._4WjmSG_history b{font-size:12px;display:block}._4WjmSG_history small{color:var(--dev-muted);margin-top:4px;font-size:10px;display:block}._4WjmSG_terminal{color:#d2e5e7;white-space:pre-wrap;overflow-wrap:anywhere;background:#15232a;border-radius:8px;min-height:170px;padding:15px;font:12px/1.7 Consolas,monospace}._4WjmSG_dialog{flex-direction:column;gap:12px;max-height:76vh;padding:18px;display:flex;overflow:auto}._4WjmSG_dialog label{flex-direction:column;gap:7px;display:flex}._4WjmSG_dialog textarea{min-height:100px}._4WjmSG_dialog pre{max-width:100%;overflow:auto}._4WjmSG_fileToggle{display:none}@container (width<=1099px){._4WjmSG_files{display:none}._4WjmSG_filesOpen{z-index:3;width:250px;display:flex;position:absolute;top:0;bottom:0;left:0;box-shadow:8px 0 24px #0002}._4WjmSG_fileToggle{align-self:start;margin:6px 10px;display:block;font-size:11px!important}._4WjmSG_versionGrid{grid-template-columns:190px minmax(0,1fr)}}@container (width<=799px){._4WjmSG_body{grid-template-columns:minmax(0,1fr)}._4WjmSG_chat{z-index:4;border-left:0;position:absolute;inset:0}._4WjmSG_header{flex-wrap:wrap;padding:10px}._4WjmSG_header h2{font-size:16px}._4WjmSG_header ._4WjmSG_actions button{font-size:11px}._4WjmSG_context{flex-wrap:wrap;padding:0 10px 8px}._4WjmSG_context span{flex-basis:100%;order:4}._4WjmSG_context select{max-width:110px}._4WjmSG_tabs{padding:0 5px}._4WjmSG_tabs button{padding:9px 12px}._4WjmSG_versionGrid{grid-template-columns:minmax(0,1fr);overflow:auto}._4WjmSG_history{max-height:200px}._4WjmSG_versionGrid ._4WjmSG_code{min-height:330px}._4WjmSG_footer>span{display:none}._4WjmSG_row{flex-wrap:wrap}._4WjmSG_codeBar strong{max-width:100%}}@media (prefers-color-scheme:dark){._4WjmSG_workspace{--dev-bg:var(--dsw-alias-bg-layer-2,#192126);--dev-panel:var(--dsw-alias-bg-layer-1,#202b31);--dev-border:var(--dsw-alias-border-l2,#35434a);--dev-text:var(--dsw-alias-label-primary,#deeaec);--dev-muted:var(--dsw-alias-label-secondary,#99a9af)}._4WjmSG_added{color:#72cbb4}._4WjmSG_removed{color:#ec919b}}._4WjmSG_dialog{--dev-bg:var(--dsw-alias-bg-layer-2,#fff);--dev-border:var(--dsw-alias-border-l2,#e2e6e8);color:var(--dsw-alias-label-primary,#263338);background:var(--dev-bg)}";
-		const tagId$5 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/DeveloperAssistant.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$5) + "]") === null) {
+		const css$4 = "._4WjmSG_workspace{--dev-accent:#22a58b;--dev-bg:var(--dsw-alias-bg-layer-2,#fff);--dev-panel:var(--dsw-alias-bg-layer-1,#f5f7f8);--dev-border:var(--dsw-alias-border-l2,#e2e6e8);--dev-text:var(--dsw-alias-label-primary,#263338);--dev-muted:var(--dsw-alias-label-secondary,#68777d);min-width:0;height:100%;min-height:460px;color:var(--dev-text);background:var(--dev-bg);flex-direction:column;font-size:13px;display:flex;overflow:hidden;container-type:inline-size}._4WjmSG_workspace *,._4WjmSG_dialog *{box-sizing:border-box}._4WjmSG_workspace button,._4WjmSG_dialog button{font:inherit;color:inherit;border:1px solid var(--dev-border,#dce3e5);background:var(--dev-bg,transparent);cursor:pointer;border-radius:7px;padding:6px 10px;line-height:1.4}._4WjmSG_workspace button:hover,._4WjmSG_dialog button:hover{background:#22a58b17}._4WjmSG_workspace button:disabled,._4WjmSG_dialog button:disabled{opacity:.48;cursor:default}._4WjmSG_workspace button:focus-visible,._4WjmSG_workspace input:focus-visible,._4WjmSG_workspace textarea:focus-visible,._4WjmSG_workspace select:focus-visible{outline:2px solid var(--dev-accent);outline-offset:2px}._4WjmSG_workspace button[aria-pressed=true]{color:var(--dev-accent);background:#22a58b17}._4WjmSG_workspace input,._4WjmSG_workspace select,._4WjmSG_workspace textarea,._4WjmSG_dialog input,._4WjmSG_dialog textarea,._4WjmSG_dialog select{font:inherit;color:inherit;background:var(--dev-bg,transparent);border:1px solid var(--dev-border,#dce3e5);border-radius:7px;min-width:0;max-width:100%;padding:8px}._4WjmSG_header{justify-content:space-between;align-items:center;gap:12px;padding:13px 20px 10px;display:flex}._4WjmSG_eyebrow{color:var(--dev-accent);letter-spacing:.12em;font-size:10px}._4WjmSG_header h2{margin:3px 0;font-size:18px;font-weight:650}._4WjmSG_actions,._4WjmSG_codeBar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}._4WjmSG_context{align-items:center;gap:7px;padding:0 20px 10px;display:flex}._4WjmSG_context>span{color:var(--dev-muted);white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:20px;font-size:11px;overflow:hidden}._4WjmSG_context>select{margin-left:auto}._4WjmSG_tabs{border-bottom:1px solid var(--dev-border);flex-shrink:0;gap:5px;padding:0 14px;display:flex;overflow-x:auto}._4WjmSG_tabs button{white-space:nowrap;color:var(--dev-muted);border:0;border-bottom:2px solid #0000;border-radius:0;padding:10px 15px}._4WjmSG_tabs button[aria-selected=true]{color:var(--dev-accent);border-bottom-color:var(--dev-accent);font-weight:650}._4WjmSG_refresh{background:var(--dev-panel);color:var(--dev-muted);justify-content:space-between;align-items:center;padding:5px 20px;font-size:11px;display:flex}._4WjmSG_refresh button{padding:2px 9px;font-size:11px}._4WjmSG_body{flex:1;grid-template-columns:minmax(0,1fr) 322px;min-height:0;display:grid;position:relative;overflow:hidden}._4WjmSG_noChat{grid-template-columns:minmax(0,1fr)}._4WjmSG_main{flex-direction:column;min-width:0;min-height:0;display:flex;overflow:hidden}._4WjmSG_editor{flex:1;min-width:0;min-height:0;display:flex;position:relative}._4WjmSG_files{border-right:1px solid var(--dev-border);background:var(--dev-panel);flex-direction:column;flex:0 0 200px;gap:8px;width:200px;min-height:0;padding:10px;display:flex}._4WjmSG_files ._4WjmSG_codeBar{border:0;justify-content:space-between;padding:0}._4WjmSG_files small{color:var(--dev-muted);font-size:10px}._4WjmSG_files ._4WjmSG_codeBar button{padding:2px 5px;font-size:10px}._4WjmSG_fileRows{flex:1;min-height:0;overflow:auto}._4WjmSG_fileRows button{text-align:left;overflow-wrap:anywhere;border:0;border-radius:5px;width:100%;padding:7px 5px;font-size:11px;display:block}._4WjmSG_fileRows small{display:block}._4WjmSG_fileRows h4{color:var(--dev-muted);margin:17px 4px 6px;font-size:11px}._4WjmSG_fileRows b{color:var(--dev-accent)}._4WjmSG_code{flex-direction:column;flex:1;min-width:0;min-height:0;display:flex;overflow:hidden}._4WjmSG_openFiles{background:var(--dev-panel);flex-shrink:0;display:flex;overflow-x:auto}._4WjmSG_openFiles>span{white-space:nowrap;display:flex}._4WjmSG_openFiles button{border-width:0 1px 1px 0;border-radius:0;font-size:11px}._4WjmSG_codeBar{border-bottom:1px solid var(--dev-border);flex-shrink:0;padding:8px 12px}._4WjmSG_codeBar strong{white-space:nowrap;text-overflow:ellipsis;max-width:260px;font-size:12px;overflow:hidden}._4WjmSG_codeBar small{color:var(--dev-muted);overflow-wrap:anywhere;font-size:10px}._4WjmSG_codeBar button{padding:3px 7px;font-size:11px}._4WjmSG_codeBar h3{margin:0 auto 0 0;font-size:14px}._4WjmSG_codeScroll{flex:1;min-height:0;padding:8px 0 20px;overflow:auto}._4WjmSG_codePane{min-width:0;overflow:auto}._4WjmSG_codeLine{align-items:baseline;min-height:22px;font:12px/1.8 Consolas,ui-monospace,monospace;display:flex}._4WjmSG_codeLine>button{font:inherit;min-width:50px;color:var(--dev-muted);background:0 0;border:0;border-radius:0;flex-shrink:0;padding:0 10px}._4WjmSG_codeLine code{white-space:pre;padding-right:18px}._4WjmSG_selectedLine{background:#22a58b26}._4WjmSG_split{grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:100%;display:grid}._4WjmSG_split>:first-child{border-right:1px solid var(--dev-border)}._4WjmSG_patch{white-space:pre;max-height:55vh;margin:0;padding:6px 14px;font:12px/1.8 Consolas,ui-monospace,monospace;overflow:auto}._4WjmSG_codeScroll>._4WjmSG_patch{max-height:none;overflow:visible}._4WjmSG_patch>span{min-width:fit-content;display:block}._4WjmSG_patch br{display:none}._4WjmSG_added{color:light-dark(#168365,#72cbb4);background:#22a58b21}._4WjmSG_removed{color:light-dark(#bf424c,#ec919b);background:#d4515b1a}._4WjmSG_hunk{color:light-dark(#557db7,#8faee0);background:#557db71a}._4WjmSG_chat{border-left:1px solid var(--dev-border);background:var(--dev-bg);flex-direction:column;min-height:0;display:flex;overflow:hidden}._4WjmSG_chat>._4WjmSG_codeBar{justify-content:space-between}._4WjmSG_messages{flex:1;min-height:0;padding:14px;overflow:auto}._4WjmSG_messages article{overflow-wrap:anywhere;margin-bottom:17px}._4WjmSG_messages small{color:var(--dev-muted);font-size:10px}._4WjmSG_messages p{white-space:pre-wrap;margin:5px 0;line-height:1.7}._4WjmSG_messages pre{white-space:pre-wrap;font-size:11px}._4WjmSG_userMessage{background:var(--dev-panel);border-radius:10px;padding:10px 12px}._4WjmSG_assistantMessage{padding:4px}._4WjmSG_execution{border:1px solid var(--dev-border);border-left:3px solid var(--dev-accent);border-radius:6px;padding:10px;font-size:11px}._4WjmSG_composer{border-top:1px solid var(--dev-border);flex-direction:column;gap:8px;padding:12px;display:flex}._4WjmSG_composer textarea{resize:vertical;width:100%;min-height:104px;max-height:240px;line-height:1.6}._4WjmSG_composer ._4WjmSG_actions{justify-content:space-between}._4WjmSG_composer small{color:var(--dev-muted);font-size:10px}._4WjmSG_contextChips{flex-wrap:wrap;gap:4px;display:flex}._4WjmSG_contextChips button{text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:10px;overflow:hidden}._4WjmSG_workspace ._4WjmSG_primary,._4WjmSG_dialog ._4WjmSG_primary{background:var(--dsw-alias-button-primary-fill,#168f77);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:#0000}._4WjmSG_workspace ._4WjmSG_primary:hover,._4WjmSG_dialog ._4WjmSG_primary:hover{background:var(--dsw-alias-button-primary-hover,#107c66)}._4WjmSG_footer{border-top:1px solid var(--dev-border);background:var(--dev-panel);color:var(--dev-muted);justify-content:space-between;align-items:center;gap:8px;padding:6px 14px;font-size:10px;display:flex}._4WjmSG_footer button{border:0;padding:2px;font-size:11px}._4WjmSG_empty{text-align:center;color:var(--dev-muted);padding:32px 22px;line-height:1.8}._4WjmSG_empty input,._4WjmSG_empty select{width:min(520px,100%);margin:12px auto;display:block}._4WjmSG_error{color:#c34350;overflow-wrap:anywhere;background:#c3435012;margin:0;padding:8px 14px;font-size:12px}._4WjmSG_notice{background:#bc8e3114;justify-content:space-between;gap:10px;padding:8px 15px;display:flex}._4WjmSG_scroll{flex:1;min-height:0;padding:16px;overflow:auto}._4WjmSG_row{border-bottom:1px solid var(--dev-border);overflow-wrap:anywhere;justify-content:space-between;align-items:center;gap:12px;padding:12px 2px;display:flex}._4WjmSG_row small,._4WjmSG_card small{color:var(--dev-muted);margin:4px 0;font-size:11px;display:block}._4WjmSG_card{border:1px solid var(--dev-border);overflow-wrap:anywhere;border-radius:9px;margin:12px 0;padding:15px}._4WjmSG_card code{margin:9px 0;font-size:12px;display:block}._4WjmSG_card p{font-size:12px}._4WjmSG_versionGrid{flex:1;grid-template-columns:245px minmax(0,1fr);min-height:0;display:grid}._4WjmSG_history{border-right:1px solid var(--dev-border);overflow:auto}._4WjmSG_history button{text-align:left;border-width:0 0 1px;border-radius:0;width:100%;padding:13px;display:block}._4WjmSG_history b{font-size:12px;display:block}._4WjmSG_history small{color:var(--dev-muted);margin-top:4px;font-size:10px;display:block}._4WjmSG_terminal{color:#d2e5e7;white-space:pre-wrap;overflow-wrap:anywhere;background:#15232a;border-radius:8px;min-height:170px;padding:15px;font:12px/1.7 Consolas,monospace}._4WjmSG_dialog{flex-direction:column;gap:12px;max-height:76vh;padding:18px;display:flex;overflow:auto}._4WjmSG_dialog label{flex-direction:column;gap:7px;display:flex}._4WjmSG_dialog textarea{min-height:100px}._4WjmSG_dialog pre{max-width:100%;overflow:auto}._4WjmSG_fileToggle{display:none}@container (width<=1099px){._4WjmSG_files{display:none}._4WjmSG_filesOpen{z-index:3;width:250px;display:flex;position:absolute;top:0;bottom:0;left:0;box-shadow:8px 0 24px #0002}._4WjmSG_fileToggle{align-self:start;margin:6px 10px;display:block;font-size:11px!important}._4WjmSG_versionGrid{grid-template-columns:190px minmax(0,1fr)}}@container (width<=799px){._4WjmSG_body{grid-template-columns:minmax(0,1fr)}._4WjmSG_chat{z-index:4;border-left:0;position:absolute;inset:0}._4WjmSG_header{flex-wrap:wrap;padding:10px}._4WjmSG_header h2{font-size:16px}._4WjmSG_header ._4WjmSG_actions button{font-size:11px}._4WjmSG_context{flex-wrap:wrap;padding:0 10px 8px}._4WjmSG_context span{flex-basis:100%;order:4}._4WjmSG_context select{max-width:110px}._4WjmSG_tabs{padding:0 5px}._4WjmSG_tabs button{padding:9px 12px}._4WjmSG_versionGrid{grid-template-columns:minmax(0,1fr);overflow:auto}._4WjmSG_history{max-height:200px}._4WjmSG_versionGrid ._4WjmSG_code{min-height:330px}._4WjmSG_footer>span{display:none}._4WjmSG_row{flex-wrap:wrap}._4WjmSG_codeBar strong{max-width:100%}}@media (prefers-color-scheme:dark){._4WjmSG_workspace{--dev-bg:var(--dsw-alias-bg-layer-2,#192126);--dev-panel:var(--dsw-alias-bg-layer-1,#202b31);--dev-border:var(--dsw-alias-border-l2,#35434a);--dev-text:var(--dsw-alias-label-primary,#deeaec);--dev-muted:var(--dsw-alias-label-secondary,#99a9af)}._4WjmSG_added{color:#72cbb4}._4WjmSG_removed{color:#ec919b}}._4WjmSG_dialog{--dev-bg:var(--dsw-alias-bg-layer-2,#fff);--dev-border:var(--dsw-alias-border-l2,#e2e6e8);color:var(--dsw-alias-label-primary,#263338);background:var(--dev-bg)}";
+		const tagId$4 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/DeveloperAssistant.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$4) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$5;
-			tag.textContent = css$5;
+			tag.dataset.pluginCss = tagId$4;
+			tag.textContent = css$4;
 			document.head.appendChild(tag);
 		}
 		var DeveloperAssistant_module_css_default = {
@@ -11922,13 +13272,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css.mjs
-		const css$4 = ".P-xFQa_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#546da9);--accent-text:var(--dsw-alias-brand-primary,var(--accent));--soft:color-mix(in srgb,var(--accent) 6%,var(--surface));color:var(--ink);background:var(--dsw-alias-bg-layer-1,var(--surface));font:inherit;flex-direction:column;width:100%;height:100%;min-height:0;font-size:13px;display:flex;overflow:hidden}.P-xFQa_root *{box-sizing:border-box}.P-xFQa_root button,.P-xFQa_root input,.P-xFQa_root textarea,.P-xFQa_root select{font:inherit}.P-xFQa_root button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 11px;line-height:1.35;transition:border-color .15s,background .15s}.P-xFQa_root button:hover:not(:disabled){border-color:var(--accent);color:var(--accent-text);background:var(--soft)}.P-xFQa_root button:disabled{opacity:.45;cursor:not-allowed}.P-xFQa_root :is(button,input,textarea,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}.P-xFQa_root input:not([type=checkbox]),.P-xFQa_root textarea,.P-xFQa_root select{border:1px solid var(--border);color:var(--ink);background:var(--surface);border-radius:8px;min-width:0;padding:9px 11px}.P-xFQa_root input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex:none;width:15px;height:15px}.P-xFQa_root textarea{resize:vertical;width:100%;line-height:1.65}.P-xFQa_root h2{margin:0 0 6px;font-size:20px;font-weight:650;line-height:1.4}.P-xFQa_root h3{margin:0 0 8px;font-size:14px;font-weight:650;line-height:1.6}.P-xFQa_root p{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;line-height:1.75}.P-xFQa_root small{color:var(--muted);font-size:11px;line-height:1.6}.P-xFQa_root summary{cursor:pointer}.P-xFQa_root details>summary{padding:8px 0}.P-xFQa_primary{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;font-weight:600!important}.P-xFQa_muted{color:var(--muted);font-size:12px;line-height:1.7}.P-xFQa_block{margin-top:5px;display:block}.P-xFQa_heading{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;gap:16px;min-height:66px;padding:13px 28px;display:flex}.P-xFQa_heading>div:first-child{flex-direction:column;gap:4px;min-width:0;display:flex}.P-xFQa_heading strong{text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:650;overflow:hidden}.P-xFQa_saveState{color:var(--muted);font-size:10px}.P-xFQa_heading button{padding:6px 8px;font-size:11px}.P-xFQa_countBadge{border:1px solid var(--border);color:var(--muted);white-space:nowrap;border-radius:6px;padding:4px 7px;font-size:10px}.P-xFQa_tabs{border-bottom:1px solid var(--border);scrollbar-width:thin;flex:none;gap:27px;min-height:43px;padding:0 28px;display:flex;overflow-x:auto}.P-xFQa_tabs button{color:var(--muted);white-space:nowrap;background:0 0;border:0;border-bottom:2px solid #0000;border-radius:0;flex:none;padding:11px 0;font-size:13px}.P-xFQa_tabs button[aria-selected=true]{border-bottom-color:var(--accent);color:var(--ink);font-weight:650}.P-xFQa_tabs button:hover:not(:disabled){border-bottom-color:var(--accent);background:0 0}.P-xFQa_subtabs{background:var(--soft);flex:none}.P-xFQa_subtabs .P-xFQa_tabs{gap:24px;min-height:42px}.P-xFQa_subtabs .P-xFQa_tabs button{font-size:12px}.P-xFQa_scroll{overscroll-behavior:contain;scroll-behavior:smooth;flex:1;min-height:0;overflow:auto}.P-xFQa_chat{width:min(930px,100% - 64px);margin:auto;padding:30px 0}.P-xFQa_intro{align-items:flex-start;gap:15px;margin:3px 0 24px;display:flex}.P-xFQa_intro>span:first-child{border-radius:12px;flex:none;width:38px;height:38px}.P-xFQa_intro>div{min-width:0}.P-xFQa_intro small{font-size:11px;font-weight:650}.P-xFQa_intro h2{margin:4px 0 8px;font-size:21px}.P-xFQa_intro p{color:var(--muted);font-size:13px}.P-xFQa_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:24px 0;display:grid}.P-xFQa_modes button{text-align:left;border-color:color-mix(in srgb,var(--accent) 28%,var(--border));border-radius:14px;flex-direction:column;align-items:flex-start;min-height:190px;padding:22px;transition:transform .2s,border-color .2s;display:flex;box-shadow:0 4px 20px #182c5006}.P-xFQa_modes button:hover:not(:disabled){transform:translateY(-2px)}.P-xFQa_modes button>span{color:var(--accent-text);background:var(--soft);border-radius:10px;place-items:center;width:34px;height:34px;margin-bottom:13px;font-size:21px;display:grid}.P-xFQa_modes b{font-size:16px}.P-xFQa_modes p{color:var(--muted);font-size:12px}.P-xFQa_modes em{color:var(--accent-text);margin-top:auto;padding-top:15px;font-size:11px;font-style:normal}.P-xFQa_modes button[aria-pressed=true]{border-color:var(--accent);background:var(--soft)}.P-xFQa_modes b small{color:var(--accent-text);margin-left:6px;font-size:10px;font-weight:500}.P-xFQa_chooser{padding:20px 0}.P-xFQa_chooser .P-xFQa_intro{margin:0 0 16px}.P-xFQa_chooser .P-xFQa_intro h2{margin-bottom:6px}.P-xFQa_chooser .P-xFQa_chooserSummary{margin:12px 0;padding:12px 16px}.P-xFQa_chooser .P-xFQa_modes{margin:12px 0}.P-xFQa_chooser .P-xFQa_modes button{min-height:150px;padding:16px}.P-xFQa_chooser .P-xFQa_modes button>span{width:28px;height:28px;margin-bottom:8px;font-size:18px}.P-xFQa_chooser .P-xFQa_modes b{font-size:15px}.P-xFQa_chooser .P-xFQa_modes p{margin:6px 0}.P-xFQa_chooser .P-xFQa_modes em{padding-top:8px}.P-xFQa_chooserSummary{background:var(--soft);border:1px solid var(--border);border-radius:12px;justify-content:space-between;align-items:center;gap:16px;margin:20px 0;padding:17px 20px;display:flex}.P-xFQa_chooserSummary>div{min-width:0}.P-xFQa_chooserSummary strong{overflow-wrap:anywhere;font-size:14px}.P-xFQa_chooserSummary p{color:var(--muted);margin:5px 0 0;font-size:11px}.P-xFQa_chooserSummary button{flex:none;font-size:12px}.P-xFQa_chooserReturn{justify-content:space-between;align-items:center;gap:12px;margin:18px 0;display:flex}.P-xFQa_chooserReturn button{font-size:11px}.P-xFQa_draftRetry{color:var(--muted);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:3px 20px;padding:8px 13px;font-size:11px;display:flex}.P-xFQa_draftRetry button{padding:5px 9px;font-size:11px}.P-xFQa_workflow{color:var(--muted);justify-content:center;align-items:center;gap:14px;padding:10px 0;font-size:11px;display:flex}.P-xFQa_workflow i{color:var(--border);font-style:normal}.P-xFQa_toolbar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}.P-xFQa_toolbar button{padding:6px 9px;font-size:11px}.P-xFQa_tag,.P-xFQa_status,.P-xFQa_warningTag{border:1px solid var(--border);width:max-content;color:var(--muted);white-space:nowrap;border-radius:6px;align-items:center;padding:3px 7px;font-size:10px;line-height:1.6;display:inline-flex}.P-xFQa_status[data-status=confirmed],.P-xFQa_status[data-status=resolved]{color:#3e9273;border-color:color-mix(in srgb,#4d9c78 25%,var(--border));background:color-mix(in srgb,#4d9c78 6%,var(--surface))}.P-xFQa_status[data-status=review],.P-xFQa_warningTag{color:#ad7839;background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-color:color-mix(in srgb,#c79b4a 30%,var(--border))}.P-xFQa_card{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:16px 0;padding:19px 21px}.P-xFQa_card p{font-size:12px}.P-xFQa_sectionHead{justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;display:flex}.P-xFQa_sectionHead>div:first-child{min-width:0}.P-xFQa_sectionHead h3{margin-bottom:0}.P-xFQa_sectionHead p{color:var(--muted);margin:4px 0 0;font-size:12px}.P-xFQa_sectionHead button{white-space:nowrap;font-size:11px}.P-xFQa_userMessage{border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));background:var(--soft);border-radius:14px 14px 4px;max-width:82%;margin:22px 0 22px auto;padding:13px 17px}.P-xFQa_assistantMessage{margin:24px 0;padding:0 4px}.P-xFQa_assistantMessage small{font-weight:600}.P-xFQa_assistantMessage p,.P-xFQa_userMessage p{margin:5px 0}.P-xFQa_progress{border:1px solid var(--border);border-radius:12px;align-items:center;gap:14px;margin:20px 0;padding:17px;display:flex}.P-xFQa_progress>div{flex:1}.P-xFQa_progress p{color:var(--muted);margin:4px 0 0;font-size:11px}.P-xFQa_spinner{border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;width:20px;height:20px;animation:1.1s linear infinite P-xFQa_spin}@keyframes P-xFQa_spin{to{transform:rotate(360deg)}}.P-xFQa_runError,.P-xFQa_error{color:#b25555;background:color-mix(in srgb,#c46565 7%,var(--surface));border:1px solid color-mix(in srgb,#c46565 25%,var(--border));border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.7}.P-xFQa_runError{margin:18px 0}.P-xFQa_error{white-space:pre-wrap;flex:none;justify-content:space-between;gap:10px;max-height:180px;margin:9px 20px;display:flex;overflow:auto}.P-xFQa_error button,.P-xFQa_notice button{color:inherit;background:0 0;border:0;align-self:flex-start;padding:0 4px}.P-xFQa_notice{background:var(--soft);color:var(--accent-text);border-radius:7px;flex:none;justify-content:space-between;gap:10px;margin:7px 20px;padding:8px 12px;font-size:12px;display:flex}.P-xFQa_availability{background:var(--soft);color:var(--muted);border-bottom:1px solid var(--border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:8px 28px;font-size:11px;display:flex}.P-xFQa_availability button{padding:4px 8px;font-size:11px}.P-xFQa_proposal{border:1px solid var(--border);border-radius:9px;margin:10px 0;padding:4px 13px}.P-xFQa_proposal summary{align-items:center;gap:8px;display:flex}.P-xFQa_proposal summary strong{overflow-wrap:anywhere;flex:1;font-size:12px}.P-xFQa_proposal summary small{white-space:nowrap;font-size:10px}.P-xFQa_details{grid-template-columns:92px minmax(0,1fr);gap:8px 12px;margin:12px 0;font-size:12px;line-height:1.65;display:grid}.P-xFQa_details dt{color:var(--muted)}.P-xFQa_details dd{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.P-xFQa_before{background:color-mix(in srgb,#c79b4a 6%,var(--surface));color:var(--muted);border-left:2px solid var(--border);margin-bottom:5px;padding:4px 7px}.P-xFQa_sources{flex-wrap:wrap;gap:6px;margin:5px 0;display:flex}.P-xFQa_sources button{color:var(--accent-text);background:0 0;border:0;padding:2px 0;font-size:10px}.P-xFQa_questionPreview{border-top:1px solid var(--border);padding:12px 0}.P-xFQa_questionPreview b{font-size:12px}.P-xFQa_questionPreview p{color:var(--muted);font-size:11px}.P-xFQa_questionPreview button{margin-right:8px;font-size:11px}.P-xFQa_workspace{width:min(1180px,100% - 56px);margin:0 auto;padding:26px 0 36px}.P-xFQa_stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0;display:grid}.P-xFQa_stats button{border-radius:12px;flex-direction:column;align-items:flex-start;padding:19px 18px;display:flex}.P-xFQa_stats strong{color:var(--accent-text);letter-spacing:-.5px;font-size:27px;font-weight:600}.P-xFQa_stats strong small{font-size:13px;font-weight:400}.P-xFQa_stats span{color:var(--muted);margin-top:6px;font-size:11px}.P-xFQa_twoColumns{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;display:grid}.P-xFQa_twoColumns .P-xFQa_card{margin:7px 0}.P-xFQa_compactList{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.8}.P-xFQa_compactList li{padding:5px 0}.P-xFQa_compactList time{color:var(--muted);margin-right:8px;font-size:10px}.P-xFQa_dimmed{opacity:.65}.P-xFQa_excerpt{-webkit-line-clamp:2;color:var(--muted);-webkit-box-orient:vertical;max-width:440px;display:-webkit-box;overflow:hidden;font-size:11px!important}.P-xFQa_filters{flex-wrap:wrap;gap:9px;margin:18px 0;display:flex}.P-xFQa_filters input{flex:1;min-width:150px;max-width:430px}.P-xFQa_filters select{min-width:130px}.P-xFQa_selectionBar{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--soft);border-radius:9px;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;padding:10px 13px;display:flex}.P-xFQa_selectionBar>span{color:var(--accent-text);margin-right:8px;font-size:11px}.P-xFQa_selectionBar button{padding:5px 8px;font-size:11px}.P-xFQa_tableWrap{border:1px solid var(--border);border-radius:11px;margin-top:15px;overflow:auto}.P-xFQa_table{border-collapse:collapse;width:100%;min-width:700px;font-size:12px}.P-xFQa_table th{text-align:left;background:var(--soft);color:var(--muted);white-space:nowrap;padding:11px 12px;font-size:11px;font-weight:500}.P-xFQa_table td{border-top:1px solid var(--border);vertical-align:top;padding:13px 12px}.P-xFQa_table td:first-child{width:34px}.P-xFQa_table td:nth-child(2){width:40%}.P-xFQa_table td:last-child{min-width:130px}.P-xFQa_rowTitle{color:var(--ink);text-align:left;flex-direction:column;gap:3px;display:flex;background:0 0!important;border:0!important;padding:0!important}.P-xFQa_rowTitle small{color:var(--accent-text);font-size:10px}.P-xFQa_rowTitle strong{font-size:13px;font-weight:600}.P-xFQa_rowActions{flex-wrap:wrap;gap:5px;display:flex}.P-xFQa_rowActions button{padding:4px 6px;font-size:10px}.P-xFQa_rowActions details{width:100%}.P-xFQa_rowActions summary{color:var(--muted);font-size:10px;padding:5px 0!important}.P-xFQa_rowActions details>div{flex-wrap:wrap;gap:5px;margin-top:3px;display:flex}.P-xFQa_flowCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;gap:14px;margin:15px 0;padding:19px;display:flex}.P-xFQa_flowCard>div{flex:1;min-width:0}.P-xFQa_flowCard p{font-size:12px}.P-xFQa_stepNumber{background:var(--soft);width:29px;height:29px;color:var(--accent-text);border-radius:9px;flex:none;place-items:center;font-size:12px;display:grid}.P-xFQa_flowDetails{color:var(--muted);grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 20px;margin:10px 0;font-size:11px;line-height:1.75;display:grid}.P-xFQa_choices{flex-wrap:wrap;gap:7px;margin:11px 0;display:flex}.P-xFQa_choices button{color:var(--accent-text);background:var(--soft);font-size:11px}.P-xFQa_field{flex-direction:column;gap:7px;min-width:0;margin:15px 0;display:flex}.P-xFQa_field>span{font-size:12px;font-weight:550}.P-xFQa_field>span small{color:var(--muted);font-size:10px;font-weight:400}.P-xFQa_field textarea{min-height:90px}.P-xFQa_field input,.P-xFQa_field select{width:100%}.P-xFQa_check{align-items:center;gap:6px;font-size:12px;display:inline-flex}.P-xFQa_relations{border:1px solid var(--border);border-radius:9px;margin:16px 0;padding:10px 12px}.P-xFQa_relations legend{color:var(--muted);padding:0 6px;font-size:12px}.P-xFQa_relations label{align-items:center;gap:8px;padding:6px 0;font-size:12px;display:flex}.P-xFQa_documentControls{border:1px solid var(--border);background:var(--soft);border-radius:11px;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0;padding:8px 16px 16px;display:flex}.P-xFQa_documentControls .P-xFQa_field{flex:1;min-width:140px;margin:5px 0 0}.P-xFQa_documentControls button{min-height:35px;font-size:12px}.P-xFQa_document{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:20px 0;padding:35px 42px;font-size:12px;line-height:1.85}.P-xFQa_document h1{margin:0 0 20px;font-size:23px}.P-xFQa_document h2{color:var(--accent-text);border-bottom:1px solid var(--border);margin-top:24px;padding-bottom:9px;font-size:17px}.P-xFQa_document h3{margin-top:18px;font-size:14px}.P-xFQa_document p{margin:4px 0}.P-xFQa_docGap{height:5px}.P-xFQa_warning{color:#ad7839;border:1px solid color-mix(in srgb,#c79b4a 35%,var(--border));background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-radius:8px;margin:12px 0;padding:11px 14px;font-size:12px;line-height:1.7}.P-xFQa_versionRow{border-top:1px solid var(--border);align-items:center;gap:10px;padding:12px 0;display:flex}.P-xFQa_versionRow>div{flex:1;min-width:0}.P-xFQa_versionRow strong{font-size:12px;display:block}.P-xFQa_versionRow small{margin-top:4px;display:block}.P-xFQa_versionRow button{font-size:11px}.P-xFQa_timeline{margin:16px 0;padding:10px 0;list-style:none}.P-xFQa_timeline li{border-top:1px solid var(--border);gap:20px;padding:13px 0;display:flex}.P-xFQa_timeline time{color:var(--muted);flex:none;width:110px;padding-top:4px;font-size:11px}.P-xFQa_timeline p{margin:0;font-size:12px}.P-xFQa_timeline button{color:var(--accent-text);background:0 0;border:0;padding:5px 0;font-size:10px}.P-xFQa_composerWrap{flex:none;width:min(970px,100% - 44px);margin:auto;padding:6px 0 14px}.P-xFQa_quickActions{flex-wrap:wrap;gap:6px;margin-bottom:9px;display:flex}.P-xFQa_quickActions button{color:var(--muted);background:0 0;border-radius:7px;padding:5px 9px;font-size:10px}.P-xFQa_composer{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5010}.P-xFQa_composer>textarea{background:0 0;border:0;border-radius:0;min-height:65px;max-height:160px;padding:2px 0;font-size:14px}.P-xFQa_composer>textarea:focus-visible{outline-offset:2px;outline-width:1px}.P-xFQa_composer>textarea::placeholder{color:var(--muted)}.P-xFQa_composerTools,.P-xFQa_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.P-xFQa_composerTools button{color:var(--accent-text);background:0 0;border:0;padding:2px 5px;font-size:22px}.P-xFQa_composerTools select{color:var(--muted);border:0;max-width:200px;padding:4px 3px;font-size:10px}.P-xFQa_composerTools small{font-size:10px}.P-xFQa_composerTools .P-xFQa_send{background:var(--accent);color:#fff;border-radius:50%;width:35px;height:35px;font-size:24px}.P-xFQa_contextNote{background:var(--soft);color:var(--accent-text);border-radius:7px;justify-content:space-between;gap:10px;margin-bottom:8px;padding:7px 10px;font-size:11px;display:flex}.P-xFQa_contextNote button{color:var(--accent-text);background:0 0;border:0;padding:0 4px}.P-xFQa_empty{text-align:center;color:var(--muted);flex-direction:column;align-items:center;padding:55px 20px;font-size:12px;line-height:1.8;display:flex}.P-xFQa_empty>span{opacity:.4;padding-bottom:10px;font-size:33px}.P-xFQa_empty h3{color:var(--ink);font-size:15px}.P-xFQa_empty button{margin-top:12px}.P-xFQa_overlay{z-index:1300;backdrop-filter:blur(2px);background:#13213555;justify-content:center;align-items:center;padding:24px;display:flex;position:fixed;inset:0}.P-xFQa_dialog{border:1px solid var(--border);background:var(--surface);width:min(760px,100%);max-height:calc(100dvh - 48px);color:var(--ink);border-radius:15px;flex-direction:column;display:flex;overflow:hidden;box-shadow:0 20px 70px #1118273d}.P-xFQa_dialog:focus{outline:none}.P-xFQa_dialog>header{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;padding:16px 23px;display:flex}.P-xFQa_dialog>header h2{margin:0;font-size:16px}.P-xFQa_dialog>header button{color:var(--muted);background:0 0;border:0;padding:0 5px;font-size:22px}.P-xFQa_dialogBody{min-height:0;padding:12px 24px 22px;overflow:auto}.P-xFQa_dialogBody>.P-xFQa_error{margin:2px 0 10px}.P-xFQa_dialogBody>details{border-top:1px solid var(--border);margin:16px 0}.P-xFQa_dialogBody>details>summary{font-size:13px;font-weight:600}.P-xFQa_dialog>footer{border-top:1px solid var(--border);flex-wrap:wrap;flex:none;justify-content:flex-end;align-items:center;gap:9px;padding:14px 22px;display:flex}.P-xFQa_dialog>footer>span{margin-right:auto;font-size:10px}.P-xFQa_dialog blockquote{border-left:3px solid var(--accent);background:var(--soft);white-space:pre-wrap;margin:14px 0;padding:12px 15px;line-height:1.8}.P-xFQa_rawText{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0;font-size:12px;line-height:1.85}.P-xFQa_conflict{border:1px solid var(--border);background:var(--soft);border-radius:9px;padding:14px}.P-xFQa_conflict button{font-size:11px}@media (width<=850px){.P-xFQa_heading{padding:12px 18px}.P-xFQa_heading .P-xFQa_countBadge{display:none}.P-xFQa_tabs{gap:22px;padding:0 18px}.P-xFQa_chat{width:calc(100% - 38px)}.P-xFQa_workspace{width:calc(100% - 36px)}.P-xFQa_sectionHead{flex-wrap:wrap}.P-xFQa_stats{gap:8px}.P-xFQa_stats button{padding:15px 12px}.P-xFQa_document{padding:26px}.P-xFQa_flowDetails{grid-template-columns:1fr}}@media (width<=600px){.P-xFQa_root{font-size:12px}.P-xFQa_heading{gap:8px;min-height:58px}.P-xFQa_heading strong{font-size:13px}.P-xFQa_heading .P-xFQa_toolbar{flex:none;gap:4px}.P-xFQa_heading button{padding:5px;font-size:10px}.P-xFQa_tabs,.P-xFQa_subtabs .P-xFQa_tabs{gap:23px;padding:0 15px}.P-xFQa_chat{width:calc(100% - 28px);padding:21px 0}.P-xFQa_intro{gap:10px}.P-xFQa_intro h2{font-size:18px}.P-xFQa_intro p{font-size:11px}.P-xFQa_intro>span:first-child{width:30px;height:30px}.P-xFQa_modes{grid-template-columns:1fr;gap:10px;margin-top:16px}.P-xFQa_modes button{min-height:145px;padding:16px}.P-xFQa_modes button>span{width:26px;height:26px;margin-bottom:9px;font-size:17px}.P-xFQa_modes b{font-size:14px}.P-xFQa_modes em{padding-top:8px}.P-xFQa_workflow{gap:8px;font-size:10px}.P-xFQa_card{padding:15px}.P-xFQa_workspace{width:calc(100% - 28px);padding:20px 0}.P-xFQa_twoColumns{grid-template-columns:1fr}.P-xFQa_stats{grid-template-columns:repeat(2,minmax(0,1fr))}.P-xFQa_stats strong{font-size:24px}.P-xFQa_table{min-width:640px}.P-xFQa_table td,.P-xFQa_table th{padding:10px}.P-xFQa_composerWrap{width:calc(100% - 20px);padding-bottom:8px}.P-xFQa_quickActions{gap:5px}.P-xFQa_quickActions button{padding:5px 6px;font-size:9px}.P-xFQa_composer{border-radius:15px;padding:10px 12px}.P-xFQa_composer>textarea{min-height:58px;font-size:13px}.P-xFQa_composerTools small{display:none}.P-xFQa_composerTools select{max-width:185px}.P-xFQa_error,.P-xFQa_notice{margin:6px 12px;font-size:11px}.P-xFQa_availability{padding:8px 14px}.P-xFQa_proposal{padding:2px 10px}.P-xFQa_proposal summary{flex-wrap:wrap;gap:6px}.P-xFQa_proposal summary strong{flex-basis:60%}.P-xFQa_proposal summary small{padding-left:22px}.P-xFQa_details{grid-template-columns:75px minmax(0,1fr);gap:7px 9px;font-size:11px}.P-xFQa_flowCard{gap:10px;padding:14px}.P-xFQa_stepNumber{width:24px;height:24px}.P-xFQa_flowCard .P-xFQa_sectionHead{margin-bottom:6px}.P-xFQa_flowCard .P-xFQa_toolbar{gap:5px}.P-xFQa_document{padding:22px 18px}.P-xFQa_document h1{font-size:19px}.P-xFQa_document h2{font-size:15px}.P-xFQa_versionRow{flex-wrap:wrap}.P-xFQa_versionRow>div{flex-basis:100%}.P-xFQa_timeline li{flex-direction:column;gap:3px}.P-xFQa_timeline time{width:auto}.P-xFQa_overlay{padding:8px}.P-xFQa_dialog{border-radius:12px;max-height:calc(100dvh - 16px)}.P-xFQa_dialog>header{padding:13px 16px}.P-xFQa_dialogBody{padding:9px 16px 18px}.P-xFQa_dialog>footer{padding:12px 16px}.P-xFQa_dialog>footer>span{display:none}}@media (prefers-reduced-motion:reduce){.P-xFQa_root button,.P-xFQa_modes button{transition:none}.P-xFQa_modes button:hover:not(:disabled){transform:none}.P-xFQa_spinner{animation:none}.P-xFQa_scroll{scroll-behavior:auto}}";
-		const tagId$4 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$4) + "]") === null) {
+		const css$3 = ".P-xFQa_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#546da9);--accent-text:var(--dsw-alias-brand-primary,var(--accent));--soft:color-mix(in srgb,var(--accent) 6%,var(--surface));color:var(--ink);background:var(--dsw-alias-bg-layer-1,var(--surface));font:inherit;flex-direction:column;width:100%;height:100%;min-height:0;font-size:13px;display:flex;overflow:hidden}.P-xFQa_root *{box-sizing:border-box}.P-xFQa_root button,.P-xFQa_root input,.P-xFQa_root textarea,.P-xFQa_root select{font:inherit}.P-xFQa_root button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 11px;line-height:1.35;transition:border-color .15s,background .15s}.P-xFQa_root button:hover:not(:disabled){border-color:var(--accent);color:var(--accent-text);background:var(--soft)}.P-xFQa_root button:disabled{opacity:.45;cursor:not-allowed}.P-xFQa_root :is(button,input,textarea,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}.P-xFQa_root input:not([type=checkbox]),.P-xFQa_root textarea,.P-xFQa_root select{border:1px solid var(--border);color:var(--ink);background:var(--surface);border-radius:8px;min-width:0;padding:9px 11px}.P-xFQa_root input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex:none;width:15px;height:15px}.P-xFQa_root textarea{resize:vertical;width:100%;line-height:1.65}.P-xFQa_root h2{margin:0 0 6px;font-size:20px;font-weight:650;line-height:1.4}.P-xFQa_root h3{margin:0 0 8px;font-size:14px;font-weight:650;line-height:1.6}.P-xFQa_root p{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;line-height:1.75}.P-xFQa_root small{color:var(--muted);font-size:11px;line-height:1.6}.P-xFQa_root summary{cursor:pointer}.P-xFQa_root details>summary{padding:8px 0}.P-xFQa_primary{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;font-weight:600!important}.P-xFQa_muted{color:var(--muted);font-size:12px;line-height:1.7}.P-xFQa_block{margin-top:5px;display:block}.P-xFQa_heading{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;gap:16px;min-height:66px;padding:13px 28px;display:flex}.P-xFQa_heading>div:first-child{flex-direction:column;gap:4px;min-width:0;display:flex}.P-xFQa_heading strong{text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:650;overflow:hidden}.P-xFQa_saveState{color:var(--muted);font-size:10px}.P-xFQa_heading button{padding:6px 8px;font-size:11px}.P-xFQa_countBadge{border:1px solid var(--border);color:var(--muted);white-space:nowrap;border-radius:6px;padding:4px 7px;font-size:10px}.P-xFQa_tabs{border-bottom:1px solid var(--border);scrollbar-width:thin;flex:none;gap:27px;min-height:43px;padding:0 28px;display:flex;overflow-x:auto}.P-xFQa_tabs button{color:var(--muted);white-space:nowrap;background:0 0;border:0;border-bottom:2px solid #0000;border-radius:0;flex:none;padding:11px 0;font-size:13px}.P-xFQa_tabs button[aria-selected=true]{border-bottom-color:var(--accent);color:var(--ink);font-weight:650}.P-xFQa_tabs button:hover:not(:disabled){border-bottom-color:var(--accent);background:0 0}.P-xFQa_subtabs{background:var(--soft);flex:none}.P-xFQa_subtabs .P-xFQa_tabs{gap:24px;min-height:42px}.P-xFQa_subtabs .P-xFQa_tabs button{font-size:12px}.P-xFQa_scroll{overscroll-behavior:contain;scroll-behavior:smooth;flex:1;min-height:0;overflow:auto}.P-xFQa_chat{width:min(930px,100% - 64px);margin:auto;padding:30px 0}.P-xFQa_intro{align-items:flex-start;gap:15px;margin:3px 0 24px;display:flex}.P-xFQa_intro>span:first-child{border-radius:12px;flex:none;width:38px;height:38px}.P-xFQa_intro>div{min-width:0}.P-xFQa_intro small{font-size:11px;font-weight:650}.P-xFQa_intro h2{margin:4px 0 8px;font-size:21px}.P-xFQa_intro p{color:var(--muted);font-size:13px}.P-xFQa_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:24px 0;display:grid}.P-xFQa_modes button{text-align:left;border-color:color-mix(in srgb,var(--accent) 28%,var(--border));border-radius:14px;flex-direction:column;align-items:flex-start;min-height:190px;padding:22px;transition:transform .2s,border-color .2s;display:flex;box-shadow:0 4px 20px #182c5006}.P-xFQa_modes button:hover:not(:disabled){transform:translateY(-2px)}.P-xFQa_modes button>span{color:var(--accent-text);background:var(--soft);border-radius:10px;place-items:center;width:34px;height:34px;margin-bottom:13px;font-size:21px;display:grid}.P-xFQa_modes b{font-size:16px}.P-xFQa_modes p{color:var(--muted);font-size:12px}.P-xFQa_modes em{color:var(--accent-text);margin-top:auto;padding-top:15px;font-size:11px;font-style:normal}.P-xFQa_modes button[aria-pressed=true]{border-color:var(--accent);background:var(--soft)}.P-xFQa_modes b small{color:var(--accent-text);margin-left:6px;font-size:10px;font-weight:500}.P-xFQa_chooser{padding:20px 0}.P-xFQa_chooser .P-xFQa_intro{margin:0 0 16px}.P-xFQa_chooser .P-xFQa_intro h2{margin-bottom:6px}.P-xFQa_chooser .P-xFQa_chooserSummary{margin:12px 0;padding:12px 16px}.P-xFQa_chooser .P-xFQa_modes{margin:12px 0}.P-xFQa_chooser .P-xFQa_modes button{min-height:150px;padding:16px}.P-xFQa_chooser .P-xFQa_modes button>span{width:28px;height:28px;margin-bottom:8px;font-size:18px}.P-xFQa_chooser .P-xFQa_modes b{font-size:15px}.P-xFQa_chooser .P-xFQa_modes p{margin:6px 0}.P-xFQa_chooser .P-xFQa_modes em{padding-top:8px}.P-xFQa_chooserSummary{background:var(--soft);border:1px solid var(--border);border-radius:12px;justify-content:space-between;align-items:center;gap:16px;margin:20px 0;padding:17px 20px;display:flex}.P-xFQa_chooserSummary>div{min-width:0}.P-xFQa_chooserSummary strong{overflow-wrap:anywhere;font-size:14px}.P-xFQa_chooserSummary p{color:var(--muted);margin:5px 0 0;font-size:11px}.P-xFQa_chooserSummary button{flex:none;font-size:12px}.P-xFQa_chooserReturn{justify-content:space-between;align-items:center;gap:12px;margin:18px 0;display:flex}.P-xFQa_chooserReturn button{font-size:11px}.P-xFQa_draftRetry{color:var(--muted);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:3px 20px;padding:8px 13px;font-size:11px;display:flex}.P-xFQa_draftRetry button{padding:5px 9px;font-size:11px}.P-xFQa_workflow{color:var(--muted);justify-content:center;align-items:center;gap:14px;padding:10px 0;font-size:11px;display:flex}.P-xFQa_workflow i{color:var(--border);font-style:normal}.P-xFQa_toolbar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}.P-xFQa_toolbar button{padding:6px 9px;font-size:11px}.P-xFQa_tag,.P-xFQa_status,.P-xFQa_warningTag{border:1px solid var(--border);width:max-content;color:var(--muted);white-space:nowrap;border-radius:6px;align-items:center;padding:3px 7px;font-size:10px;line-height:1.6;display:inline-flex}.P-xFQa_status[data-status=confirmed],.P-xFQa_status[data-status=resolved]{color:#3e9273;border-color:color-mix(in srgb,#4d9c78 25%,var(--border));background:color-mix(in srgb,#4d9c78 6%,var(--surface))}.P-xFQa_status[data-status=review],.P-xFQa_warningTag{color:#ad7839;background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-color:color-mix(in srgb,#c79b4a 30%,var(--border))}.P-xFQa_card{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:16px 0;padding:19px 21px}.P-xFQa_card p{font-size:12px}.P-xFQa_sectionHead{justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;display:flex}.P-xFQa_sectionHead>div:first-child{min-width:0}.P-xFQa_sectionHead h3{margin-bottom:0}.P-xFQa_sectionHead p{color:var(--muted);margin:4px 0 0;font-size:12px}.P-xFQa_sectionHead button{white-space:nowrap;font-size:11px}.P-xFQa_userMessage{border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));background:var(--soft);border-radius:14px 14px 4px;max-width:82%;margin:22px 0 22px auto;padding:13px 17px}.P-xFQa_assistantMessage{margin:24px 0;padding:0 4px}.P-xFQa_assistantMessage small{font-weight:600}.P-xFQa_assistantMessage p,.P-xFQa_userMessage p{margin:5px 0}.P-xFQa_progress{border:1px solid var(--border);border-radius:12px;align-items:center;gap:14px;margin:20px 0;padding:17px;display:flex}.P-xFQa_progress>div{flex:1}.P-xFQa_progress p{color:var(--muted);margin:4px 0 0;font-size:11px}.P-xFQa_spinner{border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;width:20px;height:20px;animation:1.1s linear infinite P-xFQa_spin}@keyframes P-xFQa_spin{to{transform:rotate(360deg)}}.P-xFQa_runError,.P-xFQa_error{color:#b25555;background:color-mix(in srgb,#c46565 7%,var(--surface));border:1px solid color-mix(in srgb,#c46565 25%,var(--border));border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.7}.P-xFQa_runError{margin:18px 0}.P-xFQa_error{white-space:pre-wrap;flex:none;justify-content:space-between;gap:10px;max-height:180px;margin:9px 20px;display:flex;overflow:auto}.P-xFQa_error button,.P-xFQa_notice button{color:inherit;background:0 0;border:0;align-self:flex-start;padding:0 4px}.P-xFQa_notice{background:var(--soft);color:var(--accent-text);border-radius:7px;flex:none;justify-content:space-between;gap:10px;margin:7px 20px;padding:8px 12px;font-size:12px;display:flex}.P-xFQa_availability{background:var(--soft);color:var(--muted);border-bottom:1px solid var(--border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:8px 28px;font-size:11px;display:flex}.P-xFQa_availability button{padding:4px 8px;font-size:11px}.P-xFQa_proposal{border:1px solid var(--border);border-radius:9px;margin:10px 0;padding:4px 13px}.P-xFQa_proposal summary{align-items:center;gap:8px;display:flex}.P-xFQa_proposal summary strong{overflow-wrap:anywhere;flex:1;font-size:12px}.P-xFQa_proposal summary small{white-space:nowrap;font-size:10px}.P-xFQa_details{grid-template-columns:92px minmax(0,1fr);gap:8px 12px;margin:12px 0;font-size:12px;line-height:1.65;display:grid}.P-xFQa_details dt{color:var(--muted)}.P-xFQa_details dd{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.P-xFQa_before{background:color-mix(in srgb,#c79b4a 6%,var(--surface));color:var(--muted);border-left:2px solid var(--border);margin-bottom:5px;padding:4px 7px}.P-xFQa_sources{flex-wrap:wrap;gap:6px;margin:5px 0;display:flex}.P-xFQa_sources button{color:var(--accent-text);background:0 0;border:0;padding:2px 0;font-size:10px}.P-xFQa_questionPreview{border-top:1px solid var(--border);padding:12px 0}.P-xFQa_questionPreview b{font-size:12px}.P-xFQa_questionPreview p{color:var(--muted);font-size:11px}.P-xFQa_questionPreview button{margin-right:8px;font-size:11px}.P-xFQa_workspace{width:min(1180px,100% - 56px);margin:0 auto;padding:26px 0 36px}.P-xFQa_stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0;display:grid}.P-xFQa_stats button{border-radius:12px;flex-direction:column;align-items:flex-start;padding:19px 18px;display:flex}.P-xFQa_stats strong{color:var(--accent-text);letter-spacing:-.5px;font-size:27px;font-weight:600}.P-xFQa_stats strong small{font-size:13px;font-weight:400}.P-xFQa_stats span{color:var(--muted);margin-top:6px;font-size:11px}.P-xFQa_twoColumns{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;display:grid}.P-xFQa_twoColumns .P-xFQa_card{margin:7px 0}.P-xFQa_compactList{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.8}.P-xFQa_compactList li{padding:5px 0}.P-xFQa_compactList time{color:var(--muted);margin-right:8px;font-size:10px}.P-xFQa_dimmed{opacity:.65}.P-xFQa_excerpt{-webkit-line-clamp:2;color:var(--muted);-webkit-box-orient:vertical;max-width:440px;display:-webkit-box;overflow:hidden;font-size:11px!important}.P-xFQa_filters{flex-wrap:wrap;gap:9px;margin:18px 0;display:flex}.P-xFQa_filters input{flex:1;min-width:150px;max-width:430px}.P-xFQa_filters select{min-width:130px}.P-xFQa_selectionBar{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--soft);border-radius:9px;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;padding:10px 13px;display:flex}.P-xFQa_selectionBar>span{color:var(--accent-text);margin-right:8px;font-size:11px}.P-xFQa_selectionBar button{padding:5px 8px;font-size:11px}.P-xFQa_tableWrap{border:1px solid var(--border);border-radius:11px;margin-top:15px;overflow:auto}.P-xFQa_table{border-collapse:collapse;width:100%;min-width:700px;font-size:12px}.P-xFQa_table th{text-align:left;background:var(--soft);color:var(--muted);white-space:nowrap;padding:11px 12px;font-size:11px;font-weight:500}.P-xFQa_table td{border-top:1px solid var(--border);vertical-align:top;padding:13px 12px}.P-xFQa_table td:first-child{width:34px}.P-xFQa_table td:nth-child(2){width:40%}.P-xFQa_table td:last-child{min-width:130px}.P-xFQa_rowTitle{color:var(--ink);text-align:left;flex-direction:column;gap:3px;display:flex;background:0 0!important;border:0!important;padding:0!important}.P-xFQa_rowTitle small{color:var(--accent-text);font-size:10px}.P-xFQa_rowTitle strong{font-size:13px;font-weight:600}.P-xFQa_rowActions{flex-wrap:wrap;gap:5px;display:flex}.P-xFQa_rowActions button{padding:4px 6px;font-size:10px}.P-xFQa_rowActions details{width:100%}.P-xFQa_rowActions summary{color:var(--muted);font-size:10px;padding:5px 0!important}.P-xFQa_rowActions details>div{flex-wrap:wrap;gap:5px;margin-top:3px;display:flex}.P-xFQa_flowCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;gap:14px;margin:15px 0;padding:19px;display:flex}.P-xFQa_flowCard>div{flex:1;min-width:0}.P-xFQa_flowCard p{font-size:12px}.P-xFQa_stepNumber{background:var(--soft);width:29px;height:29px;color:var(--accent-text);border-radius:9px;flex:none;place-items:center;font-size:12px;display:grid}.P-xFQa_flowDetails{color:var(--muted);grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 20px;margin:10px 0;font-size:11px;line-height:1.75;display:grid}.P-xFQa_choices{flex-wrap:wrap;gap:7px;margin:11px 0;display:flex}.P-xFQa_choices button{color:var(--accent-text);background:var(--soft);font-size:11px}.P-xFQa_field{flex-direction:column;gap:7px;min-width:0;margin:15px 0;display:flex}.P-xFQa_field>span{font-size:12px;font-weight:550}.P-xFQa_field>span small{color:var(--muted);font-size:10px;font-weight:400}.P-xFQa_field textarea{min-height:90px}.P-xFQa_field input,.P-xFQa_field select{width:100%}.P-xFQa_check{align-items:center;gap:6px;font-size:12px;display:inline-flex}.P-xFQa_relations{border:1px solid var(--border);border-radius:9px;margin:16px 0;padding:10px 12px}.P-xFQa_relations legend{color:var(--muted);padding:0 6px;font-size:12px}.P-xFQa_relations label{align-items:center;gap:8px;padding:6px 0;font-size:12px;display:flex}.P-xFQa_documentControls{border:1px solid var(--border);background:var(--soft);border-radius:11px;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0;padding:8px 16px 16px;display:flex}.P-xFQa_documentControls .P-xFQa_field{flex:1;min-width:140px;margin:5px 0 0}.P-xFQa_documentControls button{min-height:35px;font-size:12px}.P-xFQa_document{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:20px 0;padding:35px 42px;font-size:12px;line-height:1.85}.P-xFQa_document h1{margin:0 0 20px;font-size:23px}.P-xFQa_document h2{color:var(--accent-text);border-bottom:1px solid var(--border);margin-top:24px;padding-bottom:9px;font-size:17px}.P-xFQa_document h3{margin-top:18px;font-size:14px}.P-xFQa_document p{margin:4px 0}.P-xFQa_docGap{height:5px}.P-xFQa_warning{color:#ad7839;border:1px solid color-mix(in srgb,#c79b4a 35%,var(--border));background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-radius:8px;margin:12px 0;padding:11px 14px;font-size:12px;line-height:1.7}.P-xFQa_versionRow{border-top:1px solid var(--border);align-items:center;gap:10px;padding:12px 0;display:flex}.P-xFQa_versionRow>div{flex:1;min-width:0}.P-xFQa_versionRow strong{font-size:12px;display:block}.P-xFQa_versionRow small{margin-top:4px;display:block}.P-xFQa_versionRow button{font-size:11px}.P-xFQa_timeline{margin:16px 0;padding:10px 0;list-style:none}.P-xFQa_timeline li{border-top:1px solid var(--border);gap:20px;padding:13px 0;display:flex}.P-xFQa_timeline time{color:var(--muted);flex:none;width:110px;padding-top:4px;font-size:11px}.P-xFQa_timeline p{margin:0;font-size:12px}.P-xFQa_timeline button{color:var(--accent-text);background:0 0;border:0;padding:5px 0;font-size:10px}.P-xFQa_composerWrap{flex:none;width:min(970px,100% - 44px);margin:auto;padding:6px 0 14px}.P-xFQa_quickActions{flex-wrap:wrap;gap:6px;margin-bottom:9px;display:flex}.P-xFQa_quickActions button{color:var(--muted);background:0 0;border-radius:7px;padding:5px 9px;font-size:10px}.P-xFQa_composer{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5010}.P-xFQa_composer>textarea{background:0 0;border:0;border-radius:0;min-height:65px;max-height:160px;padding:2px 0;font-size:14px}.P-xFQa_composer>textarea:focus-visible{outline-offset:2px;outline-width:1px}.P-xFQa_composer>textarea::placeholder{color:var(--muted)}.P-xFQa_composerTools,.P-xFQa_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.P-xFQa_composerTools button{color:var(--accent-text);background:0 0;border:0;padding:2px 5px;font-size:22px}.P-xFQa_composerTools select{color:var(--muted);border:0;max-width:200px;padding:4px 3px;font-size:10px}.P-xFQa_composerTools small{font-size:10px}.P-xFQa_composerTools .P-xFQa_send{background:var(--accent);color:#fff;border-radius:50%;width:35px;height:35px;font-size:24px}.P-xFQa_contextNote{background:var(--soft);color:var(--accent-text);border-radius:7px;justify-content:space-between;gap:10px;margin-bottom:8px;padding:7px 10px;font-size:11px;display:flex}.P-xFQa_contextNote button{color:var(--accent-text);background:0 0;border:0;padding:0 4px}.P-xFQa_empty{text-align:center;color:var(--muted);flex-direction:column;align-items:center;padding:55px 20px;font-size:12px;line-height:1.8;display:flex}.P-xFQa_empty>span{opacity:.4;padding-bottom:10px;font-size:33px}.P-xFQa_empty h3{color:var(--ink);font-size:15px}.P-xFQa_empty button{margin-top:12px}.P-xFQa_overlay{z-index:1300;backdrop-filter:blur(2px);background:#13213555;justify-content:center;align-items:center;padding:24px;display:flex;position:fixed;inset:0}.P-xFQa_dialog{border:1px solid var(--border);background:var(--surface);width:min(760px,100%);max-height:calc(100dvh - 48px);color:var(--ink);border-radius:15px;flex-direction:column;display:flex;overflow:hidden;box-shadow:0 20px 70px #1118273d}.P-xFQa_dialog:focus{outline:none}.P-xFQa_dialog>header{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;padding:16px 23px;display:flex}.P-xFQa_dialog>header h2{margin:0;font-size:16px}.P-xFQa_dialog>header button{color:var(--muted);background:0 0;border:0;padding:0 5px;font-size:22px}.P-xFQa_dialogBody{min-height:0;padding:12px 24px 22px;overflow:auto}.P-xFQa_dialogBody>.P-xFQa_error{margin:2px 0 10px}.P-xFQa_dialogBody>details{border-top:1px solid var(--border);margin:16px 0}.P-xFQa_dialogBody>details>summary{font-size:13px;font-weight:600}.P-xFQa_dialog>footer{border-top:1px solid var(--border);flex-wrap:wrap;flex:none;justify-content:flex-end;align-items:center;gap:9px;padding:14px 22px;display:flex}.P-xFQa_dialog>footer>span{margin-right:auto;font-size:10px}.P-xFQa_dialog blockquote{border-left:3px solid var(--accent);background:var(--soft);white-space:pre-wrap;margin:14px 0;padding:12px 15px;line-height:1.8}.P-xFQa_rawText{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0;font-size:12px;line-height:1.85}.P-xFQa_conflict{border:1px solid var(--border);background:var(--soft);border-radius:9px;padding:14px}.P-xFQa_conflict button{font-size:11px}@media (width<=850px){.P-xFQa_heading{padding:12px 18px}.P-xFQa_heading .P-xFQa_countBadge{display:none}.P-xFQa_tabs{gap:22px;padding:0 18px}.P-xFQa_chat{width:calc(100% - 38px)}.P-xFQa_workspace{width:calc(100% - 36px)}.P-xFQa_sectionHead{flex-wrap:wrap}.P-xFQa_stats{gap:8px}.P-xFQa_stats button{padding:15px 12px}.P-xFQa_document{padding:26px}.P-xFQa_flowDetails{grid-template-columns:1fr}}@media (width<=600px){.P-xFQa_root{font-size:12px}.P-xFQa_heading{gap:8px;min-height:58px}.P-xFQa_heading strong{font-size:13px}.P-xFQa_heading .P-xFQa_toolbar{flex:none;gap:4px}.P-xFQa_heading button{padding:5px;font-size:10px}.P-xFQa_tabs,.P-xFQa_subtabs .P-xFQa_tabs{gap:23px;padding:0 15px}.P-xFQa_chat{width:calc(100% - 28px);padding:21px 0}.P-xFQa_intro{gap:10px}.P-xFQa_intro h2{font-size:18px}.P-xFQa_intro p{font-size:11px}.P-xFQa_intro>span:first-child{width:30px;height:30px}.P-xFQa_modes{grid-template-columns:1fr;gap:10px;margin-top:16px}.P-xFQa_modes button{min-height:145px;padding:16px}.P-xFQa_modes button>span{width:26px;height:26px;margin-bottom:9px;font-size:17px}.P-xFQa_modes b{font-size:14px}.P-xFQa_modes em{padding-top:8px}.P-xFQa_workflow{gap:8px;font-size:10px}.P-xFQa_card{padding:15px}.P-xFQa_workspace{width:calc(100% - 28px);padding:20px 0}.P-xFQa_twoColumns{grid-template-columns:1fr}.P-xFQa_stats{grid-template-columns:repeat(2,minmax(0,1fr))}.P-xFQa_stats strong{font-size:24px}.P-xFQa_table{min-width:640px}.P-xFQa_table td,.P-xFQa_table th{padding:10px}.P-xFQa_composerWrap{width:calc(100% - 20px);padding-bottom:8px}.P-xFQa_quickActions{gap:5px}.P-xFQa_quickActions button{padding:5px 6px;font-size:9px}.P-xFQa_composer{border-radius:15px;padding:10px 12px}.P-xFQa_composer>textarea{min-height:58px;font-size:13px}.P-xFQa_composerTools small{display:none}.P-xFQa_composerTools select{max-width:185px}.P-xFQa_error,.P-xFQa_notice{margin:6px 12px;font-size:11px}.P-xFQa_availability{padding:8px 14px}.P-xFQa_proposal{padding:2px 10px}.P-xFQa_proposal summary{flex-wrap:wrap;gap:6px}.P-xFQa_proposal summary strong{flex-basis:60%}.P-xFQa_proposal summary small{padding-left:22px}.P-xFQa_details{grid-template-columns:75px minmax(0,1fr);gap:7px 9px;font-size:11px}.P-xFQa_flowCard{gap:10px;padding:14px}.P-xFQa_stepNumber{width:24px;height:24px}.P-xFQa_flowCard .P-xFQa_sectionHead{margin-bottom:6px}.P-xFQa_flowCard .P-xFQa_toolbar{gap:5px}.P-xFQa_document{padding:22px 18px}.P-xFQa_document h1{font-size:19px}.P-xFQa_document h2{font-size:15px}.P-xFQa_versionRow{flex-wrap:wrap}.P-xFQa_versionRow>div{flex-basis:100%}.P-xFQa_timeline li{flex-direction:column;gap:3px}.P-xFQa_timeline time{width:auto}.P-xFQa_overlay{padding:8px}.P-xFQa_dialog{border-radius:12px;max-height:calc(100dvh - 16px)}.P-xFQa_dialog>header{padding:13px 16px}.P-xFQa_dialogBody{padding:9px 16px 18px}.P-xFQa_dialog>footer{padding:12px 16px}.P-xFQa_dialog>footer>span{display:none}}@media (prefers-reduced-motion:reduce){.P-xFQa_root button,.P-xFQa_modes button{transition:none}.P-xFQa_modes button:hover:not(:disabled){transform:none}.P-xFQa_spinner{animation:none}.P-xFQa_scroll{scroll-behavior:auto}}";
+		const tagId$3 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$4;
-			tag.textContent = css$4;
+			tag.dataset.pluginCss = tagId$3;
+			tag.textContent = css$3;
 			document.head.appendChild(tag);
 		}
 		var RequirementsAssistant_module_css_default = {
@@ -14770,13 +16120,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/MeetingDemo.module.css.mjs
-		const css$3 = ".oLleaW_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#4d68ad);width:100%;height:100%;min-height:0;color:var(--ink);font:inherit;flex-direction:column;display:flex}.oLleaW_root button{font:inherit;cursor:pointer}.oLleaW_root button:focus-visible,.oLleaW_root textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.oLleaW_heading{border-bottom:1px solid var(--border);justify-content:space-between;align-items:center;gap:16px;min-height:60px;padding:0 28px;display:flex}.oLleaW_heading>div{align-items:center;gap:13px;display:flex}.oLleaW_heading>div:first-child span{color:var(--muted)}.oLleaW_heading strong{font-size:16px;font-weight:650}.oLleaW_heading button{color:var(--muted);background:0 0;border:0;font-size:12px}.oLleaW_heading button:hover{color:var(--accent)}.oLleaW_demoBadge{border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:4px 8px;font-size:11px}.oLleaW_tabs{border-bottom:1px solid var(--border);flex:none;gap:30px;height:44px;padding:0 28px;display:flex}.oLleaW_tabs button{color:var(--muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:0 2px;font-size:14px}.oLleaW_tabs button[aria-selected=true]{border-color:var(--accent);color:var(--ink);font-weight:650}.oLleaW_scroll{overscroll-behavior:contain;flex:1;min-height:0;overflow:auto}.oLleaW_messages{width:min(900px,100% - 64px);margin:0 auto;padding:28px 0 40px}.oLleaW_message{align-items:flex-start;gap:12px;margin:0 0 28px;display:flex}.oLleaW_message>span:first-child{border-radius:10px;width:32px;height:32px}.oLleaW_messageBody{flex:1;min-width:0;max-width:810px;font-size:14px;line-height:1.75}.oLleaW_messageBody>p{margin:0 0 12px}.oLleaW_messageBody .oLleaW_lead{margin:0 0 9px;font-size:19px;font-weight:650}.oLleaW_messageBody .oLleaW_muted{color:var(--muted);margin-top:13px;font-size:12px}.oLleaW_byline{margin:2px 0 10px;font-size:12px;font-weight:700}.oLleaW_byline span{color:var(--muted);margin-left:7px;font-size:10px;font-weight:400}.oLleaW_userMessage{justify-content:flex-end;margin:0 0 24px;display:flex}.oLleaW_userMessage>div{border:1px solid color-mix(in srgb,var(--accent) 23%,var(--border));background:color-mix(in srgb,var(--accent) 8%,var(--surface));overflow-wrap:anywhere;border-radius:16px 16px 4px;max-width:min(560px,85%);padding:10px 14px;font-size:13px;line-height:1.6}.oLleaW_userMessage small{color:var(--muted);font-size:10px;display:block}.oLleaW_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:710px;margin:17px 0 4px;display:grid}.oLleaW_modes button{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--surface);min-height:132px;color:var(--ink);text-align:left;border-radius:12px;flex-direction:column;align-items:flex-start;padding:16px;transition:transform .16s,border-color .16s;display:flex}.oLleaW_modes button:hover{border-color:var(--accent);transform:translateY(-2px)}.oLleaW_modes b{font-size:15px}.oLleaW_modes span{color:var(--muted);margin-top:7px;font-size:12px}.oLleaW_modes em{color:var(--accent);margin-top:auto;font-size:11px;font-style:normal;font-weight:650}.oLleaW_selectedMode{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:8px 11px;font-size:12px;display:inline-block}.oLleaW_choices{flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;display:flex}.oLleaW_choices>span{color:var(--muted);font-size:12px}.oLleaW_choices button,.oLleaW_cardFooter button,.oLleaW_uploadPrompt>button:not(.oLleaW_primary){border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 10px;font-size:12px}.oLleaW_choices button:hover,.oLleaW_cardFooter button:hover,.oLleaW_uploadPrompt>button:hover{border-color:var(--accent)}.oLleaW_uploadPrompt{border:1px dashed color-mix(in srgb,var(--accent) 50%,var(--border));background:var(--surface);border-radius:11px;flex-wrap:wrap;align-items:center;gap:11px;max-width:680px;padding:13px;display:flex}.oLleaW_uploadPrompt>span{background:color-mix(in srgb,var(--accent) 12%,var(--surface));width:36px;height:36px;color:var(--accent);border-radius:9px;place-items:center;font-size:22px;display:grid}.oLleaW_uploadPrompt>div{flex:1;min-width:160px}.oLleaW_uploadPrompt strong,.oLleaW_uploadPrompt small{display:block}.oLleaW_uploadPrompt strong{font-size:12px}.oLleaW_uploadPrompt small{color:var(--muted);font-size:10px}.oLleaW_modelControl{color:var(--muted);flex-wrap:wrap;align-items:center;gap:8px;margin-top:9px;font-size:11px;display:flex}.oLleaW_modelControl select{border:1px solid var(--border);background:var(--surface);min-width:180px;max-width:100%;color:var(--ink);font:inherit;border-radius:7px;padding:6px 9px}.oLleaW_modelRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:0 18px 13px;display:flex}.oLleaW_modelRow button{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 10px;font-size:11px}.oLleaW_primary{border-radius:8px;padding:8px 12px;font-size:12px;background:var(--accent)!important;color:#fff!important;border:0!important}.oLleaW_primary:disabled{opacity:.5;cursor:not-allowed}.oLleaW_progress{border:1px solid var(--border);background:var(--surface);border-radius:11px;align-items:center;gap:13px;max-width:570px;padding:15px;display:flex}.oLleaW_progress>span{color:var(--accent);font-size:27px}.oLleaW_progress>div{flex:1}.oLleaW_progress strong,.oLleaW_progress small{display:block}.oLleaW_progress strong{font-size:12px}.oLleaW_progress small{color:var(--muted);font-size:10px}.oLleaW_progressTrack{background:var(--border);border-radius:9px;height:5px;margin-top:8px;overflow:hidden}.oLleaW_progressTrack i{background:var(--accent);border-radius:9px;width:72%;height:100%;animation:1.5s ease-in-out infinite oLleaW_progress;display:block}@keyframes oLleaW_progress{0%{transform:translate(-110%)}to{transform:translate(150%)}}.oLleaW_resultCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;max-width:760px;overflow:hidden;box-shadow:0 4px 18px #182c500b}.oLleaW_audioBar{border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;gap:8px;padding:9px 18px;display:flex}.oLleaW_audioBar audio{width:min(420px,100%);height:36px}.oLleaW_audioBar small{color:var(--muted);font-size:10px}.oLleaW_cardHead{border-bottom:1px solid var(--border);justify-content:space-between;align-items:center;gap:10px;padding:15px 18px;display:flex}.oLleaW_cardHead small{color:var(--accent);font-size:10px;font-weight:700;display:block}.oLleaW_cardHead h3{margin:2px 0 0;font-size:15px}.oLleaW_cardHead>span{white-space:nowrap;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 7px;font-size:10px}.oLleaW_transcriptRows{padding:0 18px}.oLleaW_transcriptRow{border-bottom:1px solid var(--border);grid-template-columns:48px minmax(0,1fr);gap:12px;padding:13px 0;display:grid}.oLleaW_transcriptRow:last-child{border-bottom:0}.oLleaW_transcriptRow time{color:var(--accent);font-size:11px}.oLleaW_transcriptRow strong{font-size:11px}.oLleaW_transcriptRow p{margin:4px 0 0;font-size:12px;line-height:1.7}.oLleaW_transcriptRow textarea{box-sizing:border-box;resize:vertical;border:1px solid var(--border);background:var(--surface);width:100%;min-height:58px;color:var(--ink);font:inherit;border-radius:7px;margin-top:6px;padding:8px;font-size:12px;line-height:1.6;display:block}.oLleaW_speakerInput{border:1px solid var(--border);background:var(--surface);max-width:180px;color:var(--ink);font:inherit;border-radius:6px;padding:4px 6px;font-size:11px;display:block}.oLleaW_cardFooter{border-top:1px solid var(--border);flex-wrap:wrap;align-items:center;gap:8px;padding:12px 18px;display:flex}.oLleaW_cardFooter span{min-width:180px;color:var(--muted);flex:1;font-size:10px}.oLleaW_minutes{padding:4px 20px 19px}.oLleaW_minutes section{margin-top:13px}.oLleaW_minutes h4{margin:0 0 5px;font-size:12px}.oLleaW_minutes p{margin:0;font-size:12px;line-height:1.75}.oLleaW_minutes small{color:var(--muted);font-size:10px}.oLleaW_actionLine{border:1px solid var(--border);border-radius:7px;flex-wrap:wrap;justify-content:space-between;gap:5px 12px;margin:6px 0;padding:8px 10px;font-size:11px;display:flex}.oLleaW_actionLine span{color:var(--muted)}.oLleaW_sourceLink{color:var(--accent);background:0 0;border:0;padding:0;font-size:10px}.oLleaW_sourceLink:hover{text-decoration:underline}.oLleaW_highlight{background:color-mix(in srgb,#d8a254 8%,var(--surface));border-left:3px solid #d8a254;margin-left:-8px;padding-left:8px}.oLleaW_trace{border:1px solid var(--border);background:var(--surface);border-radius:12px;width:min(760px,100% - 64px);margin:30px auto;padding:22px}.oLleaW_trace h2{margin:0 0 5px;font-size:18px}.oLleaW_trace p{color:var(--muted);font-size:12px}.oLleaW_trace ol{margin:20px 0 0;padding:0;list-style:none}.oLleaW_trace li{border-top:1px solid var(--border);gap:13px;padding:10px 0;font-size:12px;display:flex}.oLleaW_trace li span{color:var(--accent)}.oLleaW_composerWrap{flex:none;width:min(970px,100% - 48px);margin:0 auto;padding:10px 0 14px}.oLleaW_composer{border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5014}.oLleaW_composer textarea{resize:vertical;box-sizing:border-box;width:100%;min-height:65px;max-height:160px;color:var(--ink);font:inherit;background:0 0;border:0;outline:0;font-size:15px;line-height:1.5;display:block}.oLleaW_composer textarea::placeholder{color:var(--muted)}.oLleaW_composerTools,.oLleaW_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.oLleaW_composerTools>div span{color:var(--muted);font-size:11px}.oLleaW_composerTools button{color:var(--accent);background:0 0;border:0;font-size:24px}.oLleaW_composerTools button:disabled{opacity:.35;cursor:default}.oLleaW_composerTools .oLleaW_send{background:var(--accent);color:#fff;border-radius:50%;width:38px;height:38px;line-height:1}.oLleaW_notice{color:var(--accent);text-align:center;margin:5px 0 0;font-size:11px}@media (width<=660px){.oLleaW_heading{min-height:52px;padding:0 15px}.oLleaW_heading>div{gap:7px}.oLleaW_heading strong{font-size:13px}.oLleaW_tabs{padding:0 15px}.oLleaW_messages{width:calc(100% - 28px);padding-top:17px}.oLleaW_message{gap:8px}.oLleaW_message>span:first-child{width:27px;height:27px}.oLleaW_messageBody{font-size:13px}.oLleaW_modes{grid-template-columns:1fr}.oLleaW_modes button{min-height:100px}.oLleaW_uploadPrompt>button{flex:1}.oLleaW_composerWrap{width:calc(100% - 18px);padding-bottom:6px}.oLleaW_composer{border-radius:16px}.oLleaW_composerTools>div span{font-size:9px}.oLleaW_trace{box-sizing:border-box;width:calc(100% - 26px)}}@media (prefers-reduced-motion:reduce){.oLleaW_modes button{transition:none}.oLleaW_modes button:hover{transform:none}.oLleaW_progressTrack i{animation:none}}";
-		const tagId$3 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/MeetingDemo.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
+		const css$2 = ".oLleaW_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#4d68ad);width:100%;height:100%;min-height:0;color:var(--ink);font:inherit;flex-direction:column;display:flex}.oLleaW_root button{font:inherit;cursor:pointer}.oLleaW_root button:focus-visible,.oLleaW_root textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.oLleaW_heading{border-bottom:1px solid var(--border);justify-content:space-between;align-items:center;gap:16px;min-height:60px;padding:0 28px;display:flex}.oLleaW_heading>div{align-items:center;gap:13px;display:flex}.oLleaW_heading>div:first-child span{color:var(--muted)}.oLleaW_heading strong{font-size:16px;font-weight:650}.oLleaW_heading button{color:var(--muted);background:0 0;border:0;font-size:12px}.oLleaW_heading button:hover{color:var(--accent)}.oLleaW_demoBadge{border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:4px 8px;font-size:11px}.oLleaW_tabs{border-bottom:1px solid var(--border);flex:none;gap:30px;height:44px;padding:0 28px;display:flex}.oLleaW_tabs button{color:var(--muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:0 2px;font-size:14px}.oLleaW_tabs button[aria-selected=true]{border-color:var(--accent);color:var(--ink);font-weight:650}.oLleaW_scroll{overscroll-behavior:contain;flex:1;min-height:0;overflow:auto}.oLleaW_messages{width:min(900px,100% - 64px);margin:0 auto;padding:28px 0 40px}.oLleaW_message{align-items:flex-start;gap:12px;margin:0 0 28px;display:flex}.oLleaW_message>span:first-child{border-radius:10px;width:32px;height:32px}.oLleaW_messageBody{flex:1;min-width:0;max-width:810px;font-size:14px;line-height:1.75}.oLleaW_messageBody>p{margin:0 0 12px}.oLleaW_messageBody .oLleaW_lead{margin:0 0 9px;font-size:19px;font-weight:650}.oLleaW_messageBody .oLleaW_muted{color:var(--muted);margin-top:13px;font-size:12px}.oLleaW_byline{margin:2px 0 10px;font-size:12px;font-weight:700}.oLleaW_byline span{color:var(--muted);margin-left:7px;font-size:10px;font-weight:400}.oLleaW_userMessage{justify-content:flex-end;margin:0 0 24px;display:flex}.oLleaW_userMessage>div{border:1px solid color-mix(in srgb,var(--accent) 23%,var(--border));background:color-mix(in srgb,var(--accent) 8%,var(--surface));overflow-wrap:anywhere;border-radius:16px 16px 4px;max-width:min(560px,85%);padding:10px 14px;font-size:13px;line-height:1.6}.oLleaW_userMessage small{color:var(--muted);font-size:10px;display:block}.oLleaW_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:710px;margin:17px 0 4px;display:grid}.oLleaW_modes button{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--surface);min-height:132px;color:var(--ink);text-align:left;border-radius:12px;flex-direction:column;align-items:flex-start;padding:16px;transition:transform .16s,border-color .16s;display:flex}.oLleaW_modes button:hover{border-color:var(--accent);transform:translateY(-2px)}.oLleaW_modes b{font-size:15px}.oLleaW_modes span{color:var(--muted);margin-top:7px;font-size:12px}.oLleaW_modes em{color:var(--accent);margin-top:auto;font-size:11px;font-style:normal;font-weight:650}.oLleaW_selectedMode{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:8px 11px;font-size:12px;display:inline-block}.oLleaW_choices{flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;display:flex}.oLleaW_choices>span{color:var(--muted);font-size:12px}.oLleaW_choices button,.oLleaW_cardFooter button,.oLleaW_uploadPrompt>button:not(.oLleaW_primary){border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 10px;font-size:12px}.oLleaW_choices button:hover,.oLleaW_cardFooter button:hover,.oLleaW_uploadPrompt>button:hover{border-color:var(--accent)}.oLleaW_uploadPrompt{border:1px dashed color-mix(in srgb,var(--accent) 50%,var(--border));background:var(--surface);border-radius:11px;flex-wrap:wrap;align-items:center;gap:11px;max-width:680px;padding:13px;display:flex}.oLleaW_uploadPrompt>span{background:color-mix(in srgb,var(--accent) 12%,var(--surface));width:36px;height:36px;color:var(--accent);border-radius:9px;place-items:center;font-size:22px;display:grid}.oLleaW_uploadPrompt>div{flex:1;min-width:160px}.oLleaW_uploadPrompt strong,.oLleaW_uploadPrompt small{display:block}.oLleaW_uploadPrompt strong{font-size:12px}.oLleaW_uploadPrompt small{color:var(--muted);font-size:10px}.oLleaW_modelControl{color:var(--muted);flex-wrap:wrap;align-items:center;gap:8px;margin-top:9px;font-size:11px;display:flex}.oLleaW_modelControl select{border:1px solid var(--border);background:var(--surface);min-width:180px;max-width:100%;color:var(--ink);font:inherit;border-radius:7px;padding:6px 9px}.oLleaW_modelRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:0 18px 13px;display:flex}.oLleaW_modelRow button{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 10px;font-size:11px}.oLleaW_primary{border-radius:8px;padding:8px 12px;font-size:12px;background:var(--accent)!important;color:#fff!important;border:0!important}.oLleaW_primary:disabled{opacity:.5;cursor:not-allowed}.oLleaW_progress{border:1px solid var(--border);background:var(--surface);border-radius:11px;align-items:center;gap:13px;max-width:570px;padding:15px;display:flex}.oLleaW_progress>span{color:var(--accent);font-size:27px}.oLleaW_progress>div{flex:1}.oLleaW_progress strong,.oLleaW_progress small{display:block}.oLleaW_progress strong{font-size:12px}.oLleaW_progress small{color:var(--muted);font-size:10px}.oLleaW_progressTrack{background:var(--border);border-radius:9px;height:5px;margin-top:8px;overflow:hidden}.oLleaW_progressTrack i{background:var(--accent);border-radius:9px;width:72%;height:100%;animation:1.5s ease-in-out infinite oLleaW_progress;display:block}@keyframes oLleaW_progress{0%{transform:translate(-110%)}to{transform:translate(150%)}}.oLleaW_resultCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;max-width:760px;overflow:hidden;box-shadow:0 4px 18px #182c500b}.oLleaW_audioBar{border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;gap:8px;padding:9px 18px;display:flex}.oLleaW_audioBar audio{width:min(420px,100%);height:36px}.oLleaW_audioBar small{color:var(--muted);font-size:10px}.oLleaW_cardHead{border-bottom:1px solid var(--border);justify-content:space-between;align-items:center;gap:10px;padding:15px 18px;display:flex}.oLleaW_cardHead small{color:var(--accent);font-size:10px;font-weight:700;display:block}.oLleaW_cardHead h3{margin:2px 0 0;font-size:15px}.oLleaW_cardHead>span{white-space:nowrap;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 7px;font-size:10px}.oLleaW_transcriptRows{padding:0 18px}.oLleaW_transcriptRow{border-bottom:1px solid var(--border);grid-template-columns:48px minmax(0,1fr);gap:12px;padding:13px 0;display:grid}.oLleaW_transcriptRow:last-child{border-bottom:0}.oLleaW_transcriptRow time{color:var(--accent);font-size:11px}.oLleaW_transcriptRow strong{font-size:11px}.oLleaW_transcriptRow p{margin:4px 0 0;font-size:12px;line-height:1.7}.oLleaW_transcriptRow textarea{box-sizing:border-box;resize:vertical;border:1px solid var(--border);background:var(--surface);width:100%;min-height:58px;color:var(--ink);font:inherit;border-radius:7px;margin-top:6px;padding:8px;font-size:12px;line-height:1.6;display:block}.oLleaW_speakerInput{border:1px solid var(--border);background:var(--surface);max-width:180px;color:var(--ink);font:inherit;border-radius:6px;padding:4px 6px;font-size:11px;display:block}.oLleaW_cardFooter{border-top:1px solid var(--border);flex-wrap:wrap;align-items:center;gap:8px;padding:12px 18px;display:flex}.oLleaW_cardFooter span{min-width:180px;color:var(--muted);flex:1;font-size:10px}.oLleaW_minutes{padding:4px 20px 19px}.oLleaW_minutes section{margin-top:13px}.oLleaW_minutes h4{margin:0 0 5px;font-size:12px}.oLleaW_minutes p{margin:0;font-size:12px;line-height:1.75}.oLleaW_minutes small{color:var(--muted);font-size:10px}.oLleaW_actionLine{border:1px solid var(--border);border-radius:7px;flex-wrap:wrap;justify-content:space-between;gap:5px 12px;margin:6px 0;padding:8px 10px;font-size:11px;display:flex}.oLleaW_actionLine span{color:var(--muted)}.oLleaW_sourceLink{color:var(--accent);background:0 0;border:0;padding:0;font-size:10px}.oLleaW_sourceLink:hover{text-decoration:underline}.oLleaW_highlight{background:color-mix(in srgb,#d8a254 8%,var(--surface));border-left:3px solid #d8a254;margin-left:-8px;padding-left:8px}.oLleaW_trace{border:1px solid var(--border);background:var(--surface);border-radius:12px;width:min(760px,100% - 64px);margin:30px auto;padding:22px}.oLleaW_trace h2{margin:0 0 5px;font-size:18px}.oLleaW_trace p{color:var(--muted);font-size:12px}.oLleaW_trace ol{margin:20px 0 0;padding:0;list-style:none}.oLleaW_trace li{border-top:1px solid var(--border);gap:13px;padding:10px 0;font-size:12px;display:flex}.oLleaW_trace li span{color:var(--accent)}.oLleaW_composerWrap{flex:none;width:min(970px,100% - 48px);margin:0 auto;padding:10px 0 14px}.oLleaW_composer{border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5014}.oLleaW_composer textarea{resize:vertical;box-sizing:border-box;width:100%;min-height:65px;max-height:160px;color:var(--ink);font:inherit;background:0 0;border:0;outline:0;font-size:15px;line-height:1.5;display:block}.oLleaW_composer textarea::placeholder{color:var(--muted)}.oLleaW_composerTools,.oLleaW_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.oLleaW_composerTools>div span{color:var(--muted);font-size:11px}.oLleaW_composerTools button{color:var(--accent);background:0 0;border:0;font-size:24px}.oLleaW_composerTools button:disabled{opacity:.35;cursor:default}.oLleaW_composerTools .oLleaW_send{background:var(--accent);color:#fff;border-radius:50%;width:38px;height:38px;line-height:1}.oLleaW_notice{color:var(--accent);text-align:center;margin:5px 0 0;font-size:11px}@media (width<=660px){.oLleaW_heading{min-height:52px;padding:0 15px}.oLleaW_heading>div{gap:7px}.oLleaW_heading strong{font-size:13px}.oLleaW_tabs{padding:0 15px}.oLleaW_messages{width:calc(100% - 28px);padding-top:17px}.oLleaW_message{gap:8px}.oLleaW_message>span:first-child{width:27px;height:27px}.oLleaW_messageBody{font-size:13px}.oLleaW_modes{grid-template-columns:1fr}.oLleaW_modes button{min-height:100px}.oLleaW_uploadPrompt>button{flex:1}.oLleaW_composerWrap{width:calc(100% - 18px);padding-bottom:6px}.oLleaW_composer{border-radius:16px}.oLleaW_composerTools>div span{font-size:9px}.oLleaW_trace{box-sizing:border-box;width:calc(100% - 26px)}}@media (prefers-reduced-motion:reduce){.oLleaW_modes button{transition:none}.oLleaW_modes button:hover{transform:none}.oLleaW_progressTrack i{animation:none}}";
+		const tagId$2 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/MeetingDemo.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$2) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$3;
-			tag.textContent = css$3;
+			tag.dataset.pluginCss = tagId$2;
+			tag.textContent = css$2;
 			document.head.appendChild(tag);
 		}
 		var MeetingDemo_module_css_default = {
@@ -15615,13 +16965,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/LocalConversationRows.module.css.mjs
-		const css$2 = ".z58OfW_rows{flex-direction:column;gap:2px;display:flex}.z58OfW_fallbackHeading{color:var(--dsw-alias-label-secondary,#65769a);padding:12px 16px 6px;font-size:12px;font-weight:600}.z58OfW_row{min-width:0;height:32px;color:var(--dsw-alias-label-primary,#202938);border-radius:8px;align-items:center;margin:0 8px;display:flex}.z58OfW_row:hover,.z58OfW_active{background:var(--dsw-alias-interactive-bg-hover,#e9eff9)}.z58OfW_open{min-width:0;height:100%;color:inherit;text-align:left;cursor:pointer;font:inherit;background:0 0;border:0;flex:1;align-items:center;gap:4px;padding:0 4px 0 24px;display:flex}.z58OfW_icon{width:16px;color:var(--dsw-alias-label-tertiary,#8995aa);flex:none;font-size:15px}.z58OfW_title{text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;font-size:14px;line-height:20px;overflow:hidden}.z58OfW_open small{color:var(--dsw-alias-label-tertiary,#8995aa);flex:none;font-size:11px}.z58OfW_menuTrigger{width:25px;height:25px;color:var(--dsw-alias-label-tertiary,#8995aa);cursor:pointer;opacity:0;background:0 0;border:0;border-radius:6px;place-items:center;margin-right:3px;display:grid}.z58OfW_row:hover .z58OfW_menuTrigger,.z58OfW_menuTrigger:focus-visible,.z58OfW_menuTrigger[aria-expanded=true]{opacity:1}.z58OfW_menuTrigger:hover{background:color-mix(in srgb,var(--dsw-alias-label-tertiary,#8995aa) 12%,transparent)}.z58OfW_open:focus-visible,.z58OfW_menuTrigger:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#4e6bb3);outline-offset:-2px}.z58OfW_menu{z-index:10000;box-sizing:border-box;border:1px solid var(--dsw-alias-border-default,#d7deeb);background:var(--dsw-alias-bg-surface,#fff);border-radius:12px;min-width:214px;padding:6px;position:fixed;box-shadow:0 8px 24px #16243c24}.z58OfW_menu button{width:100%;color:var(--dsw-alias-label-primary,#202938);text-align:left;cursor:pointer;font:inherit;background:0 0;border:0;border-radius:7px;align-items:center;gap:12px;padding:9px 10px;font-size:13px;display:flex}.z58OfW_menu button svg{color:var(--dsw-alias-label-secondary,#65769a);flex:none}.z58OfW_menu button:hover,.z58OfW_menu button:focus-visible{background:var(--dsw-alias-interactive-bg-hover,#e9eff9);outline:none}@media (hover:none){.z58OfW_menuTrigger{opacity:1}}";
-		const tagId$2 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/LocalConversationRows.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$2) + "]") === null) {
+		const css$1 = ".z58OfW_rows{flex-direction:column;gap:2px;display:flex}.z58OfW_fallbackHeading{color:var(--dsw-alias-label-secondary,#65769a);padding:12px 16px 6px;font-size:12px;font-weight:600}.z58OfW_row{min-width:0;height:32px;color:var(--dsw-alias-label-primary,#202938);border-radius:8px;align-items:center;margin:0 8px;display:flex}.z58OfW_row:hover,.z58OfW_active{background:var(--dsw-alias-interactive-bg-hover,#e9eff9)}.z58OfW_open{min-width:0;height:100%;color:inherit;text-align:left;cursor:pointer;font:inherit;background:0 0;border:0;flex:1;align-items:center;gap:4px;padding:0 4px 0 24px;display:flex}.z58OfW_icon{width:16px;color:var(--dsw-alias-label-tertiary,#8995aa);flex:none;font-size:15px}.z58OfW_title{text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;font-size:14px;line-height:20px;overflow:hidden}.z58OfW_open small{color:var(--dsw-alias-label-tertiary,#8995aa);flex:none;font-size:11px}.z58OfW_menuTrigger{width:25px;height:25px;color:var(--dsw-alias-label-tertiary,#8995aa);cursor:pointer;opacity:0;background:0 0;border:0;border-radius:6px;place-items:center;margin-right:3px;display:grid}.z58OfW_row:hover .z58OfW_menuTrigger,.z58OfW_menuTrigger:focus-visible,.z58OfW_menuTrigger[aria-expanded=true]{opacity:1}.z58OfW_menuTrigger:hover{background:color-mix(in srgb,var(--dsw-alias-label-tertiary,#8995aa) 12%,transparent)}.z58OfW_open:focus-visible,.z58OfW_menuTrigger:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#4e6bb3);outline-offset:-2px}.z58OfW_menu{z-index:10000;box-sizing:border-box;border:1px solid var(--dsw-alias-border-default,#d7deeb);background:var(--dsw-alias-bg-surface,#fff);border-radius:12px;min-width:214px;padding:6px;position:fixed;box-shadow:0 8px 24px #16243c24}.z58OfW_menu button{width:100%;color:var(--dsw-alias-label-primary,#202938);text-align:left;cursor:pointer;font:inherit;background:0 0;border:0;border-radius:7px;align-items:center;gap:12px;padding:9px 10px;font-size:13px;display:flex}.z58OfW_menu button svg{color:var(--dsw-alias-label-secondary,#65769a);flex:none}.z58OfW_menu button:hover,.z58OfW_menu button:focus-visible{background:var(--dsw-alias-interactive-bg-hover,#e9eff9);outline:none}@media (hover:none){.z58OfW_menuTrigger{opacity:1}}";
+		const tagId$1 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/LocalConversationRows.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$1) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$2;
-			tag.textContent = css$2;
+			tag.dataset.pluginCss = tagId$1;
+			tag.textContent = css$1;
 			document.head.appendChild(tag);
 		}
 		var LocalConversationRows_module_css_default = {
@@ -15859,13 +17209,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/NativeConversationRemoval.module.css.mjs
-		const css$1 = ".JXxDsG_overlay{z-index:20000;background:#101a2d80;place-items:center;padding:20px;display:grid;position:fixed;inset:0}.JXxDsG_dialog{box-sizing:border-box;border:1px solid var(--dsw-alias-border-default,#d7deeb);background:var(--dsw-alias-bg-surface,#fff);width:min(420px,100%);color:var(--dsw-alias-label-primary,#202938);border-radius:16px;padding:24px;box-shadow:0 16px 48px #11182733}.JXxDsG_dialog:focus{outline:none}.JXxDsG_dialog h2{margin:0 0 14px;font-size:18px;line-height:26px}.JXxDsG_dialog p{overflow-wrap:anywhere;margin:0 0 12px;font-size:14px;line-height:22px}.JXxDsG_muted{color:var(--dsw-alias-label-secondary,#65769a)}.JXxDsG_error{color:var(--dsw-alias-state-error-primary,#c43a4b)}.JXxDsG_actions{justify-content:flex-end;gap:8px;margin-top:22px;display:flex}.JXxDsG_actions button{border:1px solid var(--dsw-alias-border-default,#d7deeb);min-width:80px;color:inherit;cursor:pointer;font:inherit;background:0 0;border-radius:8px;padding:8px 14px}.JXxDsG_actions button:disabled{opacity:.55;cursor:default}.JXxDsG_actions .JXxDsG_danger{color:#fff;background:#c43a4b;border-color:#c43a4b}";
-		const tagId$1 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/NativeConversationRemoval.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$1) + "]") === null) {
+		const css = ".JXxDsG_overlay{z-index:20000;background:#101a2d80;place-items:center;padding:20px;display:grid;position:fixed;inset:0}.JXxDsG_dialog{box-sizing:border-box;border:1px solid var(--dsw-alias-border-default,#d7deeb);background:var(--dsw-alias-bg-surface,#fff);width:min(420px,100%);color:var(--dsw-alias-label-primary,#202938);border-radius:16px;padding:24px;box-shadow:0 16px 48px #11182733}.JXxDsG_dialog:focus{outline:none}.JXxDsG_dialog h2{margin:0 0 14px;font-size:18px;line-height:26px}.JXxDsG_dialog p{overflow-wrap:anywhere;margin:0 0 12px;font-size:14px;line-height:22px}.JXxDsG_muted{color:var(--dsw-alias-label-secondary,#65769a)}.JXxDsG_error{color:var(--dsw-alias-state-error-primary,#c43a4b)}.JXxDsG_actions{justify-content:flex-end;gap:8px;margin-top:22px;display:flex}.JXxDsG_actions button{border:1px solid var(--dsw-alias-border-default,#d7deeb);min-width:80px;color:inherit;cursor:pointer;font:inherit;background:0 0;border-radius:8px;padding:8px 14px}.JXxDsG_actions button:disabled{opacity:.55;cursor:default}.JXxDsG_actions .JXxDsG_danger{color:#fff;background:#c43a4b;border-color:#c43a4b}";
+		const tagId = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/NativeConversationRemoval.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$1;
-			tag.textContent = css$1;
+			tag.dataset.pluginCss = tagId;
+			tag.textContent = css;
 			document.head.appendChild(tag);
 		}
 		var NativeConversationRemoval_module_css_default = {
@@ -16266,6 +17616,12 @@ window.__ModuleLoader__.load({
 					};
 				},
 				getSection: () => section,
+				close: () => {
+					if (!requestLeave()) return;
+					section = "";
+					revision++;
+					listeners.forEach((listener) => listener());
+				},
 				openSection: (value) => {
 					if (!requestLeave()) return;
 					section = value;
@@ -16765,483 +18121,6 @@ window.__ModuleLoader__.load({
 			unavailable: "Чат не загружен. Перезапустите DSH и обновите страницу."
 		};
 		//#endregion
-		//#region ../dsh-jev-mode/src/ui/client.ts
-		function createJevClient(request = (...args) => fetch(...args)) {
-			let view = {
-				data: null,
-				error: "",
-				busy: false
-			}, sequence = 0, pending;
-			const listeners = /* @__PURE__ */ new Set();
-			const emit = (patch) => {
-				view = {
-					...view,
-					...patch
-				};
-				listeners.forEach((f) => f());
-			};
-			async function api(path, body) {
-				const response = await request("/api/jev-mode/" + path, {
-					credentials: "same-origin",
-					signal: AbortSignal.timeout(path === "check" ? 13e4 : 15e3),
-					...body === void 0 ? {} : {
-						method: "POST",
-						headers: { "content-type": "application/json" },
-						body: JSON.stringify(body)
-					}
-				});
-				const data = await response.json().catch(() => ({ error: "JEV 服务尚未加载，请在正常重启工作台后重试" }));
-				if (!response.ok) throw new Error(data.error ?? "JEV 请求失败");
-				return data;
-			}
-			const state = (data) => {
-				try {
-					config(data.config.value);
-					if (!Number.isSafeInteger(data.config.revision) || !Array.isArray(data.traces) || ![
-						"off",
-						"ready",
-						"unavailable"
-					].includes(data.state)) throw Error();
-					return data;
-				} catch {
-					throw new Error("JEV 服务响应无效，请在正常重启工作台后重新加载");
-				}
-			};
-			return {
-				getSnapshot: () => view,
-				subscribe: (fn) => {
-					listeners.add(fn);
-					return () => {
-						listeners.delete(fn);
-					};
-				},
-				api,
-				refresh() {
-					if (pending) return pending;
-					if (view.busy) return Promise.resolve();
-					const requestId = ++sequence;
-					pending = api("state").then(state).then((data) => {
-						if (requestId === sequence) emit({
-							data,
-							error: ""
-						});
-					}).catch((e) => {
-						if (requestId === sequence) emit({ error: String(e.message ?? e) });
-					}).finally(() => {
-						pending = void 0;
-					});
-					return pending;
-				},
-				async save(value, revision = view.data?.config.revision) {
-					if (revision === void 0 || view.busy) throw new Error("JEV 配置尚未就绪");
-					++sequence;
-					emit({
-						busy: true,
-						error: ""
-					});
-					try {
-						const data = state(await api("config", {
-							revision,
-							value
-						}));
-						emit({ data });
-						return data;
-					} catch (e) {
-						emit({ error: e.message });
-						throw e;
-					} finally {
-						emit({ busy: false });
-					}
-				}
-			};
-		}
-		const jevClient = createJevClient();
-		function useJev() {
-			const view = (0, react.useSyncExternalStore)(jevClient.subscribe, jevClient.getSnapshot);
-			(0, react.useEffect)(() => {
-				jevClient.refresh();
-				const refresh = () => {
-					if (!document.hidden) jevClient.refresh();
-				}, timer = window.setInterval(refresh, 5e3);
-				window.addEventListener("focus", refresh);
-				return () => {
-					clearInterval(timer);
-					window.removeEventListener("focus", refresh);
-				};
-			}, []);
-			return view;
-		}
-		//#endregion
-		//#region \0dsh-css:packages/dsh-jev-mode/src/ui/JevControls.module.css.mjs
-		const css = ".R-v9Lq_control{min-width:0;color:var(--text-secondary,#64748b);align-items:center;gap:6px;margin-left:20px;display:inline-flex;position:relative}.R-v9Lq_toggle,.R-v9Lq_settings{border:1px solid var(--border-color,#cbd5e1);background:var(--bg-secondary,#ffffffa6);color:inherit;cursor:pointer;min-height:36px;font:inherit;border-radius:12px}.R-v9Lq_toggle{white-space:nowrap;align-items:center;gap:8px;padding:7px 11px;display:inline-flex}.R-v9Lq_toggle[aria-checked=true]{color:var(--accent-color,#4f73e8);border-color:currentColor}.R-v9Lq_toggle[data-unavailable=true]{color:#a56a14}.R-v9Lq_toggle:disabled{cursor:wait;opacity:.6}.R-v9Lq_settings{background:0 0;border-color:#0000;width:32px}.R-v9Lq_track{opacity:.65;box-sizing:border-box;background:currentColor;border-radius:10px;align-items:center;width:26px;height:15px;padding:2px;display:inline-flex}.R-v9Lq_track:after{content:\"\";background:#fff;border-radius:50%;width:11px;height:11px;transition:transform .15s}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track:after{transform:translate(11px)}.R-v9Lq_error{z-index:4;background:var(--bg-primary,#fff);color:#9a4a1b;border:1px solid #bb6b29;border-radius:8px;width:260px;padding:8px;font-size:12px;position:absolute;top:100%;right:0}.R-v9Lq_trace{border-bottom:1px solid var(--border-color,#dbe1ea);overflow-wrap:anywhere;padding:10px 0}.R-v9Lq_trace summary{cursor:pointer}.R-v9Lq_trace small{opacity:.75;margin:5px 0;display:block}.R-v9Lq_compact{opacity:.85;margin:0 28px 8px;font-size:12px}@media (width<=650px){.R-v9Lq_control{gap:2px;margin-left:8px}.R-v9Lq_toggle{padding:5px 7px;font-size:12px}.R-v9Lq_compact{margin-left:16px;margin-right:16px}}";
-		const tagId = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-jev-mode/src/ui/JevControls.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
-			const tag = document.createElement("style");
-			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId;
-			tag.textContent = css;
-			document.head.appendChild(tag);
-		}
-		var JevControls_module_css_default = {
-			"compact": "R-v9Lq_compact",
-			"control": "R-v9Lq_control",
-			"error": "R-v9Lq_error",
-			"settings": "R-v9Lq_settings",
-			"toggle": "R-v9Lq_toggle",
-			"trace": "R-v9Lq_trace",
-			"track": "R-v9Lq_track"
-		};
-		//#endregion
-		//#region ../dsh-jev-mode/src/ui/JevControls.tsx
-		const stageName = {
-			begin: "任务评估",
-			action: "动作检查",
-			review: "结果复核"
-		};
-		const statusName = {
-			allowed: "通过",
-			clarify: "待确认",
-			blocked: "已阻止",
-			error: "未完成"
-		};
-		function JevToggle() {
-			const { data, error, busy } = useJev(), enabled = data?.config.value.enabled ?? false;
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-				className: JevControls_module_css_default.control,
-				"data-jev-control": true,
-				children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-						className: JevControls_module_css_default.toggle,
-						type: "button",
-						role: "switch",
-						"aria-label": "JEV 模式",
-						"aria-checked": enabled,
-						"data-unavailable": enabled && data?.state === "unavailable",
-						disabled: !data || busy,
-						title: data?.message ?? "正在加载 JEV 设置",
-						onClick: () => {
-							if (data) jevClient.save({
-								...data.config.value,
-								enabled: !enabled
-							}).catch(() => {});
-						},
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: JevControls_module_css_default.track }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: ["JEV", enabled ? data?.state === "unavailable" ? " · 待配置" : " · 开启" : " · 关闭"] })]
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						type: "button",
-						className: JevControls_module_css_default.settings,
-						"aria-label": "JEV 设置",
-						title: "JEV 设置与运行轨迹",
-						onClick: () => openWorkbenchLink({ section: "jev-mode" }),
-						children: "⚙"
-					}),
-					error && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: JevControls_module_css_default.error,
-						role: "alert",
-						children: [error, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							type: "button",
-							onClick: () => void jevClient.refresh(),
-							children: "重新加载"
-						})]
-					})
-				]
-			});
-		}
-		function Trace({ trace }) {
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
-				className: JevControls_module_css_default.trace,
-				children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
-						stageName[trace.stage],
-						" · ",
-						statusName[trace.status],
-						" · ",
-						trace.summary
-					] }),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-						new Date(trace.at).toLocaleString(),
-						" · ",
-						trace.elapsedMs,
-						" ms · 配置 v",
-						trace.revision,
-						" · ",
-						trace.config.model,
-						" · ",
-						trace.scope
-					] }),
-					trace.decision?.checks.map((c, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-						c.criterion,
-						"：",
-						{
-							supported: "有依据",
-							uncertain: "待核对",
-							unsupported: "缺少依据"
-						}[c.verdict],
-						"。",
-						c.evidence
-					] }, i)),
-					trace.decision?.missing.map((m, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["待确认：", m] }, i))
-				]
-			});
-		}
-		function JevActivity({ scope }) {
-			const { data } = useJev();
-			const trace = scope ? data?.traces.filter((t) => t.scope === scope).at(-1) : void 0;
-			if (!trace) return null;
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-				className: JevControls_module_css_default.compact,
-				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Trace, { trace })
-			});
-		}
-		function JevSettings() {
-			const { data, error, busy } = useJev(), [draft, setDraft] = (0, react.useState)(null), [revision, setRevision] = (0, react.useState)(0), [tab, setTab] = (0, react.useState)("configuration"), [accounts, setAccounts] = (0, react.useState)([]), [message, setMessage] = (0, react.useState)(""), [checking, setChecking] = (0, react.useState)(false);
-			const [origin] = (0, react.useState)(() => pendingNavigation("jev-mode")?.origin);
-			useLeaveGuard(draft !== null, () => setDraft(null));
-			useNavigationFrame("jev-mode", 1, () => ({
-				section: "jev-mode",
-				label: "JEV 模式",
-				origin
-			}));
-			(0, react.useEffect)(() => {
-				jevClient.api("accounts").then(setAccounts).catch(() => setMessage("模型列表暂时不可用，可填写已配置的提供方/模型标识"));
-			}, []);
-			const models = accounts.filter((a) => a.available).flatMap((a) => a.models);
-			const value = draft ?? data?.config.value;
-			const change = (patch) => {
-				if (!value || !data) return;
-				if (!draft) setRevision(data.config.revision);
-				setDraft({
-					...value,
-					...patch
-				});
-				setMessage("");
-			};
-			const save = async () => {
-				if (!draft) return;
-				try {
-					await jevClient.save(draft, revision);
-					setDraft(null);
-					setMessage("已保存；所有岗位从下一轮采用此设置");
-				} catch {}
-			};
-			const test = async () => {
-				setChecking(true);
-				setMessage("正在检查所选内网决策模型…");
-				try {
-					await jevClient.api("check", {});
-					setMessage("内网模型连接及决策格式检查通过");
-				} catch (e) {
-					setMessage(e.message);
-				} finally {
-					setChecking(false);
-					jevClient.refresh();
-				}
-			};
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
-				className: ManagedCapabilities_module_css_default.page,
-				"data-jev-settings": true,
-				children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: ManagedCapabilities_module_css_default.heading,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "JEV 模式" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-							className: ManagedCapabilities_module_css_default.muted,
-							children: ["独立的全局附加功能 · ", data?.state === "off" ? "已关闭" : data?.state === "ready" ? "已配置" : "待就绪"]
-						})] }), origin && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-							className: ManagedCapabilities_module_css_default.button,
-							onClick: () => returnNavigation(origin),
-							children: ["← 返回", origin.label]
-						})]
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-						className: ManagedCapabilities_module_css_default.notice,
-						children: [data?.message ?? "正在读取配置…", "。开关与决策模型由所有岗位共用；切换岗位、新建会话或重启后沿用已保存设置。进行中的轮次保留启动时配置。"]
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-						className: ManagedCapabilities_module_css_default.tabs,
-						children: [
-							["configuration", "配置与状态"],
-							["traces", "运行轨迹"],
-							["about", "模块与扩展"]
-						].map(([id, label]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							"aria-pressed": tab === id,
-							onClick: () => setTab(id),
-							children: label
-						}, id))
-					}),
-					tab === "configuration" && value && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("fieldset", {
-						className: ManagedCapabilities_module_css_default.compositionFieldset,
-						disabled: busy || checking,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							className: ManagedCapabilities_module_css_default.fields,
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.field,
-									children: ["全局开关", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-										value: String(value.enabled),
-										onChange: (e) => change({ enabled: e.target.value === "true" }),
-										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-											value: "false",
-											children: "关闭"
-										}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-											value: "true",
-											children: "开启"
-										})]
-									})]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.field,
-									children: [
-										"执行后端",
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-											value: "自有内网模型",
-											readOnly: true
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "复用工作台已有模型账号。官方扩展接口预留，当前不启用。" })
-									]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.field,
-									children: [
-										"独立决策模型",
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-											list: "jev-models",
-											value: value.model,
-											maxLength: 250,
-											placeholder: "提供方/模型标识",
-											onChange: (e) => change({ model: e.target.value })
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("datalist", {
-											id: "jev-models",
-											children: models.map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-												value: m.id,
-												children: m.name
-											}, m.id))
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-											"可选择或填写已配置的内网模型。此选择独立于岗位对话模型。仅列出本地配置的模型，不联网发现；可用账号：",
-											accounts.filter((a) => a.available).map((a) => a.id).join("、") || "暂无",
-											"。"
-										] })
-									]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.field,
-									children: [
-										"决策模型思考强度",
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-											value: value.reasoningEffort,
-											onChange: (e) => change({ reasoningEffort: e.target.value }),
-											children: [
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-													value: "",
-													children: "模型默认"
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-													value: "low",
-													children: "低"
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-													value: "medium",
-													children: "中"
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-													value: "high",
-													children: "高"
-												})
-											]
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "仅对支持 reasoning_effort 的内网接口设置；不改变岗位的思考强度。" })
-									]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.field,
-									children: ["单次检查超时（秒）", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-										type: "number",
-										min: 5,
-										max: 120,
-										value: value.timeoutMs / 1e3,
-										onChange: (e) => change({ timeoutMs: Number(e.target.value) * 1e3 })
-									})]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.field,
-									children: ["每轮最多检查次数", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-										type: "number",
-										min: 3,
-										max: 32,
-										value: value.maxChecks,
-										onChange: (e) => change({ maxChecks: Number(e.target.value) })
-									})]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.field,
-									children: ["检查上下文字符上限", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-										type: "number",
-										min: 4e3,
-										max: 64e3,
-										step: 1e3,
-										value: value.maxContextChars,
-										onChange: (e) => change({ maxContextChars: Number(e.target.value) })
-									})]
-								})
-							]
-						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							className: ManagedCapabilities_module_css_default.confirmActions,
-							children: [
-								draft && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									onClick: () => setDraft(null),
-									children: "取消修改"
-								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
-									disabled: revision !== data?.config.revision,
-									onClick: () => void save(),
-									children: "保存配置"
-								})] }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									disabled: !!draft || !value.model || !value.enabled,
-									onClick: () => void test(),
-									children: "检查内网模型"
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									onClick: () => openWorkbenchLink({ section: "models" }),
-									children: "模型账号设置 ↗"
-								})
-							]
-						})]
-					}), draft && revision !== data?.config.revision && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-						role: "alert",
-						children: "设置已在其他位置更改，请取消修改后重新核对。当前输入仍保留。"
-					})] }),
-					tab === "traces" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-							className: ManagedCapabilities_module_css_default.muted,
-							children: "显示最近 60 项检查；本地最多保留 200 项。每项保留当轮配置、依据摘要、结果与耗时。模型判断不代表校准概率或测试通过。"
-						}),
-						data?.traces.slice().reverse().map((trace) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Trace, { trace }, trace.id)),
-						!data?.traces.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "尚无检查记录。开启并配置内网模型后，新一轮任务会产生记录。" })
-					] }),
-					tab === "about" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "独立管理" }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-							descriptor.provider,
-							" · ",
-							descriptor.version
-						] }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "任务评估 → 关键动作检查 → 结果复核。通用岗位、自由聊天、需求分析、开发助手和会议纪要使用同一配置与决策服务。" }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "岗位负责业务职责与权限。JEV 作为全局附加功能生效，无须逐个岗位绑定。" }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "默认使用内网 Chat Completions 接口；账号凭据由现有工作台管理，不写入 JEV 配置或轨迹。新增官方后端时可实现统一的 JevBackend 接口，当前官方接口状态：尚未接入。" })
-					] }),
-					(error || message) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-						role: error ? "alert" : "status",
-						children: error || message
-					})
-				]
-			});
-		}
-		//#endregion
 		//#region src/client/apply.tsx
 		const inject = [
 			"slots",
@@ -17480,6 +18359,31 @@ window.__ModuleLoader__.load({
 			}, () => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevSettings, {})));
 			registerComponentCenter(ctx.slots, () => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentCenter, {}));
 			const settingsNavigation = createSettingsNavigation();
+			ctx.effect(() => registerJevNavigation((scope) => {
+				const separator = scope.indexOf(":"), kind = scope.slice(0, separator), id = scope.slice(separator + 1);
+				if (kind === "native") {
+					const session = sessions.list.getSnapshot().byId[id];
+					return session ? {
+						name: session.title || session.displayTitle || "聊天会话",
+						open: () => {
+							sessions.open(session.id);
+							layout.selectPanel(null);
+							settingsNavigation.close();
+						}
+					} : void 0;
+				}
+				const row = kind === "developer" ? developerHistory.getSnapshot().items.find((row) => row.id === id) : kind === "requirements" ? requirementHistory.getSnapshot().items.find((row) => row.id === id) : kind === "meeting" ? localConversations.getSnapshot().items.find((row) => row.meeting?.jobId === id) : void 0;
+				return row ? {
+					name: row.title,
+					open: () => {
+						openLocalConversation(row.id);
+						settingsNavigation.close();
+					}
+				} : void 0;
+			}), "plain-chat: JEV conversation navigation");
+			ctx.effect(() => decorateSlot(registry, "settings.section", "ModelsSection", (Original) => function JevLinkedModels(props) {
+				return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevModelReturn, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, { ...props }) });
+			}), "plain-chat: JEV model settings return");
 			ctx.effect(() => {
 				const open = (event) => settingsNavigation.openSection(event.detail.section);
 				window.addEventListener("workbench-capability-link", open);

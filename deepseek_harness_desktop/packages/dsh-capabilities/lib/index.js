@@ -2674,6 +2674,8 @@ var DeveloperService = class {
 				} catch {}
 				this.event(task, "system", round.error);
 			});
+		} finally {
+			jev?.finish();
 		}
 	}
 	async verify(id, commandId, requestId) {
@@ -4408,6 +4410,7 @@ var MeetingService = class {
 			job.error = controller.signal.aborted ? "组件已停用，本次处理已停止；历史结果保留" : errorText(error);
 			await this.save(job);
 		} finally {
+			jev?.finish();
 			if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id);
 		}
 	}
@@ -4548,6 +4551,10 @@ function decision(raw) {
 		checks: d.checks
 	};
 }
+const connectionConfig = (value) => JSON.stringify({
+	...value,
+	enabled: false
+});
 //#endregion
 //#region ../dsh-jev-mode/src/host/store.ts
 var JevStore = class {
@@ -4559,6 +4566,7 @@ var JevStore = class {
 	};
 	tail = Promise.resolve();
 	traces = [];
+	validations = [];
 	constructor(root) {
 		this.root = root;
 	}
@@ -4597,25 +4605,51 @@ var JevStore = class {
 		} catch (e) {
 			if (e.code !== "ENOENT") throw new JevError("JEV 轨迹无法读取；请保留文件并检查");
 		}
+		try {
+			const d = JSON.parse(await readFile(join(this.root, "validations.json"), "utf8"));
+			if (!Array.isArray(d) || d.some((v) => typeof v.key !== "string" || ![
+				"passed",
+				"failed",
+				"cancelled"
+			].includes(v.result?.status))) throw new Error();
+			this.validations = d.slice(-20);
+		} catch (e) {
+			if (e.code !== "ENOENT") throw new JevError("JEV 检查记录无法读取；请保留文件并检查");
+		}
 	}
 	snapshot() {
 		return structuredClone(this.saved);
 	}
 	history(scope) {
-		return structuredClone(this.traces.filter((t) => !scope || t.scope === scope).slice(-60));
+		return structuredClone(this.traces.filter((t) => !scope || t.scope === scope).slice(-200));
+	}
+	validation(key) {
+		return structuredClone(this.validations.find((v) => v.key === key)?.result);
+	}
+	validate(key, result) {
+		return this.serial(async () => {
+			const next = [...this.validations.filter((v) => v.key !== key), {
+				key,
+				result
+			}].slice(-20);
+			await this.atomic("validations.json", next);
+			this.validations = next;
+		});
 	}
 	serial(fn) {
 		const p = this.tail.then(fn);
 		this.tail = p.catch(() => {});
 		return p;
 	}
-	update(revision, value) {
+	update(revision, value, guard) {
 		return this.serial(async () => {
-			if (revision !== this.saved.revision) throw new JevError("JEV 设置已改变，请刷新后重试");
+			if (revision !== this.saved.revision) throw new JevError("JEV 设置已改变，请保留草稿并核对最新配置");
+			const parsed = config(value);
+			guard?.(parsed);
 			const next = {
 				schema: 1,
 				revision: revision + 1,
-				value: config(value)
+				value: parsed
 			};
 			await this.atomic("config.json", next);
 			this.saved = next;
@@ -4648,9 +4682,21 @@ var JevRun = class {
 		this.snapshot = service.store.snapshot();
 		Object.freeze(this.snapshot.value);
 		Object.freeze(this.snapshot);
+		service.active.set(this.id, {
+			id: this.id,
+			scope,
+			revision: this.snapshot.revision,
+			enabled: this.enabled,
+			model: this.snapshot.value.model,
+			startedAt: (/* @__PURE__ */ new Date()).toISOString(),
+			phase: "working"
+		});
 	}
 	get enabled() {
 		return this.snapshot.value.enabled;
+	}
+	finish() {
+		this.service.active.delete(this.id);
 	}
 	guidance() {
 		return this.last ? `\nJEV 本轮附加审查（不能扩大岗位权限；事实仍须核对）：${JSON.stringify(this.last)}` : "";
@@ -4658,6 +4704,12 @@ var JevRun = class {
 	async check(stage, context, signal) {
 		if (!this.enabled) return void 0;
 		const started = Date.now(), cfg = this.snapshot.value;
+		const active = this.service.active.get(this.id);
+		if (active) Object.assign(active, {
+			phase: "checking",
+			stage,
+			checkingSince: new Date(started).toISOString()
+		});
 		let result, status = "error", summary = "JEV 检查未完成";
 		try {
 			signal?.throwIfAborted();
@@ -4689,6 +4741,11 @@ var JevRun = class {
 			if (status === "error") summary = error instanceof JevError ? error.message : signal?.aborted ? "JEV 检查已取消" : "JEV 检查失败或超时；当前自动步骤已停止";
 			throw new JevError(status === "error" ? summary : "JEV 已停止当前自动步骤：" + summary);
 		} finally {
+			if (active) Object.assign(active, {
+				phase: "working",
+				checkingSince: void 0,
+				lastStatus: status
+			});
 			await this.service.store.record({
 				id: randomUUID(),
 				at: (/* @__PURE__ */ new Date()).toISOString(),
@@ -4708,34 +4765,147 @@ var JevRun = class {
 var JevService = class {
 	store;
 	ready;
+	identity;
 	backends = /* @__PURE__ */ new Map();
-	constructor(store, backend, ready) {
+	active = /* @__PURE__ */ new Map();
+	diagnostic;
+	constructor(store, backend, ready, identity = () => "") {
 		this.store = store;
 		this.ready = ready;
+		this.identity = identity;
 		this.backends.set(backend.id, backend);
+	}
+	key(value) {
+		return createHash("sha256").update(connectionConfig(value) + "\n" + this.identity(value)).digest("hex");
+	}
+	connection(value) {
+		try {
+			if (!value.model) throw new JevError("请选择独立的内网决策模型");
+			if (!this.backends.has(value.backend)) throw new JevError("官方 JEV 扩展尚未接入");
+			this.ready(value);
+			const key = this.key(value), job = this.diagnostic;
+			if (job?.key === key && job.result.status === "checking") return {
+				state: "checking",
+				message: "正在验证连接及结构化决策格式"
+			};
+			const last = this.store.validation(key);
+			if (last) {
+				const runtime = this.store.history().filter((t) => connectionConfig(t.config) === connectionConfig(value)).at(-1);
+				if (last.status === "passed" && runtime?.status === "error" && runtime.at > (last.finishedAt ?? "")) return {
+					state: "error",
+					message: runtime.summary,
+					checkedAt: runtime.at
+				};
+				return {
+					state: last.status === "passed" ? "ready" : "error",
+					message: last.message,
+					checkedAt: last.finishedAt
+				};
+			}
+			return {
+				state: "unverified",
+				message: "配置已填写，尚未通过连接及决策格式检查"
+			};
+		} catch (e) {
+			return {
+				state: "unconfigured",
+				message: e instanceof JevError ? e.message : "模型账号暂不可用"
+			};
+		}
+	}
+	update(revision, value) {
+		return this.store.update(revision, value, (candidate) => {
+			if (candidate.enabled && this.connection(candidate).state !== "ready") throw new JevError("请先检查此配置的内网模型，通过后再开启 JEV");
+		});
+	}
+	startDiagnostic(raw) {
+		const value = config(raw);
+		if (this.diagnostic?.result.status === "checking") throw new JevError("已有模型检查正在进行，请等待或取消");
+		this.ready(value);
+		const backend = this.backends.get(value.backend);
+		if (!backend) throw new JevError("官方 JEV 扩展尚未接入");
+		const key = this.key(value), started = Date.now(), controller = new AbortController();
+		const result = {
+			id: randomUUID(),
+			config: value,
+			startedAt: new Date(started).toISOString(),
+			status: "checking",
+			message: "正在请求所选内网模型…",
+			elapsedMs: 0
+		};
+		const job = {
+			key,
+			result,
+			controller,
+			done: Promise.resolve()
+		};
+		this.diagnostic = job;
+		job.done = (async () => {
+			const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(value.timeoutMs)]);
+			try {
+				result.decision = await backend.assess({
+					stage: "begin",
+					scope: "diagnostic",
+					config: {
+						...value,
+						enabled: true
+					},
+					context: "连通性测试：用户要求将“你好”作为问候语复述，不执行工具、不修改文件。"
+				}, signal);
+				signal.throwIfAborted();
+				if (result.decision.decision !== "allow") throw new JevError("模型已响应，但诊断未通过：" + result.decision.summary);
+				result.status = "passed";
+				result.message = "连接及决策格式检查通过；业务结果仍需逐次核对";
+			} catch (e) {
+				result.status = controller.signal.aborted ? "cancelled" : "failed";
+				result.message = controller.signal.aborted ? "检查已取消" : e instanceof JevError ? e.message : signal.aborted ? "检查超时，请核对服务或调整超时设置" : "连接检查失败，请核对模型账号与服务";
+			}
+			result.finishedAt = (/* @__PURE__ */ new Date()).toISOString();
+			result.elapsedMs = Date.now() - started;
+			const completed = structuredClone(result);
+			result.status = "checking";
+			try {
+				await this.store.validate(key, completed);
+				Object.assign(result, completed);
+			} catch {
+				result.status = "failed";
+				result.message = "检查记录保存失败，请重试；不能启用未经保存确认的配置";
+			}
+		})();
+		return structuredClone(result);
+	}
+	diagnosticStatus() {
+		const d = this.diagnostic?.result;
+		return d ? structuredClone({
+			...d,
+			elapsedMs: d.status === "checking" ? Date.now() - Date.parse(d.startedAt) : d.elapsedMs
+		}) : void 0;
+	}
+	async cancelDiagnostic(id) {
+		const job = this.diagnostic;
+		if (!job || job.result.id !== id) throw new JevError("此检查已结束或不属于当前任务");
+		if (job.result.status === "checking") job.controller.abort();
+		await job.done;
+		return this.diagnosticStatus();
+	}
+	async close() {
+		if (this.diagnostic?.result.status === "checking") this.diagnostic.controller.abort();
+		await this.diagnostic?.done;
+		this.active.clear();
+		await this.store.close();
 	}
 	begin(scope) {
 		return new JevRun(this, scope);
 	}
 	status(scope) {
-		const config = this.store.snapshot();
-		let state = config.value.enabled ? "ready" : "off", message = config.value.enabled ? "内网决策后端已配置；连接以实际检查结果为准" : "已关闭；保留独立模型设置";
-		if (config.value.enabled) try {
-			if (!this.backends.has(config.value.backend)) throw new JevError("官方 JEV 扩展尚未接入");
-			this.ready(config.value);
-		} catch (e) {
-			state = "unavailable";
-			message = e.message;
-		}
-		const last = this.store.history().at(-1);
-		if (state === "ready" && last?.revision === config.revision && last.status === "error") {
-			state = "unavailable";
-			message = last.summary;
-		}
+		const config = this.store.snapshot(), connection = this.connection(config.value);
 		return {
 			config,
-			state,
-			message,
+			state: config.value.enabled ? connection.state === "ready" ? "ready" : "unavailable" : "off",
+			message: config.value.enabled ? connection.message : "全局已关闭；保留模型设置，可独立检查连接",
+			connection,
+			diagnostic: this.diagnosticStatus(),
+			active: [...this.active.values()].filter((r) => !scope || r.scope === scope).map((r) => ({ ...r })),
 			descriptor,
 			traces: this.store.history(scope)
 		};
@@ -4748,14 +4918,18 @@ var JevService = class {
 	}
 	async text(scope, prompt, model, signal) {
 		const run = this.begin(scope);
-		await run.check("begin", prompt, signal);
-		const output = await model(prompt + run.guidance());
-		const reviewed = await run.check("review", {
-			input: prompt,
-			output
-		}, signal);
-		if (reviewed?.decision === "clarify") throw new JevError("JEV 结果需要确认，未自动采用：" + reviewed.summary);
-		return output;
+		try {
+			await run.check("begin", prompt, signal);
+			const output = await model(prompt + run.guidance());
+			const reviewed = await run.check("review", {
+				input: prompt,
+				output
+			}, signal);
+			if (reviewed?.decision === "clarify") throw new JevError("JEV 结果需要确认，未自动采用：" + reviewed.summary);
+			return output;
+		} finally {
+			run.finish();
+		}
 	}
 };
 //#endregion
@@ -4855,7 +5029,12 @@ function account(ctx, modelRoute) {
 		key: typeof profile.apiKey === "string" ? profile.apiKey : "",
 		models: Array.isArray(profile.models) ? profile.models.filter((m) => m && typeof m.id === "string" && m.id.length <= 250).map((m) => ({
 			id: provider + "/" + m.id,
-			name: typeof m.name === "string" ? m.name.slice(0, 250) : m.id
+			name: typeof m.name === "string" ? m.name.slice(0, 250) : m.id,
+			...m.reasoning === false ? { reasoning: [] } : Array.isArray(m.reasoningEfforts) ? { reasoning: m.reasoningEfforts.filter((v) => [
+				"low",
+				"medium",
+				"high"
+			].includes(String(v))) } : {}
 		})) : [],
 		credentialRef: typeof profile.apiKeyEnv === "string" ? profile.apiKeyEnv : ""
 	};
@@ -4868,6 +5047,14 @@ var SelfOwnedBackend = class {
 	}
 	ready(config) {
 		account(this.ctx, config.model);
+	}
+	identity(config) {
+		const a = account(this.ctx, config.model);
+		return JSON.stringify([
+			a.url.href,
+			a.key,
+			a.credentialRef
+		]);
 	}
 	async assess(input, signal) {
 		const selected = account(this.ctx, input.config.model);
@@ -4919,6 +5106,7 @@ function installNative(ctx, service) {
 			if (accepted.kind !== "enter") return accepted;
 			let entry = runs.get(agent.id);
 			if (!entry || entry.turn !== turn) {
+				entry?.run.finish();
 				entry = {
 					turn,
 					run: service.begin("native:" + agent.id),
@@ -4979,15 +5167,20 @@ function installNative(ctx, service) {
 			}
 		}),
 		ctx.on("agent/status", ({ agent, status }) => {
-			if (status === "idle") runs.delete(agent.id);
+			if (status === "idle") {
+				runs.get(agent.id)?.run.finish();
+				runs.delete(agent.id);
+			}
 		}),
 		ctx.on("agent/disposed", ({ agent }) => {
+			runs.get(agent.id)?.run.finish();
 			runs.delete(agent.id);
 			previous.delete(agent.id);
 		})
 	];
 	return () => {
 		disposers.forEach((dispose) => dispose());
+		runs.forEach((entry) => entry.run.finish());
 		runs.clear();
 		previous.clear();
 	};
@@ -5046,10 +5239,10 @@ function json(res, status, value) {
 async function apply$1(ctx) {
 	const store = new JevStore(join(dshHome(), "jev-mode"));
 	await store.init();
-	const backend = new SelfOwnedBackend(ctx), service = new JevService(store, backend, (cfg) => backend.ready(cfg));
+	const backend = new SelfOwnedBackend(ctx), service = new JevService(store, backend, (cfg) => backend.ready(cfg), (cfg) => backend.identity(cfg));
 	ctx.provide("workbenchJev", service);
 	ctx.effect(() => installNative(ctx, service), "JEV: native turn adapter");
-	ctx.effect(() => () => store.close(), "JEV: durable write drain");
+	ctx.effect(() => () => service.close(), "JEV: durable write drain");
 	ctx.effect(() => ctx.webServer.register({
 		kind: "prefix",
 		path: "/api/jev-mode",
@@ -5081,15 +5274,20 @@ async function apply$1(ctx) {
 				}));
 				if (req.method === "POST" && url.pathname === "/api/jev-mode/config") {
 					const body = await readBody(req);
-					await store.update(body.revision, body.value);
+					await service.update(body.revision, body.value);
 					return json(res, 200, service.status());
 				}
 				if (req.method === "POST" && url.pathname === "/api/jev-mode/check") {
-					await readBody(req);
-					const run = service.begin("diagnostic");
-					if (!run.enabled) throw new JevError("请先保存并开启 JEV");
-					await run.check("begin", "连通性测试：用户要求将“你好”作为问候语复述，不执行工具、不修改文件。");
-					return json(res, 200, service.status());
+					const body = await readBody(req);
+					return json(res, 202, service.startDiagnostic(body.value ?? store.snapshot().value));
+				}
+				if (req.method === "POST" && url.pathname === "/api/jev-mode/check/cancel") {
+					const body = await readBody(req);
+					return json(res, 200, await service.cancelDiagnostic(body.id));
+				}
+				if (req.method === "POST" && url.pathname === "/api/jev-mode/connection") {
+					const body = await readBody(req);
+					return json(res, 200, service.connection(config(body.value)));
 				}
 				throw new JevError("不支持此 JEV 操作", 405);
 			} catch (e) {
