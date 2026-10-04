@@ -9853,59 +9853,56 @@ window.__ModuleLoader__.load({
 					className: ManagedCapabilities_module_css_default.notice,
 					children: "新对话采用最新发布版本；历史版本保留供旧会话引用。下方仅统计当前活动任务，不代表全部历史会话。"
 				}),
-				[...role.versions].reverse().map((version, index) => {
+				[...role.versions].reverse().map((version) => {
 					const previous = role.versions[role.versions.indexOf(version) - 1], changed = roleVersionChanges(version, previous);
 					const active = roleActivities(data, role.id).filter((task) => task.roleVersion === version.version);
-					return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
-						open: index === 0,
-						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
-								"v",
-								version.version,
-								" · ",
-								version.name,
-								" · ",
-								new Date(version.createdAt).toLocaleString()
-							] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-								previous ? `较 v${previous.version}：` : "",
-								changed.length ? changed.join("、") : "配置无变化",
-								" · ",
-								active.length,
-								" 个活动任务引用"
-							] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dl", { children: [
-								"duties",
-								"requirements",
-								"format"
-							].map((field) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react.default.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: fields[field] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", {
-								className: ManagedCapabilities_module_css_default.versionValue,
-								children: version[field] || "未填写"
-							})] }, field)) }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
-								className: ManagedCapabilities_module_css_default.list,
-								children: version.capabilities.map((binding) => {
-									const capability = resolveBinding(data.state, binding);
-									return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
-										capability?.name ?? "能力缺失",
-										" · v",
-										binding.version,
-										" · ",
-										binding.enabled ? (binding.actions ?? actionsOf(capability)).map((action) => actionNames[action]).join("、") || "无执行动作" : "岗位中停用"
-									] }, binding.capabilityId);
-								})
-							}),
-							!role.archivedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-								className: ManagedCapabilities_module_css_default.button,
-								onClick: () => onEdit(version),
-								children: [
-									"从 v",
-									version.version,
-									" 恢复到编辑草稿"
-								]
+					return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+							"v",
+							version.version,
+							" · ",
+							version.name,
+							" · ",
+							new Date(version.createdAt).toLocaleString()
+						] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+							previous ? `较 v${previous.version}：` : "",
+							changed.length ? changed.join("、") : "配置无变化",
+							" · ",
+							active.length,
+							" 个活动任务引用"
+						] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dl", { children: [
+							"duties",
+							"requirements",
+							"format"
+						].map((field) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react.default.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: fields[field] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", {
+							className: ManagedCapabilities_module_css_default.versionValue,
+							children: version[field] || "未填写"
+						})] }, field)) }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+							className: ManagedCapabilities_module_css_default.list,
+							children: version.capabilities.map((binding) => {
+								const capability = resolveBinding(data.state, binding);
+								return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+									capability?.name ?? "能力缺失",
+									" · v",
+									binding.version,
+									" · ",
+									binding.enabled ? (binding.actions ?? actionsOf(capability)).map((action) => actionNames[action]).join("、") || "无执行动作" : "岗位中停用"
+								] }, binding.capabilityId);
 							})
-						]
-					}, version.version);
+						}),
+						!role.archivedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							className: ManagedCapabilities_module_css_default.button,
+							onClick: () => onEdit(version),
+							children: [
+								"从 v",
+								version.version,
+								" 恢复到编辑草稿"
+							]
+						})
+					] }, version.version);
 				}),
 				!role.versions.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "此岗位尚未发布，只有草稿。" })
 			] });
