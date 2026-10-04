@@ -56,8 +56,14 @@ export function ComponentCenter({ embedded = false, initialId, onClose }: { embe
   },[selected,tab])
   useLayoutEffect(()=>{
     if(listRef.current&&!listRef.current.hidden)listRef.current.scrollTop=scrollMemory.current.list??0
-    if(bodyRef.current&&detailRef.current&&!detailRef.current.hidden)bodyRef.current.scrollTop=scrollMemory.current[selected+':'+tab]??0
+    let observer:MutationObserver|undefined
+    if(bodyRef.current&&detailRef.current&&!detailRef.current.hidden){
+      const body=bodyRef.current,top=scrollMemory.current[selected+':'+tab]??0
+      const restore=()=>{if(body.querySelector('[data-inventory-ready="false"]'))return;body.scrollTop=top;observer?.disconnect()}
+      observer=new MutationObserver(restore);observer.observe(body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-inventory-ready']});restore()
+    }
     if(focusOnReturn.current&&listRef.current&&!listRef.current.hidden){focusOnReturn.current=false;Array.from(listRef.current.querySelectorAll<HTMLButtonElement>('[data-component-open]')).find(button=>button.dataset.componentOpen===selected)?.focus({preventScroll:true})}
+    return()=>observer?.disconnect()
   },[selected,tab,pane,layout.wide,!!data])
   if (!data) return <div className={s.page}><p role="status">{error || '正在读取组件…'}</p><button className={s.button} onClick={()=>void capabilityClient.refresh()}>重新加载</button></div>
   const registry=data.registry, supported=!!registry

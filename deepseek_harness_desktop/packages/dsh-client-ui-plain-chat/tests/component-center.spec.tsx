@@ -12,6 +12,7 @@ import { registryCatalog } from '../../dsh-capabilities/src/core/component-regis
 import { ComponentCenter } from '../src/client/ComponentCenter.tsx'
 import { CapabilityEditor } from '../src/client/ManagedCenter.tsx'
 import { capabilityClient } from '../src/client/capability-client.ts'
+import { initialClassification } from '../../dsh-plugin-manager/src/core/classification.ts'
 
 let root:Root,container:HTMLDivElement,store:CapabilityStore,registry:ComponentRegistryStore
 let centerWidth:number,resizeCallbacks:(()=>void)[]
@@ -81,4 +82,20 @@ it('preserves per-component detail columns and does not show stale details for a
  expect(button('动作').getAttribute('aria-pressed')).toBe('true')
  await act(async()=>{const field=container.querySelector<HTMLInputElement>('[aria-label="搜索组件"]')!;Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(field,'不存在的组件');field.dispatchEvent(new Event('input',{bubbles:true}))})
  expect(detail().textContent).toContain('选择列表中的组件');expect(detail().querySelector('h3')).toBeNull()
+})
+it('restores plugin detail scrolling after its asynchronous inventory becomes ready',async()=>{
+ await act(async()=>root.unmount())
+ sessionStorage.setItem('workbench-component-center:root',JSON.stringify({selected:'developer-files',tab:'plugins',pane:'detail',scroll:{'developer-files:plugins':240}}))
+ const originalFetch=globalThis.fetch;let finishInventory!:(value:unknown)=>void
+ vi.stubGlobal('fetch',vi.fn((url:string,options?:RequestInit)=>{
+  if(url.endsWith('/plugin-manager/inventory'))return new Promise(resolve=>{finishInventory=resolve})
+  if(url.endsWith('/plugin-manager/pending'))return Promise.resolve({ok:true,json:async()=>({entries:[],origins:[]})})
+  if(url.endsWith('/plugin-manager/classification'))return Promise.resolve({ok:true,json:async()=>({classification:initialClassification([])})})
+  return originalFetch(url,options)
+ }))
+ await act(async()=>{root=createRoot(container);root.render(<ComponentCenter/>)})
+ const body=detail().lastElementChild as HTMLElement
+ expect(container.querySelector('[data-inventory-ready="false"]')).toBeTruthy();expect(body.scrollTop).toBe(0)
+ await act(async()=>{finishInventory({ok:true,json:async()=>({entries:[]})});await new Promise(resolve=>setTimeout(resolve,20))})
+ expect(container.querySelector('[data-inventory-ready="true"]')).toBeTruthy();expect(body.scrollTop).toBe(240)
 })

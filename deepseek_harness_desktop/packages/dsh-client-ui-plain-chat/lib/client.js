@@ -2724,6 +2724,7 @@ window.__ModuleLoader__.load({
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: inventory_tree_module_css_default.root,
 				"data-component-id": compact ? relatedId : void 0,
+				"data-inventory-ready": !!snapshot && !!current,
 				children: [
 					!compact && capabilityData && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						className: inventory_tree_module_css_default.toolButton,
@@ -4995,11 +4996,28 @@ window.__ModuleLoader__.load({
 			}, [selected, tab]);
 			(0, react.useLayoutEffect)(() => {
 				if (listRef.current && !listRef.current.hidden) listRef.current.scrollTop = scrollMemory.current.list ?? 0;
-				if (bodyRef.current && detailRef.current && !detailRef.current.hidden) bodyRef.current.scrollTop = scrollMemory.current[selected + ":" + tab] ?? 0;
+				let observer;
+				if (bodyRef.current && detailRef.current && !detailRef.current.hidden) {
+					const body = bodyRef.current, top = scrollMemory.current[selected + ":" + tab] ?? 0;
+					const restore = () => {
+						if (body.querySelector("[data-inventory-ready=\"false\"]")) return;
+						body.scrollTop = top;
+						observer?.disconnect();
+					};
+					observer = new MutationObserver(restore);
+					observer.observe(body, {
+						childList: true,
+						subtree: true,
+						attributes: true,
+						attributeFilter: ["data-inventory-ready"]
+					});
+					restore();
+				}
 				if (focusOnReturn.current && listRef.current && !listRef.current.hidden) {
 					focusOnReturn.current = false;
 					Array.from(listRef.current.querySelectorAll("[data-component-open]")).find((button) => button.dataset.componentOpen === selected)?.focus({ preventScroll: true });
 				}
+				return () => observer?.disconnect();
 			}, [
 				selected,
 				tab,
