@@ -11,7 +11,7 @@ export type Capability = { id: string; source: 'builtin' | 'local'; enabled: boo
 export type Binding = { capabilityId: string; version: number; enabled: boolean; actions?: Action[] }
 export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec; duties: string; requirements: string; format: string; capabilities: Binding[] }
 export type RoleVersion = RoleDefinition & { version: number; preset: string; createdAt: string }
-export type Role = { id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
+export type Role = { archivedAt?: string; id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
 export type State = { componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
 export type Component = {
   id: string; name: string; provider: string; version: string; actions: readonly Action[]; dependencies: readonly string[]
@@ -56,6 +56,7 @@ export type Command =
   | { type: 'capability.restoreMany'; ids: string[] }
   | { type: 'capability.purge'; ids: string[] }
   | { type: 'role.save'; id?: string; definition: RoleDefinition; publish: boolean }
+  | { type: 'role.archive' | 'role.restore'; id: string }
   | { type: 'role.copy'; id: string }
   | { type: 'role.toggle'; id: string; enabled: boolean }
 export type Health = { checkedAt: string | null; installed: boolean; loaded: boolean; state: 'unknown' | 'missing' | 'disconnected' | 'ready' | 'degraded'; message: string; cliVersion?: string; browsers: { id: string; name: string }[] }

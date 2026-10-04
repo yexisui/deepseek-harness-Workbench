@@ -79,10 +79,11 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
   const [entry]=useState(()=>pendingNavigation('agent-presets')), [restoration,setRestoration]=useState(entry?.restore)
   const { data, error } = useCapabilities(), [editor, setEditor] = useState<{ id?: string } | null>(()=>{const frame=restoredFrame(entry?.restore,'role-editor');return frame?{id:frame.view?.id}:null}), [message, setMessage] = useState('')
   useEffect(()=>{consumeNavigation(entry);const open=(event:Event)=>{const link=(event as CustomEvent).detail;if(link?.section!=='agent-presets')return;const frame=restoredFrame(link.restore,'role-editor');setRestoration(link.restore);setEditor(frame?{id:frame.view?.id}:null);consumeNavigation(link)};window.addEventListener('workbench-capability-link',open);return()=>window.removeEventListener('workbench-capability-link',open)},[entry])
-  const [pendingDisable, setPendingDisable] = useState<string | null>(null)
+  const [pendingAction, setPendingAction] = useState<{id:string;action:'disable'|'archive'} | null>(null), [archived, setArchived] = useState(false)
   const meetingStatus = useMeetingStatus()
-  const displayedRoles = [...(data?.state.roles ?? [])].sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID))
+  const displayedRoles = [...(data?.state.roles ?? [])].filter(role => !!role.archivedAt === archived).sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID))
   const selectedRole = data?.state.roles.find(role => role.id === selected && role.enabled && role.versions.length)
+  const restoreRole = async (id: string) => { try { await capabilityClient.command({ type: 'role.restore', id }); setArchived(false) } catch(error) { setMessage(error instanceof Error ? error.message : String(error)) } }
   const copyRole = async (id: string) => { try { const copied = await capabilityClient.command({ type: 'role.copy', id }); setEditor({ id: copied }) } catch (error) { setMessage(error instanceof Error ? error.message : String(error)) } }
   const toggleRole = async (id: string, enabled: boolean) => {
     try {
@@ -94,9 +95,10 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
     <div className={r.sectionHeader}><div><h2>岗位助手</h2><p>为每一类工作，准备一位熟悉职责的助手。</p></div><button className={r.primary} onClick={() => setEditor({})}>＋ 创建岗位助手</button></div>
     {(error || message) && <p role="alert" className={s.error}>{message || error}</p>}
     <div className={r.selectionStatus}><span role="status">{selected === 'chat' ? `已选定：${freeChat.name}` : selectedRole ? `已选定：${rolePresentation(selectedRole).name}` : data ? '当前岗位暂不可用' : '正在读取选定岗位…'}</span>{selected !== 'chat' && <button className={r.textButton} onClick={() => onSelect('chat')}>返回自由聊天</button>}</div>
+    <button className={r.textButton} aria-pressed={archived} onClick={() => setArchived(value => !value)}>{archived ? '返回可用岗位' : `已归档（${data?.state.roles.filter(role => role.archivedAt).length ?? 0}）`}</button>
     <div className={r.cards}>
       {/* 基础聊天沿用 chat / workbench-chat，不创建可发布、停用的岗位记录。 */}
-      <article data-role-id="chat" aria-label={freeChat.name} className={`${r.roleCard} ${selected === 'chat' ? r.selectedCard : ''}`} style={appearanceStyle(freeChat.color)}>
+      {!archived && <article data-role-id="chat" aria-label={freeChat.name} className={`${r.roleCard} ${selected === 'chat' ? r.selectedCard : ''}`} style={appearanceStyle(freeChat.color)}>
         <div className={r.cardBody}>
           <button type="button" className={r.cardSelect} aria-label={`选定助手：${freeChat.name}`} aria-pressed={selected === 'chat'} onClick={() => onSelect('chat')}/>
           <div className={r.cardTop}><RoleAppearanceIcon roleId="chat" color={freeChat.color}/><span className={`${r.exampleBadge} ${selected === 'chat' ? r.selectedBadge : ''}`}>{selected === 'chat' ? '✓ 已选定' : '内置'}</span></div>
@@ -104,23 +106,23 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
           <div className={r.tags}><span>内置基础助手</span><span>日常问答</span><span>写作讨论</span></div>
         </div>
         <div className={r.cardControls}><p className={r.chatCardNote}>无需岗位配置，随时开始聊天。</p></div>
-      </article>
+      </article>}
       {displayedRoles.map(role => {
       const displayed = rolePresentation(role), published = latest(role.versions), selectable = role.enabled && !!published, chosen = selectable && selected === role.id
       return <article key={role.id} data-role-id={role.id} aria-label={displayed.name} className={`${r.roleCard} ${chosen ? r.selectedCard : ''}`} style={appearanceStyle(displayed.color)}>
         <div className={r.cardBody}>
           {/* 正文选择与管理操作分开，编辑/停用不会触发卡片选择。 */}
           <button type="button" className={r.cardSelect} aria-label={`选定助手：${displayed.name}`} aria-pressed={chosen} disabled={!selectable} onClick={() => onSelect(role.id)}/>
-          <div className={r.cardTop}><RoleAppearanceIcon roleId={role.id} icon={displayed.icon} color={displayed.color}/><span className={`${r.exampleBadge} ${chosen ? r.selectedBadge : ''}`}>{chosen ? '✓ 已选定' : !role.enabled ? '已停用' : published ? '岗位助手' : '草稿'}</span></div>
+          <div className={r.cardTop}><RoleAppearanceIcon roleId={role.id} icon={displayed.icon} color={displayed.color}/><span className={`${r.exampleBadge} ${chosen ? r.selectedBadge : ''}`}>{chosen ? '✓ 已选定' : role.archivedAt ? '已归档' : !role.enabled ? '已停用' : published ? '岗位助手' : '草稿'}</span></div>
           <h3>{displayed.name}</h3><p className={r.cardSummary} title={displayed.duties}>{displayed.duties || '点击编辑岗位，填写职责与工作要求。'}</p>
           <div className={r.tags}>{roleHasUnpublishedChanges(role) && <span>有未发布修改</span>}<span>{published ? `已发布 v${published.version}` : '未发布'}</span>{role.id === MEETING_ROLE_ID ? <><span>快速生成 · 引导整理</span><span title={meetingStatus?.message}>{meetingStatus?.ready === true ? '录音转写已配置' : meetingStatus?.state === 'disabled' ? '录音转写不可用' : meetingStatus?.ready === false ? '录音转写待配置' : '正在检测录音转写'}</span></> : usesRequirements(data?.state, published) ? <><span>快速整理 · 引导分析</span><span>需求工作区</span></> : role.id === 'builtin-analyst' ? <><span>{displayed.capabilities.length} 个能力</span><span>可编辑岗位，选择需求分析能力</span></> : <><span>{displayed.capabilities.length} 个能力</span></>}<span>{roleActivities(data!, role.id).length} 个活动任务</span></div>
         </div>
-        <div className={r.cardControls}><button className={r.cardAction} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} disabled={role.id === MEETING_ROLE_ID} title={role.id === MEETING_ROLE_ID ? "会议使用专用流程，请编辑原岗位并发布新版本" : "复制当前已发布配置为独立草稿"} onClick={() => void copyRole(role.id)}>复制岗位</button><button className={r.textButton} onClick={() => role.enabled ? setPendingDisable(role.id) : void toggleRole(role.id, true)}>{role.enabled ? '停用' : '启用'}</button></div>
+        <div className={r.cardControls}><button className={r.cardAction} disabled={!!role.archivedAt} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} disabled={!!role.archivedAt || role.id === MEETING_ROLE_ID} title={role.id === MEETING_ROLE_ID ? "会议使用专用流程，请编辑原岗位并发布新版本" : "复制当前已发布配置为独立草稿"} onClick={() => void copyRole(role.id)}>复制岗位</button><button className={r.textButton} onClick={() => role.archivedAt ? void restoreRole(role.id) : role.enabled ? setPendingAction({id:role.id,action:'disable'}) : void toggleRole(role.id, true)}>{role.archivedAt ? '恢复岗位' : role.enabled ? '停用' : '启用'}</button>{!role.archivedAt && <button className={r.textButton} onClick={() => setPendingAction({id:role.id,action:'archive'})}>归档</button>}</div>
       </article>
     })}</div>
     {data && !data.state.roles.length && <p className={s.empty}>还没有保存的岗位助手。创建后即可装配能力。</p>}
     <p className={r.sectionNote}>点击卡片选定助手；选择会用于下一次新对话，当前对话保持不变。</p>
-    {data && pendingDisable && <RoleImpactDialog data={data} roleId={pendingDisable} onClose={() => setPendingDisable(null)} onDone={() => { if (selected === pendingDisable) onSelect('chat'); setPendingDisable(null) }}/> }
+    {data && pendingAction && <RoleImpactDialog data={data} roleId={pendingAction.id} action={pendingAction.action} onClose={() => setPendingAction(null)} onDone={() => { if (selected === pendingAction.id) onSelect('chat'); setPendingAction(null) }}/> }
     {editor && <ManagedRoleEditor restore={restoration} id={editor.id} onClose={() => setEditor(null)}/>}
   </section>
 }

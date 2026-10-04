@@ -23,8 +23,8 @@
 .cardSelect:disabled { cursor:default; }
 .cardSelect:disabled:hover { background:transparent; }
 .roleCard .cardSummary { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; min-height:5.4em; overflow-wrap:anywhere; }
-.cardControls { position:relative; z-index:2; display:flex; align-items:center; gap:18px; border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border)); }
-.cardControls .cardAction { flex:1; width:auto; min-width:0; border-top:0; }
+.cardControls { position:relative; z-index:2; display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border)); }
+.cardControls .cardAction { flex:1 0 100%; width:auto; min-width:0; border-top:0; }
 .cardControls .textButton { min-height:44px; color:var(--role-muted); }
 .roleCard .chatCardNote { padding:14px 0; font-size:12px; }
 .selectedCard { box-shadow:0 0 0 2px var(--role-color),0 7px 20px color-mix(in srgb,var(--role-color) 20%,transparent); animation:roleSelect .3s ease-out; }
