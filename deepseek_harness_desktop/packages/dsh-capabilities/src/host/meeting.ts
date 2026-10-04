@@ -21,6 +21,7 @@ export type MeetingJob = {
   status: 'uploading' | 'transcribing' | 'transcribed' | 'generating' | 'ready' | 'error'
   error?: string; segments: MeetingSegment[]; minutes?: MeetingMinutes
 }
+export type MeetingSummary = Pick<MeetingJob, 'id' | 'mode' | 'audience' | 'focus' | 'summaryModel' | 'status' | 'updatedAt' | 'createdAt'> & { title: string; roleVersion?: number }
 
 const MAX_MB = 100
 const ALLOWED = new Set(['.mp3', '.m4a', '.wav', '.aac', '.flac', '.ogg', '.opus', '.webm', '.mp4'])
@@ -158,6 +159,30 @@ export class MeetingService {
     if (this.deleted.has(job.id)) return
     job.updatedAt = new Date().toISOString()
     await writeFile(this.path(job.id), JSON.stringify(job))
+  }
+  async list(offset = 0, limit = 30, cursor?: string): Promise<{ items: MeetingSummary[]; total: number; unreadableCount: number; nextCursor?: string }> {
+    if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) throw new InputError('会议分页参数无效')
+    let boundary: { time: number; id: string } | undefined
+    if (cursor) {
+      try { boundary = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')); if (!boundary || !Number.isFinite(boundary.time) || typeof boundary.id !== 'string' || !ID.test(boundary.id)) throw new Error() }
+      catch { throw new InputError('会议分页游标无效') }
+    }
+    const items: MeetingSummary[] = []
+    let unreadableCount = 0
+    for (const file of await readdir(this.root)) {
+      if (!file.endsWith('.json') || !ID.test(file.slice(0, -5)) || this.deleted.has(file.slice(0, -5)) || this.removing.has(file.slice(0, -5))) continue
+      try {
+        const job = await this.get(file.slice(0, -5))
+        if (job.id !== file.slice(0, -5) || !Number.isFinite(Date.parse(job.updatedAt)) || !Number.isFinite(Date.parse(job.createdAt)) || !['quick','guided'].includes(job.mode) || typeof job.fileName !== 'string') throw new Error('会议记录格式无效')
+        items.push({ id: job.id, title: job.minutes?.title || job.fileName, mode: job.mode, audience: job.audience, focus: job.focus, summaryModel: job.summaryModel, status: job.status, updatedAt: job.updatedAt, createdAt: job.createdAt, roleVersion: job.role?.version })
+      } catch { unreadableCount++ }
+    }
+    // Immutable creation time keeps paging stable while existing jobs finish or are removed.
+    items.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt) || a.id.localeCompare(b.id))
+    const remaining = boundary ? items.filter(item => Date.parse(item.createdAt) < boundary.time || (Date.parse(item.createdAt) === boundary.time && item.id.localeCompare(boundary.id) > 0)) : items.slice(offset)
+    const page = remaining.slice(0, limit), last = page.at(-1)
+    const nextCursor = remaining.length > page.length && last ? Buffer.from(JSON.stringify({ time: Date.parse(last.createdAt), id: last.id })).toString('base64url') : undefined
+    return { items: page, total: items.length, unreadableCount, nextCursor }
   }
   async remove(id: string) {
     if (this.removing.has(id)) throw new InputError('会议正在移除，请稍后重试', 409)

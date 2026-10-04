@@ -123,6 +123,10 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (req.method === 'GET' && route.startsWith('/api/capabilities/requirements/task/')) return json(res, 200, await requirements.get(route.slice('/api/capabilities/requirements/task/'.length)))
       if (req.method === 'DELETE' && route.startsWith('/api/capabilities/requirements/task/')) return json(res, 200, await requirements.remove(route.slice('/api/capabilities/requirements/task/'.length)))
       if (req.method === 'GET' && route === '/api/capabilities/meeting/config') return json(res, 200, asrStatus())
+      if (req.method === 'GET' && route === '/api/capabilities/meeting/jobs') {
+        const query = new URL(req.url ?? '/', 'http://localhost').searchParams
+        return json(res, 200, await meeting.list(Number(query.get('offset') ?? 0), Number(query.get('limit') ?? 30), query.get('cursor') ?? undefined))
+      }
       if (req.method === 'GET' && route.startsWith('/api/capabilities/meeting/job/')) return json(res, 200, await meeting.get(route.slice('/api/capabilities/meeting/job/'.length)))
       if (req.method === 'GET' && route.startsWith('/api/capabilities/meeting/audio/')) return await meeting.serveAudio(route.slice('/api/capabilities/meeting/audio/'.length), req, res)
       if (req.method === 'DELETE' && route.startsWith('/api/capabilities/meeting/job/')) { await meeting.remove(route.slice('/api/capabilities/meeting/job/'.length)); return json(res, 200, { ok: true }) }

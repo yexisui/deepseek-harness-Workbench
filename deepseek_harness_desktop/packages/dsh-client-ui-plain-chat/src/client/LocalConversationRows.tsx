@@ -1,12 +1,12 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { LocalConversation } from './local-conversations.ts'
 export type ConversationHistoryRow = Omit<LocalConversation, 'kind'> & { kind: LocalConversation['kind'] | 'requirements' | 'developer' }
 import s from './LocalConversationRows.module.css'
 
 /** Share the native Chat group when present; saved records also need a home in an empty tree. */
-export function LocalConversationRows({ host, label, rows, activeId, onOpen, onRemove, onLoadMore, loading, error, fallbackLabel = '聊天记录' }: {
-  host: HTMLDivElement | null; label: string; rows: ConversationHistoryRow[]; activeId: string | null
+export function LocalConversationRows({ host, label, rows, activeId, onOpen, onRemove, onLoadMore, loading, error, historyExtras, fallbackLabel = '聊天记录' }: {
+  historyExtras?: ReactNode; host: HTMLDivElement | null; label: string; rows: ConversationHistoryRow[]; activeId: string | null
   onOpen: (id: string) => void; onRemove: (id: string) => void; onLoadMore?: () => void; loading?: boolean; error?: string; fallbackLabel?: string
 }) {
   const [target, setTarget] = useState<HTMLDivElement | null>(null)
@@ -14,7 +14,7 @@ export function LocalConversationRows({ host, label, rows, activeId, onOpen, onR
   const [menu, setMenu] = useState<{ id: string; left: number; top: number } | null>(null)
   const trigger = useRef<HTMLButtonElement | null>(null)
   const menuItem = useRef<HTMLButtonElement | null>(null)
-  const hasRows = rows.length > 0
+  const hasRows = rows.length > 0 || Boolean(historyExtras || loading || error)
   useEffect(() => {
     if (!menu) return
     menuItem.current?.focus({ preventScroll: true })
@@ -86,7 +86,7 @@ export function LocalConversationRows({ host, label, rows, activeId, onOpen, onR
     observer.observe(host, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-expanded'] })
     return () => { observer.disconnect(); restorePlaceholders(); container?.remove() }
   }, [host, label, hasRows])
-  if (!target || (!rows.length && !error && !loading)) return null
+  if (!target || (!rows.length && !error && !loading && !historyExtras)) return null
   const openMenu = (id: string, button: HTMLButtonElement) => {
     if (menu?.id === id) { setMenu(null); return }
     trigger.current = button
@@ -108,6 +108,7 @@ export function LocalConversationRows({ host, label, rows, activeId, onOpen, onR
     </div>)}
     {error && <p role="alert">{error}</p>}
     {loading && <p role="status">正在读取需求记录…</p>}
+    {historyExtras}
     {onLoadMore && <button type="button" className={s.open} disabled={loading} onClick={onLoadMore}>{error ? "重试读取需求记录" : "加载更多需求记录"}</button>}
   </div>, target)}{menu && createPortal(<div className={s.menu} role="menu" aria-label="会话操作" style={{ left: menu.left, top: menu.top }}>
     <button ref={menuItem} type="button" role="menuitem" onClick={() => { const id = menu.id; setMenu(null); onRemove(id) }}>

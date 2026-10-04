@@ -127,6 +127,7 @@ describe('ordinary chat UI integration', () => {
     const definition = { ...emptyRole(), name: '网页助手', capabilities: [{ capabilityId: 'browser', version: 1, enabled: true }] }
     state.roles.push({ id: 'reader', enabled: true, draft: definition, versions: [{ ...definition, version: 1, preset: 'workbench-role-reader-v1', createdAt: state.updatedAt }] })
     vi.stubGlobal('fetch', vi.fn(async (url: string | URL | Request) => {
+      if (String(url).includes('/meeting/jobs?')) return { ok: true, json: async () => ({ items: [], total: 0, unreadableCount: 0 }) }
       if (String(url).includes('/requirements/tasks?')) return { ok: true, json: async () => ({ items: [], total: 0 }) }
       if (String(url).includes('/requirements/config')) return { ok: true, json: async () => ({ ready: true, modelConfigured: true, defaults: { depth: 'standard', questionStyle: 'short', model: '' }, revision: 0, maxTextChars: 60000 }) }
       return { ok: true, json: async () => ({ state, components: [], health: { state: 'disconnected', message: '浏览器待连接' }, tasks: [] }) }
@@ -297,6 +298,17 @@ describe('ordinary chat UI integration', () => {
   it('labels ungrouped history as ordinary chats', async () => {
     await render(app.props, 'sidebar.workspaces')
     expect(container.textContent).toBe('聊天')
+  })
+
+  it('recovers a persisted meeting into an empty sidebar after refreshing server history', async () => {
+    await render(app.props, 'sidebar.workspaces')
+    const original = vi.mocked(fetch).getMockImplementation()!
+    vi.mocked(fetch).mockImplementation(async (url, init) => String(url).includes('/meeting/jobs?') ? ({ ok:true, json:async()=>({ items:[{ id:'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', title:'从服务端恢复的会议', mode:'guided', audience:'', focus:'', summaryModel:'', status:'ready', updatedAt:new Date().toISOString(), createdAt:new Date().toISOString(), roleVersion:1 }], total:1 }) } as Response) : original(url, init))
+    await act(async () => { window.dispatchEvent(new Event('focus')) })
+    expect(container.textContent).toContain('从服务端恢复的会议')
+    expect(container.textContent).toContain('会议')
+    expect(container.textContent).not.toContain('重试读取会议记录')
+    expect(JSON.parse(localStorage.getItem('workbench-meeting-demos-v1')!)).toHaveLength(1)
   })
 
   it('makes the chat-group plus start a fresh free-chat draft without changing real workspace plus', async () => {

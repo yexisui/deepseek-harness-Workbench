@@ -27,6 +27,7 @@ import { LocalConversationRows } from './LocalConversationRows.tsx'
 import { NativeConversationRemoval } from './NativeConversationRemoval.tsx'
 import { createLocalConversations } from './local-conversations.ts'
 import { removeMeetingConversation } from './meeting-removal.ts'
+import { createMeetingHistory } from './meeting-history.ts'
 import { BrowserObservation } from './BrowserObservation.tsx'
 import { capabilityClient, type CapabilityLink } from './capability-client.ts'
 import { latest } from '../../../dsh-capabilities/src/core/model.ts'
@@ -65,6 +66,8 @@ export function apply(ctx: Context): void {
   const clearSavedDraft = () => { try { sessionStorage.removeItem('workbench-chat-draft') } catch { /* Optional storage. */ } }
   const roleSelection = createRoleSelection<string>()
   const localConversations = createLocalConversations()
+  const meetingHistory = createMeetingHistory(localConversations)
+  ctx.effect(() => { void meetingHistory.load(); const refresh = () => { void meetingHistory.load() }; window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, 'plain-chat: meeting history')
   const requirementHistory = createRequirementHistory()
   const developerHistory = createDeveloperHistory()
   let developerNavigation = 0
@@ -178,6 +181,7 @@ export function apply(ctx: Context): void {
     const meetingId = row?.meeting && typeof row.meeting === 'object' ? (row.meeting as { jobId?: unknown }).jobId : undefined
     const remove = () => {
       const active = localConversations.getSnapshot().activeId === id
+      if (typeof meetingId === 'string') meetingHistory.forget(meetingId)
       localConversations.remove(id)
       if (!active || sessions.list.getSnapshot().current !== undefined) return
       start.reset(); clearSavedDraft(); roleSelection.select('chat')
@@ -342,6 +346,7 @@ export function apply(ctx: Context): void {
     const local = useSyncExternalStore(localConversations.subscribe, localConversations.getSnapshot)
     const requirements = useSyncExternalStore(requirementHistory.subscribe, requirementHistory.getSnapshot)
     const developers = useSyncExternalStore(developerHistory.subscribe, developerHistory.getSnapshot)
+    const meetings = useSyncExternalStore(meetingHistory.subscribe, meetingHistory.getSnapshot)
     const historyRows = [...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
     const [host, setHost] = useState<HTMLDivElement | null>(null)
     const translate = (key: string, ...args: unknown[]) => key === 'group.ungrouped' ? t('history') : props.t(key, ...args)
@@ -360,7 +365,11 @@ export function apply(ctx: Context): void {
     const open = (id: string) => { start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
     return <div ref={setHost} style={{ display: 'contents' }} onClickCapture={onClickCapture}>
       <Original {...props} t={translate} open={open} />
-      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation}/>
+      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
+        {meetings.loading && <p role="status">正在读取会议记录…</p>}{meetings.error && <p role="alert">{meetings.error}</p>}
+        {meetings.unreadableCount > 0 && <p role="status">{meetings.unreadableCount} 条会议记录暂不可读，原文件已保留。</p>}
+        {(meetings.hasMore || meetings.error) && <button disabled={meetings.loading} onClick={() => { void meetingHistory.load(!meetings.error) }}>{meetings.error ? '重试读取会议记录' : '加载更多会议记录'}</button>}
+      </> : null}/>
       <NativeConversationRemoval sessions={sessions}/>
     </div>
   }), 'plain-chat: history label')
