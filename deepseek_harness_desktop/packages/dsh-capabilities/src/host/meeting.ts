@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto'
 import type { JevService } from '../../../dsh-jev-mode/src/host/service.ts'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { latest, type Role, type State } from '../core/model.ts'
+import { allowedActions, wasRevoked } from '../core/policy.ts'
 import { MEETING_CAPABILITY_ID } from '../core/default-roles.ts'
 import { InputError } from '../core/validation.ts'
 
@@ -111,9 +112,13 @@ export class MeetingService {
     if (!role?.enabled) throw new InputError('会议纪要助手已停用，请在岗位助手中启用后重试', 409)
     const binding = latest(role.versions)?.capabilities.find(item => item.capabilityId === MEETING_CAPABILITY_ID)
     if (this.currentState && (!binding?.enabled || (binding.actions && !binding.actions.includes('transcribe')))) throw new InputError('会议纪要助手未启用录音转写能力，请在岗位中检查关联', 409)
-    if (createdAt && (this.currentState?.().componentRestrictions?.['meeting-asr']?.revokedAt ?? -1) >= Date.parse(createdAt)) throw new InputError('此会议任务的组件授权已撤销，请新建任务继续使用', 409)
     const published = version === undefined ? latest(role.versions) : role.versions.find(item => item.version === version)
     if (!published) throw new InputError('会议纪要岗位版本不存在，请重新选择岗位', 409)
+    if (this.currentState) {
+      const state = this.currentState()
+      if (createdAt && wasRevoked(state, role.id, published, Date.parse(createdAt))) throw new InputError('此会议任务的授权已撤销，请新建会议继续使用', 409)
+      if (!allowedActions(state, role.id, published).includes('transcribe')) throw new InputError('此会议岗位版本的转写权限已撤销或未获授权，请新建会议继续使用', 409)
+    }
     return { version: published.version, name: published.name, duties: published.duties, requirements: published.requirements, format: published.format }
   }
   async init() {
@@ -298,6 +303,11 @@ export class MeetingService {
       catch { return { id, name: '会议任务（记录暂不可读）', kind: 'meeting', status: 'stopping', componentIds: ['meeting-asr'] } }
     }))
     return rows
+  }
+  async reconcile() {
+    await Promise.all([...this.controllers].map(async ([id, controller]) => {
+      try { const job = await this.get(id); this.role(job.role?.version, job.createdAt) } catch { controller.abort() }
+    }))
   }
   async stopComponents(ids: string[]) { if (ids.includes('meeting-asr')) this.controllers.forEach(controller => controller.abort()) }
   async serveAudio(id: string, req: IncomingMessage, res: ServerResponse) {

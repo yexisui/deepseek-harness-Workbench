@@ -102,6 +102,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
     await registry.init(); await requirements.init(); await meeting.init()
     await writePresets(home, store.snapshot()); await runtime.init()
   } catch (error) { await requirements.close(); await runtime.dispose(); await store.close(); throw error }
+  ctx.effect(() => store.subscribe(() => { void meeting.reconcile() }), 'meeting authorization lifecycle')
   ctx.provide('capabilities', runtime)
   ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/api/capabilities', handler: async (req, res) => {
     try {
