@@ -93,3 +93,5 @@
 .missingRow small { color:var(--role-muted); }
 @media(max-width:650px) { .associationRow { align-items:flex-start; flex-wrap:wrap; padding:12px; } .associationActions { margin-left:auto; } }
 @media(prefers-reduced-motion:reduce) { .iconButton { transition:none; } .iconButton:active { transform:none; } }
+
+.versionValue { white-space:pre-wrap; overflow-wrap:anywhere; margin:6px 0 14px; }

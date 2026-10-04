@@ -16,6 +16,7 @@ import { REQUIREMENTS_CAPABILITY_ID } from '../../../dsh-capabilities/src/core/r
 import { roleCompositionIssues } from '../../../dsh-capabilities/src/core/validation.ts'
 import { useRequirementAvailability } from './RequirementsSettings.tsx'
 import { usesRequirements } from './requirements-routing.ts'
+import { RoleVersionDialog } from './RoleVersions.tsx'
 import { RoleImpactDialog, roleActivities } from './RoleImpactDialog.tsx'
 import { capabilityPresentation } from './capability-presentation.ts'
 import { useMeetingAvailability } from './meeting-capability-status.ts'
@@ -79,6 +80,8 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
   const [entry]=useState(()=>pendingNavigation('agent-presets')), [restoration,setRestoration]=useState(entry?.restore)
   const { data, error } = useCapabilities(), [editor, setEditor] = useState<{ id?: string } | null>(()=>{const frame=restoredFrame(entry?.restore,'role-editor');return frame?{id:frame.view?.id}:null}), [message, setMessage] = useState('')
   useEffect(()=>{consumeNavigation(entry);const open=(event:Event)=>{const link=(event as CustomEvent).detail;if(link?.section!=='agent-presets')return;const frame=restoredFrame(link.restore,'role-editor');setRestoration(link.restore);setEditor(frame?{id:frame.view?.id}:null);consumeNavigation(link)};window.addEventListener('workbench-capability-link',open);return()=>window.removeEventListener('workbench-capability-link',open)},[entry])
+  const [history, setHistory] = useState<string | null>(null)
+  const historyRole = data?.state.roles.find(role => role.id === history)
   const [pendingAction, setPendingAction] = useState<{id:string;action:'disable'|'archive'} | null>(null), [archived, setArchived] = useState(false)
   const meetingStatus = useMeetingStatus()
   const displayedRoles = [...(data?.state.roles ?? [])].filter(role => !!role.archivedAt === archived).sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID))
@@ -117,11 +120,12 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
           <h3>{displayed.name}</h3><p className={r.cardSummary} title={displayed.duties}>{displayed.duties || '点击编辑岗位，填写职责与工作要求。'}</p>
           <div className={r.tags}>{roleHasUnpublishedChanges(role) && <span>有未发布修改</span>}<span>{published ? `已发布 v${published.version}` : '未发布'}</span>{role.id === MEETING_ROLE_ID ? <><span>快速生成 · 引导整理</span><span title={meetingStatus?.message}>{meetingStatus?.ready === true ? '录音转写已配置' : meetingStatus?.state === 'disabled' ? '录音转写不可用' : meetingStatus?.ready === false ? '录音转写待配置' : '正在检测录音转写'}</span></> : usesRequirements(data?.state, published) ? <><span>快速整理 · 引导分析</span><span>需求工作区</span></> : role.id === 'builtin-analyst' ? <><span>{displayed.capabilities.length} 个能力</span><span>可编辑岗位，选择需求分析能力</span></> : <><span>{displayed.capabilities.length} 个能力</span></>}<span>{roleActivities(data!, role.id).length} 个活动任务</span></div>
         </div>
-        <div className={r.cardControls}><button className={r.cardAction} disabled={!!role.archivedAt} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} disabled={!!role.archivedAt || role.id === MEETING_ROLE_ID} title={role.id === MEETING_ROLE_ID ? "会议使用专用流程，请编辑原岗位并发布新版本" : "复制当前已发布配置为独立草稿"} onClick={() => void copyRole(role.id)}>复制岗位</button><button className={r.textButton} onClick={() => role.archivedAt ? void restoreRole(role.id) : role.enabled ? setPendingAction({id:role.id,action:'disable'}) : void toggleRole(role.id, true)}>{role.archivedAt ? '恢复岗位' : role.enabled ? '停用' : '启用'}</button>{!role.archivedAt && <button className={r.textButton} onClick={() => setPendingAction({id:role.id,action:'archive'})}>归档</button>}</div>
+        <div className={r.cardControls}><button className={r.cardAction} disabled={!!role.archivedAt} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} onClick={() => setHistory(role.id)}>版本（{role.versions.length}）</button><button className={r.textButton} disabled={!!role.archivedAt || role.id === MEETING_ROLE_ID} title={role.id === MEETING_ROLE_ID ? "会议使用专用流程，请编辑原岗位并发布新版本" : "复制当前已发布配置为独立草稿"} onClick={() => void copyRole(role.id)}>复制岗位</button><button className={r.textButton} onClick={() => role.archivedAt ? void restoreRole(role.id) : role.enabled ? setPendingAction({id:role.id,action:'disable'}) : void toggleRole(role.id, true)}>{role.archivedAt ? '恢复岗位' : role.enabled ? '停用' : '启用'}</button>{!role.archivedAt && <button className={r.textButton} onClick={() => setPendingAction({id:role.id,action:'archive'})}>归档</button>}</div>
       </article>
     })}</div>
     {data && !data.state.roles.length && <p className={s.empty}>还没有保存的岗位助手。创建后即可装配能力。</p>}
     <p className={r.sectionNote}>点击卡片选定助手；选择会用于下一次新对话，当前对话保持不变。</p>
+    {data && historyRole && <RoleVersionDialog data={data} role={historyRole} onClose={() => setHistory(null)} onEdit={version => { if ((editorDrafts.has('role:'+historyRole.id) || roleHasUnpublishedChanges(historyRole)) && !window.confirm('恢复历史版本将替换当前编辑草稿，已发布版本不受影响。是否继续？')) return; editorDrafts.set('role:'+historyRole.id,{value:structuredClone(version),revision:data.state.revision});setEditor({id:historyRole.id});setHistory(null) }}/>}
     {data && pendingAction && <RoleImpactDialog data={data} roleId={pendingAction.id} action={pendingAction.action} onClose={() => setPendingAction(null)} onDone={() => { if (selected === pendingAction.id) onSelect('chat'); setPendingAction(null) }}/> }
     {editor && <ManagedRoleEditor restore={restoration} id={editor.id} onClose={() => setEditor(null)}/>}
   </section>
