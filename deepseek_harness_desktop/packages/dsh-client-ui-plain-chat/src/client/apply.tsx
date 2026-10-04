@@ -32,7 +32,8 @@ import { createRoleSelection, createSettingsNavigation } from './role-ui-state.t
 import { en, zh, type ChatKey } from './locales.ts'
 import { ru } from '../../../dsh-i18n/src/client/ru/plain-chat.ts'
 import styles from './Chat.module.css'
-import { JevToggle, JevActivity, JevSettings } from '../../../dsh-jev-mode/src/ui/JevControls.tsx'
+import { JevToggle, JevActivity, JevSettings, JevModelReturn } from '../../../dsh-jev-mode/src/ui/JevControls.tsx'
+import { registerJevNavigation } from '../../../dsh-jev-mode/src/ui/view-model.ts'
 
 export const inject = ['slots', 'locale', 'sessions', 'conversation', 'layout', 'remote', 'remote.session']
 const NS = 'workbench-chat'
@@ -193,6 +194,16 @@ export function apply(ctx: Context): void {
   ctx.slots.inject('settings.section', () => ctx.slots.register({name:'settings.section',id:'jev-mode',order:23,label:()=> 'JEV 模式',locale:NS}, () => <JevSettings/>))
   registerComponentCenter(ctx.slots as unknown as Parameters<typeof registerComponentCenter>[0], () => <ComponentCenter />)
   const settingsNavigation = createSettingsNavigation()
+  ctx.effect(()=>registerJevNavigation(scope=>{
+    const separator=scope.indexOf(':'),kind=scope.slice(0,separator),id=scope.slice(separator+1)
+    if(kind==='native'){
+      const session=sessions.list.getSnapshot().byId[id as Parameters<typeof sessions.open>[0]]
+      return session?{name:session.title||session.displayTitle||'聊天会话',open:()=>{sessions.open(session.id);layout.selectPanel(null);settingsNavigation.close()}}:undefined
+    }
+    const row=kind==='developer'?developerHistory.getSnapshot().items.find(row=>row.id===id):kind==='requirements'?requirementHistory.getSnapshot().items.find(row=>row.id===id):kind==='meeting'?localConversations.getSnapshot().items.find(row=>(row.meeting as {jobId?:string}|undefined)?.jobId===id):undefined
+    return row?{name:row.title,open:()=>{openLocalConversation(row.id);settingsNavigation.close()}}:undefined
+  }), 'plain-chat: JEV conversation navigation')
+  ctx.effect(()=>decorateSlot(registry,'settings.section','ModelsSection',Original=>function JevLinkedModels(props:any){return <JevModelReturn><Original {...props}/></JevModelReturn>}), 'plain-chat: JEV model settings return')
   ctx.effect(() => {
     const open = (event: Event) => settingsNavigation.openSection((event as CustomEvent<CapabilityLink>).detail.section)
     window.addEventListener('workbench-capability-link', open)

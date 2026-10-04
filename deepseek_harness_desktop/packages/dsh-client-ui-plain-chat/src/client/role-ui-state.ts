@@ -19,6 +19,7 @@ export function createSettingsNavigation() {
     getSnapshot: () => revision,
     subscribe: (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener) } },
     getSection: () => section,
+    close: () => { if (!requestLeave()) return; section = ''; revision++; listeners.forEach(listener => listener()) },
     openSection: (value: string) => { if (!requestLeave()) return; section = value; revision++; listeners.forEach(listener => listener()) },
     openPresets: () => { if (!requestLeave()) return; section = 'agent-presets'; revision++; listeners.forEach(listener => listener()) },
   }

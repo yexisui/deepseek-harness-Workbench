@@ -12,7 +12,7 @@ import { useRequirementAvailability } from './RequirementsSettings.tsx'
 import { Modal } from './PreviewModal.tsx'
 import s from './ManagedCapabilities.module.css'
 import css from './ComponentCenter.module.css'
-import { descriptor as jevDescriptor } from '../../../dsh-jev-mode/src/core/contract.ts'
+import { JevOverview } from '../../../dsh-jev-mode/src/ui/JevControls.tsx'
 
 import { readCenterView, rememberCenterView, useCenterLayout } from './component-center-layout.ts'
 const tabs = [['overview','概览'],['actions','动作'],['configuration','配置与状态'],['plugins','插件与依赖'],['usage','使用关系'],['versions','版本与变更']]
@@ -109,7 +109,7 @@ export function ComponentCenter({ embedded = false, initialId, onClose, restore 
   return <section ref={rootRef} className={[s.page,css.root].join(' ')} data-component-center data-layout={layout.wide?'wide':'single'} data-pane={pane} style={{height:layout.height}}>
     <div className={`${s.heading} ${css.heading}`}><div><h2>组件中心</h2><span className={s.muted}>整理组件，查看适配能力、插件来源与使用关系。</span></div><div className={s.actions}>{!embedded&&origin&&<button className={s.button} onClick={()=>returnNavigation(origin)}>← 返回{origin.label}</button>}{onClose&&<button className={s.button} onClick={onClose}>返回组件组合</button>}<button className={s.button} onClick={()=>openCapabilityLink({section:'capability-center'})}>能力中心 ↗</button><button className={`${s.button} ${s.primary}`} disabled={!supported} onClick={()=>{setCandidateOperationId(crypto.randomUUID());setAdding(true)}}>＋ 添加组件</button></div></div>
     {!supported&&<p className={s.notice}>组件登记服务待更新。可以浏览现有组件；正常重启工作台后再编辑登记信息。</p>}
-    {!embedded&&<div className={s.row}><div><strong>{jevDescriptor.name} · 全局附加功能</strong><small>独立配置，所有岗位共用，无须逐个绑定组件。</small></div><button className={s.button} onClick={()=>openCapabilityLink({section:'jev-mode'})}>配置与运行轨迹 ↗</button></div>}
+    {!embedded&&<JevOverview/>}
     {(message||error)&&<p role={message.includes('已')?'status':'alert'} className={s.notice}>{message||error}</p>}
     <div className={css.toolbar} hidden={!layout.wide&&pane==='detail'}><input className={s.search} type="search" aria-label="搜索组件" placeholder="搜索名称、用途、适配能力或提供插件" value={query} onChange={e=>setQuery(e.target.value)}/><select aria-label="组件分类" value={category} onChange={e=>setCategory(e.target.value)}><option value="">全部分类</option>{[...new Set(entries.map(c=>(metadata(c.id).category??(c as Candidate).category??'未分类')))].map(c=><option key={c}>{c}</option>)}</select><button className={s.button} onClick={()=>void capabilityClient.refresh()}>刷新</button></div>
     <div className={`${s.tabs} ${css.filters}`} hidden={!layout.wide&&pane==='detail'}>{[['all','全部'],['pinned','收藏'],['pending','待就绪'],['unused','未使用'],['candidate','待开发'],['removed','回收站']].map(([key,label])=><button key={key} aria-pressed={filter===key} onClick={()=>setFilter(key!)}>{label}</button>)}</div>

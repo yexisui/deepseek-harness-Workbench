@@ -195,7 +195,7 @@ describe('ordinary chat UI integration', () => {
 
   it('keeps the global JEV switch and decision model across actual role selection and new chat', async () => {
     const original=globalThis.fetch
-    let saved:JevStatus={state:'off',message:'fixture',config:{schema:1,revision:0,value:{...jevDefaults,model:'intranet/decision'}},descriptor:jevDescriptor,traces:[]}
+    let saved:JevStatus={state:'off',message:'fixture',connection:{state:'ready',message:'已验证'},config:{schema:1,revision:0,value:{...jevDefaults,model:'intranet/decision'}},descriptor:jevDescriptor,traces:[]}
     vi.stubGlobal('fetch',vi.fn(async(url:any,options:any)=>{
       if(String(url).startsWith('/api/jev-mode/')){
         if(options?.method==='POST'){const body=JSON.parse(options.body);saved={...saved,state:body.value.enabled?'ready':'off',config:{...saved.config,revision:saved.config.revision+1,value:body.value}}}

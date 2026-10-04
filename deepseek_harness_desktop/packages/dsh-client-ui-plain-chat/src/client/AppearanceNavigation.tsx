@@ -75,6 +75,7 @@ export function withAppearanceNavigation(Original: View, label: () => string, na
     find(tree)
     useEffect(() => {
       if (request === 0 || request === handled.current) return
+      if (navigation?.getSection() === '') { panel?.props.onClose?.(); handled.current = request; return }
       if (panel) { panel.props.onSelect(navigation?.getSection() ?? 'agent-presets'); handled.current = request }
       else trigger?.props.onClick()
     }, [request, panel, trigger])

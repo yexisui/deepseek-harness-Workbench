@@ -10,9 +10,9 @@ import { CapabilitySelection } from './CapabilitySelection.tsx'
 import { Modal } from './PreviewModal.tsx'
 import s from './ManagedCapabilities.module.css'
 
-export function CapabilityActionIcon({ kind }: { kind: 'pin' | 'remove' | 'restore' }) {
+export function CapabilityActionIcon({ kind }: { kind: 'pin' | 'remove' | 'restore' | 'settings' }) {
   return <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {kind === 'pin' ? <><path d="M16 3 21 8l-4 1-3 5v3l-7-7h3l5-3z"/><path d="m3 21 7-7"/></> : kind === 'remove' ? <><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></> : <><path d="M3 4v6h6M3 10a9 9 0 1 1 1 8"/></>}
+    {kind === 'settings' ? <><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="var(--role-bg)"/><circle cx="15" cy="17" r="3" fill="var(--role-bg)"/></> : kind === 'pin' ? <><path d="M16 3 21 8l-4 1-3 5v3l-7-7h3l5-3z"/><path d="m3 21 7-7"/></> : kind === 'remove' ? <><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></> : <><path d="M3 4v6h6M3 10a9 9 0 1 1 1 8"/></>}
   </svg>
 }
 

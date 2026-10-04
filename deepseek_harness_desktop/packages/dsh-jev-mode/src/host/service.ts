@@ -46,7 +46,11 @@ export class JevService {
       const key=this.key(value),job=this.diagnostic
       if(job?.key===key&&job.result.status==='checking')return {state:'checking',message:'正在验证连接及结构化决策格式'}
       const last=this.store.validation(key)
-      if(last)return {state:last.status==='passed'?'ready':'error',message:last.message,checkedAt:last.finishedAt}
+      if(last){
+        const runtime=this.store.history().filter(t=>connectionConfig(t.config)===connectionConfig(value)).at(-1)
+        if(last.status==='passed'&&runtime?.status==='error'&&runtime.at>(last.finishedAt??''))return {state:'error',message:runtime.summary,checkedAt:runtime.at}
+        return {state:last.status==='passed'?'ready':'error',message:last.message,checkedAt:last.finishedAt}
+      }
       return {state:'unverified',message:'配置已填写，尚未通过连接及决策格式检查'}
     }catch(e){return {state:'unconfigured',message:e instanceof JevError?e.message:'模型账号暂不可用'}}
   }
@@ -68,7 +72,8 @@ export class JevService {
         result.status='passed';result.message='连接及决策格式检查通过；业务结果仍需逐次核对'
       }catch(e){result.status=controller.signal.aborted?'cancelled':'failed';result.message=controller.signal.aborted?'检查已取消':e instanceof JevError?e.message:signal.aborted?'检查超时，请核对服务或调整超时设置':'连接检查失败，请核对模型账号与服务'}
       result.finishedAt=new Date().toISOString();result.elapsedMs=Date.now()-started
-      try{await this.store.validate(key,structuredClone(result))}catch{result.status='failed';result.message='检查记录保存失败，请重试；不能启用未经保存确认的配置'}
+      const completed=structuredClone(result);result.status='checking'
+      try{await this.store.validate(key,completed);Object.assign(result,completed)}catch{result.status='failed';result.message='检查记录保存失败，请重试；不能启用未经保存确认的配置'}
     })()
     return structuredClone(result)
   }
