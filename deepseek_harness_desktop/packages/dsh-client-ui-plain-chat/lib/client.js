@@ -5797,6 +5797,14 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region src/client/component-inventory-slot.tsx
+		/** Older aggregate bundles embed an inventory copy; retain its slot owner and injected services. */
+		function registerComponentInventory(registry) {
+			return decorateSlot(registry, "settings.plugins.tab", "InventoryTree", () => function ComponentInventory(props) {
+				return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryTree, { ...props });
+			});
+		}
+		//#endregion
 		//#region src/client/capability-settings.tsx
 		function registerCapabilityCenter(slots, label, component) {
 			slots.inject("settings.section", () => slots.register({
@@ -16477,6 +16485,7 @@ window.__ModuleLoader__.load({
 				});
 			}, "plain-chat: local draft lifecycle");
 			const registry = ctx.slots;
+			ctx.effect(() => registerComponentInventory(registry), "plain-chat: shared component inventory compatibility");
 			createCapabilityPreview();
 			registerCapabilityCenter(ctx.slots, () => t("centerTitle"), () => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCenter, {}));
 			registerComponentCenter(ctx.slots, () => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentCenter, {}));

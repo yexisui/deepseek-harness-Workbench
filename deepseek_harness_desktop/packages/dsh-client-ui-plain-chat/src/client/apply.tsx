@@ -11,6 +11,7 @@ import { DraftComposer } from './DraftComposer.tsx'
 import { withAppearanceNavigation } from './AppearanceNavigation.tsx'
 import { CapabilityPreviewContext, createCapabilityPreview } from './capability-preview.tsx'
 import { ComponentCenter } from './ComponentCenter.tsx'
+import { registerComponentInventory } from './component-inventory-slot.tsx'
 import { registerCapabilityCenter, registerComponentCenter } from './capability-settings.tsx'
 import { AgentPresetDisclosure } from './RoleAssistants.tsx'
 import { ManagedCenter } from './ManagedCenter.tsx'
@@ -185,6 +186,7 @@ export function apply(ctx: Context): void {
     return unsubscribe
   }, 'plain-chat: local draft lifecycle')
   const registry = ctx.slots as unknown as Registry
+  ctx.effect(() => registerComponentInventory(registry), 'plain-chat: shared component inventory compatibility')
   const capabilityPreview = createCapabilityPreview()
   registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <ManagedCenter />)
   registerComponentCenter(ctx.slots as unknown as Parameters<typeof registerComponentCenter>[0], () => <ComponentCenter />)
