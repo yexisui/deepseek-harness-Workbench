@@ -5,6 +5,6 @@
   "packages/skins/skin-center": "ab55e0f4a95fb5f7e1db24a82ad5b35d9dabdd496bf89b44c2af8b6305470917",
   "packages/dsh-jev-mode": "9746fd5e456f5a1c73b8aad33e1cc2ca18eeae63ba5aa4a1536d849ae03db8c0",
   "packages/dsh-capabilities": "45c2717145e2342fa3863c095b648627c6a628afc30dc2cdc2da5eeb586170a1",
-  "packages/dsh-client-ui-plain-chat": "95efe5c11f408fc745cc1c765bcf7eae5b9985600eac11139b27879b67169b04",
+  "packages/dsh-client-ui-plain-chat": "d88ad99d1d98d3573c4d2c79e75530c407c7b1c7a0c1b65fed2011b5551a5795",
   "packages/dsh-plugin-manager": "7ed5e0870cba14469efb1decb176bb0c6fcd43dfb038112404ac521f007f2432"
 }
