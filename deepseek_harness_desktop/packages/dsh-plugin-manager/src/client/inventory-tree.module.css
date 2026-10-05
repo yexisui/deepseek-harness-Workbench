@@ -222,3 +222,12 @@ button[aria-expanded=true] > .chevron { transform: rotate(90deg); color: var(--t
 .srOnly { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 @container (max-width:520px) { .categoryModules { margin-left:0; } .editGroup { padding:8px; } .categoryRow { gap:3px; } .root .categoryRow input { padding:8px 6px; } }
 @media (prefers-reduced-motion:reduce) { .categoryRow,.editGroup,.dropLine { transition:none; animation:none; } }
+.editGroup,.categoryRow { cursor:grab; }
+.categoryRow { touch-action:none; }
+.root .categoryRow input[readonly] { cursor:grab; user-select:none; }
+.root .categoryRow input:not([readonly]) { cursor:text; }
+.deleteDialog { width:min(440px,calc(100vw - 40px)); padding:22px; border:1px solid var(--tree-border); border-radius:14px; background:var(--tree-bg); color:var(--tree-text); box-shadow:0 18px 64px #0003; }
+.deleteDialog::backdrop { background:#0005; }
+.deleteDialog p { margin:14px 0; }
+.deleteDialog select { display:block; width:100%; margin-bottom:16px; }
+.deleteDialog button { margin-right:8px; }

@@ -37,3 +37,10 @@ it('pointer movement has a threshold, drops across groups, and ignores outside d
 it('keeps name editing independent and removes visible arrow controls',()=>{
  const t=setup();fireEvent.change(screen.getAllByRole('textbox',{name:'模块名称'})[0],{target:{value:'新名称'}});expect(t.change.mock.lastCall![0].modules[0].name).toBe('新名称');expect(screen.queryByRole('button',{name:/上移|下移/})).toBeNull();expect(screen.queryByRole('combobox')).toBeNull()
 })
+it('drags from module name and group blank space while buttons and active text editing stay independent',()=>{
+ vi.stubGlobal('PointerEvent',class extends MouseEvent {pointerId=1});const t=setup(),input=screen.getAllByLabelText('模块名称')[0],target=t.container.querySelector('[data-category-group=c]')!;Object.defineProperty(document,'elementFromPoint',{configurable:true,value:()=>target});
+ fireEvent.pointerDown(input,{button:0,clientX:10,clientY:10});fireEvent.pointerMove(window,{clientX:30,clientY:30});fireEvent.pointerUp(window,{clientX:30,clientY:30});expect(t.change.mock.lastCall![0].modules.find((m:any)=>m.id==='one').groupId).toBe('c');
+ fireEvent.click(screen.getByDisplayValue('模块一')); // Generated click after drag must not enter edit mode.
+ const moved=screen.getByDisplayValue('模块一');fireEvent.click(moved);expect((moved as HTMLInputElement).readOnly).toBe(false);fireEvent.pointerDown(moved,{button:0,clientX:10,clientY:10});fireEvent.pointerMove(window,{clientX:30,clientY:30});fireEvent.pointerUp(window,{clientX:30,clientY:30});expect(t.change).toHaveBeenCalledTimes(1);
+ fireEvent.blur(moved);const group=t.container.querySelector('[data-category-group=a]')!;fireEvent.pointerDown(group,{button:0,clientX:10,clientY:10});fireEvent.pointerMove(window,{clientX:30,clientY:30});fireEvent.pointerUp(window,{clientX:30,clientY:30});expect(t.change.mock.lastCall![0].groups.map((g:any)=>g.id)).toEqual(['b','c','a'])
+})
