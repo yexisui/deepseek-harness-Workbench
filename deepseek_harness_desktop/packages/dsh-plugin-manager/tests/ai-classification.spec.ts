@@ -72,7 +72,7 @@ it('reports save errors without claiming completion or overwriting the old file'
  service.start('request-0012');await done(service);expect(service.status().job?.phase).toBe('failed');expect(service.status().report).toBeUndefined();expect(readFileSync(store.file,'utf8')).toBe(old)
 })
 it('selects the first registered text model and streams through existing LLM without changing defaults',async()=>{
- const llm={listProviders:()=>[{id:'empty',name:'未就绪'},{id:'live',name:'现有账号'}],listModels:vi.fn(async(id:string)=>id==='empty'?[]:[{id:'image',name:'图像',inputModalities:['image']},{id:'first',name:'文本一'},{id:'second',name:'文本二'}]),stream:vi.fn(async function*(){yield {type:'text-delta',text:'{"results":[]}'}})}
+ const llm={listProviders:()=>[{id:'empty',name:'未就绪'},{id:'live',name:'现有账号'}],listModels:vi.fn(async(id:string)=>id==='empty'?[]:[{id:'image',name:'图像',inputModalities:['image']},{id:'first',name:'文本一'},{id:'second',name:'文本二'}]),stream:vi.fn(async function*(){yield {type:'text-delta',text:'{"results":[]}'};yield {type:'finish',reason:{kind:'stop'}}})}
  const adapter=workbenchClassificationAdapter({get:()=>llm} as never,process.cwd()),signal=new AbortController().signal
  const model=await adapter.firstModel(signal);expect(model.id).toBe('first');await adapter.generate(model,'system','prompt',signal)
  expect(llm.stream).toHaveBeenCalledWith(expect.objectContaining({provider:'live',model:'first',signal}));expect(llm.listModels).toHaveBeenCalledTimes(2)
@@ -80,4 +80,18 @@ it('selects the first registered text model and streams through existing LLM wit
 it('does not invoke a fallback model after generation failure',async()=>{
  const {service,adapter}=setup();adapter.generate=vi.fn(async()=>{throw Error('failure')});service.start('request-0013');await done(service)
  expect(adapter.firstModel).toHaveBeenCalledTimes(1);expect(adapter.generate).toHaveBeenCalledTimes(1);expect(service.status().job?.phase).toBe('failed')
+})
+
+it('opts out of thinking only when the selected model advertises off',async()=>{
+ const stream=vi.fn(async function*(){yield {type:'text-delta',text:'{"results":[]}'};yield {type:'finish',reason:{kind:'stop'}}}),resolveModelInfo=vi.fn(async()=>({reasoning:{efforts:[{id:'off'},{id:'high'}]}})),llm={stream,resolveModelInfo}
+ const a=workbenchClassificationAdapter({get:()=>llm} as never,process.cwd()),m={provider:'p',id:'m',name:'M'},signal=new AbortController().signal
+ await a.generate(m,'s','p',signal);expect(stream.mock.calls[0]).toEqual([expect.objectContaining({reasoningEffort:'off'})]);resolveModelInfo.mockResolvedValue({reasoning:{efforts:[{id:'high'}]}});await a.generate(m,'s','p',signal);expect(stream.mock.calls[1]).toEqual([expect.not.objectContaining({reasoningEffort:expect.anything()})])
+})
+it.each([[{kind:'max-tokens'},'长度上限'],[{kind:'error',failure:{code:'AUTH',status:401,message:'secret-provider-detail'}},'鉴权失败'],[{kind:'error',failure:{code:'RATE_LIMIT',status:429}},'限流'],[{kind:'error',failure:{code:'SERVER',status:503}},'暂时不可用']])('reports finish failure %j without accepting partial JSON',async(reason,expected)=>{
+ const llm={stream:async function*(){yield {type:'text-delta',text:'{"results":[]}'};yield {type:'finish',reason}}},a=workbenchClassificationAdapter({get:()=>llm} as never,process.cwd())
+ await expect(a.generate({provider:'p',id:'m',name:'M'},'s','p',new AbortController().signal)).rejects.toThrow(expected as string)
+})
+it('distinguishes invalid JSON and does not leak arbitrary exception contents',async()=>{
+ const {service,adapter}=setup();adapter.generate=async()=>'{broken';service.start('format-0001');await done(service);expect(service.status().job?.error).toContain('JSON')
+ adapter.generate=async()=>{throw Error('secret-provider-detail')};service.start('format-0002');await done(service);expect(service.status().job?.error).not.toContain('secret-provider-detail')
 })

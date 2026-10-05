@@ -4,12 +4,13 @@ import { readFileSync, statSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { relatedComponents, modulePackage } from '../../../dsh-capabilities/src/core/component-registry.ts'
-import type { AiClassificationAdapter, PluginEvidence } from './ai-classification.ts'
+import { ClassificationModelError, classificationFailure, type AiClassificationAdapter, type PluginEvidence } from './ai-classification.ts'
 
 interface Llm {
   listProviders():Array<{id:string;name:string}>
   listModels(provider:string):Promise<Array<{id:string;name:string;inputModalities?:readonly string[]}>>
-  stream(options:unknown):AsyncIterable<{type:string;text?:string;reason?:{kind:string}}>
+  resolveModelInfo?(provider:string,model:string,signal:AbortSignal):Promise<{reasoning?:{efforts:readonly {id:string}[]}}>
+  stream(options:unknown):AsyncIterable<{type:string;text?:string;reason?:{kind:string;failure?:{code?:string;status?:number}}}>
 }
 export function workbenchClassificationAdapter(ctx:Context,profileDir:string):AiClassificationAdapter{
   const require=createRequire(path.join(profileDir,'package.json'))
@@ -44,14 +45,26 @@ export function workbenchClassificationAdapter(ctx:Context,profileDir:string):Ai
       return result
     },
     async generate(model,system,prompt,signal){
-      let text=''
-      for await(const chunk of llm().stream({provider:model.provider,model:model.id,system,messages:[{id:randomUUID(),role:'user',content:[{type:'text',text:prompt}],source:{kind:'user'}}],maxTokens:4096,temperature:0.1,signal})){
-        signal.throwIfAborted()
-        if(chunk.type==='text-delta')text+=chunk.text??''
-        if(text.length>40_000)throw Error('模型返回过长')
-        if(chunk.type==='finish'&&chunk.reason?.kind==='error')throw Error('模型调用失败，请检查已有账号配置')
-      }
-      return text
+      let text='',finished=false
+      try {
+        const service=llm(),info=await service.resolveModelInfo?.(model.provider,model.id,signal)
+        // Classification needs a short structured answer; use only a declared opt-out.
+        const reasoningEffort=info?.reasoning?.efforts.find(e=>e.id==='off')?.id
+        for await(const chunk of service.stream({provider:model.provider,model:model.id,system,messages:[{id:randomUUID(),role:'user',content:[{type:'text',text:prompt}],source:{kind:'user'}}],maxTokens:4096,temperature:0.1,...(reasoningEffort?{reasoningEffort}:{}),signal})){
+          signal.throwIfAborted()
+          if(chunk.type==='text-delta')text+=chunk.text??''
+          if(text.length>40_000)throw new ClassificationModelError('模型返回超出长度限制')
+          if(chunk.type==='finish'){
+            finished=true
+            if(chunk.reason?.kind==='max-tokens')throw new ClassificationModelError('模型输出达到长度上限，分类正文被截断，请重试')
+            if(chunk.reason?.kind==='error'||chunk.reason?.kind==='aborted')throw new ClassificationModelError(classificationFailure(chunk.reason.failure))
+          }
+        }
+        if(!text.trim())throw new ClassificationModelError('模型没有返回分类正文，请重试')
+        if(!finished)throw new ClassificationModelError('模型响应流提前结束，未收到完成标记，请重试')
+        return text
+      }catch(error){throw new ClassificationModelError(classificationFailure(error))}
+
     },
   }
 }
