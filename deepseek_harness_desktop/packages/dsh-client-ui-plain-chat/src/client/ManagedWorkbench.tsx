@@ -18,8 +18,8 @@ export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd,
   const cards = useRef(new Map<string, HTMLDivElement>())
   const add = (id: string) => { const duplicate = attached.some(a => a.id === id); onAdd(id); setFeedback(old => ({ id, duplicate, sequence: (old?.sequence ?? 0) + 1 })) }
   const drag = useCapabilityDrag<string>(add)
-  const sort = useCompositionSort(onReorder)
-  const [sortNotice, setSortNotice] = useState('')
+  const sort = useCompositionSort(onReorder, attached.map(item => item.id))
+  const sortNotice = sort.sorting ? `已拾起 ${attached.find(item => item.id === sort.sorting!.id)?.name}，当前位置 ${attached.findIndex(item => item.id === sort.sorting!.target) + 1}。空格放下，Esc 取消。` : ''
   useLayoutEffect(() => {
     if (!feedback) return
     const row = cards.current.get(feedback.id); if (!row) return
@@ -49,19 +49,15 @@ export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd,
         <div className={`${s.columnHeading} ${s.attachedHeading}`}><h3>{attachedTitle} <span className={s.count}>{attached.length}</span></h3><span className={s.step}>02</span></div>
         {compositionNotice}
         <div ref={sort.root}><div ref={drag.zone} aria-label="拖入配件" className={`${s.dropZone} ${drag.drag ? s.dragReady : ''} ${drag.over ? s.dragOver : ''}`}>
-          {attached.map((item, index) => <div key={item.id} ref={node => { if (node) cards.current.set(item.id, node); else cards.current.delete(item.id) }} className={`${s.attachedCard} ${selected === item.id ? s.attachedSelected : ''} ${sort.sorting?.id === item.id ? s.sortSource : ''} ${sort.sorting?.target === item.id && sort.sorting.id !== item.id ? s.sortTarget : ''}`} data-attached-capability={item.id} data-composition-row={item.id}>
-            {onReorder && <button type="button" className={s.sortHandle} aria-label={`调整顺序：${item.name}`} title="拖动排序；方向键上下移动" onPointerDown={e => sort.start(item.id, e)} onKeyDown={e => {
-              if (!['ArrowUp', 'ArrowDown'].includes(e.key)) return
-              e.preventDefault(); e.stopPropagation()
-              const target = attached[index + (e.key === 'ArrowUp' ? -1 : 1)]
-              if (target) { onReorder(item.id, target.id); setSortNotice(`${item.name}已${e.key === 'ArrowUp' ? '上移' : '下移'}`) }
-            }}>⠿</button>}
+          {attached.map((item, index) => <div key={item.id} ref={node => { if (node) cards.current.set(item.id, node); else cards.current.delete(item.id) }} className={`${s.attachedCard} ${selected === item.id ? s.attachedSelected : ''} ${sort.sorting?.id === item.id ? s.sortSource : ''} ${sort.sorting?.target === item.id && sort.sorting.id !== item.id ? s.sortTarget : ''}`} data-attached-capability={item.id} data-composition-row={item.id} tabIndex={onReorder ? 0 : undefined} aria-label={onReorder ? `调整顺序：${item.name}` : undefined} title={onReorder ? '拖动整项排序；键盘空格拾起、方向键移动、空格放下、Esc取消' : undefined} onPointerDown={onReorder ? e => sort.start(item.id,e) : undefined} onClickCapture={sort.click} onKeyDown={e => sort.key(item.id,e)} style={sort.style(item.id)}>
+            {onReorder && <span className={s.sortNumber} aria-hidden="true">{index+1}</span>}
             <button type="button" className={s.attachedSelect} onClick={() => configure(item.id)}><CapabilityGlyph kind={item.icon ?? (item.id === 'meeting-transcription' ? 'audio' : item.id.startsWith('@') ? 'support' : 'browser')}/><span><strong>{item.name}</strong><small>{item.subtitle}</small></span></button>{item.removable !== false && <button type="button" className={s.remove} title={`移除 ${item.name}`} aria-label={`移除 ${item.name}`} onClick={() => onRemove(item.id)}>{removeIcon ?? '×'}</button>}
           </div>)}<div className={`${s.dropHint} ${attached.length ? s.dropCompact : ''}`}><span>＋</span><strong>拖入配件，或点击左侧加号</strong></div>
         </div></div>
       </section>{rail('right')}
       <aside id={`${prefix}-right`} hidden={!panels.rightOpen} className={s.inspector} aria-label="配件设置"><div className={s.inspectorHeader}><h3>配件设置</h3><button type="button" className={s.collapseButton} onClick={() => panels.close('right')} aria-label="收起右栏">›</button></div>{inspector}</aside>
     </div>
+    {sort.sorting && !sort.sorting.keyboard && <div className={s.dragGhost} aria-hidden="true" style={{left:(sort.sorting.x??0)+12,top:(sort.sorting.y??0)+12}}>{attached.find(item=>item.id===sort.sorting!.id)?.name}</div>}
     {drag.drag && <div className={s.dragGhost} aria-hidden="true" style={{ left: drag.drag.x + 12, top: drag.drag.y + 12 }}>{library.find(i => i.id === drag.drag!.id)?.name}</div>}
     <span className={s.srOnly} role="status">{feedback ? `${feedback.duplicate ? '已添加' : '添加成功'}：${library.find(i => i.id === feedback.id)?.name}` : ''}</span>
     <span className={s.srOnly} role="status">{sortNotice}</span>

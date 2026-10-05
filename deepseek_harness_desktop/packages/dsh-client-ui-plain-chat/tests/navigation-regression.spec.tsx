@@ -68,21 +68,21 @@ it('NR02 consumes the edit request so closing and reentering does not reopen the
 })
 
 it('NR03 preserves an unsaved requirement configuration on declined internal tab navigation',async()=>{
- await render(<ManagedCenter initialId="requirements-analysis"/>);await click('默认配置');await fill(field('默认整理深度'),'detailed')
- const confirm=vi.spyOn(window,'confirm').mockReturnValue(false);await click('概览与连接')
+ await render(<ManagedCenter initialId="requirements-analysis"/>);await click('设置');await fill(field('默认整理深度'),'detailed')
+ const confirm=vi.spyOn(window,'confirm').mockReturnValue(false);await click('组件')
  expect(confirm).toHaveBeenCalledOnce();expect(field('默认整理深度').value).toBe('detailed')
 })
 it('NR04 blocks global navigation while the user declines abandoning requirement configuration',async()=>{
- await render(<ManagedCenter initialId="requirements-analysis"/>);await click('默认配置');await fill(field('默认整理深度'),'detailed');const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+ await render(<ManagedCenter initialId="requirements-analysis"/>);await click('设置');await fill(field('默认整理深度'),'detailed');const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
  await act(async()=>{openCapabilityLink({section:'capability-center',capabilityId:'developer-workspace',tab:'overview'});await new Promise(r=>setTimeout(r,15))});expect(confirm).toHaveBeenCalledOnce();expect(field('默认整理深度').value).toBe('detailed');expect(lastCapabilityLink()).toBeUndefined()
 })
 
 it('NR05 guards settings sidebar selection and close; confirmed departure discards only unsaved configuration',async()=>{
  function SettingsPanel({activeId,onSelect,onClose}:any){return <div role="dialog"><button onClick={()=>onSelect('other')}>Other section</button><button onClick={onClose}>Close settings</button>{activeId==='capability-center'?<ManagedCenter initialId="requirements-analysis"/>:<p>Other content</p>}</div>}
  function SettingsRoot(){const [activeId,setActive]=useState('capability-center'),[open,setOpen]=useState(true);return open?<SettingsPanel activeId={activeId} onSelect={setActive} onClose={()=>setOpen(false)}/>:<p>Closed</p>}
- const Guarded=withAppearanceNavigation(SettingsRoot,()=> '外观');await render(<Guarded/>);await click('默认配置');await fill(field('默认模型'),'qa-unsaved-model');const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+ const Guarded=withAppearanceNavigation(SettingsRoot,()=> '外观');await render(<Guarded/>);await click('设置');await fill(field('默认模型'),'qa-unsaved-model');const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
  await click('Other section');expect(field('默认模型').value).toBe('qa-unsaved-model');await click('Close settings');expect(field('默认模型').value).toBe('qa-unsaved-model');expect(confirm).toHaveBeenCalledTimes(2)
- confirm.mockReturnValue(true);await click('Other section');expect(host.textContent).toContain('Other content');await remount(<ManagedCenter initialId="requirements-analysis"/>);await click('默认配置');expect(field('默认模型').value).toBe('')
+ confirm.mockReturnValue(true);await click('Other section');expect(host.textContent).toContain('Other content');await remount(<ManagedCenter initialId="requirements-analysis"/>);await click('设置');expect(field('默认模型').value).toBe('')
 })
 
 it('NR06 retains project A configuration when declining a switch to project B',async()=>{
@@ -147,7 +147,7 @@ it('NR19 restores the nested role, capability editor and component library after
 })
 
 it('NR20 guards legacy direct navigation events before any mounted page changes',async()=>{
- await render(<ManagedCenter initialId="requirements-analysis"/>);await click('默认配置');await fill(field('默认模型'),'保留输入');const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+ await render(<ManagedCenter initialId="requirements-analysis"/>);await click('设置');await fill(field('默认模型'),'保留输入');const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
  await act(async()=>{window.dispatchEvent(new CustomEvent('workbench-capability-link',{detail:{section:'capability-center',capabilityId:'developer-workspace'}}));await new Promise(r=>setTimeout(r,15))});expect(confirm).toHaveBeenCalledOnce();expect(field('默认模型').value).toBe('保留输入')
 })
 
@@ -156,6 +156,6 @@ it('NR21 restores plugin search after traversing component and capability detail
 })
 
 it('NR22 protects meeting configuration when declining global departure',async()=>{
- await render(<ManagedCenter initialId="meeting-transcription"/>);await click('默认配置');await click('编辑识别配置');await fill(host.querySelector('[aria-label="语音识别模型"]')!,'qa-unsaved-asr');const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+ await render(<ManagedCenter initialId="meeting-transcription"/>);await click('设置');await click('编辑识别配置');await fill(host.querySelector('[aria-label="语音识别模型"]')!,'qa-unsaved-asr');const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
  await act(async()=>{openCapabilityLink({section:'plugins'});await new Promise(r=>setTimeout(r,15))});expect(confirm).toHaveBeenCalledOnce();expect(host.querySelector<HTMLInputElement>('[aria-label="语音识别模型"]')!.value).toBe('qa-unsaved-asr')
 })

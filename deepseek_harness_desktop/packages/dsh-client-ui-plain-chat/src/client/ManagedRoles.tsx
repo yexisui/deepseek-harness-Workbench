@@ -41,7 +41,7 @@ function RoleForm({ id, onClose, restore }: { id?: string; onClose: () => void; 
   const restored=restoredFrame(restore,'role-editor')?.view
   const { data } = useCapabilities(), state = data!.state, role = state.roles.find(r => r.id === id), key = `role:${id ?? 'new'}`, cached = editorDrafts.get(key)
   const meetingStatus = useMeetingStatus()
-  const { status: requirementsStatus } = useRequirementAvailability(state.revision)
+  const { availability: requirementsStatus } = useRequirementAvailability(state.revision)
   const [draft, setDraft] = useState<RoleDefinition>(() => structuredClone(cached?.value as RoleDefinition ?? role?.draft ?? emptyRole()))
   const [initialAppearance] = useState(() => structuredClone({ color: draft.color, icon: draft.icon }))
   const [appearanceBusy, setAppearanceBusy] = useState(false)

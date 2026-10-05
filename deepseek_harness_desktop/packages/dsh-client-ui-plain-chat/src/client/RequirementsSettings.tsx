@@ -15,7 +15,7 @@ export function useRequirementAvailability(revision?: number) {
     } catch (error) { setError(error instanceof Error ? error.message : String(error)) }
   }, [])
   useEffect(() => { void refresh(); window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, [refresh, revision])
-  return { status, error, refresh, accept: setStatus }
+  return { status, availability: error ? { error } : status, error, refresh, accept: (value: RequirementAvailability) => { setStatus(value); setError('') } }
 }
 
 export function RequirementsSettings({ status, onSaved, disabled = false, onEditingChange }: { status: RequirementAvailability | null; onSaved: (status: RequirementAvailability) => void; disabled?: boolean; onEditingChange: (dirty: boolean) => void }) {

@@ -55,7 +55,7 @@ describe('editable component relationships', () => {
 
   it('uses the same editor and configuration roundtrip for requirement service while isolating published authority', async () => {
     await act(async () => root.render(<ManagedCenter key="requirements" initialId="requirements-analysis"/>))
-    await click('关联组件')
+    await click('组件')
     expect(container.querySelector('[data-component-environment="requirements"]')).not.toBeNull()
     expect(container.textContent).not.toContain('浏览器未连接')
     await click('移除关联：需求分析服务'); await click('移除关联')
@@ -63,7 +63,7 @@ describe('editable component relationships', () => {
     expect(store.snapshot().capabilities.find(c => c.id === 'requirements-analysis')!.draft.components).toHaveLength(0)
     expect(store.snapshot().capabilities.find(c => c.id === 'requirements-analysis')!.versions.at(-1)!.components).toHaveLength(1)
     await act(async () => root.render(<ManagedCenter key="requirements-reopen" initialId="requirements-analysis"/>))
-    await click('关联组件'); expect(container.textContent).toContain('草稿缺少 1 个必需组件')
+    await click('组件'); expect(container.textContent).toContain('草稿缺少 1 个必需组件')
     await click('编辑组件组合')
     expect(button('检查并发布').disabled).toBe(true)
     await click('添加 需求分析服务')
@@ -76,7 +76,7 @@ describe('editable component relationships', () => {
   })
 
   it('uses the shared component list for meeting service, with real details and required removal confirmation', async () => {
-    await openMeeting(); await click('关联组件')
+    await openMeeting(); await click('组件')
     expect(container.querySelectorAll('[data-association]')).toHaveLength(1)
     expect(container.textContent).toContain('内置会议服务')
     expect(container.textContent).toContain('请配置识别接口')
@@ -95,12 +95,12 @@ describe('editable component relationships', () => {
   })
 
   it('preserves an incomplete saved meeting draft on reopen and repairs by pointer drag without duplicate additions', async () => {
-    await openMeeting(); await click('关联组件')
+    await openMeeting(); await click('组件')
     const published = structuredClone(store.snapshot().capabilities.find(c => c.id === MEETING_CAPABILITY_ID)!.versions)
     await click('移除关联：会议录音转写'); await click('移除关联'); await click('保存草稿')
     expect(store.snapshot().capabilities.find(c => c.id === MEETING_CAPABILITY_ID)!.draft.components).toEqual([])
     expect(store.snapshot().capabilities.find(c => c.id === MEETING_CAPABILITY_ID)!.versions).toEqual(published)
-    await openMeeting('meeting-reopened'); await click('关联组件'); await click('编辑组件组合')
+    await openMeeting('meeting-reopened'); await click('组件'); await click('编辑组件组合')
     expect(rowIds()).toEqual([]); expect(button('检查并发布').disabled).toBe(true)
     const zone = document.querySelector('[aria-label="拖入配件"]')!
     Object.defineProperty(document, 'elementFromPoint', { configurable: true, value: () => zone })
@@ -117,7 +117,7 @@ describe('editable component relationships', () => {
   })
 
   it('keeps composition edits when configuring the service and guards unsaved service settings on return', async () => {
-    await openMeeting(); await click('关联组件'); await click('编辑组件组合')
+    await openMeeting(); await click('组件'); await click('编辑组件组合')
     const action = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')).find(input => input.parentElement?.textContent === '转写录音')!
     await act(async () => action.click())
     expect(meetingDraft().components[0]!.actions).toEqual([])
@@ -141,8 +141,8 @@ describe('editable component relationships', () => {
 
   it('guards meeting edits against the previous composition service while leaving browser management available', async () => {
     serviceVersion = 1; await act(async () => capabilityClient.refresh())
-    await click('关联组件'); expect(button('编辑组件组合').disabled).toBe(false)
-    await openMeeting(); await click('关联组件')
+    await click('组件'); expect(button('编辑组件组合').disabled).toBe(false)
+    await openMeeting(); await click('组件')
     expect(button('编辑组件组合').disabled).toBe(true)
     expect(button('移除关联：会议录音转写').closest('fieldset')!.disabled).toBe(true)
     await click('编辑能力'); expect(button('保存草稿', document.querySelector('dialog')!)).toBeUndefined()
@@ -152,7 +152,7 @@ describe('editable component relationships', () => {
   })
 
   it('prevents an old running service from silently discarding new composition fields', async () => {
-    currentService = false; await act(async () => capabilityClient.refresh()); await click('关联组件')
+    currentService = false; await act(async () => capabilityClient.refresh()); await click('组件')
     expect(container.textContent).toContain('组件组合服务待更新')
     expect(button('移除关联：session').closest('fieldset')!.disabled).toBe(true)
     expect(button('编辑组件组合').disabled).toBe(true)
@@ -162,7 +162,7 @@ describe('editable component relationships', () => {
   })
 
   it('shows trash icons for every required dependency; cancel, confirm and undo never mutate published state', async () => {
-    await click('关联组件')
+    await click('组件')
     expect(container.querySelectorAll('[data-association]')).toHaveLength(6)
     for (const name of ['浏览器操作', 'tools', 'agent', 'session', 'skill', 'attachment']) expect(button(`移除关联：${name}`).querySelector('svg')).not.toBeNull()
     const before = store.snapshot()
@@ -176,7 +176,7 @@ describe('editable component relationships', () => {
     expect(store.snapshot()).toEqual(before)
   })
   it('shares a pending draft between relation and editor, saves incomplete state, and repairs via drag without changing business settings', async () => {
-    await click('关联组件'); await click('移除关联：session'); await click('移除关联'); await click('编辑组件组合')
+    await click('组件'); await click('移除关联：session'); await click('移除关联'); await click('编辑组件组合')
     expect(button('检查并发布').disabled).toBe(true)
     expect(rowIds()).not.toContain(session)
     await click('保存草稿', document.querySelector('dialog')!)
@@ -192,29 +192,30 @@ describe('editable component relationships', () => {
     expect(Element.prototype.animate).toHaveBeenCalled()
     expect(draft().components).toEqual(store.snapshot().capabilities[0]!.draft.components)
     await click('关闭编辑器')
-    expect(container.textContent).not.toContain('草稿缺少')
+    expect(container.querySelectorAll('[aria-label="关联组件组合"]')).toHaveLength(1); expect(container.textContent).not.toContain('草稿缺少')
     await click('保存草稿')
     expect(store.snapshot().capabilities[0]!.draft.excludedDependencies).toEqual([])
     expect(store.snapshot().capabilities[0]!.versions).toHaveLength(1)
   })
   it('supports keyboard and pointer sorting, cancels outside drops, and persists the display order', async () => {
-    await click('关联组件'); await click('编辑组件组合')
-    await act(async () => button('调整顺序：tools').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true })))
+    await click('组件'); await click('编辑组件组合')
+    const sortable = (name: string) => document.querySelector<HTMLElement>(`[aria-label="调整顺序：${name}"]`)!
+    for (const key of [' ', 'ArrowUp', ' ']) await act(async () => sortable('tools').dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true })))
     expect(rowIds()[0]).toBe('@deepseek-ai/dsh-tools')
     const target = document.querySelector('[data-composition-row="@deepseek-ai/dsh-tools"]')!
     Object.defineProperty(document, 'elementFromPoint', { configurable: true, value: vi.fn(() => target) })
-    await pointer(button('调整顺序：session'), 'pointerdown', 10, 10); await pointer(window, 'pointermove', 80, 80); await pointer(window, 'pointerup', 80, 80)
+    await pointer(sortable('session').querySelector('strong')!, 'pointerdown', 10, 10); await pointer(window, 'pointermove', 80, 80); await pointer(window, 'pointerup', 80, 80)
     expect(rowIds()[0]).toBe(session)
     const order = [...rowIds()]
     Object.defineProperty(document, 'elementFromPoint', { configurable: true, value: () => document.body })
-    await pointer(button('调整顺序：attachment'), 'pointerdown', 10, 10); await pointer(window, 'pointermove', 80, 80); await pointer(window, 'pointerup', 80, 80)
+    await pointer(sortable('attachment'), 'pointerdown', 10, 10); await pointer(window, 'pointermove', 80, 80); await pointer(window, 'pointerup', 80, 80)
     expect(rowIds()).toEqual(order)
     await click('保存草稿', document.querySelector('dialog')!)
     expect(compositionIds(store.snapshot().capabilities[0]!.draft)).toEqual(order)
     await click('编辑组件组合'); expect(rowIds()).toEqual(order)
   })
   it('keeps failed saves and conflicting drafts available, and discards only with confirmation', async () => {
-    await click('关联组件'); await click('移除关联：session'); await click('移除关联')
+    await click('组件'); await click('移除关联：session'); await click('移除关联')
     error = '保存失败，请重试'; await click('保存草稿')
     expect(container.textContent).toContain('保存失败，请重试'); expect(draft().excludedDependencies).toEqual([session])
     expect(store.snapshot().capabilities[0]!.draft.excludedDependencies).toBeUndefined()
@@ -227,7 +228,7 @@ describe('editable component relationships', () => {
     expect(editorDrafts.size).toBe(0); expect(container.querySelectorAll('[data-association]')).toHaveLength(6)
   })
   it('requires confirmation before business removal and restores its actions on undo', async () => {
-    await click('关联组件'); await click('编辑组件组合'); const original = structuredClone(store.snapshot().capabilities[0]!.draft.components)
+    await click('组件'); await click('编辑组件组合'); const original = structuredClone(store.snapshot().capabilities[0]!.draft.components)
     await click('移除 浏览器操作'); await click('移除关联')
     expect(rowIds()).toHaveLength(0); expect(button('检查并发布').disabled).toBe(true)
     await click('撤销移除'); expect(draft().components).toEqual(original); expect(rowIds()).toHaveLength(6)

@@ -69,7 +69,7 @@ describe('managed capability card actions', () => {
   })
   async function openRecycleBin(ids = ['browser', secondId]) {
     for (const id of ids) await send({ type: 'capability.remove', id })
-    await capabilityClient.refresh(); await render(); await click(`回收站 ${ids.length}`)
+    await capabilityClient.refresh(); await render(); await click('更多'); await click(`回收站 ${ids.length}`)
   }
   async function makeRole(name: string) {
     return send({ type: 'role.save', definition: { ...emptyRole(), name, capabilities: [{ capabilityId: 'browser', version: 1, enabled: true }] }, publish: true })
@@ -81,16 +81,16 @@ describe('managed capability card actions', () => {
     expect(card.textContent).toContain('会议录音转写')
     expect(card.textContent).toContain('待配置')
     expect(button('收藏能力：会议录音转写', card)).toBeTruthy()
-    await click('管理能力 →', card)
+    await click('管理能力：会议录音转写', card)
     expect(container.querySelector('[data-meeting-capability-detail]')).not.toBeNull()
-    expect(container.textContent).toContain('语音识别接口待配置')
-    await click('默认配置')
+    expect(container.textContent).toContain('请配置语音识别接口')
+    await click('设置')
     expect(container.textContent).toContain('纪要生成模型仍在会议对话中选择')
     await click('← 全部能力')
     await click('收藏能力：会议录音转写')
     await click('收藏')
     expect(cardIds()).toEqual(['browser', 'meeting-transcription'])
-    await click('待就绪')
+    await click('筛选'); await act(async () => { const label = Array.from(container.querySelectorAll('label')).find(n => n.textContent === '需要配置或连接')!; label.querySelector('input')!.click() })
     expect(cardIds()).toContain('meeting-transcription')
   })
 
@@ -104,7 +104,7 @@ describe('managed capability card actions', () => {
     ]
     await capabilityClient.refresh(); await render()
     const before = store.snapshot()
-    await click('移除能力：浏览器操作')
+    await click('管理能力：浏览器操作'); await click('移除能力：浏览器操作')
     const dialog = document.querySelector('dialog')!
     expect(dialog.textContent).toContain('1 个岗位引用 · 1 个活动会话')
     expect(dialog.textContent).toContain('当前采集岗位')
@@ -113,15 +113,15 @@ describe('managed capability card actions', () => {
     expect(document.querySelector('dialog')).toBeNull()
     expect(commands).toEqual([])
     expect(store.snapshot()).toEqual(before)
-    expect(cardIds()).toContain('browser')
+    await click('← 全部能力'); expect(cardIds()).toContain('browser')
   })
 
   it('keeps the card and confirmation open on failure so removal can be retried', async () => {
-    await render(); await click('移除能力：自定义采集')
+    await render(); await click('管理能力：自定义采集'); await click('移除能力：自定义采集')
     nextCommandError = '保存失败，请重试'
     await click('确认移除', document.querySelector('dialog')!)
     expect(document.querySelector('dialog [role="alert"]')?.textContent).toBe('保存失败，请重试')
-    expect(cardIds()).toContain(secondId)
+    expect(button('移除能力：自定义采集')).toBeTruthy()
     expect(store.snapshot().capabilities.find(c => c.id === secondId)!.removedAt).toBeUndefined()
     await click('确认移除', document.querySelector('dialog')!)
     expect(document.querySelector('dialog')).toBeNull()
@@ -130,7 +130,7 @@ describe('managed capability card actions', () => {
   })
 
   it('allows safely closing a removal dialog when another page has already permanently deleted the capability', async () => {
-    await render(); await click('移除能力：自定义采集')
+    await render(); await click('管理能力：自定义采集'); await click('移除能力：自定义采集')
     await act(async () => {
       await send({ type: 'capability.remove', id: secondId })
       await send({ type: 'capability.purge', ids: [secondId] })
@@ -150,9 +150,9 @@ describe('managed capability card actions', () => {
   it('moves removed capabilities into a recoverable list and restores them without enabling or discarding history', async () => {
     await render()
     const before = store.snapshot().capabilities.find(c => c.id === secondId)!
-    await click('移除能力：自定义采集'); await click('确认移除', document.querySelector('dialog')!)
+    await click('管理能力：自定义采集'); await click('移除能力：自定义采集'); await click('确认移除', document.querySelector('dialog')!)
     expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace'])
-    await click('回收站 1')
+    await click('更多'); await click('回收站 1')
     expect(cardIds()).toEqual([secondId])
     const removedCard = container.querySelector(`[data-managed-capability="${secondId}"]`)!
     expect(removedCard.textContent).toContain('已移除')
@@ -165,8 +165,8 @@ describe('managed capability card actions', () => {
     expect(container.textContent).toContain('已恢复 1 项能力，当前保持停用')
     expect(container.textContent).toContain('回收站为空')
     expect(cardIds()).toEqual([])
-    expect(button('回收站')!.getAttribute('aria-pressed')).toBe('true')
-    await click('全部')
+    expect(container.querySelector('h2')!.textContent).toBe('能力回收站')
+    await click('← 返回能力列表')
     expect(cardIds()).toContain(secondId)
     expect(container.querySelector(`[data-managed-capability="${secondId}"]`)!.textContent).toContain('已停用')
   })
@@ -189,7 +189,7 @@ describe('managed capability card actions', () => {
   })
 
   it('requires reference review again when another write changes the pending removal revision', async () => {
-    await render(); await click('移除能力：浏览器操作')
+    await render(); await click('管理能力：浏览器操作'); await click('移除能力：浏览器操作')
     await act(async () => { await makeRole('新加入的引用岗位'); await capabilityClient.refresh() })
     const dialog = document.querySelector('dialog')!
     expect(dialog.textContent).toContain('新加入的引用岗位')
@@ -267,7 +267,7 @@ describe('managed capability card actions', () => {
     }
     expect(container.textContent).toContain('已恢复 2 项能力，当前保持停用')
     expect(container.textContent).toContain('回收站为空')
-    await click('全部')
+    await click('← 返回能力列表')
     expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace', secondId])
     expect(container.querySelector(`[data-managed-capability="${secondId}"]`)!.textContent).toContain('已停用')
   })
