@@ -10,12 +10,12 @@ import { decorateSlot, type Registry } from './slot-adapter.ts'
 import { DraftComposer } from './DraftComposer.tsx'
 import { withAppearanceNavigation } from './AppearanceNavigation.tsx'
 import { CapabilityPreviewContext, createCapabilityPreview } from './capability-preview.tsx'
-import { ComponentCenter } from './ComponentCenter.tsx'
+import { UnifiedCenter, settingsSectionForLink } from './UnifiedCenter.tsx'
 import { registerComponentInventory } from './component-inventory-slot.tsx'
-import { registerCapabilityCenter, registerComponentCenter } from './capability-settings.tsx'
+import { registerCapabilityCenter } from './capability-settings.tsx'
 import { nativePresetHook } from './native-preset-view.ts'
 import { AgentPresetDisclosure } from './RoleAssistants.tsx'
-import { ManagedCenter } from './ManagedCenter.tsx'
+
 import { BrowserTaskStatus, ManagedCurrentAssistant, ManagedRolePicker, ManagedRolesSection, MEETING_DEMO_ROLE_ID } from './ManagedRoles.tsx'
 import { DeveloperAssistant } from './DeveloperAssistant.tsx'
 import { createDeveloperHistory, usesDeveloper } from './developer-client.ts'
@@ -201,9 +201,8 @@ export function apply(ctx: Context): void {
   const registry = ctx.slots as unknown as Registry
   ctx.effect(() => registerComponentInventory(registry), 'plain-chat: shared component inventory compatibility')
   const capabilityPreview = createCapabilityPreview()
-  registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <ManagedCenter />)
+  registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <UnifiedCenter />)
   ctx.slots.inject('settings.section', () => ctx.slots.register({name:'settings.section',id:'jev-mode',order:23,label:()=> 'JEV 模式',locale:NS}, () => <JevSettings/>))
-  registerComponentCenter(ctx.slots as unknown as Parameters<typeof registerComponentCenter>[0], () => <ComponentCenter />)
   const settingsNavigation = createSettingsNavigation()
   ctx.effect(()=>registerJevNavigation(scope=>{
     const separator=scope.indexOf(':'),kind=scope.slice(0,separator),id=scope.slice(separator+1)
@@ -216,7 +215,7 @@ export function apply(ctx: Context): void {
   }), 'plain-chat: JEV conversation navigation')
   ctx.effect(()=>decorateSlot(registry,'settings.section','ModelsSection',Original=>function JevLinkedModels(props:any){return <JevModelReturn><Original {...props}/></JevModelReturn>}), 'plain-chat: JEV model settings return')
   ctx.effect(() => {
-    const open = (event: Event) => settingsNavigation.openSection((event as CustomEvent<CapabilityLink>).detail.section)
+    const open = (event: Event) => settingsNavigation.openSection(settingsSectionForLink((event as CustomEvent<CapabilityLink>).detail))
     window.addEventListener('workbench-capability-link', open)
     return () => window.removeEventListener('workbench-capability-link', open)
   }, 'plain-chat: capability links')

@@ -20,7 +20,7 @@ type Editor = { operationId: string; id: string; revision: number; base: Compone
 type Preview = { id: string; action: string; token: string; revision: number; stateRevision: number; capabilities: { id: string; name: string; draft: boolean; versions: number[]; removed: boolean }[]; roles: { id: string; name: string }[]; activities: { id: string; name: string; kind: string; status: string }[] }
 const operationNames: Record<string,string> = { retire: '移入回收站', restore: '恢复组件', disable: '全局停用', enable: '启用组件', purge: '永久删除' }
 /** A catalog over the same execution descriptors, service adapters and plugin classification. */
-export function ComponentCenter({ embedded = false, initialId, onClose, restore }: { embedded?: boolean; initialId?: string; onClose?: () => void; restore?: NavigationLocation }) {
+export function ComponentCenter({ embedded = false, initialId, onClose, restore, integrated = false }: { embedded?: boolean; initialId?: string; onClose?: () => void; restore?: NavigationLocation; integrated?: boolean }) {
   const { data, error } = useCapabilities(), { status: meetingStatus } = useMeetingAvailability(data?.state.revision)
   const { status: requirementsStatus } = useRequirementAvailability(data?.state.revision)
   const viewKey=embedded?'embedded':'root'
@@ -44,7 +44,7 @@ export function ComponentCenter({ embedded = false, initialId, onClose, restore 
   const [preview,setPreview] = useState<Preview>(), [busy,setBusy] = useState(false), [message,setMessage] = useState('')
   const [pendingOperation,setPendingOperation] = useState<{ key:string; id:string }>()
   useLeaveGuard(!!editor,()=>setEditor(undefined))
-  useNavigationFrame('components',embedded?40:0,()=>{captureScroll();return {section:'component-center',label:'组件中心',origin,view:{selected,tab,query,filter,category,pane,tabs:tabMemory.current,scroll:scrollMemory.current,folds,adding,candidate,candidateOperationId}}})
+  useNavigationFrame('components',embedded?40:0,()=>{captureScroll();return {section:'component-center',label:'组件库',origin,view:{selected,tab,query,filter,category,pane,tabs:tabMemory.current,scroll:scrollMemory.current,folds,adding,candidate,candidateOperationId}}})
   useEffect(()=>{try{sessionStorage.setItem('workbench-component-candidate:'+viewKey,JSON.stringify({value:candidate}))}catch{}},[candidate,viewKey])
   const remember=()=>rememberCenterView(viewKey,{selected,tab,query,filter,category,pane,tabs:tabMemory.current,scroll:scrollMemory.current,folds})
   const captureScroll=()=>{
@@ -107,7 +107,7 @@ export function ComponentCenter({ embedded = false, initialId, onClose, restore 
   visibleIds.current=new Set(visible.map(c=>c.id))
   const visibleCurrent=!!current&&visibleIds.current.has(selected), selectedIndex=visible.findIndex(c=>c.id===selected)
   return <section ref={rootRef} className={[s.page,css.root].join(' ')} data-component-center data-layout={layout.wide?'wide':'single'} data-pane={pane} style={{height:layout.height}}>
-    <div className={`${s.heading} ${css.heading}`}><div><h2>组件中心</h2><span className={s.muted}>整理组件，查看适配能力、插件来源与使用关系。</span></div><div className={s.actions}>{!embedded&&origin&&<button className={s.button} onClick={()=>returnNavigation(origin)}>← 返回{origin.label}</button>}{onClose&&<button className={s.button} onClick={onClose}>返回组件组合</button>}<button className={s.button} onClick={()=>openCapabilityLink({section:'capability-center'})}>能力中心 ↗</button><button className={`${s.button} ${s.primary}`} disabled={!supported} onClick={()=>{setCandidateOperationId(crypto.randomUUID());setAdding(true)}}>＋ 添加组件</button></div></div>
+    <div className={`${s.heading} ${css.heading}`}><div><h2>组件库</h2><span className={s.muted}>整理组件，查看适配能力、插件来源与使用关系。</span></div><div className={s.actions}>{!embedded&&origin&&<button className={s.button} onClick={()=>returnNavigation(origin)}>← 返回{origin.label}</button>}{onClose&&<button className={s.button} onClick={onClose}>返回组件组合</button>}{!embedded&&(!integrated||!origin)&&<button className={s.button} onClick={()=>openCapabilityLink({section:'capability-center'})}>{integrated?'← 返回能力中心':'能力中心 ↗'}</button>}<button className={`${s.button} ${s.primary}`} disabled={!supported} onClick={()=>{setCandidateOperationId(crypto.randomUUID());setAdding(true)}}>＋ 添加组件</button></div></div>
     {!supported&&<p className={s.notice}>组件登记服务待更新。可以浏览现有组件；正常重启工作台后再编辑登记信息。</p>}
     {!embedded&&<JevOverview/>}
     {(message||error)&&<p role={message.includes('已')?'status':'alert'} className={s.notice}>{message||error}</p>}

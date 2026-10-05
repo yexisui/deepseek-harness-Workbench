@@ -1,0 +1,3 @@
+.plugins { min-width: 0; }
+/* The host provides one return control that stays available on every plugin tab. */
+.plugins [data-plugin-inventory-return] { display: none; }

@@ -93,7 +93,7 @@ it('NR06 retains project A configuration when declining a switch to project B',a
 
 it('NR07 returns from plugin management to the filled candidate registration form',async()=>{
  await render(<ComponentCenter/>);await click('＋ 添加组件');await fill(field('组件名称'),'待登记资料组件');await fill(field('提供插件完整包名'),'@qa/plugin');await click('前往插件管理 ↗');expect(lastCapabilityLink()?.origin?.section).toBe('component-center')
- await remount(<InventoryTree list={async()=>({entries:[]})}/>);await click('← 返回组件中心');await remount(<ComponentCenter/>);expect(field('组件名称').value).toBe('待登记资料组件');expect(field('提供插件完整包名').value).toBe('@qa/plugin')
+ await remount(<InventoryTree list={async()=>({entries:[]})}/>);await click('← 返回组件库');await remount(<ComponentCenter/>);expect(field('组件名称').value).toBe('待登记资料组件');expect(field('提供插件完整包名').value).toBe('@qa/plugin')
 })
 
 it('NR08 preserves component context on plugin capability references',async()=>{
@@ -132,13 +132,13 @@ it('NR16 consumes the old plugin locator and preserves the latest search on reen
 })
 
 it('NR17 restores usage and list origins instead of forcing component overview',async()=>{
- await render(<ComponentCenter/>);await click('项目文件与开发对话');await click('使用关系');await click('查看能力 ↗');await remount(<ManagedCenter/>);await click('← 返回组件中心');await remount(<ComponentCenter/>);expect(button('使用关系')?.getAttribute('aria-pressed')).toBe('true')
+ await render(<ComponentCenter/>);await click('项目文件与开发对话');await click('使用关系');await click('查看能力 ↗');await remount(<ManagedCenter/>);await click('← 返回组件库');await remount(<ComponentCenter/>);expect(button('使用关系')?.getAttribute('aria-pressed')).toBe('true')
  await click('← 返回组件列表');await remount(<p>Other settings</p>);await remount(<ComponentCenter/>);expect(host.querySelector('[data-component-center]')?.getAttribute('data-pane')).toBe('list')
- const item=Array.from(host.querySelectorAll('article')).find(e=>e.textContent?.includes('项目文件与开发对话'))!;await click('开发工作区',item);await remount(<ManagedCenter/>);await click('← 返回组件中心');await remount(<ComponentCenter/>);expect(host.querySelector('[data-component-center]')?.getAttribute('data-pane')).toBe('list')
+ const item=Array.from(host.querySelectorAll('article')).find(e=>e.textContent?.includes('项目文件与开发对话'))!;await click('开发工作区',item);await remount(<ManagedCenter/>);await click('← 返回组件库');await remount(<ComponentCenter/>);expect(host.querySelector('[data-component-center]')?.getAttribute('data-pane')).toBe('list')
 })
 
 it('NR18 returns through plugin and capability pages one layer at a time',async()=>{
- await render(<ComponentCenter/>);await click('项目文件与开发对话');await click('使用关系');await click('查看能力 ↗');await remount(<ManagedCenter/>);await act(async()=>{openCapabilityLink({section:'plugins',moduleName:'@qa/plugin'});await new Promise(r=>setTimeout(r,15))});await remount(<InventoryTree list={async()=>({entries:[]})}/>);await click('← 返回能力中心');await remount(<ManagedCenter/>);expect(host.querySelector('[data-workflow-capability-detail]')?.getAttribute('data-workflow-capability-detail')).toBe('developer-workspace');await click('← 返回组件中心');await remount(<ComponentCenter/>);expect(button('使用关系')?.getAttribute('aria-pressed')).toBe('true')
+ await render(<ComponentCenter/>);await click('项目文件与开发对话');await click('使用关系');await click('查看能力 ↗');await remount(<ManagedCenter/>);await act(async()=>{openCapabilityLink({section:'plugins',moduleName:'@qa/plugin'});await new Promise(r=>setTimeout(r,15))});await remount(<InventoryTree list={async()=>({entries:[]})}/>);await click('← 返回能力中心');await remount(<ManagedCenter/>);expect(host.querySelector('[data-workflow-capability-detail]')?.getAttribute('data-workflow-capability-detail')).toBe('developer-workspace');await click('← 返回组件库');await remount(<ComponentCenter/>);expect(button('使用关系')?.getAttribute('aria-pressed')).toBe('true')
 })
 
 it('NR19 restores the nested role, capability editor and component library after visiting plugins',async()=>{
@@ -152,7 +152,7 @@ it('NR20 guards legacy direct navigation events before any mounted page changes'
 })
 
 it('NR21 restores plugin search after traversing component and capability details',async()=>{
- await render(<InventoryTree list={async()=>({entries:[]})}/>);await fill(host.querySelector('input[type="search"]')!,'我的来源查找');await act(async()=>{capabilityLink('component-center',undefined,undefined,{componentId:'developer-files',tab:'usage'});await new Promise(r=>setTimeout(r,15))});await remount(<ComponentCenter/>);await click('查看能力 ↗');await remount(<ManagedCenter/>);await click('← 返回组件中心');await remount(<ComponentCenter/>);await click('← 返回插件管理');await remount(<InventoryTree list={async()=>({entries:[]})}/>);expect(host.querySelector<HTMLInputElement>('input[type="search"]')!.value).toBe('我的来源查找');expect(button('← 返回组件中心')).toBeUndefined()
+ await render(<InventoryTree list={async()=>({entries:[]})}/>);await fill(host.querySelector('input[type="search"]')!,'我的来源查找');await act(async()=>{capabilityLink('component-center',undefined,undefined,{componentId:'developer-files',tab:'usage'});await new Promise(r=>setTimeout(r,15))});await remount(<ComponentCenter/>);await click('查看能力 ↗');await remount(<ManagedCenter/>);await click('← 返回组件库');await remount(<ComponentCenter/>);await click('← 返回插件管理');await remount(<InventoryTree list={async()=>({entries:[]})}/>);expect(host.querySelector<HTMLInputElement>('input[type="search"]')!.value).toBe('我的来源查找');expect(button('← 返回组件中心')).toBeUndefined()
 })
 
 it('NR22 protects meeting configuration when declining global departure',async()=>{

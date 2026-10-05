@@ -2,6 +2,7 @@ import { requestLeave } from '../../../dsh-plugin-manager/src/client/workbench-n
 import React, { Children, cloneElement, isValidElement, useEffect, useRef, useSyncExternalStore, type ReactElement, type ReactNode } from 'react'
 import type { SettingsNavigation } from './role-ui-state.ts'
 import styles from './AppearanceNavigation.module.css'
+import { SettingsSectionContent } from './SettingsSectionContent.tsx'
 
 const appearanceIds = new Set(['skin-center', 'pet', 'dsh-workshop'])
 type NodeProps = { children?: ReactNode; [key: string]: any }
@@ -79,6 +80,6 @@ export function withAppearanceNavigation(Original: View, label: () => string, na
       if (panel) { panel.props.onSelect(navigation?.getSection() ?? 'agent-presets'); handled.current = request }
       else trigger?.props.onClick()
     }, [request, panel, trigger])
-    return transform(tree)
+    return <SettingsSectionContent.Provider value={typeof props.renderSlot === 'function' ? id => props.renderSlot('settings.section', { close: panel?.props.onClose }, { only: id }) : undefined}>{transform(tree)}</SettingsSectionContent.Provider>
   }
 }
