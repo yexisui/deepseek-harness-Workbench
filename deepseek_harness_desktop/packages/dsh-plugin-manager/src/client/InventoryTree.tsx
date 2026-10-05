@@ -2,6 +2,7 @@ import { consumeNavigation, legacyOrigin, pendingNavigation, restoredFrame, retu
 import React, { useEffect, useMemo, useState } from 'react'
 import { entryKey, entryFacts, removeCategory, type Classification, type InventoryEntry } from '../core/classification.ts'
 import css from './inventory-tree.module.css'
+import { useAiClassification, AiClassificationFeedback } from './AiClassification.tsx'
 import { InventoryIcon } from './InventoryIcon.tsx'
 import { CapabilityReferences, capabilityLink, useCapabilityReferences } from './CapabilityReferences.tsx'
 
@@ -40,6 +41,8 @@ export function InventoryTree({list,presetName,componentId,componentData,compact
  useEffect(()=>{if(!compact){try{sessionStorage.setItem('workbench-plugin-view',JSON.stringify({query,opened,chosen,relatedId,focusEntry}))}catch{}}},[compact,query,opened,chosen,relatedId,focusEntry])
  const refresh=async()=>{setError('');try{const [s,c]=await Promise.all([inventoryRequest(list),classificationRequest()]);setSnapshot(s);setConfig(c)}catch(e){setError(String(e))}}
  useEffect(()=>{let current=true;Promise.all([inventoryRequest(list),classificationRequest()]).then(([s,c])=>{if(current){setSnapshot(s);setConfig(c)}}).catch(e=>{if(current)setError(String(e))});return()=>{current=false}},[list])
+ const ai=useAiClassification(!compact&&!relatedId,()=>{void refresh();window.dispatchEvent(new Event('plugin-classification-changed'))})
+ useEffect(()=>{const changed=()=>void refresh();window.addEventListener('plugin-classification-changed',changed);return()=>window.removeEventListener('plugin-classification-changed',changed)},[list])
  const current=draft??config
  const presets=snapshot?.agentPresets??[]
  const preset=presets.find(p=>p.id===chosen)??presets.find(p=>p.isDefault)??presets[0]
@@ -64,20 +67,22 @@ export function InventoryTree({list,presetName,componentId,componentData,compact
  }
  const grid=(entries:InventoryEntry[],session=false)=><div className={css.grid}>{[...entries].sort((a,b)=>Number(b.fiberPhase==='failed')-Number(a.fiberPhase==='failed')).map(e=>card(e,session))}</div>
  const section=(id:string,title:string,all:InventoryEntry[],content:React.ReactNode,extra='',empty=false)=>{
-   const found=all.filter(e=>matches(e,extra||title));if((q||descriptor)&&!found.length)return null
+   const found=all.filter(e=>matches(e,extra||title));if((q||descriptor)&&!found.length&&!(id==='undefined'&&!compact&&!relatedId))return null
    const isOpen=q?true:(opened[id]??(compact&&!id.startsWith('module-'))),failed=all.filter(e=>e.fiberPhase==='failed').length
    const isModule=id.startsWith('module-'), isUndefined=id==='undefined'
    const moduleId=id.replace(/^module-/,''), groupId=id.replace(/^group-/,'')
    const group=isModule?current?.modules.find(m=>m.id===moduleId)?.groupId:groupId
    const tone=isUndefined?'amber':group==='extensions'?'violet':'blue'
    const moduleCount=current?.modules.filter(m=>m.groupId===groupId&&(!descriptor||rows.some(e=>current.assignments[entryKey(e)]===m.id))).length??0
-   return <section className={css.branch} key={id} data-level={isModule?'module':'group'} data-open={isOpen} data-tone={tone}>
-    <button className={css.branchButton} onClick={()=>toggle(id)} aria-expanded={isOpen} aria-controls={'tree-'+id}>
+   const showAI=isUndefined&&!compact&&!relatedId
+   const heading=<button className={css.branchButton} onClick={()=>toggle(id)} aria-expanded={isOpen} aria-controls={'tree-'+id}>
      <span className={css.branchIcon}><InventoryIcon name={isModule?moduleId:isUndefined?'inbox':groupId==='core'?'layers':'grid'}/></span>
      <span className={css.branchLabel}><span className={css.branchTitle}>{title}</span>{!isModule&&<span className={css.branchHint}>{isUndefined?(all.length?'新加入的插件，从这里开始整理':'新加入的插件会收纳在这里'):`${moduleCount} 个功能模块`}</span>}</span>
-     <span className={css.branchMeta}>{failed>0&&<span className={css.failureCount}>{failed} 项失败</span>}<span className={css.count}>{q?`${found.length} / ${all.length}`:all.length}<span className={css.countUnit}>个</span></span></span>
-     <InventoryIcon name="chevron" className={css.chevron}/>
+     {!showAI&&<><span className={css.branchMeta}>{failed>0&&<span className={css.failureCount}>{failed} 项失败</span>}<span className={css.count}>{q?`${found.length} / ${all.length}`:all.length}<span className={css.countUnit}>个</span></span></span><InventoryIcon name="chevron" className={css.chevron}/></>}
     </button>
+   return <section className={css.branch} key={id} data-level={isModule?'module':'group'} data-open={isOpen} data-tone={tone}>
+    {showAI?<div className={css.aiHeader}>{heading}<div className={css.aiActions}><button className={css.aiButton} disabled={!!draft||busy||(!all.length&&!ai.running)} title={draft?'请先保存或取消手动分类':!all.length?'暂无需要分类的插件':`使用已有模型，处理全部 ${all.length} 项未定义插件`} onClick={()=>void (ai.running?ai.cancel():ai.start())}><InventoryIcon name={ai.running?'refresh':'spark'}/>{ai.running?'取消分类':'AI 自动分类'}</button><button className={css.aiToggle} aria-label={isOpen?'收起未定义区':'展开未定义区'} aria-expanded={isOpen} aria-controls={'tree-'+id} onClick={()=>toggle(id)}><span className={css.count}>{all.length}<span className={css.countUnit}>个</span></span><InventoryIcon name="chevron" className={css.chevron}/></button></div></div>:heading}
+    {showAI&&<AiClassificationFeedback ai={ai} disabled={!!draft||busy}/>}
     {isOpen&&<div id={'tree-'+id} className={css.children}>{empty?<div className={css.emptyState}><InventoryIcon name="inbox"/><span>暂无待分类插件<small>导入新插件后，可以在这里为它选择模块。</small></span></div>:content}</div>}
    </section>
  }
@@ -87,7 +92,7 @@ export function InventoryTree({list,presetName,componentId,componentData,compact
  const removeCount=remove&&current?rows.filter(r=>{const m=current.modules.find(m=>m.id===current.assignments[entryKey(r)]);return remove.group?m?.groupId===remove.id:m?.id===remove.id}).length:0
  return <div className={css.root} data-component-id={compact?relatedId:undefined} data-inventory-ready={!!snapshot&&!!current}>
   {!compact&&origin&&<button className={css.toolButton} onClick={()=>returnNavigation(origin)}>← 返回{origin.label}</button>}
-  <div className={css.toolbar}><label className={css.search}><InventoryIcon name="search"/><input type="search" aria-label="搜索插件" placeholder="搜索插件、用途或模块" value={query} onChange={e=>setQuery(e.target.value)}/></label><button className={css.toolButton} disabled={busy||!!draft} onClick={()=>void refresh()}><InventoryIcon name="refresh"/>刷新</button><button hidden={compact} className={css.toolButton} disabled={!config||busy||!!draft} onClick={()=>{setDraft(structuredClone(config!));setSelected([])}}><InventoryIcon name="grid"/>管理分类</button></div>
+  <div className={css.toolbar}><label className={css.search}><InventoryIcon name="search"/><input type="search" aria-label="搜索插件" placeholder="搜索插件、用途或模块" value={query} onChange={e=>setQuery(e.target.value)}/></label><button className={css.toolButton} disabled={busy||!!draft} onClick={()=>void refresh()}><InventoryIcon name="refresh"/>刷新</button><button hidden={compact} className={css.toolButton} disabled={!config||busy||!!draft||ai.running} onClick={()=>{setDraft(structuredClone(config!));setSelected([])}}><InventoryIcon name="grid"/>管理分类</button></div>
   {descriptor&&<p className={css.scopeDescription}>当前组件：{descriptor.name} · 仅显示精确关联的插件和预设条目{!compact&&<button className={css.toolButton} onClick={()=>{setRelatedId(undefined);setFocusEntry(undefined);setQuery('')}}>查看全部插件</button>}</p>}
   {error&&<p role="alert" className={css.error}>{error}</p>}
   {!snapshot||!current?<p>正在读取插件清单…</p>:<>

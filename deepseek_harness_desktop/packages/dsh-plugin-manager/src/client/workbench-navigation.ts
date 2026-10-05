@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef } from 'react'
 export type NavigationFrame = { kind: string; section: string; label: string; view?: any; origin?: NavigationLocation }
 export type NavigationLocation = { section: string; label: string; frames: NavigationFrame[] }
 export type WorkbenchLink = { section: string; capabilityId?: string; componentId?: string; moduleName?: string; tab?: string; entryId?: string; scope?: string; returnTo?: 'component-center'; edit?: boolean; addComponent?: boolean; requestId?: string; origin?: NavigationLocation; restore?: NavigationLocation }
-type Guard = { dirty: () => boolean; discard: () => void }
+type Guard = { dirty: () => boolean; discard: () => void; message?: () => string | undefined }
 type NavigationStore = { frames: Map<symbol,{ depth: number; read: () => NavigationFrame }>; guards: Map<symbol,Guard> }
 const storeKey = Symbol.for('dsh.workbench.navigation.v1')
 function store(): NavigationStore {
@@ -24,10 +24,10 @@ export function useNavigationFrame(kind: string, depth: number, read: () => Omit
   const current = useRef(read); current.current = read
   useLayoutEffect(() => { if (!enabled) return; const id = Symbol(kind); store().frames.set(id,{depth,read:()=>({kind,...current.current()})}); return () => { store().frames.delete(id) } },[kind,depth,enabled])
 }
-export function useLeaveGuard(dirty: boolean, discard: () => void) {
-  const current = useRef({dirty,discard}); current.current = {dirty,discard}
+export function useLeaveGuard(dirty: boolean, discard: () => void, message?: string) {
+  const current = useRef({dirty,discard,message}); current.current = {dirty,discard,message}
   useLayoutEffect(() => {
-    const id = Symbol('guard'); store().guards.set(id,{dirty:()=>current.current.dirty,discard:()=>{const discard=current.current.discard;current.current.dirty=false;discard()}})
+    const id = Symbol('guard'); store().guards.set(id,{dirty:()=>current.current.dirty,message:()=>current.current.message,discard:()=>{const discard=current.current.discard;current.current.dirty=false;discard()}})
     const beforeLink = (event: Event) => { if (!requestLeave()) { consumeNavigation((event as CustomEvent).detail); event.stopImmediatePropagation() } }
     window.addEventListener('workbench-capability-link',beforeLink,true)
     return () => { store().guards.delete(id);window.removeEventListener('workbench-capability-link',beforeLink,true) }
@@ -37,7 +37,7 @@ export function requestLeave(): boolean {
   if (typeof window === 'undefined') return true
   const dirty = [...store().guards.values()].filter(guard=>guard.dirty())
   if (!dirty.length) return true
-  if (!window.confirm('当前配置尚未保存，确定放弃修改并离开？')) return false
+  if (!window.confirm([...new Set(dirty.map(guard=>guard.message?.()??'当前配置尚未保存，确定放弃修改并离开？'))].join('\n'))) return false
   dirty.forEach(guard=>guard.discard()); return true
 }
 export function captureNavigation(): NavigationLocation | undefined {

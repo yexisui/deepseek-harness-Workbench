@@ -281,19 +281,22 @@ window.__ModuleLoader__.load({
 				enabled
 			]);
 		}
-		function useLeaveGuard(dirty, discard) {
+		function useLeaveGuard(dirty, discard, message) {
 			const current = (0, react.useRef)({
 				dirty,
-				discard
+				discard,
+				message
 			});
 			current.current = {
 				dirty,
-				discard
+				discard,
+				message
 			};
 			(0, react.useLayoutEffect)(() => {
 				const id = Symbol("guard");
 				store().guards.set(id, {
 					dirty: () => current.current.dirty,
+					message: () => current.current.message,
 					discard: () => {
 						const discard = current.current.discard;
 						current.current.dirty = false;
@@ -317,7 +320,7 @@ window.__ModuleLoader__.load({
 			if (typeof window === "undefined") return true;
 			const dirty = [...store().guards.values()].filter((guard) => guard.dirty());
 			if (!dirty.length) return true;
-			if (!window.confirm("当前配置尚未保存，确定放弃修改并离开？")) return false;
+			if (!window.confirm([...new Set(dirty.map((guard) => guard.message?.() ?? "当前配置尚未保存，确定放弃修改并离开？"))].join("\n"))) return false;
 			dirty.forEach((guard) => guard.discard());
 			return true;
 		}
@@ -2267,7 +2270,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-plugin-manager/src/client/inventory-tree.module.css.mjs
-		const css$12 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=639px){.Z_0aEG_root[data-component-id] .Z_0aEG_moduleList,.Z_0aEG_root[data-component-id] .Z_0aEG_grid{grid-template-columns:1fr}}";
+		const css$12 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=639px){.Z_0aEG_root[data-component-id] .Z_0aEG_moduleList,.Z_0aEG_root[data-component-id] .Z_0aEG_grid{grid-template-columns:1fr}}.Z_0aEG_aiHeader{align-items:center;gap:8px;padding-right:14px;display:flex}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex:1;width:auto;min-width:0}.Z_0aEG_aiActions{flex-shrink:0;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_aiButton{border-color:color-mix(in srgb,var(--tree-tone) 25%,var(--tree-border));background:color-mix(in srgb,var(--tree-tone) 6%,var(--tree-bg));white-space:nowrap;justify-content:center;align-items:center;gap:6px;font-size:12px;display:inline-flex}.Z_0aEG_aiButton svg{width:15px;height:15px}.Z_0aEG_root .Z_0aEG_aiToggle{background:0 0;border:0;align-items:center;gap:12px;padding:8px 0;display:flex}.Z_0aEG_aiFeedback{background:var(--tree-bg);color:var(--tree-text);border-radius:10px;margin:0 14px 12px;padding:11px 12px;font-size:12px;line-height:1.7}.Z_0aEG_aiFeedback small{color:var(--tree-muted);font-size:11px;display:block}.Z_0aEG_aiFeedback summary{cursor:pointer;color:var(--tree-accent);padding:7px 0}.Z_0aEG_aiFeedback ul{max-height:240px;margin:0;padding:0;list-style:none;overflow:auto}.Z_0aEG_aiFeedback li{border-top:1px solid var(--tree-border);overflow-wrap:anywhere;gap:3px;padding:9px 0;display:grid}.Z_0aEG_aiFeedback button{margin-top:8px;font-size:12px}@container (width<=520px){.Z_0aEG_aiHeader{flex-wrap:wrap;gap:0;padding-right:0}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex-basis:100%}.Z_0aEG_aiActions{justify-content:space-between;width:100%;padding:0 13px 12px}.Z_0aEG_aiFeedback{margin-inline:9px}}";
 		const tagId$12 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-plugin-manager/src/client/inventory-tree.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$12) + "]") === null) {
 			const tag = document.createElement("style");
@@ -2277,6 +2280,11 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var inventory_tree_module_css_default = {
+			"aiActions": "Z_0aEG_aiActions",
+			"aiButton": "Z_0aEG_aiButton",
+			"aiFeedback": "Z_0aEG_aiFeedback",
+			"aiHeader": "Z_0aEG_aiHeader",
+			"aiToggle": "Z_0aEG_aiToggle",
 			"badge": "Z_0aEG_badge",
 			"branch": "Z_0aEG_branch",
 			"branchButton": "Z_0aEG_branchButton",
@@ -2320,6 +2328,198 @@ window.__ModuleLoader__.load({
 			"toolbar": "Z_0aEG_toolbar",
 			"treeReveal": "Z_0aEG_treeReveal"
 		};
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/AiClassification.tsx
+		async function request$2(action, body) {
+			const response = await fetch("/api/plugin-manager/ai/" + action, body ? {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(body),
+				keepalive: true
+			} : void 0);
+			const data = await response.json();
+			if (!response.ok) throw Error(data.error ?? "AI 分类请求失败");
+			return data;
+		}
+		function useAiClassification(enabled, onChanged) {
+			const [job, setJob] = (0, react.useState)(), [report, setReport] = (0, react.useState)(), [error, setError] = (0, react.useState)(""), [working, setWorking] = (0, react.useState)(false);
+			const latest = (0, react.useRef)(onChanged);
+			latest.current = onChanged;
+			const owned = (0, react.useRef)(), mounted = (0, react.useRef)(false), seen = (0, react.useRef)(""), generation = (0, react.useRef)(0);
+			const apply = (0, react.useCallback)((data) => {
+				if (!mounted.current) return;
+				setJob(data.job);
+				setReport(data.job?.report ?? data.report);
+				const result = data.job?.report ?? data.report, stamp = result ? JSON.stringify(result) : "";
+				if (stamp && seen.current && seen.current !== stamp) latest.current();
+				if (data.job?.phase === "done" && owned.current === data.job.id) {
+					owned.current = void 0;
+					latest.current();
+				}
+				if (data.job?.phase === "cancelled" || data.job?.phase === "failed") owned.current = void 0;
+				seen.current = stamp || "loaded";
+			}, []);
+			const cancel = (0, react.useCallback)(async () => {
+				const id = owned.current ?? job?.id;
+				if (!id) return;
+				try {
+					generation.current++;
+					const data = await request$2("cancel", { id });
+					apply(data);
+					owned.current = void 0;
+				} catch (e) {
+					if (mounted.current) setError(String(e));
+				}
+			}, [job?.id, apply]);
+			const running = working || job?.phase === "running";
+			useLeaveGuard(enabled && running && !!owned.current, () => {
+				cancel();
+			}, "AI 正在分类，确定取消本次分类并离开？尚未保存的结果将丢弃。");
+			(0, react.useEffect)(() => {
+				mounted.current = true;
+				if (!enabled) return () => {
+					mounted.current = false;
+				};
+				let inFlight = false;
+				const poll = async () => {
+					if (inFlight) return;
+					inFlight = true;
+					const version = generation.current;
+					try {
+						const data = await request$2("status");
+						if (version === generation.current) apply(data);
+					} catch (e) {
+						if (mounted.current) setError(String(e));
+					} finally {
+						inFlight = false;
+					}
+				};
+				poll();
+				const timer = setInterval(() => void poll(), 1200);
+				const beforeUnload = (event) => {
+					if (owned.current) {
+						event.preventDefault();
+						event.returnValue = "";
+					}
+				};
+				const pageHide = () => {
+					if (owned.current) request$2("cancel", { id: owned.current }).catch(() => {});
+				};
+				window.addEventListener("beforeunload", beforeUnload);
+				window.addEventListener("pagehide", pageHide);
+				return () => {
+					mounted.current = false;
+					clearInterval(timer);
+					window.removeEventListener("beforeunload", beforeUnload);
+					window.removeEventListener("pagehide", pageHide);
+					pageHide();
+				};
+			}, [enabled, apply]);
+			const start = async () => {
+				if (running) return;
+				generation.current++;
+				const id = crypto.randomUUID();
+				owned.current = id;
+				setWorking(true);
+				setError("");
+				setJob({
+					id,
+					phase: "running",
+					total: 0,
+					processed: 0,
+					model: ""
+				});
+				try {
+					const result = await request$2("start", { id });
+					if (!mounted.current) {
+						request$2("cancel", { id }).catch(() => {});
+						return;
+					}
+					if (result.id !== id) owned.current = void 0;
+					apply({ job: result });
+				} catch (e) {
+					if (mounted.current) {
+						setError(String(e));
+						try {
+							apply(await request$2("status"));
+						} catch {}
+					}
+				} finally {
+					if (mounted.current) setWorking(false);
+				}
+			};
+			const undo = async () => {
+				if (!report || running) return;
+				generation.current++;
+				setWorking(true);
+				setError("");
+				try {
+					apply(await request$2("undo", { id: report.id }));
+					latest.current();
+				} catch (e) {
+					setError(String(e));
+				} finally {
+					setWorking(false);
+				}
+			};
+			return {
+				job,
+				report,
+				error,
+				running,
+				start,
+				cancel,
+				undo
+			};
+		}
+		function AiClassificationFeedback({ ai, disabled }) {
+			const { job, report, error, running } = ai;
+			if (!job && !report && !error) return null;
+			const count = (status) => report?.results.filter((r) => r.status === status).length ?? 0;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: inventory_tree_module_css_default.aiFeedback,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						role: "status",
+						"aria-live": "polite",
+						children: running ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
+							"正在分类 ",
+							job?.total || "全部未定义",
+							" 项",
+							job?.total ? ` · 已分析 ${job.processed} / ${job.total}` : "",
+							job?.model && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["使用：", job.model] })
+						] }) : job?.phase === "cancelled" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "已取消，尚未保存的结果已丢弃。" }) : job?.phase === "failed" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							className: inventory_tree_module_css_default.error,
+							children: job.error
+						}) : report ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
+							report.undone ? `已撤销 ${count("undone")} 项` : `已分类 ${count("applied")} 项`,
+							count("unclassified") + count("failed") > 0 ? `，${count("unclassified") + count("failed")} 项仍待整理` : "",
+							count("skipped") > 0 ? `，${count("skipped")} 项已有变化，已跳过` : "",
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["使用：", report.model] })
+						] }) : null
+					}),
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: inventory_tree_module_css_default.error,
+						role: "alert",
+						children: error
+					}),
+					(error || job?.phase === "failed") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						onClick: () => openWorkbenchLink({ section: "models" }),
+						children: "前往模型设置"
+					}),
+					!running && report && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "查看分类结果" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", { children: report.results.map((r) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: r.name }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: r.status === "applied" ? r.target : r.status === "undone" ? "已退回未定义区" : r.status === "skipped" ? "保留当前归属" : "留在未定义区" }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: r.reason })
+					] }, r.key)) })] }),
+					!running && report && !report.undone && count("applied") > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						disabled,
+						onClick: () => void ai.undo(),
+						children: "撤销本次分类"
+					})
+				]
+			});
+		}
 		//#endregion
 		//#region ../dsh-plugin-manager/src/client/InventoryIcon.tsx
 		const paths = {
@@ -2751,6 +2951,15 @@ window.__ModuleLoader__.load({
 					current = false;
 				};
 			}, [list]);
+			const ai = useAiClassification(!compact && !relatedId, () => {
+				refresh();
+				window.dispatchEvent(new Event("plugin-classification-changed"));
+			});
+			(0, react.useEffect)(() => {
+				const changed = () => void refresh();
+				window.addEventListener("plugin-classification-changed", changed);
+				return () => window.removeEventListener("plugin-classification-changed", changed);
+			}, [list]);
 			const current = draft ?? config;
 			const presets = snapshot?.agentPresets ?? [];
 			const preset = presets.find((p) => p.id === chosen) ?? presets.find((p) => p.isDefault) ?? presets[0];
@@ -2857,64 +3066,100 @@ window.__ModuleLoader__.load({
 			});
 			const section = (id, title, all, content, extra = "", empty = false) => {
 				const found = all.filter((e) => matches(e, extra || title));
-				if ((q || descriptor) && !found.length) return null;
+				if ((q || descriptor) && !found.length && !(id === "undefined" && !compact && !relatedId)) return null;
 				const isOpen = q ? true : opened[id] ?? (compact && !id.startsWith("module-")), failed = all.filter((e) => e.fiberPhase === "failed").length;
 				const isModule = id.startsWith("module-"), isUndefined = id === "undefined";
 				const moduleId = id.replace(/^module-/, ""), groupId = id.replace(/^group-/, "");
 				const group = isModule ? current?.modules.find((m) => m.id === moduleId)?.groupId : groupId;
 				const tone = isUndefined ? "amber" : group === "extensions" ? "violet" : "blue";
 				const moduleCount = current?.modules.filter((m) => m.groupId === groupId && (!descriptor || rows.some((e) => current.assignments[entryKey(e)] === m.id))).length ?? 0;
+				const showAI = isUndefined && !compact && !relatedId;
+				const heading = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+					className: inventory_tree_module_css_default.branchButton,
+					onClick: () => toggle(id),
+					"aria-expanded": isOpen,
+					"aria-controls": "tree-" + id,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							className: inventory_tree_module_css_default.branchIcon,
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: isModule ? moduleId : isUndefined ? "inbox" : groupId === "core" ? "layers" : "grid" })
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+							className: inventory_tree_module_css_default.branchLabel,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: inventory_tree_module_css_default.branchTitle,
+								children: title
+							}), !isModule && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: inventory_tree_module_css_default.branchHint,
+								children: isUndefined ? all.length ? "新加入的插件，从这里开始整理" : "新加入的插件会收纳在这里" : `${moduleCount} 个功能模块`
+							})]
+						}),
+						!showAI && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+							className: inventory_tree_module_css_default.branchMeta,
+							children: [failed > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+								className: inventory_tree_module_css_default.failureCount,
+								children: [failed, " 项失败"]
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+								className: inventory_tree_module_css_default.count,
+								children: [q ? `${found.length} / ${all.length}` : all.length, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									className: inventory_tree_module_css_default.countUnit,
+									children: "个"
+								})]
+							})]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, {
+							name: "chevron",
+							className: inventory_tree_module_css_default.chevron
+						})] })
+					]
+				});
 				return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
 					className: inventory_tree_module_css_default.branch,
 					"data-level": isModule ? "module" : "group",
 					"data-open": isOpen,
 					"data-tone": tone,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-						className: inventory_tree_module_css_default.branchButton,
-						onClick: () => toggle(id),
-						"aria-expanded": isOpen,
-						"aria-controls": "tree-" + id,
-						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-								className: inventory_tree_module_css_default.branchIcon,
-								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: isModule ? moduleId : isUndefined ? "inbox" : groupId === "core" ? "layers" : "grid" })
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-								className: inventory_tree_module_css_default.branchLabel,
-								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-									className: inventory_tree_module_css_default.branchTitle,
-									children: title
-								}), !isModule && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-									className: inventory_tree_module_css_default.branchHint,
-									children: isUndefined ? all.length ? "新加入的插件，从这里开始整理" : "新加入的插件会收纳在这里" : `${moduleCount} 个功能模块`
-								})]
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-								className: inventory_tree_module_css_default.branchMeta,
-								children: [failed > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-									className: inventory_tree_module_css_default.failureCount,
-									children: [failed, " 项失败"]
-								}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-									className: inventory_tree_module_css_default.count,
-									children: [q ? `${found.length} / ${all.length}` : all.length, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										className: inventory_tree_module_css_default.countUnit,
-										children: "个"
+					children: [
+						showAI ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: inventory_tree_module_css_default.aiHeader,
+							children: [heading, /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: inventory_tree_module_css_default.aiActions,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									className: inventory_tree_module_css_default.aiButton,
+									disabled: !!draft || busy || !all.length && !ai.running,
+									title: draft ? "请先保存或取消手动分类" : !all.length ? "暂无需要分类的插件" : `使用已有模型，处理全部 ${all.length} 项未定义插件`,
+									onClick: () => void (ai.running ? ai.cancel() : ai.start()),
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: ai.running ? "refresh" : "spark" }), ai.running ? "取消分类" : "AI 自动分类"]
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									className: inventory_tree_module_css_default.aiToggle,
+									"aria-label": isOpen ? "收起未定义区" : "展开未定义区",
+									"aria-expanded": isOpen,
+									"aria-controls": "tree-" + id,
+									onClick: () => toggle(id),
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+										className: inventory_tree_module_css_default.count,
+										children: [all.length, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+											className: inventory_tree_module_css_default.countUnit,
+											children: "个"
+										})]
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, {
+										name: "chevron",
+										className: inventory_tree_module_css_default.chevron
 									})]
 								})]
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, {
-								name: "chevron",
-								className: inventory_tree_module_css_default.chevron
-							})
-						]
-					}), isOpen && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-						id: "tree-" + id,
-						className: inventory_tree_module_css_default.children,
-						children: empty ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							className: inventory_tree_module_css_default.emptyState,
-							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "inbox" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: ["暂无待分类插件", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "导入新插件后，可以在这里为它选择模块。" })] })]
-						}) : content
-					})]
+							})]
+						}) : heading,
+						showAI && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(AiClassificationFeedback, {
+							ai,
+							disabled: !!draft || busy
+						}),
+						isOpen && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							id: "tree-" + id,
+							className: inventory_tree_module_css_default.children,
+							children: empty ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: inventory_tree_module_css_default.emptyState,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "inbox" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: ["暂无待分类插件", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "导入新插件后，可以在这里为它选择模块。" })] })]
+							}) : content
+						})
+					]
 				}, id);
 			};
 			const setAssignment = (keys, moduleId) => setDraft((old) => old ? {
@@ -2979,7 +3224,7 @@ window.__ModuleLoader__.load({
 							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 								hidden: compact,
 								className: inventory_tree_module_css_default.toolButton,
-								disabled: !config || busy || !!draft,
+								disabled: !config || busy || !!draft || ai.running,
 								onClick: () => {
 									setDraft(structuredClone(config));
 									setSelected([]);

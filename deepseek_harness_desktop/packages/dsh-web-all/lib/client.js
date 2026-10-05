@@ -39,7 +39,8 @@ window.__ModuleLoader__.load({
 		let _deepseek_ai_cordis = require("@deepseek-ai/cordis");
 		let react_jsx_runtime = require("react/jsx-runtime");
 		let react = require("react");
-		react = __toESM(react, 1);
+		let react$1 = __toESM(react, 1);
+		react = __toESM(react);
 		let _deepseek_ai_dsh_client_ui_primitives = require("@deepseek-ai/dsh-client-ui-primitives");
 		let react_dom_client = require("react-dom/client");
 		let react_dom = require("react-dom");
@@ -534,13 +535,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-web-settings/src/client/web-ui-settings.module.css.mjs
-		const css$24 = ".HfjcPG_section{flex-direction:column;display:flex}.HfjcPG_heading{color:var(--dsw-alias-label-primary);margin:0 0 4px;font-size:17px;font-weight:600;line-height:1.4}.HfjcPG_lede{color:var(--dsw-alias-label-tertiary);margin:0 0 12px;font-size:13px;line-height:1.5}.HfjcPG_sectionList{margin:0;padding:0;list-style:none}.HfjcPG_subcards{flex-direction:column;gap:10px;margin:0;padding:0;list-style:none;display:flex}[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(5)>[class*=_navIcon],[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(6)>[class*=_navIcon],[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(7)>[class*=_navIcon],[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(8)>[class*=_navIcon]{display:none}[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(5):before{content:\"\";background:currentColor;flex:none;width:16px;height:16px;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z'/%3E%3C/svg%3E\") 50%/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z'/%3E%3C/svg%3E\") 50%/contain no-repeat}[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(6):before{content:\"\";background:currentColor;flex:none;width:16px;height:16px;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 14a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0-4a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'/%3E%3C/svg%3E\") 50%/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 14a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0-4a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'/%3E%3C/svg%3E\") 50%/contain no-repeat}[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(7):before{content:\"\";background:currentColor;flex:none;width:16px;height:16px;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cellipse cx='8' cy='11' rx='4.2' ry='2.8'/%3E%3Ccircle cx='2.8' cy='6.2' r='1.9'/%3E%3Ccircle cx='8' cy='4.6' r='1.9'/%3E%3Ccircle cx='13.2' cy='6.2' r='1.9'/%3E%3C/svg%3E\") 50%/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cellipse cx='8' cy='11' rx='4.2' ry='2.8'/%3E%3Ccircle cx='2.8' cy='6.2' r='1.9'/%3E%3Ccircle cx='8' cy='4.6' r='1.9'/%3E%3Ccircle cx='13.2' cy='6.2' r='1.9'/%3E%3C/svg%3E\") 50%/contain no-repeat}[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(8):before{content:\"\";background:currentColor;flex:none;width:16px;height:16px;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='5.5' cy='5.5' r='3'/%3E%3Ccircle cx='11' cy='5.5' r='3'/%3E%3Cpath d='M2.5 13.5c0-3 2-4.2 3-4.2H11c1.5 0 3 1.2 3 4.2z'/%3E%3C/svg%3E\") 50%/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='5.5' cy='5.5' r='3'/%3E%3Ccircle cx='11' cy='5.5' r='3'/%3E%3Cpath d='M2.5 13.5c0-3 2-4.2 3-4.2H11c1.5 0 3 1.2 3 4.2z'/%3E%3C/svg%3E\") 50%/contain no-repeat}";
-		const tagId$24 = "@linxin666/dsh-web-all/packages/dsh-web-settings/src/client/web-ui-settings.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$24) + "]") === null) {
+		const css$25 = ".HfjcPG_section{flex-direction:column;display:flex}.HfjcPG_heading{color:var(--dsw-alias-label-primary);margin:0 0 4px;font-size:17px;font-weight:600;line-height:1.4}.HfjcPG_lede{color:var(--dsw-alias-label-tertiary);margin:0 0 12px;font-size:13px;line-height:1.5}.HfjcPG_sectionList{margin:0;padding:0;list-style:none}.HfjcPG_subcards{flex-direction:column;gap:10px;margin:0;padding:0;list-style:none;display:flex}[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(5)>[class*=_navIcon],[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(6)>[class*=_navIcon],[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(7)>[class*=_navIcon],[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(8)>[class*=_navIcon]{display:none}[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(5):before{content:\"\";background:currentColor;flex:none;width:16px;height:16px;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z'/%3E%3C/svg%3E\") 50%/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z'/%3E%3C/svg%3E\") 50%/contain no-repeat}[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(6):before{content:\"\";background:currentColor;flex:none;width:16px;height:16px;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 14a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0-4a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'/%3E%3C/svg%3E\") 50%/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M8 14a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0-4a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'/%3E%3C/svg%3E\") 50%/contain no-repeat}[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(7):before{content:\"\";background:currentColor;flex:none;width:16px;height:16px;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cellipse cx='8' cy='11' rx='4.2' ry='2.8'/%3E%3Ccircle cx='2.8' cy='6.2' r='1.9'/%3E%3Ccircle cx='8' cy='4.6' r='1.9'/%3E%3Ccircle cx='13.2' cy='6.2' r='1.9'/%3E%3C/svg%3E\") 50%/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cellipse cx='8' cy='11' rx='4.2' ry='2.8'/%3E%3Ccircle cx='2.8' cy='6.2' r='1.9'/%3E%3Ccircle cx='8' cy='4.6' r='1.9'/%3E%3Ccircle cx='13.2' cy='6.2' r='1.9'/%3E%3C/svg%3E\") 50%/contain no-repeat}[class*=_navList]:has(>[class*=_navCell]:nth-child(8)):not(:has(>[class*=_navCell]:nth-child(9)))>[class*=_navCell]:nth-child(8):before{content:\"\";background:currentColor;flex:none;width:16px;height:16px;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='5.5' cy='5.5' r='3'/%3E%3Ccircle cx='11' cy='5.5' r='3'/%3E%3Cpath d='M2.5 13.5c0-3 2-4.2 3-4.2H11c1.5 0 3 1.2 3 4.2z'/%3E%3C/svg%3E\") 50%/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='5.5' cy='5.5' r='3'/%3E%3Ccircle cx='11' cy='5.5' r='3'/%3E%3Cpath d='M2.5 13.5c0-3 2-4.2 3-4.2H11c1.5 0 3 1.2 3 4.2z'/%3E%3C/svg%3E\") 50%/contain no-repeat}";
+		const tagId$25 = "@linxin666/dsh-web-all/packages/dsh-web-settings/src/client/web-ui-settings.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$25) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-web-all";
-			tag.dataset.pluginCss = tagId$24;
-			tag.textContent = css$24;
+			tag.dataset.pluginCss = tagId$25;
+			tag.textContent = css$25;
 			document.head.appendChild(tag);
 		}
 		var web_ui_settings_module_css_default = {
@@ -640,30 +641,3265 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region ../dsh-plugin-manager/src/core/conflict.ts
-		/**
-		* Diff two plugin-control snapshots by id. Only entries present in both
-		* snapshots with a changed state are reported; entries appearing or
-		* disappearing are ordinary install/uninstall outcomes, not conflicts.
-		* @param before - snapshot taken before the install.
-		* @param after - snapshot taken after the install.
-		* @returns one change per id whose state moved, in id order.
-		*/
-		function diffControls(before, after) {
-			const afterById = new Map(after.map((item) => [item.id, item]));
-			const changes = [];
-			for (const item of before) {
-				const current = afterById.get(item.id);
-				if (current === void 0 || current.state === item.state) continue;
-				changes.push({
-					id: item.id,
-					name: item.name,
-					from: item.state,
-					to: current.state
-				});
-			}
-			return changes;
+		//#region ../dsh-plugin-manager/src/client/workbench-navigation.ts
+		const storeKey = Symbol.for("dsh.workbench.navigation.v1");
+		function store() {
+			const host = window;
+			return host[storeKey] ??= {
+				frames: /* @__PURE__ */ new Map(),
+				guards: /* @__PURE__ */ new Map()
+			};
 		}
+		const key = "workbench-capability-link";
+		function pendingNavigation(section) {
+			try {
+				const value = JSON.parse(sessionStorage.getItem(key) ?? "null");
+				return value && typeof value.section === "string" && (!section || value.section === section) ? value : void 0;
+			} catch {
+				return;
+			}
+		}
+		function consumeNavigation(link) {
+			if (!link) return;
+			const current = pendingNavigation();
+			if (current && JSON.stringify(current) === JSON.stringify(link)) try {
+				sessionStorage.removeItem(key);
+			} catch {}
+		}
+		function restoredFrame(location, kind) {
+			return location?.frames?.find((frame) => frame.kind === kind);
+		}
+		function useNavigationFrame(kind, depth, read, enabled = true) {
+			const current = (0, react$1.useRef)(read);
+			current.current = read;
+			(0, react$1.useLayoutEffect)(() => {
+				if (!enabled) return;
+				const id = Symbol(kind);
+				store().frames.set(id, {
+					depth,
+					read: () => ({
+						kind,
+						...current.current()
+					})
+				});
+				return () => {
+					store().frames.delete(id);
+				};
+			}, [
+				kind,
+				depth,
+				enabled
+			]);
+		}
+		function useLeaveGuard(dirty, discard, message) {
+			const current = (0, react$1.useRef)({
+				dirty,
+				discard,
+				message
+			});
+			current.current = {
+				dirty,
+				discard,
+				message
+			};
+			(0, react$1.useLayoutEffect)(() => {
+				const id = Symbol("guard");
+				store().guards.set(id, {
+					dirty: () => current.current.dirty,
+					message: () => current.current.message,
+					discard: () => {
+						const discard = current.current.discard;
+						current.current.dirty = false;
+						discard();
+					}
+				});
+				const beforeLink = (event) => {
+					if (!requestLeave()) {
+						consumeNavigation(event.detail);
+						event.stopImmediatePropagation();
+					}
+				};
+				window.addEventListener("workbench-capability-link", beforeLink, true);
+				return () => {
+					store().guards.delete(id);
+					window.removeEventListener("workbench-capability-link", beforeLink, true);
+				};
+			}, []);
+		}
+		function requestLeave() {
+			if (typeof window === "undefined") return true;
+			const dirty = [...store().guards.values()].filter((guard) => guard.dirty());
+			if (!dirty.length) return true;
+			if (!window.confirm([...new Set(dirty.map((guard) => guard.message?.() ?? "当前配置尚未保存，确定放弃修改并离开？"))].join("\n"))) return false;
+			dirty.forEach((guard) => guard.discard());
+			return true;
+		}
+		function captureNavigation() {
+			const frames = [...store().frames.values()].sort((a, b) => a.depth - b.depth).map((entry) => entry.read());
+			if (!frames.length) return void 0;
+			return {
+				section: frames[0].section,
+				label: frames[0].label,
+				frames
+			};
+		}
+		function openWorkbenchLink(target) {
+			const origin = target.restore ? target.origin : target.origin ?? captureNavigation();
+			if (!requestLeave()) return false;
+			const link = {
+				...target,
+				requestId: crypto.randomUUID(),
+				origin
+			};
+			try {
+				sessionStorage.setItem(key, JSON.stringify(link));
+			} catch {}
+			window.dispatchEvent(new CustomEvent("workbench-capability-link", { detail: link }));
+			return true;
+		}
+		function returnNavigation(origin) {
+			if (!origin) return false;
+			const component = restoredFrame(origin, "components")?.view, capability = restoredFrame(origin, "capabilities")?.view;
+			return openWorkbenchLink({
+				section: origin.section,
+				componentId: component?.selected,
+				capabilityId: capability?.selected,
+				tab: component?.tab ?? capability?.tab,
+				restore: origin,
+				origin: origin.frames.at(-1)?.origin
+			});
+		}
+		function legacyOrigin(link) {
+			if (link?.origin) return link.origin;
+			if (link?.returnTo === "component-center" || link?.section === "plugins" && link.componentId) return {
+				section: "component-center",
+				label: "组件中心",
+				frames: [{
+					kind: "components",
+					section: "component-center",
+					label: "组件中心",
+					view: {
+						selected: link.componentId,
+						pane: "detail",
+						...link.section === "plugins" ? { tab: "plugins" } : {}
+					}
+				}]
+			};
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/core/classification-seed.json
+		var rows = [
+			{
+				"entryId": "include",
+				"moduleName": "cordis:include",
+				"purpose": "加载并组合整棵插件配置树；属于官方使用的 Cordis 框架基础设施",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:timer",
+				"moduleName": "@deepseek-ai/cordis-plugin-timer",
+				"purpose": "为各模块提供定时器服务",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:hmr",
+				"moduleName": "@deepseek-ai/cordis-plugin-hmr",
+				"purpose": "插件热更新；静态配置中的可选入口",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:llm",
+				"moduleName": "@deepseek-ai/dsh-llm",
+				"purpose": "统一模型调用接口，让其他模块不必直接绑定某一家模型 API",
+				"source": "官方底座",
+				"moduleId": "core-1"
+			},
+			{
+				"entryId": "include:deepseek-llm-api-extensions",
+				"moduleName": "@deepseek-ai/dsh-deepseek-llm-api-extensions",
+				"purpose": "登记 DeepSeek 官方 API 的额外请求字段",
+				"source": "官方底座",
+				"moduleId": "core-1"
+			},
+			{
+				"entryId": "include:session",
+				"moduleName": "@deepseek-ai/dsh-session",
+				"purpose": "管理会话及其事件记录",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:session-log-deepseek",
+				"moduleName": "@deepseek-ai/dsh-session-log-deepseek",
+				"purpose": "官方 DeepSeek API 的增量会话日志请求扩展",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:typert",
+				"moduleName": "@deepseek-ai/dsh-typert-registry",
+				"purpose": "维护服务接口、类型与校验结构的运行时登记表",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:typert-loader",
+				"moduleName": "@deepseek-ai/dsh-typert-loader",
+				"purpose": "把插件的接口定义接入类型登记表",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:typert-gateway",
+				"moduleName": "@deepseek-ai/dsh-api-gateway",
+				"purpose": "把前端远程请求分发到宿主服务",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:session-title",
+				"moduleName": "@deepseek-ai/dsh-session-title",
+				"purpose": "管理和读取会话标题",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:session-title-llm",
+				"moduleName": "@deepseek-ai/dsh-session-title-first-prompt-llm",
+				"purpose": "使用模型根据首条消息生成会话标题",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:user-questions",
+				"moduleName": "@deepseek-ai/dsh-user-questions",
+				"purpose": "Agent 向用户提问的宿主接口",
+				"source": "官方底座",
+				"moduleId": "core-3"
+			},
+			{
+				"entryId": "include:agent",
+				"moduleName": "@deepseek-ai/dsh-agent",
+				"purpose": "Agent 注册、启动范围和运行事件的基础服务",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:plugin-package-inventory-deepseek",
+				"moduleName": "@deepseek-ai/dsh-plugin-package-inventory-deepseek",
+				"purpose": "向官方 DeepSeek API 请求提供当前插件包清单信息",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:agent-default-model",
+				"moduleName": "@deepseek-ai/dsh-agent-default-model",
+				"purpose": "决定 Agent 入口使用的默认模型",
+				"source": "官方底座",
+				"moduleId": "core-1"
+			},
+			{
+				"entryId": "include:jobs",
+				"moduleName": "@deepseek-ai/dsh-jobs-local",
+				"purpose": "登记和跟踪后台任务",
+				"source": "官方底座",
+				"moduleId": "core-5"
+			},
+			{
+				"entryId": "include:llm-retry",
+				"moduleName": "@deepseek-ai/dsh-llm-retry",
+				"purpose": "模型请求失败后的重试策略",
+				"source": "官方底座",
+				"moduleId": "core-1"
+			},
+			{
+				"entryId": "include:settings",
+				"moduleName": "@deepseek-ai/dsh-settings-file",
+				"purpose": "将设置保存到本地文件",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:credentials",
+				"moduleName": "@deepseek-ai/dsh-credentials-local",
+				"purpose": "在本地管理模型等服务使用的凭据",
+				"source": "官方底座",
+				"moduleId": "core-6"
+			},
+			{
+				"entryId": "include:llm-pi-ai",
+				"moduleName": "@deepseek-ai/dsh-llm-pi-ai",
+				"purpose": "通过 pi-ai 接入的 DeepSeek 模型适配实现",
+				"source": "官方底座",
+				"moduleId": "core-1"
+			},
+			{
+				"entryId": "include:session-persistence-jsonl",
+				"moduleName": "@deepseek-ai/dsh-session-persistence-jsonl",
+				"purpose": "把会话历史持久化为 JSONL 文件",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:attachment-local",
+				"moduleName": "@deepseek-ai/dsh-attachment-local",
+				"purpose": "在本地保存会话附件",
+				"source": "官方底座",
+				"moduleId": "core-7"
+			},
+			{
+				"entryId": "include:session-query-sqlite",
+				"moduleName": "@deepseek-ai/dsh-session-query-sqlite",
+				"purpose": "会话查询和全文搜索后端；加载不代表全文索引已开启",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:session-projection",
+				"moduleName": "@deepseek-ai/dsh-session-projection",
+				"purpose": "从会话日志推导当前会话状态",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:storage",
+				"moduleName": "@deepseek-ai/dsh-storage",
+				"purpose": "统一登记和使用持久化存储后端",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:storage-json",
+				"moduleName": "@deepseek-ai/dsh-storage-json",
+				"purpose": "用 JSON 文件提供键值存储",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:storage-domain",
+				"moduleName": "@deepseek-ai/dsh-storage-domain",
+				"purpose": "在存储上增加数据结构校验与变更事件",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:session-projection-cache",
+				"moduleName": "@deepseek-ai/dsh-session-projection-cache",
+				"purpose": "缓存从日志计算出的会话状态，改善恢复和列表读取",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:session-telemetry-otel",
+				"moduleName": "@deepseek-ai/dsh-session-telemetry-otel",
+				"purpose": "OpenTelemetry 会话观测日志后端；条目活跃本身不能证明正在向外发送数据",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:subprocess",
+				"moduleName": "@deepseek-ai/dsh-subprocess-local",
+				"purpose": "启动与管理本地子进程",
+				"source": "官方底座",
+				"moduleId": "core-5"
+			},
+			{
+				"entryId": "include:sandbox",
+				"moduleName": "@deepseek-ai/dsh-sandbox-local",
+				"purpose": "提供本机进程沙箱执行后端",
+				"source": "官方底座",
+				"moduleId": "core-6"
+			},
+			{
+				"entryId": "include:sandbox-policy",
+				"moduleName": "@deepseek-ai/dsh-sandbox-policy",
+				"purpose": "根据会话权限模式和工作区决定每次操作的限制",
+				"source": "官方底座",
+				"moduleId": "core-6"
+			},
+			{
+				"entryId": "include:bash-sandbox",
+				"moduleName": "@deepseek-ai/dsh-bash-sandbox",
+				"purpose": "通过沙箱运行 Bash 命令；本次 Windows 宿主未启用此行",
+				"source": "官方底座",
+				"moduleId": "core-5"
+			},
+			{
+				"entryId": "include:pwsh-sandbox",
+				"moduleName": "@deepseek-ai/dsh-pwsh-sandbox",
+				"purpose": "通过沙箱运行 PowerShell 命令",
+				"source": "官方底座",
+				"moduleId": "core-5"
+			},
+			{
+				"entryId": "include:approval",
+				"moduleName": "@deepseek-ai/dsh-user-approval",
+				"purpose": "接收需要用户审批的操作，并交给对应审批界面处理",
+				"source": "官方底座",
+				"moduleId": "core-6"
+			},
+			{
+				"entryId": "include:permission",
+				"moduleName": "@deepseek-ai/dsh-permission-presets",
+				"purpose": "统一管理用户可选择的权限预设",
+				"source": "官方底座",
+				"moduleId": "core-6"
+			},
+			{
+				"entryId": "include:shell-env",
+				"moduleName": "@deepseek-ai/dsh-shell-env",
+				"purpose": "维护传给命令行工具的 DSH 环境变量",
+				"source": "官方底座",
+				"moduleId": "core-5"
+			},
+			{
+				"entryId": "include:tool-bash",
+				"moduleName": "@deepseek-ai/dsh-tool-bash",
+				"purpose": "供模型调用的 Bash 命令工具",
+				"source": "官方底座",
+				"moduleId": "core-5"
+			},
+			{
+				"entryId": "include:tool-pwsh",
+				"moduleName": "@deepseek-ai/dsh-tool-pwsh",
+				"purpose": "供模型调用的 PowerShell 命令工具",
+				"source": "官方底座",
+				"moduleId": "core-5"
+			},
+			{
+				"entryId": "include:tool-jobs",
+				"moduleName": "@deepseek-ai/dsh-tool-jobs",
+				"purpose": "供模型查看、读取输出或停止后台任务的工具",
+				"source": "官方底座",
+				"moduleId": "core-5"
+			},
+			{
+				"entryId": "include:fs-observation-policy",
+				"moduleName": "@deepseek-ai/dsh-fs-observation-policy",
+				"purpose": "文件先读后改、读取版本及写入冲突保护",
+				"source": "官方底座",
+				"moduleId": "core-6"
+			},
+			{
+				"entryId": "include:tool-fs",
+				"moduleName": "@deepseek-ai/dsh-tool-fs",
+				"purpose": "供模型读取、写入和编辑文件的工具",
+				"source": "官方底座",
+				"moduleId": "core-5"
+			},
+			{
+				"entryId": "include:tool-fs-search",
+				"moduleName": "@deepseek-ai/dsh-tool-fs-search",
+				"purpose": "供模型按文件名或内容搜索文件的工具",
+				"source": "官方底座",
+				"moduleId": "core-5"
+			},
+			{
+				"entryId": "include:agent-instructions",
+				"moduleName": "@deepseek-ai/dsh-agent-instructions",
+				"purpose": "读取项目 AGENTS.md、CLAUDE.md 等工作区指令",
+				"source": "官方底座",
+				"moduleId": "core-8"
+			},
+			{
+				"entryId": "include:skill",
+				"moduleName": "@deepseek-ai/dsh-skill",
+				"purpose": "统一登记技能来源",
+				"source": "官方底座",
+				"moduleId": "core-8"
+			},
+			{
+				"entryId": "include:skill-filesystem",
+				"moduleName": "@deepseek-ai/dsh-skill-filesystem",
+				"purpose": "从本地目录发现和读取技能",
+				"source": "官方底座",
+				"moduleId": "core-8"
+			},
+			{
+				"entryId": "include:skill-badge",
+				"moduleName": "@deepseek-ai/dsh-skill-badge",
+				"purpose": "官方随包提供的徽章示例技能",
+				"source": "官方底座",
+				"moduleId": "core-8"
+			},
+			{
+				"entryId": "include:tool-skill",
+				"moduleName": "@deepseek-ai/dsh-tool-skill",
+				"purpose": "供模型读取技能内容的工具",
+				"source": "官方底座",
+				"moduleId": "core-8"
+			},
+			{
+				"entryId": "include:commands",
+				"moduleName": "@deepseek-ai/dsh-commands",
+				"purpose": "统一登记用户可输入的命令",
+				"source": "官方底座",
+				"moduleId": "core-3"
+			},
+			{
+				"entryId": "include:command-feedback",
+				"moduleName": "@deepseek-ai/dsh-command-feedback",
+				"purpose": "提供会话反馈命令和反馈记录",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:goal",
+				"moduleName": "@deepseek-ai/dsh-goal",
+				"purpose": "管理当前会话的目标和目标状态",
+				"source": "官方底座",
+				"moduleId": "core-3"
+			},
+			{
+				"entryId": "include:goal-round-driver",
+				"moduleName": "@deepseek-ai/dsh-goal-round-driver",
+				"purpose": "驱动目标任务的后续执行轮次",
+				"source": "官方底座",
+				"moduleId": "core-3"
+			},
+			{
+				"entryId": "include:command-goal",
+				"moduleName": "@deepseek-ai/dsh-command-goal",
+				"purpose": "供用户操作会话目标的命令",
+				"source": "官方底座",
+				"moduleId": "core-3"
+			},
+			{
+				"entryId": "include:plan-mode",
+				"moduleName": "@deepseek-ai/dsh-plan-mode",
+				"purpose": "管理计划模式和用户审阅后退出计划的流程",
+				"source": "官方底座",
+				"moduleId": "core-3"
+			},
+			{
+				"entryId": "include:token-meter",
+				"moduleName": "@deepseek-ai/dsh-token-meter",
+				"purpose": "统计上下文和 token 使用量",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:compaction-basic",
+				"moduleName": "@deepseek-ai/dsh-compaction-basic",
+				"purpose": "根据 token 用量进行上下文压缩与摘要",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:command-compact",
+				"moduleName": "@deepseek-ai/dsh-command-compact",
+				"purpose": "提供手动压缩上下文的命令",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:subagent",
+				"moduleName": "@deepseek-ai/dsh-subagent",
+				"purpose": "登记子 Agent 后端并提供委派能力",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:subagent-spawn-in-process",
+				"moduleName": "@deepseek-ai/dsh-subagent-spawn-in-process",
+				"purpose": "在当前进程中新建子 Agent",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:subagent-fork-in-process",
+				"moduleName": "@deepseek-ai/dsh-subagent-fork-in-process",
+				"purpose": "带着父会话的部分历史创建子 Agent",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:tool-subagent-control",
+				"moduleName": "@deepseek-ai/dsh-tool-subagent-control",
+				"purpose": "供模型发送消息、打断或查看子 Agent",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:tool-subagent-list-agents",
+				"moduleName": "@deepseek-ai/dsh-tool-subagent-control/list-agents",
+				"purpose": "只提供子 Agent 列表的独立工具入口",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:tool-subagent",
+				"moduleName": "@deepseek-ai/dsh-tool-subagent",
+				"purpose": "供模型创建子 Agent 的工具入口",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:tool-subagent-fork",
+				"moduleName": "@deepseek-ai/dsh-tool-subagent",
+				"purpose": "供模型分叉子 Agent 的工具入口；与创建入口使用同一个包",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:workflow-worker-thread",
+				"moduleName": "@deepseek-ai/dsh-workflow-worker-thread",
+				"purpose": "在 worker 线程中运行多 Agent 编排脚本",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:tool-workflow",
+				"moduleName": "@deepseek-ai/dsh-tool-workflow",
+				"purpose": "供模型调用 JavaScript 工作流编排",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:timeout-policy",
+				"moduleName": "@deepseek-ai/dsh-tool-call-timeout-policy",
+				"purpose": "限制工具调用耗时并返回超时结果",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:spill-local",
+				"moduleName": "@deepseek-ai/dsh-spill-local",
+				"purpose": "把过长输出保存到本地临时结果文件",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:spill-policy",
+				"moduleName": "@deepseek-ai/dsh-spill-policy",
+				"purpose": "过长工具输出保留摘要及文件路径，减少上下文占用",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:session-checkpoint-policy",
+				"moduleName": "@deepseek-ai/dsh-session-checkpoint-policy",
+				"purpose": "在模型请求及工具副作用前保存会话检查点",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:tool-result-pruner",
+				"moduleName": "@deepseek-ai/dsh-compaction-tool-result-pruner",
+				"purpose": "裁剪工具结果中不必完整保留的内容",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:tool-todo",
+				"moduleName": "@deepseek-ai/dsh-tool-todo",
+				"purpose": "供模型维护待办列表",
+				"source": "官方底座",
+				"moduleId": "core-3"
+			},
+			{
+				"entryId": "include:tool-goal",
+				"moduleName": "@deepseek-ai/dsh-tool-goal",
+				"purpose": "供模型创建和更新会话目标的工具",
+				"source": "官方底座",
+				"moduleId": "core-3"
+			},
+			{
+				"entryId": "include:tool-ralph",
+				"moduleName": "@deepseek-ai/dsh-tool-ralph",
+				"purpose": "通过工作流和子 Agent 运行反复新建 Agent 的迭代循环",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:repeat-tool-reminder",
+				"moduleName": "@deepseek-ai/dsh-repeat-tool-reminder",
+				"purpose": "识别重复工具调用，提醒 Agent 避免反复空转",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:web",
+				"moduleName": "@deepseek-ai/dsh-web",
+				"purpose": "统一登记网页搜索和内容获取能力",
+				"source": "官方底座",
+				"moduleId": "core-10"
+			},
+			{
+				"entryId": "include:web-search-deepseek",
+				"moduleName": "@deepseek-ai/dsh-web-search-deepseek",
+				"purpose": "通过 DeepSeek 搜索服务获取网页搜索结果",
+				"source": "官方底座",
+				"moduleId": "core-10"
+			},
+			{
+				"entryId": "include:web-fetch-http",
+				"moduleName": "@deepseek-ai/dsh-web-fetch-http",
+				"purpose": "读取公开 HTTP／HTTPS 网页内容",
+				"source": "官方底座",
+				"moduleId": "core-10"
+			},
+			{
+				"entryId": "include:tool-web",
+				"moduleName": "@deepseek-ai/dsh-tool-web",
+				"purpose": "供模型调用网页搜索和网页读取",
+				"source": "官方底座",
+				"moduleId": "core-10"
+			},
+			{
+				"entryId": "include:tools",
+				"moduleName": "@deepseek-ai/dsh-tools",
+				"purpose": "统一登记工具并执行工具调用",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:system-prompt",
+				"moduleName": "@deepseek-ai/dsh-system-prompt",
+				"purpose": "组装发给模型的系统提示词",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:agent-loop",
+				"moduleName": "@deepseek-ai/dsh-agent-loop",
+				"purpose": "驱动模型请求、工具执行和后续响应的循环",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:fs-sandbox",
+				"moduleName": "@deepseek-ai/dsh-fs-sandbox",
+				"purpose": "根据沙箱策略限制文件修改范围",
+				"source": "官方底座",
+				"moduleId": "core-6"
+			},
+			{
+				"entryId": "include:llm-deepseek",
+				"moduleName": "@deepseek-ai/dsh-llm-deepseek",
+				"purpose": "DeepSeek Chat Completions 模型接口适配器",
+				"source": "官方底座",
+				"moduleId": "core-1"
+			},
+			{
+				"entryId": "include:subagent-model-selection-settings",
+				"moduleName": "@deepseek-ai/dsh-tool-subagent/model-selection-settings",
+				"purpose": "设置主 Agent 是否可为子 Agent 选择模型及允许的模型范围",
+				"source": "官方底座",
+				"moduleId": "core-9"
+			},
+			{
+				"entryId": "include:code-runtime",
+				"moduleName": "@deepseek-ai/dsh-code-runtime-worker-thread",
+				"purpose": "在 worker 线程中执行工具编排代码",
+				"source": "官方底座",
+				"moduleId": "core-4"
+			},
+			{
+				"entryId": "include:message-feedback",
+				"moduleName": "@deepseek-ai/dsh-message-feedback",
+				"purpose": "保存针对助手消息的评价和备注",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:session-log-download",
+				"moduleName": "@deepseek-ai/dsh-session-log-export",
+				"purpose": "导出会话日志并提供下载入口",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:open-in-app",
+				"moduleName": "@deepseek-ai/dsh-host-open-in-app",
+				"purpose": "发现本机应用并提供打开工作区的宿主接口",
+				"source": "官方底座",
+				"moduleId": "core-7"
+			},
+			{
+				"entryId": "include:ui-open-in-app",
+				"moduleName": "@deepseek-ai/dsh-client-ui-open-in-app",
+				"purpose": "会话顶部的“在其他应用中打开”按钮",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:workspace",
+				"moduleName": "@deepseek-ai/dsh-workspace",
+				"purpose": "登记工作区并维护与会话的关系",
+				"source": "官方底座",
+				"moduleId": "core-7"
+			},
+			{
+				"entryId": "include:session-reference",
+				"moduleName": "@deepseek-ai/dsh-session-reference",
+				"purpose": "在会话中引用其他会话的快照内容",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:file-reference-local",
+				"moduleName": "@deepseek-ai/dsh-file-reference-local",
+				"purpose": "查找用于会话引用的本地文件",
+				"source": "官方底座",
+				"moduleId": "core-7"
+			},
+			{
+				"entryId": "include:session-stats",
+				"moduleName": "@deepseek-ai/dsh-session-stats",
+				"purpose": "计算会话消息数、耗时等统计",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:session-turn-outline",
+				"moduleName": "@deepseek-ai/dsh-session-turn-outline",
+				"purpose": "生成会话各轮次的概要结构",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:directory-picker",
+				"moduleName": "@deepseek-ai/dsh-host-directory-picker-auto",
+				"purpose": "根据运行环境选择原生或网页目录选择器",
+				"source": "官方底座",
+				"moduleId": "core-7"
+			},
+			{
+				"entryId": "include:plugin-inventory",
+				"moduleName": "@deepseek-ai/dsh-host-plugin-inventory",
+				"purpose": "提供当前插件条目及运行状态的只读接口；本次 178 项清单来自这里",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:session-controller",
+				"moduleName": "@deepseek-ai/dsh-api-session-controller",
+				"purpose": "提供会话创建、查询和运行控制接口",
+				"source": "官方底座",
+				"moduleId": "core-2"
+			},
+			{
+				"entryId": "include:workspace-files",
+				"moduleName": "@deepseek-ai/dsh-api-workspace-files",
+				"purpose": "向前端提供文件目录、文件内容和变化信息",
+				"source": "官方底座",
+				"moduleId": "core-7"
+			},
+			{
+				"entryId": "include:settings-controller",
+				"moduleName": "@deepseek-ai/dsh-api-settings-controller",
+				"purpose": "为界面提供配置读取与修改接口",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:workspace-controller",
+				"moduleName": "@deepseek-ai/dsh-api-workspace-controller",
+				"purpose": "向前端提供工作区管理和状态同步",
+				"source": "官方底座",
+				"moduleId": "core-7"
+			},
+			{
+				"entryId": "include:cordis-host-runner",
+				"moduleName": "@deepseek-ai/dsh-cordis-host-runner",
+				"purpose": "动态插件的宿主侧定义、生命周期与调用支持",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:web-startup",
+				"moduleName": "@deepseek-ai/dsh-web-app/startup",
+				"purpose": "解析和提供 Web 启动所需参数",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:webserver",
+				"moduleName": "@deepseek-ai/dsh-host-webserver",
+				"purpose": "承载本地 HTTP 服务、路由及静态页面",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:web-runtime",
+				"moduleName": "@deepseek-ai/dsh-web-app",
+				"purpose": "组装 Web 运行环境，连接前端文件和宿主",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:client-hmr",
+				"moduleName": "@deepseek-ai/dsh-client-hmr",
+				"purpose": "前端资源重建后的热更新支持",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:modules",
+				"moduleName": "@deepseek-ai/dsh-client-modules",
+				"purpose": "组织前端插件模块及加载关系",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:connection",
+				"moduleName": "@deepseek-ai/dsh-client-connection",
+				"purpose": "经过身份验证的前后端 RPC 通信",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:file-upload",
+				"moduleName": "@deepseek-ai/dsh-client-file-upload",
+				"purpose": "浏览器附件上传、接收和暂存",
+				"source": "官方底座",
+				"moduleId": "core-7"
+			},
+			{
+				"entryId": "include:api-remotes",
+				"moduleName": "@deepseek-ai/dsh-api-remotes",
+				"purpose": "汇集应用需要向前端开放的宿主服务",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:cordis-client-runner",
+				"moduleName": "@deepseek-ai/dsh-cordis-client-runner",
+				"purpose": "动态插件的浏览器侧执行与事件支持",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:ui-theme",
+				"moduleName": "@deepseek-ai/dsh-client-ui-theme",
+				"purpose": "明暗主题、配色变量与外观设置",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:locale",
+				"moduleName": "@deepseek-ai/dsh-client-locale",
+				"purpose": "界面语言选择及翻译字典",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-layout",
+				"moduleName": "@deepseek-ai/dsh-client-ui-layout",
+				"purpose": "三栏页面框架、面板布局和拖动调整",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-renderer",
+				"moduleName": "@deepseek-ai/dsh-client-ui-renderer",
+				"purpose": "把各插件提供的界面插槽渲染为 React 页面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-session",
+				"moduleName": "@deepseek-ai/dsh-client-ui-session",
+				"purpose": "把会话状态连接到 React 界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:resources",
+				"moduleName": "@deepseek-ai/dsh-client-resources",
+				"purpose": "统一前端对文件等资源的读取和订阅模型",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			},
+			{
+				"entryId": "include:ui-sidebar",
+				"moduleName": "@deepseek-ai/dsh-client-ui-sidebar",
+				"purpose": "左侧会话列表、分组和搜索",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-sidebar-right",
+				"moduleName": "@deepseek-ai/dsh-client-ui-sidebar-right",
+				"purpose": "官方右侧面板容器与导航",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-sidebar-documentpreview",
+				"moduleName": "@deepseek-ai/dsh-client-ui-sidebar-documentpreview",
+				"purpose": "官方文档预览：Markdown、代码、图片、PDF、HTML 等",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-sidebar-files",
+				"moduleName": "@deepseek-ai/dsh-client-ui-sidebar-files",
+				"purpose": "官方右侧文件树",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-settings",
+				"moduleName": "@deepseek-ai/dsh-client-ui-settings",
+				"purpose": "设置界面的基础结构和扩展插槽",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-settings-general",
+				"moduleName": "@deepseek-ai/dsh-client-ui-settings-general",
+				"purpose": "通用设置、设置入口和欢迎说明",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-settings-models",
+				"moduleName": "@deepseek-ai/dsh-client-ui-settings-models",
+				"purpose": "模型与供应商设置界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-settings-plugin-inventory",
+				"moduleName": "@deepseek-ai/dsh-client-ui-settings-plugin-inventory",
+				"purpose": "截图中的“插件列表”页",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-conversation",
+				"moduleName": "@deepseek-ai/dsh-client-ui-conversation",
+				"purpose": "对话布局、输入区、待发队列和视图切换",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-approval",
+				"moduleName": "@deepseek-ai/dsh-client-ui-approval",
+				"purpose": "需要审批时接管输入区展示审批操作",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-chat",
+				"moduleName": "@deepseek-ai/dsh-client-ui-chat",
+				"purpose": "聊天消息的渲染和详情界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-brand-official",
+				"moduleName": "@deepseek-ai/dsh-client-ui-brand-official",
+				"purpose": "DeepSeek 官方品牌展示",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-attachment",
+				"moduleName": "@deepseek-ai/dsh-client-ui-attachment",
+				"purpose": "附件和图片在输入区及消息中的展示",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-tool",
+				"moduleName": "@deepseek-ai/dsh-client-ui-tool",
+				"purpose": "工具调用树和各类工具结果展示",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-cordis",
+				"moduleName": "@deepseek-ai/dsh-client-ui-cordis",
+				"purpose": "动态插件定义卡片及运行／停止界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-workflow-run",
+				"moduleName": "@deepseek-ai/dsh-client-ui-workflow-run",
+				"purpose": "工作流运行记录及嵌套成员展开视图",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-deliverables",
+				"moduleName": "@deepseek-ai/dsh-client-ui-deliverables",
+				"purpose": "展示生成文件和可点击的交付文件引用",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-workspace",
+				"moduleName": "@deepseek-ai/dsh-client-ui-workspace",
+				"purpose": "选择工作区的界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-input-trigger",
+				"moduleName": "@deepseek-ai/dsh-client-ui-input-trigger",
+				"purpose": "检测输入框中的 / 命令和 @ 引用触发符",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-commands",
+				"moduleName": "@deepseek-ai/dsh-client-ui-commands",
+				"purpose": "显示命令候选项及命令操作界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-skill",
+				"moduleName": "@deepseek-ai/dsh-client-ui-skill",
+				"purpose": "展示技能引用与技能工具调用",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-subagent",
+				"moduleName": "@deepseek-ai/dsh-client-ui-subagent",
+				"purpose": "子 Agent 会话导航、续接和 @ 引用",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-reference",
+				"moduleName": "@deepseek-ai/dsh-client-ui-reference",
+				"purpose": "输入框中的 @文件 和 @会话 引用",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-schedule",
+				"moduleName": "@deepseek-ai/dsh-client-ui-schedule",
+				"purpose": "官方定时任务目录视图；当前全局未启用，不等于上游任务看板",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-jobs",
+				"moduleName": "@deepseek-ai/dsh-client-ui-jobs",
+				"purpose": "会话顶部后台任务列表",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-goal",
+				"moduleName": "@deepseek-ai/dsh-client-ui-goal",
+				"purpose": "输入框上方的目标状态条",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-message-feedback",
+				"moduleName": "@deepseek-ai/dsh-client-ui-message-feedback",
+				"purpose": "消息点赞／点踩及反馈对话框",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-model-selection",
+				"moduleName": "@deepseek-ai/dsh-client-ui-model-selection",
+				"purpose": "会话模型选择界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-permission",
+				"moduleName": "@deepseek-ai/dsh-client-ui-permission-presets",
+				"purpose": "权限预设选择和会话权限操作界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-agent-preset",
+				"moduleName": "@deepseek-ai/dsh-client-ui-agent-preset",
+				"purpose": "Agent 预设选择、默认预设与组成编辑界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-settings-plugins",
+				"moduleName": "@deepseek-ai/dsh-client-ui-settings-plugins",
+				"purpose": "插件设置分区及截图中的四项配置卡",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-plan",
+				"moduleName": "@deepseek-ai/dsh-client-ui-plan",
+				"purpose": "计划模式输入区和计划命令界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-user-questions",
+				"moduleName": "@deepseek-ai/dsh-client-ui-user-questions",
+				"purpose": "Agent 提问及计划审阅界面",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:ui-trajectory",
+				"moduleName": "@deepseek-ai/dsh-client-ui-trajectory",
+				"purpose": "执行事件轨迹与耗时总览",
+				"source": "官方底座",
+				"moduleId": "core-11"
+			},
+			{
+				"entryId": "include:agent-presets",
+				"moduleName": "@deepseek-ai/dsh-agent-presets",
+				"purpose": "按 Agent 预设为各会话组装插件",
+				"source": "官方底座",
+				"moduleId": "core-8"
+			},
+			{
+				"entryId": "include:web-ui-compat",
+				"moduleName": "@linxin666/dsh-web-all",
+				"purpose": "全家桶兼容与桥接层；扩展运行基础",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "management"
+			},
+			{
+				"entryId": "include:web-ui-settings",
+				"moduleName": "@linxin666/dsh-web-all/settings",
+				"purpose": "组织“Web 插件”设置入口和子插件卡片",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "management"
+			},
+			{
+				"entryId": "include:web-ui-plugin-manager",
+				"moduleName": "@linxin666/dsh-web-all/plugin-manager",
+				"purpose": "插件安装、卸载、启停与管理；本地版本移除了上游更新能力",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "management"
+			},
+			{
+				"entryId": "include:web-ui-community-plugins",
+				"moduleName": "@linxin666/dsh-web-all/community-plugins",
+				"purpose": "上游社区目录兼容条目；本地版本已精简线上目录行为",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "resources"
+			},
+			{
+				"entryId": "include:web-ui-market",
+				"moduleName": "@linxin666/dsh-web-all/market",
+				"purpose": "上游创意工坊；本地已改为本地资源浏览与 ZIP／文件夹导入",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "resources"
+			},
+			{
+				"entryId": "include:web-ui-task-board",
+				"moduleName": "@linxin666/dsh-web-all/task-board",
+				"purpose": "任务看板和后端定时任务调度",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "development"
+			},
+			{
+				"entryId": "include:web-ui-git-graph",
+				"moduleName": "@linxin666/dsh-web-all/git-graph",
+				"purpose": "Git 分支与提交图谱等可视化",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "development"
+			},
+			{
+				"entryId": "include:web-ui-remote-web-ui",
+				"moduleName": "@linxin666/dsh-web-all/remote-web-ui",
+				"purpose": "手机或其他浏览器连接工作台；本地曾清理旧公网连接相关路径",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "development"
+			},
+			{
+				"entryId": "include:web-ui-pet",
+				"moduleName": "@linxin666/dsh-web-all/pet",
+				"purpose": "桌面宠物及互动展示",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "resources"
+			},
+			{
+				"entryId": "include:web-ui-ssh",
+				"moduleName": "@linxin666/dsh-web-all/ssh",
+				"purpose": "SSH 远程终端、文件传输和服务器运维",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "development"
+			},
+			{
+				"entryId": "include:web-ui-describe-image",
+				"moduleName": "@linxin666/dsh-web-all/describe-image",
+				"purpose": "通过外部视觉模型为文本会话提供图像理解；属于移植适配集成",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "development"
+			},
+			{
+				"entryId": "include:web-ui-liangshen",
+				"moduleName": "@linxin666/dsh-web-all/liangshen",
+				"purpose": "梁神模式的提示词、预设及工具呈现策略",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "development"
+			},
+			{
+				"entryId": "include:web-ui-skill-explorer",
+				"moduleName": "@linxin666/dsh-web-all/skill-explorer",
+				"purpose": "浏览、创建和管理技能的可视化中心",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "development"
+			},
+			{
+				"entryId": "include:web-ui-doctor",
+				"moduleName": "@linxin666/dsh-web-all/doctor",
+				"purpose": "工作台故障诊断和恢复支持",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "maintenance"
+			},
+			{
+				"entryId": "include:web-ui-usage",
+				"moduleName": "@linxin666/dsh-web-all/usage",
+				"purpose": "用量统计、余额和额度查询",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "maintenance"
+			},
+			{
+				"entryId": "include:web-ui-session-archive",
+				"moduleName": "@linxin666/dsh-web-all/session-archive",
+				"purpose": "集中筛选、批量归档和管理会话",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "maintenance"
+			},
+			{
+				"entryId": "include:web-ui-model-capabilities",
+				"moduleName": "@linxin666/dsh-web-all/model-capabilities",
+				"purpose": "编辑模型图片输入、推理档位等能力声明",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "maintenance"
+			},
+			{
+				"entryId": "include:web-ui-preset-center",
+				"moduleName": "@linxin666/dsh-web-all/preset-center",
+				"purpose": "管理社区／本地预设库；本地已改造线上获取部分",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "resources"
+			},
+			{
+				"entryId": "include:web-ui-skin-center",
+				"moduleName": "@linxin666/dsh-web-all/skin-center",
+				"purpose": "皮肤、壁纸和主题资产管理",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "resources"
+			},
+			{
+				"entryId": "include:web-ui-i18n",
+				"moduleName": "@linxin666/dsh-i18n",
+				"purpose": "补充扩展插件的语言字典",
+				"source": "上游 dsh-web 扩展",
+				"moduleId": "resources"
+			},
+			{
+				"entryId": "include:web-ui-better-sidebar",
+				"moduleName": "dsh-better-sidebar",
+				"purpose": "项目预集成的社区右侧面板增强：文件、编辑器、终端、Git、浏览器等",
+				"source": "外部社区（上游预集成）",
+				"moduleId": "community"
+			},
+			{
+				"entryId": "include:workbench-plain-chat",
+				"moduleName": "@linxin666/dsh-client-ui-plain-chat",
+				"purpose": "本地普通聊天入口与预设；允许不选工作区聊天，并承载后续岗位助手界面改造",
+				"source": "本地新增",
+				"moduleId": "local"
+			},
+			{
+				"entryId": "5bda1796",
+				"moduleName": "@deepseek-ai/dsh-host-directory-picker-native",
+				"purpose": "运行时挂载的本机文件夹选择器后端",
+				"source": "官方底座",
+				"moduleId": "core-7"
+			},
+			{
+				"entryId": "749fed63",
+				"moduleName": "@deepseek-ai/dsh-client-ui-directory-picker-native",
+				"purpose": "运行时挂载的本机文件夹选择器前端连接",
+				"source": "官方底座",
+				"moduleId": "core-7"
+			},
+			{
+				"entryId": "fe40e5a2",
+				"moduleName": "@deepseek-ai/cordis-plugin-hmr",
+				"purpose": "运行时动态挂载的热更新／配置监听支持，与静态 hmr 是两个加载条目",
+				"source": "官方底座",
+				"moduleId": "core-0"
+			}
+		];
+		//#endregion
+		//#region ../dsh-plugin-manager/src/core/classification.ts
+		const dynamic = /* @__PURE__ */ new Set([
+			"@deepseek-ai/dsh-host-directory-picker-native",
+			"@deepseek-ai/dsh-client-ui-directory-picker-native",
+			"@deepseek-ai/cordis-plugin-hmr"
+		]);
+		/** Stable module identity plus composition seat; only known adaptive SDK seats ignore generated IDs. */
+		function entryKey(entry) {
+			const seat = entry.entryId.replace(/^include:/, "");
+			return JSON.stringify([entry.moduleName, /^[a-f0-9]{8,}$/i.test(seat) && dynamic.has(entry.moduleName) ? "$adaptive" : seat]);
+		}
+		const facts = new Map(rows.map((row) => [entryKey(row), row]));
+		function entryFacts(entry) {
+			return facts.get(entryKey(entry)) ?? {
+				purpose: "新加入的插件，等待补充分类。",
+				source: entry.origin ?? "待核实来源",
+				moduleId: ""
+			};
+		}
+		function removeCategory(c, id, group = false, target = "") {
+			const next = structuredClone(c), removed = new Set(group ? next.modules.filter((m) => m.groupId === id).map((m) => m.id) : [id]);
+			if (target && (!next.modules.some((m) => m.id === target) || removed.has(target))) throw Error("请选择其他目标模块");
+			for (const key of Object.keys(next.assignments)) if (removed.has(next.assignments[key])) next.assignments[key] = target;
+			next.modules = next.modules.filter((m) => !removed.has(m.id));
+			if (group) next.groups = next.groups.filter((g) => g.id !== id);
+			return next;
+		}
+		//#endregion
+		//#region \0dsh-css:packages/dsh-plugin-manager/src/client/inventory-tree.module.css.mjs
+		const css$24 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=639px){.Z_0aEG_root[data-component-id] .Z_0aEG_moduleList,.Z_0aEG_root[data-component-id] .Z_0aEG_grid{grid-template-columns:1fr}}.Z_0aEG_aiHeader{align-items:center;gap:8px;padding-right:14px;display:flex}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex:1;width:auto;min-width:0}.Z_0aEG_aiActions{flex-shrink:0;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_aiButton{border-color:color-mix(in srgb,var(--tree-tone) 25%,var(--tree-border));background:color-mix(in srgb,var(--tree-tone) 6%,var(--tree-bg));white-space:nowrap;justify-content:center;align-items:center;gap:6px;font-size:12px;display:inline-flex}.Z_0aEG_aiButton svg{width:15px;height:15px}.Z_0aEG_root .Z_0aEG_aiToggle{background:0 0;border:0;align-items:center;gap:12px;padding:8px 0;display:flex}.Z_0aEG_aiFeedback{background:var(--tree-bg);color:var(--tree-text);border-radius:10px;margin:0 14px 12px;padding:11px 12px;font-size:12px;line-height:1.7}.Z_0aEG_aiFeedback small{color:var(--tree-muted);font-size:11px;display:block}.Z_0aEG_aiFeedback summary{cursor:pointer;color:var(--tree-accent);padding:7px 0}.Z_0aEG_aiFeedback ul{max-height:240px;margin:0;padding:0;list-style:none;overflow:auto}.Z_0aEG_aiFeedback li{border-top:1px solid var(--tree-border);overflow-wrap:anywhere;gap:3px;padding:9px 0;display:grid}.Z_0aEG_aiFeedback button{margin-top:8px;font-size:12px}@container (width<=520px){.Z_0aEG_aiHeader{flex-wrap:wrap;gap:0;padding-right:0}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex-basis:100%}.Z_0aEG_aiActions{justify-content:space-between;width:100%;padding:0 13px 12px}.Z_0aEG_aiFeedback{margin-inline:9px}}";
+		const tagId$24 = "@linxin666/dsh-web-all/packages/dsh-plugin-manager/src/client/inventory-tree.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$24) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-web-all";
+			tag.dataset.pluginCss = tagId$24;
+			tag.textContent = css$24;
+			document.head.appendChild(tag);
+		}
+		var inventory_tree_module_css_default = {
+			"aiActions": "Z_0aEG_aiActions",
+			"aiButton": "Z_0aEG_aiButton",
+			"aiFeedback": "Z_0aEG_aiFeedback",
+			"aiHeader": "Z_0aEG_aiHeader",
+			"aiToggle": "Z_0aEG_aiToggle",
+			"badge": "Z_0aEG_badge",
+			"branch": "Z_0aEG_branch",
+			"branchButton": "Z_0aEG_branchButton",
+			"branchHint": "Z_0aEG_branchHint",
+			"branchIcon": "Z_0aEG_branchIcon",
+			"branchLabel": "Z_0aEG_branchLabel",
+			"branchMeta": "Z_0aEG_branchMeta",
+			"branchTitle": "Z_0aEG_branchTitle",
+			"card": "Z_0aEG_card",
+			"chevron": "Z_0aEG_chevron",
+			"children": "Z_0aEG_children",
+			"confirm": "Z_0aEG_confirm",
+			"count": "Z_0aEG_count",
+			"countUnit": "Z_0aEG_countUnit",
+			"editGroup": "Z_0aEG_editGroup",
+			"editor": "Z_0aEG_editor",
+			"emptyState": "Z_0aEG_emptyState",
+			"error": "Z_0aEG_error",
+			"failureCount": "Z_0aEG_failureCount",
+			"grid": "Z_0aEG_grid",
+			"groupList": "Z_0aEG_groupList",
+			"importBox": "Z_0aEG_importBox",
+			"inactiveCount": "Z_0aEG_inactiveCount",
+			"moduleEdit": "Z_0aEG_moduleEdit",
+			"moduleList": "Z_0aEG_moduleList",
+			"muted": "Z_0aEG_muted",
+			"preview": "Z_0aEG_preview",
+			"primary": "Z_0aEG_primary",
+			"relationBadges": "Z_0aEG_relationBadges",
+			"reveal": "Z_0aEG_reveal",
+			"root": "Z_0aEG_root",
+			"scopeButton": "Z_0aEG_scopeButton",
+			"scopeDescription": "Z_0aEG_scopeDescription",
+			"scopeIcon": "Z_0aEG_scopeIcon",
+			"scopeToolbar": "Z_0aEG_scopeToolbar",
+			"search": "Z_0aEG_search",
+			"select": "Z_0aEG_select",
+			"session": "Z_0aEG_session",
+			"statusDot": "Z_0aEG_statusDot",
+			"toolButton": "Z_0aEG_toolButton",
+			"toolbar": "Z_0aEG_toolbar",
+			"treeReveal": "Z_0aEG_treeReveal"
+		};
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/AiClassification.tsx
+		async function request$2(action, body) {
+			const response = await fetch("/api/plugin-manager/ai/" + action, body ? {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(body),
+				keepalive: true
+			} : void 0);
+			const data = await response.json();
+			if (!response.ok) throw Error(data.error ?? "AI 分类请求失败");
+			return data;
+		}
+		function useAiClassification(enabled, onChanged) {
+			const [job, setJob] = (0, react$1.useState)(), [report, setReport] = (0, react$1.useState)(), [error, setError] = (0, react$1.useState)(""), [working, setWorking] = (0, react$1.useState)(false);
+			const latest = (0, react$1.useRef)(onChanged);
+			latest.current = onChanged;
+			const owned = (0, react$1.useRef)(), mounted = (0, react$1.useRef)(false), seen = (0, react$1.useRef)(""), generation = (0, react$1.useRef)(0);
+			const apply = (0, react$1.useCallback)((data) => {
+				if (!mounted.current) return;
+				setJob(data.job);
+				setReport(data.job?.report ?? data.report);
+				const result = data.job?.report ?? data.report, stamp = result ? JSON.stringify(result) : "";
+				if (stamp && seen.current && seen.current !== stamp) latest.current();
+				if (data.job?.phase === "done" && owned.current === data.job.id) {
+					owned.current = void 0;
+					latest.current();
+				}
+				if (data.job?.phase === "cancelled" || data.job?.phase === "failed") owned.current = void 0;
+				seen.current = stamp || "loaded";
+			}, []);
+			const cancel = (0, react$1.useCallback)(async () => {
+				const id = owned.current ?? job?.id;
+				if (!id) return;
+				try {
+					generation.current++;
+					const data = await request$2("cancel", { id });
+					apply(data);
+					owned.current = void 0;
+				} catch (e) {
+					if (mounted.current) setError(String(e));
+				}
+			}, [job?.id, apply]);
+			const running = working || job?.phase === "running";
+			useLeaveGuard(enabled && running && !!owned.current, () => {
+				cancel();
+			}, "AI 正在分类，确定取消本次分类并离开？尚未保存的结果将丢弃。");
+			(0, react$1.useEffect)(() => {
+				mounted.current = true;
+				if (!enabled) return () => {
+					mounted.current = false;
+				};
+				let inFlight = false;
+				const poll = async () => {
+					if (inFlight) return;
+					inFlight = true;
+					const version = generation.current;
+					try {
+						const data = await request$2("status");
+						if (version === generation.current) apply(data);
+					} catch (e) {
+						if (mounted.current) setError(String(e));
+					} finally {
+						inFlight = false;
+					}
+				};
+				poll();
+				const timer = setInterval(() => void poll(), 1200);
+				const beforeUnload = (event) => {
+					if (owned.current) {
+						event.preventDefault();
+						event.returnValue = "";
+					}
+				};
+				const pageHide = () => {
+					if (owned.current) request$2("cancel", { id: owned.current }).catch(() => {});
+				};
+				window.addEventListener("beforeunload", beforeUnload);
+				window.addEventListener("pagehide", pageHide);
+				return () => {
+					mounted.current = false;
+					clearInterval(timer);
+					window.removeEventListener("beforeunload", beforeUnload);
+					window.removeEventListener("pagehide", pageHide);
+					pageHide();
+				};
+			}, [enabled, apply]);
+			const start = async () => {
+				if (running) return;
+				generation.current++;
+				const id = crypto.randomUUID();
+				owned.current = id;
+				setWorking(true);
+				setError("");
+				setJob({
+					id,
+					phase: "running",
+					total: 0,
+					processed: 0,
+					model: ""
+				});
+				try {
+					const result = await request$2("start", { id });
+					if (!mounted.current) {
+						request$2("cancel", { id }).catch(() => {});
+						return;
+					}
+					if (result.id !== id) owned.current = void 0;
+					apply({ job: result });
+				} catch (e) {
+					if (mounted.current) {
+						setError(String(e));
+						try {
+							apply(await request$2("status"));
+						} catch {}
+					}
+				} finally {
+					if (mounted.current) setWorking(false);
+				}
+			};
+			const undo = async () => {
+				if (!report || running) return;
+				generation.current++;
+				setWorking(true);
+				setError("");
+				try {
+					apply(await request$2("undo", { id: report.id }));
+					latest.current();
+				} catch (e) {
+					setError(String(e));
+				} finally {
+					setWorking(false);
+				}
+			};
+			return {
+				job,
+				report,
+				error,
+				running,
+				start,
+				cancel,
+				undo
+			};
+		}
+		function AiClassificationFeedback({ ai, disabled }) {
+			const { job, report, error, running } = ai;
+			if (!job && !report && !error) return null;
+			const count = (status) => report?.results.filter((r) => r.status === status).length ?? 0;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: inventory_tree_module_css_default.aiFeedback,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						role: "status",
+						"aria-live": "polite",
+						children: running ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
+							"正在分类 ",
+							job?.total || "全部未定义",
+							" 项",
+							job?.total ? ` · 已分析 ${job.processed} / ${job.total}` : "",
+							job?.model && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["使用：", job.model] })
+						] }) : job?.phase === "cancelled" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "已取消，尚未保存的结果已丢弃。" }) : job?.phase === "failed" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							className: inventory_tree_module_css_default.error,
+							children: job.error
+						}) : report ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
+							report.undone ? `已撤销 ${count("undone")} 项` : `已分类 ${count("applied")} 项`,
+							count("unclassified") + count("failed") > 0 ? `，${count("unclassified") + count("failed")} 项仍待整理` : "",
+							count("skipped") > 0 ? `，${count("skipped")} 项已有变化，已跳过` : "",
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["使用：", report.model] })
+						] }) : null
+					}),
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: inventory_tree_module_css_default.error,
+						role: "alert",
+						children: error
+					}),
+					(error || job?.phase === "failed") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						onClick: () => openWorkbenchLink({ section: "models" }),
+						children: "前往模型设置"
+					}),
+					!running && report && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "查看分类结果" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", { children: report.results.map((r) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: r.name }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: r.status === "applied" ? r.target : r.status === "undone" ? "已退回未定义区" : r.status === "skipped" ? "保留当前归属" : "留在未定义区" }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: r.reason })
+					] }, r.key)) })] }),
+					!running && report && !report.undone && count("applied") > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						disabled,
+						onClick: () => void ai.undo(),
+						children: "撤销本次分类"
+					})
+				]
+			});
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/InventoryIcon.tsx
+		const paths = {
+			layers: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m12 3 9 5-9 5-9-5 9-5Z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m3 12 9 5 9-5M3 16l9 5 9-5" })] }),
+			grid: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "3",
+					y: "3",
+					width: "7",
+					height: "7",
+					rx: "2"
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "14",
+					y: "3",
+					width: "7",
+					height: "7",
+					rx: "2"
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "3",
+					y: "14",
+					width: "7",
+					height: "7",
+					rx: "2"
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "14",
+					y: "14",
+					width: "7",
+					height: "7",
+					rx: "2"
+				})
+			] }),
+			inbox: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m3 13 3-8h12l3 8v6H3v-6Z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 13h5l2 3h4l2-3h5" })] }),
+			chat: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M21 11a8 8 0 0 1-8 8H8l-5 3V11a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8ZM7 9h10M7 13h6" }),
+			chip: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "6",
+					y: "6",
+					width: "12",
+					height: "12",
+					rx: "3"
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M9 3v3m6-3v3M9 18v3m6-3v3M3 9h3m-3 6h3m12-6h3m-3 6h3" }),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "10",
+					y: "10",
+					width: "4",
+					height: "4",
+					rx: "1"
+				})
+			] }),
+			folder: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 7V5a2 2 0 0 1 2-2h5l3 4h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Zm0 0h10" }),
+			plan: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+				x: "5",
+				y: "4",
+				width: "14",
+				height: "17",
+				rx: "2"
+			}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M9 2h6v4H9zM9 11h6m-6 5h4" })] }),
+			flow: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "8",
+					y: "2",
+					width: "8",
+					height: "6",
+					rx: "2"
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "2",
+					y: "16",
+					width: "8",
+					height: "6",
+					rx: "2"
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "14",
+					y: "16",
+					width: "8",
+					height: "6",
+					rx: "2"
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M12 8v4H6v4m6-4h6v4" })
+			] }),
+			terminal: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+				x: "3",
+				y: "4",
+				width: "18",
+				height: "16",
+				rx: "3"
+			}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m7 9 3 3-3 3m6 0h4" })] }),
+			shield: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m12 3 8 3v6c0 4-5 8-8 9-3-1-8-5-8-9V6l8-3Zm-4 9 3 3 5-6" }),
+			spark: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M20 2v4m-2-2h4" })] }),
+			globe: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					cx: "12",
+					cy: "12",
+					r: "9"
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ellipse", {
+					cx: "12",
+					cy: "12",
+					rx: "4",
+					ry: "9"
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 12h18" })
+			] }),
+			layout: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+				x: "3",
+				y: "3",
+				width: "18",
+				height: "18",
+				rx: "3"
+			}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 9h18M9 9v12" })] }),
+			chart: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M4 3v17h17M8 15v-4m5 4V7m5 8V4" }) }),
+			refresh: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M20 7a9 9 0 0 0-15-2L2 8m0-5v5h5M4 17a9 9 0 0 0 15 2l3-3m0 5v-5h-5" }) }),
+			search: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+				cx: "10.5",
+				cy: "10.5",
+				r: "6.5"
+			}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m16 16 5 5" })] }),
+			chevron: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m9 5 7 7-7 7" })
+		};
+		const modules = {
+			"core-0": "layers",
+			"core-1": "chip",
+			"core-2": "chat",
+			"core-3": "plan",
+			"core-4": "chip",
+			"core-5": "terminal",
+			"core-6": "shield",
+			"core-7": "folder",
+			"core-8": "spark",
+			"core-9": "flow",
+			"core-10": "globe",
+			"core-11": "layout",
+			management: "grid",
+			development: "terminal",
+			maintenance: "chart",
+			resources: "spark",
+			community: "layout",
+			local: "chat"
+		};
+		function InventoryIcon({ name, className }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				className,
+				viewBox: "0 0 24 24",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.65",
+				strokeLinecap: "round",
+				strokeLinejoin: "round",
+				"aria-hidden": "true",
+				focusable: "false",
+				children: paths[modules[name] ?? name] ?? paths.grid
+			});
+		}
+		//#endregion
+		//#region ../dsh-capabilities/src/core/requirements-model.ts
+		/** Persisted requirements contracts. Pure data and rendering, shared by host and UI. */
+		const REQUIREMENTS_CAPABILITY_ID = "requirements-analysis";
+		const REQUIREMENTS_COMPONENT_ID = "requirements-service";
+		//#endregion
+		//#region ../dsh-capabilities/src/core/developer-model.ts
+		const DEVELOPER_CAPABILITY_ID = "developer-workspace";
+		const developerParts = [
+			{
+				componentId: "developer-files",
+				actions: ["develop"]
+			},
+			{
+				componentId: "developer-git",
+				actions: ["inspect-git"]
+			},
+			{
+				componentId: "developer-checks",
+				actions: ["verify-code"]
+			}
+		];
+		//#endregion
+		//#region ../dsh-capabilities/src/core/default-roles.ts
+		const MEETING_CAPABILITY_ID = "meeting-transcription";
+		//#endregion
+		//#region ../dsh-capabilities/src/core/model.ts
+		/** JSON-only contract shared by the host and UI; never imports a host service. */
+		const browserPackage = "@wxg-prc-cpg/browser-skill-dsh-plugin";
+		const components = [
+			...developerParts.map((part, i) => ({
+				id: part.componentId,
+				name: [
+					"项目文件与开发对话",
+					"Git 变更与版本",
+					"项目验证运行"
+				][i],
+				provider: i === 1 ? "@linxin666/dsh-client-ui-git-graph" : "@linxin666/dsh-capabilities",
+				version: "1.0.0",
+				actions: [...part.actions],
+				dependencies: [],
+				icon: "document",
+				sourceLabel: "内置开发服务",
+				management: "developer",
+				capabilityIds: [DEVELOPER_CAPABILITY_ID],
+				required: true,
+				compositionVersion: 2
+			})),
+			{
+				id: "browserskill",
+				name: "浏览器操作",
+				provider: browserPackage,
+				version: "0.3.0",
+				actions: [
+					"navigate",
+					"read",
+					"screenshot"
+				],
+				dependencies: [
+					"@deepseek-ai/dsh-tools",
+					"@deepseek-ai/dsh-agent",
+					"@deepseek-ai/dsh-session",
+					"@deepseek-ai/dsh-skill",
+					"@deepseek-ai/dsh-attachment",
+					"bsk",
+					"browser-extension"
+				],
+				icon: "browser",
+				sourceLabel: "BrowserSkill",
+				management: "browser",
+				pluginModule: "@linxin666/dsh-capabilities/browser",
+				compositionVersion: 1
+			},
+			{
+				id: "meeting-asr",
+				name: "会议录音转写",
+				provider: "@linxin666/dsh-capabilities",
+				version: "1.0.0",
+				actions: ["transcribe"],
+				dependencies: [],
+				icon: "audio",
+				sourceLabel: "内置会议服务",
+				management: "meeting-asr",
+				capabilityIds: [MEETING_CAPABILITY_ID],
+				required: true,
+				compositionVersion: 2
+			},
+			{
+				id: REQUIREMENTS_COMPONENT_ID,
+				name: "需求分析服务",
+				provider: "@linxin666/dsh-capabilities",
+				version: "1.0.0",
+				actions: ["analyze-requirements"],
+				dependencies: [],
+				icon: "document",
+				sourceLabel: "内置需求服务",
+				management: "requirements",
+				capabilityIds: [REQUIREMENTS_CAPABILITY_ID],
+				required: true,
+				compositionVersion: 2
+			}
+		];
+		function resolveBinding(state, binding) {
+			return state.capabilities.find((c) => c.id === binding.capabilityId)?.versions.find((v) => v.version === binding.version);
+		}
+		function references(state, componentId, tasks = []) {
+			return {
+				capabilities: state.capabilities.filter((c) => c.draft.components.some((p) => p.componentId === componentId) || c.versions.some((v) => v.components.some((p) => p.componentId === componentId))),
+				roles: state.roles.filter((r) => r.draft.capabilities.some((b) => resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)) || r.versions.some((v) => v.capabilities.some((b) => resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)))),
+				tasks: tasks.filter((t) => !["stopped"].includes(t.status) && state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.some((b) => b.enabled && resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)))
+			};
+		}
+		//#endregion
+		//#region ../dsh-capabilities/src/core/component-registry.ts
+		const relationNames = {
+			provider: "功能提供",
+			adapter: "工作台适配",
+			support: "运行支持"
+		};
+		/** Exact exported module identities. A parent package is never an implicit match for a child export. */
+		function pluginRelations(component) {
+			return [
+				{
+					moduleName: component.provider,
+					role: "provider",
+					required: true,
+					reason: `提供${component.name}的业务动作`
+				},
+				...component.pluginModule ? [{
+					moduleName: component.pluginModule,
+					role: "adapter",
+					required: true,
+					reason: "按岗位授权加载动作并连接能力工作区"
+				}] : [],
+				...component.dependencies.filter((id) => id.startsWith("@")).map((moduleName) => ({
+					moduleName,
+					role: "support",
+					required: true,
+					reason: `支持${component.name}的运行`
+				}))
+			];
+		}
+		function relatedComponents(moduleName, catalog = components) {
+			return catalog.filter((c) => pluginRelations(c).some((r) => r.moduleName === moduleName));
+		}
+		function pluginReferences(state, moduleName, tasks = [], catalog = components) {
+			const related = relatedComponents(moduleName, catalog), ids = new Set(related.map((c) => c.id));
+			const refs = related.map((c) => references(state, c.id, tasks));
+			const unique = (values) => [...new Map(values.map((v) => [v.id, v])).values()];
+			return {
+				components: related,
+				capabilities: unique(refs.flatMap((r) => r.capabilities)),
+				roles: unique(refs.flatMap((r) => r.roles)),
+				tasks: [...new Map(refs.flatMap((r) => r.tasks).map((t) => [t.sessionId, t])).values()],
+				componentIds: ids
+			};
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/CapabilityReferences.tsx
+		function useCapabilityReferences() {
+			const [data, setData] = (0, react$1.useState)(null);
+			(0, react$1.useEffect)(() => {
+				let alive = true;
+				const read = () => {
+					fetch("/api/capabilities/state").then((r) => r.ok ? r.json() : null).then((value) => {
+						if (alive) setData(value);
+					}).catch(() => {
+						if (alive) setData(null);
+					});
+				};
+				read();
+				const timer = setInterval(read, 15e3);
+				return () => {
+					alive = false;
+					clearInterval(timer);
+				};
+			}, []);
+			return data;
+		}
+		function capabilityLink(section, capabilityId, moduleName, context) {
+			return openWorkbenchLink({
+				section,
+				capabilityId,
+				moduleName,
+				...context
+			});
+		}
+		function CapabilityReferences({ moduleName, data, componentId, open, onOpenChange }) {
+			if (!data?.components?.length || !data.state?.capabilities) return null;
+			const catalog = componentId ? data.components.filter((c) => c.id === componentId) : data.components;
+			const refs = pluginReferences(data.state, moduleName, data.tasks, catalog);
+			if (!refs.components.length) return null;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+				open,
+				onToggle: onOpenChange ? (event) => onOpenChange(event.currentTarget.open) : void 0,
+				style: {
+					marginTop: 10,
+					paddingTop: 8,
+					borderTop: "1px solid var(--border-color,#dce2ec)"
+				},
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+						"关联能力 ",
+						refs.capabilities.length,
+						" · 岗位 ",
+						refs.roles.length,
+						" · 活动会话 ",
+						refs.tasks.length
+					] }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [refs.components.map((c) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							type: "button",
+							onClick: () => capabilityLink("component-center", void 0, void 0, {
+								componentId: c.id,
+								tab: "plugins"
+							}),
+							children: [c.name, " ↗"]
+						}),
+						" · ",
+						pluginRelations(c).filter((r) => r.moduleName === moduleName).map((r) => relationNames[r.role]).join("、"),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("br", {})
+					] }, c.id)), "此组件被以下能力复用。全局停用或卸载会影响这些引用，配置会保留。"] }),
+					refs.capabilities.map((cap) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						type: "button",
+						onClick: () => capabilityLink("capability-center", cap.id, void 0, componentId ? {
+							componentId,
+							returnTo: "component-center"
+						} : void 0),
+						children: [cap.draft.name, " ↗"]
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [" · ", cap.enabled ? "启用" : "停用"] })] }, cap.id)),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["岗位：", refs.roles.map((r) => r.draft.name).join("、") || "暂无"] }),
+					refs.tasks.filter((t) => t.browserSessions.length || t.status === "running").map((task) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+						task.name,
+						" · ",
+						task.status,
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							type: "button",
+							onClick: () => void fetch("/api/capabilities/stop", {
+								method: "POST",
+								headers: { "content-type": "application/json" },
+								body: JSON.stringify({ sessionId: task.sessionId })
+							}),
+							children: "停止浏览器任务"
+						})
+					] }, task.sessionId)),
+					moduleName === "@wxg-prc-cpg/browser-skill-dsh-plugin" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "工具由岗位适配层按会话加载；全局插件状态与能力连接状态分别展示。" })
+				]
+			});
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/InventoryTree.tsx
+		async function inventoryRequest(list) {
+			const [s, r] = await Promise.all([list(), fetch("/api/plugin-manager/pending")]);
+			if (!r.ok) throw Error("无法读取待加载插件");
+			const pending = await r.json();
+			const existing = new Set(s.entries.map(entryKey)), origins = new Map((pending.origins ?? []).map((e) => [entryKey(e), e.origin]));
+			return {
+				...s,
+				entries: [...s.entries, ...pending.entries.filter((e) => !existing.has(entryKey(e)))].map((e) => ({
+					...e,
+					origin: origins.get(entryKey(e))
+				}))
+			};
+		}
+		async function classificationRequest(body) {
+			const r = await fetch("/api/plugin-manager/classification", body ? {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(body)
+			} : void 0);
+			const data = await r.json();
+			if (!r.ok) throw Error(data.error ?? "无法读取分类");
+			return data.classification;
+		}
+		function shift(items, index, delta) {
+			const result = [...items], other = index + delta;
+			if (other < 0 || other >= items.length) return result;
+			[result[index], result[other]] = [result[other], result[index]];
+			return result;
+		}
+		function InventoryTree({ list, presetName, componentId, componentData, compact = false }) {
+			const [entry] = (0, react$1.useState)(() => compact ? void 0 : pendingNavigation("plugins"));
+			const [saved] = (0, react$1.useState)(() => {
+				try {
+					return restoredFrame(entry?.restore, "plugins")?.view ?? JSON.parse(sessionStorage.getItem("workbench-plugin-view") ?? "{}");
+				} catch {
+					return {};
+				}
+			});
+			const [origin, setOrigin] = (0, react$1.useState)(restoredFrame(entry?.restore, "plugins")?.origin ?? legacyOrigin(entry));
+			const polledData = useCapabilityReferences();
+			const capabilityData = componentData ?? polledData;
+			const [relatedId, setRelatedId] = (0, react$1.useState)(componentId ?? saved.relatedId);
+			const descriptor = capabilityData?.components?.find((c) => c.id === (componentId ?? relatedId));
+			const relations = descriptor ? pluginRelations(descriptor) : [];
+			const related = (e) => !descriptor || relations.some((r) => r.moduleName === e.moduleName);
+			const [snapshot, setSnapshot] = (0, react$1.useState)(), [config, setConfig] = (0, react$1.useState)(), [draft, setDraft] = (0, react$1.useState)();
+			const [focusEntry, setFocusEntry] = (0, react$1.useState)(saved.focusEntry);
+			const [query, setQuery] = (0, react$1.useState)(() => {
+				try {
+					return compact ? String(JSON.parse(sessionStorage.getItem("component-plugin-view:" + componentId) ?? "{}").query ?? "") : saved.query ?? "";
+				} catch {
+					return "";
+				}
+			}), [chosen, setChosen] = (0, react$1.useState)(() => {
+				try {
+					return compact ? String(JSON.parse(sessionStorage.getItem("component-plugin-view:" + componentId) ?? "{}").chosen ?? "") : saved.chosen ?? "";
+				} catch {
+					return "";
+				}
+			}), [selected, setSelected] = (0, react$1.useState)([]), [target, setTarget] = (0, react$1.useState)("");
+			(0, react$1.useEffect)(() => {
+				if (compact) return;
+				const select = (link) => {
+					if (link?.section !== "plugins") return;
+					const frame = restoredFrame(link.restore, "plugins"), view = frame?.view;
+					setOrigin(frame?.origin ?? legacyOrigin(link));
+					if (view) {
+						setQuery(view.query ?? "");
+						setRelatedId(view.relatedId);
+						setFocusEntry(view.focusEntry);
+						setChosen(view.chosen ?? "");
+						setOpened(view.opened ?? {});
+					} else {
+						setQuery(link.moduleName ?? "");
+						setRelatedId(link.componentId);
+						setFocusEntry(link.entryId ? {
+							id: link.entryId,
+							scope: link.scope ?? "global"
+						} : void 0);
+						if (link.scope && link.scope !== "global") setChosen(link.scope);
+						setOpened((old) => ({
+							...old,
+							global: true
+						}));
+					}
+					consumeNavigation(link);
+				};
+				select(entry);
+				const listener = (event) => select(event.detail);
+				window.addEventListener("workbench-capability-link", listener);
+				return () => window.removeEventListener("workbench-capability-link", listener);
+			}, [compact, entry]);
+			const [error, setError] = (0, react$1.useState)(""), [busy, setBusy] = (0, react$1.useState)(false), [remove, setRemove] = (0, react$1.useState)(), [removeTarget, setRemoveTarget] = (0, react$1.useState)("");
+			const [opened, setOpened] = (0, react$1.useState)(() => {
+				try {
+					return compact ? {
+						global: true,
+						...JSON.parse(sessionStorage.getItem("component-plugin-view:" + componentId) ?? "{}").opened
+					} : restoredFrame(entry?.restore, "plugins")?.view?.opened ?? JSON.parse(localStorage.getItem("dsh-plugin-tree-open") ?? "{}");
+				} catch {
+					return {};
+				}
+			});
+			(0, react$1.useEffect)(() => {
+				if (compact) try {
+					sessionStorage.setItem("component-plugin-view:" + componentId, JSON.stringify({
+						query,
+						opened,
+						chosen
+					}));
+				} catch {}
+			}, [
+				compact,
+				componentId,
+				query,
+				opened,
+				chosen
+			]);
+			useLeaveGuard(!!draft, () => setDraft(void 0));
+			useNavigationFrame("plugins", 0, () => ({
+				section: "plugins",
+				label: "插件管理",
+				origin,
+				view: {
+					query,
+					opened,
+					chosen,
+					relatedId,
+					focusEntry
+				}
+			}), !compact);
+			(0, react$1.useEffect)(() => {
+				if (!compact) try {
+					sessionStorage.setItem("workbench-plugin-view", JSON.stringify({
+						query,
+						opened,
+						chosen,
+						relatedId,
+						focusEntry
+					}));
+				} catch {}
+			}, [
+				compact,
+				query,
+				opened,
+				chosen,
+				relatedId,
+				focusEntry
+			]);
+			const refresh = async () => {
+				setError("");
+				try {
+					const [s, c] = await Promise.all([inventoryRequest(list), classificationRequest()]);
+					setSnapshot(s);
+					setConfig(c);
+				} catch (e) {
+					setError(String(e));
+				}
+			};
+			(0, react$1.useEffect)(() => {
+				let current = true;
+				Promise.all([inventoryRequest(list), classificationRequest()]).then(([s, c]) => {
+					if (current) {
+						setSnapshot(s);
+						setConfig(c);
+					}
+				}).catch((e) => {
+					if (current) setError(String(e));
+				});
+				return () => {
+					current = false;
+				};
+			}, [list]);
+			const ai = useAiClassification(!compact && !relatedId, () => {
+				refresh();
+				window.dispatchEvent(new Event("plugin-classification-changed"));
+			});
+			(0, react$1.useEffect)(() => {
+				const changed = () => void refresh();
+				window.addEventListener("plugin-classification-changed", changed);
+				return () => window.removeEventListener("plugin-classification-changed", changed);
+			}, [list]);
+			const current = draft ?? config;
+			const presets = snapshot?.agentPresets ?? [];
+			const preset = presets.find((p) => p.id === chosen) ?? presets.find((p) => p.isDefault) ?? presets[0];
+			const q = query.trim().toLocaleLowerCase();
+			const memberships = (0, react$1.useMemo)(() => {
+				const m = /* @__PURE__ */ new Map();
+				for (const p of presets) for (const r of p.rows) if (r.enabled) m.set(r.moduleName, [.../* @__PURE__ */ new Set([...m.get(r.moduleName) ?? [], presetName?.(p) ?? p.name])]);
+				return m;
+			}, [presets, presetName]);
+			const toggle = (key) => {
+				const next = {
+					...opened,
+					[key]: !(opened[key] ?? key === "sessions")
+				};
+				setOpened(next);
+				try {
+					if (!compact) localStorage.setItem("dsh-plugin-tree-open", JSON.stringify(next));
+				} catch {}
+			};
+			const rememberOpen = (key, open) => setOpened((previous) => previous[key] === open ? previous : {
+				...previous,
+				[key]: open
+			});
+			const rows = (snapshot?.entries ?? []).filter(related);
+			const relevantPresets = presets.filter((p) => p.rows.some(related));
+			const selectedPreset = descriptor ? relevantPresets.find((p) => p.id === chosen) ?? relevantPresets.find((p) => p.isDefault) ?? relevantPresets[0] : preset;
+			const absent = relations.filter((r) => snapshot && !snapshot.entries.some((e) => e.moduleName === r.moduleName) && !presets.some((p) => p.rows.some((e) => e.moduleName === r.moduleName)));
+			const categoryLabel = (e) => {
+				const m = current?.modules.find((m) => m.id === current.assignments[entryKey(e)]);
+				return m ? [current?.groups.find((g) => g.id === m.groupId)?.name, m.name].join(" ") : "未定义区";
+			};
+			const matches = (e, extra = "") => [
+				e.moduleName,
+				e.entryId,
+				entryFacts(e).purpose,
+				entryFacts(e).source,
+				extra,
+				categoryLabel(e)
+			].join(" ").toLocaleLowerCase().includes(q);
+			const card = (e, session = false) => {
+				const key = entryKey(e), fact = entryFacts(e), provided = !e.enabled ? memberships.get(e.moduleName) : void 0, scope = session ? selectedPreset?.id : "global", identityKey = "identity:" + scope + ":" + e.entryId, referencesKey = "references:" + scope + ":" + e.entryId;
+				return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: inventory_tree_module_css_default.card,
+					"data-entry-id": e.entryId,
+					"data-focused": focusEntry?.id === e.entryId && focusEntry.scope === (session ? selectedPreset?.id : "global"),
+					children: [
+						draft && !session && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: inventory_tree_module_css_default.select,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+								type: "checkbox",
+								"aria-label": "选择 " + e.moduleName,
+								checked: selected.includes(key),
+								onChange: (ev) => setSelected(ev.target.checked ? [...selected, key] : selected.filter((x) => x !== key))
+							}), "选择"]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+							open: focusEntry?.id === e.entryId && focusEntry.scope === (session ? selectedPreset?.id : "global") ? true : compact ? !!opened[identityKey] : void 0,
+							onToggle: compact ? (event) => rememberOpen(identityKey, event.currentTarget.open) : void 0,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: e.moduleName.replace(/^@deepseek-ai\/(?:dsh-)?/, "").replace(/^@linxin666\/dsh-/, "") }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: inventory_tree_module_css_default.badge,
+								"data-state": e.fiberPhase === "failed" ? "failed" : e.enabled ? "active" : "disabled",
+								children: e.fiberPhase === "conditional" ? "条件待确定" : e.fiberPhase === "pending-restart" ? "待重启加载" : e.fiberPhase === "failed" ? "加载失败" : e.enabled ? e.fiberPhase === "active" ? "已启用" : "待激活" : provided ? "由会话预设提供" : "已停用"
+							})] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dl", { children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "完整包名" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: e.moduleName }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "条目 ID" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: e.entryId }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "来源" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: session ? e.moduleName.startsWith("@deepseek-ai/") ? "官方 Harness" : "会话预设插件" : fact.source }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "运行状态" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: e.fiberPhase ?? "未在全局加载" }),
+								provided && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "提供此能力的预设" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: provided.join("、") })] })
+							] })]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: session ? e.moduleName === "./no-tools.mjs" ? "普通聊天的工具禁用边界。" : e.moduleName.endsWith("/dsh-persona") ? "会话角色提示词。" : e.entryId : fact.purpose }),
+						descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: inventory_tree_module_css_default.relationBadges,
+							children: [relations.filter((r) => r.moduleName === e.moduleName).map((r) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+								title: r.reason,
+								children: [relationNames[r.role], " · 必需"]
+							}, r.role)), compact && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: inventory_tree_module_css_default.toolButton,
+								onClick: () => capabilityLink("plugins", void 0, e.moduleName, {
+									componentId: descriptor.id,
+									entryId: e.entryId,
+									scope: session ? selectedPreset?.id : "global"
+								}),
+								children: "查看插件 ↗"
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityReferences, {
+							moduleName: e.moduleName,
+							componentId: descriptor?.id,
+							data: capabilityData,
+							open: compact ? !!opened[referencesKey] : void 0,
+							onOpenChange: compact ? (open) => rememberOpen(referencesKey, open) : void 0
+						})
+					]
+				}, (session ? "session:" : "") + e.entryId);
+			};
+			const grid = (entries, session = false) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				className: inventory_tree_module_css_default.grid,
+				children: [...entries].sort((a, b) => Number(b.fiberPhase === "failed") - Number(a.fiberPhase === "failed")).map((e) => card(e, session))
+			});
+			const section = (id, title, all, content, extra = "", empty = false) => {
+				const found = all.filter((e) => matches(e, extra || title));
+				if ((q || descriptor) && !found.length && !(id === "undefined" && !compact && !relatedId)) return null;
+				const isOpen = q ? true : opened[id] ?? (compact && !id.startsWith("module-")), failed = all.filter((e) => e.fiberPhase === "failed").length;
+				const isModule = id.startsWith("module-"), isUndefined = id === "undefined";
+				const moduleId = id.replace(/^module-/, ""), groupId = id.replace(/^group-/, "");
+				const group = isModule ? current?.modules.find((m) => m.id === moduleId)?.groupId : groupId;
+				const tone = isUndefined ? "amber" : group === "extensions" ? "violet" : "blue";
+				const moduleCount = current?.modules.filter((m) => m.groupId === groupId && (!descriptor || rows.some((e) => current.assignments[entryKey(e)] === m.id))).length ?? 0;
+				const showAI = isUndefined && !compact && !relatedId;
+				const heading = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+					className: inventory_tree_module_css_default.branchButton,
+					onClick: () => toggle(id),
+					"aria-expanded": isOpen,
+					"aria-controls": "tree-" + id,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							className: inventory_tree_module_css_default.branchIcon,
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: isModule ? moduleId : isUndefined ? "inbox" : groupId === "core" ? "layers" : "grid" })
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+							className: inventory_tree_module_css_default.branchLabel,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: inventory_tree_module_css_default.branchTitle,
+								children: title
+							}), !isModule && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: inventory_tree_module_css_default.branchHint,
+								children: isUndefined ? all.length ? "新加入的插件，从这里开始整理" : "新加入的插件会收纳在这里" : `${moduleCount} 个功能模块`
+							})]
+						}),
+						!showAI && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+							className: inventory_tree_module_css_default.branchMeta,
+							children: [failed > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+								className: inventory_tree_module_css_default.failureCount,
+								children: [failed, " 项失败"]
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+								className: inventory_tree_module_css_default.count,
+								children: [q ? `${found.length} / ${all.length}` : all.length, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									className: inventory_tree_module_css_default.countUnit,
+									children: "个"
+								})]
+							})]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, {
+							name: "chevron",
+							className: inventory_tree_module_css_default.chevron
+						})] })
+					]
+				});
+				return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+					className: inventory_tree_module_css_default.branch,
+					"data-level": isModule ? "module" : "group",
+					"data-open": isOpen,
+					"data-tone": tone,
+					children: [
+						showAI ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: inventory_tree_module_css_default.aiHeader,
+							children: [heading, /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: inventory_tree_module_css_default.aiActions,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									className: inventory_tree_module_css_default.aiButton,
+									disabled: !!draft || busy || !all.length && !ai.running,
+									title: draft ? "请先保存或取消手动分类" : !all.length ? "暂无需要分类的插件" : `使用已有模型，处理全部 ${all.length} 项未定义插件`,
+									onClick: () => void (ai.running ? ai.cancel() : ai.start()),
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: ai.running ? "refresh" : "spark" }), ai.running ? "取消分类" : "AI 自动分类"]
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									className: inventory_tree_module_css_default.aiToggle,
+									"aria-label": isOpen ? "收起未定义区" : "展开未定义区",
+									"aria-expanded": isOpen,
+									"aria-controls": "tree-" + id,
+									onClick: () => toggle(id),
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+										className: inventory_tree_module_css_default.count,
+										children: [all.length, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+											className: inventory_tree_module_css_default.countUnit,
+											children: "个"
+										})]
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, {
+										name: "chevron",
+										className: inventory_tree_module_css_default.chevron
+									})]
+								})]
+							})]
+						}) : heading,
+						showAI && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(AiClassificationFeedback, {
+							ai,
+							disabled: !!draft || busy
+						}),
+						isOpen && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							id: "tree-" + id,
+							className: inventory_tree_module_css_default.children,
+							children: empty ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: inventory_tree_module_css_default.emptyState,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "inbox" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: ["暂无待分类插件", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "导入新插件后，可以在这里为它选择模块。" })] })]
+							}) : content
+						})
+					]
+				}, id);
+			};
+			const setAssignment = (keys, moduleId) => setDraft((old) => old ? {
+				...old,
+				assignments: {
+					...old.assignments,
+					...Object.fromEntries(keys.map((k) => [k, moduleId]))
+				}
+			} : old);
+			const save = async () => {
+				if (!draft) return;
+				setBusy(true);
+				setError("");
+				try {
+					const c = await classificationRequest(draft);
+					setConfig(c);
+					setDraft(void 0);
+					setSelected([]);
+				} catch (e) {
+					setError(String(e));
+				} finally {
+					setBusy(false);
+				}
+			};
+			const differences = draft && config ? Object.keys({
+				...config.assignments,
+				...draft.assignments
+			}).filter((k) => config.assignments[k] !== draft.assignments[k]).length : 0;
+			const removeCount = remove && current ? rows.filter((r) => {
+				const m = current.modules.find((m) => m.id === current.assignments[entryKey(r)]);
+				return remove.group ? m?.groupId === remove.id : m?.id === remove.id;
+			}).length : 0;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: inventory_tree_module_css_default.root,
+				"data-component-id": compact ? relatedId : void 0,
+				"data-inventory-ready": !!snapshot && !!current,
+				children: [
+					!compact && origin && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						className: inventory_tree_module_css_default.toolButton,
+						onClick: () => returnNavigation(origin),
+						children: ["← 返回", origin.label]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: inventory_tree_module_css_default.toolbar,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+								className: inventory_tree_module_css_default.search,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "search" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									type: "search",
+									"aria-label": "搜索插件",
+									placeholder: "搜索插件、用途或模块",
+									value: query,
+									onChange: (e) => setQuery(e.target.value)
+								})]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+								className: inventory_tree_module_css_default.toolButton,
+								disabled: busy || !!draft,
+								onClick: () => void refresh(),
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "refresh" }), "刷新"]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+								hidden: compact,
+								className: inventory_tree_module_css_default.toolButton,
+								disabled: !config || busy || !!draft || ai.running,
+								onClick: () => {
+									setDraft(structuredClone(config));
+									setSelected([]);
+								},
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "grid" }), "管理分类"]
+							})
+						]
+					}),
+					descriptor && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						className: inventory_tree_module_css_default.scopeDescription,
+						children: [
+							"当前组件：",
+							descriptor.name,
+							" · 仅显示精确关联的插件和预设条目",
+							!compact && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: inventory_tree_module_css_default.toolButton,
+								onClick: () => {
+									setRelatedId(void 0);
+									setFocusEntry(void 0);
+									setQuery("");
+								},
+								children: "查看全部插件"
+							})
+						]
+					}),
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "alert",
+						className: inventory_tree_module_css_default.error,
+						children: error
+					}),
+					!snapshot || !current ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "正在读取插件清单…" }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+						(descriptor ? relevantPresets : presets).length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+							className: inventory_tree_module_css_default.session,
+							"data-plugin-scope": "session",
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: inventory_tree_module_css_default.scopeToolbar,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									className: inventory_tree_module_css_default.scopeButton,
+									onClick: () => toggle("sessions"),
+									"aria-expanded": opened.sessions !== false,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, {
+											name: "chat",
+											className: inventory_tree_module_css_default.scopeIcon
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "会话插件" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+											className: inventory_tree_module_css_default.count,
+											children: [selectedPreset?.rows.filter(related).length ?? 0, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+												className: inventory_tree_module_css_default.countUnit,
+												children: "个"
+											})]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, {
+											name: "chevron",
+											className: inventory_tree_module_css_default.chevron
+										})
+									]
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
+									"aria-label": "会话插件预设",
+									value: selectedPreset?.id ?? "",
+									onChange: (e) => setChosen(e.target.value),
+									children: (descriptor ? relevantPresets : presets).map((p) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
+										value: p.id,
+										children: [presetName?.(p) ?? p.name, p.isDefault ? "（默认）" : ""]
+									}, p.id))
+								})]
+							}), opened.sessions !== false && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: inventory_tree_module_css_default.reveal,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+									className: inventory_tree_module_css_default.muted,
+									children: "由 Agent 预设按会话组成"
+								}), grid((selectedPreset?.rows ?? []).filter((e) => related(e) && matches(e)), true)]
+							})]
+						}),
+						draft && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: inventory_tree_module_css_default.editor,
+							"aria-label": "分类编辑器",
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "编辑分类" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "新加入的插件进入未定义区。分类调整不改变插件启停。" }),
+								draft.groups.map((g, gi) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: inventory_tree_module_css_default.editGroup,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											className: inventory_tree_module_css_default.toolbar,
+											children: [
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+													"aria-label": "分组名称",
+													value: g.name,
+													onChange: (e) => setDraft({
+														...draft,
+														groups: draft.groups.map((x) => x.id === g.id ? {
+															...x,
+															name: e.target.value
+														} : x)
+													})
+												}),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													disabled: gi === 0,
+													onClick: () => setDraft({
+														...draft,
+														groups: shift(draft.groups, gi, -1)
+													}),
+													children: "上移"
+												}),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													disabled: gi === draft.groups.length - 1,
+													onClick: () => setDraft({
+														...draft,
+														groups: shift(draft.groups, gi, 1)
+													}),
+													children: "下移"
+												}),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													onClick: () => {
+														setRemove({
+															id: g.id,
+															group: true
+														});
+														setRemoveTarget("");
+													},
+													children: "删除分组"
+												})
+											]
+										}),
+										draft.modules.filter((m) => m.groupId === g.id).map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											className: inventory_tree_module_css_default.moduleEdit,
+											children: [
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+													"aria-label": "模块名称",
+													value: m.name,
+													onChange: (e) => setDraft({
+														...draft,
+														modules: draft.modules.map((x) => x.id === m.id ? {
+															...x,
+															name: e.target.value
+														} : x)
+													})
+												}),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
+													"aria-label": "模块所属分组",
+													value: m.groupId,
+													onChange: (e) => setDraft({
+														...draft,
+														modules: draft.modules.map((x) => x.id === m.id ? {
+															...x,
+															groupId: e.target.value
+														} : x)
+													}),
+													children: draft.groups.map((x) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+														value: x.id,
+														children: x.name
+													}, x.id))
+												}),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													"aria-label": "上移 " + m.name,
+													onClick: () => {
+														const index = draft.modules.indexOf(m), previous = draft.modules.map((x, i) => i < index && x.groupId === g.id ? i : -1).reduce((a, b) => Math.max(a, b), -1);
+														if (previous >= 0) {
+															const next = [...draft.modules];
+															[next[index], next[previous]] = [next[previous], next[index]];
+															setDraft({
+																...draft,
+																modules: next
+															});
+														}
+													},
+													children: "↑"
+												}),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													"aria-label": "下移 " + m.name,
+													onClick: () => {
+														const index = draft.modules.indexOf(m), nextIndex = draft.modules.findIndex((x, i) => i > index && x.groupId === g.id);
+														if (nextIndex >= 0) {
+															const next = [...draft.modules];
+															[next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+															setDraft({
+																...draft,
+																modules: next
+															});
+														}
+													},
+													children: "↓"
+												}),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													onClick: () => {
+														setRemove({
+															id: m.id,
+															group: false
+														});
+														setRemoveTarget("");
+													},
+													children: "删除"
+												})
+											]
+										}, m.id)),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											onClick: () => setDraft({
+												...draft,
+												modules: [...draft.modules, {
+													id: "m-" + crypto.randomUUID(),
+													name: "新模块",
+													groupId: g.id
+												}]
+											}),
+											children: "新增模块标签"
+										})
+									]
+								}, g.id)),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									onClick: () => setDraft({
+										...draft,
+										groups: [...draft.groups, {
+											id: "g-" + crypto.randomUUID(),
+											name: "新分组"
+										}]
+									}),
+									children: "新增分组"
+								}),
+								remove && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: inventory_tree_module_css_default.confirm,
+									role: "dialog",
+									"aria-label": "删除分类",
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+											"此分类涉及当前 ",
+											removeCount,
+											" 个插件。删除分类后将插件移到："
+										] }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+											"aria-label": "删除分类后的去向",
+											value: removeTarget,
+											onChange: (e) => setRemoveTarget(e.target.value),
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+												value: "",
+												children: "未定义区"
+											}), draft.modules.filter((m) => remove.group ? m.groupId !== remove.id : m.id !== remove.id).map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+												value: m.id,
+												children: m.name
+											}, m.id))]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											onClick: () => {
+												setDraft(removeCategory(draft, remove.id, remove.group, removeTarget));
+												setRemove(void 0);
+											},
+											children: "确认移除分类"
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											onClick: () => setRemove(void 0),
+											children: "取消"
+										})
+									]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: inventory_tree_module_css_default.toolbar,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
+											"已选择 ",
+											selected.length,
+											" 项"
+										] }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+											"aria-label": "移动到模块",
+											value: target,
+											onChange: (e) => setTarget(e.target.value),
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+												value: "",
+												children: "未定义区"
+											}), draft.groups.map((g) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("optgroup", {
+												label: g.name,
+												children: draft.modules.filter((m) => m.groupId === g.id).map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+													value: m.id,
+													children: m.name
+												}, m.id))
+											}, g.id))]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											disabled: !selected.length,
+											onClick: () => {
+												setAssignment(selected, target);
+												setSelected([]);
+											},
+											children: "移动到"
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											onClick: () => setSelected(rows.filter((e) => matches(e)).map(entryKey)),
+											children: "选择搜索结果"
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											onClick: () => setSelected([]),
+											children: "清除选择"
+										})
+									]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+									"待保存：",
+									differences,
+									" 项插件归属变更；分组 ",
+									config.groups.length,
+									" → ",
+									draft.groups.length,
+									"，模块 ",
+									config.modules.length,
+									" → ",
+									draft.modules.length,
+									"。名称和顺序按当前编辑结果保存。"
+								] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: inventory_tree_module_css_default.toolbar,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										disabled: busy,
+										onClick: () => void save(),
+										children: busy ? "保存中…" : "保存分类"
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										disabled: busy,
+										onClick: () => {
+											setDraft(void 0);
+											setRemove(void 0);
+											setSelected([]);
+										},
+										children: "取消修改"
+									})]
+								})
+							]
+						}),
+						absent.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+							className: inventory_tree_module_css_default.branch,
+							open: compact ? !!opened.sources : void 0,
+							onToggle: compact ? (event) => rememberOpen("sources", event.currentTarget.open) : void 0,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+									"来源包与待检测声明 · ",
+									absent.length,
+									" 项"
+								] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+									className: inventory_tree_module_css_default.muted,
+									children: "以下来源未发现独立加载条目。包已安装、由服务直接加载和独立插件启用分别核对。"
+								}),
+								absent.map((r) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: inventory_tree_module_css_default.card,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: r.moduleName }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+											relationNames[r.role],
+											" · ",
+											r.reason
+										] }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [capabilityData?.dependencies?.find((d) => d.id === r.moduleName)?.installed ? "提供包已安装" : "安装状态未检测", " · 未注册独立插件条目"] }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											className: inventory_tree_module_css_default.toolButton,
+											onClick: () => capabilityLink("plugins", void 0, r.moduleName, { componentId: descriptor?.id }),
+											children: "查看插件管理 ↗"
+										})
+									]
+								}, r.moduleName))
+							]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+							className: inventory_tree_module_css_default.global,
+							"data-plugin-scope": "global",
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									className: inventory_tree_module_css_default.scopeButton,
+									"aria-expanded": q ? true : !!opened.global,
+									onClick: () => toggle("global"),
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, {
+											name: "layers",
+											className: inventory_tree_module_css_default.scopeIcon
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: compact ? "当前组件相关插件" : "全局插件" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+											className: inventory_tree_module_css_default.count,
+											children: [rows.length, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+												className: inventory_tree_module_css_default.countUnit,
+												children: "个"
+											})]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, {
+											name: "chevron",
+											className: inventory_tree_module_css_default.chevron
+										})
+									]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+									className: inventory_tree_module_css_default.scopeDescription,
+									children: [
+										"系统与所有会话共用",
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: inventory_tree_module_css_default.statusDot }),
+										rows.filter((r) => r.enabled).length,
+										" 项启用",
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+											className: inventory_tree_module_css_default.inactiveCount,
+											children: [rows.filter((r) => !r.enabled).length, " 项未启用"]
+										})
+									]
+								}),
+								(q || opened.global) && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: inventory_tree_module_css_default.groupList,
+									children: [(() => {
+										const all = rows.filter((e) => !current.modules.some((m) => m.id === current.assignments[entryKey(e)]));
+										return section("undefined", "未定义区", all, grid(all.filter((e) => matches(e, "未定义区"))), "未定义区", all.length === 0);
+									})(), current.groups.map((g) => {
+										const ms = current.modules.filter((m) => m.groupId === g.id), ids = new Set(ms.map((m) => m.id)), all = rows.filter((e) => ids.has(current.assignments[entryKey(e)]));
+										const content = /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+											className: inventory_tree_module_css_default.moduleList,
+											children: ms.map((m) => {
+												const members = all.filter((e) => current.assignments[entryKey(e)] === m.id);
+												return section("module-" + m.id, m.name, members, grid(members.filter((e) => matches(e, g.name + " " + m.name))), g.name + " " + m.name);
+											})
+										});
+										return section("group-" + g.id, g.name, all, content, g.name);
+									})]
+								})
+							]
+						})
+					] })
+				]
+			});
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/CapabilityNavigation.tsx
+		/** rc.2 slot seam: select the inventory using its own tab callback, retaining SDK state. */
+		function withCapabilityNavigation(Original) {
+			return function CapabilityPluginSection(props) {
+				const [request, setRequest] = (0, react$1.useState)(() => pendingNavigation("plugins")), handled = (0, react$1.useRef)();
+				const tree = Original(props);
+				let select;
+				const find = (node) => {
+					if (!(0, react$1.isValidElement)(node)) return;
+					if (node.props.role === "tab" && String(node.props.id).endsWith("-tab-all")) select = node.props.onClick;
+					react$1.Children.forEach(node.props.children, find);
+				};
+				find(tree);
+				(0, react$1.useEffect)(() => {
+					const listener = (event) => {
+						if (event.detail?.section === "plugins") setRequest(event.detail);
+					};
+					window.addEventListener("workbench-capability-link", listener);
+					return () => window.removeEventListener("workbench-capability-link", listener);
+				}, []);
+				(0, react$1.useEffect)(() => {
+					if (handled.current === request || !select || request?.section !== "plugins") return;
+					handled.current = request;
+					select();
+				}, [request, select]);
+				return tree;
+			};
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/slot-adapter.ts
+		/** Version-scoped compatibility seam: retain the resident entry's inject, children and stores.
+		* The SDK supports shadowing but cannot delegate a declared child tree. A reversible
+		* component decorator avoids redeclaring that tree or patching installed SDK files.
+		*/
+		function decorateSlot(registry, key, expected, wrap) {
+			const changes = /* @__PURE__ */ new Map();
+			const sync = () => {
+				for (const entry of registry.entries(key)) {
+					if (changes.has(entry) || typeof entry.component !== "function" || entry.component.name !== expected) continue;
+					const original = entry.component;
+					const decorated = wrap(original);
+					changes.set(entry, {
+						original,
+						decorated
+					});
+					entry.component = decorated;
+				}
+			};
+			const unsubscribe = registry.subscribe(key, sync);
+			sync();
+			return () => {
+				unsubscribe();
+				for (const [entry, { original, decorated }] of changes) if (entry.component === decorated) entry.component = original;
+				changes.clear();
+			};
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/LocalPluginImport.tsx
+		async function localPluginRequest(path, body) {
+			const response = await fetch("/api/plugin-manager/" + path, body === void 0 ? void 0 : {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(body)
+			});
+			const data = await response.json();
+			if (!response.ok) throw Error(data.error ?? data.message ?? "插件操作失败");
+			return data;
+		}
+		async function finishJob(jobId) {
+			const { job } = await localPluginRequest("status?job=" + encodeURIComponent(jobId));
+			if (job?.phase !== "done") throw Error(job?.error ?? "插件尚未安装完成，请刷新查看。");
+			window.dispatchEvent(new Event("dsh-local-plugins-changed"));
+		}
+		function OfflineRollback({ id, version, onChange }) {
+			const [confirm, setConfirm] = (0, react$1.useState)(false), [busy, setBusy] = (0, react$1.useState)(false), [error, setError] = (0, react$1.useState)("");
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: !confirm ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+				onClick: () => setConfirm(true),
+				children: ["回退到 ", version]
+			}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				role: "dialog",
+				"aria-label": "确认回退插件",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+						"将 ",
+						id,
+						" 回退到 ",
+						version,
+						"，重启后生效。插件自己的数据保留。"
+					] }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						disabled: busy,
+						onClick: async () => {
+							setBusy(true);
+							setError("");
+							try {
+								await finishJob((await localPluginRequest("rollback", {
+									id,
+									confirm: true
+								})).jobId);
+								await onChange();
+								setConfirm(false);
+							} catch (e) {
+								setError(String(e));
+							} finally {
+								setBusy(false);
+							}
+						},
+						children: "确认回退"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						disabled: busy,
+						onClick: () => setConfirm(false),
+						children: "取消"
+					}),
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "alert",
+						children: error
+					})
+				]
+			}) });
+		}
+		function LocalPluginImport({ onChange, disabled = false }) {
+			const zip = (0, react$1.useRef)(null), folder = (0, react$1.useRef)(null), active = (0, react$1.useRef)(false);
+			const [uploadId, setUploadId] = (0, react$1.useState)(""), [preview, setPreview] = (0, react$1.useState)(), [busy, setBusy] = (0, react$1.useState)(false), [progress, setProgress] = (0, react$1.useState)(""), [error, setError] = (0, react$1.useState)(""), [done, setDone] = (0, react$1.useState)("");
+			const discard = async () => {
+				if (uploadId) try {
+					await localPluginRequest("import/discard", { uploadId });
+				} catch {}
+				setUploadId("");
+				setPreview(void 0);
+			};
+			const select = async (files, format) => {
+				if (!files?.length || active.current) return;
+				active.current = true;
+				setBusy(true);
+				setError("");
+				setDone("");
+				let id = "";
+				try {
+					await discard();
+					id = (await localPluginRequest("import/start", { format })).uploadId;
+					setUploadId(id);
+					if (files.length > 2e3) throw Error("一个插件包最多支持 2,000 个文件，请使用包含构建产物的发布包。");
+					for (let i = 0; i < files.length; i++) {
+						const file = files[i], name = format === "zip" ? "archive.zip" : file.webkitRelativePath || file.name;
+						setProgress(`正在复制文件 ${i + 1} / ${files.length}`);
+						const res = await fetch("/api/plugin-manager/import/file?uploadId=" + encodeURIComponent(id) + "&path=" + encodeURIComponent(name), {
+							method: "PUT",
+							body: file
+						});
+						if (!res.ok) {
+							const err = await res.json();
+							throw Error(err.error ?? "文件复制失败");
+						}
+					}
+					setProgress("正在检查插件和离线依赖…");
+					const result = await localPluginRequest("import/inspect", { uploadId: id });
+					setPreview(result.preview);
+				} catch (e) {
+					setError(String(e));
+					if (id) try {
+						await localPluginRequest("import/discard", { uploadId: id });
+					} catch {}
+					setUploadId("");
+				} finally {
+					setBusy(false);
+					active.current = false;
+					setProgress("");
+					if (zip.current) zip.current.value = "";
+					if (folder.current) folder.current.value = "";
+				}
+			};
+			const install = async () => {
+				if (!preview || active.current) return;
+				active.current = true;
+				setBusy(true);
+				setError("");
+				try {
+					await finishJob((await localPluginRequest("import/commit", {
+						uploadId,
+						hash: preview.hash,
+						currentHash: preview.currentHash ?? "",
+						replace: preview.disposition !== "new",
+						confirm: true
+					})).jobId);
+					await onChange();
+					setDone(preview.disposition === "identical" ? "这个版本已经安装，无需重复导入。" : "本地安装完成。新增条目进入未定义区，重启工作台后加载。");
+					setPreview(void 0);
+					setUploadId("");
+				} catch (e) {
+					setError(String(e));
+				} finally {
+					setBusy(false);
+					active.current = false;
+				}
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: `${inventory_tree_module_css_default.root} ${inventory_tree_module_css_default.importBox}`,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "导入本地插件" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "选择已经构建好的插件发布包。依赖需要随包提供；安装过程不会联网，也不会执行安装脚本。" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: inventory_tree_module_css_default.toolbar,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: inventory_tree_module_css_default.primary,
+							disabled: busy || disabled,
+							onClick: () => zip.current?.click(),
+							children: "导入 ZIP 压缩包"
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy || disabled,
+							onClick: () => folder.current?.click(),
+							children: "选择插件文件夹"
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+						ref: zip,
+						hidden: true,
+						type: "file",
+						accept: ".zip,application/zip",
+						onChange: (e) => void select(e.target.files, "zip")
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+						ref: folder,
+						hidden: true,
+						type: "file",
+						multiple: true,
+						webkitdirectory: "",
+						onChange: (e) => void select(e.target.files, "folder")
+					}),
+					progress && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "status",
+						children: progress
+					}),
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "alert",
+						className: inventory_tree_module_css_default.error,
+						children: error
+					}),
+					done && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "status",
+						children: done
+					}),
+					preview && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: inventory_tree_module_css_default.preview,
+						role: "dialog",
+						"aria-label": "确认本地插件导入",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: preview.name }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: preview.id }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dl", { children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "版本" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dd", { children: [preview.currentVersion ? `${preview.currentVersion} → ` : "", preview.version] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "安装内容" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dd", { children: [
+									preview.entries.length,
+									" 个插件条目 · ",
+									preview.fileCount,
+									" 个文件 · ",
+									(preview.totalBytes / 1024 / 1024).toFixed(2),
+									" MiB"
+								] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "分类" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: preview.disposition === "new" ? "未定义区，导入后可自行归类" : "保留已有条目的分类；新增条目进入未定义区" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "依赖检查" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dd", { children: [
+									"包内 ",
+									preview.bundled.length,
+									" 项 · 底座共享 ",
+									preview.shared.length,
+									" 项 · ",
+									preview.platform
+								] })
+							] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "查看条目和依赖" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: preview.entries.map((e) => e.id).join("、") }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: [...preview.bundled, ...preview.shared.map((s) => s.name + "@" + s.version)].join("、") || "无额外依赖" })
+							] }),
+							preview.scriptsSkipped.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+								"已跳过安装脚本：",
+								preview.scriptsSkipped.join("、"),
+								"。发布包必须已包含所需构建产物。"
+							] }),
+							preview.disposition === "replace" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "版本号相同，但文件内容不同。确认后将替换当前受管副本，并保留上一版供回退。" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "插件代码将在重启后运行。确认安装表示允许加载这个本地插件。" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: inventory_tree_module_css_default.toolbar,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									disabled: busy || disabled,
+									onClick: () => void install(),
+									children: busy ? "正在安装…" : preview.disposition === "identical" ? "确认，无需重复安装" : preview.disposition === "new" ? "确认安装" : "确认替换版本"
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									disabled: busy,
+									onClick: () => void discard(),
+									children: "取消"
+								})]
+							})
+						]
+					})
+				]
+			});
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/core/conflict.ts
 		/**
 		* Classify one control-state change for messaging. A change into `disabled`
 		* is the conflict rule's action (reversible by re-enabling); a change out of
@@ -888,27 +4124,27 @@ window.__ModuleLoader__.load({
 		/** The plugin-manager settings tab. */
 		function PluginManagerTab(props) {
 			const { t, isLoopback, list, install, uninstall, setEnabled, status, failures, setSafeMode, repairPlugin, controlsList, controlsSetEnabled, lastInstallConflicts } = props;
-			const [view, setView] = (0, react.useState)({ status: "loading" });
-			const [busy, setBusy] = (0, react.useState)(void 0);
-			const [toggleBusy, setToggleBusy] = (0, react.useState)(void 0);
-			const [error, setError] = (0, react.useState)(void 0);
-			const [failedSpec, setFailedSpec] = (0, react.useState)(void 0);
-			const [installError, setInstallError] = (0, react.useState)(void 0);
-			const [spec, setSpec] = (0, react.useState)("");
-			const [dirty, setDirty] = (0, react.useState)(false);
-			const [repairing, setRepairing] = (0, react.useState)(void 0);
-			const [copied, setCopied] = (0, react.useState)(void 0);
-			const [uninstallTarget, setUninstallTarget] = (0, react.useState)(void 0);
-			const [conflicts, setConflicts] = (0, react.useState)([]);
-			const [progress, setProgress] = (0, react.useState)({
+			const [view, setView] = (0, react$1.useState)({ status: "loading" });
+			const [busy, setBusy] = (0, react$1.useState)(void 0);
+			const [toggleBusy, setToggleBusy] = (0, react$1.useState)(void 0);
+			const [error, setError] = (0, react$1.useState)(void 0);
+			const [failedSpec, setFailedSpec] = (0, react$1.useState)(void 0);
+			const [installError, setInstallError] = (0, react$1.useState)(void 0);
+			const [spec, setSpec] = (0, react$1.useState)("");
+			const [dirty, setDirty] = (0, react$1.useState)(false);
+			const [repairing, setRepairing] = (0, react$1.useState)(void 0);
+			const [copied, setCopied] = (0, react$1.useState)(void 0);
+			const [uninstallTarget, setUninstallTarget] = (0, react$1.useState)(void 0);
+			const [conflicts, setConflicts] = (0, react$1.useState)([]);
+			const [progress, setProgress] = (0, react$1.useState)({
 				kind: "idle",
 				stage: "fetch"
 			});
 			/** Parent rows whose aggregate child list is expanded; collapsed by default. */
-			const [expandedChildren, setExpandedChildren] = (0, react.useState)(() => /* @__PURE__ */ new Set());
+			const [expandedChildren, setExpandedChildren] = (0, react$1.useState)(() => /* @__PURE__ */ new Set());
 			/** Synchronous in-flight mirror of `busy`: the render-time guard alone lets a
 			* click and an Enter land in the same frame and double-fire. */
-			const busyRef = (0, react.useRef)(false);
+			const busyRef = (0, react$1.useRef)(false);
 			/** Reload every snapshot into the ready view. */
 			const reload = async () => {
 				const [plugins, controls, failureSnapshot] = await Promise.all([
@@ -923,7 +4159,7 @@ window.__ModuleLoader__.load({
 					failures: failureSnapshot
 				});
 			};
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				let cancelled = false;
 				reload().catch(() => {
 					if (!cancelled) setView({ status: "error" });
@@ -948,37 +4184,8 @@ window.__ModuleLoader__.load({
 					setBusy(void 0);
 				}
 			};
-			/** Install one spec, then diff the product snapshot into a conflict notice. */
-			const onInstall = () => {
-				const target = spec.trim();
-				if (target === "" || busy !== void 0 || busyRef.current) return;
-				(async () => {
-					busyRef.current = true;
-					const before = view.status === "ready" ? view.controls : await controlsList().catch(() => []);
-					setBusy({ kind: "install" });
-					setError(void 0);
-					setFailedSpec(void 0);
-					setInstallError(void 0);
-					try {
-						await install(target);
-						setSpec("");
-						setDirty(true);
-						const after = await controlsList().catch(() => []);
-						setConflicts(lastInstallConflicts !== void 0 ? lastInstallConflicts() : diffControls(before, after));
-						await reload();
-					} catch (reason) {
-						const reasonText = messageOf$3(reason);
-						setFailedSpec(target);
-						setInstallError(reasonText);
-						setError(t("failed", { reason: reasonText }));
-					} finally {
-						busyRef.current = false;
-						setBusy(void 0);
-					}
-				})();
-			};
 			/** Poll install progress while an operation is in flight. */
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (busy === void 0 || busy.kind !== "install") {
 					setProgress({
 						kind: "idle",
@@ -1165,30 +4372,12 @@ window.__ModuleLoader__.load({
 							children: t("exitSafeMode")
 						})]
 					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: plugin_manager_module_css_default.installRow,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-							className: plugin_manager_module_css_default.spec,
-							type: "text",
-							value: spec,
-							placeholder: t("installPlaceholder"),
-							disabled: busy !== void 0,
-							onChange: (event) => {
-								setSpec(event.target.value);
-							},
-							onKeyDown: (event) => {
-								if (event.key === "Enter" && spec.trim() !== "" && busy === void 0) onInstall();
-							}
-						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.Button, {
-							variant: "primary",
-							disabled: spec.trim() === "" || busy !== void 0,
-							onClick: onInstall,
-							children: busy !== void 0 && busy.kind === "install" ? t("installing") : t("install")
-						})]
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-						className: plugin_manager_module_css_default.hint,
-						children: t("installHint")
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(LocalPluginImport, {
+						disabled: busy !== void 0 || toggleBusy !== void 0,
+						onChange: async () => {
+							setDirty(true);
+							await reload();
+						}
 					}),
 					busy?.kind === "install" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: plugin_manager_module_css_default.progressRow,
@@ -1299,7 +4488,13 @@ window.__ModuleLoader__.load({
 														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 															className: plugin_manager_module_css_default.sourceBadge,
 															"data-source": plugin.source.kind,
-															children: plugin.source.kind === "npm" ? t("npmSource") : t("gitSource")
+															children: {
+																npm: "npm（历史安装）",
+																git: "Git（历史安装）",
+																"local-link": "本地链接",
+																"local-folder": "本地文件夹",
+																"local-zip": "本地 ZIP"
+															}[plugin.source.kind]
 														}),
 														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 															className: plugin_manager_module_css_default.specText,
@@ -1307,6 +4502,15 @@ window.__ModuleLoader__.load({
 															children: plugin.source.spec
 														})
 													]
+												}),
+												plugin.requiresRestart && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "待重启加载" }),
+												plugin.previousVersion && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(OfflineRollback, {
+													id: plugin.id,
+													version: plugin.previousVersion,
+													onChange: async () => {
+														setDirty(true);
+														await reload();
+													}
 												}),
 												failure !== void 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 													className: plugin_manager_module_css_default.failure,
@@ -1753,7 +4957,13 @@ window.__ModuleLoader__.load({
 		}
 		/** Validate one installed-plugin row. */
 		function parsePlugin(value, index) {
-			if (!isRecord$3(value) || !isString(value.id) || !isString(value.name) || !isString(value.version) || !isString(value.installedAt) || typeof value.enabled !== "boolean" || !isRecord$3(value.source) || value.source.kind !== "npm" && value.source.kind !== "git" || !isString(value.source.spec)) throw new Error(`plugin-manager: plugin row ${String(index)} is invalid`);
+			if (!isRecord$3(value) || !isString(value.id) || !isString(value.name) || !isString(value.version) || !isString(value.installedAt) || typeof value.enabled !== "boolean" || !isRecord$3(value.source) || ![
+				"npm",
+				"git",
+				"local-zip",
+				"local-folder",
+				"local-link"
+			].includes(String(value.source.kind)) || !isString(value.source.spec)) throw new Error(`plugin-manager: plugin row ${String(index)} is invalid`);
 			if (value.children !== void 0 && !Array.isArray(value.children)) throw new Error(`plugin-manager: plugin row ${String(index)} children is invalid`);
 			const children = value.children?.map((child, childIndex) => parsePluginChild(child, index, childIndex));
 			return {
@@ -1764,6 +4974,9 @@ window.__ModuleLoader__.load({
 					kind: value.source.kind,
 					spec: value.source.spec
 				},
+				...typeof value.managed === "boolean" ? { managed: value.managed } : {},
+				...isString(value.previousVersion) ? { previousVersion: value.previousVersion } : {},
+				...typeof value.requiresRestart === "boolean" ? { requiresRestart: value.requiresRestart } : {},
 				installedAt: value.installedAt,
 				enabled: value.enabled,
 				...isString(value.commit) ? { commit: value.commit } : {},
@@ -2005,22 +5218,7 @@ window.__ModuleLoader__.load({
 					return [];
 				}
 			};
-			let modePromise;
-			const ensureMode = () => {
-				if (modePromise === void 0) modePromise = (async () => {
-					try {
-						const mode = await gatewayJson(`${GATEWAY_PREFIX}/mode`);
-						if (mode.official === true) return "official";
-						if (mode.official === false) return "gateway";
-					} catch {}
-					try {
-						return (await connection.rpc.call(CHANNEL, LIST_ENDPOINT, {})).ok ? "official" : "gateway";
-					} catch {
-						return "gateway";
-					}
-				})();
-				return modePromise;
-			};
+			const ensureMode = async () => "gateway";
 			/**
 			* Start a repair conversation for a failed plugin: resolve a workspace over
 			* the plugin install root (created once, reused after), open a fresh
@@ -2092,6 +5290,8 @@ window.__ModuleLoader__.load({
 		}
 		/** Contribute the family plugin-manager tab and provide the shared face. */
 		function apply$16(ctx) {
+			ctx.effect(() => decorateSlot(ctx.slots, "settings.section", "PluginsSettingsSection", withCapabilityNavigation), "plugin-manager: capability navigation");
+			ctx.effect(() => decorateSlot(ctx.slots, "settings.plugins.tab", "PluginInventorySettingsTab", () => InventoryTree), "plugin-manager: grouped inventory");
 			ctx.effect(() => {
 				try {
 					return ctx.locale.register(NS$13, {
@@ -2189,7 +5389,7 @@ window.__ModuleLoader__.load({
 		* @returns the card, or nothing while the namespace is still loading.
 		*/
 		function PluginSettingsCard$5(props) {
-			const [open, setOpen] = (0, react.useState)(props.defaultOpen ?? true);
+			const [open, setOpen] = (0, react$1.useState)(props.defaultOpen ?? true);
 			const { state, alwaysOpen } = props;
 			if (!state.available) return null;
 			const title = props.t(props.titleKey);
@@ -2321,18 +5521,18 @@ window.__ModuleLoader__.load({
 		*/
 		function SelectField$5(props) {
 			const { id, options, value } = props;
-			const [open, setOpen] = (0, react.useState)(false);
-			const [closing, setClosing] = (0, react.useState)(false);
-			const [phase, setPhase] = (0, react.useState)("initial");
-			const [activeIndex, setActiveIndex] = (0, react.useState)(0);
-			const closeTimer = (0, react.useRef)(void 0);
-			const wrapRef = (0, react.useRef)(null);
-			const popupRef = (0, react.useRef)(null);
+			const [open, setOpen] = (0, react$1.useState)(false);
+			const [closing, setClosing] = (0, react$1.useState)(false);
+			const [phase, setPhase] = (0, react$1.useState)("initial");
+			const [activeIndex, setActiveIndex] = (0, react$1.useState)(0);
+			const closeTimer = (0, react$1.useRef)(void 0);
+			const wrapRef = (0, react$1.useRef)(null);
+			const popupRef = (0, react$1.useRef)(null);
 			const currentIndex = () => {
 				const index = options.findIndex((option) => option.value === value);
 				return index >= 0 ? index : 0;
 			};
-			const close = (0, react.useCallback)(() => {
+			const close = (0, react$1.useCallback)(() => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 				setClosing(true);
 				closeTimer.current = setTimeout(() => {
@@ -2383,10 +5583,10 @@ window.__ModuleLoader__.load({
 						break;
 				}
 			};
-			(0, react.useEffect)(() => () => {
+			(0, react$1.useEffect)(() => () => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 			}, []);
-			(0, react.useLayoutEffect)(() => {
+			(0, react$1.useLayoutEffect)(() => {
 				if (open && !closing && phase === "initial") {
 					popupRef.current?.offsetHeight;
 					setPhase("open");
@@ -2396,7 +5596,7 @@ window.__ModuleLoader__.load({
 				closing,
 				phase
 			]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (!open) return;
 				const onPointerDown = (event) => {
 					const target = event.target;
@@ -2405,7 +5605,7 @@ window.__ModuleLoader__.load({
 				document.addEventListener("pointerdown", onPointerDown);
 				return () => document.removeEventListener("pointerdown", onPointerDown);
 			}, [open, close]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (props.disabled && open) close();
 			}, [
 				props.disabled,
@@ -2971,29 +6171,29 @@ window.__ModuleLoader__.load({
 			const api = props.api ?? localWorkshopApi;
 			const state = props.useMarketCard((snapshot) => snapshot);
 			const cardVisible = state.enabled.text !== "false";
-			const [tab, setTab] = (0, react.useState)("skin");
-			const [query, setQuery] = (0, react.useState)("");
-			const [resources, setResources] = (0, react.useState)([]);
-			const [loading, setLoading] = (0, react.useState)(false);
-			const [loadError, setLoadError] = (0, react.useState)("");
-			const [error, setError] = (0, react.useState)("");
-			const [notice, setNotice] = (0, react.useState)("");
-			const [busy, setBusy] = (0, react.useState)(false);
-			const [progress, setProgress] = (0, react.useState)("");
-			const [preview, setPreview] = (0, react.useState)(null);
-			const [committing, setCommitting] = (0, react.useState)(false);
-			const [confirmation, setConfirmation] = (0, react.useState)(null);
-			const [actionRunning, setActionRunning] = (0, react.useState)(false);
-			const [lastSelection, setLastSelection] = (0, react.useState)(null);
-			const zipInput = (0, react.useRef)(null);
-			const folderInput = (0, react.useRef)(null);
-			const upload = (0, react.useRef)(null);
-			const abort = (0, react.useRef)(null);
-			const mounted = (0, react.useRef)(true);
-			const locked = (0, react.useRef)(false);
-			const commitInFlight = (0, react.useRef)(false);
-			const generation = (0, react.useRef)(0);
-			const loadSequence = (0, react.useRef)(0);
+			const [tab, setTab] = (0, react$1.useState)("skin");
+			const [query, setQuery] = (0, react$1.useState)("");
+			const [resources, setResources] = (0, react$1.useState)([]);
+			const [loading, setLoading] = (0, react$1.useState)(false);
+			const [loadError, setLoadError] = (0, react$1.useState)("");
+			const [error, setError] = (0, react$1.useState)("");
+			const [notice, setNotice] = (0, react$1.useState)("");
+			const [busy, setBusy] = (0, react$1.useState)(false);
+			const [progress, setProgress] = (0, react$1.useState)("");
+			const [preview, setPreview] = (0, react$1.useState)(null);
+			const [committing, setCommitting] = (0, react$1.useState)(false);
+			const [confirmation, setConfirmation] = (0, react$1.useState)(null);
+			const [actionRunning, setActionRunning] = (0, react$1.useState)(false);
+			const [lastSelection, setLastSelection] = (0, react$1.useState)(null);
+			const zipInput = (0, react$1.useRef)(null);
+			const folderInput = (0, react$1.useRef)(null);
+			const upload = (0, react$1.useRef)(null);
+			const abort = (0, react$1.useRef)(null);
+			const mounted = (0, react$1.useRef)(true);
+			const locked = (0, react$1.useRef)(false);
+			const commitInFlight = (0, react$1.useRef)(false);
+			const generation = (0, react$1.useRef)(0);
+			const loadSequence = (0, react$1.useRef)(0);
 			const disabled = !state.writable || busy || confirmation !== null;
 			async function refresh() {
 				const sequence = ++loadSequence.current;
@@ -3015,7 +6215,7 @@ window.__ModuleLoader__.load({
 					await current.api.discard(current.id);
 				} catch {}
 			}
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				mounted.current = true;
 				return () => {
 					mounted.current = false;
@@ -3024,7 +6224,7 @@ window.__ModuleLoader__.load({
 					if (!commitInFlight.current) discardUpload();
 				};
 			}, []);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (cardVisible) refresh();
 			}, [api, cardVisible]);
 			function finish() {
@@ -3622,7 +6822,7 @@ window.__ModuleLoader__.load({
 			"local.imported": "已导入「{name}」。",
 			"local.petImported": "已导入「{name}」。请重启工作台，再到左侧「宠物」中选择并启用。",
 			"local.confirmAction": "确认{action}「{name}」？",
-			"local.installCodeHint": "安装插件可能运行安装脚本，启用后可执行本机代码；缺少依赖时可能联网下载。请确认资源来源可信。",
+			"local.installCodeHint": "此本地插件会在重启后运行代码。安装过程保持离线，不执行安装脚本；缺失依赖会直接报错。请确认信任这个版本。",
 			"local.presetCodeHint": "启用预设后，创建会话时可能加载并执行其中的插件代码。请确认资源来源可信。",
 			"local.trustCodeHint": "信任后，应用该皮肤时可运行其中的界面脚本。请确认资源来源可信。",
 			"local.confirmCode": "确认信任并继续",
@@ -3773,7 +6973,7 @@ window.__ModuleLoader__.load({
 			"local.imported": "Imported “{name}”.",
 			"local.petImported": "Imported “{name}”. Restart the workbench, then choose and enable it under Pets in the left menu.",
 			"local.confirmAction": "{action} “{name}”?",
-			"local.installCodeHint": "Installing plugins may run installation scripts. Enabled plugins can execute local code and missing dependencies may be downloaded. Confirm that you trust this resource.",
+			"local.installCodeHint": "This local plugin will execute code after restart. Installation stays offline and does not execute installation scripts. Missing dependencies will be reported. Confirm that you trust this version.",
 			"local.presetCodeHint": "Enabling a preset can load and run its plugin code when a session starts. Confirm that you trust this resource.",
 			"local.trustCodeHint": "After trusting this skin, applying it can run its UI scripts. Confirm that you trust this resource.",
 			"local.confirmCode": "Trust and continue",
@@ -6177,34 +9377,34 @@ window.__ModuleLoader__.load({
 		/** New-task form overlay. */
 		function NewTaskModal({ controller, onClose, initialTask, defaultWorkspaceId, onDuplicateSuccess }) {
 			const isDuplicate = initialTask !== void 0;
-			const [title, setTitle] = (0, react.useState)(initialTask?.title ?? "");
-			const [description, setDescription] = (0, react.useState)(initialTask?.description ?? "");
-			const [prompt, setPrompt] = (0, react.useState)(initialTask?.prompt ?? "");
-			const [workspaceId, setWorkspaceId] = (0, react.useState)(initialTask?.workspaceId ?? defaultWorkspaceId ?? "");
-			const [mode, setMode] = (0, react.useState)(initialTask?.mode ?? "");
-			const [permission, setPermission] = (0, react.useState)(initialTask?.permission ?? "");
-			const [model, setModel] = (0, react.useState)(initialTask?.model ?? "");
-			const [reuseSession, setReuseSession] = (0, react.useState)(initialTask?.reuseSession ?? false);
-			const [scheduleEnabled, setScheduleEnabled] = (0, react.useState)(initialTask?.schedule?.enabled ?? false);
-			const [scheduleCron, setScheduleCron] = (0, react.useState)(initialTask?.schedule?.cron ?? "");
-			const [scheduleError, setScheduleError] = (0, react.useState)(void 0);
-			const [freezeText, setFreezeText] = (0, react.useState)("");
-			const [freezeError, setFreezeError] = (0, react.useState)(void 0);
-			const [handoverText, setHandoverText] = (0, react.useState)(initialTask?.handover?.references !== void 0 ? initialTask.handover.references.join("\n") : "");
-			const [tags, setTags] = (0, react.useState)(initialTask?.tags ?? []);
-			const [archiveOriginal, setArchiveOriginal] = (0, react.useState)(true);
-			const [error, setError] = (0, react.useState)(void 0);
-			const [pending, setPending] = (0, react.useState)(false);
-			const [options, setOptions] = (0, react.useState)(controller.getSnapshot().executionOptions);
-			const [canParse] = (0, react.useState)(controller.getSnapshot().canParseTask === true);
-			const [parseText, setParseText] = (0, react.useState)("");
-			const [parseModel, setParseModel] = (0, react.useState)("");
-			const [parsePending, setParsePending] = (0, react.useState)(false);
-			const [parseError, setParseError] = (0, react.useState)(void 0);
-			const parseAbort = (0, react.useRef)(void 0);
+			const [title, setTitle] = (0, react$1.useState)(initialTask?.title ?? "");
+			const [description, setDescription] = (0, react$1.useState)(initialTask?.description ?? "");
+			const [prompt, setPrompt] = (0, react$1.useState)(initialTask?.prompt ?? "");
+			const [workspaceId, setWorkspaceId] = (0, react$1.useState)(initialTask?.workspaceId ?? defaultWorkspaceId ?? "");
+			const [mode, setMode] = (0, react$1.useState)(initialTask?.mode ?? "");
+			const [permission, setPermission] = (0, react$1.useState)(initialTask?.permission ?? "");
+			const [model, setModel] = (0, react$1.useState)(initialTask?.model ?? "");
+			const [reuseSession, setReuseSession] = (0, react$1.useState)(initialTask?.reuseSession ?? false);
+			const [scheduleEnabled, setScheduleEnabled] = (0, react$1.useState)(initialTask?.schedule?.enabled ?? false);
+			const [scheduleCron, setScheduleCron] = (0, react$1.useState)(initialTask?.schedule?.cron ?? "");
+			const [scheduleError, setScheduleError] = (0, react$1.useState)(void 0);
+			const [freezeText, setFreezeText] = (0, react$1.useState)("");
+			const [freezeError, setFreezeError] = (0, react$1.useState)(void 0);
+			const [handoverText, setHandoverText] = (0, react$1.useState)(initialTask?.handover?.references !== void 0 ? initialTask.handover.references.join("\n") : "");
+			const [tags, setTags] = (0, react$1.useState)(initialTask?.tags ?? []);
+			const [archiveOriginal, setArchiveOriginal] = (0, react$1.useState)(true);
+			const [error, setError] = (0, react$1.useState)(void 0);
+			const [pending, setPending] = (0, react$1.useState)(false);
+			const [options, setOptions] = (0, react$1.useState)(controller.getSnapshot().executionOptions);
+			const [canParse] = (0, react$1.useState)(controller.getSnapshot().canParseTask === true);
+			const [parseText, setParseText] = (0, react$1.useState)("");
+			const [parseModel, setParseModel] = (0, react$1.useState)("");
+			const [parsePending, setParsePending] = (0, react$1.useState)(false);
+			const [parseError, setParseError] = (0, react$1.useState)(void 0);
+			const parseAbort = (0, react$1.useRef)(void 0);
 			const parseModels = options.models ?? [];
-			(0, react.useEffect)(() => controller.subscribe(() => setOptions(controller.getSnapshot().executionOptions)), [controller]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => controller.subscribe(() => setOptions(controller.getSnapshot().executionOptions)), [controller]);
+			(0, react$1.useEffect)(() => {
 				if (parseModel === "" && parseModels.length > 0) setParseModel(parseModels[0].id);
 			}, [parseModel, options.models]);
 			const runParse = async () => {
@@ -6719,7 +9919,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 		/** Memoized card: re-renders only when the card's own task record changes. */
-		const TaskCard = (0, react.memo)(TaskCardInner);
+		const TaskCard = (0, react$1.memo)(TaskCardInner);
 		//#endregion
 		//#region ../dsh-task-board/src/client/board/ConfirmDialog.tsx
 		/**
@@ -6774,12 +9974,12 @@ window.__ModuleLoader__.load({
 		*/
 		/** Edit-task form overlay. */
 		function EditTaskModal({ controller, task, onClose }) {
-			const [title, setTitle] = (0, react.useState)(task.title);
-			const [description, setDescription] = (0, react.useState)(task.description);
-			const [prompt, setPrompt] = (0, react.useState)(task.prompt);
-			const [tags, setTags] = (0, react.useState)(task.tags ?? []);
-			const [error, setError] = (0, react.useState)(void 0);
-			const [pending, setPending] = (0, react.useState)(false);
+			const [title, setTitle] = (0, react$1.useState)(task.title);
+			const [description, setDescription] = (0, react$1.useState)(task.description);
+			const [prompt, setPrompt] = (0, react$1.useState)(task.prompt);
+			const [tags, setTags] = (0, react$1.useState)(task.tags ?? []);
+			const [error, setError] = (0, react$1.useState)(void 0);
+			const [pending, setPending] = (0, react$1.useState)(false);
 			const submit = async () => {
 				if (title.trim() === "") {
 					setError(t$6("new.required"));
@@ -6829,9 +10029,9 @@ window.__ModuleLoader__.load({
 		}
 		/** Edit-tags modal: edit labels only, shown for tasks after first execution. */
 		function EditTagsModal({ controller, task, onClose }) {
-			const [tags, setTags] = (0, react.useState)(task.tags ?? []);
-			const [error, setError] = (0, react.useState)(void 0);
-			const [pending, setPending] = (0, react.useState)(false);
+			const [tags, setTags] = (0, react$1.useState)(task.tags ?? []);
+			const [error, setError] = (0, react$1.useState)(void 0);
+			const [pending, setPending] = (0, react$1.useState)(false);
 			const submit = async () => {
 				setPending(true);
 				const tagList = cleanTags(tags);
@@ -6918,8 +10118,8 @@ window.__ModuleLoader__.load({
 		}
 		/** The execution-target editor: workspace / mode / permission pickers. */
 		function ExecutionSettingsSection({ controller, task, pending }) {
-			const [options, setOptions] = (0, react.useState)(controller.getSnapshot().executionOptions);
-			(0, react.useEffect)(() => controller.subscribe(() => setOptions(controller.getSnapshot().executionOptions)), [controller]);
+			const [options, setOptions] = (0, react$1.useState)(controller.getSnapshot().executionOptions);
+			(0, react$1.useEffect)(() => controller.subscribe(() => setOptions(controller.getSnapshot().executionOptions)), [controller]);
 			const workspaceId = task.workspaceId ?? "";
 			const mode = task.mode ?? "";
 			const permission = task.permission ?? "";
@@ -7066,13 +10266,13 @@ window.__ModuleLoader__.load({
 		/** The scheduled-runs editor: enable toggle, cron input + presets, next-run info. */
 		function ScheduleSection({ controller, task, pending }) {
 			const schedule = task.schedule;
-			const [cron, setCron] = (0, react.useState)(schedule?.cron ?? "0 9 * * *");
-			const [enabled, setEnabled] = (0, react.useState)(schedule?.enabled ?? false);
-			const [nextRunAt, setNextRunAt] = (0, react.useState)(schedule?.nextRunAt);
-			const [lastTriggeredAt, setLastTriggeredAt] = (0, react.useState)(schedule?.lastTriggeredAt);
-			const [error, setError] = (0, react.useState)(void 0);
+			const [cron, setCron] = (0, react$1.useState)(schedule?.cron ?? "0 9 * * *");
+			const [enabled, setEnabled] = (0, react$1.useState)(schedule?.enabled ?? false);
+			const [nextRunAt, setNextRunAt] = (0, react$1.useState)(schedule?.nextRunAt);
+			const [lastTriggeredAt, setLastTriggeredAt] = (0, react$1.useState)(schedule?.lastTriggeredAt);
+			const [error, setError] = (0, react$1.useState)(void 0);
 			const timeZone = controller.getSnapshot().host?.scheduler.timeZone;
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				setCron(schedule?.cron ?? "0 9 * * *");
 				setEnabled(schedule?.enabled ?? false);
 				setNextRunAt(schedule?.nextRunAt);
@@ -7189,15 +10389,15 @@ window.__ModuleLoader__.load({
 		}
 		/** Task detail overlay. */
 		function TaskDetail({ controller, task }) {
-			const [confirmDelete, setConfirmDelete] = (0, react.useState)(false);
-			const [showEdit, setShowEdit] = (0, react.useState)(false);
-			const [showEditTags, setShowEditTags] = (0, react.useState)(false);
-			const [showDuplicate, setShowDuplicate] = (0, react.useState)(false);
-			const [latest, setLatest] = (0, react.useState)(task);
-			(0, react.useEffect)(() => {
+			const [confirmDelete, setConfirmDelete] = (0, react$1.useState)(false);
+			const [showEdit, setShowEdit] = (0, react$1.useState)(false);
+			const [showEditTags, setShowEditTags] = (0, react$1.useState)(false);
+			const [showDuplicate, setShowDuplicate] = (0, react$1.useState)(false);
+			const [latest, setLatest] = (0, react$1.useState)(task);
+			(0, react$1.useEffect)(() => {
 				setLatest(task);
 			}, [task]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				setShowEdit(false);
 				setShowEditTags(false);
 				setShowDuplicate(false);
@@ -7589,28 +10789,28 @@ window.__ModuleLoader__.load({
 		* re-renders only when its own task changes — not when a sibling card status,
 		* the filter, or the selection moves.
 		*/
-		const MemoTaskCard = (0, react.memo)(function MemoTaskCard({ task, pending, timeZone, onOpen }) {
+		const MemoTaskCard = (0, react$1.memo)(function MemoTaskCard({ task, pending, timeZone, onOpen }) {
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TaskCard, {
 				task,
 				pending,
 				timeZone,
-				onClick: (0, react.useCallback)(() => {
+				onClick: (0, react$1.useCallback)(() => {
 					onOpen(task.id);
 				}, [task.id, onOpen])
 			});
 		});
 		/** Board component; subscribes to the controller snapshot. */
 		function TaskBoard({ controller }) {
-			const [snapshot, setSnapshot] = (0, react.useState)(controller.getSnapshot());
-			(0, react.useEffect)(() => controller.subscribe(() => setSnapshot(controller.getSnapshot())), [controller]);
-			const [filter, setFilter] = (0, react.useState)("");
-			const [tagFilter, setTagFilter] = (0, react.useState)([]);
-			const [showNew, setShowNew] = (0, react.useState)(false);
-			const [projectId, setProjectId] = (0, react.useState)("");
-			const [showNewProject, setShowNewProject] = (0, react.useState)(false);
-			const [newProjectPath, setNewProjectPath] = (0, react.useState)("");
-			const [newProjectError, setNewProjectError] = (0, react.useState)(void 0);
-			const [newProjectPending, setNewProjectPending] = (0, react.useState)(false);
+			const [snapshot, setSnapshot] = (0, react$1.useState)(controller.getSnapshot());
+			(0, react$1.useEffect)(() => controller.subscribe(() => setSnapshot(controller.getSnapshot())), [controller]);
+			const [filter, setFilter] = (0, react$1.useState)("");
+			const [tagFilter, setTagFilter] = (0, react$1.useState)([]);
+			const [showNew, setShowNew] = (0, react$1.useState)(false);
+			const [projectId, setProjectId] = (0, react$1.useState)("");
+			const [showNewProject, setShowNewProject] = (0, react$1.useState)(false);
+			const [newProjectPath, setNewProjectPath] = (0, react$1.useState)("");
+			const [newProjectError, setNewProjectError] = (0, react$1.useState)(void 0);
+			const [newProjectPending, setNewProjectPending] = (0, react$1.useState)(false);
 			const selected = selectedTaskOf(snapshot);
 			const archiveView = snapshot.archiveView;
 			const knownTags = collectKnownTags(snapshot.tasks);
@@ -7633,10 +10833,10 @@ window.__ModuleLoader__.load({
 					setNewProjectPending(false);
 				}
 			};
-			const toggleTag = (0, react.useCallback)((name) => {
+			const toggleTag = (0, react$1.useCallback)((name) => {
 				setTagFilter((current) => current.includes(name) ? current.filter((entry) => entry !== name) : [...current, name]);
 			}, []);
-			const openTask = (0, react.useCallback)((id) => {
+			const openTask = (0, react$1.useCallback)((id) => {
 				controller.openTask(id);
 			}, [controller]);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -8372,7 +11572,7 @@ window.__ModuleLoader__.load({
 		* @returns the card, or nothing while the namespace is still loading.
 		*/
 		function PluginSettingsCard$4(props) {
-			const [open, setOpen] = (0, react.useState)(props.defaultOpen ?? true);
+			const [open, setOpen] = (0, react$1.useState)(props.defaultOpen ?? true);
 			const { state, alwaysOpen } = props;
 			if (!state.available) return null;
 			const title = props.t(props.titleKey);
@@ -8504,18 +11704,18 @@ window.__ModuleLoader__.load({
 		*/
 		function SelectField$4(props) {
 			const { id, options, value } = props;
-			const [open, setOpen] = (0, react.useState)(false);
-			const [closing, setClosing] = (0, react.useState)(false);
-			const [phase, setPhase] = (0, react.useState)("initial");
-			const [activeIndex, setActiveIndex] = (0, react.useState)(0);
-			const closeTimer = (0, react.useRef)(void 0);
-			const wrapRef = (0, react.useRef)(null);
-			const popupRef = (0, react.useRef)(null);
+			const [open, setOpen] = (0, react$1.useState)(false);
+			const [closing, setClosing] = (0, react$1.useState)(false);
+			const [phase, setPhase] = (0, react$1.useState)("initial");
+			const [activeIndex, setActiveIndex] = (0, react$1.useState)(0);
+			const closeTimer = (0, react$1.useRef)(void 0);
+			const wrapRef = (0, react$1.useRef)(null);
+			const popupRef = (0, react$1.useRef)(null);
 			const currentIndex = () => {
 				const index = options.findIndex((option) => option.value === value);
 				return index >= 0 ? index : 0;
 			};
-			const close = (0, react.useCallback)(() => {
+			const close = (0, react$1.useCallback)(() => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 				setClosing(true);
 				closeTimer.current = setTimeout(() => {
@@ -8566,10 +11766,10 @@ window.__ModuleLoader__.load({
 						break;
 				}
 			};
-			(0, react.useEffect)(() => () => {
+			(0, react$1.useEffect)(() => () => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 			}, []);
-			(0, react.useLayoutEffect)(() => {
+			(0, react$1.useLayoutEffect)(() => {
 				if (open && !closing && phase === "initial") {
 					popupRef.current?.offsetHeight;
 					setPhase("open");
@@ -8579,7 +11779,7 @@ window.__ModuleLoader__.load({
 				closing,
 				phase
 			]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (!open) return;
 				const onPointerDown = (event) => {
 					const target = event.target;
@@ -8588,7 +11788,7 @@ window.__ModuleLoader__.load({
 				document.addEventListener("pointerdown", onPointerDown);
 				return () => document.removeEventListener("pointerdown", onPointerDown);
 			}, [open, close]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (props.disabled && open) close();
 			}, [
 				props.disabled,
@@ -9029,8 +12229,8 @@ window.__ModuleLoader__.load({
 			const { t } = props;
 			const state = props.useTaskBoardSettingsCard((snapshot) => snapshot);
 			const disabled = !state.writable;
-			const [power, setPower] = (0, react.useState)();
-			(0, react.useEffect)(() => {
+			const [power, setPower] = (0, react$1.useState)();
+			(0, react$1.useEffect)(() => {
 				let live = true;
 				const events = new EventSource("/api/task-board/events");
 				events.onmessage = (message) => {
@@ -9850,20 +13050,20 @@ window.__ModuleLoader__.load({
 		* @param props - see {@link BranchPopoverProps}.
 		*/
 		function BranchPopover({ view, onSwitch, onSwitched, onCreate, onGraph, onCreateWorktree, onManageWorktrees, onClose, t, hero = false }) {
-			const [query, setQuery] = (0, react.useState)("");
-			const [pending, setPending] = (0, react.useState)(null);
-			const [error, setError] = (0, react.useState)(null);
-			const [success, setSuccess] = (0, react.useState)(null);
-			const dismissTimer = (0, react.useRef)(void 0);
-			const [tipReadyName, setTipReadyName] = (0, react.useState)(null);
-			const [tipActive, setTipActive] = (0, react.useState)(false);
-			const [tipDir, setTipDir] = (0, react.useState)("up");
-			const tipTimer = (0, react.useRef)(void 0);
-			(0, react.useEffect)(() => () => {
+			const [query, setQuery] = (0, react$1.useState)("");
+			const [pending, setPending] = (0, react$1.useState)(null);
+			const [error, setError] = (0, react$1.useState)(null);
+			const [success, setSuccess] = (0, react$1.useState)(null);
+			const dismissTimer = (0, react$1.useRef)(void 0);
+			const [tipReadyName, setTipReadyName] = (0, react$1.useState)(null);
+			const [tipActive, setTipActive] = (0, react$1.useState)(false);
+			const [tipDir, setTipDir] = (0, react$1.useState)("up");
+			const tipTimer = (0, react$1.useRef)(void 0);
+			(0, react$1.useEffect)(() => () => {
 				if (dismissTimer.current !== void 0) clearTimeout(dismissTimer.current);
 				if (tipTimer.current !== void 0) clearTimeout(tipTimer.current);
 			}, []);
-			const filtered = (0, react.useMemo)(() => {
+			const filtered = (0, react$1.useMemo)(() => {
 				const needle = query.trim().toLowerCase();
 				if (needle === "") return view.branches;
 				return view.branches.filter((branch) => branch.name.toLowerCase().includes(needle));
@@ -10065,9 +13265,9 @@ window.__ModuleLoader__.load({
 		* @param props - see {@link CreateBranchDialogProps}.
 		*/
 		function CreateBranchDialog({ onCreate, onClose, t }) {
-			const [name, setName] = (0, react.useState)("");
-			const [pending, setPending] = (0, react.useState)(false);
-			const [error, setError] = (0, react.useState)(null);
+			const [name, setName] = (0, react$1.useState)("");
+			const [pending, setPending] = (0, react$1.useState)(false);
+			const [error, setError] = (0, react$1.useState)(null);
 			const submit = () => {
 				if (pending) return;
 				const trimmed = name.trim();
@@ -10157,10 +13357,10 @@ window.__ModuleLoader__.load({
 		* @param props - see {@link CreateWorktreeDialogProps}.
 		*/
 		function CreateWorktreeDialog({ branches, currentBranch, onCreate, onClose, t }) {
-			const [name, setName] = (0, react.useState)("");
-			const [baseRef, setBaseRef] = (0, react.useState)(currentBranch);
-			const [pending, setPending] = (0, react.useState)(false);
-			const [error, setError] = (0, react.useState)(null);
+			const [name, setName] = (0, react$1.useState)("");
+			const [baseRef, setBaseRef] = (0, react$1.useState)(currentBranch);
+			const [pending, setPending] = (0, react$1.useState)(false);
+			const [error, setError] = (0, react$1.useState)(null);
 			const sanitized = sanitizeWorktreeName(name);
 			const submit = () => {
 				if (pending) return;
@@ -10271,15 +13471,15 @@ window.__ModuleLoader__.load({
 		* @param props - see {@link WorktreeManagerProps}.
 		*/
 		function WorktreeManager({ fetchWorktrees, onRemove, onClose, t }) {
-			const [view, setView] = (0, react.useState)(null);
-			const [loading, setLoading] = (0, react.useState)(true);
-			const [error, setError] = (0, react.useState)(null);
+			const [view, setView] = (0, react$1.useState)(null);
+			const [loading, setLoading] = (0, react$1.useState)(true);
+			const [error, setError] = (0, react$1.useState)(null);
 			/** Row awaiting an inline force-confirm after a worktree-dirty rejection. */
-			const [forcePath, setForcePath] = (0, react.useState)(null);
+			const [forcePath, setForcePath] = (0, react$1.useState)(null);
 			/** Rows whose wt/ branch should be deleted together with the worktree. */
-			const [branchDelete, setBranchDelete] = (0, react.useState)(/* @__PURE__ */ new Set());
-			const [pending, setPending] = (0, react.useState)(null);
-			const reload = (0, react.useCallback)(() => {
+			const [branchDelete, setBranchDelete] = (0, react$1.useState)(/* @__PURE__ */ new Set());
+			const [pending, setPending] = (0, react$1.useState)(null);
+			const reload = (0, react$1.useCallback)(() => {
 				let live = true;
 				setLoading(true);
 				fetchWorktrees().then((fresh) => {
@@ -10291,7 +13491,7 @@ window.__ModuleLoader__.load({
 					live = false;
 				};
 			}, [fetchWorktrees]);
-			(0, react.useEffect)(() => reload(), [reload]);
+			(0, react$1.useEffect)(() => reload(), [reload]);
 			const remove = (item, force) => {
 				if (pending !== null) return;
 				setPending(item.path);
@@ -10516,11 +13716,11 @@ window.__ModuleLoader__.load({
 		* @param props - see {@link GraphDialogProps}.
 		*/
 		function GraphDialog({ graph, onClose, t }) {
-			const [view, setView] = (0, react.useState)(null);
-			const [error, setError] = (0, react.useState)(null);
-			const [loading, setLoading] = (0, react.useState)(true);
-			const requestSeq = (0, react.useRef)(0);
-			const load = (0, react.useCallback)((limit) => {
+			const [view, setView] = (0, react$1.useState)(null);
+			const [error, setError] = (0, react$1.useState)(null);
+			const [loading, setLoading] = (0, react$1.useState)(true);
+			const requestSeq = (0, react$1.useRef)(0);
+			const load = (0, react$1.useCallback)((limit) => {
 				const seq = requestSeq.current + 1;
 				requestSeq.current = seq;
 				setLoading(true);
@@ -10535,16 +13735,16 @@ window.__ModuleLoader__.load({
 					if (seq === requestSeq.current) setLoading(false);
 				});
 			}, [graph, t]);
-			const loadRef = (0, react.useRef)(load);
+			const loadRef = (0, react$1.useRef)(load);
 			loadRef.current = load;
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				loadRef.current(INITIAL_LIMIT);
 			}, []);
-			const lanes = (0, react.useMemo)(() => {
+			const lanes = (0, react$1.useMemo)(() => {
 				if (view === null) return [];
 				return computeLanes(view.commits);
 			}, [view]);
-			const laneCount = (0, react.useMemo)(() => {
+			const laneCount = (0, react$1.useMemo)(() => {
 				let count = 0;
 				for (const row of lanes) count = Math.max(count, row.columns.length);
 				return count;
@@ -10667,8 +13867,8 @@ window.__ModuleLoader__.load({
 		}
 		/** Track stock-light theme changes from body attributes. */
 		function useStockLightTheme() {
-			const [stockLightTheme, setStockLightTheme] = (0, react.useState)(readStockLightTheme);
-			(0, react.useEffect)(() => {
+			const [stockLightTheme, setStockLightTheme] = (0, react$1.useState)(readStockLightTheme);
+			(0, react$1.useEffect)(() => {
 				const update = () => {
 					setStockLightTheme(readStockLightTheme());
 				};
@@ -10719,17 +13919,17 @@ window.__ModuleLoader__.load({
 			const showBranchSelector = dockSeat ? heroSeat : blankSession;
 			const stockLightTheme = useStockLightTheme();
 			/** Repository state: undefined = loading, null = not a repository, else the snapshot. */
-			const [repo, setRepo] = (0, react.useState)(void 0);
+			const [repo, setRepo] = (0, react$1.useState)(void 0);
 			/** Fresh branch list, fetched when the branch popover opens. */
-			const [branchesView, setBranchesView] = (0, react.useState)(null);
-			const [branchOpen, setBranchOpen] = (0, react.useState)(false);
-			const [createOpen, setCreateOpen] = (0, react.useState)(false);
-			const [graphOpen, setGraphOpen] = (0, react.useState)(false);
-			const [worktreeCreateOpen, setWorktreeCreateOpen] = (0, react.useState)(false);
-			const [worktreeManageOpen, setWorktreeManageOpen] = (0, react.useState)(false);
-			const [heroRow, setHeroRow] = (0, react.useState)(null);
-			const anchorRef = (0, react.useRef)(null);
-			(0, react.useLayoutEffect)(() => {
+			const [branchesView, setBranchesView] = (0, react$1.useState)(null);
+			const [branchOpen, setBranchOpen] = (0, react$1.useState)(false);
+			const [createOpen, setCreateOpen] = (0, react$1.useState)(false);
+			const [graphOpen, setGraphOpen] = (0, react$1.useState)(false);
+			const [worktreeCreateOpen, setWorktreeCreateOpen] = (0, react$1.useState)(false);
+			const [worktreeManageOpen, setWorktreeManageOpen] = (0, react$1.useState)(false);
+			const [heroRow, setHeroRow] = (0, react$1.useState)(null);
+			const anchorRef = (0, react$1.useRef)(null);
+			(0, react$1.useLayoutEffect)(() => {
 				if (!heroSeat || repo === void 0 || repo === null) {
 					setHeroRow(null);
 					return;
@@ -10750,7 +13950,7 @@ window.__ModuleLoader__.load({
 					observer.disconnect();
 				};
 			}, [heroSeat, repo !== void 0 && repo !== null]);
-			const refetch = (0, react.useCallback)(() => {
+			const refetch = (0, react$1.useCallback)(() => {
 				let live = true;
 				props.repoStatus(sessionId).then((status) => {
 					if (live) setRepo(status);
@@ -10761,12 +13961,12 @@ window.__ModuleLoader__.load({
 					live = false;
 				};
 			}, [props.repoStatus, sessionId]);
-			const lastFocusRefetch = (0, react.useRef)(0);
-			(0, react.useEffect)(() => {
+			const lastFocusRefetch = (0, react$1.useRef)(0);
+			(0, react$1.useEffect)(() => {
 				if (!showBranchSelector) return void 0;
 				return refetch();
 			}, [showBranchSelector, refetch]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (!showBranchSelector) return void 0;
 				const unsubscribe = props.subscribeChanges(sessionId, () => {
 					refetch();
@@ -10792,7 +13992,7 @@ window.__ModuleLoader__.load({
 				setCreateOpen(false);
 				refetch();
 			};
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (!showBranchSelector || !branchOpen) return void 0;
 				let live = true;
 				setBranchesView(null);
@@ -11370,7 +14570,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region ../../../../../../../../../../Desktop/deepseek harness 工作台/dsh-data/profiles/web/node_modules/clsx/dist/clsx.mjs
+		//#region ../../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/clsx@2.1.1/node_modules/clsx/dist/clsx.mjs
 		function r(e) {
 			var t, f, n = "";
 			if ("string" == typeof e || "number" == typeof e) n += e;
@@ -11385,7 +14585,7 @@ window.__ModuleLoader__.load({
 			return n;
 		}
 		//#endregion
-		//#region ../../../../../../tooling/node_modules/qrcode.react/lib/esm/index.js
+		//#region ../../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/qrcode.react@4.2.0_react@18.3.1/node_modules/qrcode.react/lib/esm/index.js
 		var __defProp = Object.defineProperty;
 		var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 		var __hasOwnProp = Object.prototype.hasOwnProperty;
@@ -13119,17 +16319,17 @@ window.__ModuleLoader__.load({
 		* @returns the entry element tree.
 		*/
 		function RemoteEntry({ wide, t }) {
-			const [open, setOpen] = (0, react.useState)(false);
-			const [state, setState] = (0, react.useState)({ kind: "lan-required" });
-			const [copied, setCopied] = (0, react.useState)(false);
-			const [copiedToken, setCopiedToken] = (0, react.useState)(false);
-			const eventSource = (0, react.useRef)(void 0);
-			const openSeq = (0, react.useRef)(0);
-			const closeEventSource = (0, react.useCallback)(() => {
+			const [open, setOpen] = (0, react$1.useState)(false);
+			const [state, setState] = (0, react$1.useState)({ kind: "lan-required" });
+			const [copied, setCopied] = (0, react$1.useState)(false);
+			const [copiedToken, setCopiedToken] = (0, react$1.useState)(false);
+			const eventSource = (0, react$1.useRef)(void 0);
+			const openSeq = (0, react$1.useRef)(0);
+			const closeEventSource = (0, react$1.useCallback)(() => {
 				eventSource.current?.close();
 				eventSource.current = void 0;
 			}, []);
-			const mint = (0, react.useCallback)(async (address) => {
+			const mint = (0, react$1.useCallback)(async (address) => {
 				let result;
 				try {
 					result = await issuePair(address);
@@ -13155,7 +16355,7 @@ window.__ModuleLoader__.load({
 					lanAddresses: result.lanAddresses
 				};
 			}, []);
-			const openPanel = (0, react.useCallback)(async () => {
+			const openPanel = (0, react$1.useCallback)(async () => {
 				const seq = ++openSeq.current;
 				setOpen(true);
 				const next = await mint();
@@ -13172,12 +16372,12 @@ window.__ModuleLoader__.load({
 					} catch {}
 				};
 			}, [mint]);
-			const closePanel = (0, react.useCallback)(() => {
+			const closePanel = (0, react$1.useCallback)(() => {
 				openSeq.current += 1;
 				closeEventSource();
 				setOpen(false);
 			}, [closeEventSource]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (state.kind !== "ready") return;
 				if (state.expired) return;
 				const delay = state.expiresAt - Date.now();
@@ -13198,8 +16398,8 @@ window.__ModuleLoader__.load({
 					window.clearTimeout(timer);
 				};
 			}, [state]);
-			(0, react.useEffect)(() => closeEventSource, [closeEventSource]);
-			const handleStop = (0, react.useCallback)(() => {
+			(0, react$1.useEffect)(() => closeEventSource, [closeEventSource]);
+			const handleStop = (0, react$1.useCallback)(() => {
 				stopPair().catch(() => {});
 				setState((previous) => previous.kind === "ready" ? {
 					...previous,
@@ -13207,21 +16407,21 @@ window.__ModuleLoader__.load({
 					devices: []
 				} : previous);
 			}, []);
-			const handleRevoke = (0, react.useCallback)((deviceId) => {
+			const handleRevoke = (0, react$1.useCallback)((deviceId) => {
 				revokePair(deviceId).catch(() => {});
 				setState((previous) => previous.kind === "ready" ? {
 					...previous,
 					devices: previous.devices.filter((device) => device.id !== deviceId)
 				} : previous);
 			}, []);
-			const handleRefresh = (0, react.useCallback)(() => {
+			const handleRefresh = (0, react$1.useCallback)(() => {
 				mint().then(setState);
 			}, [mint]);
 			/** Re-mint against another LAN literal (multi-homed machines). */
-			const handlePickAddress = (0, react.useCallback)((address) => {
+			const handlePickAddress = (0, react$1.useCallback)((address) => {
 				mint(address).then(setState);
 			}, [mint]);
-			const handleCopy = (0, react.useCallback)((url) => {
+			const handleCopy = (0, react$1.useCallback)((url) => {
 				copyText$1(url).then((ok) => {
 					if (!ok) return;
 					setCopied(true);
@@ -13230,7 +16430,7 @@ window.__ModuleLoader__.load({
 					}, 1500);
 				});
 			}, []);
-			const handleCopyToken = (0, react.useCallback)((token) => {
+			const handleCopyToken = (0, react$1.useCallback)((token) => {
 				copyText$1(token).then((ok) => {
 					if (!ok) return;
 					setCopiedToken(true);
@@ -13310,8 +16510,8 @@ window.__ModuleLoader__.load({
 		* @returns the toast element.
 		*/
 		function PairFailedNotice({ t }) {
-			const [visible, setVisible] = (0, react.useState)(true);
-			(0, react.useEffect)(() => {
+			const [visible, setVisible] = (0, react$1.useState)(true);
+			(0, react$1.useEffect)(() => {
 				const timer = window.setTimeout(() => {
 					setVisible(false);
 				}, 8e3);
@@ -13400,7 +16600,7 @@ window.__ModuleLoader__.load({
 		* @returns the card, or nothing while the namespace is still loading.
 		*/
 		function PluginSettingsCard$3(props) {
-			const [open, setOpen] = (0, react.useState)(props.defaultOpen ?? true);
+			const [open, setOpen] = (0, react$1.useState)(props.defaultOpen ?? true);
 			const { state, alwaysOpen } = props;
 			if (!state.available) return null;
 			const title = props.t(props.titleKey);
@@ -13577,18 +16777,18 @@ window.__ModuleLoader__.load({
 		*/
 		function SelectField$3(props) {
 			const { id, options, value } = props;
-			const [open, setOpen] = (0, react.useState)(false);
-			const [closing, setClosing] = (0, react.useState)(false);
-			const [phase, setPhase] = (0, react.useState)("initial");
-			const [activeIndex, setActiveIndex] = (0, react.useState)(0);
-			const closeTimer = (0, react.useRef)(void 0);
-			const wrapRef = (0, react.useRef)(null);
-			const popupRef = (0, react.useRef)(null);
+			const [open, setOpen] = (0, react$1.useState)(false);
+			const [closing, setClosing] = (0, react$1.useState)(false);
+			const [phase, setPhase] = (0, react$1.useState)("initial");
+			const [activeIndex, setActiveIndex] = (0, react$1.useState)(0);
+			const closeTimer = (0, react$1.useRef)(void 0);
+			const wrapRef = (0, react$1.useRef)(null);
+			const popupRef = (0, react$1.useRef)(null);
 			const currentIndex = () => {
 				const index = options.findIndex((option) => option.value === value);
 				return index >= 0 ? index : 0;
 			};
-			const close = (0, react.useCallback)(() => {
+			const close = (0, react$1.useCallback)(() => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 				setClosing(true);
 				closeTimer.current = setTimeout(() => {
@@ -13639,10 +16839,10 @@ window.__ModuleLoader__.load({
 						break;
 				}
 			};
-			(0, react.useEffect)(() => () => {
+			(0, react$1.useEffect)(() => () => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 			}, []);
-			(0, react.useLayoutEffect)(() => {
+			(0, react$1.useLayoutEffect)(() => {
 				if (open && !closing && phase === "initial") {
 					popupRef.current?.offsetHeight;
 					setPhase("open");
@@ -13652,7 +16852,7 @@ window.__ModuleLoader__.load({
 				closing,
 				phase
 			]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (!open) return;
 				const onPointerDown = (event) => {
 					const target = event.target;
@@ -13661,7 +16861,7 @@ window.__ModuleLoader__.load({
 				document.addEventListener("pointerdown", onPointerDown);
 				return () => document.removeEventListener("pointerdown", onPointerDown);
 			}, [open, close]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (props.disabled && open) close();
 			}, [
 				props.disabled,
@@ -14294,8 +17494,8 @@ window.__ModuleLoader__.load({
 		* nothing — the pairing panel carries the loopback banner instead.
 		*/
 		function LanBindStatus({ t }) {
-			const [frame, setFrame] = (0, react.useState)(void 0);
-			(0, react.useEffect)(() => {
+			const [frame, setFrame] = (0, react$1.useState)(void 0);
+			(0, react$1.useEffect)(() => {
 				let alive = true;
 				const read = () => {
 					readLanBindStatus().then((value) => {
@@ -14956,9 +18156,9 @@ window.__ModuleLoader__.load({
 		* @returns the notice element.
 		*/
 		function FenceNotice({ t, onRetry, onAccept = acceptPair }) {
-			const [tokenInput, setTokenInput] = (0, react.useState)("");
-			const [submitting, setSubmitting] = (0, react.useState)(false);
-			const [errorMsg, setErrorMsg] = (0, react.useState)(void 0);
+			const [tokenInput, setTokenInput] = (0, react$1.useState)("");
+			const [submitting, setSubmitting] = (0, react$1.useState)(false);
+			const [errorMsg, setErrorMsg] = (0, react$1.useState)(void 0);
 			const handleSubmit = async (event) => {
 				event.preventDefault();
 				const token = extractPairToken(tokenInput);
@@ -16486,12 +19686,12 @@ window.__ModuleLoader__.load({
 			const segment = decoration.phases[phase];
 			const shown = segment !== void 0 && segment !== "hide";
 			const segmentKey = segment !== void 0 && segment !== "hide" ? segment.from + ":" + segment.to : "none";
-			const spanRef = (0, react.useRef)(null);
+			const spanRef = (0, react$1.useRef)(null);
 			const scale = 18 / decoration.cell.height;
 			const frameWidth = Math.round(decoration.cell.width * scale);
 			const stripWidth = decoration.columns * frameWidth;
 			const durationsKey = decoration.durations.join(",");
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (segment === void 0 || segment === "hide") return;
 				const el = spanRef.current;
 				if (el === null) return;
@@ -16605,23 +19805,23 @@ window.__ModuleLoader__.load({
 		*/
 		function PetSprite(props) {
 			const { snapshot, definition, display, feedback } = props;
-			const spriteRef = (0, react.useRef)(null);
-			const floatRef = (0, react.useRef)(null);
-			const panelRef = (0, react.useRef)(null);
-			const bubbleRef = (0, react.useRef)(null);
-			const [imageReady, setImageReady] = (0, react.useState)(false);
-			const [hovered, setHovered] = (0, react.useState)(false);
-			const [stackPeek, setStackPeek] = (0, react.useState)(false);
-			const [stackPinned, setStackPinned] = (0, react.useState)(false);
-			const [renaming, setRenaming] = (0, react.useState)(false);
-			const [panelAbove, setPanelAbove] = (0, react.useState)(false);
-			const [panelLift, setPanelLift] = (0, react.useState)(0);
-			const [nameDraft, setNameDraft] = (0, react.useState)("");
-			const composingRef = (0, react.useRef)(false);
-			const [dragPos, setDragPos] = (0, react.useState)(null);
-			const dragRef = (0, react.useRef)(null);
-			const hideTimerRef = (0, react.useRef)(null);
-			const frameRef = (0, react.useRef)({
+			const spriteRef = (0, react$1.useRef)(null);
+			const floatRef = (0, react$1.useRef)(null);
+			const panelRef = (0, react$1.useRef)(null);
+			const bubbleRef = (0, react$1.useRef)(null);
+			const [imageReady, setImageReady] = (0, react$1.useState)(false);
+			const [hovered, setHovered] = (0, react$1.useState)(false);
+			const [stackPeek, setStackPeek] = (0, react$1.useState)(false);
+			const [stackPinned, setStackPinned] = (0, react$1.useState)(false);
+			const [renaming, setRenaming] = (0, react$1.useState)(false);
+			const [panelAbove, setPanelAbove] = (0, react$1.useState)(false);
+			const [panelLift, setPanelLift] = (0, react$1.useState)(0);
+			const [nameDraft, setNameDraft] = (0, react$1.useState)("");
+			const composingRef = (0, react$1.useRef)(false);
+			const [dragPos, setDragPos] = (0, react$1.useState)(null);
+			const dragRef = (0, react$1.useRef)(null);
+			const hideTimerRef = (0, react$1.useRef)(null);
+			const frameRef = (0, react$1.useRef)({
 				track: null,
 				index: 0,
 				elapsed: 0
@@ -16646,7 +19846,7 @@ window.__ModuleLoader__.load({
 				return text;
 			};
 			const panelShows = (action) => panel?.actions === void 0 || panel.actions.includes(action);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (props.visual !== void 0) return;
 				setImageReady(false);
 				let cancelled = false;
@@ -16683,9 +19883,9 @@ window.__ModuleLoader__.load({
 			const spriteScale = display.size / cell.height;
 			const phase = snapshot?.phase ?? "idle";
 			const animation = snapshot?.animation ?? "idle";
-			const scaleRef = (0, react.useRef)(spriteScale);
+			const scaleRef = (0, react$1.useRef)(spriteScale);
 			scaleRef.current = spriteScale;
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (props.visual !== void 0) return;
 				const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
 				const sequence = animation === animationForPhase(phase) ? sequences?.[phase] : void 0;
@@ -16762,21 +19962,21 @@ window.__ModuleLoader__.load({
 				sequences,
 				props.visual
 			]);
-			const feedbackDoneRef = (0, react.useRef)(props.onFeedbackDone);
+			const feedbackDoneRef = (0, react$1.useRef)(props.onFeedbackDone);
 			feedbackDoneRef.current = props.onFeedbackDone;
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (feedback === null) return;
 				const timer = window.setTimeout(() => feedbackDoneRef.current(), 2600);
 				return () => window.clearTimeout(timer);
 			}, [feedback]);
-			const draggedRef = (0, react.useRef)(false);
+			const draggedRef = (0, react$1.useRef)(false);
 			const clearHideTimer = () => {
 				if (hideTimerRef.current !== null) {
 					window.clearTimeout(hideTimerRef.current);
 					hideTimerRef.current = null;
 				}
 			};
-			(0, react.useEffect)(() => () => clearHideTimer(), []);
+			(0, react$1.useEffect)(() => () => clearHideTimer(), []);
 			const onPointerDown = (e) => {
 				if (props.dragDisabled === true) return;
 				e.preventDefault();
@@ -16831,10 +20031,10 @@ window.__ModuleLoader__.load({
 			const bubblePresent = feedback !== null || sessionBubbles.length > 0 || statusBubble !== void 0 || usageAnnouncement !== void 0;
 			const displayName = snapshot?.name ?? definition.displayName;
 			const decoration = snapshot?.decoration;
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (sessionBubbles.length <= 1) setStackPinned(false);
 			}, [sessionBubbles.length]);
-			(0, react.useLayoutEffect)(() => {
+			(0, react$1.useLayoutEffect)(() => {
 				if (!hovered) {
 					setPanelAbove(false);
 					setPanelLift(0);
@@ -17183,12 +20383,12 @@ window.__ModuleLoader__.load({
 		*/
 		/** Mount the live2d renderer as the sprite's visual (inside the chrome). */
 		function Live2dVisualMount(props) {
-			const containerRef = (0, react.useRef)(null);
-			const streamRef = (0, react.useRef)(null);
-			const handleRef = (0, react.useRef)(null);
-			const downRef = (0, react.useRef)(null);
-			const [error, setError] = (0, react.useState)(null);
-			(0, react.useEffect)(() => {
+			const containerRef = (0, react$1.useRef)(null);
+			const streamRef = (0, react$1.useRef)(null);
+			const handleRef = (0, react$1.useRef)(null);
+			const downRef = (0, react$1.useRef)(null);
+			const [error, setError] = (0, react$1.useState)(null);
+			(0, react$1.useEffect)(() => {
 				setError(null);
 				const container = containerRef.current;
 				const live2d = props.definition.live2d;
@@ -17222,7 +20422,7 @@ window.__ModuleLoader__.load({
 					handle.dispose();
 				};
 			}, [props.definition]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				streamRef.current?.push(props.phase);
 			}, [props.phase]);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
@@ -17266,11 +20466,11 @@ window.__ModuleLoader__.load({
 		*/
 		/** Mount the frames2d renderer as the sprite's visual (inside the chrome). */
 		function Frames2dVisualMount(props) {
-			const containerRef = (0, react.useRef)(null);
-			const streamRef = (0, react.useRef)(null);
-			const handleRef = (0, react.useRef)(null);
-			const [invalid, setInvalid] = (0, react.useState)(false);
-			(0, react.useEffect)(() => {
+			const containerRef = (0, react$1.useRef)(null);
+			const streamRef = (0, react$1.useRef)(null);
+			const handleRef = (0, react$1.useRef)(null);
+			const [invalid, setInvalid] = (0, react$1.useState)(false);
+			(0, react$1.useEffect)(() => {
 				setInvalid(false);
 				const container = containerRef.current;
 				const frames2d = props.definition.frames2d;
@@ -17327,7 +20527,7 @@ window.__ModuleLoader__.load({
 					handle.dispose();
 				};
 			}, [props.definition]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				streamRef.current?.push(props.phase);
 			}, [props.phase]);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
@@ -17358,14 +20558,14 @@ window.__ModuleLoader__.load({
 		/** Dispatch one pet definition to its renderer; unknown kinds get a card. */
 		function PetRendererSwitch(props) {
 			const renderer = props.definition.renderer ?? "sprite2d";
-			const dragRef = (0, react.useRef)(null);
+			const dragRef = (0, react$1.useRef)(null);
 			if (dragRef.current === null || dragRef.current.id !== props.definition.id) dragRef.current = {
 				id: props.definition.id,
 				stream: createDragStream()
 			};
 			const drag = props.drag ?? dragRef.current.stream;
 			if (renderer === "sprite2d") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: props.children });
-			if (renderer === "frames2d" && defaultPetRendererRegistry.has("frames2d") && (0, react.isValidElement)(props.children)) {
+			if (renderer === "frames2d" && defaultPetRendererRegistry.has("frames2d") && (0, react$1.isValidElement)(props.children)) {
 				const visual = /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Frames2dVisualMount, {
 					definition: props.definition,
 					phase: props.phase,
@@ -17374,19 +20574,19 @@ window.__ModuleLoader__.load({
 					...props.bus === void 0 ? {} : { bus: props.bus },
 					t: props.t
 				});
-				return (0, react.cloneElement)(props.children, {
+				return (0, react$1.cloneElement)(props.children, {
 					visual,
 					onDraggingChange: (dragging) => drag.push(dragging)
 				});
 			}
-			if (renderer === "live2d" && defaultPetRendererRegistry.has("live2d") && (0, react.isValidElement)(props.children)) {
+			if (renderer === "live2d" && defaultPetRendererRegistry.has("live2d") && (0, react$1.isValidElement)(props.children)) {
 				const visual = /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Live2dVisualMount, {
 					definition: props.definition,
 					phase: props.phase,
 					onPet: props.onPet,
 					t: props.t
 				});
-				return (0, react.cloneElement)(props.children, { visual });
+				return (0, react$1.cloneElement)(props.children, { visual });
 			}
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 				"data-dsh-pet-renderer-fallback": renderer,
@@ -17415,27 +20615,27 @@ window.__ModuleLoader__.load({
 		/** The gameplay overlay for one frames2d pet that declares 'gameplay'. */
 		function GameplayHud(props) {
 			const { definition, store, api, bus } = props;
-			const ui = (0, react.useSyncExternalStore)(store.subscribe, store.getSnapshot);
+			const ui = (0, react$1.useSyncExternalStore)(store.subscribe, store.getSnapshot);
 			const def = definition.gameplay;
 			const view = ui.snapshot?.gameplay;
 			const phase = ui.snapshot?.phase ?? "idle";
 			const persistedSkin = ui.snapshot?.skin;
-			const [open, setOpen] = (0, react.useState)(false);
-			const [page, setPage] = (0, react.useState)("root");
-			const [skinId, setSkinId] = (0, react.useState)(void 0);
-			const skinIdRef = (0, react.useRef)(void 0);
+			const [open, setOpen] = (0, react$1.useState)(false);
+			const [page, setPage] = (0, react$1.useState)("root");
+			const [skinId, setSkinId] = (0, react$1.useState)(void 0);
+			const skinIdRef = (0, react$1.useRef)(void 0);
 			skinIdRef.current = skinId;
-			const hudRef = (0, react.useRef)(null);
-			const cardRef = (0, react.useRef)(null);
-			const [floats, setFloats] = (0, react.useState)([]);
-			const modeRef = (0, react.useRef)(view?.mode ?? null);
+			const hudRef = (0, react$1.useRef)(null);
+			const cardRef = (0, react$1.useRef)(null);
+			const [floats, setFloats] = (0, react$1.useState)([]);
+			const modeRef = (0, react$1.useRef)(view?.mode ?? null);
 			modeRef.current = view?.mode ?? null;
-			const phaseRef = (0, react.useRef)(phase);
+			const phaseRef = (0, react$1.useRef)(phase);
 			phaseRef.current = phase;
-			const draggingRef = (0, react.useRef)(false);
-			const touchLockUntilRef = (0, react.useRef)(0);
-			const missRef = (0, react.useRef)(0);
-			const busyRef = (0, react.useRef)(false);
+			const draggingRef = (0, react$1.useRef)(false);
+			const touchLockUntilRef = (0, react$1.useRef)(0);
+			const missRef = (0, react$1.useRef)(0);
+			const busyRef = (0, react$1.useRef)(false);
 			const tr = props.t;
 			const statLabel = (name) => tr("pet.gameplay.stat." + name);
 			const currencyLabel = (name) => tr("pet.gameplay.currency." + name);
@@ -17452,7 +20652,7 @@ window.__ModuleLoader__.load({
 			const applyResult = (result) => {
 				if (result.view !== void 0) store.actions.setGameplayView(result.view);
 			};
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (def === void 0) return void 0;
 				const holdTrack = (track, holdMs) => {
 					bus.setTrack?.(track);
@@ -17527,7 +20727,7 @@ window.__ModuleLoader__.load({
 					bus.tap = void 0;
 				};
 			}, [definition.id, def]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				bus.openCard = (next) => {
 					setOpen((prev) => next ?? !prev);
 					setPage("root");
@@ -17536,7 +20736,7 @@ window.__ModuleLoader__.load({
 					bus.openCard = void 0;
 				};
 			}, [bus]);
-			(0, react.useLayoutEffect)(() => {
+			(0, react$1.useLayoutEffect)(() => {
 				if (!open) return void 0;
 				const hud = hudRef.current;
 				const card = cardRef.current;
@@ -17556,13 +20756,13 @@ window.__ModuleLoader__.load({
 					window.removeEventListener("resize", place);
 				};
 			}, [open, page]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				return props.drag.subscribe((dragging) => {
 					draggingRef.current = dragging;
 					if (dragging && modeRef.current === "sleep") api.setMode(null).then(applyResult, () => void 0);
 				});
 			}, [props.drag]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				const director = def?.idleDirector;
 				if (def === void 0 || director === void 0) return void 0;
 				const total = director.idleWeight + director.acts.reduce((sum, act) => sum + act.weight, 0);
@@ -17609,7 +20809,7 @@ window.__ModuleLoader__.load({
 				}, director.intervalMs);
 				return () => window.clearInterval(timer);
 			}, [definition.id, def]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				const work = def?.work;
 				if (def === void 0 || work === void 0 || view?.mode !== "work") return void 0;
 				const skinGameplay = definition.frames2d?.skins?.find((skin) => skin.id === skinIdRef.current)?.gameplayTracks;
@@ -17646,7 +20846,7 @@ window.__ModuleLoader__.load({
 				view?.mode,
 				skinId
 			]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				const sleep = def?.sleep;
 				if (def === void 0 || sleep === void 0 || view?.mode !== "sleep") return void 0;
 				const hold = (definition.frames2d?.skins?.find((skin) => skin.id === skinIdRef.current)?.gameplayTracks)?.["sleep"] ?? sleep.state;
@@ -17681,10 +20881,10 @@ window.__ModuleLoader__.load({
 			const setMode = (next) => {
 				api.setMode(next).then(applyResult, () => void 0);
 			};
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				setSkinId(persistedSkin);
 			}, [definition.id, persistedSkin]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				const skin = definition.frames2d?.skins?.find((candidate) => candidate.id === skinId);
 				bus.idleTrack = skin?.idleTrack;
 				bus.setIdleTrack?.(skin?.idleTrack);
@@ -17876,15 +21076,15 @@ window.__ModuleLoader__.load({
 		*/
 		function PetDockEntry(props) {
 			const { store, ensure } = props;
-			const ui = (0, react.useSyncExternalStore)(store.subscribe, store.getSnapshot);
+			const ui = (0, react$1.useSyncExternalStore)(store.subscribe, store.getSnapshot);
 			const snapshot = ui.snapshot;
 			const feedback = ui.feedback;
 			const definition = ui.pets.find((entry) => entry.id === snapshot?.pet.id) ?? null;
 			const visible = snapshot?.display.visible ?? true;
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				ensure();
 			}, [ensure]);
-			const auxRef = (0, react.useRef)(null);
+			const auxRef = (0, react$1.useRef)(null);
 			if (definition !== null && (auxRef.current === null || auxRef.current.id !== definition.id)) auxRef.current = {
 				id: definition.id,
 				bus: {},
@@ -18699,7 +21899,7 @@ window.__ModuleLoader__.load({
 		* @returns the card, or nothing while the namespace is still loading.
 		*/
 		function PluginSettingsCard$2(props) {
-			const [open, setOpen] = (0, react.useState)(props.defaultOpen ?? true);
+			const [open, setOpen] = (0, react$1.useState)(props.defaultOpen ?? true);
 			const { state, alwaysOpen } = props;
 			if (!state.available) return null;
 			const title = props.t(props.titleKey);
@@ -18876,18 +22076,18 @@ window.__ModuleLoader__.load({
 		*/
 		function SelectField$2(props) {
 			const { id, options, value } = props;
-			const [open, setOpen] = (0, react.useState)(false);
-			const [closing, setClosing] = (0, react.useState)(false);
-			const [phase, setPhase] = (0, react.useState)("initial");
-			const [activeIndex, setActiveIndex] = (0, react.useState)(0);
-			const closeTimer = (0, react.useRef)(void 0);
-			const wrapRef = (0, react.useRef)(null);
-			const popupRef = (0, react.useRef)(null);
+			const [open, setOpen] = (0, react$1.useState)(false);
+			const [closing, setClosing] = (0, react$1.useState)(false);
+			const [phase, setPhase] = (0, react$1.useState)("initial");
+			const [activeIndex, setActiveIndex] = (0, react$1.useState)(0);
+			const closeTimer = (0, react$1.useRef)(void 0);
+			const wrapRef = (0, react$1.useRef)(null);
+			const popupRef = (0, react$1.useRef)(null);
 			const currentIndex = () => {
 				const index = options.findIndex((option) => option.value === value);
 				return index >= 0 ? index : 0;
 			};
-			const close = (0, react.useCallback)(() => {
+			const close = (0, react$1.useCallback)(() => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 				setClosing(true);
 				closeTimer.current = setTimeout(() => {
@@ -18938,10 +22138,10 @@ window.__ModuleLoader__.load({
 						break;
 				}
 			};
-			(0, react.useEffect)(() => () => {
+			(0, react$1.useEffect)(() => () => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 			}, []);
-			(0, react.useLayoutEffect)(() => {
+			(0, react$1.useLayoutEffect)(() => {
 				if (open && !closing && phase === "initial") {
 					popupRef.current?.offsetHeight;
 					setPhase("open");
@@ -18951,7 +22151,7 @@ window.__ModuleLoader__.load({
 				closing,
 				phase
 			]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (!open) return;
 				const onPointerDown = (event) => {
 					const target = event.target;
@@ -18960,7 +22160,7 @@ window.__ModuleLoader__.load({
 				document.addEventListener("pointerdown", onPointerDown);
 				return () => document.removeEventListener("pointerdown", onPointerDown);
 			}, [open, close]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (props.disabled && open) close();
 			}, [
 				props.disabled,
@@ -21003,13 +24203,13 @@ window.__ModuleLoader__.load({
 		}
 		/** The cluster execution tab. */
 		function ClusterTab({ api }) {
-			const [command, setCommand] = (0, react.useState)("");
-			const [aliases, setAliases] = (0, react.useState)("");
-			const [environment, setEnvironment] = (0, react.useState)("");
-			const [tags, setTags] = (0, react.useState)("");
-			const [running, setRunning] = (0, react.useState)(false);
-			const [results, setResults] = (0, react.useState)(null);
-			const [error, setError] = (0, react.useState)(null);
+			const [command, setCommand] = (0, react$1.useState)("");
+			const [aliases, setAliases] = (0, react$1.useState)("");
+			const [environment, setEnvironment] = (0, react$1.useState)("");
+			const [tags, setTags] = (0, react$1.useState)("");
+			const [running, setRunning] = (0, react$1.useState)(false);
+			const [results, setResults] = (0, react$1.useState)(null);
+			const [error, setError] = (0, react$1.useState)(null);
 			const run = async () => {
 				if (command.trim() === "" || running) return;
 				if (!window.confirm(tt$1("cluster.confirm"))) return;
@@ -21195,10 +24395,10 @@ window.__ModuleLoader__.load({
 		}
 		/** The create/edit host modal. */
 		function HostFormDialog({ api, editing, onClose, onSaved }) {
-			const [form, setForm] = (0, react.useState)(() => blankOf(editing));
-			const [saving, setSaving] = (0, react.useState)(false);
-			const [error, setError] = (0, react.useState)(null);
-			(0, react.useEffect)(() => {
+			const [form, setForm] = (0, react$1.useState)(() => blankOf(editing));
+			const [saving, setSaving] = (0, react$1.useState)(false);
+			const [error, setError] = (0, react$1.useState)(null);
+			(0, react$1.useEffect)(() => {
 				const onKey = (event) => {
 					if (event.key === "Escape") onClose();
 				};
@@ -21651,25 +24851,25 @@ window.__ModuleLoader__.load({
 		}
 		/** The hosts table plus its toolbar and dialogs. */
 		function HostsTab({ api, onConnect }) {
-			const [hosts, setHosts] = (0, react.useState)(null);
-			const [error, setError] = (0, react.useState)(null);
-			const [search, setSearch] = (0, react.useState)("");
-			const [testingAlias, setTestingAlias] = (0, react.useState)(null);
-			const [testResults, setTestResults] = (0, react.useState)({});
-			const [importing, setImporting] = (0, react.useState)(false);
-			const [notice, setNotice] = (0, react.useState)(null);
+			const [hosts, setHosts] = (0, react$1.useState)(null);
+			const [error, setError] = (0, react$1.useState)(null);
+			const [search, setSearch] = (0, react$1.useState)("");
+			const [testingAlias, setTestingAlias] = (0, react$1.useState)(null);
+			const [testResults, setTestResults] = (0, react$1.useState)({});
+			const [importing, setImporting] = (0, react$1.useState)(false);
+			const [notice, setNotice] = (0, react$1.useState)(null);
 			/** Blocks the last import skipped, with the reason each one was left out. */
-			const [importSkips, setImportSkips] = (0, react.useState)([]);
-			const [dialog, setDialog] = (0, react.useState)(null);
-			const [groupBy, setGroupBy] = (0, react.useState)("none");
-			const [collapsed, setCollapsed] = (0, react.useState)({});
-			const [testingGroup, setTestingGroup] = (0, react.useState)(null);
-			const seqRef = (0, react.useRef)(0);
-			const mountedRef = (0, react.useRef)(true);
-			(0, react.useEffect)(() => () => {
+			const [importSkips, setImportSkips] = (0, react$1.useState)([]);
+			const [dialog, setDialog] = (0, react$1.useState)(null);
+			const [groupBy, setGroupBy] = (0, react$1.useState)("none");
+			const [collapsed, setCollapsed] = (0, react$1.useState)({});
+			const [testingGroup, setTestingGroup] = (0, react$1.useState)(null);
+			const seqRef = (0, react$1.useRef)(0);
+			const mountedRef = (0, react$1.useRef)(true);
+			(0, react$1.useEffect)(() => () => {
 				mountedRef.current = false;
 			}, []);
-			const load = (0, react.useCallback)(async (query) => {
+			const load = (0, react$1.useCallback)(async (query) => {
 				const seq = ++seqRef.current;
 				try {
 					const list = await api.listHosts(query);
@@ -21681,10 +24881,10 @@ window.__ModuleLoader__.load({
 					setError(errorMessage(cause));
 				}
 			}, [api]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				load();
 			}, [load]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				const timer = setTimeout(() => {
 					const query = search.trim();
 					load(query === "" ? void 0 : query);
@@ -22022,7 +25222,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region ../../../../../../../../../../Desktop/deepseek harness 工作台/dsh-data/profiles/web/node_modules/@xterm/xterm/lib/xterm.js
+		//#region ../../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/@xterm+xterm@6.0.0/node_modules/@xterm/xterm/lib/xterm.js
 		var require_xterm = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			(function(e, t) {
 				if ("object" == typeof exports && "object" == typeof module) module.exports = t();
@@ -35020,7 +38220,7 @@ window.__ModuleLoader__.load({
 			})()));
 		}));
 		//#endregion
-		//#region ../../../../../../../../../../Desktop/deepseek harness 工作台/dsh-data/profiles/web/node_modules/@xterm/addon-fit/lib/addon-fit.js
+		//#region ../../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/@xterm+addon-fit@0.11.0/node_modules/@xterm/addon-fit/lib/addon-fit.js
 		var require_addon_fit = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			(function(e, t) {
 				"object" == typeof exports && "object" == typeof module ? module.exports = t() : "function" == typeof define && define.amd ? define([], t) : "object" == typeof exports ? exports.FitAddon = t() : e.FitAddon = t();
@@ -35088,22 +38288,22 @@ window.__ModuleLoader__.load({
 		};
 		/** The xterm terminal view. */
 		function TerminalTab({ api, presetAlias, requestId, terminalFont }) {
-			const [hosts, setHosts] = (0, react.useState)([]);
-			const [alias, setAlias] = (0, react.useState)(presetAlias ?? "");
-			const [status, setStatus] = (0, react.useState)({ kind: "idle" });
-			const [authPrompt, setAuthPrompt] = (0, react.useState)(void 0);
-			const [authInputs, setAuthInputs] = (0, react.useState)([]);
-			const containerRef = (0, react.useRef)(null);
-			const termRef = (0, react.useRef)(null);
-			const fitRef = (0, react.useRef)(null);
-			const connRef = (0, react.useRef)(null);
-			const dataSubRef = (0, react.useRef)(null);
+			const [hosts, setHosts] = (0, react$1.useState)([]);
+			const [alias, setAlias] = (0, react$1.useState)(presetAlias ?? "");
+			const [status, setStatus] = (0, react$1.useState)({ kind: "idle" });
+			const [authPrompt, setAuthPrompt] = (0, react$1.useState)(void 0);
+			const [authInputs, setAuthInputs] = (0, react$1.useState)([]);
+			const containerRef = (0, react$1.useRef)(null);
+			const termRef = (0, react$1.useRef)(null);
+			const fitRef = (0, react$1.useRef)(null);
+			const connRef = (0, react$1.useRef)(null);
+			const dataSubRef = (0, react$1.useRef)(null);
 			const fontSource = terminalFont ?? NO_FONT_SOURCE;
-			const fontOverride = (0, react.useSyncExternalStore)(fontSource.subscribe, fontSource.get);
-			(0, react.useEffect)(() => {
+			const fontOverride = (0, react$1.useSyncExternalStore)(fontSource.subscribe, fontSource.get);
+			(0, react$1.useEffect)(() => {
 				ensureXtermCss();
 			}, []);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				const term = termRef.current;
 				if (term === null) return;
 				const next = resolveTerminalFontFamily(fontOverride);
@@ -35112,7 +38312,7 @@ window.__ModuleLoader__.load({
 				fitRef.current?.fit();
 				connRef.current?.resize(term.cols, term.rows);
 			}, [fontOverride]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				let disposed = false;
 				(async () => {
 					try {
@@ -35129,7 +38329,7 @@ window.__ModuleLoader__.load({
 					disposed = true;
 				};
 			}, [api]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (presetAlias !== void 0) setAlias(presetAlias);
 			}, [presetAlias, requestId]);
 			const teardown = () => {
@@ -35150,10 +38350,10 @@ window.__ModuleLoader__.load({
 				termRef.current = null;
 				fitRef.current = null;
 			};
-			(0, react.useEffect)(() => () => {
+			(0, react$1.useEffect)(() => () => {
 				teardown();
 			}, []);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				let lastCols = -1;
 				let lastRows = -1;
 				const sync = () => {
@@ -35419,19 +38619,19 @@ window.__ModuleLoader__.load({
 		}
 		/** The upload/download tab. */
 		function TransferTab({ api }) {
-			const [hosts, setHosts] = (0, react.useState)([]);
-			const [listError, setListError] = (0, react.useState)(null);
-			const [alias, setAlias] = (0, react.useState)("");
-			const [remotePath, setRemotePath] = (0, react.useState)("");
-			const [browseOpen, setBrowseOpen] = (0, react.useState)(false);
-			const [browseDir, setBrowseDir] = (0, react.useState)("/");
-			const [entries, setEntries] = (0, react.useState)([]);
-			const [browsing, setBrowsing] = (0, react.useState)(false);
-			const [transfer, setTransfer] = (0, react.useState)(null);
-			const [status, setStatus] = (0, react.useState)(null);
-			const fileRef = (0, react.useRef)(null);
-			const seqRef = (0, react.useRef)(0);
-			(0, react.useEffect)(() => {
+			const [hosts, setHosts] = (0, react$1.useState)([]);
+			const [listError, setListError] = (0, react$1.useState)(null);
+			const [alias, setAlias] = (0, react$1.useState)("");
+			const [remotePath, setRemotePath] = (0, react$1.useState)("");
+			const [browseOpen, setBrowseOpen] = (0, react$1.useState)(false);
+			const [browseDir, setBrowseDir] = (0, react$1.useState)("/");
+			const [entries, setEntries] = (0, react$1.useState)([]);
+			const [browsing, setBrowsing] = (0, react$1.useState)(false);
+			const [transfer, setTransfer] = (0, react$1.useState)(null);
+			const [status, setStatus] = (0, react$1.useState)(null);
+			const fileRef = (0, react$1.useRef)(null);
+			const seqRef = (0, react$1.useRef)(0);
+			(0, react$1.useEffect)(() => {
 				let disposed = false;
 				(async () => {
 					try {
@@ -35734,16 +38934,16 @@ window.__ModuleLoader__.load({
 		}
 		/** The tunnels tab. */
 		function TunnelsTab({ api, active = true }) {
-			const [hosts, setHosts] = (0, react.useState)([]);
-			const [tunnels, setTunnels] = (0, react.useState)(null);
-			const [error, setError] = (0, react.useState)(null);
-			const [notice, setNotice] = (0, react.useState)(null);
-			const [alias, setAlias] = (0, react.useState)("");
-			const [remotePort, setRemotePort] = (0, react.useState)("");
-			const [remoteHost, setRemoteHost] = (0, react.useState)("");
-			const [localPort, setLocalPort] = (0, react.useState)("");
-			const [busy, setBusy] = (0, react.useState)(false);
-			(0, react.useEffect)(() => {
+			const [hosts, setHosts] = (0, react$1.useState)([]);
+			const [tunnels, setTunnels] = (0, react$1.useState)(null);
+			const [error, setError] = (0, react$1.useState)(null);
+			const [notice, setNotice] = (0, react$1.useState)(null);
+			const [alias, setAlias] = (0, react$1.useState)("");
+			const [remotePort, setRemotePort] = (0, react$1.useState)("");
+			const [remoteHost, setRemoteHost] = (0, react$1.useState)("");
+			const [localPort, setLocalPort] = (0, react$1.useState)("");
+			const [busy, setBusy] = (0, react$1.useState)(false);
+			(0, react$1.useEffect)(() => {
 				let disposed = false;
 				(async () => {
 					try {
@@ -35755,9 +38955,9 @@ window.__ModuleLoader__.load({
 					disposed = true;
 				};
 			}, [api]);
-			const seqRef = (0, react.useRef)(0);
-			const automaticRead = (0, react.useRef)({ running: false });
-			(0, react.useEffect)(() => {
+			const seqRef = (0, react$1.useRef)(0);
+			const automaticRead = (0, react$1.useRef)({ running: false });
+			(0, react$1.useEffect)(() => {
 				if (!active) return;
 				let disposed = false;
 				const read = automaticRead.current;
@@ -36054,9 +39254,9 @@ window.__ModuleLoader__.load({
 		];
 		/** The tabbed SSH panel. */
 		function SshPanel({ controller, api, terminalFont }) {
-			const panelOpen = (0, react.useSyncExternalStore)((0, react.useCallback)((listener) => controller.subscribe(listener), [controller]), (0, react.useCallback)(() => controller.getSnapshot().panelOpen, [controller]));
-			const [activeTab, setActiveTab] = (0, react.useState)("hosts");
-			const [connectRequest, setConnectRequest] = (0, react.useState)(null);
+			const panelOpen = (0, react$1.useSyncExternalStore)((0, react$1.useCallback)((listener) => controller.subscribe(listener), [controller]), (0, react$1.useCallback)(() => controller.getSnapshot().panelOpen, [controller]));
+			const [activeTab, setActiveTab] = (0, react$1.useState)("hosts");
+			const [connectRequest, setConnectRequest] = (0, react$1.useState)(null);
 			const handleConnect = (alias) => {
 				setActiveTab("terminal");
 				setConnectRequest((prev) => ({
@@ -37400,7 +40600,7 @@ window.__ModuleLoader__.load({
 		* @returns the card, or nothing while the namespace is still loading.
 		*/
 		function PluginSettingsCard$1(props) {
-			const [open, setOpen] = (0, react.useState)(props.defaultOpen ?? true);
+			const [open, setOpen] = (0, react$1.useState)(props.defaultOpen ?? true);
 			const { state, alwaysOpen } = props;
 			if (!state.available) return null;
 			const title = props.t(props.titleKey);
@@ -37577,18 +40777,18 @@ window.__ModuleLoader__.load({
 		*/
 		function SelectField$1(props) {
 			const { id, options, value } = props;
-			const [open, setOpen] = (0, react.useState)(false);
-			const [closing, setClosing] = (0, react.useState)(false);
-			const [phase, setPhase] = (0, react.useState)("initial");
-			const [activeIndex, setActiveIndex] = (0, react.useState)(0);
-			const closeTimer = (0, react.useRef)(void 0);
-			const wrapRef = (0, react.useRef)(null);
-			const popupRef = (0, react.useRef)(null);
+			const [open, setOpen] = (0, react$1.useState)(false);
+			const [closing, setClosing] = (0, react$1.useState)(false);
+			const [phase, setPhase] = (0, react$1.useState)("initial");
+			const [activeIndex, setActiveIndex] = (0, react$1.useState)(0);
+			const closeTimer = (0, react$1.useRef)(void 0);
+			const wrapRef = (0, react$1.useRef)(null);
+			const popupRef = (0, react$1.useRef)(null);
 			const currentIndex = () => {
 				const index = options.findIndex((option) => option.value === value);
 				return index >= 0 ? index : 0;
 			};
-			const close = (0, react.useCallback)(() => {
+			const close = (0, react$1.useCallback)(() => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 				setClosing(true);
 				closeTimer.current = setTimeout(() => {
@@ -37639,10 +40839,10 @@ window.__ModuleLoader__.load({
 						break;
 				}
 			};
-			(0, react.useEffect)(() => () => {
+			(0, react$1.useEffect)(() => () => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 			}, []);
-			(0, react.useLayoutEffect)(() => {
+			(0, react$1.useLayoutEffect)(() => {
 				if (open && !closing && phase === "initial") {
 					popupRef.current?.offsetHeight;
 					setPhase("open");
@@ -37652,7 +40852,7 @@ window.__ModuleLoader__.load({
 				closing,
 				phase
 			]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (!open) return;
 				const onPointerDown = (event) => {
 					const target = event.target;
@@ -37661,7 +40861,7 @@ window.__ModuleLoader__.load({
 				document.addEventListener("pointerdown", onPointerDown);
 				return () => document.removeEventListener("pointerdown", onPointerDown);
 			}, [open, close]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (props.disabled && open) close();
 			}, [
 				props.disabled,
@@ -38372,11 +41572,11 @@ window.__ModuleLoader__.load({
 		* @returns the section block.
 		*/
 		function NativeImageSection() {
-			const [phase, setPhase] = (0, react.useState)("loading");
-			const [state, setState] = (0, react.useState)(null);
-			const [busy, setBusy] = (0, react.useState)(false);
-			const [error, setError] = (0, react.useState)();
-			const refresh = (0, react.useCallback)(() => {
+			const [phase, setPhase] = (0, react$1.useState)("loading");
+			const [state, setState] = (0, react$1.useState)(null);
+			const [busy, setBusy] = (0, react$1.useState)(false);
+			const [error, setError] = (0, react$1.useState)();
+			const refresh = (0, react$1.useCallback)(() => {
 				setPhase("loading");
 				setError(void 0);
 				fetchNativeImageState().then((value) => {
@@ -38384,10 +41584,10 @@ window.__ModuleLoader__.load({
 					setPhase(value === null ? "failed" : "ready");
 				});
 			}, []);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				refresh();
 			}, [refresh]);
-			const toggle = (0, react.useCallback)(() => {
+			const toggle = (0, react$1.useCallback)(() => {
 				if (busy || state === null) return;
 				setBusy(true);
 				setError(void 0);
@@ -39057,18 +42257,18 @@ window.__ModuleLoader__.load({
 		const SPARKS = Array.from({ length: 14 }, (_, index) => index);
 		/** Slot entry for `conversation.input.right` (left of the model selector). */
 		function LiangShenLever(face) {
-			const { state, restoreLabel, busy, error, burst } = (0, react.useSyncExternalStore)(face.store.subscribe, face.store.getSnapshot);
-			const [burstKey, setBurstKey] = (0, react.useState)(0);
-			const seen = (0, react.useRef)(burst);
-			const drag = (0, react.useRef)(void 0);
+			const { state, restoreLabel, busy, error, burst } = (0, react$1.useSyncExternalStore)(face.store.subscribe, face.store.getSnapshot);
+			const [burstKey, setBurstKey] = (0, react$1.useState)(0);
+			const seen = (0, react$1.useRef)(burst);
+			const drag = (0, react$1.useRef)(void 0);
 			const actionable = !busy && (state === "on" || state === "off");
 			const on = state === "on";
 			const errorText = error === void 0 ? void 0 : error.kind === "locked" ? face.t("lever.failed.locked") : error.kind === "missing" ? face.t("lever.failed.missing") : error.kind === "timeout" ? face.t("lever.failed.timeout") : face.t("lever.failed.failed", { reason: error.reason });
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (burst > seen.current) setBurstKey(burst);
 				seen.current = burst;
 			}, [burst]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (burstKey === 0) return;
 				const timer = setTimeout(() => {
 					setBurstKey(0);
@@ -39964,9 +43164,9 @@ window.__ModuleLoader__.load({
 		}
 		/** One skill card: name, badges, toggle switch, delete button. */
 		function SkillCard({ skill, api, onChanged }) {
-			const [busy, setBusy] = (0, react.useState)(false);
-			const [error, setError] = (0, react.useState)(void 0);
-			const busyRef = (0, react.useRef)(false);
+			const [busy, setBusy] = (0, react$1.useState)(false);
+			const [error, setError] = (0, react$1.useState)(void 0);
+			const busyRef = (0, react$1.useRef)(false);
 			const toggle = async () => {
 				if (busyRef.current) return;
 				const path = skill.path;
@@ -40084,11 +43284,11 @@ window.__ModuleLoader__.load({
 		}
 		/** The grouped skill list tab. */
 		function ListTab({ api, refreshTick, onCwd }) {
-			const [payload, setPayload] = (0, react.useState)(void 0);
-			const [selectedWorkspace, setSelectedWorkspace] = (0, react.useState)("all");
-			const [query, setQuery] = (0, react.useState)("");
-			const [error, setError] = (0, react.useState)(void 0);
-			const loadSeq = (0, react.useRef)(0);
+			const [payload, setPayload] = (0, react$1.useState)(void 0);
+			const [selectedWorkspace, setSelectedWorkspace] = (0, react$1.useState)("all");
+			const [query, setQuery] = (0, react$1.useState)("");
+			const [error, setError] = (0, react$1.useState)(void 0);
+			const loadSeq = (0, react$1.useRef)(0);
 			const load = async () => {
 				const seq = ++loadSeq.current;
 				try {
@@ -40102,7 +43302,7 @@ window.__ModuleLoader__.load({
 					setError(tt("list.loadFailed", { error: err instanceof Error ? err.message : String(err) }));
 				}
 			};
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				load();
 			}, [api, refreshTick]);
 			if (error !== void 0 && payload === void 0) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
@@ -40220,13 +43420,13 @@ window.__ModuleLoader__.load({
 		}
 		/** The create form tab. */
 		function CreateTab({ api, cwd }) {
-			const [root, setRoot] = (0, react.useState)("user");
-			const [name, setName] = (0, react.useState)("");
-			const [description, setDescription] = (0, react.useState)("");
-			const [whenToUse, setWhenToUse] = (0, react.useState)("");
-			const [content, setContent] = (0, react.useState)("");
-			const [busy, setBusy] = (0, react.useState)(false);
-			const [feedback, setFeedback] = (0, react.useState)(void 0);
+			const [root, setRoot] = (0, react$1.useState)("user");
+			const [name, setName] = (0, react$1.useState)("");
+			const [description, setDescription] = (0, react$1.useState)("");
+			const [whenToUse, setWhenToUse] = (0, react$1.useState)("");
+			const [content, setContent] = (0, react$1.useState)("");
+			const [busy, setBusy] = (0, react$1.useState)(false);
+			const [feedback, setFeedback] = (0, react$1.useState)(void 0);
 			const submit = async (event) => {
 				event.preventDefault();
 				if (name.trim() === "" || description.trim() === "" || content.trim() === "") {
@@ -40346,10 +43546,10 @@ window.__ModuleLoader__.load({
 		}
 		/** The skill center overlay modal. */
 		function SkillPanel({ api, onClose }) {
-			const [tab, setTab] = (0, react.useState)("list");
-			const [cwd, setCwd] = (0, react.useState)(void 0);
-			const [refreshTick, setRefreshTick] = (0, react.useState)(0);
-			(0, react.useEffect)(() => {
+			const [tab, setTab] = (0, react$1.useState)("list");
+			const [cwd, setCwd] = (0, react$1.useState)(void 0);
+			const [refreshTick, setRefreshTick] = (0, react$1.useState)(0);
+			(0, react$1.useEffect)(() => {
 				const onKey = (event) => {
 					if (event.key !== "Escape") return;
 					const target = event.target;
@@ -42050,7 +45250,7 @@ window.__ModuleLoader__.load({
 		* @returns the card, or nothing while the namespace is still loading.
 		*/
 		function PluginSettingsCard(props) {
-			const [open, setOpen] = (0, react.useState)(props.defaultOpen ?? true);
+			const [open, setOpen] = (0, react$1.useState)(props.defaultOpen ?? true);
 			const { state, alwaysOpen } = props;
 			if (!state.available) return null;
 			const title = props.t(props.titleKey);
@@ -42182,18 +45382,18 @@ window.__ModuleLoader__.load({
 		*/
 		function SelectField(props) {
 			const { id, options, value } = props;
-			const [open, setOpen] = (0, react.useState)(false);
-			const [closing, setClosing] = (0, react.useState)(false);
-			const [phase, setPhase] = (0, react.useState)("initial");
-			const [activeIndex, setActiveIndex] = (0, react.useState)(0);
-			const closeTimer = (0, react.useRef)(void 0);
-			const wrapRef = (0, react.useRef)(null);
-			const popupRef = (0, react.useRef)(null);
+			const [open, setOpen] = (0, react$1.useState)(false);
+			const [closing, setClosing] = (0, react$1.useState)(false);
+			const [phase, setPhase] = (0, react$1.useState)("initial");
+			const [activeIndex, setActiveIndex] = (0, react$1.useState)(0);
+			const closeTimer = (0, react$1.useRef)(void 0);
+			const wrapRef = (0, react$1.useRef)(null);
+			const popupRef = (0, react$1.useRef)(null);
 			const currentIndex = () => {
 				const index = options.findIndex((option) => option.value === value);
 				return index >= 0 ? index : 0;
 			};
-			const close = (0, react.useCallback)(() => {
+			const close = (0, react$1.useCallback)(() => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 				setClosing(true);
 				closeTimer.current = setTimeout(() => {
@@ -42244,10 +45444,10 @@ window.__ModuleLoader__.load({
 						break;
 				}
 			};
-			(0, react.useEffect)(() => () => {
+			(0, react$1.useEffect)(() => () => {
 				if (closeTimer.current !== void 0) clearTimeout(closeTimer.current);
 			}, []);
-			(0, react.useLayoutEffect)(() => {
+			(0, react$1.useLayoutEffect)(() => {
 				if (open && !closing && phase === "initial") {
 					popupRef.current?.offsetHeight;
 					setPhase("open");
@@ -42257,7 +45457,7 @@ window.__ModuleLoader__.load({
 				closing,
 				phase
 			]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (!open) return;
 				const onPointerDown = (event) => {
 					const target = event.target;
@@ -42266,7 +45466,7 @@ window.__ModuleLoader__.load({
 				document.addEventListener("pointerdown", onPointerDown);
 				return () => document.removeEventListener("pointerdown", onPointerDown);
 			}, [open, close]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (props.disabled && open) close();
 			}, [
 				props.disabled,
@@ -42766,9 +45966,9 @@ window.__ModuleLoader__.load({
 		*/
 		function HarnessSendDialog(props) {
 			const { t, open } = props;
-			const [text, setText] = (0, react.useState)(props.initialText);
-			const [copied, setCopied] = (0, react.useState)(false);
-			(0, react.useEffect)(() => {
+			const [text, setText] = (0, react$1.useState)(props.initialText);
+			const [copied, setCopied] = (0, react$1.useState)(false);
+			(0, react$1.useEffect)(() => {
 				if (open) {
 					setText(props.initialText);
 					setCopied(false);
@@ -42901,15 +46101,15 @@ window.__ModuleLoader__.load({
 		function DoctorRecoveryConsole(props) {
 			const { t, controller } = props;
 			const embedded = props.embedded === true;
-			const view = (0, react.useSyncExternalStore)(controller.subscribe, controller.getSnapshot);
-			const adapter = (0, react.useMemo)(() => stableSettingsAdapter(props.settings), [props.settings]);
-			const settingsState = (0, react.useSyncExternalStore)(adapter.listen, adapter.getState);
-			const [saving, setSaving] = (0, react.useState)(false);
-			const [saveError, setSaveError] = (0, react.useState)(void 0);
-			const [harnessOpen, setHarnessOpen] = (0, react.useState)(false);
-			const [harnessBusy, setHarnessBusy] = (0, react.useState)(false);
-			const [harnessError, setHarnessError] = (0, react.useState)(void 0);
-			const toggleLock = (0, react.useRef)(false);
+			const view = (0, react$1.useSyncExternalStore)(controller.subscribe, controller.getSnapshot);
+			const adapter = (0, react$1.useMemo)(() => stableSettingsAdapter(props.settings), [props.settings]);
+			const settingsState = (0, react$1.useSyncExternalStore)(adapter.listen, adapter.getState);
+			const [saving, setSaving] = (0, react$1.useState)(false);
+			const [saveError, setSaveError] = (0, react$1.useState)(void 0);
+			const [harnessOpen, setHarnessOpen] = (0, react$1.useState)(false);
+			const [harnessBusy, setHarnessBusy] = (0, react$1.useState)(false);
+			const [harnessError, setHarnessError] = (0, react$1.useState)(void 0);
+			const toggleLock = (0, react$1.useRef)(false);
 			const harnessFailure = newestFailure(t, view);
 			const harnessInitialText = harnessFailure === void 0 ? "" : composeHarnessPrompt(harnessFailure, {
 				webVersion: view.hostVersion,
@@ -43350,7 +46550,7 @@ window.__ModuleLoader__.load({
 		}
 		/** Browser probe card (passive incidents). */
 		function ProbeCard({ t, view, controller }) {
-			const [copiedId, setCopiedId] = (0, react.useState)(void 0);
+			const [copiedId, setCopiedId] = (0, react$1.useState)(void 0);
 			const copyFailure = (incident) => {
 				const stack = failureStackFor(incident, view);
 				copyText(t(probeKindKey(incident.kind)) + ": " + incident.message + (stack !== "" ? "\n\n" + stack : "")).then((ok) => {
@@ -43535,7 +46735,7 @@ window.__ModuleLoader__.load({
 		* Error boundary for the dynamic console area. Reports into the probe list and
 		* renders a recoverable fallback; retry resets the boundary and refreshes.
 		*/
-		var DoctorErrorBoundary = class extends react.Component {
+		var DoctorErrorBoundary = class extends react$1.Component {
 			state = { failed: false };
 			static getDerivedStateFromError() {
 				return { failed: true };
@@ -45161,15 +48361,15 @@ window.__ModuleLoader__.load({
 		/** The section component; the slot merges the face into these props. */
 		function UsageSectionCard(props) {
 			const { store, poll, refresh, settings } = props;
-			const ui = (0, react.useSyncExternalStore)(store.subscribe, store.getSnapshot);
+			const ui = (0, react$1.useSyncExternalStore)(store.subscribe, store.getSnapshot);
 			const settingsSnapshot = settings.getSnapshot();
 			const settingsValue = settingsSnapshot.value ?? {};
-			const [tab, setTab] = (0, react.useState)("usage");
-			const [refreshing, setRefreshing] = (0, react.useState)(false);
-			const [, bumpSettings] = (0, react.useState)(0);
-			(0, react.useEffect)(() => settings.subscribe(() => bumpSettings((count) => count + 1)), [settings]);
+			const [tab, setTab] = (0, react$1.useState)("usage");
+			const [refreshing, setRefreshing] = (0, react$1.useState)(false);
+			const [, bumpSettings] = (0, react$1.useState)(0);
+			(0, react$1.useEffect)(() => settings.subscribe(() => bumpSettings((count) => count + 1)), [settings]);
 			const enabled = settingsValue.enabled ?? true;
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (!enabled) return void 0;
 				poll();
 				let timer;
@@ -45495,9 +48695,9 @@ window.__ModuleLoader__.load({
 		function VoucherCard(props) {
 			const { window: ledger, observedSpend } = props;
 			const data = deepseekVoucherData(ledger);
-			const canvasRef = (0, react.useRef)(null);
-			const [drawError, setDrawError] = (0, react.useState)(void 0);
-			(0, react.useEffect)(() => {
+			const canvasRef = (0, react$1.useRef)(null);
+			const [drawError, setDrawError] = (0, react$1.useState)(void 0);
+			(0, react$1.useEffect)(() => {
 				if (data === void 0) return;
 				const voucher = data;
 				let cancelled = false;
@@ -46794,8 +49994,8 @@ window.__ModuleLoader__.load({
 		}
 		/** Shared modal shell: focus on open, Esc to close, restore focus after. */
 		function Modal$1({ title, onClose, children, danger, wide }) {
-			const ref = (0, react.useRef)(null);
-			(0, react.useEffect)(() => {
+			const ref = (0, react$1.useRef)(null);
+			(0, react$1.useEffect)(() => {
 				const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 				ref.current?.focus();
 				const onKey = (event) => {
@@ -46834,7 +50034,7 @@ window.__ModuleLoader__.load({
 		}
 		/** Delete confirmation with full cascade accounting. */
 		function DeleteConfirmDialog(props) {
-			const [acknowledged, setAcknowledged] = (0, react.useState)(false);
+			const [acknowledged, setAcknowledged] = (0, react$1.useState)(false);
 			const needCheck = props.state.strong;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(Modal$1, {
 				title: t$1("arch.confirm.deleteTitle"),
@@ -47057,7 +50257,7 @@ window.__ModuleLoader__.load({
 		*/
 		/** One validated day-threshold input; invalid values are never saved. */
 		function DaysInput(props) {
-			const [text, setText] = (0, react.useState)(null);
+			const [text, setText] = (0, react$1.useState)(null);
 			const effective = text ?? (props.value === void 0 ? "" : String(props.value));
 			const parsed = Number(effective);
 			const valid = Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= props.min && parsed <= props.max;
@@ -47101,8 +50301,8 @@ window.__ModuleLoader__.load({
 		}
 		function AutoSettingsPanel(props) {
 			const settings = props.settings;
-			const value = (0, react.useSyncExternalStore)((0, react.useMemo)(() => settings.subscribe.bind(settings), [settings]), (0, react.useMemo)(() => settings.getSnapshot.bind(settings), [settings])).value ?? {};
-			const ui = (0, react.useSyncExternalStore)(props.controller.store.subscribe, props.controller.store.getSnapshot);
+			const value = (0, react$1.useSyncExternalStore)((0, react$1.useMemo)(() => settings.subscribe.bind(settings), [settings]), (0, react$1.useMemo)(() => settings.getSnapshot.bind(settings), [settings])).value ?? {};
+			const ui = (0, react$1.useSyncExternalStore)(props.controller.store.subscribe, props.controller.store.getSnapshot);
 			const autoPreview = ui.autoPreview;
 			const autoPreviewLoading = ui.autoPreviewLoading;
 			const cycleRunning = props.auto?.cycleRunning === true;
@@ -47271,16 +50471,16 @@ window.__ModuleLoader__.load({
 			return groups;
 		}
 		function Select(props) {
-			const [open, setOpen] = (0, react.useState)(false);
-			const [active, setActive] = (0, react.useState)(0);
-			const rootRef = (0, react.useRef)(null);
-			const listRef = (0, react.useRef)(null);
+			const [open, setOpen] = (0, react$1.useState)(false);
+			const [active, setActive] = (0, react$1.useState)(0);
+			const rootRef = (0, react$1.useRef)(null);
+			const listRef = (0, react$1.useRef)(null);
 			const activeIndex = (open) => {
 				if (!open) return 0;
 				const index = props.options.findIndex((option) => option.value === props.value);
 				return index === -1 ? 0 : index;
 			};
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				if (!open) return;
 				const onPointerDown = (event) => {
 					if (rootRef.current !== null && event.target instanceof Node && !rootRef.current.contains(event.target)) setOpen(false);
@@ -47290,7 +50490,7 @@ window.__ModuleLoader__.load({
 					document.removeEventListener("pointerdown", onPointerDown);
 				};
 			}, [open]);
-			(0, react.useLayoutEffect)(() => {
+			(0, react$1.useLayoutEffect)(() => {
 				if (!open) return;
 				listRef.current?.querySelector("[data-active=\"true\"]")?.scrollIntoView({ block: "nearest" });
 			}, [open, active]);
@@ -47453,21 +50653,21 @@ window.__ModuleLoader__.load({
 		}
 		function SessionArchiveCard(props) {
 			const { controller } = props;
-			const ui = (0, react.useSyncExternalStore)(controller.store.subscribe, controller.store.getSnapshot);
-			const [currentId, setCurrentId] = (0, react.useState)(void 0);
-			(0, react.useEffect)(() => {
+			const ui = (0, react$1.useSyncExternalStore)(controller.store.subscribe, controller.store.getSnapshot);
+			const [currentId, setCurrentId] = (0, react$1.useState)(void 0);
+			(0, react$1.useEffect)(() => {
 				controller.load();
 				setCurrentId(controller.getCurrentSessionId());
 			}, [controller]);
 			const rows = ui.inventory?.rows ?? [];
 			const workspaces = ui.inventory?.workspaces ?? [];
-			const filtered = (0, react.useMemo)(() => sortRows(filterRows(rows, ui.filter), ui.sortKey, ui.sortDir), [
+			const filtered = (0, react$1.useMemo)(() => sortRows(filterRows(rows, ui.filter), ui.sortKey, ui.sortDir), [
 				rows,
 				ui.filter,
 				ui.sortKey,
 				ui.sortDir
 			]);
-			const selection = (0, react.useMemo)(() => new Set(ui.selection), [ui.selection]);
+			const selection = (0, react$1.useMemo)(() => new Set(ui.selection), [ui.selection]);
 			const summary = selectionSummary(selection, filtered);
 			const totalPages = Math.max(1, Math.ceil(filtered.length / 20));
 			const page = Math.min(ui.page, totalPages - 1);
@@ -48460,23 +51660,23 @@ window.__ModuleLoader__.load({
 		*/
 		function CapabilitiesPanel(props) {
 			const { provider, settings, refresh } = props;
-			const [phase, setPhase] = (0, react.useState)({ kind: "loading" });
-			const [snapshot, setSnapshot] = (0, react.useState)(void 0);
-			const [draft, setDraft] = (0, react.useState)(null);
-			const [expandedId, setExpandedId] = (0, react.useState)(null);
-			const [open, setOpen] = (0, react.useState)(false);
-			const [save, setSave] = (0, react.useState)({ kind: "idle" });
-			const [toggleBusy, setToggleBusy] = (0, react.useState)(void 0);
-			const [toggleFailure, setToggleFailure] = (0, react.useState)(void 0);
-			const [toggleConflict, setToggleConflict] = (0, react.useState)(false);
-			const [staleDraft, setStaleDraft] = (0, react.useState)(false);
+			const [phase, setPhase] = (0, react$1.useState)({ kind: "loading" });
+			const [snapshot, setSnapshot] = (0, react$1.useState)(void 0);
+			const [draft, setDraft] = (0, react$1.useState)(null);
+			const [expandedId, setExpandedId] = (0, react$1.useState)(null);
+			const [open, setOpen] = (0, react$1.useState)(false);
+			const [save, setSave] = (0, react$1.useState)({ kind: "idle" });
+			const [toggleBusy, setToggleBusy] = (0, react$1.useState)(void 0);
+			const [toggleFailure, setToggleFailure] = (0, react$1.useState)(void 0);
+			const [toggleConflict, setToggleConflict] = (0, react$1.useState)(false);
+			const [staleDraft, setStaleDraft] = (0, react$1.useState)(false);
 			/** Revision the open draft was read from (the write's fence while it is open). */
-			const draftBasis = (0, react.useRef)(void 0);
-			const settingsPath = (0, react.useMemo)(() => [...provider.settingsPath], [provider.settingsPath]);
+			const draftBasis = (0, react$1.useRef)(void 0);
+			const settingsPath = (0, react$1.useMemo)(() => [...provider.settingsPath], [provider.settingsPath]);
 			/** The models array lives one level below the profile the settings path addresses. */
-			const modelsPath = (0, react.useMemo)(() => [...settingsPath, "models"], [settingsPath]);
+			const modelsPath = (0, react$1.useMemo)(() => [...settingsPath, "models"], [settingsPath]);
 			const entries = draft ?? snapshot?.entries ?? [];
-			const load = (0, react.useCallback)(async (face) => {
+			const load = (0, react$1.useCallback)(async (face) => {
 				setPhase({ kind: "loading" });
 				try {
 					const described = await face.describe();
@@ -48514,10 +51714,10 @@ window.__ModuleLoader__.load({
 				provider.provider,
 				provider.settingsNs
 			]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				load(settings);
 			}, [load, settings]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				return refresh?.subscribe(() => {
 					load(settings);
 				});
@@ -48547,7 +51747,7 @@ window.__ModuleLoader__.load({
 				setDraft(null);
 				setSave({ kind: "idle" });
 			};
-			const firstIssue = (0, react.useMemo)(() => {
+			const firstIssue = (0, react$1.useMemo)(() => {
 				for (const entry of draft ?? []) {
 					const issue = validateEntry(entry);
 					if (issue !== void 0) return issue;
@@ -48822,7 +52022,7 @@ window.__ModuleLoader__.load({
 		*/
 		function ModelRow(props) {
 			const { entry, expanded, disabled, onToggle, onChange } = props;
-			const radioName = (0, react.useId)();
+			const radioName = (0, react$1.useId)();
 			const image = imageInputOf(entry);
 			const mode = effortsModeOf(entry);
 			const levels = declaredLevelsOf(entry);
@@ -49054,12 +52254,12 @@ window.__ModuleLoader__.load({
 		*/
 		function DisabledProvidersFooter(props) {
 			const { settings, refresh } = props;
-			const [stash, setStash] = (0, react.useState)({});
-			const [llmView, setLlmView] = (0, react.useState)(void 0);
-			const [known, setKnown] = (0, react.useState)(false);
-			const [busyRoute, setBusyRoute] = (0, react.useState)(void 0);
-			const [failure, setFailure] = (0, react.useState)(void 0);
-			const load = (0, react.useCallback)(async (face) => {
+			const [stash, setStash] = (0, react$1.useState)({});
+			const [llmView, setLlmView] = (0, react$1.useState)(void 0);
+			const [known, setKnown] = (0, react$1.useState)(false);
+			const [busyRoute, setBusyRoute] = (0, react$1.useState)(void 0);
+			const [failure, setFailure] = (0, react$1.useState)(void 0);
+			const load = (0, react$1.useCallback)(async (face) => {
 				try {
 					const described = await face.describe();
 					if (!described.ok) return;
@@ -49070,10 +52270,10 @@ window.__ModuleLoader__.load({
 					setKnown(true);
 				} catch {}
 			}, []);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				load(settings);
 			}, [load, settings]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				return refresh.subscribe(() => {
 					load(settings);
 				});
@@ -49408,16 +52608,16 @@ window.__ModuleLoader__.load({
 		/** Render the Presets panel. */
 		function PresetPanel(props) {
 			const { t } = props;
-			const [state, setState] = (0, react.useState)(null);
-			const [loadError, setLoadError] = (0, react.useState)(null);
-			const [query, setQuery] = (0, react.useState)("");
-			const [busy, setBusy] = (0, react.useState)(null);
-			const [notes, setNotes] = (0, react.useState)({});
-			const [viewer, setViewer] = (0, react.useState)(null);
-			const [confirmEnable, setConfirmEnable] = (0, react.useState)(null);
-			const [confirmUninstall, setConfirmUninstall] = (0, react.useState)(null);
-			const [reload, setReload] = (0, react.useState)(0);
-			(0, react.useEffect)(() => {
+			const [state, setState] = (0, react$1.useState)(null);
+			const [loadError, setLoadError] = (0, react$1.useState)(null);
+			const [query, setQuery] = (0, react$1.useState)("");
+			const [busy, setBusy] = (0, react$1.useState)(null);
+			const [notes, setNotes] = (0, react$1.useState)({});
+			const [viewer, setViewer] = (0, react$1.useState)(null);
+			const [confirmEnable, setConfirmEnable] = (0, react$1.useState)(null);
+			const [confirmUninstall, setConfirmUninstall] = (0, react$1.useState)(null);
+			const [reload, setReload] = (0, react$1.useState)(0);
+			(0, react$1.useEffect)(() => {
 				let alive = true;
 				setLoadError(null);
 				fetchJson("/api/preset-center/state").then((raw) => {
@@ -50121,15 +53321,15 @@ window.__ModuleLoader__.load({
 		//#region ../skins/skin-center/src/client/CustomThemePanel.tsx
 		function CustomThemeCard(props) {
 			const { t, customTheme, scheme, setScheme, isActive, isTrying, busy, disabled, onTryOn, onExitTryOn, onApply } = props;
-			const customThemeState = (0, react.useSyncExternalStore)(customTheme.subscribe, customTheme.getState);
+			const customThemeState = (0, react$1.useSyncExternalStore)(customTheme.subscribe, customTheme.getState);
 			const profile = customTheme.profile(scheme);
-			const [expanded, setExpanded] = (0, react.useState)(false);
-			const [draftColors, setDraftColors] = (0, react.useState)({
+			const [expanded, setExpanded] = (0, react$1.useState)(false);
+			const [draftColors, setDraftColors] = (0, react$1.useState)({
 				accent: profile.accent,
 				background: profile.background,
 				foreground: profile.foreground
 			});
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				setDraftColors({
 					accent: profile.accent,
 					background: profile.background,
@@ -51458,14 +54658,14 @@ window.__ModuleLoader__.load({
 		* @returns the range input element.
 		*/
 		function SliderControl({ value: externalValue, min = 0, max = 100, step = 1, onChange, onChanging, className, id, ariaLabel, ariaValuetext }) {
-			const inputRef = (0, react.useRef)(null);
-			const draggingRef = (0, react.useRef)(false);
-			const rafRef = (0, react.useRef)(null);
-			const liveRef = (0, react.useRef)(0);
-			const lastCommittedRef = (0, react.useRef)(null);
-			const onChangingRef = (0, react.useRef)(onChanging);
+			const inputRef = (0, react$1.useRef)(null);
+			const draggingRef = (0, react$1.useRef)(false);
+			const rafRef = (0, react$1.useRef)(null);
+			const liveRef = (0, react$1.useRef)(0);
+			const lastCommittedRef = (0, react$1.useRef)(null);
+			const onChangingRef = (0, react$1.useRef)(onChanging);
 			onChangingRef.current = onChanging;
-			const commitRef = (0, react.useRef)(onChange);
+			const commitRef = (0, react$1.useRef)(onChange);
 			commitRef.current = onChange;
 			/**
 			* Persist a value to the external store, de-duplicated against the last
@@ -51473,12 +54673,12 @@ window.__ModuleLoader__.load({
 			* double-fire alongside the native change event (which real browsers also
 			* emit on blur or Enter for range inputs).
 			*/
-			const commit = (0, react.useCallback)((value) => {
+			const commit = (0, react$1.useCallback)((value) => {
 				if (lastCommittedRef.current === value) return;
 				lastCommittedRef.current = value;
 				commitRef.current(value);
 			}, []);
-			const commitCurrent = (0, react.useCallback)(() => {
+			const commitCurrent = (0, react$1.useCallback)(() => {
 				const input = inputRef.current;
 				if (input === null) return;
 				draggingRef.current = false;
@@ -51488,11 +54688,11 @@ window.__ModuleLoader__.load({
 				}
 				commit(Number(input.value));
 			}, [commit]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				const input = inputRef.current;
 				if (input !== null && !draggingRef.current && input !== input.ownerDocument.activeElement) input.value = String(externalValue);
 			}, [externalValue]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				const input = inputRef.current;
 				if (input === null) return;
 				const listener = () => {
@@ -51508,13 +54708,13 @@ window.__ModuleLoader__.load({
 					input.removeEventListener("change", listener);
 				};
 			}, [commit]);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				return () => {
 					if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
 				};
 			}, []);
 			/** Throttled live-value reporter: fires onChanging at most once per frame. */
-			const reportLive = (0, react.useCallback)((value) => {
+			const reportLive = (0, react$1.useCallback)((value) => {
 				liveRef.current = value;
 				if (rafRef.current !== null) return;
 				rafRef.current = requestAnimationFrame(() => {
@@ -51533,24 +54733,24 @@ window.__ModuleLoader__.load({
 				defaultValue: externalValue,
 				"aria-label": ariaLabel,
 				"aria-valuetext": ariaValuetext,
-				onPointerDown: (0, react.useCallback)(() => {
+				onPointerDown: (0, react$1.useCallback)(() => {
 					draggingRef.current = true;
 				}, []),
-				onPointerCancel: (0, react.useCallback)(() => {
+				onPointerCancel: (0, react$1.useCallback)(() => {
 					draggingRef.current = false;
 					if (rafRef.current !== null) {
 						cancelAnimationFrame(rafRef.current);
 						rafRef.current = null;
 					}
 				}, []),
-				onInput: (0, react.useCallback)((event) => {
+				onInput: (0, react$1.useCallback)((event) => {
 					reportLive(Number(event.currentTarget.value));
 				}, [reportLive]),
-				onBlur: (0, react.useCallback)(() => {
+				onBlur: (0, react$1.useCallback)(() => {
 					if (draggingRef.current) return;
 					commitCurrent();
 				}, [commitCurrent]),
-				onKeyDown: (0, react.useCallback)((event) => {
+				onKeyDown: (0, react$1.useCallback)((event) => {
 					if (event.key !== "Enter" && event.key !== "Escape") return;
 					if (draggingRef.current) return;
 					commitCurrent();
@@ -51573,8 +54773,8 @@ window.__ModuleLoader__.load({
 		/** Live-label helper: the shown value follows the in-drag thumb immediately,
 		* and falls back to the store value once the store settles (issue #725). */
 		function useLiveValue$1(value) {
-			const [live, setLive] = (0, react.useState)(null);
-			(0, react.useEffect)(() => {
+			const [live, setLive] = (0, react$1.useState)(null);
+			(0, react$1.useEffect)(() => {
 				setLive(null);
 			}, [value]);
 			return [live ?? value, setLive];
@@ -51629,43 +54829,43 @@ window.__ModuleLoader__.load({
 		}
 		/** Render the Wallpaper Engine section of the skin-center card. */
 		function WallpaperPanel({ t, wallpaper }) {
-			const enabled = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.enabled);
-			const selection = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.selection);
-			const mode = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.mode);
-			const fit = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.fit);
-			const dim = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.dim);
-			const blur = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.wallpaperBlur);
-			const opacity = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.wallpaperOpacity);
-			const pauseOnHidden = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.pauseOnHidden);
-			const sound = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.sound);
-			const volume = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.volume);
-			const activeId = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.activeId);
-			const trying = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.trying);
-			const dirs = (0, react.useSyncExternalStore)(wallpaper.subscribe, wallpaper.dirs);
+			const enabled = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.enabled);
+			const selection = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.selection);
+			const mode = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.mode);
+			const fit = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.fit);
+			const dim = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.dim);
+			const blur = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.wallpaperBlur);
+			const opacity = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.wallpaperOpacity);
+			const pauseOnHidden = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.pauseOnHidden);
+			const sound = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.sound);
+			const volume = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.volume);
+			const activeId = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.activeId);
+			const trying = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.trying);
+			const dirs = (0, react$1.useSyncExternalStore)(wallpaper.subscribe, wallpaper.dirs);
 			const [shownDim, setShownDim] = useLiveValue$1(dim);
 			const [shownBlur, setShownBlur] = useLiveValue$1(blur);
 			const [shownOpacity, setShownOpacity] = useLiveValue$1(opacity);
 			const [shownVolume, setShownVolume] = useLiveValue$1(volume);
-			const [dirInput, setDirInput] = (0, react.useState)("");
-			const [picking, setPicking] = (0, react.useState)(false);
-			const [page, setPage] = (0, react.useState)(1);
-			const [ratingFilter, setRatingFilter] = (0, react.useState)("g");
-			const [jumpInput, setJumpInput] = (0, react.useState)("");
-			const [items, setItems] = (0, react.useState)(null);
-			const [installDir, setInstallDir] = (0, react.useState)(null);
-			const [systemCount, setSystemCount] = (0, react.useState)(0);
-			const [loadError, setLoadError] = (0, react.useState)(null);
-			const [actionError, setActionError] = (0, react.useState)(null);
-			const [workingId, setWorkingId] = (0, react.useState)(null);
-			const mounted = (0, react.useRef)(false);
-			(0, react.useEffect)(() => {
+			const [dirInput, setDirInput] = (0, react$1.useState)("");
+			const [picking, setPicking] = (0, react$1.useState)(false);
+			const [page, setPage] = (0, react$1.useState)(1);
+			const [ratingFilter, setRatingFilter] = (0, react$1.useState)("g");
+			const [jumpInput, setJumpInput] = (0, react$1.useState)("");
+			const [items, setItems] = (0, react$1.useState)(null);
+			const [installDir, setInstallDir] = (0, react$1.useState)(null);
+			const [systemCount, setSystemCount] = (0, react$1.useState)(0);
+			const [loadError, setLoadError] = (0, react$1.useState)(null);
+			const [actionError, setActionError] = (0, react$1.useState)(null);
+			const [workingId, setWorkingId] = (0, react$1.useState)(null);
+			const mounted = (0, react$1.useRef)(false);
+			(0, react$1.useEffect)(() => {
 				mounted.current = true;
 				return () => {
 					mounted.current = false;
 				};
 			}, []);
 			/** Fetch the inventory and reconcile the mounted layer with the selection. */
-			const load = (0, react.useCallback)(() => {
+			const load = (0, react$1.useCallback)(() => {
 				fetch("/api/skin-center/we/inventory").then(async (response) => {
 					const payload = await response.json().catch(() => null);
 					if (!mounted.current) return;
@@ -51687,7 +54887,7 @@ window.__ModuleLoader__.load({
 					setItems([]);
 				});
 			}, [wallpaper]);
-			(0, react.useEffect)(load, [load]);
+			(0, react$1.useEffect)(load, [load]);
 			/** Run one import/remove action with the shared busy + error state. */
 			const runAction = (id, path, after) => {
 				setActionError(null);
@@ -52335,8 +55535,8 @@ window.__ModuleLoader__.load({
 		* and falls back to the store value once the store settles (issue #725).
 		*/
 		function useLiveValue(value) {
-			const [live, setLive] = (0, react.useState)(null);
-			(0, react.useEffect)(() => {
+			const [live, setLive] = (0, react$1.useState)(null);
+			(0, react$1.useEffect)(() => {
 				setLive(null);
 			}, [value]);
 			return [live ?? value, setLive];
@@ -52349,43 +55549,43 @@ window.__ModuleLoader__.load({
 		* @returns the plugin card.
 		*/
 		function SkinCenter({ t, runtime, theme, background, wallpaper, preview, customTheme }) {
-			(0, react.useSyncExternalStore)((listener) => theme.subscribe(listener), () => theme.getTheme());
-			const enabled = (0, react.useSyncExternalStore)(background.subscribe, background.enabled);
-			const opacity = (0, react.useSyncExternalStore)(background.subscribe, background.opacity);
-			const blurEmpty = (0, react.useSyncExternalStore)(background.subscribe, background.blurEmpty);
-			const blurContent = (0, react.useSyncExternalStore)(background.subscribe, background.blurContent);
-			const inputCardBlur = (0, react.useSyncExternalStore)(background.subscribe, background.inputCardBlur);
-			const bubbleOpacity = (0, react.useSyncExternalStore)(background.subscribe, background.bubbleOpacity);
-			const bubbleBlur = (0, react.useSyncExternalStore)(background.subscribe, background.bubbleBlur);
+			(0, react$1.useSyncExternalStore)((listener) => theme.subscribe(listener), () => theme.getTheme());
+			const enabled = (0, react$1.useSyncExternalStore)(background.subscribe, background.enabled);
+			const opacity = (0, react$1.useSyncExternalStore)(background.subscribe, background.opacity);
+			const blurEmpty = (0, react$1.useSyncExternalStore)(background.subscribe, background.blurEmpty);
+			const blurContent = (0, react$1.useSyncExternalStore)(background.subscribe, background.blurContent);
+			const inputCardBlur = (0, react$1.useSyncExternalStore)(background.subscribe, background.inputCardBlur);
+			const bubbleOpacity = (0, react$1.useSyncExternalStore)(background.subscribe, background.bubbleOpacity);
+			const bubbleBlur = (0, react$1.useSyncExternalStore)(background.subscribe, background.bubbleBlur);
 			const [shownOpacity, setShownOpacity] = useLiveValue(opacity);
 			const [shownBlurEmpty, setShownBlurEmpty] = useLiveValue(blurEmpty);
 			const [shownBlurContent, setShownBlurContent] = useLiveValue(blurContent);
 			const [shownInputCardBlur, setShownInputCardBlur] = useLiveValue(inputCardBlur);
 			const [shownBubbleOpacity, setShownBubbleOpacity] = useLiveValue(bubbleOpacity);
 			const [shownBubbleBlur, setShownBubbleBlur] = useLiveValue(bubbleBlur);
-			const catalog = (0, react.useSyncExternalStore)(runtime.subscribe, runtime.catalog);
-			const state = (0, react.useSyncExternalStore)(runtime.subscribe, runtime.controller.getState);
-			const customThemeState = (0, react.useSyncExternalStore)(customTheme.subscribe, customTheme.getState);
+			const catalog = (0, react$1.useSyncExternalStore)(runtime.subscribe, runtime.catalog);
+			const state = (0, react$1.useSyncExternalStore)(runtime.subscribe, runtime.controller.getState);
+			const customThemeState = (0, react$1.useSyncExternalStore)(customTheme.subscribe, customTheme.getState);
 			const activeId = state.active;
 			const previewing = state.previewing;
 			const tryingId = state.trying;
 			const backdropActive = (activeId === null ? null : runtime.find(activeId))?.manifest.contributes.backgroundMedia !== void 0;
-			const [busyId, setBusyId] = (0, react.useState)(null);
-			const [error, setError] = (0, react.useState)(null);
-			const [verifying, setVerifying] = (0, react.useState)(false);
-			const [verifySummary, setVerifySummary] = (0, react.useState)(null);
-			const [verifyReports, setVerifyReports] = (0, react.useState)({});
-			const [confirmUninstallId, setConfirmUninstallId] = (0, react.useState)(null);
-			const [uninstallingId, setUninstallingId] = (0, react.useState)(null);
-			const mounted = (0, react.useRef)(false);
-			const requestSeq = (0, react.useRef)(0);
-			(0, react.useEffect)(() => {
+			const [busyId, setBusyId] = (0, react$1.useState)(null);
+			const [error, setError] = (0, react$1.useState)(null);
+			const [verifying, setVerifying] = (0, react$1.useState)(false);
+			const [verifySummary, setVerifySummary] = (0, react$1.useState)(null);
+			const [verifyReports, setVerifyReports] = (0, react$1.useState)({});
+			const [confirmUninstallId, setConfirmUninstallId] = (0, react$1.useState)(null);
+			const [uninstallingId, setUninstallingId] = (0, react$1.useState)(null);
+			const mounted = (0, react$1.useRef)(false);
+			const requestSeq = (0, react$1.useRef)(0);
+			(0, react$1.useEffect)(() => {
 				mounted.current = true;
 				return () => {
 					mounted.current = false;
 				};
 			}, []);
-			(0, react.useEffect)(() => {
+			(0, react$1.useEffect)(() => {
 				runtime.refreshCatalog().catch(() => {});
 			}, [runtime]);
 			const run = (target, action) => {
