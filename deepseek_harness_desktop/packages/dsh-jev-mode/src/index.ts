@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import { dshHome } from '../../../shared/host/dsh-home.ts'
 import { JevStore } from './host/store.ts'
 import { JevService } from './host/service.ts'
-import { SelfOwnedBackend, account } from './host/backend.ts'
+import { SelfOwnedBackend, accountCatalog } from './host/backend.ts'
 import { installNative } from './host/native.ts'
 import { fence, json, readBody } from './host/http.ts'
 import { config, JevError } from './core/contract.ts'
@@ -27,15 +27,14 @@ export async function apply(ctx:Context){
     try{
       fence(req);const rejection=ctx.connection.requestRejection(req);if(rejection!==undefined)return json(res,rejection,{error:'请从工作台入口重新连接后重试'})
       const url=new URL(req.url??'/','http://localhost')
-      if(req.method==='GET'&&url.pathname==='/api/jev-mode/state')return json(res,200,service.status(url.searchParams.get('scope')??undefined))
+      if(req.method==='GET'&&url.pathname==='/api/jev-mode/state'){await backend.refreshIdentity(store.snapshot().value);return json(res,200,service.status(url.searchParams.get('scope')??undefined))}
       if(req.method==='GET'&&url.pathname==='/api/jev-mode/accounts'){
-        const routes=ctx.get('llm')?.listConfigurableProviders()??[]
-        return json(res,200,routes.map(route=>{try{const selected=account(ctx,route.provider+'/configured-model');return {id:route.provider,name:route.displayName,available:true,models:selected.models}}catch(e){return {id:route.provider,name:route.displayName,available:false,models:[],message:(e as Error).message}}}))
+        return json(res,200,await accountCatalog(ctx))
       }
-      if(req.method==='POST'&&url.pathname==='/api/jev-mode/config'){const body=await readBody(req);await service.update(body.revision,body.value);return json(res,200,service.status())}
-      if(req.method==='POST'&&url.pathname==='/api/jev-mode/check'){const body=await readBody(req);return json(res,202,service.startDiagnostic(body.value??store.snapshot().value))}
+      if(req.method==='POST'&&url.pathname==='/api/jev-mode/config'){const body=await readBody(req);await backend.refreshIdentity(config(body.value));await service.update(body.revision,body.value);return json(res,200,service.status())}
+      if(req.method==='POST'&&url.pathname==='/api/jev-mode/check'){const body=await readBody(req);const value=config(body.value??store.snapshot().value);await backend.refreshIdentity(value);return json(res,202,service.startDiagnostic(value))}
       if(req.method==='POST'&&url.pathname==='/api/jev-mode/check/cancel'){const body=await readBody(req);return json(res,200,await service.cancelDiagnostic(body.id))}
-      if(req.method==='POST'&&url.pathname==='/api/jev-mode/connection'){const body=await readBody(req);return json(res,200,service.connection(config(body.value)))}
+      if(req.method==='POST'&&url.pathname==='/api/jev-mode/connection'){const body=await readBody(req);const value=config(body.value);await backend.refreshIdentity(value);return json(res,200,service.connection(value))}
       throw new JevError('不支持此 JEV 操作',405)
     }catch(e){return json(res,e instanceof JevError?e.status:500,{error:e instanceof JevError?e.message:'JEV 服务操作失败；未确认保存成功'})}
   }}),'JEV: authenticated settings and trace API')
