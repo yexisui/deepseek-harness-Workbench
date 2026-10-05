@@ -34,16 +34,44 @@ async function render(node:React.ReactNode=<JevSettings/>){await act(async()=>{r
 const button=(text:string)=>Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent===text)!
 async function click(text:string){const b=button(text);expect(b).toBeTruthy();await act(async()=>{b.click();await delay()})}
 const pickerButton=()=>container.querySelector<HTMLButtonElement>('[aria-label="选择候选模型"]')!
-async function choose(model:string){await act(async()=>{pickerButton().click()});const option=Array.from(container.querySelectorAll<HTMLButtonElement>('[data-model-option]')).find(b=>b.dataset.modelOption===model)!;expect(option.disabled).toBe(false);await act(async()=>option.click())}
-async function add(model:string){await choose(model);await click('添加')}
+const modelCheck=(model:string)=>container.querySelector<HTMLInputElement>('[data-model-option="'+model+'"] input')!
+async function choose(model:string){if(pickerButton().getAttribute('aria-expanded')!=='true')await act(async()=>pickerButton().click());const option=modelCheck(model);expect(option.disabled).toBe(false);await act(async()=>option.click())}
+async function add(model:string){await choose(model);await click('添加所选（1）')}
+it('batches selections across providers in catalog order without saving or enabling them early',async()=>{
+  await render();await choose('cloud/model');await click('内网账号');await choose('lan/two')
+  expect(pickerButton().getAttribute('aria-expanded')).toBe('true');expect(button('添加')).toBeUndefined();expect(button('保存配置')).toBeUndefined()
+  expect(requests.some(r=>r.url.endsWith('/config'))).toBe(false)
+  await click('添加所选（2）');expect(pickerButton().getAttribute('aria-expanded')).toBe('false')
+  expect(container.querySelector('[aria-label="启用 模型二"]')?.getAttribute('aria-checked')).toBe('false');expect(container.querySelector('[aria-label="启用 公网模型"]')?.getAttribute('aria-checked')).toBe('false')
+  expect(container.textContent).toContain('并不表示密钥失效');expect(container.querySelector<HTMLButtonElement>('[aria-label="检查 公网模型"]')!.disabled).toBe(true)
+  await click('保存配置');expect(saved.config.value.candidates?.map(c=>c.model)).toEqual(['lan/one','lan/two','cloud/model']);expect(saved.config.value.candidates?.map(c=>c.enabled)).toEqual([true,false,false])
+  await render(null);await render();expect(container.querySelectorAll('[role="switch"]')).toHaveLength(3)
+})
+it('selects filtered results, clears checks and treats row and checkbox clicks identically',async()=>{
+  await render();await act(async()=>pickerButton().click());await click('公网账号');await click('全选当前');expect(modelCheck('cloud/model').checked).toBe(true)
+  await click('清空勾选');expect(modelCheck('cloud/model').checked).toBe(false)
+  await act(async()=>container.querySelector<HTMLElement>('[data-model-option="cloud/model"] strong')!.click());expect(modelCheck('cloud/model').checked).toBe(true)
+  await act(async()=>modelCheck('cloud/model').click());expect(modelCheck('cloud/model').checked).toBe(false)
+  await click('全部账号');const input=container.querySelector<HTMLInputElement>('[placeholder="搜索账号或模型"]')!
+  await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,'模型二');input.dispatchEvent(new Event('input',{bubbles:true}))})
+  await click('全选当前');expect(container.querySelectorAll('[data-model-option]')).toHaveLength(1);await click('添加所选（1）');await click('保存配置');expect(saved.config.value.candidates?.map(c=>c.model)).toEqual(['lan/one','lan/two'])
+})
+it('caps batch selection at twelve while allowing unchecking and retaining checks across a catalog refresh',async()=>{
+  const original=globalThis.fetch
+  vi.stubGlobal('fetch',vi.fn(async(url:any,options:any)=>String(url).endsWith('/accounts')?new Response(JSON.stringify([{id:'lan',name:'内网账号',available:true,models:Array.from({length:14},(_,i)=>({id:'lan/m'+i,name:'模型 '+i}))}])):original(url,options)))
+  saved.config.value={...defaults,candidates:[]};await jevClient.refresh();await render();await act(async()=>pickerButton().click());await click('全选当前')
+  expect(container.querySelectorAll('input[type="checkbox"]:checked')).toHaveLength(12);expect(modelCheck('lan/m12').disabled).toBe(true)
+  await act(async()=>modelCheck('lan/m0').click());await choose('lan/m12');await click('刷新本地模型');expect(modelCheck('lan/m12').checked).toBe(true)
+  await click('添加所选（12）');await click('保存配置');expect(saved.config.value.candidates).toHaveLength(12);expect(saved.config.value.candidates?.every(c=>!c.enabled)).toBe(true);expect(saved.config.value.candidates?.[0]?.model).toBe('lan/m1')
+})
 it('keeps loaded models selectable during a focus refresh and preserves the selected model on failure',async()=>{
   await render();const original=globalThis.fetch;let release!:()=>void;const gate=new Promise<void>(r=>{release=r});let reads=0
   vi.stubGlobal('fetch',vi.fn(async(url:any,options:any)=>{if(String(url).endsWith('/accounts')){reads++;await gate;throw Error('测试刷新失败')}return original(url,options)}))
   await act(async()=>{window.dispatchEvent(new Event('focus'));window.dispatchEvent(new Event('focus'))})
   expect(reads).toBe(1);expect(pickerButton().disabled).toBe(false)
-  await choose('lan/two');expect(pickerButton().textContent).toContain('模型二');expect(button('添加').disabled).toBe(false)
-  await act(async()=>{release();await delay()});expect(container.textContent).toContain('测试刷新失败');expect(pickerButton().textContent).toContain('模型二')
-  await click('添加');expect(container.querySelector('[aria-label="启用 模型二"]')?.getAttribute('aria-checked')).toBe('false')
+  await choose('lan/two');expect(modelCheck('lan/two').checked).toBe(true);expect(button('添加所选（1）').disabled).toBe(false)
+  await act(async()=>{release();await delay()});expect(container.textContent).toContain('测试刷新失败');expect(modelCheck('lan/two').checked).toBe(true)
+  await click('添加所选（1）');expect(container.querySelector('[aria-label="启用 模型二"]')?.getAttribute('aria-checked')).toBe('false')
 })
 it('adds, enables, checks and saves a model, then restores that configuration on reopening',async()=>{
   saved.config.value={...defaults,candidates:[]};await jevClient.refresh();await render();await add('lan/two')
@@ -56,10 +84,10 @@ it('adds, enables, checks and saves a model, then restores that configuration on
   await render(null);await render();expect(container.querySelector('[aria-label="启用 模型二"]')?.getAttribute('aria-checked')).toBe('true');expect(button('保存配置')).toBeUndefined()
 })
 it('supports keyboard selection, Escape and duplicate prevention in the model list',async()=>{
-  await render();await act(async()=>pickerButton().click());const first=container.querySelector<HTMLButtonElement>('[data-model-option="lan/two"]')!
-  await act(async()=>{first.focus();first.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}))});expect(document.activeElement?.getAttribute('data-model-option')).toBe('cloud/model')
+  await render();await act(async()=>pickerButton().click());const first=modelCheck('lan/two')
+  await act(async()=>{first.focus();first.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}))});expect(document.activeElement?.closest('[data-model-option]')?.getAttribute('data-model-option')).toBe('cloud/model')
   await act(async()=>{document.activeElement!.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))});expect(pickerButton().getAttribute('aria-expanded')).toBe('false');expect(document.activeElement).toBe(pickerButton())
-  await add('lan/two');await act(async()=>pickerButton().click());expect(container.querySelector<HTMLButtonElement>('[data-model-option="lan/two"]')!.disabled).toBe(true)
+  await add('lan/two');await act(async()=>pickerButton().click());expect(modelCheck('lan/two').disabled).toBe(true)
 })
 it('guides an unverified top switch to settings without saving enabled mode',async()=>{await render(<JevToggle/>);await act(async()=>container.querySelector<HTMLButtonElement>('[role="switch"]')!.click());expect(pendingNavigation('jev-mode')?.tab).toBe('configuration');expect(requests.some(r=>r.url.endsWith('/config'))).toBe(false)})
 it('shows unavailable account reasons and checks unsaved configuration while global mode stays off',async()=>{
