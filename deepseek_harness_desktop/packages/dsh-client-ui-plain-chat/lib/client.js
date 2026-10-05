@@ -6477,7 +6477,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-jev-mode/src/ui/JevControls.module.css.mjs
-		const css$7 = ".R-v9Lq_control{flex-wrap:wrap;align-items:center;gap:6px;min-width:0;display:inline-flex;position:relative}.R-v9Lq_toggle{white-space:nowrap;align-items:center;gap:8px;min-height:36px;display:inline-flex}.R-v9Lq_toggle[aria-checked=true]{color:var(--role-text);border-color:var(--role-accent)}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track{background:var(--role-accent);opacity:1}.R-v9Lq_toggle[data-unavailable=true]{color:var(--dsw-alias-label-error,#b43f4c)}.R-v9Lq_track{opacity:.75;box-sizing:border-box;background:currentColor;border-radius:10px;align-items:center;width:26px;height:15px;padding:2px;display:inline-flex}.R-v9Lq_track:after{content:\"\";background:var(--dsw-alias-bg-layer-2,#fff);border-radius:50%;width:11px;height:11px;transition:transform .15s}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track:after{transform:translate(11px)}.R-v9Lq_error,.R-v9Lq_feedback{border:1px solid var(--role-border);background:var(--role-bg);overflow-wrap:anywhere;border-radius:8px;padding:10px 12px}.R-v9Lq_error{color:var(--dsw-alias-label-error,#b43f4c);border-color:currentColor}.R-v9Lq_control .R-v9Lq_error,.R-v9Lq_control .R-v9Lq_feedback{box-sizing:border-box;flex-basis:100%;max-width:min(100%,28rem);font-size:12px}.R-v9Lq_trace{border-bottom:1px solid var(--role-border);overflow-wrap:anywhere;padding:10px 0}.R-v9Lq_trace summary{cursor:pointer;line-height:1.6}.R-v9Lq_compact{flex-shrink:0;max-height:28vh;margin:0 28px 8px;font-size:12px;overflow:auto}.R-v9Lq_compact p{margin:6px 0}.R-v9Lq_page{overflow-wrap:anywhere;max-width:100%;container-type:inline-size}.R-v9Lq_page [role=tab][aria-selected=true]{color:var(--role-text);border-bottom-color:var(--role-accent);font-weight:600}.R-v9Lq_page :is(button,input,select,summary,[tabindex]):focus-visible,.R-v9Lq_compact summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.R-v9Lq_page input,.R-v9Lq_page select{min-width:0}.R-v9Lq_modelList{border:1px solid var(--role-border);border-radius:10px;max-height:270px;padding:10px;overflow:auto}.R-v9Lq_account{border-bottom:1px solid var(--role-border);padding:8px}.R-v9Lq_account:last-child{border-bottom:0}.R-v9Lq_account button{overflow-wrap:anywhere;min-width:0}.R-v9Lq_account button span{min-width:0}.R-v9Lq_account [aria-label=已选择]{flex:none}.R-v9Lq_footer{border-top:1px solid var(--role-border);background:var(--role-bg);z-index:1;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px;padding:14px 0;display:flex;position:sticky;bottom:0}.R-v9Lq_footer small{flex-basis:100%}.R-v9Lq_filters{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:12px;display:grid}.R-v9Lq_workflow{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0;list-style-position:inside;display:grid}.R-v9Lq_workflow li{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;padding:14px}.R-v9Lq_workflow p{margin-bottom:0;font-size:12px}.R-v9Lq_returnBar{flex-wrap:wrap;align-items:center;gap:12px;padding:10px 0 18px;display:flex}@media (width<=650px){.R-v9Lq_control{gap:4px}.R-v9Lq_toggle{padding:6px 9px;font-size:12px}.R-v9Lq_compact{margin-left:16px;margin-right:16px}.R-v9Lq_workflow{grid-template-columns:1fr}.R-v9Lq_footer{justify-content:flex-start}}@media (prefers-reduced-motion:reduce){.R-v9Lq_track:after{transition:none}}@container (width<=430px){.R-v9Lq_workflow{grid-template-columns:1fr}}.R-v9Lq_candidateSection{flex-direction:column;gap:10px;min-width:0;display:flex}.R-v9Lq_candidateSection p{margin:0}.R-v9Lq_candidateHeading{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;display:flex}.R-v9Lq_accountTabs{gap:6px;padding:3px 1px;display:flex;overflow:auto}.R-v9Lq_accountTabs button{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-muted);font:inherit;cursor:pointer;border-radius:8px;flex-shrink:0;padding:6px 10px;font-size:12px}.R-v9Lq_accountTabs button[aria-pressed=true]{color:var(--role-text);border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg))}.R-v9Lq_modelPicker{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;display:grid}.R-v9Lq_candidateList{scrollbar-gutter:stable;flex-direction:column;gap:8px;max-height:340px;margin:0;padding:3px;list-style:none;display:flex;overflow-y:auto}.R-v9Lq_candidateRow{border:1px solid var(--role-border);background:var(--role-bg);cursor:grab;touch-action:none;user-select:none;border-radius:10px;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:8px 10px;padding:12px;display:grid}.R-v9Lq_candidateRow[data-dragging=true]{opacity:.4;cursor:grabbing}.R-v9Lq_candidateRow[data-drop-target=true]{border:2px dashed var(--role-accent);padding:11px}.R-v9Lq_candidateRow :is(input,select,textarea){touch-action:auto;user-select:auto}.R-v9Lq_candidateIdentity{min-width:0}.R-v9Lq_candidateIdentity strong{overflow-wrap:anywhere;font-size:13px;display:block}.R-v9Lq_candidateIdentity small{overflow-wrap:anywhere;color:var(--role-muted);margin-top:3px;font-size:11px;line-height:1.5;display:block}.R-v9Lq_candidateIdentity small:last-child{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.R-v9Lq_candidateIdentity .R-v9Lq_warning{color:var(--dsw-alias-label-warning,#926122)}.R-v9Lq_rank{color:var(--role-muted);text-align:center;align-self:start;padding-top:4px;font-size:12px}.R-v9Lq_candidateActions{flex-direction:column;align-items:flex-end;gap:3px;display:flex}.R-v9Lq_candidateActions .R-v9Lq_toggle{min-height:30px;padding:5px 8px;font-size:12px}.R-v9Lq_rowTools{align-items:center;gap:2px;display:flex}.R-v9Lq_rowTools .R-v9Lq_button{min-height:28px;padding:4px 7px;font-size:11px}.R-v9Lq_rowTools .R-v9Lq_iconButton{width:28px;height:28px;font-size:19px}.R-v9Lq_rowOptions{color:var(--role-muted);grid-column:2/4;font-size:11px}.R-v9Lq_rowOptions select{background:var(--role-bg);color:var(--role-text);border:1px solid var(--role-border);border-radius:6px;margin:6px 0;padding:4px 8px}.R-v9Lq_rowOptions summary{cursor:pointer}.R-v9Lq_candidateEmpty{border:1px dashed var(--role-border);color:var(--role-muted);border-radius:9px;padding:16px;font-size:12px}.R-v9Lq_dragGhost{border:1px solid var(--role-accent);background:var(--role-bg);color:var(--role-text);overflow-wrap:anywhere;border-radius:10px;padding:12px 16px;font-size:13px;box-shadow:0 8px 28px #0003}.R-v9Lq_dragGhost small{color:var(--role-muted);margin-top:6px;font-size:11px}.R-v9Lq_srOnly{clip-path:inset(50%);width:1px;height:1px;position:absolute;overflow:hidden}.R-v9Lq_attempts{overflow-wrap:anywhere;margin:10px 0;padding-left:22px;font-size:12px;line-height:1.8}@container (width<=380px){.R-v9Lq_candidateRow{grid-template-columns:18px minmax(0,1fr) auto;gap:6px;padding:10px}.R-v9Lq_candidateRow[data-drop-target=true]{padding:9px}.R-v9Lq_candidateActions .R-v9Lq_toggle{gap:4px;padding:5px}.R-v9Lq_candidateIdentity small{font-size:11px}}";
+		const css$7 = ".R-v9Lq_control{flex-wrap:wrap;align-items:center;gap:6px;min-width:0;display:inline-flex;position:relative}.R-v9Lq_toggle{white-space:nowrap;align-items:center;gap:8px;min-height:36px;display:inline-flex}.R-v9Lq_toggle[aria-checked=true]{color:var(--role-text);border-color:var(--role-accent)}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track{background:var(--role-accent);opacity:1}.R-v9Lq_toggle[data-unavailable=true]{color:var(--dsw-alias-label-error,#b43f4c)}.R-v9Lq_track{opacity:.75;box-sizing:border-box;background:currentColor;border-radius:10px;align-items:center;width:26px;height:15px;padding:2px;display:inline-flex}.R-v9Lq_track:after{content:\"\";background:var(--dsw-alias-bg-layer-2,#fff);border-radius:50%;width:11px;height:11px;transition:transform .15s}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track:after{transform:translate(11px)}.R-v9Lq_error,.R-v9Lq_feedback{border:1px solid var(--role-border);background:var(--role-bg);overflow-wrap:anywhere;border-radius:8px;padding:10px 12px}.R-v9Lq_error{color:var(--dsw-alias-label-error,#b43f4c);border-color:currentColor}.R-v9Lq_control .R-v9Lq_error,.R-v9Lq_control .R-v9Lq_feedback{box-sizing:border-box;flex-basis:100%;max-width:min(100%,28rem);font-size:12px}.R-v9Lq_trace{border-bottom:1px solid var(--role-border);overflow-wrap:anywhere;padding:10px 0}.R-v9Lq_trace summary{cursor:pointer;line-height:1.6}.R-v9Lq_compact{flex-shrink:0;max-height:28vh;margin:0 28px 8px;font-size:12px;overflow:auto}.R-v9Lq_compact p{margin:6px 0}.R-v9Lq_page{overflow-wrap:anywhere;max-width:100%;font-size:13px;line-height:1.6;container-type:inline-size}.R-v9Lq_page small{font-size:12px;font-weight:400;line-height:1.6}.R-v9Lq_page label>small{color:var(--role-muted)}.R-v9Lq_page h2{font-size:22px;line-height:1.4}.R-v9Lq_page [role=tab][aria-selected=true]{color:var(--role-text);border-bottom-color:var(--role-accent);font-weight:600}.R-v9Lq_page [role=tablist]{flex-wrap:nowrap;overflow-x:auto}.R-v9Lq_page [role=tab]{white-space:nowrap;flex-shrink:0}.R-v9Lq_page :is(button,input,select,summary,[tabindex]):focus-visible,.R-v9Lq_compact summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.R-v9Lq_page input,.R-v9Lq_page select{min-width:0}.R-v9Lq_modelList{border:1px solid var(--role-border);border-radius:10px;max-height:270px;padding:10px;overflow:auto}.R-v9Lq_account{border-bottom:1px solid var(--role-border);padding:8px}.R-v9Lq_account:last-child{border-bottom:0}.R-v9Lq_account button{overflow-wrap:anywhere;min-width:0}.R-v9Lq_account button span{min-width:0}.R-v9Lq_account [aria-label=已选择]{flex:none}.R-v9Lq_footer{border-top:1px solid var(--role-border);background:var(--role-bg);flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px;padding:14px 0;display:flex}.R-v9Lq_footer small{flex-basis:100%}.R-v9Lq_filters{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:12px;display:grid}.R-v9Lq_workflow{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0;list-style-position:inside;display:grid}.R-v9Lq_workflow li{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;padding:14px}.R-v9Lq_workflow p{margin-bottom:0;font-size:12px}.R-v9Lq_returnBar{flex-wrap:wrap;align-items:center;gap:12px;padding:10px 0 18px;display:flex}@media (width<=650px){.R-v9Lq_control{gap:4px}.R-v9Lq_toggle{padding:6px 9px;font-size:12px}.R-v9Lq_compact{margin-left:16px;margin-right:16px}.R-v9Lq_workflow{grid-template-columns:1fr}.R-v9Lq_footer{justify-content:flex-start}}@media (prefers-reduced-motion:reduce){.R-v9Lq_track:after{transition:none}}@container (width<=430px){.R-v9Lq_workflow{grid-template-columns:1fr}}.R-v9Lq_candidateSection{flex-direction:column;gap:12px;min-width:0;display:flex}.R-v9Lq_candidateSection p{margin:0}.R-v9Lq_candidateHeading{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;display:flex}.R-v9Lq_accountTabs{gap:6px;padding:3px 1px;display:flex;overflow:auto}.R-v9Lq_accountTabs button{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-muted);font:inherit;cursor:pointer;border-radius:8px;flex-shrink:0;padding:6px 10px;font-size:12px}.R-v9Lq_accountTabs button[aria-pressed=true]{color:var(--role-text);border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg))}.R-v9Lq_modelPicker{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;display:grid}.R-v9Lq_candidateList{scrollbar-gutter:stable;flex-direction:column;gap:8px;max-height:340px;margin:0;padding:3px;list-style:none;display:flex;overflow-y:auto}.R-v9Lq_candidateRow{border:1px solid var(--role-border);background:var(--role-bg);cursor:grab;touch-action:none;user-select:none;border-radius:10px;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:8px 10px;padding:12px;display:grid}.R-v9Lq_candidateRow[data-dragging=true]{opacity:.4;cursor:grabbing}.R-v9Lq_candidateRow[data-drop-target=true]{border:2px dashed var(--role-accent);padding:11px}.R-v9Lq_candidateRow :is(input,select,textarea){touch-action:auto;user-select:auto}.R-v9Lq_candidateIdentity{min-width:0}.R-v9Lq_candidateIdentity strong{overflow-wrap:anywhere;font-size:13px;display:block}.R-v9Lq_candidateIdentity small{overflow-wrap:anywhere;color:var(--role-muted);margin-top:3px;font-size:12px;line-height:1.5;display:block}.R-v9Lq_candidateIdentity small:last-child{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.R-v9Lq_candidateIdentity .R-v9Lq_warning{color:var(--dsw-alias-label-warning,#926122)}.R-v9Lq_rank{color:var(--role-muted);text-align:center;align-self:start;padding-top:4px;font-size:12px}.R-v9Lq_candidateActions{flex-direction:column;align-items:flex-end;gap:3px;display:flex}.R-v9Lq_candidateActions .R-v9Lq_toggle{min-height:30px;padding:5px 8px;font-size:12px}.R-v9Lq_rowTools{align-items:center;gap:2px;display:flex}.R-v9Lq_rowTools .R-v9Lq_button{min-height:28px;padding:4px 7px;font-size:11px}.R-v9Lq_rowTools .R-v9Lq_iconButton{width:28px;height:28px;font-size:19px}.R-v9Lq_rowOptions{color:var(--role-muted);grid-column:2/4;font-size:11px}.R-v9Lq_rowOptions select{background:var(--role-bg);color:var(--role-text);border:1px solid var(--role-border);border-radius:6px;margin:6px 0;padding:4px 8px}.R-v9Lq_rowOptions summary{cursor:pointer}.R-v9Lq_candidateEmpty{border:1px dashed var(--role-border);color:var(--role-muted);border-radius:9px;padding:16px;font-size:12px}.R-v9Lq_dragGhost{border:1px solid var(--role-accent);background:var(--role-bg);color:var(--role-text);overflow-wrap:anywhere;border-radius:10px;padding:12px 16px;font-size:13px;box-shadow:0 8px 28px #0003}.R-v9Lq_dragGhost small{color:var(--role-muted);margin-top:6px;font-size:11px}.R-v9Lq_srOnly{clip-path:inset(50%);width:1px;height:1px;position:absolute;overflow:hidden}.R-v9Lq_attempts{overflow-wrap:anywhere;margin:10px 0;padding-left:22px;font-size:12px;line-height:1.8}@container (width<=380px){.R-v9Lq_candidateRow{grid-template-columns:18px minmax(0,1fr) auto;gap:6px;padding:10px}.R-v9Lq_candidateRow[data-drop-target=true]{padding:9px}.R-v9Lq_candidateActions .R-v9Lq_toggle{gap:4px;padding:5px}}.R-v9Lq_connectionSummary{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:flex-start;gap:12px;margin:4px 0 20px;padding:14px 16px;display:flex}.R-v9Lq_connectionSummary>div{min-width:0}.R-v9Lq_connectionSummary strong{font-size:14px;line-height:1.5;display:block}.R-v9Lq_connectionSummary small{color:var(--role-muted);margin-top:5px;display:block}.R-v9Lq_connectionSummary>span{flex-shrink:0;margin-top:1px;font-size:11px}.R-v9Lq_candidateHeading strong{font-size:14px}.R-v9Lq_candidateHeading small{font-variant-numeric:tabular-nums}.R-v9Lq_pickerTrigger{text-align:left;justify-content:space-between;align-items:center;gap:12px;min-height:42px;display:flex}.R-v9Lq_pickerTrigger>span{min-width:0}.R-v9Lq_pickerTrigger strong{font-size:13px;font-weight:500}.R-v9Lq_pickerTrigger small{color:var(--role-muted);display:block}.R-v9Lq_pickerTrigger svg{fill:none;stroke:currentColor;stroke-width:1.5px;flex-shrink:0;width:16px;height:16px}.R-v9Lq_chevronOpen{transform:rotate(180deg)}.R-v9Lq_pickerPanel{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;flex-direction:column;gap:8px;padding:12px;display:flex}.R-v9Lq_modelOptions{scrollbar-gutter:stable;max-height:230px;overflow-y:auto}.R-v9Lq_optionGroup{color:var(--role-muted);padding:4px 6px;font-size:11px;font-weight:500}.R-v9Lq_modelOptions .R-v9Lq_modelOption{cursor:pointer;gap:10px;margin:4px 0;padding:9px 10px;font-family:inherit;font-size:13px;line-height:1.5}.R-v9Lq_modelOption>span{min-width:0}.R-v9Lq_modelOption strong{font-weight:500}.R-v9Lq_modelOptions .R-v9Lq_modelOption small{margin-top:2px;font-size:11px;font-weight:400}.R-v9Lq_modelOption>small{flex-shrink:0}.R-v9Lq_modelOption:not(:disabled):hover{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 6%,var(--role-bg))}.R-v9Lq_modelOption:disabled{opacity:.55;cursor:default}@container (width<=380px){.R-v9Lq_connectionSummary{flex-wrap:wrap;padding:12px}.R-v9Lq_modelOption{flex-wrap:wrap}.R-v9Lq_modelOption>span{flex-basis:100%}}@container (width<=320px){.R-v9Lq_candidateRow{grid-template-columns:18px minmax(0,1fr)}.R-v9Lq_candidateActions{flex-direction:row;grid-column:2;justify-content:flex-end;align-items:center;gap:6px}.R-v9Lq_rowOptions{grid-column:2}.R-v9Lq_candidateHeading{align-items:flex-start;gap:3px}.R-v9Lq_candidateHeading small{flex-basis:100%}}";
 		const tagId$7 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-jev-mode/src/ui/JevControls.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$7) + "]") === null) {
 			const tag = document.createElement("style");
@@ -6498,7 +6498,9 @@ window.__ModuleLoader__.load({
 			"candidateList": "R-v9Lq_candidateList",
 			"candidateRow": "R-v9Lq_candidateRow",
 			"candidateSection": "R-v9Lq_candidateSection",
+			"chevronOpen": "R-v9Lq_chevronOpen",
 			"compact": "R-v9Lq_compact",
+			"connectionSummary": "R-v9Lq_connectionSummary",
 			"control": "R-v9Lq_control",
 			"dragGhost": "R-v9Lq_dragGhost",
 			"error": "R-v9Lq_error",
@@ -6507,8 +6509,13 @@ window.__ModuleLoader__.load({
 			"footer": "R-v9Lq_footer",
 			"iconButton": "R-v9Lq_iconButton",
 			"modelList": "R-v9Lq_modelList",
+			"modelOption": "R-v9Lq_modelOption",
+			"modelOptions": "R-v9Lq_modelOptions",
 			"modelPicker": "R-v9Lq_modelPicker",
+			"optionGroup": "R-v9Lq_optionGroup",
 			"page": "R-v9Lq_page",
+			"pickerPanel": "R-v9Lq_pickerPanel",
+			"pickerTrigger": "R-v9Lq_pickerTrigger",
 			"rank": "R-v9Lq_rank",
 			"returnBar": "R-v9Lq_returnBar",
 			"rowOptions": "R-v9Lq_rowOptions",
@@ -7052,7 +7059,8 @@ window.__ModuleLoader__.load({
 		//#endregion
 		//#region ../dsh-jev-mode/src/ui/JevModelFields.tsx
 		function JevModelFields({ value, accounts, loading, refresh, change, connection, test, checking, disabled }) {
-			const [query, setQuery] = (0, react.useState)(""), [provider, setProvider] = (0, react.useState)(""), [selected, setSelected] = (0, react.useState)(""), rows = candidates(value);
+			const [query, setQuery] = (0, react.useState)(""), [provider, setProvider] = (0, react.useState)(""), [selected, setSelected] = (0, react.useState)(""), [open, setOpen] = (0, react.useState)(false), rows = candidates(value);
+			const pickerId = (0, react.useId)(), trigger = (0, react.useRef)(null), picker = (0, react.useRef)(null);
 			const matches = (...values) => values.some((v) => v.toLowerCase().includes(query.trim().toLowerCase()));
 			const visible = accounts.filter((a) => !provider || a.id === provider).map((a) => ({
 				...a,
@@ -7064,6 +7072,37 @@ window.__ModuleLoader__.load({
 				reasoningEffort: ""
 			});
 			const name = (row) => accounts.flatMap((a) => a.models).find((m) => m.id === row.model)?.name ?? row.model;
+			const selectedAccount = accounts.find((a) => a.models.some((m) => m.id === selected)), selectedModel = selectedAccount?.models.find((m) => m.id === selected);
+			(0, react.useEffect)(() => {
+				if (loading) return;
+				if (provider && !accounts.some((a) => a.id === provider)) setProvider("");
+				if (selected && !selectedModel) setSelected("");
+			}, [
+				accounts,
+				loading,
+				provider,
+				selected,
+				selectedModel
+			]);
+			const close = () => {
+				setOpen(false);
+				trigger.current?.focus();
+			};
+			const pickerKeys = (event) => {
+				if (event.key === "Escape") {
+					event.preventDefault();
+					event.stopPropagation();
+					close();
+					return;
+				}
+				if (!(event.target instanceof HTMLButtonElement) || !event.target.hasAttribute("data-model-option")) return;
+				const options = Array.from(picker.current?.querySelectorAll("[data-model-option]:not(:disabled)") ?? []), index = options.indexOf(event.target);
+				const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : event.key === "ArrowDown" ? Math.min(index + 1, options.length - 1) : event.key === "ArrowUp" ? Math.max(index - 1, 0) : -1;
+				if (next >= 0) {
+					event.preventDefault();
+					options[next]?.focus();
+				}
+			};
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: JevControls_module_css_default.candidateSection,
 				children: [
@@ -7081,62 +7120,31 @@ window.__ModuleLoader__.load({
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 						className: ManagedCapabilities_module_css_default.muted,
-						children: "按从上到下的顺序尝试，关闭项跳过。拖动整张卡片排序，单击右侧开关启停。"
-					}),
-					accounts.length > 1 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: JevControls_module_css_default.accountTabs,
-						"aria-label": "筛选模型账号",
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							type: "button",
-							"aria-pressed": !provider,
-							onClick: () => setProvider(""),
-							children: "全部账号"
-						}), accounts.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							type: "button",
-							"aria-pressed": provider === a.id,
-							onClick: () => {
-								setProvider(a.id);
-								setSelected("");
-							},
-							children: a.name
-						}, a.id))]
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-						className: ManagedCapabilities_module_css_default.field,
-						children: ["搜索账号或模型", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-							value: query,
-							onChange: (e) => setQuery(e.target.value),
-							placeholder: "搜索已添加账号的本地模型"
-						})]
+						children: "从上到下依次尝试，关闭项跳过。整张卡片可拖动排序，单击开关启停。"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: JevControls_module_css_default.modelPicker,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-							className: ManagedCapabilities_module_css_default.field,
-							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							ref: trigger,
+							type: "button",
+							className: `${ManagedCapabilities_module_css_default.button} ${JevControls_module_css_default.pickerTrigger}`,
+							"aria-label": "选择候选模型",
+							"aria-expanded": open,
+							"aria-controls": pickerId,
+							onClick: () => setOpen(!open),
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [selectedModel ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: selectedModel.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: selectedAccount?.name })] }) : loading && !accounts.length ? "正在读取模型…" : "选择已有模型", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 								className: JevControls_module_css_default.srOnly,
-								children: "选择候选模型"
-							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-								"aria-label": "选择候选模型",
-								value: selected,
-								onChange: (e) => setSelected(e.target.value),
-								disabled: loading,
-								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-									value: "",
-									children: loading ? "正在读取模型…" : "选择已有模型…"
-								}), visible.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("optgroup", {
-									label: a.name,
-									children: a.models.map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
-										value: m.id,
-										disabled: rows.some((c) => c.model === m.id),
-										children: [m.name, rows.some((c) => c.model === m.id) ? " · 已添加" : !a.available ? " · 需配置内网地址" : ""]
-									}, m.id))
-								}, a.id))]
+								children: selectedModel ? "" : "，展开模型列表"
+							})] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+								"aria-hidden": "true",
+								viewBox: "0 0 16 16",
+								className: open ? JevControls_module_css_default.chevronOpen : void 0,
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m4 6 4 4 4-4" })
 							})]
 						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							type: "button",
 							className: ManagedCapabilities_module_css_default.button,
-							disabled: !selected || rows.length >= 12 || rows.some((c) => c.model === selected) || !visible.some((a) => a.models.some((m) => m.id === selected)),
+							disabled: !selectedModel || rows.length >= 12 || rows.some((c) => c.model === selected),
 							onClick: () => {
 								update([...rows, {
 									id: crypto.randomUUID(),
@@ -7149,9 +7157,72 @@ window.__ModuleLoader__.load({
 							children: "添加"
 						})]
 					}),
-					!loading && !visible.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+					open && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						id: pickerId,
+						ref: picker,
+						className: JevControls_module_css_default.pickerPanel,
+						onKeyDown: pickerKeys,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+								className: ManagedCapabilities_module_css_default.field,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									className: JevControls_module_css_default.srOnly,
+									children: "搜索账号或模型"
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									value: query,
+									onChange: (e) => setQuery(e.target.value),
+									placeholder: "搜索账号或模型"
+								})]
+							}),
+							accounts.length > 1 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: JevControls_module_css_default.accountTabs,
+								"aria-label": "筛选模型账号",
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									"aria-pressed": !provider,
+									onClick: () => setProvider(""),
+									children: "全部账号"
+								}), accounts.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									type: "button",
+									"aria-pressed": provider === a.id,
+									onClick: () => setProvider(a.id),
+									children: a.name
+								}, a.id))]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								className: JevControls_module_css_default.modelOptions,
+								"aria-label": "已有模型",
+								children: visible.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									role: "group",
+									"aria-label": a.name,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										className: JevControls_module_css_default.optionGroup,
+										children: a.name
+									}), a.models.map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+										type: "button",
+										"data-model-option": m.id,
+										className: `${ManagedCapabilities_module_css_default.choice} ${JevControls_module_css_default.modelOption}`,
+										"aria-label": "选择 " + m.name,
+										"aria-pressed": selected === m.id,
+										disabled: rows.some((c) => c.model === m.id),
+										onClick: () => {
+											setSelected(m.id);
+											close();
+										},
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: m.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: m.id.slice(m.id.indexOf("/") + 1) })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: rows.some((c) => c.model === m.id) ? "已添加" : !a.available ? "需配置内网地址" : "可添加" })]
+									}, m.id))]
+								}, a.id))
+							}),
+							!visible.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.muted,
+								role: "status",
+								children: loading ? "正在读取本地模型…" : query ? "没有匹配的模型，请调整搜索内容。" : "当前账号未登记模型，请前往模型账号设置添加。"
+							})
+						]
+					}),
+					rows.length >= 12 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 						className: ManagedCapabilities_module_css_default.muted,
-						children: query ? "没有匹配的已添加模型。" : "当前账号未登记模型，可前往模型账号设置添加。"
+						children: "已达到 12 个候选模型上限，可移除候选后再添加。"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 						className: JevControls_module_css_default.srOnly,
@@ -7379,7 +7450,7 @@ window.__ModuleLoader__.load({
 			const { data, readError, saveError, checkError, busy, checkBusy } = useJev();
 			const [entry] = (0, react.useState)(() => pendingNavigation("jev-mode")), [origin, setOrigin] = (0, react.useState)(entry?.origin), [view, setView] = (0, react.useState)(() => initialView(entry));
 			const [draft, setDraft] = (0, react.useState)(null), [base, setBase] = (0, react.useState)(null), [accounts, setAccounts] = (0, react.useState)([]), [accountError, setAccountError] = (0, react.useState)(""), [loadingAccounts, setLoadingAccounts] = (0, react.useState)(true), [message, setMessage] = (0, react.useState)(""), [checked, setChecked] = (0, react.useState)(null);
-			const root = (0, react.useRef)(null), scroll = (0, react.useRef)(view.scroll), pendingScroll = (0, react.useRef)(view.scroll), accountSequence = (0, react.useRef)(0);
+			const root = (0, react.useRef)(null), scroll = (0, react.useRef)(view.scroll), pendingScroll = (0, react.useRef)(view.scroll), accountSequence = (0, react.useRef)(0), accountRequest = (0, react.useRef)(null);
 			const value = draft ?? data?.config.value, invalid = value ? fieldErrors(value) : {}, valid = Object.keys(invalid).length === 0, conflict = !!draft && base?.revision !== data?.config.revision;
 			const diagnostic = data?.diagnostic, checking = diagnostic?.status === "checking", candidateKey = value ? connectionConfig(value) : "";
 			const connection = !draft ? data?.connection : checked?.key === candidateKey ? checked.connection : void 0, canEnable = connection?.state === "ready" && !checking;
@@ -7432,18 +7503,26 @@ window.__ModuleLoader__.load({
 				window.addEventListener("workbench-capability-link", navigate);
 				return () => window.removeEventListener("workbench-capability-link", navigate);
 			}, []);
-			const refreshAccounts = async () => {
+			const refreshAccounts = () => {
+				if (accountRequest.current) return accountRequest.current;
 				const seq = ++accountSequence.current;
 				setLoadingAccounts(true);
 				setAccountError("");
-				try {
-					const list = await jevClient.api("accounts");
-					if (seq === accountSequence.current) setAccounts(list);
-				} catch (e) {
-					if (seq === accountSequence.current) setAccountError(e.message);
-				} finally {
-					if (seq === accountSequence.current) setLoadingAccounts(false);
-				}
+				const request = (async () => {
+					try {
+						const list = await jevClient.api("accounts");
+						if (seq === accountSequence.current) setAccounts(list);
+					} catch (e) {
+						if (seq === accountSequence.current) setAccountError(e.message);
+					} finally {
+						if (seq === accountSequence.current) {
+							setLoadingAccounts(false);
+							accountRequest.current = null;
+						}
+					}
+				})();
+				accountRequest.current = request;
+				return request;
 			};
 			(0, react.useEffect)(() => {
 				refreshAccounts();
@@ -7451,6 +7530,7 @@ window.__ModuleLoader__.load({
 				window.addEventListener("focus", focus);
 				return () => {
 					accountSequence.current++;
+					accountRequest.current = null;
 					window.removeEventListener("focus", focus);
 				};
 			}, []);
@@ -7575,10 +7655,10 @@ window.__ModuleLoader__.load({
 						children: [
 							view.tab === "configuration" && (value ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: JevControls_module_css_default.candidateHeading,
+									className: JevControls_module_css_default.connectionSummary,
 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
 										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: ["模型连接 · ", connection ? connectionName[connection.state] : "正在读取"] }),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: connection?.message ?? "正在核对当前配置的检查记录" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: !candidates(value).length ? "添加已有模型，并开启需要参与检查的候选项。" : connection?.message ?? "正在核对当前配置的检查记录" }),
 										connection?.checkedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["最近检查：", new Date(connection.checkedAt).toLocaleString()] })
 									] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 										className: ManagedCapabilities_module_css_default.badge,
@@ -7669,6 +7749,7 @@ window.__ModuleLoader__.load({
 												children: [
 													"全局开关",
 													/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+														"aria-label": "JEV 全局开关",
 														value: String(value.enabled),
 														onChange: (e) => change({ enabled: e.target.value === "true" }),
 														children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
@@ -7728,7 +7809,7 @@ window.__ModuleLoader__.load({
 									role: "alert",
 									children: ["保存失败：", saveError]
 								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								(draft || message) && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 									className: JevControls_module_css_default.footer,
 									children: [
 										draft && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
