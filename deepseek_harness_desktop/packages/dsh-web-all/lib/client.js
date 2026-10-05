@@ -2066,7 +2066,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-plugin-manager/src/client/inventory-tree.module.css.mjs
-		const css$24 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=639px){.Z_0aEG_root[data-component-id] .Z_0aEG_moduleList,.Z_0aEG_root[data-component-id] .Z_0aEG_grid{grid-template-columns:1fr}}.Z_0aEG_aiHeader{align-items:center;gap:8px;padding-right:14px;display:flex}.Z_0aEG_importControl{flex-shrink:0;position:relative}.Z_0aEG_importMenu{z-index:20;border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:12px;min-width:190px;padding:5px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 8px 24px #0002}.Z_0aEG_root .Z_0aEG_importMenu button{text-align:left;white-space:nowrap;background:0 0;border:0;width:100%;display:block}.Z_0aEG_root .Z_0aEG_importMenu button:hover{background:color-mix(in srgb,var(--tree-accent) 8%,var(--tree-bg))}.Z_0aEG_importDialog{border:1px solid var(--tree-border);background:var(--tree-bg);width:min(560px,100vw - 32px);max-height:calc(100dvh - 48px);color:var(--tree-text);border-radius:16px;padding:0;box-shadow:0 18px 64px #0003}.Z_0aEG_importDialog::backdrop{backdrop-filter:blur(3px);background:#0005}.Z_0aEG_importDialog .Z_0aEG_importBox{border:0;gap:12px;margin:0;padding:20px}.Z_0aEG_importTitle{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_importDialog p{overflow-wrap:anywhere;margin:0;font-size:12px;line-height:1.6}.Z_0aEG_importDialog .Z_0aEG_preview{border:0;padding:0}.Z_0aEG_importNotice{color:var(--tree-muted);flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.Z_0aEG_card[data-imported=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=520px){.Z_0aEG_toolbar{position:relative}.Z_0aEG_toolbar>.Z_0aEG_search{flex-basis:100%;min-width:0}.Z_0aEG_toolbar>.Z_0aEG_toolButton,.Z_0aEG_importControl>.Z_0aEG_toolButton{gap:5px;padding:8px 9px;font-size:12px}.Z_0aEG_importControl{position:static}.Z_0aEG_importMenu{max-width:100%;left:auto;right:0}}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex:1;width:auto;min-width:0}.Z_0aEG_aiActions{flex-shrink:0;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_aiButton{border-color:color-mix(in srgb,var(--tree-tone) 25%,var(--tree-border));background:color-mix(in srgb,var(--tree-tone) 6%,var(--tree-bg));white-space:nowrap;justify-content:center;align-items:center;gap:6px;font-size:12px;display:inline-flex}.Z_0aEG_aiButton svg{width:15px;height:15px}.Z_0aEG_root .Z_0aEG_aiToggle{background:0 0;border:0;align-items:center;gap:12px;padding:8px 0;display:flex}.Z_0aEG_aiFeedback{background:var(--tree-bg);color:var(--tree-text);border-radius:10px;margin:0 14px 12px;padding:11px 12px;font-size:12px;line-height:1.7}.Z_0aEG_aiFeedback small{color:var(--tree-muted);font-size:11px;display:block}.Z_0aEG_aiFeedback summary{cursor:pointer;color:var(--tree-accent);padding:7px 0}.Z_0aEG_aiFeedback ul{max-height:240px;margin:0;padding:0;list-style:none;overflow:auto}.Z_0aEG_aiFeedback li{border-top:1px solid var(--tree-border);overflow-wrap:anywhere;gap:3px;padding:9px 0;display:grid}.Z_0aEG_aiFeedback button{margin-top:8px;font-size:12px}@container (width<=520px){.Z_0aEG_aiHeader{flex-wrap:wrap;gap:0;padding-right:0}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex-basis:100%}.Z_0aEG_aiActions{justify-content:space-between;width:100%;padding:0 13px 12px}.Z_0aEG_aiFeedback{margin-inline:9px}}";
+		const css$24 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=639px){.Z_0aEG_root[data-component-id] .Z_0aEG_moduleList,.Z_0aEG_root[data-component-id] .Z_0aEG_grid{grid-template-columns:1fr}}.Z_0aEG_aiHeader{align-items:center;gap:8px;padding-right:14px;display:flex}.Z_0aEG_importControl{flex-shrink:0;position:relative}.Z_0aEG_importMenu{z-index:20;border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:12px;min-width:190px;padding:5px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 8px 24px #0002}.Z_0aEG_root .Z_0aEG_importMenu button{text-align:left;white-space:nowrap;background:0 0;border:0;width:100%;display:block}.Z_0aEG_root .Z_0aEG_importMenu button:hover{background:color-mix(in srgb,var(--tree-accent) 8%,var(--tree-bg))}.Z_0aEG_importDialog{border:1px solid var(--tree-border);background:var(--tree-bg);width:min(560px,100vw - 32px);max-height:calc(100dvh - 48px);color:var(--tree-text);border-radius:16px;padding:0;box-shadow:0 18px 64px #0003}.Z_0aEG_importDialog::backdrop{backdrop-filter:blur(3px);background:#0005}.Z_0aEG_importDialog .Z_0aEG_importBox{border:0;gap:12px;margin:0;padding:20px}.Z_0aEG_importTitle{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_importDialog p{overflow-wrap:anywhere;margin:0;font-size:12px;line-height:1.6}.Z_0aEG_importDialog .Z_0aEG_preview{border:0;padding:0}.Z_0aEG_importNotice{color:var(--tree-muted);flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.Z_0aEG_card[data-imported=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=520px){.Z_0aEG_toolbar{position:relative}.Z_0aEG_toolbar>.Z_0aEG_search{flex-basis:100%;min-width:0}.Z_0aEG_toolbar>.Z_0aEG_toolButton,.Z_0aEG_importControl>.Z_0aEG_toolButton{gap:5px;padding:8px 9px;font-size:12px}.Z_0aEG_importControl{position:static}.Z_0aEG_importMenu{max-width:100%;left:auto;right:0}}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex:1;width:auto;min-width:0}.Z_0aEG_aiActions{flex-shrink:0;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_aiButton{border-color:color-mix(in srgb,var(--tree-tone) 25%,var(--tree-border));background:color-mix(in srgb,var(--tree-tone) 6%,var(--tree-bg));white-space:nowrap;justify-content:center;align-items:center;gap:6px;font-size:12px;display:inline-flex}.Z_0aEG_aiButton svg{width:15px;height:15px}.Z_0aEG_root .Z_0aEG_aiToggle{background:0 0;border:0;align-items:center;gap:12px;padding:8px 0;display:flex}.Z_0aEG_aiFeedback{background:var(--tree-bg);color:var(--tree-text);border-radius:10px;margin:0 14px 12px;padding:11px 12px;font-size:12px;line-height:1.7}.Z_0aEG_aiFeedback small{color:var(--tree-muted);font-size:11px;display:block}.Z_0aEG_aiFeedback summary{cursor:pointer;color:var(--tree-accent);padding:7px 0}.Z_0aEG_aiFeedback ul{max-height:240px;margin:0;padding:0;list-style:none;overflow:auto}.Z_0aEG_aiFeedback li{border-top:1px solid var(--tree-border);overflow-wrap:anywhere;gap:3px;padding:9px 0;display:grid}.Z_0aEG_aiFeedback button{margin-top:8px;font-size:12px}@container (width<=520px){.Z_0aEG_aiHeader{flex-wrap:wrap;gap:0;padding-right:0}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex-basis:100%}.Z_0aEG_aiActions{justify-content:space-between;width:100%;padding:0 13px 12px}.Z_0aEG_aiFeedback{margin-inline:9px}}.Z_0aEG_categoryList{gap:12px;display:grid}.Z_0aEG_categoryRow{align-items:center;gap:6px;min-width:0;transition:background .16s,opacity .16s;display:flex;position:relative}.Z_0aEG_categoryRow input{flex:1;width:0}.Z_0aEG_categoryModules{gap:6px;min-height:12px;margin-left:14px;display:grid}.Z_0aEG_root .Z_0aEG_dragHandle,.Z_0aEG_root .Z_0aEG_categoryIcon{width:30px;height:34px;color:var(--tree-muted);background:0 0;border-color:#0000;flex-shrink:0;justify-content:center;align-items:center;padding:4px;display:inline-flex}.Z_0aEG_root .Z_0aEG_dragHandle{cursor:grab;touch-action:none;user-select:none}.Z_0aEG_root .Z_0aEG_dragHandle:active{cursor:grabbing}.Z_0aEG_root .Z_0aEG_dragHandle:hover,.Z_0aEG_root .Z_0aEG_categoryIcon:hover{color:var(--tree-accent);background:color-mix(in srgb,var(--tree-accent) 8%,var(--tree-bg))}.Z_0aEG_root .Z_0aEG_dragHandle:focus-visible,.Z_0aEG_root .Z_0aEG_categoryIcon:focus-visible{outline:2px solid var(--tree-accent);outline-offset:2px}.Z_0aEG_root .Z_0aEG_categoryAdd{color:var(--tree-muted);background:0 0;border:0;justify-self:start;align-items:center;gap:6px;padding:6px 8px;display:flex}.Z_0aEG_categoryAdd svg{width:16px;height:16px}.Z_0aEG_editGroup{transition:border-color .16s,box-shadow .16s}.Z_0aEG_editGroup[data-drop-target=true]{border-color:var(--tree-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--tree-accent) 10%,transparent)}[data-dragging=true]{opacity:.4}.Z_0aEG_dropLine{background:var(--tree-accent);border-radius:3px;height:3px;margin:2px 0;animation:.12s ease-out Z_0aEG_treeReveal}.Z_0aEG_emptyDrop{border:1px dashed var(--tree-border);text-align:center;color:var(--tree-muted);border-radius:8px;padding:16px;font-size:12px}.Z_0aEG_dragGhost{z-index:1000;pointer-events:none;border:1px solid var(--tree-accent);background:var(--tree-bg);max-width:240px;color:var(--tree-text);border-radius:10px;padding:10px 16px;font-size:13px;position:fixed;box-shadow:0 8px 24px #0002}.Z_0aEG_dragGhost small{color:var(--tree-muted);margin-top:4px;display:block}.Z_0aEG_moveMenu{color:var(--tree-muted);flex-wrap:wrap;align-items:center;gap:8px;padding:4px 36px;font-size:12px;display:flex}.Z_0aEG_editorFooter{z-index:3;background:var(--tree-bg);border-top:1px solid var(--tree-border);gap:8px;padding:12px 0;display:flex;position:sticky;bottom:0}.Z_0aEG_srOnly{clip-path:inset(50%);white-space:nowrap;width:1px;height:1px;padding:0;position:absolute;overflow:hidden}@container (width<=520px){.Z_0aEG_categoryModules{margin-left:0}.Z_0aEG_editGroup{padding:8px}.Z_0aEG_categoryRow{gap:3px}.Z_0aEG_root .Z_0aEG_categoryRow input{padding:8px 6px}}@media (prefers-reduced-motion:reduce){.Z_0aEG_categoryRow,.Z_0aEG_editGroup,.Z_0aEG_dropLine{transition:none;animation:none}}";
 		const tagId$24 = "@linxin666/dsh-web-all/packages/dsh-plugin-manager/src/client/inventory-tree.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$24) + "]") === null) {
 			const tag = document.createElement("style");
@@ -2090,13 +2090,23 @@ window.__ModuleLoader__.load({
 			"branchMeta": "Z_0aEG_branchMeta",
 			"branchTitle": "Z_0aEG_branchTitle",
 			"card": "Z_0aEG_card",
+			"categoryAdd": "Z_0aEG_categoryAdd",
+			"categoryIcon": "Z_0aEG_categoryIcon",
+			"categoryList": "Z_0aEG_categoryList",
+			"categoryModules": "Z_0aEG_categoryModules",
+			"categoryRow": "Z_0aEG_categoryRow",
 			"chevron": "Z_0aEG_chevron",
 			"children": "Z_0aEG_children",
 			"confirm": "Z_0aEG_confirm",
 			"count": "Z_0aEG_count",
 			"countUnit": "Z_0aEG_countUnit",
+			"dragGhost": "Z_0aEG_dragGhost",
+			"dragHandle": "Z_0aEG_dragHandle",
+			"dropLine": "Z_0aEG_dropLine",
 			"editGroup": "Z_0aEG_editGroup",
 			"editor": "Z_0aEG_editor",
+			"editorFooter": "Z_0aEG_editorFooter",
+			"emptyDrop": "Z_0aEG_emptyDrop",
 			"emptyState": "Z_0aEG_emptyState",
 			"error": "Z_0aEG_error",
 			"failureCount": "Z_0aEG_failureCount",
@@ -2111,6 +2121,7 @@ window.__ModuleLoader__.load({
 			"inactiveCount": "Z_0aEG_inactiveCount",
 			"moduleEdit": "Z_0aEG_moduleEdit",
 			"moduleList": "Z_0aEG_moduleList",
+			"moveMenu": "Z_0aEG_moveMenu",
 			"muted": "Z_0aEG_muted",
 			"preview": "Z_0aEG_preview",
 			"primary": "Z_0aEG_primary",
@@ -2124,6 +2135,7 @@ window.__ModuleLoader__.load({
 			"search": "Z_0aEG_search",
 			"select": "Z_0aEG_select",
 			"session": "Z_0aEG_session",
+			"srOnly": "Z_0aEG_srOnly",
 			"statusDot": "Z_0aEG_statusDot",
 			"toolButton": "Z_0aEG_toolButton",
 			"toolbar": "Z_0aEG_toolbar",
@@ -2511,6 +2523,413 @@ window.__ModuleLoader__.load({
 				"aria-hidden": "true",
 				focusable: "false",
 				children: paths[modules[name] ?? name] ?? paths.grid
+			});
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/category-order.ts
+		function moveCategory(value, item, slot) {
+			if (item.kind === "group") {
+				const source = value.groups.find((g) => g.id === item.id);
+				if (!source || slot.before === item.id || slot.before && !value.groups.some((g) => g.id === slot.before)) return value;
+				const groups = value.groups.filter((g) => g.id !== item.id);
+				groups.splice(slot.before ? groups.findIndex((g) => g.id === slot.before) : groups.length, 0, source);
+				return {
+					...value,
+					groups
+				};
+			}
+			const source = value.modules.find((m) => m.id === item.id);
+			if (!source || !value.groups.some((g) => g.id === slot.groupId) || slot.before === item.id) return value;
+			if (slot.before && !value.modules.some((m) => m.id === slot.before && m.groupId === slot.groupId)) return value;
+			const rest = value.modules.filter((m) => m.id !== item.id);
+			const siblings = rest.filter((m) => m.groupId === slot.groupId);
+			siblings.splice(slot.before ? siblings.findIndex((m) => m.id === slot.before) : siblings.length, 0, {
+				...source,
+				groupId: slot.groupId
+			});
+			return {
+				...value,
+				modules: value.groups.flatMap((g) => g.id === slot.groupId ? siblings : rest.filter((m) => m.groupId === g.id))
+			};
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/CategoryEditor.tsx
+		function CategoryEditor({ value, onChange, onRemove, disabled }) {
+			const root = (0, react$1.useRef)(null), latest = (0, react$1.useRef)({
+				value,
+				onChange,
+				disabled
+			});
+			latest.current = {
+				value,
+				onChange,
+				disabled
+			};
+			const gesture = (0, react$1.useRef)(), [drag, setDrag] = (0, react$1.useState)(), [message, setMessage] = (0, react$1.useState)(""), [moving, setMoving] = (0, react$1.useState)("");
+			const end = (commit) => {
+				const g = gesture.current;
+				gesture.current = void 0;
+				setDrag(void 0);
+				if (!g) return;
+				if (g.pointer !== void 0 && g.handle.hasPointerCapture?.(g.pointer)) g.handle.releasePointerCapture(g.pointer);
+				if (commit && g.active && g.slot && !latest.current.disabled) {
+					latest.current.onChange(moveCategory(latest.current.value, g.item, g.slot));
+					setMessage(`${g.name}已移动，保存分类后生效`);
+				} else setMessage("已取消移动");
+				requestAnimationFrame(() => Array.from(root.current?.querySelectorAll("[data-handle-id]") ?? []).find((el) => el.dataset.handleId === g.item.id)?.focus());
+			};
+			const endRef = (0, react$1.useRef)(end);
+			endRef.current = end;
+			(0, react$1.useEffect)(() => {
+				let frame = 0, last;
+				const hit = (x, y) => {
+					const g = gesture.current, el = document.elementFromPoint(x, y);
+					if (!g || !el || !root.current?.contains(el)) return;
+					if (g.item.kind === "group") {
+						const group = el.closest("[data-category-group]");
+						if (!group) return;
+						const groups = latest.current.value.groups, id = group.dataset.categoryGroup, i = groups.findIndex((v) => v.id === id);
+						return {
+							groupId: "",
+							before: y < group.getBoundingClientRect().top + group.getBoundingClientRect().height / 2 ? id : groups[i + 1]?.id
+						};
+					}
+					const group = el.closest("[data-category-group]");
+					if (!group) return;
+					const groupId = group.dataset.categoryGroup, row = el.closest("[data-category-module]");
+					if (!row) return { groupId };
+					const modules = latest.current.value.modules.filter((m) => m.groupId === groupId), i = modules.findIndex((m) => m.id === row.dataset.categoryModule);
+					return {
+						groupId,
+						before: y < row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2 ? modules[i]?.id : modules[i + 1]?.id
+					};
+				};
+				const update = () => {
+					const g = gesture.current;
+					if (!g?.active || !last) return;
+					g.slot = hit(last.x, last.y);
+					setDrag({
+						...g,
+						x: last.x,
+						y: last.y
+					});
+					let scroll = root.current;
+					while (scroll && !(scroll.scrollHeight > scroll.clientHeight && /auto|scroll/.test(getComputedStyle(scroll).overflowY))) scroll = scroll.parentElement;
+					if (scroll) {
+						const r = scroll.getBoundingClientRect();
+						const top = Math.max(0, r.top), bottom = Math.min(innerHeight, r.bottom);
+						if (last.x >= r.left && last.x <= r.right) {
+							if (last.y < top + 40) scroll.scrollTop -= 10;
+							else if (last.y > bottom - 40) scroll.scrollTop += 10;
+						}
+					}
+					frame = requestAnimationFrame(update);
+				};
+				const move = (e) => {
+					const g = gesture.current;
+					if (!g || g.pointer !== e.pointerId) return;
+					if (!g.active && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 7) return;
+					e.preventDefault();
+					last = {
+						x: e.clientX,
+						y: e.clientY
+					};
+					if (!g.active) {
+						g.active = true;
+						g.handle.setPointerCapture?.(e.pointerId);
+						update();
+					}
+				};
+				const up = (e) => {
+					if (gesture.current && gesture.current.pointer !== void 0 && gesture.current.pointer === e.pointerId) {
+						gesture.current.slot = hit(e.clientX, e.clientY);
+						cancelAnimationFrame(frame);
+						endRef.current(true);
+					}
+				};
+				const cancel = () => {
+					cancelAnimationFrame(frame);
+					endRef.current(false);
+				};
+				const escape = (e) => {
+					if (e.key === "Escape" && gesture.current) {
+						e.preventDefault();
+						e.stopImmediatePropagation();
+						cancel();
+					}
+				};
+				window.addEventListener("pointermove", move, { passive: false });
+				window.addEventListener("pointerup", up);
+				window.addEventListener("pointercancel", cancel);
+				window.addEventListener("blur", cancel);
+				window.addEventListener("keydown", escape, true);
+				return () => {
+					cancelAnimationFrame(frame);
+					window.removeEventListener("pointermove", move);
+					window.removeEventListener("pointerup", up);
+					window.removeEventListener("pointercancel", cancel);
+					window.removeEventListener("blur", cancel);
+					window.removeEventListener("keydown", escape, true);
+					gesture.current = void 0;
+				};
+			}, []);
+			const handle = (item, name) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+				type: "button",
+				className: inventory_tree_module_css_default.dragHandle,
+				disabled,
+				"data-handle-id": item.id,
+				"aria-label": "拖动排序：" + name,
+				"aria-pressed": drag?.item.id === item.id,
+				title: "拖动排序；空格开始，方向键调整，回车确认，Esc 取消",
+				onPointerDown: (e) => {
+					if (e.button !== 0) return;
+					e.stopPropagation();
+					setMoving("");
+					gesture.current = {
+						item,
+						name,
+						pointer: e.pointerId,
+						handle: e.currentTarget,
+						x: e.clientX,
+						y: e.clientY,
+						active: false
+					};
+				},
+				onKeyDown: (e) => {
+					if ((e.key === " " || e.key === "Enter") && !gesture.current) {
+						e.preventDefault();
+						const groupId = item.kind === "module" ? value.modules.find((m) => m.id === item.id).groupId : "";
+						const g = {
+							item,
+							name,
+							handle: e.currentTarget,
+							x: 0,
+							y: 0,
+							active: true,
+							slot: {
+								groupId,
+								before: item.id
+							}
+						};
+						gesture.current = g;
+						setDrag(g);
+						setMessage(`正在移动${name}，上下调整顺序，左右切换分组，回车确认`);
+						return;
+					}
+					const g = gesture.current;
+					if (!g || g.pointer !== void 0) return;
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault();
+						end(true);
+						return;
+					}
+					if (![
+						"ArrowUp",
+						"ArrowDown",
+						"ArrowLeft",
+						"ArrowRight"
+					].includes(e.key)) return;
+					e.preventDefault();
+					const preview = g.slot ? moveCategory(value, item, g.slot) : value;
+					if (item.kind === "module" && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+						const index = value.groups.findIndex((v) => v.id === g.slot?.groupId), next = value.groups[index + (e.key === "ArrowLeft" ? -1 : 1)];
+						if (next) g.slot = { groupId: next.id };
+					} else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+						const siblings = item.kind === "group" ? preview.groups : preview.modules.filter((m) => m.groupId === g.slot?.groupId);
+						const next = siblings.findIndex((v) => v.id === item.id) + (e.key === "ArrowUp" ? -1 : 1);
+						if (next >= 0 && next < siblings.length) g.slot = {
+							groupId: g.slot?.groupId ?? "",
+							before: e.key === "ArrowUp" ? siblings[next]?.id : siblings[next + 1]?.id
+						};
+					}
+					setDrag({ ...g });
+					setMessage(`目标：${value.groups.find((v) => v.id === g.slot?.groupId)?.name ?? "分组顺序"}，${g.slot?.before ? "插入到目标前" : "放到末尾"}`);
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+					viewBox: "0 0 24 24",
+					width: "18",
+					height: "18",
+					fill: "currentColor",
+					"aria-hidden": "true",
+					children: [
+						6,
+						12,
+						18
+					].flatMap((y) => [9, 15].map((x) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+						cx: x,
+						cy: y,
+						r: "1.5"
+					}, x + "," + y)))
+				})
+			});
+			const trash = (id, name, group) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+				type: "button",
+				className: inventory_tree_module_css_default.categoryIcon,
+				title: "删除" + name,
+				"aria-label": (group ? "删除分组：" : "删除模块：") + name,
+				disabled: disabled || !!drag,
+				onClick: () => onRemove(id, group),
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+					viewBox: "0 0 24 24",
+					width: "17",
+					height: "17",
+					fill: "none",
+					stroke: "currentColor",
+					strokeWidth: "1.6",
+					"aria-hidden": "true",
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 10v7m4-7v7" })
+				})
+			});
+			const marker = (kind, groupId, before) => drag?.active && drag.item.kind === kind && drag.slot?.groupId === groupId && drag.slot?.before === before ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				className: inventory_tree_module_css_default.dropLine,
+				"aria-hidden": "true"
+			}) : null;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				ref: root,
+				className: inventory_tree_module_css_default.categoryList,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "拖动左侧手柄调整顺序，模块也可拖到其他分组。保存后生效。" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						className: inventory_tree_module_css_default.srOnly,
+						role: "status",
+						children: message
+					}),
+					value.groups.map((g) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react$1.default.Fragment, { children: [marker("group", "", g.id), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: inventory_tree_module_css_default.editGroup,
+						"data-category-group": g.id,
+						"data-dragging": drag?.active && drag.item.id === g.id,
+						"data-drop-target": drag?.item.kind === "module" && drag.slot?.groupId === g.id,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: inventory_tree_module_css_default.categoryRow,
+								children: [
+									handle({
+										kind: "group",
+										id: g.id
+									}, g.name),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+										"aria-label": "分组名称",
+										disabled,
+										value: g.name,
+										onChange: (e) => onChange({
+											...value,
+											groups: value.groups.map((x) => x.id === g.id ? {
+												...x,
+												name: e.target.value
+											} : x)
+										})
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										className: inventory_tree_module_css_default.count,
+										children: value.modules.filter((m) => m.groupId === g.id).length
+									}),
+									trash(g.id, g.name, true)
+								]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: inventory_tree_module_css_default.categoryModules,
+								children: [
+									value.modules.filter((m) => m.groupId === g.id).map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react$1.default.Fragment, { children: [
+										marker("module", g.id, m.id),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											className: inventory_tree_module_css_default.categoryRow,
+											"data-category-module": m.id,
+											"data-dragging": drag?.active && drag.item.id === m.id,
+											children: [
+												handle({
+													kind: "module",
+													id: m.id
+												}, m.name),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+													"aria-label": "模块名称",
+													disabled,
+													value: m.name,
+													onChange: (e) => onChange({
+														...value,
+														modules: value.modules.map((x) => x.id === m.id ? {
+															...x,
+															name: e.target.value
+														} : x)
+													})
+												}),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													type: "button",
+													className: inventory_tree_module_css_default.categoryIcon,
+													disabled: disabled || !!drag,
+													"aria-label": "移动到分组：" + m.name,
+													title: "移动到分组",
+													"aria-expanded": moving === m.id,
+													onClick: () => setMoving(moving === m.id ? "" : m.id),
+													children: "···"
+												}),
+												trash(m.id, m.name, false)
+											]
+										}),
+										moving === m.id && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+											className: inventory_tree_module_css_default.moveMenu,
+											children: ["移动到分组 ", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
+												"aria-label": "模块所属分组",
+												value: m.groupId,
+												onChange: (e) => {
+													onChange(moveCategory(value, {
+														kind: "module",
+														id: m.id
+													}, { groupId: e.target.value }));
+													setMoving("");
+												},
+												children: value.groups.map((x) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+													value: x.id,
+													children: x.name
+												}, x.id))
+											})]
+										})
+									] }, m.id)),
+									marker("module", g.id),
+									!value.modules.some((m) => m.groupId === g.id) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										className: inventory_tree_module_css_default.emptyDrop,
+										children: "拖动模块到这里"
+									})
+								]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+								type: "button",
+								className: inventory_tree_module_css_default.categoryAdd,
+								disabled: disabled || !!drag,
+								onClick: () => onChange({
+									...value,
+									modules: [...value.modules, {
+										id: "m-" + crypto.randomUUID(),
+										name: "新模块",
+										groupId: g.id
+									}]
+								}),
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "plus" }), "新增模块标签"]
+							})
+						]
+					})] }, g.id)),
+					marker("group", ""),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						type: "button",
+						className: inventory_tree_module_css_default.categoryAdd,
+						disabled: disabled || !!drag,
+						onClick: () => onChange({
+							...value,
+							groups: [...value.groups, {
+								id: "g-" + crypto.randomUUID(),
+								name: "新分组"
+							}]
+						}),
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "plus" }), "新增分组"]
+					}),
+					drag?.active && drag.pointer !== void 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: inventory_tree_module_css_default.dragGhost,
+						style: {
+							left: drag.x + 14,
+							top: drag.y + 12
+						},
+						children: [drag.name, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: drag.slot ? "松开放置" : "移入目标分组" })]
+					})
+				]
 			});
 		}
 		//#endregion
@@ -3134,12 +3553,6 @@ window.__ModuleLoader__.load({
 			if (!r.ok) throw Error(data.error ?? "无法读取分类");
 			return data.classification;
 		}
-		function shift(items, index, delta) {
-			const result = [...items], other = index + delta;
-			if (other < 0 || other >= items.length) return result;
-			[result[index], result[other]] = [result[other], result[index]];
-			return result;
-		}
 		function InventoryTree({ list, presetName, componentId, componentData, compact = false }) {
 			const [imported, setImported] = (0, react$1.useState)([]), [importNotice, setImportNotice] = (0, react$1.useState)("");
 			(0, react$1.useEffect)(() => {
@@ -3686,144 +4099,17 @@ window.__ModuleLoader__.load({
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "编辑分类" }),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "新加入的插件进入未定义区。分类调整不改变插件启停。" }),
-								draft.groups.map((g, gi) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: inventory_tree_module_css_default.editGroup,
-									children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-											className: inventory_tree_module_css_default.toolbar,
-											children: [
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-													"aria-label": "分组名称",
-													value: g.name,
-													onChange: (e) => setDraft({
-														...draft,
-														groups: draft.groups.map((x) => x.id === g.id ? {
-															...x,
-															name: e.target.value
-														} : x)
-													})
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													disabled: gi === 0,
-													onClick: () => setDraft({
-														...draft,
-														groups: shift(draft.groups, gi, -1)
-													}),
-													children: "上移"
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													disabled: gi === draft.groups.length - 1,
-													onClick: () => setDraft({
-														...draft,
-														groups: shift(draft.groups, gi, 1)
-													}),
-													children: "下移"
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													onClick: () => {
-														setRemove({
-															id: g.id,
-															group: true
-														});
-														setRemoveTarget("");
-													},
-													children: "删除分组"
-												})
-											]
-										}),
-										draft.modules.filter((m) => m.groupId === g.id).map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-											className: inventory_tree_module_css_default.moduleEdit,
-											children: [
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-													"aria-label": "模块名称",
-													value: m.name,
-													onChange: (e) => setDraft({
-														...draft,
-														modules: draft.modules.map((x) => x.id === m.id ? {
-															...x,
-															name: e.target.value
-														} : x)
-													})
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
-													"aria-label": "模块所属分组",
-													value: m.groupId,
-													onChange: (e) => setDraft({
-														...draft,
-														modules: draft.modules.map((x) => x.id === m.id ? {
-															...x,
-															groupId: e.target.value
-														} : x)
-													}),
-													children: draft.groups.map((x) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-														value: x.id,
-														children: x.name
-													}, x.id))
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													"aria-label": "上移 " + m.name,
-													onClick: () => {
-														const index = draft.modules.indexOf(m), previous = draft.modules.map((x, i) => i < index && x.groupId === g.id ? i : -1).reduce((a, b) => Math.max(a, b), -1);
-														if (previous >= 0) {
-															const next = [...draft.modules];
-															[next[index], next[previous]] = [next[previous], next[index]];
-															setDraft({
-																...draft,
-																modules: next
-															});
-														}
-													},
-													children: "↑"
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													"aria-label": "下移 " + m.name,
-													onClick: () => {
-														const index = draft.modules.indexOf(m), nextIndex = draft.modules.findIndex((x, i) => i > index && x.groupId === g.id);
-														if (nextIndex >= 0) {
-															const next = [...draft.modules];
-															[next[index], next[nextIndex]] = [next[nextIndex], next[index]];
-															setDraft({
-																...draft,
-																modules: next
-															});
-														}
-													},
-													children: "↓"
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													onClick: () => {
-														setRemove({
-															id: m.id,
-															group: false
-														});
-														setRemoveTarget("");
-													},
-													children: "删除"
-												})
-											]
-										}, m.id)),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											onClick: () => setDraft({
-												...draft,
-												modules: [...draft.modules, {
-													id: "m-" + crypto.randomUUID(),
-													name: "新模块",
-													groupId: g.id
-												}]
-											}),
-											children: "新增模块标签"
-										})
-									]
-								}, g.id)),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									onClick: () => setDraft({
-										...draft,
-										groups: [...draft.groups, {
-											id: "g-" + crypto.randomUUID(),
-											name: "新分组"
-										}]
-									}),
-									children: "新增分组"
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CategoryEditor, {
+									value: draft,
+									onChange: setDraft,
+									disabled: busy,
+									onRemove: (id, group) => {
+										setRemove({
+											id,
+											group
+										});
+										setRemoveTarget("");
+									}
 								}),
 								remove && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 									className: inventory_tree_module_css_default.confirm,
@@ -3915,7 +4201,7 @@ window.__ModuleLoader__.load({
 									"。名称和顺序按当前编辑结果保存。"
 								] }),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: inventory_tree_module_css_default.toolbar,
+									className: inventory_tree_module_css_default.editorFooter,
 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 										disabled: busy,
 										onClick: () => void save(),
