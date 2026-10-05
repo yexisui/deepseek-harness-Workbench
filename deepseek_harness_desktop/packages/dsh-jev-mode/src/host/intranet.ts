@@ -17,7 +17,9 @@ export function endpoint(raw: string): URL {
 /** Pin the validated IP at the actual socket. No redirect, proxy, or public fallback. */
 export async function intranetJson(url: URL,body: unknown,key: string,signal: AbortSignal): Promise<string> {
   signal.throwIfAborted()
-  const host=url.hostname.replace(/^\[|\]$/g,''),addresses=isIP(host)?[{address:host,family:isIP(host)}]:await lookup(host,{all:true})
+  const host=url.hostname.replace(/^\[|\]$/g,'')
+  let addresses:{address:string;family:number}[]
+  try{addresses=isIP(host)?[{address:host,family:isIP(host)}]:await lookup(host,{all:true})}catch{throw new JevTechnicalError('内网模型域名解析失败')}
   signal.throwIfAborted()
   if(!addresses.length||addresses.some(a=>!privateAddress(a.address)))throw new JevTechnicalError('JEV 模型域名未完全解析到内网地址，已拒绝请求')
   const target=addresses[0]!,payload=Buffer.from(JSON.stringify(body))
