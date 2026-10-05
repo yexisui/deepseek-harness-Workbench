@@ -2066,7 +2066,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-plugin-manager/src/client/inventory-tree.module.css.mjs
-		const css$24 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=639px){.Z_0aEG_root[data-component-id] .Z_0aEG_moduleList,.Z_0aEG_root[data-component-id] .Z_0aEG_grid{grid-template-columns:1fr}}.Z_0aEG_aiHeader{align-items:center;gap:8px;padding-right:14px;display:flex}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex:1;width:auto;min-width:0}.Z_0aEG_aiActions{flex-shrink:0;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_aiButton{border-color:color-mix(in srgb,var(--tree-tone) 25%,var(--tree-border));background:color-mix(in srgb,var(--tree-tone) 6%,var(--tree-bg));white-space:nowrap;justify-content:center;align-items:center;gap:6px;font-size:12px;display:inline-flex}.Z_0aEG_aiButton svg{width:15px;height:15px}.Z_0aEG_root .Z_0aEG_aiToggle{background:0 0;border:0;align-items:center;gap:12px;padding:8px 0;display:flex}.Z_0aEG_aiFeedback{background:var(--tree-bg);color:var(--tree-text);border-radius:10px;margin:0 14px 12px;padding:11px 12px;font-size:12px;line-height:1.7}.Z_0aEG_aiFeedback small{color:var(--tree-muted);font-size:11px;display:block}.Z_0aEG_aiFeedback summary{cursor:pointer;color:var(--tree-accent);padding:7px 0}.Z_0aEG_aiFeedback ul{max-height:240px;margin:0;padding:0;list-style:none;overflow:auto}.Z_0aEG_aiFeedback li{border-top:1px solid var(--tree-border);overflow-wrap:anywhere;gap:3px;padding:9px 0;display:grid}.Z_0aEG_aiFeedback button{margin-top:8px;font-size:12px}@container (width<=520px){.Z_0aEG_aiHeader{flex-wrap:wrap;gap:0;padding-right:0}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex-basis:100%}.Z_0aEG_aiActions{justify-content:space-between;width:100%;padding:0 13px 12px}.Z_0aEG_aiFeedback{margin-inline:9px}}";
+		const css$24 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=639px){.Z_0aEG_root[data-component-id] .Z_0aEG_moduleList,.Z_0aEG_root[data-component-id] .Z_0aEG_grid{grid-template-columns:1fr}}.Z_0aEG_aiHeader{align-items:center;gap:8px;padding-right:14px;display:flex}.Z_0aEG_importControl{flex-shrink:0;position:relative}.Z_0aEG_importMenu{z-index:20;border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:12px;min-width:190px;padding:5px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 8px 24px #0002}.Z_0aEG_root .Z_0aEG_importMenu button{text-align:left;white-space:nowrap;background:0 0;border:0;width:100%;display:block}.Z_0aEG_root .Z_0aEG_importMenu button:hover{background:color-mix(in srgb,var(--tree-accent) 8%,var(--tree-bg))}.Z_0aEG_importDialog{border:1px solid var(--tree-border);background:var(--tree-bg);width:min(560px,100vw - 32px);max-height:calc(100dvh - 48px);color:var(--tree-text);border-radius:16px;padding:0;box-shadow:0 18px 64px #0003}.Z_0aEG_importDialog::backdrop{backdrop-filter:blur(3px);background:#0005}.Z_0aEG_importDialog .Z_0aEG_importBox{border:0;gap:12px;margin:0;padding:20px}.Z_0aEG_importTitle{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_importDialog p{overflow-wrap:anywhere;margin:0;font-size:12px;line-height:1.6}.Z_0aEG_importDialog .Z_0aEG_preview{border:0;padding:0}.Z_0aEG_importNotice{color:var(--tree-muted);flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.Z_0aEG_card[data-imported=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=520px){.Z_0aEG_toolbar{position:relative}.Z_0aEG_toolbar>.Z_0aEG_search{flex-basis:100%;min-width:0}.Z_0aEG_toolbar>.Z_0aEG_toolButton,.Z_0aEG_importControl>.Z_0aEG_toolButton{gap:5px;padding:8px 9px;font-size:12px}.Z_0aEG_importControl{position:static}.Z_0aEG_importMenu{max-width:100%;left:auto;right:0}}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex:1;width:auto;min-width:0}.Z_0aEG_aiActions{flex-shrink:0;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_aiButton{border-color:color-mix(in srgb,var(--tree-tone) 25%,var(--tree-border));background:color-mix(in srgb,var(--tree-tone) 6%,var(--tree-bg));white-space:nowrap;justify-content:center;align-items:center;gap:6px;font-size:12px;display:inline-flex}.Z_0aEG_aiButton svg{width:15px;height:15px}.Z_0aEG_root .Z_0aEG_aiToggle{background:0 0;border:0;align-items:center;gap:12px;padding:8px 0;display:flex}.Z_0aEG_aiFeedback{background:var(--tree-bg);color:var(--tree-text);border-radius:10px;margin:0 14px 12px;padding:11px 12px;font-size:12px;line-height:1.7}.Z_0aEG_aiFeedback small{color:var(--tree-muted);font-size:11px;display:block}.Z_0aEG_aiFeedback summary{cursor:pointer;color:var(--tree-accent);padding:7px 0}.Z_0aEG_aiFeedback ul{max-height:240px;margin:0;padding:0;list-style:none;overflow:auto}.Z_0aEG_aiFeedback li{border-top:1px solid var(--tree-border);overflow-wrap:anywhere;gap:3px;padding:9px 0;display:grid}.Z_0aEG_aiFeedback button{margin-top:8px;font-size:12px}@container (width<=520px){.Z_0aEG_aiHeader{flex-wrap:wrap;gap:0;padding-right:0}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex-basis:100%}.Z_0aEG_aiActions{justify-content:space-between;width:100%;padding:0 13px 12px}.Z_0aEG_aiFeedback{margin-inline:9px}}";
 		const tagId$24 = "@linxin666/dsh-web-all/packages/dsh-plugin-manager/src/client/inventory-tree.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$24) + "]") === null) {
 			const tag = document.createElement("style");
@@ -2103,6 +2103,11 @@ window.__ModuleLoader__.load({
 			"grid": "Z_0aEG_grid",
 			"groupList": "Z_0aEG_groupList",
 			"importBox": "Z_0aEG_importBox",
+			"importControl": "Z_0aEG_importControl",
+			"importDialog": "Z_0aEG_importDialog",
+			"importMenu": "Z_0aEG_importMenu",
+			"importNotice": "Z_0aEG_importNotice",
+			"importTitle": "Z_0aEG_importTitle",
 			"inactiveCount": "Z_0aEG_inactiveCount",
 			"moduleEdit": "Z_0aEG_moduleEdit",
 			"moduleList": "Z_0aEG_moduleList",
@@ -2125,17 +2130,37 @@ window.__ModuleLoader__.load({
 			"treeReveal": "Z_0aEG_treeReveal"
 		};
 		//#endregion
+		//#region ../dsh-plugin-manager/src/client/plugin-request.ts
+		var PluginRequestError = class extends Error {
+			remedy;
+			constructor(message, remedy = "retry") {
+				super(message);
+				this.remedy = remedy;
+			}
+		};
+		async function pluginResponse(response) {
+			if (response.status === 404) throw new PluginRequestError("插件服务接口尚未加载，请保存工作后完全退出并重新打开工作台。", "restart");
+			if (response.status === 401) throw new PluginRequestError("工作台连接已失效，请从工作台入口重新连接。", "reconnect");
+			if (response.status === 403) throw new PluginRequestError("当前连接无权执行此操作，请从本机工作台入口访问。", "reconnect");
+			let data;
+			try {
+				data = await response.json();
+			} catch {
+				throw new PluginRequestError("插件服务返回了无法识别的响应，请重试；若持续出现，请重新启动工作台。");
+			}
+			if (!response.ok) throw new PluginRequestError(typeof data?.error === "string" ? data.error : typeof data?.message === "string" ? data.message : "插件操作失败，请重试。");
+			if (!data || typeof data !== "object" || Array.isArray(data)) throw new PluginRequestError("插件服务响应格式不正确，请重试。");
+			return data;
+		}
+		//#endregion
 		//#region ../dsh-plugin-manager/src/client/AiClassification.tsx
 		async function request$2(action, body) {
-			const response = await fetch("/api/plugin-manager/ai/" + action, body ? {
+			return pluginResponse(await fetch("/api/plugin-manager/ai/" + action, body ? {
 				method: "POST",
 				headers: { "content-type": "application/json" },
 				body: JSON.stringify(body),
 				keepalive: true
-			} : void 0);
-			const data = await response.json();
-			if (!response.ok) throw Error(data.error ?? "AI 分类请求失败");
-			return data;
+			} : void 0));
 		}
 		function useAiClassification(enabled, onChanged) {
 			const [job, setJob] = (0, react$1.useState)(), [report, setReport] = (0, react$1.useState)(), [error, setError] = (0, react$1.useState)(""), [working, setWorking] = (0, react$1.useState)(false);
@@ -2258,6 +2283,14 @@ window.__ModuleLoader__.load({
 					setWorking(false);
 				}
 			};
+			const retry = async () => {
+				setError("");
+				try {
+					apply(await request$2("status"));
+				} catch (e) {
+					setError(e instanceof Error ? e.message : String(e));
+				}
+			};
 			return {
 				job,
 				report,
@@ -2265,7 +2298,8 @@ window.__ModuleLoader__.load({
 				running,
 				start,
 				cancel,
-				undo
+				undo,
+				retry
 			};
 		}
 		function AiClassificationFeedback({ ai, disabled }) {
@@ -2299,7 +2333,11 @@ window.__ModuleLoader__.load({
 						role: "alert",
 						children: error
 					}),
-					(error || job?.phase === "failed") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						onClick: () => void ai.retry(),
+						children: "重新检查连接"
+					}),
+					!error && job?.phase === "failed" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						onClick: () => openWorkbenchLink({ section: "models" }),
 						children: "前往模型设置"
 					}),
@@ -2319,6 +2357,7 @@ window.__ModuleLoader__.load({
 		//#endregion
 		//#region ../dsh-plugin-manager/src/client/InventoryIcon.tsx
 		const paths = {
+			plus: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M12 5v14M5 12h14" }),
 			layers: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m12 3 9 5-9 5-9-5 9-5Z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m3 12 9 5 9-5M3 16l9 5 9-5" })] }),
 			grid: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
@@ -2473,6 +2512,353 @@ window.__ModuleLoader__.load({
 				focusable: "false",
 				children: paths[modules[name] ?? name] ?? paths.grid
 			});
+		}
+		//#endregion
+		//#region ../dsh-plugin-manager/src/client/LocalPluginImport.tsx
+		async function localPluginRequest(path, body) {
+			return pluginResponse(await fetch("/api/plugin-manager/" + path, body === void 0 ? void 0 : {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify(body)
+			}));
+		}
+		async function finishJob(jobId) {
+			const { job } = await localPluginRequest("status?job=" + encodeURIComponent(jobId));
+			if (job?.phase !== "done") throw Error(job?.error ?? "插件尚未安装完成，请刷新查看。");
+			window.dispatchEvent(new Event("dsh-local-plugins-changed"));
+		}
+		function OfflineRollback({ id, version, onChange }) {
+			const [confirm, setConfirm] = (0, react$1.useState)(false), [busy, setBusy] = (0, react$1.useState)(false), [error, setError] = (0, react$1.useState)("");
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: !confirm ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+				onClick: () => setConfirm(true),
+				children: ["回退到 ", version]
+			}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				role: "dialog",
+				"aria-label": "确认回退插件",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+						"将 ",
+						id,
+						" 回退到 ",
+						version,
+						"，重启后生效。插件自己的数据保留。"
+					] }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						disabled: busy,
+						onClick: async () => {
+							setBusy(true);
+							setError("");
+							try {
+								await finishJob((await localPluginRequest("rollback", {
+									id,
+									confirm: true
+								})).jobId);
+								await onChange();
+								setConfirm(false);
+							} catch (e) {
+								setError(String(e));
+							} finally {
+								setBusy(false);
+							}
+						},
+						children: "确认回退"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						disabled: busy,
+						onClick: () => setConfirm(false),
+						children: "取消"
+					}),
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "alert",
+						children: error
+					})
+				]
+			}) });
+		}
+		function LocalPluginImport({ onChange, disabled = false, compact = false, onImported }) {
+			const zip = (0, react$1.useRef)(null), folder = (0, react$1.useRef)(null), active = (0, react$1.useRef)(false);
+			const [uploadId, setUploadId] = (0, react$1.useState)(""), [preview, setPreview] = (0, react$1.useState)(), [busy, setBusy] = (0, react$1.useState)(false), [progress, setProgress] = (0, react$1.useState)(""), [error, setError] = (0, react$1.useState)(""), [done, setDone] = (0, react$1.useState)("");
+			const [menu, setMenu] = (0, react$1.useState)(false), [open, setOpen] = (0, react$1.useState)(false);
+			const dialog = (0, react$1.useRef)(null), anchor = (0, react$1.useRef)(null), trigger = (0, react$1.useRef)(null);
+			(0, react$1.useEffect)(() => {
+				if (!compact) return;
+				const d = dialog.current;
+				if (open && !d?.open) d?.showModal();
+				else if (!open && d?.open) {
+					d.close();
+					trigger.current?.focus();
+				}
+			}, [open, compact]);
+			(0, react$1.useEffect)(() => {
+				if (!menu) return;
+				const outside = (e) => {
+					if (!anchor.current?.contains(e.target)) setMenu(false);
+				};
+				document.addEventListener("pointerdown", outside);
+				return () => document.removeEventListener("pointerdown", outside);
+			}, [menu]);
+			(0, react$1.useEffect)(() => {
+				if (!busy) return;
+				const guard = (e) => {
+					e.preventDefault();
+					e.returnValue = "";
+				};
+				window.addEventListener("beforeunload", guard);
+				return () => window.removeEventListener("beforeunload", guard);
+			}, [busy]);
+			const discard = async () => {
+				if (uploadId) try {
+					await localPluginRequest("import/discard", { uploadId });
+				} catch {}
+				setUploadId("");
+				setPreview(void 0);
+			};
+			const close = async () => {
+				if (active.current) return;
+				await discard();
+				setOpen(false);
+			};
+			const select = async (files, format) => {
+				if (!files?.length || active.current) return;
+				active.current = true;
+				setBusy(true);
+				setError("");
+				setDone("");
+				setMenu(false);
+				setOpen(true);
+				let id = "";
+				try {
+					await discard();
+					id = (await localPluginRequest("import/start", { format })).uploadId;
+					setUploadId(id);
+					if (files.length > 2e3) throw Error("一个插件包最多支持 2,000 个文件，请使用包含构建产物的发布包。");
+					for (let i = 0; i < files.length; i++) {
+						const file = files[i], name = format === "zip" ? "archive.zip" : file.webkitRelativePath || file.name;
+						setProgress(`正在复制文件 ${i + 1} / ${files.length}`);
+						const res = await fetch("/api/plugin-manager/import/file?uploadId=" + encodeURIComponent(id) + "&path=" + encodeURIComponent(name), {
+							method: "PUT",
+							body: file
+						});
+						if (!res.ok) await pluginResponse(res);
+					}
+					setProgress("正在检查插件和离线依赖…");
+					const result = await localPluginRequest("import/inspect", { uploadId: id });
+					setPreview(result.preview);
+				} catch (e) {
+					setError(String(e));
+					if (id) try {
+						await localPluginRequest("import/discard", { uploadId: id });
+					} catch {}
+					setUploadId("");
+				} finally {
+					setBusy(false);
+					active.current = false;
+					setProgress("");
+					if (zip.current) zip.current.value = "";
+					if (folder.current) folder.current.value = "";
+				}
+			};
+			const install = async () => {
+				if (!preview || active.current) return;
+				active.current = true;
+				setBusy(true);
+				setError("");
+				try {
+					await finishJob((await localPluginRequest("import/commit", {
+						uploadId,
+						hash: preview.hash,
+						currentHash: preview.currentHash ?? "",
+						replace: preview.disposition !== "new",
+						confirm: true
+					})).jobId);
+					await onChange();
+					onImported?.(preview);
+					if (compact) setOpen(false);
+					setDone(preview.disposition === "identical" ? "这个版本已经安装，无需重复导入。" : "本地安装完成。新增条目进入未定义区，重启工作台后加载。");
+					setPreview(void 0);
+					setUploadId("");
+				} catch (e) {
+					setError(String(e));
+				} finally {
+					setBusy(false);
+					active.current = false;
+				}
+			};
+			const content = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: `${inventory_tree_module_css_default.root} ${inventory_tree_module_css_default.importBox}`,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: inventory_tree_module_css_default.importTitle,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", {
+							id: "local-plugin-import-title",
+							children: "导入本地插件"
+						}), compact && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							"aria-label": "关闭导入",
+							disabled: busy,
+							onClick: () => void close(),
+							children: "×"
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "选择已经构建好的插件发布包。依赖需要随包提供；安装过程不会联网，也不会执行安装脚本。" }),
+					!compact && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: inventory_tree_module_css_default.toolbar,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: inventory_tree_module_css_default.primary,
+							disabled: busy || disabled,
+							onClick: () => zip.current?.click(),
+							children: "导入 ZIP 压缩包"
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy || disabled,
+							onClick: () => folder.current?.click(),
+							children: "选择插件文件夹"
+						})]
+					}),
+					progress && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "status",
+						children: progress
+					}),
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "alert",
+						className: inventory_tree_module_css_default.error,
+						children: error
+					}),
+					done && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "status",
+						children: done
+					}),
+					preview && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: inventory_tree_module_css_default.preview,
+						role: compact ? void 0 : "dialog",
+						"aria-label": "确认本地插件导入",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: preview.name }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: preview.id }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dl", { children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "版本" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dd", { children: [preview.currentVersion ? `${preview.currentVersion} → ` : "", preview.version] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "安装内容" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dd", { children: [
+									preview.entries.length,
+									" 个插件条目 · ",
+									preview.fileCount,
+									" 个文件 · ",
+									(preview.totalBytes / 1024 / 1024).toFixed(2),
+									" MiB"
+								] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "分类" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: preview.disposition === "new" ? "未定义区，导入后可自行归类" : "保留已有条目的分类；新增条目进入未定义区" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "依赖检查" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dd", { children: [
+									"包内 ",
+									preview.bundled.length,
+									" 项 · 底座共享 ",
+									preview.shared.length,
+									" 项 · ",
+									preview.platform
+								] })
+							] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "查看条目和依赖" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: preview.entries.map((e) => e.id).join("、") }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: [...preview.bundled, ...preview.shared.map((s) => s.name + "@" + s.version)].join("、") || "无额外依赖" })
+							] }),
+							preview.scriptsSkipped.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+								"已跳过安装脚本：",
+								preview.scriptsSkipped.join("、"),
+								"。发布包必须已包含所需构建产物。"
+							] }),
+							preview.disposition === "replace" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "版本号相同，但文件内容不同。确认后将替换当前受管副本，并保留上一版供回退。" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "插件代码将在重启后运行。确认安装表示允许加载这个本地插件。" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: inventory_tree_module_css_default.toolbar,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									disabled: busy || disabled,
+									onClick: () => void install(),
+									children: busy ? "正在安装…" : preview.disposition === "identical" ? "确认，无需重复安装" : preview.disposition === "new" ? "确认安装" : "确认替换版本"
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									disabled: busy,
+									onClick: () => void (compact ? close() : discard()),
+									children: "取消"
+								})]
+							})
+						]
+					})
+				]
+			});
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+					ref: zip,
+					hidden: true,
+					type: "file",
+					accept: ".zip,application/zip",
+					onChange: (e) => void select(e.target.files, "zip")
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+					ref: folder,
+					hidden: true,
+					type: "file",
+					multiple: true,
+					webkitdirectory: "",
+					onChange: (e) => void select(e.target.files, "folder")
+				}),
+				compact ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: inventory_tree_module_css_default.importControl,
+					ref: anchor,
+					onKeyDown: (e) => {
+						if (e.key === "Escape" && !open) {
+							e.stopPropagation();
+							setMenu(false);
+							trigger.current?.focus();
+						}
+					},
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							ref: trigger,
+							className: inventory_tree_module_css_default.toolButton,
+							"aria-label": "导入插件",
+							"aria-expanded": menu,
+							disabled: disabled || busy,
+							onClick: () => setMenu(!menu),
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "plus" }),
+								"导入",
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									"aria-hidden": "true",
+									children: "⌄"
+								})
+							]
+						}),
+						menu && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: inventory_tree_module_css_default.importMenu,
+							role: "group",
+							"aria-label": "选择导入方式",
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: () => {
+									setMenu(false);
+									zip.current?.click();
+								},
+								children: "导入 ZIP 压缩包"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: () => {
+									setMenu(false);
+									folder.current?.click();
+								},
+								children: "选择插件文件夹"
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dialog", {
+							ref: dialog,
+							className: inventory_tree_module_css_default.importDialog,
+							"aria-labelledby": "local-plugin-import-title",
+							onCancel: (e) => {
+								e.preventDefault();
+								close();
+							},
+							children: content
+						})
+					]
+				}) : content
+			] });
 		}
 		//#endregion
 		//#region ../dsh-capabilities/src/core/requirements-model.ts
@@ -2755,6 +3141,12 @@ window.__ModuleLoader__.load({
 			return result;
 		}
 		function InventoryTree({ list, presetName, componentId, componentData, compact = false }) {
+			const [imported, setImported] = (0, react$1.useState)([]), [importNotice, setImportNotice] = (0, react$1.useState)("");
+			(0, react$1.useEffect)(() => {
+				if (!imported.length) return;
+				const timer = setTimeout(() => setImported([]), 8e3);
+				return () => clearTimeout(timer);
+			}, [imported]);
 			const [entry] = (0, react$1.useState)(() => compact ? void 0 : pendingNavigation("plugins"));
 			const [saved] = (0, react$1.useState)(() => {
 				try {
@@ -2950,6 +3342,7 @@ window.__ModuleLoader__.load({
 				const key = entryKey(e), fact = entryFacts(e), provided = !e.enabled ? memberships.get(e.moduleName) : void 0, scope = session ? selectedPreset?.id : "global", identityKey = "identity:" + scope + ":" + e.entryId, referencesKey = "references:" + scope + ":" + e.entryId;
 				return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: inventory_tree_module_css_default.card,
+					"data-imported": !session && imported.includes(e.entryId),
 					"data-entry-id": e.entryId,
 					"data-focused": focusEntry?.id === e.entryId && focusEntry.scope === (session ? selectedPreset?.id : "global"),
 					children: [
@@ -3162,11 +3555,13 @@ window.__ModuleLoader__.load({
 									onChange: (e) => setQuery(e.target.value)
 								})]
 							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: inventory_tree_module_css_default.toolButton,
+								title: "刷新插件列表",
+								"aria-label": "刷新",
 								disabled: busy || !!draft,
 								onClick: () => void refresh(),
-								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "refresh" }), "刷新"]
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "refresh" })
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 								hidden: compact,
@@ -3177,6 +3572,44 @@ window.__ModuleLoader__.load({
 									setSelected([]);
 								},
 								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(InventoryIcon, { name: "grid" }), "管理分类"]
+							}),
+							!compact && !relatedId && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(LocalPluginImport, {
+								compact: true,
+								disabled: !config || busy || !!draft || ai.running,
+								onChange: refresh,
+								onImported: (p) => {
+									setImported(p.entries.map((e) => "include:" + e.id));
+									setOpened((old) => ({
+										...old,
+										global: true,
+										undefined: true
+									}));
+									setImportNotice(p.disposition === "identical" ? "该版本已安装，无需重复导入。" : "已导入，重启后加载。新增条目已进入未定义区。");
+								}
+							})
+						]
+					}),
+					importNotice && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: inventory_tree_module_css_default.importNotice,
+						role: "status",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: importNotice }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: () => {
+									setQuery("");
+									setOpened((old) => ({
+										...old,
+										global: true,
+										undefined: true
+									}));
+									document.getElementById("tree-undefined")?.scrollIntoView({ block: "nearest" });
+								},
+								children: "查看新插件"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								"aria-label": "关闭导入提示",
+								onClick: () => setImportNotice(""),
+								children: "×"
 							})
 						]
 					}),
@@ -3651,252 +4084,6 @@ window.__ModuleLoader__.load({
 				for (const [entry, { original, decorated }] of changes) if (entry.component === decorated) entry.component = original;
 				changes.clear();
 			};
-		}
-		//#endregion
-		//#region ../dsh-plugin-manager/src/client/LocalPluginImport.tsx
-		async function localPluginRequest(path, body) {
-			const response = await fetch("/api/plugin-manager/" + path, body === void 0 ? void 0 : {
-				method: "POST",
-				headers: { "content-type": "application/json" },
-				body: JSON.stringify(body)
-			});
-			const data = await response.json();
-			if (!response.ok) throw Error(data.error ?? data.message ?? "插件操作失败");
-			return data;
-		}
-		async function finishJob(jobId) {
-			const { job } = await localPluginRequest("status?job=" + encodeURIComponent(jobId));
-			if (job?.phase !== "done") throw Error(job?.error ?? "插件尚未安装完成，请刷新查看。");
-			window.dispatchEvent(new Event("dsh-local-plugins-changed"));
-		}
-		function OfflineRollback({ id, version, onChange }) {
-			const [confirm, setConfirm] = (0, react$1.useState)(false), [busy, setBusy] = (0, react$1.useState)(false), [error, setError] = (0, react$1.useState)("");
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: !confirm ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-				onClick: () => setConfirm(true),
-				children: ["回退到 ", version]
-			}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-				role: "dialog",
-				"aria-label": "确认回退插件",
-				children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-						"将 ",
-						id,
-						" 回退到 ",
-						version,
-						"，重启后生效。插件自己的数据保留。"
-					] }),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						disabled: busy,
-						onClick: async () => {
-							setBusy(true);
-							setError("");
-							try {
-								await finishJob((await localPluginRequest("rollback", {
-									id,
-									confirm: true
-								})).jobId);
-								await onChange();
-								setConfirm(false);
-							} catch (e) {
-								setError(String(e));
-							} finally {
-								setBusy(false);
-							}
-						},
-						children: "确认回退"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						disabled: busy,
-						onClick: () => setConfirm(false),
-						children: "取消"
-					}),
-					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-						role: "alert",
-						children: error
-					})
-				]
-			}) });
-		}
-		function LocalPluginImport({ onChange, disabled = false }) {
-			const zip = (0, react$1.useRef)(null), folder = (0, react$1.useRef)(null), active = (0, react$1.useRef)(false);
-			const [uploadId, setUploadId] = (0, react$1.useState)(""), [preview, setPreview] = (0, react$1.useState)(), [busy, setBusy] = (0, react$1.useState)(false), [progress, setProgress] = (0, react$1.useState)(""), [error, setError] = (0, react$1.useState)(""), [done, setDone] = (0, react$1.useState)("");
-			const discard = async () => {
-				if (uploadId) try {
-					await localPluginRequest("import/discard", { uploadId });
-				} catch {}
-				setUploadId("");
-				setPreview(void 0);
-			};
-			const select = async (files, format) => {
-				if (!files?.length || active.current) return;
-				active.current = true;
-				setBusy(true);
-				setError("");
-				setDone("");
-				let id = "";
-				try {
-					await discard();
-					id = (await localPluginRequest("import/start", { format })).uploadId;
-					setUploadId(id);
-					if (files.length > 2e3) throw Error("一个插件包最多支持 2,000 个文件，请使用包含构建产物的发布包。");
-					for (let i = 0; i < files.length; i++) {
-						const file = files[i], name = format === "zip" ? "archive.zip" : file.webkitRelativePath || file.name;
-						setProgress(`正在复制文件 ${i + 1} / ${files.length}`);
-						const res = await fetch("/api/plugin-manager/import/file?uploadId=" + encodeURIComponent(id) + "&path=" + encodeURIComponent(name), {
-							method: "PUT",
-							body: file
-						});
-						if (!res.ok) {
-							const err = await res.json();
-							throw Error(err.error ?? "文件复制失败");
-						}
-					}
-					setProgress("正在检查插件和离线依赖…");
-					const result = await localPluginRequest("import/inspect", { uploadId: id });
-					setPreview(result.preview);
-				} catch (e) {
-					setError(String(e));
-					if (id) try {
-						await localPluginRequest("import/discard", { uploadId: id });
-					} catch {}
-					setUploadId("");
-				} finally {
-					setBusy(false);
-					active.current = false;
-					setProgress("");
-					if (zip.current) zip.current.value = "";
-					if (folder.current) folder.current.value = "";
-				}
-			};
-			const install = async () => {
-				if (!preview || active.current) return;
-				active.current = true;
-				setBusy(true);
-				setError("");
-				try {
-					await finishJob((await localPluginRequest("import/commit", {
-						uploadId,
-						hash: preview.hash,
-						currentHash: preview.currentHash ?? "",
-						replace: preview.disposition !== "new",
-						confirm: true
-					})).jobId);
-					await onChange();
-					setDone(preview.disposition === "identical" ? "这个版本已经安装，无需重复导入。" : "本地安装完成。新增条目进入未定义区，重启工作台后加载。");
-					setPreview(void 0);
-					setUploadId("");
-				} catch (e) {
-					setError(String(e));
-				} finally {
-					setBusy(false);
-					active.current = false;
-				}
-			};
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-				className: `${inventory_tree_module_css_default.root} ${inventory_tree_module_css_default.importBox}`,
-				children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "导入本地插件" }),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "选择已经构建好的插件发布包。依赖需要随包提供；安装过程不会联网，也不会执行安装脚本。" }),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: inventory_tree_module_css_default.toolbar,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							className: inventory_tree_module_css_default.primary,
-							disabled: busy || disabled,
-							onClick: () => zip.current?.click(),
-							children: "导入 ZIP 压缩包"
-						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							disabled: busy || disabled,
-							onClick: () => folder.current?.click(),
-							children: "选择插件文件夹"
-						})]
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-						ref: zip,
-						hidden: true,
-						type: "file",
-						accept: ".zip,application/zip",
-						onChange: (e) => void select(e.target.files, "zip")
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-						ref: folder,
-						hidden: true,
-						type: "file",
-						multiple: true,
-						webkitdirectory: "",
-						onChange: (e) => void select(e.target.files, "folder")
-					}),
-					progress && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-						role: "status",
-						children: progress
-					}),
-					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-						role: "alert",
-						className: inventory_tree_module_css_default.error,
-						children: error
-					}),
-					done && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-						role: "status",
-						children: done
-					}),
-					preview && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: inventory_tree_module_css_default.preview,
-						role: "dialog",
-						"aria-label": "确认本地插件导入",
-						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: preview.name }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: preview.id }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dl", { children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "版本" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dd", { children: [preview.currentVersion ? `${preview.currentVersion} → ` : "", preview.version] }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "安装内容" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dd", { children: [
-									preview.entries.length,
-									" 个插件条目 · ",
-									preview.fileCount,
-									" 个文件 · ",
-									(preview.totalBytes / 1024 / 1024).toFixed(2),
-									" MiB"
-								] }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "分类" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: preview.disposition === "new" ? "未定义区，导入后可自行归类" : "保留已有条目的分类；新增条目进入未定义区" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "依赖检查" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dd", { children: [
-									"包内 ",
-									preview.bundled.length,
-									" 项 · 底座共享 ",
-									preview.shared.length,
-									" 项 · ",
-									preview.platform
-								] })
-							] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "查看条目和依赖" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: preview.entries.map((e) => e.id).join("、") }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: [...preview.bundled, ...preview.shared.map((s) => s.name + "@" + s.version)].join("、") || "无额外依赖" })
-							] }),
-							preview.scriptsSkipped.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-								"已跳过安装脚本：",
-								preview.scriptsSkipped.join("、"),
-								"。发布包必须已包含所需构建产物。"
-							] }),
-							preview.disposition === "replace" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "版本号相同，但文件内容不同。确认后将替换当前受管副本，并保留上一版供回退。" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "插件代码将在重启后运行。确认安装表示允许加载这个本地插件。" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								className: inventory_tree_module_css_default.toolbar,
-								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									disabled: busy || disabled,
-									onClick: () => void install(),
-									children: busy ? "正在安装…" : preview.disposition === "identical" ? "确认，无需重复安装" : preview.disposition === "new" ? "确认安装" : "确认替换版本"
-								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									disabled: busy,
-									onClick: () => void discard(),
-									children: "取消"
-								})]
-							})
-						]
-					})
-				]
-			});
 		}
 		//#endregion
 		//#region ../dsh-plugin-manager/src/core/conflict.ts

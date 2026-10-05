@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import type { ClassificationJob, ClassificationReport } from '../core/ai-classification.ts'
 import { useLeaveGuard, openWorkbenchLink } from './workbench-navigation.ts'
 import css from './inventory-tree.module.css'
+import { pluginResponse } from './plugin-request.ts'
 
 async function request(action:string,body?:object){
   const response=await fetch('/api/plugin-manager/ai/'+action,body?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),keepalive:true}:undefined)
-  const data=await response.json();if(!response.ok)throw Error(data.error??'AI 分类请求失败');return data
+  return pluginResponse(response)
 }
 export function useAiClassification(enabled:boolean,onChanged:()=>void){
   const [job,setJob]=useState<ClassificationJob>(),[report,setReport]=useState<ClassificationReport>(),[error,setError]=useState(''),[working,setWorking]=useState(false)
@@ -41,7 +42,8 @@ export function useAiClassification(enabled:boolean,onChanged:()=>void){
     finally{if(mounted.current)setWorking(false)}
   }
   const undo=async()=>{if(!report||running)return;generation.current++;setWorking(true);setError('');try{apply(await request('undo',{id:report.id}));latest.current()}catch(e){setError(String(e))}finally{setWorking(false)}}
-  return {job,report,error,running,start,cancel,undo}
+  const retry=async()=>{setError('');try{apply(await request('status'))}catch(e){setError(e instanceof Error?e.message:String(e))}}
+  return {job,report,error,running,start,cancel,undo,retry}
 }
 export type AiClassificationState=ReturnType<typeof useAiClassification>
 export function AiClassificationFeedback({ai,disabled}:{ai:AiClassificationState;disabled:boolean}){
@@ -53,7 +55,8 @@ export function AiClassificationFeedback({ai,disabled}:{ai:AiClassificationState
    {running?<span>正在分类 {job?.total||'全部未定义'} 项{job?.total?` · 已分析 ${job.processed} / ${job.total}`:''}{job?.model&&<small>使用：{job.model}</small>}</span>:job?.phase==='cancelled'?<span>已取消，尚未保存的结果已丢弃。</span>:job?.phase==='failed'?<span className={css.error}>{job.error}</span>:report?<span>{report.undone?`已撤销 ${count('undone')} 项`:`已分类 ${count('applied')} 项`}{count('unclassified')+count('failed')>0?`，${count('unclassified')+count('failed')} 项仍待整理`:''}{count('skipped')>0?`，${count('skipped')} 项已有变化，已跳过`:''}<small>使用：{report.model}</small></span>:null}
   </div>
   {error&&<p className={css.error} role="alert">{error}</p>}
-  {(error||job?.phase==='failed')&&<button onClick={()=>openWorkbenchLink({section:'models'})}>前往模型设置</button>}
+  {error&&<button onClick={()=>void ai.retry()}>重新检查连接</button>}
+  {!error&&job?.phase==='failed'&&<button onClick={()=>openWorkbenchLink({section:'models'})}>前往模型设置</button>}
   {!running&&report&&<details><summary>查看分类结果</summary><ul>{report.results.map(r=><li key={r.key}><strong>{r.name}</strong><span>{r.status==='applied'?r.target:r.status==='undone'?'已退回未定义区':r.status==='skipped'?'保留当前归属':'留在未定义区'}</span><small>{r.reason}</small></li>)}</ul></details>}
   {!running&&report&&!report.undone&&count('applied')>0&&<button disabled={disabled} onClick={()=>void ai.undo()}>撤销本次分类</button>}
  </div>

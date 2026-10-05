@@ -8,12 +8,8 @@ import { parseDocument } from 'yaml'
 import { readResourceManifest, validateLocalId } from '../../../dsh-market/src/core/local-import-manifest.ts'
 import { listPlainFiles, safeLocalPath, isImportedRecord } from '../../../dsh-market/src/core/local-import-safety.ts'
 
-export interface OfflinePreview {
- id:string;name:string;version:string;hash:string;fileCount:number;totalBytes:number
- entries:Array<{id:string;name:string}>;shared:Array<{name:string;version:string}>;bundled:string[]
- scriptsSkipped:string[];platform:string;currentVersion?:string;currentHash?:string
- disposition:'new'|'identical'|'upgrade'|'replace';requiresRestart:true
-}
+import type { OfflinePreview } from '../core/offline-preview.ts'
+export type { OfflinePreview } from '../core/offline-preview.ts'
 export interface CheckedPackage { preview:OfflinePreview;links:Map<string,string>;root:string }
 const sharedName=(name:string)=>name.startsWith('@deepseek-ai/')||name==='react'||name==='react-dom'
 export const json=(file:string)=>JSON.parse(readFileSync(file,'utf8').replace(/^\uFEFF/,''))

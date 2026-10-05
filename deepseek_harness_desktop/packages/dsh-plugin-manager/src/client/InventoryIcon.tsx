@@ -2,6 +2,7 @@ import React from 'react'
 
 // Stable module IDs keep custom names and translated labels independent of decoration.
 const paths: Record<string, React.ReactNode> = {
+  plus: <path d="M12 5v14M5 12h14"/>,
   layers: <><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></>,
   grid: <><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>,
   inbox: <><path d="m3 13 3-8h12l3 8v6H3v-6Z"/><path d="M3 13h5l2 3h4l2-3h5"/></>,

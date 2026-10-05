@@ -4,6 +4,7 @@ import { entryKey, entryFacts, removeCategory, type Classification, type Invento
 import css from './inventory-tree.module.css'
 import { useAiClassification, AiClassificationFeedback } from './AiClassification.tsx'
 import { InventoryIcon } from './InventoryIcon.tsx'
+import { LocalPluginImport } from './LocalPluginImport.tsx'
 import { CapabilityReferences, capabilityLink, useCapabilityReferences } from './CapabilityReferences.tsx'
 
 import { pluginRelations, relationNames } from '../../../dsh-capabilities/src/core/component-registry.ts'
@@ -21,6 +22,8 @@ async function classificationRequest(body?:Classification):Promise<Classificatio
 function shift<T>(items:T[],index:number,delta:number):T[]{const result=[...items],other=index+delta;if(other<0||other>=items.length)return result;[result[index],result[other]]=[result[other]!,result[index]!];return result}
 export async function readPluginInventory():Promise<InventorySnapshot>{ const r=await fetch('/api/plugin-manager/inventory');const data=await r.json();if(!r.ok)throw Error(data.error??'插件清单读取失败');return data }
 export function InventoryTree({list,presetName,componentId,componentData,compact=false}:Props){
+ const [imported,setImported]=useState<string[]>([]),[importNotice,setImportNotice]=useState('')
+ useEffect(()=>{if(!imported.length)return;const timer=setTimeout(()=>setImported([]),8000);return()=>clearTimeout(timer)},[imported])
  const [entry]=useState(()=>compact?undefined:pendingNavigation('plugins'))
  const [saved]=useState(()=>{try{return restoredFrame(entry?.restore,'plugins')?.view ?? JSON.parse(sessionStorage.getItem('workbench-plugin-view')??'{}')}catch{return {}}})
  const [origin,setOrigin]=useState(restoredFrame(entry?.restore,'plugins')?.origin ?? legacyOrigin(entry))
@@ -58,7 +61,7 @@ export function InventoryTree({list,presetName,componentId,componentData,compact
  const matches=(e:InventoryEntry,extra='')=>[e.moduleName,e.entryId,entryFacts(e).purpose,entryFacts(e).source,extra,categoryLabel(e)].join(' ').toLocaleLowerCase().includes(q)
  const card=(e:InventoryEntry,session=false)=>{
   const key=entryKey(e),fact=entryFacts(e),provided=!e.enabled?memberships.get(e.moduleName):undefined,scope=session?selectedPreset?.id:'global',identityKey='identity:'+scope+':'+e.entryId,referencesKey='references:'+scope+':'+e.entryId
-  return <div key={(session?'session:':'')+e.entryId} className={css.card} data-entry-id={e.entryId} data-focused={focusEntry?.id===e.entryId && focusEntry.scope===(session?selectedPreset?.id:'global')}> 
+  return <div key={(session?'session:':'')+e.entryId} className={css.card} data-imported={!session&&imported.includes(e.entryId)} data-entry-id={e.entryId} data-focused={focusEntry?.id===e.entryId && focusEntry.scope===(session?selectedPreset?.id:'global')}>
    {draft&&!session&&<label className={css.select}><input type="checkbox" aria-label={'选择 '+e.moduleName} checked={selected.includes(key)} onChange={ev=>setSelected(ev.target.checked?[...selected,key]:selected.filter(x=>x!==key))}/>选择</label>}
    <details open={focusEntry?.id===e.entryId && focusEntry.scope===(session?selectedPreset?.id:'global')?true:compact?!!opened[identityKey]:undefined} onToggle={compact?event=>rememberOpen(identityKey,event.currentTarget.open):undefined}><summary><strong>{e.moduleName.replace(/^@deepseek-ai\/(?:dsh-)?/,'').replace(/^@linxin666\/dsh-/,'')}</strong><span className={css.badge} data-state={e.fiberPhase==='failed'?'failed':e.enabled?'active':'disabled'}>{e.fiberPhase==='conditional'?'条件待确定':e.fiberPhase==='pending-restart'?'待重启加载':e.fiberPhase==='failed'?'加载失败':e.enabled?(e.fiberPhase==='active'?'已启用':'待激活'):provided?'由会话预设提供':'已停用'}</span></summary>
     <dl><dt>完整包名</dt><dd>{e.moduleName}</dd><dt>条目 ID</dt><dd>{e.entryId}</dd><dt>来源</dt><dd>{session?(e.moduleName.startsWith('@deepseek-ai/')?'官方 Harness':'会话预设插件'):fact.source}</dd><dt>运行状态</dt><dd>{e.fiberPhase??'未在全局加载'}</dd>{provided&&<><dt>提供此能力的预设</dt><dd>{provided.join('、')}</dd></>}</dl>
@@ -92,7 +95,8 @@ export function InventoryTree({list,presetName,componentId,componentData,compact
  const removeCount=remove&&current?rows.filter(r=>{const m=current.modules.find(m=>m.id===current.assignments[entryKey(r)]);return remove.group?m?.groupId===remove.id:m?.id===remove.id}).length:0
  return <div className={css.root} data-component-id={compact?relatedId:undefined} data-inventory-ready={!!snapshot&&!!current}>
   {!compact&&origin&&<button className={css.toolButton} onClick={()=>returnNavigation(origin)}>← 返回{origin.label}</button>}
-  <div className={css.toolbar}><label className={css.search}><InventoryIcon name="search"/><input type="search" aria-label="搜索插件" placeholder="搜索插件、用途或模块" value={query} onChange={e=>setQuery(e.target.value)}/></label><button className={css.toolButton} disabled={busy||!!draft} onClick={()=>void refresh()}><InventoryIcon name="refresh"/>刷新</button><button hidden={compact} className={css.toolButton} disabled={!config||busy||!!draft||ai.running} onClick={()=>{setDraft(structuredClone(config!));setSelected([])}}><InventoryIcon name="grid"/>管理分类</button></div>
+  <div className={css.toolbar}><label className={css.search}><InventoryIcon name="search"/><input type="search" aria-label="搜索插件" placeholder="搜索插件、用途或模块" value={query} onChange={e=>setQuery(e.target.value)}/></label><button className={css.toolButton} title="刷新插件列表" aria-label="刷新" disabled={busy||!!draft} onClick={()=>void refresh()}><InventoryIcon name="refresh"/></button><button hidden={compact} className={css.toolButton} disabled={!config||busy||!!draft||ai.running} onClick={()=>{setDraft(structuredClone(config!));setSelected([])}}><InventoryIcon name="grid"/>管理分类</button>{!compact&&!relatedId&&<LocalPluginImport compact disabled={!config||busy||!!draft||ai.running} onChange={refresh} onImported={p=>{setImported(p.entries.map(e=>'include:'+e.id));setOpened(old=>({...old,global:true,undefined:true}));setImportNotice(p.disposition==='identical'?'该版本已安装，无需重复导入。':'已导入，重启后加载。新增条目已进入未定义区。')}}/>}</div>
+  {importNotice&&<div className={css.importNotice} role="status"><span>{importNotice}</span><button onClick={()=>{setQuery('');setOpened(old=>({...old,global:true,undefined:true}));document.getElementById('tree-undefined')?.scrollIntoView({block:'nearest'})}}>查看新插件</button><button aria-label="关闭导入提示" onClick={()=>setImportNotice('')}>×</button></div>}
   {descriptor&&<p className={css.scopeDescription}>当前组件：{descriptor.name} · 仅显示精确关联的插件和预设条目{!compact&&<button className={css.toolButton} onClick={()=>{setRelatedId(undefined);setFocusEntry(undefined);setQuery('')}}>查看全部插件</button>}</p>}
   {error&&<p role="alert" className={css.error}>{error}</p>}
   {!snapshot||!current?<p>正在读取插件清单…</p>:<>
