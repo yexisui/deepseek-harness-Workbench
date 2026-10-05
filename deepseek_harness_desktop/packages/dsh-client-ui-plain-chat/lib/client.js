@@ -6117,11 +6117,27 @@ window.__ModuleLoader__.load({
 				this.name = "JevError";
 			}
 		};
+		/** Only a technical failure may advance the candidate chain. Business decisions never do. */
+		var JevTechnicalError = class extends JevError {};
+		const candidates = (value) => value.candidates ?? (value.model ? [{
+			id: "legacy",
+			model: value.model,
+			enabled: true,
+			reasoningEffort: value.reasoningEffort
+		}] : []);
+		function candidateConfig(value, item) {
+			const { candidates: _c, totalTimeoutMs: _t, ...base } = value;
+			return {
+				...base,
+				model: item.model,
+				reasoningEffort: item.reasoningEffort
+			};
+		}
 		function config(raw) {
 			const d = raw;
 			if (!d || typeof d !== "object" || Array.isArray(d)) throw new JevError("JEV 配置格式无效", 400);
 			if (typeof d.enabled !== "boolean" || !["self-owned", "official-reserved"].includes(String(d.backend))) throw new JevError("JEV 开关或后端无效", 400);
-			if (typeof d.model !== "string" || d.model.length > 250 || /[\r\n]/.test(d.model)) throw new JevError("JEV 决策模型无效", 400);
+			if (typeof d.model !== "string" || d.model.length > 250 || /[\r\n]/.test(d.model)) throw new JevTechnicalError("JEV 决策模型无效", 400);
 			if (![
 				"",
 				"low",
@@ -6133,6 +6149,27 @@ window.__ModuleLoader__.load({
 				if (typeof n !== "number" || !Number.isInteger(n) || n < min || n > max) throw new JevError(`JEV ${key} 超出范围`, 400);
 				return n;
 			};
+			let items;
+			if (d.candidates !== void 0) {
+				if (!Array.isArray(d.candidates) || d.candidates.length > 12) throw new JevError("最多添加 12 个 JEV 候选模型", 400);
+				const ids = /* @__PURE__ */ new Set(), models = /* @__PURE__ */ new Set();
+				items = d.candidates.map((c) => {
+					if (!c || typeof c.id !== "string" || !/^[a-zA-Z0-9_-]{1,80}$/.test(c.id) || ids.has(c.id) || typeof c.model !== "string" || !/^\S+\/[^\r\n]+$/.test(c.model) || c.model.length > 250 || models.has(c.model.trim()) || typeof c.enabled !== "boolean" || ![
+						"",
+						"low",
+						"medium",
+						"high"
+					].includes(c.reasoningEffort)) throw new JevError("JEV 候选模型格式无效或重复", 400);
+					ids.add(c.id);
+					models.add(c.model.trim());
+					return {
+						id: c.id,
+						model: c.model.trim(),
+						enabled: c.enabled,
+						reasoningEffort: c.reasoningEffort
+					};
+				});
+			}
 			return {
 				enabled: d.enabled,
 				backend: d.backend,
@@ -6140,7 +6177,9 @@ window.__ModuleLoader__.load({
 				reasoningEffort: d.reasoningEffort,
 				timeoutMs: number("timeoutMs", 5e3, 12e4),
 				maxChecks: number("maxChecks", 3, 32),
-				maxContextChars: number("maxContextChars", 4e3, 64e3)
+				maxContextChars: number("maxContextChars", 4e3, 64e3),
+				...items ? { candidates: items } : {},
+				...d.totalTimeoutMs === void 0 ? {} : { totalTimeoutMs: number("totalTimeoutMs", 5e3, 3e5) }
 			};
 		}
 		const connectionConfig = (value) => JSON.stringify({
@@ -6367,7 +6406,9 @@ window.__ModuleLoader__.load({
 			reasoningEffort: "思考强度",
 			timeoutMs: "检查超时",
 			maxChecks: "每轮检查次数",
-			maxContextChars: "上下文上限"
+			maxContextChars: "上下文上限",
+			candidates: "候选模型顺序与开关",
+			totalTimeoutMs: "候选链总超时"
 		};
 		function fieldErrors(value) {
 			const errors = {};
@@ -6392,6 +6433,7 @@ window.__ModuleLoader__.load({
 					"上下文应为 4000–64000 的整数"
 				]
 			]) if (!Number.isInteger(value[key]) || value[key] < min || value[key] > max) errors[key] = label;
+			if (value.totalTimeoutMs !== void 0 && (!Number.isInteger(value.totalTimeoutMs) || value.totalTimeoutMs < 5e3 || value.totalTimeoutMs > 3e5)) errors.totalTimeoutMs = "总超时应为 5–300 秒";
 			return errors;
 		}
 		function modeLabel(data) {
@@ -6422,9 +6464,20 @@ window.__ModuleLoader__.load({
 			status: "",
 			days: ""
 		};
+		function modelSummary(value) {
+			const rows = candidates(value);
+			return rows.length ? "候选 " + rows.length + " 项 · 开启 " + rows.filter((c) => c.enabled).length + " 项" : "尚未添加候选模型";
+		}
+		function fieldValue(value) {
+			return Array.isArray(value) ? value.map((c) => c.model + "（" + (c.enabled ? "开" : "关") + "）").join("；") || "空列表" : String(value ?? "默认");
+		}
+		const sameField = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+		function diagnosticMatches(checked, current) {
+			return candidates(checked).filter((c) => c.enabled).every((c) => candidates(current).some((r) => connectionConfig(candidateConfig(checked, c)) === connectionConfig(candidateConfig(current, r))));
+		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-jev-mode/src/ui/JevControls.module.css.mjs
-		const css$7 = ".R-v9Lq_control{flex-wrap:wrap;align-items:center;gap:6px;min-width:0;display:inline-flex;position:relative}.R-v9Lq_toggle{white-space:nowrap;align-items:center;gap:8px;min-height:36px;display:inline-flex}.R-v9Lq_toggle[aria-checked=true]{color:var(--role-text);border-color:var(--role-accent)}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track{background:var(--role-accent);opacity:1}.R-v9Lq_toggle[data-unavailable=true]{color:var(--dsw-alias-label-error,#b43f4c)}.R-v9Lq_track{opacity:.75;box-sizing:border-box;background:currentColor;border-radius:10px;align-items:center;width:26px;height:15px;padding:2px;display:inline-flex}.R-v9Lq_track:after{content:\"\";background:var(--dsw-alias-bg-layer-2,#fff);border-radius:50%;width:11px;height:11px;transition:transform .15s}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track:after{transform:translate(11px)}.R-v9Lq_error,.R-v9Lq_feedback{border:1px solid var(--role-border);background:var(--role-bg);overflow-wrap:anywhere;border-radius:8px;padding:10px 12px}.R-v9Lq_error{color:var(--dsw-alias-label-error,#b43f4c);border-color:currentColor}.R-v9Lq_control .R-v9Lq_error,.R-v9Lq_control .R-v9Lq_feedback{box-sizing:border-box;flex-basis:100%;max-width:min(100%,28rem);font-size:12px}.R-v9Lq_trace{border-bottom:1px solid var(--role-border);overflow-wrap:anywhere;padding:10px 0}.R-v9Lq_trace summary{cursor:pointer;line-height:1.6}.R-v9Lq_compact{flex-shrink:0;max-height:28vh;margin:0 28px 8px;font-size:12px;overflow:auto}.R-v9Lq_compact p{margin:6px 0}.R-v9Lq_page{overflow-wrap:anywhere;max-width:100%;container-type:inline-size}.R-v9Lq_page [role=tab][aria-selected=true]{color:var(--role-text);border-bottom-color:var(--role-accent);font-weight:600}.R-v9Lq_page :is(button,input,select,summary,[tabindex]):focus-visible,.R-v9Lq_compact summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.R-v9Lq_page input,.R-v9Lq_page select{min-width:0}.R-v9Lq_modelList{border:1px solid var(--role-border);border-radius:10px;max-height:270px;padding:10px;overflow:auto}.R-v9Lq_account{border-bottom:1px solid var(--role-border);padding:8px}.R-v9Lq_account:last-child{border-bottom:0}.R-v9Lq_account button{overflow-wrap:anywhere;min-width:0}.R-v9Lq_account button span{min-width:0}.R-v9Lq_account [aria-label=已选择]{flex:none}.R-v9Lq_footer{border-top:1px solid var(--role-border);background:var(--role-bg);z-index:1;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px;padding:14px 0;display:flex;position:sticky;bottom:0}.R-v9Lq_footer small{flex-basis:100%}.R-v9Lq_filters{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:12px;display:grid}.R-v9Lq_workflow{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0;list-style-position:inside;display:grid}.R-v9Lq_workflow li{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;padding:14px}.R-v9Lq_workflow p{margin-bottom:0;font-size:12px}.R-v9Lq_returnBar{flex-wrap:wrap;align-items:center;gap:12px;padding:10px 0 18px;display:flex}@media (width<=650px){.R-v9Lq_control{gap:4px}.R-v9Lq_toggle{padding:6px 9px;font-size:12px}.R-v9Lq_compact{margin-left:16px;margin-right:16px}.R-v9Lq_workflow{grid-template-columns:1fr}.R-v9Lq_footer{justify-content:flex-start}}@media (prefers-reduced-motion:reduce){.R-v9Lq_track:after{transition:none}}@container (width<=430px){.R-v9Lq_workflow{grid-template-columns:1fr}}";
+		const css$7 = ".R-v9Lq_control{flex-wrap:wrap;align-items:center;gap:6px;min-width:0;display:inline-flex;position:relative}.R-v9Lq_toggle{white-space:nowrap;align-items:center;gap:8px;min-height:36px;display:inline-flex}.R-v9Lq_toggle[aria-checked=true]{color:var(--role-text);border-color:var(--role-accent)}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track{background:var(--role-accent);opacity:1}.R-v9Lq_toggle[data-unavailable=true]{color:var(--dsw-alias-label-error,#b43f4c)}.R-v9Lq_track{opacity:.75;box-sizing:border-box;background:currentColor;border-radius:10px;align-items:center;width:26px;height:15px;padding:2px;display:inline-flex}.R-v9Lq_track:after{content:\"\";background:var(--dsw-alias-bg-layer-2,#fff);border-radius:50%;width:11px;height:11px;transition:transform .15s}.R-v9Lq_toggle[aria-checked=true] .R-v9Lq_track:after{transform:translate(11px)}.R-v9Lq_error,.R-v9Lq_feedback{border:1px solid var(--role-border);background:var(--role-bg);overflow-wrap:anywhere;border-radius:8px;padding:10px 12px}.R-v9Lq_error{color:var(--dsw-alias-label-error,#b43f4c);border-color:currentColor}.R-v9Lq_control .R-v9Lq_error,.R-v9Lq_control .R-v9Lq_feedback{box-sizing:border-box;flex-basis:100%;max-width:min(100%,28rem);font-size:12px}.R-v9Lq_trace{border-bottom:1px solid var(--role-border);overflow-wrap:anywhere;padding:10px 0}.R-v9Lq_trace summary{cursor:pointer;line-height:1.6}.R-v9Lq_compact{flex-shrink:0;max-height:28vh;margin:0 28px 8px;font-size:12px;overflow:auto}.R-v9Lq_compact p{margin:6px 0}.R-v9Lq_page{overflow-wrap:anywhere;max-width:100%;container-type:inline-size}.R-v9Lq_page [role=tab][aria-selected=true]{color:var(--role-text);border-bottom-color:var(--role-accent);font-weight:600}.R-v9Lq_page :is(button,input,select,summary,[tabindex]):focus-visible,.R-v9Lq_compact summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.R-v9Lq_page input,.R-v9Lq_page select{min-width:0}.R-v9Lq_modelList{border:1px solid var(--role-border);border-radius:10px;max-height:270px;padding:10px;overflow:auto}.R-v9Lq_account{border-bottom:1px solid var(--role-border);padding:8px}.R-v9Lq_account:last-child{border-bottom:0}.R-v9Lq_account button{overflow-wrap:anywhere;min-width:0}.R-v9Lq_account button span{min-width:0}.R-v9Lq_account [aria-label=已选择]{flex:none}.R-v9Lq_footer{border-top:1px solid var(--role-border);background:var(--role-bg);z-index:1;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px;padding:14px 0;display:flex;position:sticky;bottom:0}.R-v9Lq_footer small{flex-basis:100%}.R-v9Lq_filters{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:12px;display:grid}.R-v9Lq_workflow{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0;list-style-position:inside;display:grid}.R-v9Lq_workflow li{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;padding:14px}.R-v9Lq_workflow p{margin-bottom:0;font-size:12px}.R-v9Lq_returnBar{flex-wrap:wrap;align-items:center;gap:12px;padding:10px 0 18px;display:flex}@media (width<=650px){.R-v9Lq_control{gap:4px}.R-v9Lq_toggle{padding:6px 9px;font-size:12px}.R-v9Lq_compact{margin-left:16px;margin-right:16px}.R-v9Lq_workflow{grid-template-columns:1fr}.R-v9Lq_footer{justify-content:flex-start}}@media (prefers-reduced-motion:reduce){.R-v9Lq_track:after{transition:none}}@container (width<=430px){.R-v9Lq_workflow{grid-template-columns:1fr}}.R-v9Lq_candidateSection{flex-direction:column;gap:10px;min-width:0;display:flex}.R-v9Lq_candidateSection p{margin:0}.R-v9Lq_candidateHeading{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;display:flex}.R-v9Lq_accountTabs{gap:6px;padding:3px 1px;display:flex;overflow:auto}.R-v9Lq_accountTabs button{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-muted);font:inherit;cursor:pointer;border-radius:8px;flex-shrink:0;padding:6px 10px;font-size:12px}.R-v9Lq_accountTabs button[aria-pressed=true]{color:var(--role-text);border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg))}.R-v9Lq_modelPicker{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;display:grid}.R-v9Lq_candidateList{scrollbar-gutter:stable;flex-direction:column;gap:8px;max-height:340px;margin:0;padding:3px;list-style:none;display:flex;overflow-y:auto}.R-v9Lq_candidateRow{border:1px solid var(--role-border);background:var(--role-bg);cursor:grab;touch-action:none;user-select:none;border-radius:10px;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:8px 10px;padding:12px;display:grid}.R-v9Lq_candidateRow[data-dragging=true]{opacity:.4;cursor:grabbing}.R-v9Lq_candidateRow[data-drop-target=true]{border:2px dashed var(--role-accent);padding:11px}.R-v9Lq_candidateRow :is(input,select,textarea){touch-action:auto;user-select:auto}.R-v9Lq_candidateIdentity{min-width:0}.R-v9Lq_candidateIdentity strong{overflow-wrap:anywhere;font-size:13px;display:block}.R-v9Lq_candidateIdentity small{overflow-wrap:anywhere;color:var(--role-muted);margin-top:3px;font-size:11px;line-height:1.5;display:block}.R-v9Lq_candidateIdentity small:last-child{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.R-v9Lq_candidateIdentity .R-v9Lq_warning{color:var(--dsw-alias-label-warning,#926122)}.R-v9Lq_rank{color:var(--role-muted);text-align:center;align-self:start;padding-top:4px;font-size:12px}.R-v9Lq_candidateActions{flex-direction:column;align-items:flex-end;gap:3px;display:flex}.R-v9Lq_candidateActions .R-v9Lq_toggle{min-height:30px;padding:5px 8px;font-size:12px}.R-v9Lq_rowTools{align-items:center;gap:2px;display:flex}.R-v9Lq_rowTools .R-v9Lq_button{min-height:28px;padding:4px 7px;font-size:11px}.R-v9Lq_rowTools .R-v9Lq_iconButton{width:28px;height:28px;font-size:19px}.R-v9Lq_rowOptions{color:var(--role-muted);grid-column:2/4;font-size:11px}.R-v9Lq_rowOptions select{background:var(--role-bg);color:var(--role-text);border:1px solid var(--role-border);border-radius:6px;margin:6px 0;padding:4px 8px}.R-v9Lq_rowOptions summary{cursor:pointer}.R-v9Lq_candidateEmpty{border:1px dashed var(--role-border);color:var(--role-muted);border-radius:9px;padding:16px;font-size:12px}.R-v9Lq_dragGhost{border:1px solid var(--role-accent);background:var(--role-bg);color:var(--role-text);overflow-wrap:anywhere;border-radius:10px;padding:12px 16px;font-size:13px;box-shadow:0 8px 28px #0003}.R-v9Lq_dragGhost small{color:var(--role-muted);margin-top:6px;font-size:11px}.R-v9Lq_srOnly{clip-path:inset(50%);width:1px;height:1px;position:absolute;overflow:hidden}.R-v9Lq_attempts{overflow-wrap:anywhere;margin:10px 0;padding-left:22px;font-size:12px;line-height:1.8}@container (width<=380px){.R-v9Lq_candidateRow{grid-template-columns:18px minmax(0,1fr) auto;gap:6px;padding:10px}.R-v9Lq_candidateRow[data-drop-target=true]{padding:9px}.R-v9Lq_candidateActions .R-v9Lq_toggle{gap:4px;padding:5px}.R-v9Lq_candidateIdentity small{font-size:11px}}";
 		const tagId$7 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-jev-mode/src/ui/JevControls.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$7) + "]") === null) {
 			const tag = document.createElement("style");
@@ -6435,18 +6488,36 @@ window.__ModuleLoader__.load({
 		}
 		var JevControls_module_css_default = {
 			"account": "R-v9Lq_account",
+			"accountTabs": "R-v9Lq_accountTabs",
+			"attempts": "R-v9Lq_attempts",
+			"button": "R-v9Lq_button",
+			"candidateActions": "R-v9Lq_candidateActions",
+			"candidateEmpty": "R-v9Lq_candidateEmpty",
+			"candidateHeading": "R-v9Lq_candidateHeading",
+			"candidateIdentity": "R-v9Lq_candidateIdentity",
+			"candidateList": "R-v9Lq_candidateList",
+			"candidateRow": "R-v9Lq_candidateRow",
+			"candidateSection": "R-v9Lq_candidateSection",
 			"compact": "R-v9Lq_compact",
 			"control": "R-v9Lq_control",
+			"dragGhost": "R-v9Lq_dragGhost",
 			"error": "R-v9Lq_error",
 			"feedback": "R-v9Lq_feedback",
 			"filters": "R-v9Lq_filters",
 			"footer": "R-v9Lq_footer",
+			"iconButton": "R-v9Lq_iconButton",
 			"modelList": "R-v9Lq_modelList",
+			"modelPicker": "R-v9Lq_modelPicker",
 			"page": "R-v9Lq_page",
+			"rank": "R-v9Lq_rank",
 			"returnBar": "R-v9Lq_returnBar",
+			"rowOptions": "R-v9Lq_rowOptions",
+			"rowTools": "R-v9Lq_rowTools",
+			"srOnly": "R-v9Lq_srOnly",
 			"toggle": "R-v9Lq_toggle",
 			"trace": "R-v9Lq_trace",
 			"track": "R-v9Lq_track",
+			"warning": "R-v9Lq_warning",
 			"workflow": "R-v9Lq_workflow"
 		};
 		//#endregion
@@ -6490,6 +6561,17 @@ window.__ModuleLoader__.load({
 						className: ManagedCapabilities_module_css_default.notice,
 						children: trace.status === "clarify" ? "补充待确认信息后发起新一轮。" : trace.status === "blocked" ? "核对目标、权限和依据后再继续；已经完成的操作不会自动撤销。" : "检查取消、超时或失败时，不会自动视为通过；可在设置中检查模型，之后重试任务。"
 					}),
+					!!trace.attempts?.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("ol", {
+						className: JevControls_module_css_default.attempts,
+						children: trace.attempts.map((a, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+							a.model,
+							" · ",
+							a.summary,
+							" · ",
+							(a.elapsedMs / 1e3).toFixed(1),
+							" 秒"
+						] }, i))
+					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "技术信息" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
 						"模型：",
 						trace.config.model,
@@ -6507,7 +6589,8 @@ window.__ModuleLoader__.load({
 			const filtered = traces.filter((t) => (!filters.stage || t.stage === filters.stage) && (!filters.status || t.status === filters.status) && (!filters.days || Date.parse(t.at) >= Date.now() - Number(filters.days) * 864e5) && (!filters.query || [
 				conversation(t.scope).name,
 				t.summary,
-				t.config.model
+				t.config.model,
+				...t.attempts?.map((a) => a.model) ?? []
 			].some((s) => s.toLowerCase().includes(filters.query.toLowerCase()))));
 			const groups = /* @__PURE__ */ new Map();
 			for (const trace of filtered.slice().reverse()) groups.set(trace.runId, [...groups.get(trace.runId) ?? [], trace]);
@@ -6646,7 +6729,7 @@ window.__ModuleLoader__.load({
 						modeLabel(data),
 						" · ",
 						data?.connection ? connectionName[data.connection.state] : "正在加载"
-					] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: data?.config.value.model || "尚未选择决策模型" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: data ? modelSummary(data.config.value) : "正在读取候选模型" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						className: ManagedCapabilities_module_css_default.button,
 						onClick: configure,
 						children: "配置与检查"
@@ -6685,7 +6768,7 @@ window.__ModuleLoader__.load({
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "模型接入与后续扩展" }),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: ManagedCapabilities_module_css_default.row,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "自有内网模型 · 当前接入方式" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "复用工作台模型账号和凭据，决策模型独立选择。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "自有内网模型 · 当前接入方式" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "复用工作台模型账号和凭据，独立维护候选顺序，技术失败时依序切换。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						className: ManagedCapabilities_module_css_default.button,
 						onClick: () => openWorkbenchLink({ section: "models" }),
 						children: "管理模型账号 ↗"
@@ -6715,203 +6798,556 @@ window.__ModuleLoader__.load({
 			] });
 		}
 		//#endregion
-		//#region ../dsh-jev-mode/src/ui/JevModelFields.tsx
-		function JevModelFields({ value, accounts, loading, refresh, change }) {
-			const [query, setQuery] = (0, react.useState)(""), selected = accounts.flatMap((a) => a.models).find((m) => m.id === value.model);
-			const matches = (...values) => values.some((v) => v.toLowerCase().includes(query.toLowerCase()));
-			const visible = accounts.filter((a) => matches(a.name, a.id, ...a.models.flatMap((m) => [m.id, m.name]))), available = visible.filter((a) => a.available).sort((a, b) => Number(b.models.some((m) => m.id === value.model)) - Number(a.models.some((m) => m.id === value.model))), unavailable = visible.filter((a) => !a.available);
+		//#region ../dsh-plugin-manager/src/client/WholeRowSort.tsx
+		/** Whole-row sorting, including button/switch surfaces. Only editable fields opt out. */
+		function WholeRowSort({ items, onChange, render, label, disabled, className, rowClassName, ghostClassName }) {
+			const root = (0, react.useRef)(null), latest = (0, react.useRef)({
+				items,
+				onChange,
+				disabled
+			});
+			latest.current = {
+				items,
+				onChange,
+				disabled
+			};
+			const gesture = (0, react.useRef)(), suppress = (0, react.useRef)(0), [drag, setDrag] = (0, react.useState)(), [message, setMessage] = (0, react.useState)(""), positions = (0, react.useRef)(/* @__PURE__ */ new Map());
+			const publish = (g) => {
+				setDrag({ ...g });
+				setMessage("第 " + (g.order.indexOf(g.id) + 1) + " 项，松开放置；Esc 取消");
+			};
+			const finish = (commit) => {
+				const g = gesture.current;
+				gesture.current = void 0;
+				setDrag(void 0);
+				if (!g) return;
+				if (g.active) {
+					suppress.current = Date.now() + 400;
+					if (commit && g.inside && !latest.current.disabled) {
+						const byId = new Map(latest.current.items.map((i) => [i.id, i]));
+						if (g.order.length === byId.size && g.order.every((id) => byId.has(id))) latest.current.onChange(g.order.map((id) => byId.get(id)));
+						setMessage("排序已调整，保存后从下一轮生效");
+					} else setMessage("已取消移动，原顺序保留");
+				}
+				if (g.pointer !== void 0 && g.node.hasPointerCapture?.(g.pointer)) g.node.releasePointerCapture(g.pointer);
+				if (g.active) requestAnimationFrame(() => root.current?.querySelector("[data-sort-id=\"" + g.id + "\"]")?.focus());
+			};
+			const finishRef = (0, react.useRef)(finish);
+			finishRef.current = finish;
+			(0, react.useEffect)(() => {
+				let frame = 0, last;
+				const update = () => {
+					const g = gesture.current, list = root.current;
+					if (!g?.active || !last || !list) return;
+					const r = list.getBoundingClientRect();
+					g.x = last.x;
+					g.y = last.y;
+					g.inside = last.x >= r.left && last.x <= r.right && last.y >= Math.max(0, r.top) && last.y <= Math.min(innerHeight, r.bottom);
+					if (g.inside) {
+						const others = g.centers.filter((c) => c.id !== g.id);
+						const index = others.filter((c) => last.y - r.top + list.scrollTop > c.y).length;
+						g.order = others.map((c) => c.id);
+						g.order.splice(index, 0, g.id);
+					}
+					publish(g);
+					let scroll = list;
+					while (scroll && !(scroll.scrollHeight > scroll.clientHeight && /auto|scroll/.test(getComputedStyle(scroll).overflowY))) scroll = scroll.parentElement;
+					if (scroll) {
+						const box = scroll.getBoundingClientRect();
+						if (last.x >= box.left && last.x <= box.right) {
+							if (last.y < Math.max(0, box.top) + 32) scroll.scrollTop -= 8;
+							else if (last.y > Math.min(innerHeight, box.bottom) - 32) scroll.scrollTop += 8;
+						}
+					}
+					frame = requestAnimationFrame(update);
+				};
+				const move = (e) => {
+					const g = gesture.current;
+					if (!g || g.pointer !== e.pointerId) return;
+					if (!g.active && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 7) return;
+					e.preventDefault();
+					last = {
+						x: e.clientX,
+						y: e.clientY
+					};
+					if (!g.active) {
+						g.active = true;
+						suppress.current = Date.now() + 400;
+						g.node.setPointerCapture?.(e.pointerId);
+						update();
+					}
+				};
+				const up = (e) => {
+					const g = gesture.current;
+					if (!g || g.pointer !== e.pointerId) return;
+					if (g.active) {
+						last = {
+							x: e.clientX,
+							y: e.clientY
+						};
+						cancelAnimationFrame(frame);
+						update();
+					}
+					cancelAnimationFrame(frame);
+					finishRef.current(true);
+				};
+				const cancel = () => {
+					cancelAnimationFrame(frame);
+					finishRef.current(false);
+				};
+				const key = (e) => {
+					if (e.key === "Escape" && gesture.current) {
+						e.preventDefault();
+						e.stopImmediatePropagation();
+						cancel();
+					}
+				};
+				window.addEventListener("pointermove", move, { passive: false });
+				window.addEventListener("pointerup", up);
+				window.addEventListener("pointercancel", cancel);
+				window.addEventListener("blur", cancel);
+				window.addEventListener("keydown", key, true);
+				return () => {
+					cancelAnimationFrame(frame);
+					window.removeEventListener("pointermove", move);
+					window.removeEventListener("pointerup", up);
+					window.removeEventListener("pointercancel", cancel);
+					window.removeEventListener("blur", cancel);
+					window.removeEventListener("keydown", key, true);
+					gesture.current = void 0;
+				};
+			}, []);
+			(0, react.useEffect)(() => {
+				if (disabled && gesture.current) finishRef.current(false);
+			}, [disabled]);
+			const order = drag?.active ? drag.order : items.map((i) => i.id), byId = new Map(items.map((i) => [i.id, i]));
+			(0, react.useLayoutEffect)(() => {
+				const next = /* @__PURE__ */ new Map();
+				for (const row of Array.from(root.current?.querySelectorAll("[data-sort-id]") ?? [])) {
+					const id = row.dataset.sortId, top = row.getBoundingClientRect().top, old = positions.current.get(id);
+					next.set(id, top);
+					if (old !== void 0 && old !== top && !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) row.animate?.([{ transform: "translateY(" + (old - top) + "px)" }, { transform: "translateY(0)" }], {
+						duration: 140,
+						easing: "ease-out"
+					});
+				}
+				positions.current = next;
+			}, [order.join("|")]);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-					className: ManagedCapabilities_module_css_default.field,
-					children: ["搜索账号或模型", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-						value: query,
-						onChange: (e) => setQuery(e.target.value),
-						placeholder: "按名称或标识筛选本地模型"
-					})]
-				}),
-				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-					className: ManagedCapabilities_module_css_default.field,
-					children: [
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "独立决策模型" }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-							"当前选择：",
-							selected?.name || value.model || "未选择",
-							selected ? " · " + value.model : "",
-							"。仅刷新本地配置，不联网发现模型。"
-						] }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							className: JevControls_module_css_default.modelList,
-							role: "group",
-							"aria-label": "本地模型选项",
-							children: [available.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								className: JevControls_module_css_default.account,
-								children: [
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: a.name || a.id }),
-									a.models.filter((m) => matches(a.name, a.id, m.name, m.id)).map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-										className: ManagedCapabilities_module_css_default.choice,
-										"aria-pressed": value.model === m.id,
-										onClick: () => change({
-											model: m.id,
-											reasoningEffort: ""
-										}),
-										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [m.name, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: m.id })] }), value.model === m.id && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-											"aria-label": "已选择",
-											children: "✓"
-										})]
-									}, m.id)),
-									!a.models.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-										className: ManagedCapabilities_module_css_default.muted,
-										children: "尚未登记本地模型；可配置账号，或在高级设置填写模型标识。"
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ol", {
+					ref: root,
+					className,
+					"aria-label": "模型优先级",
+					onClickCapture: (e) => {
+						if (Date.now() < suppress.current) {
+							e.preventDefault();
+							e.stopPropagation();
+							suppress.current = 0;
+						}
+					},
+					children: order.map((id, index) => {
+						const item = byId.get(id);
+						if (!item) return null;
+						return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("li", {
+							className: rowClassName,
+							"data-sort-id": id,
+							"data-dragging": drag?.active && drag.id === id,
+							"data-drop-target": drag?.active && drag.inside && drag.id === id,
+							tabIndex: disabled ? -1 : 0,
+							"aria-label": "第 " + (index + 1) + " 项：" + label(item),
+							"aria-roledescription": "可拖动的模型选项",
+							"aria-keyshortcuts": "Space Enter Escape",
+							onPointerDown: (e) => {
+								if (disabled || e.button !== 0 || e.target.closest("input,textarea,select,[contenteditable=\"true\"]")) return;
+								const list = root.current, rect = list.getBoundingClientRect();
+								suppress.current = 0;
+								gesture.current = {
+									id,
+									pointer: e.pointerId,
+									x: e.clientX,
+									y: e.clientY,
+									active: false,
+									order: items.map((i) => i.id),
+									inside: true,
+									node: e.currentTarget,
+									centers: Array.from(list.children).map((n) => {
+										const r = n.getBoundingClientRect();
+										return {
+											id: n.dataset.sortId,
+											y: r.top - rect.top + list.scrollTop + r.height / 2
+										};
 									})
-								]
-							}, a.id)), !available.length && !loading && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: query ? "没有匹配的可选模型。" : "尚无可选模型，请配置内网模型账号。" })]
-						})
-					]
+								};
+							},
+							onKeyDown: (e) => {
+								if (e.target !== e.currentTarget || disabled) return;
+								if ((e.key === " " || e.key === "Enter") && !gesture.current) {
+									e.preventDefault();
+									const g = {
+										id,
+										x: 0,
+										y: 0,
+										active: true,
+										order: items.map((i) => i.id),
+										centers: [],
+										inside: true,
+										node: e.currentTarget
+									};
+									gesture.current = g;
+									publish(g);
+									return;
+								}
+								const g = gesture.current;
+								if (!g || g.pointer !== void 0) return;
+								if (e.key === " " || e.key === "Enter") {
+									e.preventDefault();
+									finish(true);
+									return;
+								}
+								if (![
+									"ArrowUp",
+									"ArrowDown",
+									"Home",
+									"End"
+								].includes(e.key)) return;
+								e.preventDefault();
+								const current = g.order.indexOf(g.id), next = e.key === "Home" ? 0 : e.key === "End" ? g.order.length - 1 : Math.min(g.order.length - 1, Math.max(0, current + (e.key === "ArrowUp" ? -1 : 1)));
+								g.order.splice(current, 1);
+								g.order.splice(next, 0, g.id);
+								publish(g);
+							},
+							children: render(item, index)
+						}, id);
+					})
 				}),
-				!!unavailable.length && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
-					className: ManagedCapabilities_module_css_default.compositionInfo,
-					open: query ? true : void 0,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
-						"待配置或不可用账号（",
-						unavailable.length,
-						"）"
-					] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-						className: JevControls_module_css_default.modelList,
-						children: unavailable.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							className: JevControls_module_css_default.account,
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", {
-									className: ManagedCapabilities_module_css_default.muted,
-									children: a.name || a.id
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-									className: ManagedCapabilities_module_css_default.muted,
-									children: ["不可用：", a.message]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									onClick: () => openWorkbenchLink({ section: "models" }),
-									children: "配置此模型账号 ↗"
-								})
-							]
-						}, a.id))
-					})]
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+					style: {
+						position: "absolute",
+						width: 1,
+						height: 1,
+						overflow: "hidden",
+						clipPath: "inset(50%)"
+					},
+					role: "status",
+					children: message
 				}),
-				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-					className: ManagedCapabilities_module_css_default.actions,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						className: ManagedCapabilities_module_css_default.button,
-						disabled: loading,
-						onClick: refresh,
-						children: loading ? "读取中…" : "刷新本地模型"
-					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						className: ManagedCapabilities_module_css_default.button,
-						onClick: () => openWorkbenchLink({ section: "models" }),
-						children: "模型账号设置 ↗"
+				drag?.active && drag.pointer !== void 0 && byId.has(drag.id) && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					"aria-hidden": "true",
+					className: ghostClassName,
+					style: {
+						position: "fixed",
+						pointerEvents: "none",
+						zIndex: 1e4,
+						left: Math.min(drag.x + 12, innerWidth - 240),
+						top: drag.y + 12,
+						maxWidth: 220
+					},
+					children: [label(byId.get(drag.id)), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+						style: { display: "block" },
+						children: drag.inside ? "松开后放到第 " + (drag.order.indexOf(drag.id) + 1) + " 项" : "移出列表，松开将取消"
 					})]
 				})
 			] });
 		}
-		function JevAdvanced({ value, accounts, open, setOpen, change }) {
-			const invalid = fieldErrors(value), known = accounts.flatMap((a) => a.models).find((m) => m.id === value.model)?.reasoning;
+		//#endregion
+		//#region ../dsh-jev-mode/src/ui/JevModelFields.tsx
+		function JevModelFields({ value, accounts, loading, refresh, change, connection, test, checking, disabled }) {
+			const [query, setQuery] = (0, react.useState)(""), [provider, setProvider] = (0, react.useState)(""), [selected, setSelected] = (0, react.useState)(""), rows = candidates(value);
+			const matches = (...values) => values.some((v) => v.toLowerCase().includes(query.trim().toLowerCase()));
+			const visible = accounts.filter((a) => !provider || a.id === provider).map((a) => ({
+				...a,
+				models: a.models.filter((m) => matches(a.name, a.id, m.name, m.id))
+			})).filter((a) => a.models.length);
+			const update = (next) => change({
+				candidates: next,
+				model: next.find((c) => c.enabled)?.model ?? "",
+				reasoningEffort: ""
+			});
+			const name = (row) => accounts.flatMap((a) => a.models).find((m) => m.id === row.model)?.name ?? row.model;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: JevControls_module_css_default.candidateSection,
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: JevControls_module_css_default.candidateHeading,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "候选模型" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", {
+							className: ManagedCapabilities_module_css_default.muted,
+							children: [
+								"已添加 ",
+								rows.length,
+								"/12 · 已开启 ",
+								rows.filter((c) => c.enabled).length
+							]
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: "按从上到下的顺序尝试，关闭项跳过。拖动整张卡片排序，单击右侧开关启停。"
+					}),
+					accounts.length > 1 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: JevControls_module_css_default.accountTabs,
+						"aria-label": "筛选模型账号",
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							type: "button",
+							"aria-pressed": !provider,
+							onClick: () => setProvider(""),
+							children: "全部账号"
+						}), accounts.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							type: "button",
+							"aria-pressed": provider === a.id,
+							onClick: () => {
+								setProvider(a.id);
+								setSelected("");
+							},
+							children: a.name
+						}, a.id))]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+						className: ManagedCapabilities_module_css_default.field,
+						children: ["搜索账号或模型", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+							value: query,
+							onChange: (e) => setQuery(e.target.value),
+							placeholder: "搜索已添加账号的本地模型"
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: JevControls_module_css_default.modelPicker,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: JevControls_module_css_default.srOnly,
+								children: "选择候选模型"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+								"aria-label": "选择候选模型",
+								value: selected,
+								onChange: (e) => setSelected(e.target.value),
+								disabled: loading,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+									value: "",
+									children: loading ? "正在读取模型…" : "选择已有模型…"
+								}), visible.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("optgroup", {
+									label: a.name,
+									children: a.models.map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
+										value: m.id,
+										disabled: rows.some((c) => c.model === m.id),
+										children: [m.name, rows.some((c) => c.model === m.id) ? " · 已添加" : !a.available ? " · 需配置内网地址" : ""]
+									}, m.id))
+								}, a.id))]
+							})]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							type: "button",
+							className: ManagedCapabilities_module_css_default.button,
+							disabled: !selected || rows.length >= 12 || rows.some((c) => c.model === selected) || !visible.some((a) => a.models.some((m) => m.id === selected)),
+							onClick: () => {
+								update([...rows, {
+									id: crypto.randomUUID(),
+									model: selected,
+									enabled: false,
+									reasoningEffort: ""
+								}]);
+								setSelected("");
+							},
+							children: "添加"
+						})]
+					}),
+					!loading && !visible.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: query ? "没有匹配的已添加模型。" : "当前账号未登记模型，可前往模型账号设置添加。"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+						className: JevControls_module_css_default.srOnly,
+						children: "键盘操作：选中卡片后按空格拾起，上下调整，回车放下，Esc 取消。"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(WholeRowSort, {
+						items: rows,
+						onChange: update,
+						disabled,
+						label: name,
+						className: JevControls_module_css_default.candidateList,
+						rowClassName: JevControls_module_css_default.candidateRow,
+						ghostClassName: JevControls_module_css_default.dragGhost,
+						render: (row, index) => {
+							const account = accounts.find((a) => a.models.some((m) => m.id === row.model)), model = account?.models.find((m) => m.id === row.model), state = connection?.candidates?.find((c) => c.id === row.id) ?? (value.candidates === void 0 ? connection : void 0);
+							return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									className: JevControls_module_css_default.rank,
+									children: index + 1
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: JevControls_module_css_default.candidateIdentity,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: name(row) }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", {
+											title: row.model,
+											children: [
+												account?.name ?? row.model.split("/")[0],
+												" · ",
+												row.model.slice(row.model.indexOf("/") + 1)
+											]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+											title: account?.available === false ? account.message : state?.message,
+											className: state?.state === "error" || account?.available === false ? JevControls_module_css_default.warning : ManagedCapabilities_module_css_default.muted,
+											children: account?.available === false ? "将跳过：" + account.message : !account && !loading ? "账号或模型已移除，请核对配置" : state ? connectionName[state.state] + " · " + state.message : row.enabled ? "等待检查" : "已关闭 · 默认跳过"
+										})
+									]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: JevControls_module_css_default.candidateActions,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+										type: "button",
+										className: `${ManagedCapabilities_module_css_default.button} ${JevControls_module_css_default.toggle}`,
+										role: "switch",
+										"aria-label": "启用 " + name(row),
+										"aria-checked": row.enabled,
+										onClick: () => update(rows.map((c) => c.id === row.id ? {
+											...c,
+											enabled: !c.enabled
+										} : c)),
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: JevControls_module_css_default.track }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: row.enabled ? "开" : "关" })]
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+										className: JevControls_module_css_default.rowTools,
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											type: "button",
+											className: ManagedCapabilities_module_css_default.button,
+											"aria-label": "检查 " + name(row),
+											disabled: checking || account?.available === false || !!Object.keys(fieldErrors(value)).length,
+											onClick: () => test(candidateConfig(value, row)),
+											children: "检查"
+										}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											type: "button",
+											className: ManagedCapabilities_module_css_default.iconButton,
+											"aria-label": "移除 " + name(row),
+											title: "从候选列表移除",
+											onClick: () => update(rows.filter((c) => c.id !== row.id)),
+											children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "remove" })
+										})]
+									})]
+								}),
+								(!!model?.reasoning?.length || !!row.reasoningEffort) && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+									className: JevControls_module_css_default.rowOptions,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: ["思考强度：", {
+										"": "模型默认",
+										low: "低",
+										medium: "中",
+										high: "高"
+									}[row.reasoningEffort]] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+										"aria-label": name(row) + "思考强度",
+										value: row.reasoningEffort,
+										onChange: (e) => update(rows.map((c) => c.id === row.id ? {
+											...c,
+											reasoningEffort: e.target.value
+										} : c)),
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+											value: "",
+											children: "模型默认"
+										}), [
+											"low",
+											"medium",
+											"high"
+										].filter((v) => model?.reasoning?.includes(v) || row.reasoningEffort === v).map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+											value: v,
+											children: {
+												low: "低",
+												medium: "中",
+												high: "高"
+											}[v]
+										}, v))]
+									})]
+								})
+							] });
+						}
+					}),
+					!rows.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: JevControls_module_css_default.candidateEmpty,
+						children: "从上方选择模型并添加，新候选项默认关闭。"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: ManagedCapabilities_module_css_default.actions,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: loading,
+								onClick: refresh,
+								children: loading ? "读取中…" : "刷新本地模型"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								type: "button",
+								className: ManagedCapabilities_module_css_default.button,
+								onClick: () => openWorkbenchLink({ section: "models" }),
+								children: "模型账号设置 ↗"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+								className: ManagedCapabilities_module_css_default.muted,
+								children: "只读取本地配置"
+							})
+						]
+					})
+				]
+			});
+		}
+		function JevAdvanced({ value, open, setOpen, change }) {
+			const invalid = fieldErrors(value);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 				className: ManagedCapabilities_module_css_default.compositionInfo,
 				open,
 				onToggle: (e) => setOpen(e.currentTarget.open),
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "高级设置" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "高级设置" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 					className: ManagedCapabilities_module_css_default.fields,
 					children: [
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-							className: ManagedCapabilities_module_css_default.field,
-							children: [
-								"手动填写模型标识",
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-									maxLength: 250,
-									value: value.model,
-									"aria-invalid": !!invalid.model,
-									placeholder: "提供方/模型标识",
-									onChange: (e) => change({ model: e.target.value })
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
-									role: invalid.model ? "alert" : void 0,
-									children: invalid.model ?? "用于已配置内网账号中未登记的模型；仍需连接检查。"
-								})
-							]
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-							className: ManagedCapabilities_module_css_default.field,
-							children: [
-								"决策模型思考强度",
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-									value: value.reasoningEffort,
-									onChange: (e) => change({ reasoningEffort: e.target.value }),
-									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-										value: "",
-										children: "模型默认"
-									}), [
-										"low",
-										"medium",
-										"high"
-									].map((id, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-										value: id,
-										disabled: known ? !known.includes(id) : value.reasoningEffort !== id,
-										children: [
-											"低",
-											"中",
-											"高"
-										][i]
-									}, id))]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: known === void 0 ? "本地配置未声明可用强度，优先采用模型默认；历史显式设置保留，可恢复默认。" : known.length ? "仅提供账号明确声明支持的强度。" : "此模型声明不支持思考强度，使用模型默认。" })
-							]
-						}),
 						[
-							[
-								"timeoutMs",
-								"单次检查超时（秒）",
-								5,
-								120,
-								1e3,
-								"检查超时会停止当前自动步骤。"
-							],
-							[
-								"maxChecks",
-								"每轮最多检查次数",
-								3,
-								32,
-								1,
-								"限制一轮中的额外模型调用。"
-							],
-							[
-								"maxContextChars",
-								"检查上下文字符上限",
-								4e3,
-								64e3,
-								1,
-								"过长动作证据会停止检查，避免遗漏依据。"
-							]
-						].map(([key, label, min, max, divisor, hint]) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-							className: ManagedCapabilities_module_css_default.field,
-							children: [
-								label,
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-									type: "number",
-									min,
-									max,
-									step: 1,
-									value: Number.isFinite(value[key]) ? value[key] / divisor : "",
-									"aria-invalid": !!invalid[key],
-									"aria-describedby": "jev-error-" + key,
-									onChange: (e) => change({ [key]: e.target.value === "" ? NaN : Number(e.target.value) * divisor })
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
-									id: "jev-error-" + key,
-									role: invalid[key] ? "alert" : void 0,
-									children: invalid[key] ?? hint
-								})
-							]
-						}, key))
-					]
+							"timeoutMs",
+							"单个模型超时（秒）",
+							5,
+							120,
+							1e3,
+							"超时后尝试下一个启用模型。"
+						],
+						[
+							"totalTimeoutMs",
+							"候选链总超时（秒）",
+							5,
+							300,
+							1e3,
+							"每次审查共用此时间上限，达到上限停止。"
+						],
+						[
+							"maxChecks",
+							"每轮最多模型调用次数",
+							3,
+							32,
+							1,
+							"包含失败后切换产生的调用，达到上限停止。"
+						],
+						[
+							"maxContextChars",
+							"检查上下文字符上限",
+							4e3,
+							64e3,
+							1,
+							"过长动作证据会停止检查，避免遗漏依据。"
+						]
+					].map(([key, label, min, max, divisor, hint]) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+						className: ManagedCapabilities_module_css_default.field,
+						children: [
+							label,
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+								type: "number",
+								min,
+								max,
+								step: 1,
+								value: value[key] === void 0 ? value.candidates ? 90 : value.timeoutMs / 1e3 : Number.isFinite(value[key]) ? value[key] / divisor : "",
+								"aria-invalid": !!invalid[key],
+								"aria-describedby": "jev-error-" + key,
+								onChange: (e) => change({ [key]: e.target.value === "" ? NaN : Number(e.target.value) * divisor })
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+								id: "jev-error-" + key,
+								role: invalid[key] ? "alert" : void 0,
+								children: invalid[key] ?? hint
+							})
+						]
+					}, key))
 				})]
 			});
 		}
@@ -7066,8 +7502,8 @@ window.__ModuleLoader__.load({
 					jevClient.refresh();
 				}
 			};
-			const test = () => {
-				if (value && valid) jevClient.check(value).then(() => jevClient.refresh()).catch(() => {});
+			const test = (target = value) => {
+				if (target && valid) jevClient.check(target).then(() => jevClient.refresh()).catch(() => {});
 			};
 			const tabs = [
 				["configuration", "配置与状态"],
@@ -7100,7 +7536,7 @@ window.__ModuleLoader__.load({
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 						className: ManagedCapabilities_module_css_default.notice,
-						children: "所有岗位共用开关和独立决策模型。切换岗位、新建会话和重启后沿用已保存设置；修改从下一轮生效，进行中的轮次保留启动时配置。"
+						children: "所有岗位共用开关和候选顺序，切换岗位或重启后保留。修改从下一轮生效。"
 					}),
 					readError && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: JevControls_module_css_default.error,
@@ -7139,7 +7575,7 @@ window.__ModuleLoader__.load({
 						children: [
 							view.tab === "configuration" && (value ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: ManagedCapabilities_module_css_default.row,
+									className: JevControls_module_css_default.candidateHeading,
 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
 										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: ["模型连接 · ", connection ? connectionName[connection.state] : "正在读取"] }),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: connection?.message ?? "正在核对当前配置的检查记录" }),
@@ -7160,7 +7596,11 @@ window.__ModuleLoader__.load({
 												accounts,
 												loading: loadingAccounts,
 												refresh: () => void refreshAccounts(),
-												change
+												change,
+												connection,
+												test,
+												checking: !!checking || checkBusy,
+												disabled: busy
 											}),
 											accountError && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
 												className: JevControls_module_css_default.error,
@@ -7175,9 +7615,9 @@ window.__ModuleLoader__.load({
 														className: ManagedCapabilities_module_css_default.actions,
 														children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 															className: ManagedCapabilities_module_css_default.button,
-															disabled: !value.model || !valid || checking || checkBusy,
-															onClick: test,
-															children: checking ? "正在检查…" : "检查内网模型"
+															disabled: !candidates(value).some((c) => c.enabled) || !valid || checking || checkBusy,
+															onClick: () => test(),
+															children: checking ? "正在检查…" : "检查启用模型"
 														}), checking && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 															className: ManagedCapabilities_module_css_default.button,
 															disabled: checkBusy,
@@ -7199,12 +7639,21 @@ window.__ModuleLoader__.load({
 															" 秒"
 														] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [
 															/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "检查详情" }),
-															/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-																diagnostic.config.model,
-																" · ",
-																new Date(diagnostic.startedAt).toLocaleString()
-															] }),
-															connectionConfig(diagnostic.config) !== candidateKey && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "这次结果对应先前的配置，请为当前输入重新检查。" }),
+															/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: new Date(diagnostic.startedAt).toLocaleString() }),
+															/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ol", {
+																className: JevControls_module_css_default.attempts,
+																children: diagnostic.attempts?.map((a, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+																	a.position,
+																	". ",
+																	a.model,
+																	" · ",
+																	a.summary,
+																	" · ",
+																	(a.elapsedMs / 1e3).toFixed(1),
+																	" 秒"
+																] }, i))
+															}),
+															!diagnosticMatches(diagnostic.config, value) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "检查项已被移除或参数已变化，请检查当前候选配置。" }),
 															diagnostic.decision && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: diagnostic.decision.summary })
 														] })]
 													}),
@@ -7231,7 +7680,7 @@ window.__ModuleLoader__.load({
 															children: "开启"
 														})]
 													}),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: canEnable ? "连接检查已通过，可以开启并保存。" : "先检查当前模型配置，通过后可以开启；已有启用状态可随时关闭。" })
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: canEnable ? "连接检查已通过，可以开启并保存。" : "至少一个已开启候选项检查通过后可开启全局模式；关闭候选项不影响岗位设置。" })
 												]
 											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevAdvanced, {
@@ -7250,18 +7699,18 @@ window.__ModuleLoader__.load({
 									children: [
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "其他位置已更新配置，当前草稿仍保留。" }),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "核对下列差异后，以最新配置为基准继续编辑；相同字段仍保留你的输入，保存前请确认。" }),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", { children: Object.keys(fieldName).filter((key) => base.value[key] !== data.config.value[key] || base.value[key] !== draft[key]).map((key) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", { children: Object.keys(fieldName).filter((key) => !sameField(base.value[key], data.config.value[key]) || !sameField(base.value[key], draft[key])).map((key) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
 											fieldName[key],
 											"：最新值 ",
-											String(data.config.value[key]) || "默认",
+											fieldValue(data.config.value[key]),
 											"；草稿值 ",
-											String(draft[key]) || "默认"
+											fieldValue(draft[key])
 										] }, key)) }),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											className: ManagedCapabilities_module_css_default.button,
 											onClick: () => {
 												const rebased = { ...data.config.value };
-												for (const key of Object.keys(fieldName)) if (draft[key] !== base.value[key]) Object.assign(rebased, { [key]: draft[key] });
+												for (const key of Object.keys(fieldName)) if (!sameField(draft[key], base.value[key])) Object.assign(rebased, { [key]: draft[key] });
 												setDraft(rebased);
 												setBase({
 													revision: data.config.revision,
@@ -7411,6 +7860,7 @@ window.__ModuleLoader__.load({
 							" · 配置 v",
 							active.revision,
 							active.enabled ? " · " + (active.phase === "checking" ? `正在${stageName[active.stage]}（${Math.max(0, Math.floor((Date.now() - Date.parse(active.checkingSince)) / 1e3))} 秒）` : "等待业务步骤，检查结果见下方") : "",
+							active.phase === "checking" && active.candidatePosition ? " · 第 " + active.candidatePosition + "/" + active.candidateTotal + " 项 · " + active.model : "",
 							data && active.revision !== data.config.revision ? "；全局设置已变化，下一轮生效。" : "",
 							active.enabled && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [" ", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: ManagedCapabilities_module_css_default.button,
@@ -7438,7 +7888,7 @@ window.__ModuleLoader__.load({
 				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: ["JEV 模式 · 全局", modeLabel(data)] }),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-						data?.config.value.model || "尚未选择决策模型",
+						data ? modelSummary(data.config.value) : "正在读取候选模型",
 						" · ",
 						data?.connection ? connectionName[data.connection.state] : "正在读取状态"
 					] }),

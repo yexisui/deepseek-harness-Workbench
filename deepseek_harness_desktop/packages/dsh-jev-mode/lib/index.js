@@ -46,11 +46,27 @@ var JevError = class extends Error {
 		this.name = "JevError";
 	}
 };
+/** Only a technical failure may advance the candidate chain. Business decisions never do. */
+var JevTechnicalError = class extends JevError {};
+const candidates = (value) => value.candidates ?? (value.model ? [{
+	id: "legacy",
+	model: value.model,
+	enabled: true,
+	reasoningEffort: value.reasoningEffort
+}] : []);
+function candidateConfig(value, item) {
+	const { candidates: _c, totalTimeoutMs: _t, ...base } = value;
+	return {
+		...base,
+		model: item.model,
+		reasoningEffort: item.reasoningEffort
+	};
+}
 function config(raw) {
 	const d = raw;
 	if (!d || typeof d !== "object" || Array.isArray(d)) throw new JevError("JEV 配置格式无效", 400);
 	if (typeof d.enabled !== "boolean" || !["self-owned", "official-reserved"].includes(String(d.backend))) throw new JevError("JEV 开关或后端无效", 400);
-	if (typeof d.model !== "string" || d.model.length > 250 || /[\r\n]/.test(d.model)) throw new JevError("JEV 决策模型无效", 400);
+	if (typeof d.model !== "string" || d.model.length > 250 || /[\r\n]/.test(d.model)) throw new JevTechnicalError("JEV 决策模型无效", 400);
 	if (![
 		"",
 		"low",
@@ -62,6 +78,27 @@ function config(raw) {
 		if (typeof n !== "number" || !Number.isInteger(n) || n < min || n > max) throw new JevError(`JEV ${key} 超出范围`, 400);
 		return n;
 	};
+	let items;
+	if (d.candidates !== void 0) {
+		if (!Array.isArray(d.candidates) || d.candidates.length > 12) throw new JevError("最多添加 12 个 JEV 候选模型", 400);
+		const ids = /* @__PURE__ */ new Set(), models = /* @__PURE__ */ new Set();
+		items = d.candidates.map((c) => {
+			if (!c || typeof c.id !== "string" || !/^[a-zA-Z0-9_-]{1,80}$/.test(c.id) || ids.has(c.id) || typeof c.model !== "string" || !/^\S+\/[^\r\n]+$/.test(c.model) || c.model.length > 250 || models.has(c.model.trim()) || typeof c.enabled !== "boolean" || ![
+				"",
+				"low",
+				"medium",
+				"high"
+			].includes(c.reasoningEffort)) throw new JevError("JEV 候选模型格式无效或重复", 400);
+			ids.add(c.id);
+			models.add(c.model.trim());
+			return {
+				id: c.id,
+				model: c.model.trim(),
+				enabled: c.enabled,
+				reasoningEffort: c.reasoningEffort
+			};
+		});
+	}
 	return {
 		enabled: d.enabled,
 		backend: d.backend,
@@ -69,7 +106,9 @@ function config(raw) {
 		reasoningEffort: d.reasoningEffort,
 		timeoutMs: number("timeoutMs", 5e3, 12e4),
 		maxChecks: number("maxChecks", 3, 32),
-		maxContextChars: number("maxContextChars", 4e3, 64e3)
+		maxContextChars: number("maxContextChars", 4e3, 64e3),
+		...items ? { candidates: items } : {},
+		...d.totalTimeoutMs === void 0 ? {} : { totalTimeoutMs: number("totalTimeoutMs", 5e3, 3e5) }
 	};
 }
 function decision(raw) {
@@ -77,7 +116,7 @@ function decision(raw) {
 	try {
 		d = JSON.parse(raw.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, ""));
 	} catch {
-		throw new JevError("JEV 模型未返回有效 JSON；本次检查未通过");
+		throw new JevTechnicalError("JEV 模型未返回有效 JSON；本次检查未通过");
 	}
 	if (!d || typeof d !== "object" || ![
 		"allow",
@@ -87,8 +126,8 @@ function decision(raw) {
 		"supported",
 		"uncertain",
 		"unsupported"
-	].includes(c.verdict) && typeof c.evidence === "string" && c.evidence.length <= 1e3)) throw new JevError("JEV 决策结构无效；本次检查未通过");
-	if (d.decision === "allow" && (d.missing.length || d.checks.some((c) => c.verdict !== "supported"))) throw new JevError("JEV 决策与证据不一致；本次检查未通过");
+	].includes(c.verdict) && typeof c.evidence === "string" && c.evidence.length <= 1e3)) throw new JevTechnicalError("JEV 决策结构无效；本次检查未通过");
+	if (d.decision === "allow" && (d.missing.length || d.checks.some((c) => c.verdict !== "supported"))) throw new JevTechnicalError("JEV 决策与证据不一致；本次检查未通过");
 	return {
 		decision: d.decision,
 		summary: d.summary,
@@ -134,9 +173,9 @@ var JevStore = class {
 		await mkdir(this.root, { recursive: true });
 		try {
 			const d = JSON.parse(await readFile(join(this.root, "config.json"), "utf8"));
-			if (d.schema !== 1 || !Number.isSafeInteger(d.revision) || d.revision < 0) throw new Error();
+			if (![1, 2].includes(d.schema) || !Number.isSafeInteger(d.revision) || d.revision < 0) throw new Error();
 			this.saved = {
-				schema: 1,
+				schema: d.schema,
 				revision: d.revision,
 				value: config(d.value)
 			};
@@ -191,8 +230,23 @@ var JevStore = class {
 			if (revision !== this.saved.revision) throw new JevError("JEV 设置已改变，请保留草稿并核对最新配置");
 			const parsed = config(value);
 			guard?.(parsed);
+			const schema = parsed.candidates === void 0 ? this.saved.schema : 2;
+			if (schema === 2 && this.saved.schema === 1) {
+				let backup;
+				try {
+					backup = await open(join(this.root, "config.before-candidates.json"), "wx");
+				} catch (e) {
+					if (e.code !== "EEXIST") throw e;
+				}
+				if (backup) try {
+					await backup.writeFile(JSON.stringify(this.saved));
+					await backup.sync();
+				} finally {
+					await backup.close();
+				}
+			}
 			const next = {
-				schema: 1,
+				schema,
 				revision: revision + 1,
 				value: parsed
 			};
@@ -213,6 +267,84 @@ var JevStore = class {
 	}
 };
 //#endregion
+//#region src/host/candidate-chain.ts
+/** Bound even adapters that fail to settle promptly after cancellation. */
+function abortable(work, signal) {
+	signal.throwIfAborted();
+	return new Promise((resolve, reject) => {
+		const abort = () => reject(signal.reason);
+		signal.addEventListener("abort", abort, { once: true });
+		try {
+			work().then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
+		} catch (e) {
+			signal.removeEventListener("abort", abort);
+			reject(e);
+		}
+	});
+}
+async function candidateChain(input) {
+	const rows = candidates(input.config), total = AbortSignal.timeout(input.config.totalTimeoutMs ?? (input.config.candidates ? 9e4 : input.config.timeoutMs));
+	const chainSignal = AbortSignal.any([total, ...input.signal ? [input.signal] : []]);
+	let accepted;
+	for (let index = 0; index < rows.length; index++) {
+		if (chainSignal.aborted) throw new JevError(input.signal?.aborted ? "JEV 检查已取消" : "JEV 候选链达到总超时，当前自动步骤已停止");
+		const row = rows[index], cfg = candidateConfig(input.config, row), attempt = {
+			candidateId: row.id,
+			model: row.model,
+			position: index + 1,
+			status: "skipped",
+			summary: "已关闭，跳过",
+			elapsedMs: 0
+		};
+		input.attempts.push(attempt);
+		if (!row.enabled) continue;
+		try {
+			input.ready(cfg);
+		} catch (e) {
+			attempt.summary = e instanceof JevError ? e.message : "模型账号暂不可用，跳过";
+			continue;
+		}
+		try {
+			input.consume?.();
+		} catch (e) {
+			attempt.status = "error";
+			attempt.summary = e instanceof JevError ? e.message : "本轮调用次数已用尽";
+			throw e;
+		}
+		const started = Date.now(), perAttempt = AbortSignal.timeout(cfg.timeoutMs), signal = AbortSignal.any([chainSignal, perAttempt]);
+		Object.assign(attempt, {
+			status: "checking",
+			summary: "正在检查"
+		});
+		input.progress?.(attempt, rows.length);
+		let result, fatal = false;
+		try {
+			result = await abortable(() => input.backend.assess({
+				config: cfg,
+				stage: input.stage,
+				scope: input.scope,
+				context: input.context
+			}, signal), signal);
+			signal.throwIfAborted();
+			Object.assign(attempt, {
+				status: result.decision === "allow" ? "allowed" : result.decision === "block" ? "blocked" : "clarify",
+				summary: result.summary
+			});
+			if (!accepted || result.decision === "allow") accepted = result;
+		} catch (e) {
+			attempt.status = input.signal?.aborted ? "cancelled" : "error";
+			attempt.summary = input.signal?.aborted ? "JEV 检查已取消" : total.aborted ? "JEV 候选链达到总超时" : perAttempt.aborted ? "此模型检查超时" : e instanceof JevError ? e.message : "JEV 检查失败或超时；当前自动步骤已停止";
+			fatal = chainSignal.aborted || !perAttempt.aborted && !(e instanceof JevTechnicalError);
+		}
+		attempt.elapsedMs = Date.now() - started;
+		await input.completed?.(cfg, attempt, result);
+		if (fatal) throw new JevError(attempt.summary);
+		if (result && !input.diagnostic) return result;
+	}
+	if (accepted) return accepted;
+	throw new JevError(input.attempts.some((a) => a.status === "error") ? "全部启用模型检查失败，当前自动步骤已停止" : "没有可执行的启用模型，请添加并开启可用的内网模型");
+}
+//#endregion
 //#region src/host/service.ts
 var JevRun = class {
 	service;
@@ -220,11 +352,14 @@ var JevRun = class {
 	id = randomUUID();
 	snapshot;
 	count = 0;
+	calls = 0;
 	last;
 	constructor(service, scope) {
 		this.service = service;
 		this.scope = scope;
 		this.snapshot = service.store.snapshot();
+		this.snapshot.value.candidates?.forEach(Object.freeze);
+		if (this.snapshot.value.candidates) Object.freeze(this.snapshot.value.candidates);
 		Object.freeze(this.snapshot.value);
 		Object.freeze(this.snapshot);
 		service.active.set(this.id, {
@@ -255,6 +390,7 @@ var JevRun = class {
 			stage,
 			checkingSince: new Date(started).toISOString()
 		});
+		const attempts = [];
 		let result, status = "error", summary = "JEV 检查未完成";
 		try {
 			signal?.throwIfAborted();
@@ -263,14 +399,26 @@ var JevRun = class {
 			if (!backend) throw new JevError("官方 JEV 扩展接口已预留，尚未接入；不会调用官网");
 			const raw = typeof context === "string" ? context : JSON.stringify(context);
 			if (raw.length > cfg.maxContextChars && stage === "action") throw new JevError("JEV 动作证据超出上下文限制；未完整审查，当前自动动作已停止");
-			const combined = AbortSignal.any([...signal ? [signal] : [], AbortSignal.timeout(cfg.timeoutMs)]);
-			result = await backend.assess({
+			result = await candidateChain({
+				config: cfg,
 				stage,
 				scope: this.scope,
-				config: cfg,
-				context: raw.length > cfg.maxContextChars ? raw.slice(0, cfg.maxContextChars) + "\n[内容已截断，缺失内容不能作为通过依据]" : raw
-			}, combined);
-			combined.throwIfAborted();
+				backend,
+				signal,
+				attempts,
+				ready: this.service.ready,
+				context: raw.length > cfg.maxContextChars ? raw.slice(0, cfg.maxContextChars) + "\n[内容已截断，缺失内容不能作为通过依据]" : raw,
+				consume: () => {
+					if (++this.calls > cfg.maxChecks) throw new JevError("JEV 本轮模型调用达到次数上限；当前自动动作已停止");
+				},
+				progress: (attempt, total) => {
+					if (active) Object.assign(active, {
+						model: attempt.model,
+						candidatePosition: attempt.position,
+						candidateTotal: total
+					});
+				}
+			});
 			if (raw.length > cfg.maxContextChars && result.decision === "allow") result = {
 				...result,
 				decision: "clarify",
@@ -302,6 +450,7 @@ var JevRun = class {
 				status,
 				summary,
 				decision: result,
+				attempts,
 				elapsedMs: Date.now() - started
 			});
 		}
@@ -323,19 +472,28 @@ var JevService = class {
 	key(value) {
 		return createHash("sha256").update(connectionConfig(value) + "\n" + this.identity(value)).digest("hex");
 	}
-	connection(value) {
+	singleConnection(value) {
 		try {
 			if (!value.model) throw new JevError("请选择独立的内网决策模型");
 			if (!this.backends.has(value.backend)) throw new JevError("官方 JEV 扩展尚未接入");
 			this.ready(value);
 			const key = this.key(value), job = this.diagnostic;
-			if (job?.key === key && job.result.status === "checking") return {
+			if (job?.result.status === "checking" && job.keys.get(value.model) === key) return {
 				state: "checking",
 				message: "正在验证连接及结构化决策格式"
 			};
 			const last = this.store.validation(key);
 			if (last) {
-				const runtime = this.store.history().filter((t) => connectionConfig(t.config) === connectionConfig(value)).at(-1);
+				const runtime = this.store.history().flatMap((t) => {
+					const row = candidates(t.config).find((c) => c.model === value.model);
+					if (!row || connectionConfig(candidateConfig(t.config, row)) !== connectionConfig(value)) return [];
+					const a = t.attempts?.find((a) => a.model === value.model);
+					return a ? [{
+						at: t.at,
+						status: a.status,
+						summary: a.summary
+					}] : t.config.candidates ? [] : [t];
+				}).at(-1);
 				if (last.status === "passed" && runtime?.status === "error" && runtime.at > (last.finishedAt ?? "")) return {
 					state: "error",
 					message: runtime.summary,
@@ -358,6 +516,29 @@ var JevService = class {
 			};
 		}
 	}
+	connection(value) {
+		if (value.candidates === void 0) return this.singleConnection(value);
+		const rows = candidates(value), states = rows.map((row) => ({
+			id: row.id,
+			...this.singleConnection(candidateConfig(value, row))
+		}));
+		const enabled = states.filter((s) => rows.find((r) => r.id === s.id)?.enabled), ready = enabled.filter((s) => s.state === "ready").length;
+		if (!enabled.length) return {
+			state: "unconfigured",
+			message: "候选模型全部关闭；可逐项检查后开启",
+			candidates: states
+		};
+		if (enabled.some((s) => s.state === "checking")) return {
+			state: "checking",
+			message: "正在检查候选模型",
+			candidates: states
+		};
+		return {
+			state: ready ? "ready" : enabled.some((s) => s.state === "unverified") ? "unverified" : "error",
+			message: ready ? "已启用 " + enabled.length + " 项，其中 " + ready + " 项检查通过；按列表顺序尝试" : "启用项尚无检查通过的内网模型",
+			candidates: states
+		};
+	}
 	update(revision, value) {
 		return this.store.update(revision, value, (candidate) => {
 			if (candidate.enabled && this.connection(candidate).state !== "ready") throw new JevError("请先检查此配置的内网模型，通过后再开启 JEV");
@@ -366,56 +547,77 @@ var JevService = class {
 	startDiagnostic(raw) {
 		const value = config(raw);
 		if (this.diagnostic?.result.status === "checking") throw new JevError("已有模型检查正在进行，请等待或取消");
-		this.ready(value);
+		const rows = candidates(value);
+		if (!rows.some((c) => c.enabled)) throw new JevError("请先开启候选项，或使用该行的“检查”按钮");
 		const backend = this.backends.get(value.backend);
 		if (!backend) throw new JevError("官方 JEV 扩展尚未接入");
-		const key = this.key(value), started = Date.now(), controller = new AbortController();
+		const keys = /* @__PURE__ */ new Map();
+		for (const row of rows.filter((r) => r.enabled)) try {
+			keys.set(row.model, this.key(candidateConfig(value, row)));
+		} catch {}
+		const started = Date.now(), controller = new AbortController();
 		const result = {
 			id: randomUUID(),
 			config: value,
 			startedAt: new Date(started).toISOString(),
 			status: "checking",
 			message: "正在请求所选内网模型…",
-			elapsedMs: 0
+			elapsedMs: 0,
+			attempts: []
 		};
 		const job = {
-			key,
+			keys,
 			result,
 			controller,
 			done: Promise.resolve()
 		};
 		this.diagnostic = job;
 		job.done = (async () => {
-			const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(value.timeoutMs)]);
+			const signal = controller.signal;
 			try {
-				result.decision = await backend.assess({
+				result.decision = await candidateChain({
+					config: value,
 					stage: "begin",
 					scope: "diagnostic",
-					config: {
-						...value,
-						enabled: true
+					backend,
+					signal,
+					attempts: result.attempts,
+					ready: this.ready,
+					diagnostic: true,
+					context: "连通性测试：用户要求将“你好”作为问候语复述，不执行工具、不修改文件。",
+					progress: (attempt, total) => {
+						result.message = "正在检查第 " + attempt.position + "/" + total + " 项 · " + attempt.model;
 					},
-					context: "连通性测试：用户要求将“你好”作为问候语复述，不执行工具、不修改文件。"
-				}, signal);
+					completed: async (cfg, attempt, decision) => {
+						const completed = {
+							id: result.id,
+							config: cfg,
+							startedAt: result.startedAt,
+							finishedAt: (/* @__PURE__ */ new Date()).toISOString(),
+							status: attempt.status === "allowed" ? "passed" : attempt.status === "cancelled" ? "cancelled" : "failed",
+							message: attempt.status === "allowed" ? "连接及决策格式检查通过；业务结果仍需逐次核对" : decision ? "模型已响应，但诊断未通过：" + decision.summary : attempt.summary,
+							elapsedMs: attempt.elapsedMs,
+							decision
+						};
+						const key = keys.get(cfg.model);
+						if (!key || key !== this.key(cfg)) throw new JevError("检查期间模型账号已变更，请重新检查");
+						try {
+							await this.store.validate(key, completed);
+						} catch {
+							throw new JevError("检查记录保存失败，请重试；不能启用未经保存确认的配置");
+						}
+					}
+				});
 				signal.throwIfAborted();
 				if (result.decision.decision !== "allow") throw new JevError("模型已响应，但诊断未通过：" + result.decision.summary);
 				result.status = "passed";
-				result.message = "连接及决策格式检查通过；业务结果仍需逐次核对";
+				result.message = `检查完成：${result.attempts.filter((a) => a.status === "allowed").length} 项通过；业务结果仍需逐次核对`;
 			} catch (e) {
 				result.status = controller.signal.aborted ? "cancelled" : "failed";
 				result.message = controller.signal.aborted ? "检查已取消" : e instanceof JevError ? e.message : signal.aborted ? "检查超时，请核对服务或调整超时设置" : "连接检查失败，请核对模型账号与服务";
 			}
 			result.finishedAt = (/* @__PURE__ */ new Date()).toISOString();
 			result.elapsedMs = Date.now() - started;
-			const completed = structuredClone(result);
-			result.status = "checking";
-			try {
-				await this.store.validate(key, completed);
-				Object.assign(result, completed);
-			} catch {
-				result.status = "failed";
-				result.message = "检查记录保存失败，请重试；不能启用未经保存确认的配置";
-			}
 		})();
 		return structuredClone(result);
 	}
@@ -527,23 +729,29 @@ function endpoint(raw) {
 	try {
 		url = new URL(raw);
 	} catch {
-		throw new JevError("所选账号没有有效的内网模型地址");
+		throw new JevTechnicalError("所选账号没有有效的内网模型地址");
 	}
-	if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) throw new JevError("内网模型地址必须是 HTTP(S)，且不能包含凭据、查询或片段");
+	if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) throw new JevTechnicalError("内网模型地址必须是 HTTP(S)，且不能包含凭据、查询或片段");
 	const host = url.hostname.replace(/^\[|\]$/g, "");
-	if (isIP(host) && !privateAddress(host)) throw new JevError("JEV 默认后端只允许内网地址；公网模型不能作为决策模型");
+	if (isIP(host) && !privateAddress(host)) throw new JevTechnicalError("JEV 默认后端只允许内网地址；公网模型不能作为决策模型");
 	url.pathname = url.pathname.replace(/\/+$/, "") + "/chat/completions";
 	return url;
 }
 /** Pin the validated IP at the actual socket. No redirect, proxy, or public fallback. */
 async function intranetJson(url, body, key, signal) {
 	signal.throwIfAborted();
-	const host = url.hostname.replace(/^\[|\]$/g, ""), addresses = isIP(host) ? [{
-		address: host,
-		family: isIP(host)
-	}] : await lookup(host, { all: true });
+	const host = url.hostname.replace(/^\[|\]$/g, "");
+	let addresses;
+	try {
+		addresses = isIP(host) ? [{
+			address: host,
+			family: isIP(host)
+		}] : await lookup(host, { all: true });
+	} catch {
+		throw new JevTechnicalError("内网模型域名解析失败");
+	}
 	signal.throwIfAborted();
-	if (!addresses.length || addresses.some((a) => !privateAddress(a.address))) throw new JevError("JEV 模型域名未完全解析到内网地址，已拒绝请求");
+	if (!addresses.length || addresses.some((a) => !privateAddress(a.address))) throw new JevTechnicalError("JEV 模型域名未完全解析到内网地址，已拒绝请求");
 	const target = addresses[0], payload = Buffer.from(JSON.stringify(body));
 	return new Promise((resolve, reject) => {
 		const req = (url.protocol === "https:" ? request$1 : request)(url, {
@@ -560,7 +768,7 @@ async function intranetJson(url, body, key, signal) {
 		}, (res) => {
 			if (res.statusCode !== 200) {
 				res.resume();
-				reject(new JevError(`内网 JEV 请求失败（HTTP ${res.statusCode}）；没有切换其他服务`));
+				reject(new JevTechnicalError(`内网 JEV 请求失败（HTTP ${res.statusCode}）`));
 				return;
 			}
 			let size = 0;
@@ -569,21 +777,21 @@ async function intranetJson(url, body, key, signal) {
 				size += chunk.length;
 				if (size > 256 * 1024) {
 					req.destroy();
-					reject(new JevError("JEV 返回超出限制"));
+					reject(new JevTechnicalError("JEV 返回超出限制"));
 				} else chunks.push(chunk);
 			});
-			res.on("error", () => reject(new JevError("内网 JEV 响应中断")));
+			res.on("error", () => reject(new JevTechnicalError("内网 JEV 响应中断")));
 			res.on("end", () => {
 				try {
 					const text = JSON.parse(Buffer.concat(chunks).toString("utf8")).choices?.[0]?.message?.content;
 					if (typeof text !== "string" || !text.trim()) throw new Error();
 					resolve(text);
 				} catch {
-					reject(new JevError("内网 JEV 响应格式无效"));
+					reject(new JevTechnicalError("内网 JEV 响应格式无效"));
 				}
 			});
 		});
-		req.on("error", () => reject(new JevError(signal.aborted ? "JEV 检查已取消或超时" : "内网 JEV 连接失败；请检查模型账号")));
+		req.on("error", () => reject(new JevTechnicalError(signal.aborted ? "JEV 检查已取消或超时" : "内网 JEV 连接失败；请检查模型账号")));
 		req.end(payload);
 	});
 }
@@ -625,6 +833,19 @@ var SelfOwnedBackend = class {
 	constructor(ctx) {
 		this.ctx = ctx;
 	}
+	credentialHashes = /* @__PURE__ */ new Map();
+	async refreshIdentity(config) {
+		for (const item of candidates(config)) try {
+			const selected = account(this.ctx, item.model);
+			this.credentialHashes.set(item.model, createHash("sha256").update(await this.resolveKey(selected)).digest("hex"));
+		} catch {
+			this.credentialHashes.delete(item.model);
+		}
+	}
+	async resolveKey(selected) {
+		const credentials = this.ctx.get("credentials");
+		return selected.key || (selected.credentialRef ? (await credentials?.resolve(selected.credentialRef))?.value ?? process.env[selected.credentialRef] ?? "" : "");
+	}
 	ready(config) {
 		account(this.ctx, config.model);
 	}
@@ -633,13 +854,18 @@ var SelfOwnedBackend = class {
 		return JSON.stringify([
 			a.url.href,
 			a.key,
-			a.credentialRef
+			a.credentialRef,
+			this.credentialHashes.get(config.model) ?? "unresolved"
 		]);
 	}
 	async assess(input, signal) {
 		const selected = account(this.ctx, input.config.model);
-		const credentials = this.ctx.get("credentials");
-		const key = selected.key || (selected.credentialRef ? (await credentials?.resolve(selected.credentialRef))?.value ?? process.env[selected.credentialRef] ?? "" : "");
+		let key;
+		try {
+			key = await this.resolveKey(selected);
+		} catch {
+			throw new JevTechnicalError("模型凭据当前无法读取，请检查账号配置");
+		}
 		const raw = await intranetJson(selected.url, {
 			model: selected.model,
 			stream: false,
@@ -657,10 +883,53 @@ var SelfOwnedBackend = class {
 					data: input.context
 				})
 			}]
-		}, key, signal);
+		}, key, signal).catch((e) => {
+			throw e instanceof JevError ? e : new JevTechnicalError("内网模型请求参数或连接异常");
+		});
 		return decision(key ? raw.split(key).join("[凭据已隐藏]") : raw);
 	}
 };
+/** Local catalog only. Ineligible accounts remain visible; dormant built-ins do not. */
+async function accountCatalog(ctx) {
+	const llm = ctx.get("llm"), settings = ctx.get("settings");
+	if (!llm || !settings) return [];
+	const live = new Set((llm.listProviders?.() ?? []).map((p) => p.id)), result = [];
+	for (const route of llm.listConfigurableProviders()) {
+		let profile = settings.get(route.settingsNs);
+		for (const key of route.settingsPath) profile = profile?.[key];
+		if (!live.has(route.provider) && !route.declared && !profile?.apiKey) continue;
+		let models = Array.isArray(profile?.models) ? profile.models.filter((m) => m && typeof m.id === "string" && m.id.length <= 250).map((m) => ({
+			id: route.provider + "/" + m.id,
+			name: typeof m.name === "string" ? m.name.slice(0, 250) : m.id,
+			...m.reasoning === false ? { reasoning: [] } : Array.isArray(m.reasoningEfforts) ? { reasoning: m.reasoningEfforts.filter((v) => [
+				"low",
+				"medium",
+				"high"
+			].includes(String(v))) } : {}
+		})) : [];
+		if (!models.length && (route.provider === "deepseek-official" || route.settingsNs === "llm-pi-ai") && live.has(route.provider)) try {
+			models = (await llm.listModels(route.provider)).map((m) => ({
+				id: route.provider + "/" + m.id,
+				name: m.name ?? m.id
+			}));
+		} catch {}
+		let available = true, message = "等待内网连接检查";
+		try {
+			account(ctx, route.provider + "/configured-model");
+		} catch (e) {
+			available = false;
+			message = e instanceof JevError ? e.message : "模型账号暂不可用";
+		}
+		result.push({
+			id: route.provider,
+			name: route.displayName,
+			models,
+			available,
+			message
+		});
+	}
+	return result;
+}
 //#endregion
 //#region src/host/native.ts
 const notice = (text) => ({
@@ -839,42 +1108,30 @@ async function apply(ctx) {
 				const rejection = ctx.connection.requestRejection(req);
 				if (rejection !== void 0) return json(res, rejection, { error: "请从工作台入口重新连接后重试" });
 				const url = new URL(req.url ?? "/", "http://localhost");
-				if (req.method === "GET" && url.pathname === "/api/jev-mode/state") return json(res, 200, service.status(url.searchParams.get("scope") ?? void 0));
-				if (req.method === "GET" && url.pathname === "/api/jev-mode/accounts") return json(res, 200, (ctx.get("llm")?.listConfigurableProviders() ?? []).map((route) => {
-					try {
-						const selected = account(ctx, route.provider + "/configured-model");
-						return {
-							id: route.provider,
-							name: route.displayName,
-							available: true,
-							models: selected.models
-						};
-					} catch (e) {
-						return {
-							id: route.provider,
-							name: route.displayName,
-							available: false,
-							models: [],
-							message: e.message
-						};
-					}
-				}));
+				if (req.method === "GET" && url.pathname === "/api/jev-mode/state") {
+					await backend.refreshIdentity(store.snapshot().value);
+					return json(res, 200, service.status(url.searchParams.get("scope") ?? void 0));
+				}
+				if (req.method === "GET" && url.pathname === "/api/jev-mode/accounts") return json(res, 200, await accountCatalog(ctx));
 				if (req.method === "POST" && url.pathname === "/api/jev-mode/config") {
 					const body = await readBody(req);
+					await backend.refreshIdentity(config(body.value));
 					await service.update(body.revision, body.value);
 					return json(res, 200, service.status());
 				}
 				if (req.method === "POST" && url.pathname === "/api/jev-mode/check") {
-					const body = await readBody(req);
-					return json(res, 202, service.startDiagnostic(body.value ?? store.snapshot().value));
+					const value = config((await readBody(req)).value ?? store.snapshot().value);
+					await backend.refreshIdentity(value);
+					return json(res, 202, service.startDiagnostic(value));
 				}
 				if (req.method === "POST" && url.pathname === "/api/jev-mode/check/cancel") {
 					const body = await readBody(req);
 					return json(res, 200, await service.cancelDiagnostic(body.id));
 				}
 				if (req.method === "POST" && url.pathname === "/api/jev-mode/connection") {
-					const body = await readBody(req);
-					return json(res, 200, service.connection(config(body.value)));
+					const value = config((await readBody(req)).value);
+					await backend.refreshIdentity(value);
+					return json(res, 200, service.connection(value));
 				}
 				throw new JevError("不支持此 JEV 操作", 405);
 			} catch (e) {

@@ -5,17 +5,22 @@ import {afterEach,beforeEach,expect,it,vi} from 'vitest'
 import {JevSettings,JevToggle,JevModelReturn,JevActivity} from '../src/ui/JevControls.tsx'
 import {jevClient} from '../src/ui/client.ts'
 import {defaults,descriptor,type JevStatus} from '../src/core/contract.ts'
+import {diagnosticMatches} from '../src/ui/view-model.ts'
 import {captureNavigation,openWorkbenchLink,pendingNavigation,returnNavigation} from '../../dsh-plugin-manager/src/client/workbench-navigation.ts'
 let container:HTMLDivElement,root:Root,saved:JevStatus,requests:{url:string;body:any}[]
 let connection='unverified'
 const delay=()=>new Promise(r=>setTimeout(r,210))
+it('keeps a row diagnostic current after switches and order change, but detects parameter changes',()=>{
+  const row={id:'one',model:'lan/one',enabled:false,reasoningEffort:'' as const},current={...defaults,candidates:[row]},checked={...defaults,model:'lan/one'}
+  expect(diagnosticMatches(checked,current)).toBe(true);expect(diagnosticMatches(checked,{...current,timeoutMs:10000})).toBe(false);expect(diagnosticMatches(checked,{...current,candidates:[]})).toBe(false)
+})
 beforeEach(async()=>{
   (globalThis as any).IS_REACT_ACT_ENVIRONMENT=true;sessionStorage.clear();connection='unverified';requests=[]
   saved={state:'off',message:'关闭',descriptor,config:{schema:1,revision:0,value:{...defaults,model:'lan/one'}},connection:{state:'unverified',message:'待检查'},traces:[],active:[]}
   vi.stubGlobal('fetch',vi.fn(async(url:any,options:any)=>{
     const body=options?.body?JSON.parse(options.body):undefined;requests.push({url:String(url),body})
     let response:any=saved
-    if(String(url).endsWith('/accounts'))response=[{id:'lan',name:'内网账号',available:true,models:[{id:'lan/one',name:'模型一'},{id:'lan/two',name:'模型二',reasoning:['low']}]},{id:'cloud',name:'公网账号',available:false,models:[],message:'账号未配置内网地址'}]
+    if(String(url).endsWith('/accounts'))response=[{id:'lan',name:'内网账号',available:true,models:[{id:'lan/one',name:'模型一'},{id:'lan/two',name:'模型二',reasoning:['low']}]},{id:'cloud',name:'公网账号',available:false,models:[{id:'cloud/model',name:'公网模型'}],message:'账号未配置内网地址'}]
     if(String(url).endsWith('/connection'))response={state:connection,message:'本地检查状态'}
     if(String(url).endsWith('/config')){saved={...saved,config:{schema:1,revision:saved.config.revision+1,value:body.value}};response=saved}
     if(String(url).endsWith('/check')){saved={...saved,diagnostic:{id:'test-check',config:body.value,status:'checking',startedAt:new Date().toISOString(),elapsedMs:0,message:'正在请求'}};response=saved.diagnostic}
@@ -28,18 +33,19 @@ afterEach(async()=>{await act(async()=>root.unmount());container.remove();vi.uns
 async function render(node:React.ReactNode=<JevSettings/>){await act(async()=>{root.render(node);await delay()})}
 const button=(text:string)=>Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent===text)!
 async function click(text:string){const b=button(text);expect(b).toBeTruthy();await act(async()=>{b.click();await delay()})}
+async function add(model:string){const select=container.querySelector<HTMLSelectElement>('select[aria-label="选择候选模型"]')!;await act(async()=>{select.value=model;select.dispatchEvent(new Event('change',{bubbles:true}))});await click('添加')}
 it('guides an unverified top switch to settings without saving enabled mode',async()=>{await render(<JevToggle/>);await act(async()=>container.querySelector<HTMLButtonElement>('[role="switch"]')!.click());expect(pendingNavigation('jev-mode')?.tab).toBe('configuration');expect(requests.some(r=>r.url.endsWith('/config'))).toBe(false)})
 it('shows unavailable account reasons and checks unsaved configuration while global mode stays off',async()=>{
-  await render();expect(container.textContent).toContain('公网账号');expect(container.textContent).toContain('账号未配置内网地址')
-  const model=Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent?.startsWith('模型二'))!;await act(async()=>model.click());await click('检查内网模型')
+  await render();await add('cloud/model');expect(container.textContent).toContain('公网账号');expect(container.textContent).toContain('账号未配置内网地址');expect(container.textContent).not.toContain('待配置或不可用账号')
+  await add('lan/two');expect(container.querySelector('[aria-label="启用 模型二"]')?.getAttribute('aria-checked')).toBe('false');await act(async()=>{container.querySelector<HTMLButtonElement>('[aria-label="检查 模型二"]')!.click();await delay()})
   expect(requests.find(r=>r.url.endsWith('/check'))?.body.value.model).toBe('lan/two');expect(saved.config.value.enabled).toBe(false);expect(saved.config.value.model).toBe('lan/one');expect(container.textContent).toContain('取消检查')
   await click('取消检查');expect(requests.find(r=>r.url.endsWith('/check/cancel'))?.body.id).toBe('test-check');expect(container.textContent).toContain('检查已取消')
 })
 it('retains inputs on conflict and rebases only edited fields onto the latest saved values',async()=>{
-  await render();const model=Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent?.startsWith('模型二'))!;await act(async()=>model.click())
+  await render();await add('lan/two')
   saved={...saved,config:{...saved.config,revision:1,value:{...saved.config.value,maxChecks:8}}};await act(async()=>jevClient.refresh())
   expect(button('保存配置').disabled).toBe(true);expect(container.textContent).toContain('草稿仍保留')
-  await click('保留草稿，加载最新基准');await click('保存配置');expect(saved.config.value.model).toBe('lan/two');expect(saved.config.value.maxChecks).toBe(8)
+  await click('保留草稿，加载最新基准');await click('保存配置');expect(saved.config.value.candidates?.map(c=>c.model)).toEqual(['lan/one','lan/two']);expect(saved.config.value.candidates?.[1]?.enabled).toBe(false);expect(saved.config.value.maxChecks).toBe(8)
 })
 it('restores the about tab and expansion after model settings, consuming the navigation once',async()=>{
   await render();await click('模块与扩展');const technical=Array.from(container.querySelectorAll('details')).find(d=>d.textContent?.includes('技术信息与能力边界'))!;await act(async()=>{technical.open=true;technical.dispatchEvent(new Event('toggle'))})
@@ -63,7 +69,7 @@ it('waits for asynchronous model rows before restoring a saved scroll position',
 })
 it('blocks invalid limits with inline explanations instead of sending invalid JSON',async()=>{
   await render();const input=container.querySelector<HTMLInputElement>('input[type="number"]')!;await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,'2');input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}))})
-  expect(container.textContent).toContain('超时应为 5–120 秒');expect(button('保存配置').disabled).toBe(true);expect(button('检查内网模型').disabled).toBe(true)
+  expect(container.textContent).toContain('超时应为 5–120 秒');expect(button('保存配置').disabled).toBe(true);expect(button('检查启用模型').disabled).toBe(true)
 })
 it('queries the selected conversation independently and distinguishes a fixed round from global settings',async()=>{
   saved.active=[{id:'round',scope:'native:old',revision:0,enabled:true,model:'lan/one',startedAt:new Date().toISOString(),checkingSince:new Date().toISOString(),stage:'review',phase:'checking'}];saved.config.revision=1

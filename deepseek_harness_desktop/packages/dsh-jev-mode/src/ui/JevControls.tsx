@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from 'react'
 import {jevClient,useJev,useJevScope} from './client.ts'
-import {connectionName,modeLabel,stageName} from './view-model.ts'
+import {connectionName,modelSummary,modeLabel,stageName} from './view-model.ts'
 import {JevTraceDetail} from './JevTraces.tsx'
 import {consumeNavigation,openWorkbenchLink,pendingNavigation,returnNavigation,type WorkbenchLink} from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
 import {CapabilityActionIcon} from '../../../dsh-client-ui-plain-chat/src/client/ManagedCapabilityCards.tsx'
@@ -23,12 +23,12 @@ export function JevActivity({scope}:{scope?:string}){
   if(!scope||!active&&!trace&&!error)return null
   return <div className={`${s.page} ${css.compact}`}>
     {error&&<p role="alert">本轮 JEV 状态暂时无法读取：{error}</p>}
-    {active&&<p role="status">本轮 JEV {active.enabled?'开启':'关闭'} · 配置 v{active.revision}{active.enabled?' · '+(active.phase==='checking'?`正在${stageName[active.stage!]}（${Math.max(0,Math.floor((Date.now()-Date.parse(active.checkingSince!))/1000))} 秒）`:'等待业务步骤，检查结果见下方'):''}{data&&active.revision!==data.config.revision?'；全局设置已变化，下一轮生效。':''}{active.enabled&&<> <button className={s.button} onClick={()=>openWorkbenchLink({section:'jev-mode',tab:'traces',scope})}>查看轨迹</button></>}</p>}
+    {active&&<p role="status">本轮 JEV {active.enabled?'开启':'关闭'} · 配置 v{active.revision}{active.enabled?' · '+(active.phase==='checking'?`正在${stageName[active.stage!]}（${Math.max(0,Math.floor((Date.now()-Date.parse(active.checkingSince!))/1000))} 秒）`:'等待业务步骤，检查结果见下方'):''}{active.phase==='checking'&&active.candidatePosition?' · 第 '+active.candidatePosition+'/'+active.candidateTotal+' 项 · '+active.model:''}{data&&active.revision!==data.config.revision?'；全局设置已变化，下一轮生效。':''}{active.enabled&&<> <button className={s.button} onClick={()=>openWorkbenchLink({section:'jev-mode',tab:'traces',scope})}>查看轨迹</button></>}</p>}
     {active?.phase==='checking'&&<small>立即停止请使用当前任务的“停止”按钮；全局开关不取消正在运行的轮次。</small>}
     {trace&&<><small className={s.muted}>{trace.runId===active?.id?'本轮最近结果':'历史检查结果（不是当前运行状态）'}</small><JevTraceDetail trace={trace}/></>}
   </div>
 }
-export function JevOverview(){const {data,readError}=useJev();return <div className={s.row}><div><strong>JEV 模式 · 全局{modeLabel(data)}</strong><small>{data?.config.value.model||'尚未选择决策模型'} · {data?.connection?connectionName[data.connection.state]:'正在读取状态'}</small><small>{readError||'所有岗位共用，无须逐个绑定组件。'}</small></div><button className={s.button} onClick={()=>openWorkbenchLink({section:'jev-mode'})}>配置与运行轨迹 ↗</button></div>}
+export function JevOverview(){const {data,readError}=useJev();return <div className={s.row}><div><strong>JEV 模式 · 全局{modeLabel(data)}</strong><small>{data?modelSummary(data.config.value):'正在读取候选模型'} · {data?.connection?connectionName[data.connection.state]:'正在读取状态'}</small><small>{readError||'所有岗位共用，无须逐个绑定组件。'}</small></div><button className={s.button} onClick={()=>openWorkbenchLink({section:'jev-mode'})}>配置与运行轨迹 ↗</button></div>}
 
 /** Reuses the existing model settings; only adds a return path for a JEV-origin visit. */
 export function JevModelReturn({children}:{children:React.ReactNode}){
