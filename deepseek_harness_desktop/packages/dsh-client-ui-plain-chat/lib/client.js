@@ -6751,6 +6751,7 @@ window.__ModuleLoader__.load({
 				if (typeof n !== "number" || !Number.isInteger(n) || n < min || n > max) throw new JevError(`JEV ${key} 超出范围`, 400);
 				return n;
 			};
+			if (d.connectionMode !== void 0 && !["intranet", "account"].includes(String(d.connectionMode))) throw new JevError("JEV 连接方式无效", 400);
 			let items;
 			if (d.candidates !== void 0) {
 				if (!Array.isArray(d.candidates) || d.candidates.length > 12) throw new JevError("最多添加 12 个 JEV 候选模型", 400);
@@ -6780,6 +6781,7 @@ window.__ModuleLoader__.load({
 				timeoutMs: number("timeoutMs", 5e3, 12e4),
 				maxChecks: number("maxChecks", 3, 32),
 				maxContextChars: number("maxContextChars", 4e3, 64e3),
+				...d.connectionMode === void 0 ? {} : { connectionMode: d.connectionMode },
 				...items ? { candidates: items } : {},
 				...d.totalTimeoutMs === void 0 ? {} : { totalTimeoutMs: number("totalTimeoutMs", 5e3, 3e5) }
 			};
@@ -7003,6 +7005,7 @@ window.__ModuleLoader__.load({
 		};
 		const fieldName = {
 			enabled: "全局开关",
+			connectionMode: "模型连接方式",
 			backend: "接入方式",
 			model: "决策模型",
 			reasoningEffort: "思考强度",
@@ -7381,7 +7384,7 @@ window.__ModuleLoader__.load({
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "模型接入与后续扩展" }),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: ManagedCapabilities_module_css_default.row,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "自有内网模型 · 当前接入方式" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "复用工作台模型账号和凭据，独立维护候选顺序，技术失败时依序切换。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "工作台模型 · 当前接入方式" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "支持严格内网或显式复用模型账号，独立维护候选顺序，技术失败时依序切换。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						className: ManagedCapabilities_module_css_default.button,
 						onClick: () => openWorkbenchLink({ section: "models" }),
 						children: "管理模型账号 ↗"
@@ -7405,7 +7408,7 @@ window.__ModuleLoader__.load({
 							" · ",
 							descriptor.version
 						] }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "代码、配置与轨迹独立管理。内网 Chat Completions 传输拒绝公网目标和重定向。模型判断不等同于官方 Jev 能力或实际测试通过；不保存完整思维过程。原生流式回答可能先于结束复核显示。" })
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "代码、配置与轨迹独立管理。严格内网传输拒绝公网目标和重定向；复用账号时使用现有模型适配器，目标与模型设置一致。模型判断不等同于官方 Jev 能力或实际测试通过；不保存完整思维过程。原生流式回答可能先于结束复核显示。" })
 					]
 				})
 			] });
@@ -8001,7 +8004,7 @@ window.__ModuleLoader__.load({
 					}),
 					rows.some((c) => accounts.some((a) => !a.available && a.models.some((m) => m.id === c.model))) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 						className: `${ManagedCapabilities_module_css_default.notice} ${JevControls_module_css_default.catalogNotice}`,
-						children: "当前为 JEV 内网模式。“配置受限”表示账号尚不满足 JEV 的地址或协议要求，并不表示密钥失效。普通聊天与 JEV 的连接条件不同。"
+						children: value.connectionMode === "account" ? "所选模型账号尚未启用或适配器未就绪，请到模型设置中检查；并不表示密钥失效。" : "当前为严格内网模式。公网 DeepSeek 账号需选择上方“复用模型账号”；内网账号请核对地址和协议。配置受限并不表示密钥失效。"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ManagedCapabilities_module_css_default.actions,
@@ -8333,7 +8336,7 @@ window.__ModuleLoader__.load({
 										connection?.checkedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["最近检查：", new Date(connection.checkedAt).toLocaleString()] })
 									] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 										className: ManagedCapabilities_module_css_default.badge,
-										children: "自有内网模型"
+										children: value.connectionMode === "account" ? "复用模型账号" : "严格内网"
 									})]
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("fieldset", {
@@ -8342,9 +8345,38 @@ window.__ModuleLoader__.load({
 									children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 										className: ManagedCapabilities_module_css_default.fields,
 										children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+												className: ManagedCapabilities_module_css_default.field,
+												children: [
+													"模型连接方式",
+													/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+														"aria-label": "JEV 模型连接方式",
+														value: value.connectionMode ?? "intranet",
+														disabled: !!checking || checkBusy,
+														onChange: (e) => {
+															setChecked(null);
+															change({ connectionMode: e.target.value });
+														},
+														children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+															value: "intranet",
+															children: "严格内网"
+														}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+															value: "account",
+															children: "复用模型账号（可含公网）"
+														})]
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: value.connectionMode === "account" ? "使用模型设置中的地址、凭据与协议。检查和运行会将待审查内容发送给所选模型服务；不调用 Jev 官网。" : "仅允许内网地址。公网 DeepSeek 账号请选“复用模型账号”，内网部署继续使用此项。" })
+												]
+											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevModelFields, {
 												value,
-												accounts,
+												accounts: value.connectionMode === "account" ? accounts.map((a) => ({
+													...a,
+													...a.configured ?? {
+														available: false,
+														message: "请刷新模型列表以读取账号连接状态"
+													}
+												})) : accounts,
 												loading: loadingAccounts,
 												refresh: () => void refreshAccounts(),
 												change,
