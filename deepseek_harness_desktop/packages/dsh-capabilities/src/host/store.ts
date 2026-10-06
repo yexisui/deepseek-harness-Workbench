@@ -1,3 +1,4 @@
+import { catalogFor, manifest, digestPattern, packageDefinition } from '../core/distribution.ts'
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, open, rename, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -42,11 +43,12 @@ export class CapabilityStore {
         if (raw.developerCapabilityVersion !== undefined && raw.developerCapabilityVersion !== 1) throw new Error('Unsupported developer capability migration')
         if (raw.stoppedSessions !== undefined && (!Array.isArray(raw.stoppedSessions) || raw.stoppedSessions.some((value: unknown) => typeof value !== 'string' || !value || value.length > 150))) throw new Error('Invalid stopped session data')
         if (raw.revokedAt !== undefined && Object.entries(object(raw.revokedAt)).some(([key, value]) => !/^(role|capability):[a-z][a-z0-9-]*$/.test(key) || !Number.isSafeInteger(value) || Number(value) < 0)) throw new Error('Invalid revocation data')
+        for (const [hash, release] of Object.entries(raw.packageReleases ?? {})) { const data = object(release); if (!digestPattern.test(hash) || data.hash !== hash) throw new Error('Invalid package digest'); manifest(data.manifest) }
         // Validate persisted references too. Invalid state must never become execution authority.
         for (const cap of this.state.capabilities) {
-          id(cap.id); bool(cap.enabled); definition(cap.draft)
+          id(cap.id); bool(cap.enabled); definition(cap.draft, catalogFor(this.state))
           if (cap.removedAt !== undefined && (typeof cap.removedAt !== 'string' || !Number.isFinite(Date.parse(cap.removedAt)) || cap.enabled || cap.pinned)) throw new Error('Invalid removed capability data')
-          for (const version of cap.versions) { integer(version.version); definition(version) }
+          for (const version of cap.versions) { integer(version.version); definition(version, catalogFor(this.state)); if (version.packageHash && !this.state.packageReleases?.[version.packageHash]) throw new Error('Missing package release') }
         }
         for (const role of this.state.roles) { if (role.archivedAt !== undefined && (typeof role.archivedAt !== 'string' || !Number.isFinite(Date.parse(role.archivedAt)) || role.enabled)) throw new Error('Invalid archived role data'); id(role.id); bool(role.enabled); roleDefinition(role.draft, this.state); for (const version of role.versions) { integer(version.version); roleDefinition(version, this.state) } }
       } catch (error) {
@@ -114,6 +116,7 @@ export class CapabilityStore {
   }
   componentRestrictions: () => NonNullable<State['componentRestrictions']> = () => ({})
   prepareCommit: (next: State, previous: State) => Promise<undefined | (() => Promise<void>)> = async () => undefined
+  enableIssues: (id: string) => string[] = () => []
   publishIssues: (ids: string[]) => string[] = () => []
   private mutableSnapshot(): State { return structuredClone(this.state) }
   snapshot(): State { return { ...this.mutableSnapshot(), componentRestrictions: this.componentRestrictions() } }
@@ -121,6 +124,25 @@ export class CapabilityStore {
   exclusive<T>(run: () => Promise<T>): Promise<T> { const attempt = this.tail.then(run); this.tail = attempt.then(() => {}, () => {}); return attempt }
 
   subscribe(fn: () => void) { this.listeners.add(fn); return () => { this.listeners.delete(fn) } }
+  /** Package assets are prepared first; this is the only authority commit for an installation. */
+  transaction<T>(expectedRevision: unknown, update: (next: State) => Promise<T> | T, rollbackAssets?: () => Promise<void>): Promise<T> {
+    return this.exclusive(async () => {
+      if (!this.lock) throw new InputError('能力服务未运行', 503)
+      if (integer(expectedRevision) !== this.state.revision) throw new InputError('能力清单已更新，请重新预览后重试', 409)
+      try {
+      const next = this.mutableSnapshot(), result = await update(next)
+      const catalog = catalogFor(next)
+      for (const cap of next.capabilities) { definition(cap.draft, catalog); for (const v of cap.versions) definition(v, catalog) }
+      for (const role of next.roles) { roleDefinition(role.draft, next); for (const v of role.versions) roleDefinition(v, next) }
+      next.revision++; next.updatedAt = new Date().toISOString()
+      const rollback = await this.prepareCommit(next, this.snapshot())
+      try { await this.persist(next) } catch (error) { await rollback?.(); throw error }
+      this.state = next
+      for (const listener of this.listeners) { try { listener() } catch { /* Already committed. */ } }
+      return result
+      } catch (error) { await rollbackAssets?.(); throw error }
+    })
+  }
   revokeSession(sessionId: string): Promise<void> {
     const run = async () => {
       if (!this.lock) throw new InputError('能力服务未运行', 503)
@@ -146,11 +168,16 @@ export class CapabilityStore {
       const command = object(raw) as unknown as Command, next = this.mutableSnapshot(), now = new Date().toISOString()
       let target = 'id' in command && command.id !== undefined ? id(command.id) : `local-${randomUUID()}`
       if (command.type === 'capability.save') {
-        const value = definition(command.definition), publish = bool(command.publish)
+        const value = definition(command.definition, catalogFor(next)), publish = bool(command.publish)
         // Incomplete drafts are editable; unsupported execution combinations are never accepted.
         const previous = next.capabilities.find(c => c.id === target)?.draft
         const newlyAdded = value.components.filter(p => !previous?.components.some(old => old.componentId === p.componentId)).map(p => p.componentId)
-        const problems = [...(publish ? issues(value, target) : compatibilityIssues(value, target)), ...this.publishIssues(publish ? value.components.map(p => p.componentId) : newlyAdded)]
+        const problems = [...(publish ? issues(value, target, catalogFor(next)) : compatibilityIssues(value, target, catalogFor(next))), ...this.publishIssues(publish ? value.components.map(p => p.componentId) : newlyAdded)]
+        const currentHash = next.capabilities.find(c => c.id === target)?.versions.at(-1)?.packageHash
+        if (publish && currentHash) {
+          const original = packageDefinition(next.packageReleases![currentHash]!.manifest)
+          if (value.components.some(p => p.actions.some(a => !original.components.some(c => c.componentId === p.componentId && c.actions.includes(a))))) problems.push('当前代码版本未提供这些动作，请导入提供该动作的能力更新')
+        }
         if (problems.length) throw new InputError(problems.join('；'))
         let cap = next.capabilities.find(c => c.id === target)
         if (command.id && !cap) throw new InputError('能力不存在', 404)
@@ -159,7 +186,7 @@ export class CapabilityStore {
         cap.draft = value
         if (publish) {
           const version = (latest(cap.versions)?.version ?? 0) + 1
-          cap.versions.push({ ...structuredClone(value), version, createdAt: now })
+          cap.versions.push({ ...structuredClone(value), version, createdAt: now, ...(latest(cap.versions)?.packageHash ? { packageHash: latest(cap.versions)!.packageHash } : {}) })
           const selectedRoles = list(command.applyToRoles ?? []).map(id)
           for (const roleId of selectedRoles) {
             const role = next.roles.find(r => r.id === roleId), current = role && latest(role.versions)
@@ -172,6 +199,7 @@ export class CapabilityStore {
       } else if (command.type === 'capability.copy') {
         const original = next.capabilities.find(c => c.id === target)
         if (!original) throw new InputError('能力不存在', 404)
+        if (original.packageOrigin) throw new InputError('导入能力保留唯一作品身份；请从外部工程使用新作品标识制作派生版本')
         if (target === MEETING_CAPABILITY_ID) throw new InputError('内置会议录音转写不能复制；可编辑说明和服务配置')
         if (target === DEVELOPER_CAPABILITY_ID) throw new InputError('开发工作区使用专用执行路由，暂不支持复制；可由多个岗位引用同一能力')
         if (target === REQUIREMENTS_CAPABILITY_ID) throw new InputError('需求分析服务使用独立工作区，暂不支持复制能力或混合浏览器流程；可由多个岗位引用同一已发布能力')
@@ -182,7 +210,7 @@ export class CapabilityStore {
         const cap = next.capabilities.find(c => c.id === target)
         if (!cap) throw new InputError('能力不存在', 404)
         if (cap.removedAt) throw new InputError('此能力已移除，请先恢复后再操作')
-        if (command.type === 'capability.toggle') { cap.enabled = bool(command.enabled); if (!cap.enabled) (next.revokedAt ??= {})[`capability:${target}`] = Date.parse(now) }
+        if (command.type === 'capability.toggle') { if (command.enabled && cap.packageOrigin) { const problems = this.enableIssues(cap.id); if (problems.length) throw new InputError(problems.join('；')) }; cap.enabled = bool(command.enabled); if (!cap.enabled) (next.revokedAt ??= {})[`capability:${target}`] = Date.parse(now) }
         else cap.pinned = bool(command.pinned)
       } else if (command.type === 'capability.remove' || command.type === 'capability.restore') {
         const cap = next.capabilities.find(c => c.id === target)

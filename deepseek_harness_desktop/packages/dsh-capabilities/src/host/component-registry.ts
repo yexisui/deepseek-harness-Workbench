@@ -1,3 +1,4 @@
+import { catalogFor } from '../core/distribution.ts'
 import { createHash, randomUUID } from 'node:crypto'
 import { mkdir, open, readFile, rename, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -20,7 +21,7 @@ export class ComponentRegistryStore {
   snapshot() { return structuredClone(this.value) }
   async preview(id: string, action: string) {
     if (!['retire', 'restore', 'disable', 'enable', 'purge'].includes(action)) throw new InputError('组件操作无效')
-    if (!components.some(c => c.id === id) && !this.value.candidates.some(c => c.id === id)) throw new InputError('组件不存在', 404)
+    if (!catalogFor(this.state()).some(c => c.id === id) && !this.value.candidates.some(c => c.id === id)) throw new InputError('组件不存在', 404)
     const state = this.state(), refs = references(state, id), activities = (await this.activities()).filter(t => t.componentIds.includes(id))
     const result = { id, action, revision: this.value.revision, stateRevision: state.revision,
       capabilities: refs.capabilities.map(c => ({ id: c.id, name: c.draft.name, removed: !!c.removedAt, versions: c.versions.filter(v => v.components.some(p => p.componentId === id)).map(v => v.version), draft: c.draft.components.some(p => p.componentId === id) })),
@@ -32,8 +33,8 @@ export class ComponentRegistryStore {
     if (!/^[a-zA-Z0-9-]{16,80}$/.test(operation)) throw new InputError('操作标识无效')
     if (this.value.operations.includes(operation)) return this.snapshot()
     const next = this.snapshot(), at = new Date().toISOString()
-    const id = text(command.id ?? '', '组件标识', 100)
-    const known = components.some(c => c.id === id), candidate = next.candidates.find(c => c.id === id)
+    const id = text(command.id ?? '', '组件标识', 160)
+    const known = catalogFor(this.state()).some(c => c.id === id), candidate = next.candidates.find(c => c.id === id)
     if (command.type === 'candidate.add') {
       if (integer(command.revision) !== next.revision) throw new InputError('组件清单已更新，请刷新后重试', 409)
       if (next.candidates.length >= 500) throw new InputError('候选组件数量已达上限')
@@ -58,7 +59,7 @@ export class ComponentRegistryStore {
         const preview = await this.preview(id, action)
         if (command.token !== preview.token || command.confirm !== true) throw new InputError('引用或活动任务已变化，请重新检查影响范围', 409)
         if (action === 'purge') {
-          if (known) throw new InputError('内置组件由插件提供，不能单独永久删除；请使用回收站或插件管理')
+          if (known) throw new InputError('此组件由插件或能力包提供，不能单独永久删除；请从所属能力或插件管理')
           if (!candidate?.retiredAt || preview.capabilities.length || preview.roles.length || preview.activities.length) throw new InputError('请先移入回收站并解除全部历史引用')
           next.candidates = next.candidates.filter(c => c.id !== id)
         } else {

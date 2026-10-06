@@ -3,19 +3,19 @@ import { defaultRoles, MEETING_CAPABILITY_ID } from './default-roles.ts'
 import type { RoleIconSpec } from './appearance.ts'
 import { REQUIREMENTS_CAPABILITY_ID, REQUIREMENTS_COMPONENT_ID } from './requirements-model.ts'
 import { DEVELOPER_CAPABILITY_ID, developerParts } from './developer-model.ts'
-export type Action = 'navigate' | 'read' | 'screenshot' | 'transcribe' | 'analyze-requirements' | 'develop' | 'inspect-git' | 'verify-code'
+export type Action = `pack:${string}` | 'navigate' | 'read' | 'screenshot' | 'transcribe' | 'analyze-requirements' | 'develop' | 'inspect-git' | 'verify-code'
 export type Part = { componentId: string; actions: Action[] }
 export type Definition = { name: string; description: string; instructions: string; components: Part[]; excludedDependencies?: string[]; componentOrder?: string[] }
-export type Version = Definition & { version: number; createdAt: string }
-export type Capability = { id: string; source: 'builtin' | 'local'; enabled: boolean; pinned: boolean; removedAt?: string; draft: Definition; versions: Version[] }
+export type Version = Definition & { version: number; createdAt: string; packageHash?: string }
+export type Capability = { id: string; packageOrigin?: import('./distribution.ts').PackageOrigin; source: 'builtin' | 'local'; enabled: boolean; pinned: boolean; removedAt?: string; draft: Definition; versions: Version[] }
 export type Binding = { capabilityId: string; version: number; enabled: boolean; actions?: Action[] }
 export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec; duties: string; requirements: string; format: string; capabilities: Binding[] }
 export type RoleVersion = RoleDefinition & { version: number; preset: string; createdAt: string }
 export type Role = { archivedAt?: string; id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
-export type State = { componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
+export type State = { packageModels?: Record<string,string>; packageReleases?: Record<string, import('./distribution.ts').PackageRelease>; componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
 export type Component = {
   id: string; name: string; provider: string; version: string; actions: readonly Action[]; dependencies: readonly string[]
-  icon: 'browser' | 'audio' | 'document'; sourceLabel: string; management: 'browser' | 'meeting-asr' | 'requirements' | 'developer'; pluginModule?: string
+  icon: 'browser' | 'audio' | 'document'; sourceLabel: string; management: 'browser' | 'meeting-asr' | 'requirements' | 'developer' | 'package'; actionLabels?: Record<string,string>; pluginModule?: string
   /** Exclusive workflows cannot be assembled into unrelated capabilities until their execution adapter supports it. */
   capabilityIds?: readonly string[]; required?: boolean; compositionVersion: 1 | 2
 }
@@ -62,15 +62,15 @@ export type Command =
 export type Health = { checkedAt: string | null; installed: boolean; loaded: boolean; state: 'unknown' | 'missing' | 'disconnected' | 'ready' | 'degraded'; message: string; cliVersion?: string; browsers: { id: string; name: string }[] }
 export type Task = { sessionId: string; roleId: string; roleVersion: number; name: string; status: 'idle' | 'running' | 'stopping' | 'stopped' | 'error'; error?: string; action?: string; browserSessions: string[] }
 export type DependencyHealth = { id: string; installed: boolean; loaded: boolean; version?: string; pendingRestart: boolean }
-export type Snapshot = { presetIssues?: string[]; compositionVersion?: 1 | 2; state: State; components: readonly Component[]; health: Health; tasks: Task[]; dependencies?: DependencyHealth[]; registry?: import("./component-registry.ts").ComponentRegistry; componentActivities?: import("./component-registry.ts").ComponentActivity[] }
+export type Snapshot = { packages?: import('./distribution.ts').PackageHealth[]; presetIssues?: string[]; compositionVersion?: 1 | 2; state: State; components: readonly Component[]; health: Health; tasks: Task[]; dependencies?: DependencyHealth[]; registry?: import("./component-registry.ts").ComponentRegistry; componentActivities?: import("./component-registry.ts").ComponentActivity[] }
 
 export function resolveBinding(state: State, binding: Binding): Version | undefined {
   return state.capabilities.find(c => c.id === binding.capabilityId)?.versions.find(v => v.version === binding.version)
 }
-export function actionsOf(definition?: Definition): Action[] {
+export function actionsOf(definition?: Definition, catalog: readonly Component[] = components): Action[] {
   // Incomplete drafts must never confer authority, even if loaded as a version by an old client.
   return [...new Set(definition?.components.flatMap(part => {
-    const descriptor = components.find(c => c.id === part.componentId)
+    const descriptor = catalog.find(c => c.id === part.componentId)
     return descriptor?.dependencies.some(dep => definition.excludedDependencies?.includes(dep)) ? [] : part.actions
   }) ?? [])]
 }

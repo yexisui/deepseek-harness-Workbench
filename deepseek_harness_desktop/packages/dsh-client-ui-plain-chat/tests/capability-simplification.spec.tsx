@@ -32,7 +32,7 @@ afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.restoreA
 it('offers only two persistent list tabs and moves removal and recycle operations out of the list',async()=>{
  await render();expect(rows()).toHaveLength(4)
  expect(Array.from(host.querySelectorAll('[aria-label="能力列表"] button')).map(n=>n.textContent)).toEqual(['全部','收藏'])
- expect(button('组件中心 ↗')).toBeUndefined();expect(button('回收站')).toBeUndefined();expect(button('移除能力：浏览器操作')).toBeUndefined()
+ expect(button('组件中心 ↗')).toBeUndefined();expect(button('回收站')).toBeTruthy();expect(button('导入能力')).toBeTruthy();expect(button('导出能力')).toBeTruthy();expect(button('＋ 创建能力')).toBeUndefined();expect(button('移除能力：浏览器操作')).toBeUndefined()
  expect(host.textContent).not.toContain('内置能力');expect(host.textContent).not.toContain('已收藏');expect(host.textContent).not.toContain('录音会发送')
  await click('管理能力：浏览器操作');expect(button('移除能力：浏览器操作')).toBeTruthy()
  expect(Array.from(host.querySelectorAll('[aria-label="能力详情"] button')).map(n=>n.textContent)).toEqual(['设置','组件','使用情况'])
@@ -69,7 +69,7 @@ it('maps old defaults links using service descriptors and opens old instructions
 })
 it('restores list search and filters after a separate recycle search and detail visit',async()=>{
  const removed=structuredClone(data.state.capabilities[0]!);removed.id='removed-browser';removed.removedAt=new Date().toISOString();data.state.capabilities.push(removed)
- await capabilityClient.refresh();await render();await input('浏览器');await click('筛选');await check('需要配置或连接');await click('收起筛选');await click('更多');await click('回收站 1')
+ await capabilityClient.refresh();await render();await input('浏览器');await click('筛选');await check('需要配置或连接');await click('收起筛选');await click('回收站 1')
  expect((host.querySelector('[aria-label="搜索能力"]') as HTMLInputElement).value).toBe('');await input('移除搜索');await click('← 返回能力列表')
  expect((host.querySelector('[aria-label="搜索能力"]') as HTMLInputElement).value).toBe('浏览器');expect(rows()).toEqual(['browser'])
  await click('管理能力：浏览器操作');await click('← 全部能力');expect(rows()).toEqual(['browser']);expect(button('清除筛选')).toBeTruthy()

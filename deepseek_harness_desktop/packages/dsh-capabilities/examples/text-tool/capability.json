@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "protocol": "dsh-worker-v1",
+  "id": "org.example.text-tool",
+  "version": "1.0.0",
+  "name": "文字整理示例",
+  "description": "统计文字并清理多余空格，用于验证完整能力包的制作、导出和导入。",
+  "instructions": "在设置中选择动作，输入文本后点击运行动作。也可以在岗位编辑中添加此能力并发布岗位，再由新会话按授权调用。",
+  "author": "工作台能力示例",
+  "license": "MIT",
+  "permissions": ["node"],
+  "components": [{
+    "id": "text",
+    "name": "文字处理组件",
+    "entry": "runtime/text.cjs",
+    "actions": [
+      {"id": "tidy", "name": "整理空格", "description": "接收文本，合并每行的连续空格并去掉首尾空白。"},
+      {"id": "count", "name": "统计文字", "description": "接收文本，返回字符数和非空行数。"}
+    ]
+  }],
+  "files": {"runtime/text.cjs": "auto", "docs/README.txt": "auto"}
+}

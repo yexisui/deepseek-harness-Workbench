@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react'
-import type { Command, Snapshot } from '../../../dsh-capabilities/src/core/model.ts'
+import { actionNames, type Command, type Snapshot } from '../../../dsh-capabilities/src/core/model.ts'
 export type ClientView = { data: Snapshot | null; error: string; revision: number }
 let view: ClientView = { data: null, error: '', revision: 0 }
 const listeners = new Set<() => void>()
@@ -14,9 +14,9 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
 export const capabilityClient = {
   getSnapshot: () => view,
   subscribe: (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn) } },
-  refresh() {
-    if (pending) return pending
-    pending = request<Snapshot>('state').then(data => emit({ data, error: '' })).catch(error => emit({ error: String(error.message ?? error) })).finally(() => { pending = undefined })
+  refresh(force = false): Promise<void> {
+    if (pending) return force ? pending.then(() => capabilityClient.refresh()) : pending
+    pending = request<Snapshot>('state').then(data => { for (const component of data.components) Object.assign(actionNames,component.actionLabels ?? {}); emit({ data, error: '' }) }).catch(error => emit({ error: String(error.message ?? error) })).finally(() => { pending = undefined })
     return pending
   },
   async command(command: Command, revision = view.data?.state.revision) {

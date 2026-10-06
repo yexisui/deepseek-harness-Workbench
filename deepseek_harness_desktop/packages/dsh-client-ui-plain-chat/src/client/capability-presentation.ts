@@ -20,13 +20,16 @@ export function capabilityPresentation(data: Snapshot, capability: Capability, v
   const icon = descriptors[0]?.icon ?? 'document'
   const status = (label: string, message: string, group: CapabilityStatusGroup) => ({icon,label,message,group})
   if (capability.removedAt) return status('已移除','能力已移除，请在能力中心恢复。','disabled')
+  const packageStatus = data.packages?.find(h=>h.capabilityId===capability.id)
+  if (capability.packageOrigin && packageStatus && !packageStatus.ready) return status(packageStatus.needsModel?'待配置':'组件待就绪',packageStatus.message,'pending')
   if (!capability.enabled) return status('已停用','能力已停用，请在能力中心启用。','disabled')
   if (!version) return status('草稿','能力尚未发布。','draft')
   if (!parts.length || descriptors.some(value => !value)) return status('组件待适配','部分组件尚未适配，请在组件中心检查。','pending')
   if (parts.some(part => data.state.componentRestrictions?.[part.componentId]?.enabled === false)) return status('组件已停用','关联组件已全局停用，请在组件中心检查。','pending')
-  const problems = issues(version,capability.id)
+  const problems = issues(version,capability.id,data.components)
   if (problems.length) return status('组件待完善',problems.join('；'),'pending')
   if (descriptors.some(value => value?.management !== management)) return status('分项检测','此能力包含不同服务，请在组件中心分别检查。','unknown')
+  if (management === 'package') return packageStatus?.ready ? status('已启用',packageStatus.message,'ready') : status('待检测','正在读取执行组件状态','unknown')
   if (management === 'developer') return status('项目内检测','进入开发对话并绑定项目后检测文件、Git 和验证环境；默认只读。','context')
   const service = management === 'requirements' ? requirements : management === 'meeting-asr' ? meeting : undefined
   if (management === 'requirements' || management === 'meeting-asr') {

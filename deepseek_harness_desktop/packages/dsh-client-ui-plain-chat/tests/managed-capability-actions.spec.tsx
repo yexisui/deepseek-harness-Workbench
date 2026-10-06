@@ -69,7 +69,7 @@ describe('managed capability card actions', () => {
   })
   async function openRecycleBin(ids = ['browser', secondId]) {
     for (const id of ids) await send({ type: 'capability.remove', id })
-    await capabilityClient.refresh(); await render(); await click('更多'); await click(`回收站 ${ids.length}`)
+    await capabilityClient.refresh(); await render();  await click(`回收站 ${ids.length}`)
   }
   async function makeRole(name: string) {
     return send({ type: 'role.save', definition: { ...emptyRole(), name, capabilities: [{ capabilityId: 'browser', version: 1, enabled: true }] }, publish: true })
@@ -152,7 +152,7 @@ describe('managed capability card actions', () => {
     const before = store.snapshot().capabilities.find(c => c.id === secondId)!
     await click('管理能力：自定义采集'); await click('移除能力：自定义采集'); await click('确认移除', document.querySelector('dialog')!)
     expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace'])
-    await click('更多'); await click('回收站 1')
+     await click('回收站 1')
     expect(cardIds()).toEqual([secondId])
     const removedCard = container.querySelector(`[data-managed-capability="${secondId}"]`)!
     expect(removedCard.textContent).toContain('已移除')

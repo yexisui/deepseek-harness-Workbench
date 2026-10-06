@@ -61,7 +61,7 @@ it('maps old component links into the capability center and retains independent 
 it('opens the component library from the same center and restores the ability search on return', async () => {
   await mount()
   await fill(host.querySelector<HTMLInputElement>('[aria-label="搜索能力"]')!, '开发')
-  await click('更多'); await click('组件库')
+   await click('组件库')
   expect(host.querySelector('h2')?.textContent).toBe('组件库')
   expect(host.querySelectorAll('[role="listitem"]')).toHaveLength(6)
   await click('← 返回能力中心')
@@ -77,7 +77,7 @@ it('resolves a legacy component deep link and keeps its selected object', async 
 })
 
 it('opens the full registered plugin page and returns to the ability list', async () => {
-  await mount(); await click('更多'); await click('插件管理')
+  await mount();  await click('插件管理')
   expect(host.querySelector('[data-center-plugins]')).toBeTruthy()
   expect(host.querySelector('[aria-label="搜索插件"]')).toBeTruthy()
   expect(buttons().some(button => button.textContent === '管理分类')).toBe(true)
@@ -87,7 +87,7 @@ it('opens the full registered plugin page and returns to the ability list', asyn
 })
 
 it('restores a component column after plugin navigation within the center', async () => {
-  await mount(); await click('更多'); await click('组件库'); await click('Git 变更与版本'); await click('使用关系')
+  await mount();  await click('组件库'); await click('Git 变更与版本'); await click('使用关系')
   await act(async () => { openCapabilityLink({ section: 'plugins', componentId: 'developer-git' }); await new Promise(resolve => setTimeout(resolve, 20)) })
   expect(host.querySelector('[data-center-plugins]')).toBeTruthy()
   await click('← 返回组件库')
@@ -96,7 +96,7 @@ it('restores a component column after plugin navigation within the center', asyn
 })
 
 it('keeps unsaved component information when departure is declined', async () => {
-  await mount(); await click('更多'); await click('组件库'); await click('项目文件与开发对话'); await click('整理信息')
+  await mount();  await click('组件库'); await click('项目文件与开发对话'); await click('整理信息')
   const field = Array.from(document.querySelectorAll('label')).find(label => label.textContent?.startsWith('组件名称'))!.querySelector('input')!
   await fill(field, '仍在编辑')
   vi.spyOn(window, 'confirm').mockReturnValue(false)
@@ -105,14 +105,14 @@ it('keeps unsaved component information when departure is declined', async () =>
 })
 
 it('does not turn a plugin return into a different center area', async () => {
-  await mount(); await click('更多'); await click('插件管理')
+  await mount();  await click('插件管理')
   const location = captureNavigation()!
   expect(location.section).toBe('capability-center')
   expect(centerArea({ section: 'capability-center', restore: location })).toBe('plugins')
 })
 
 it('returns through a capability and plugins to the original component column', async () => {
-  await mount(); await click('更多'); await click('组件库'); await click('项目文件与开发对话'); await click('使用关系'); await click('查看能力 ↗')
+  await mount();  await click('组件库'); await click('项目文件与开发对话'); await click('使用关系'); await click('查看能力 ↗')
   expect(host.querySelector('[data-workflow-capability-detail]')?.getAttribute('data-workflow-capability-detail')).toBe('developer-workspace')
   await act(async () => { openCapabilityLink({ section: 'plugins' }); await new Promise(resolve => setTimeout(resolve, 20)) })
   await click('← 返回能力中心')

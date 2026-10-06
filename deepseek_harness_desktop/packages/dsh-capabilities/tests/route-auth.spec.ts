@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
   writePresets: vi.fn(), requestRejection: vi.fn(),
 }))
 vi.mock('../src/host/store.ts', () => ({ CapabilityStore: class { constructor() { return mocks.store } } }))
+vi.mock('../src/host/packages.ts', () => ({ CapabilityPackages: class { init=vi.fn(); close=vi.fn(); health=()=>[] } }))
+vi.mock('../src/host/package-runner.ts', () => ({ PackageRunner: class { init=vi.fn(); close=vi.fn(); activities=()=>[] } }))
 vi.mock('../src/host/runtime.ts', () => ({ CapabilityRuntime: class { constructor() { return mocks.runtime } } }))
 vi.mock('../src/host/presets.ts', () => ({ writePresets: mocks.writePresets, preparePresets: vi.fn() }))
 vi.mock('../../dsh-jev-mode/src/index.ts', () => ({ apply: async () => ({}) }))
@@ -46,14 +48,15 @@ describe('capability named-route authentication', () => {
     for (const rejection of [401, 403]) {
       mocks.requestRejection.mockReturnValue(rejection)
       for (const [path, method] of [
-        ['/api/capabilities/state', 'GET'], [`/api/capabilities/icons/${'a'.repeat(64)}`, 'GET'], ['/api/capabilities/icons', 'POST'],
+        ['/api/capabilities/packages/export-link','POST'], ['/api/capabilities/packages/download/00000000-0000-4000-8000-000000000000','GET'], ['/api/capabilities/packages/download/00000000-0000-4000-8000-000000000000','DELETE'], ['/api/capabilities/packages/upload/token/file','PUT'],
+        ['/api/capabilities/packages/start', 'POST'], ['/api/capabilities/packages/install','POST'], ['/api/capabilities/packages/export','POST'], ['/api/capabilities/packages/tasks','GET'], ['/api/capabilities/packages/upload/token','DELETE'], ['/api/capabilities/packages/run','POST'], ['/api/capabilities/state', 'GET'], [`/api/capabilities/icons/${'a'.repeat(64)}`, 'GET'], ['/api/capabilities/icons', 'POST'],
         ['/api/capabilities/command', 'POST'], ['/api/capabilities/connect', 'POST'], ['/api/capabilities/stop', 'POST'],
         ['/api/capabilities/meeting/jobs', 'GET'], ['/api/capabilities/presets/repair', 'POST'],
         ['/api/capabilities/requirements/config', 'GET'], ['/api/capabilities/requirements/config', 'POST'],
         ['/api/capabilities/requirements/tasks', 'GET'], ['/api/capabilities/requirements/task/123', 'GET'],
         ['/api/capabilities/requirements/task/123', 'DELETE'], ['/api/capabilities/requirements/create', 'POST'], ['/api/capabilities/requirements/command', 'POST'],
       ]) {
-        const input = request(path!, method, 'malformed JSON must never be read'), res = response()
+        const input = request(path!, method, 'untrusted body must never be read',method==='PUT'?{'content-type':'application/octet-stream'}:{}), res = response()
         await handler(input.req, res)
         expect(res.writeHead).toHaveBeenCalledWith(rejection, expect.objectContaining({ 'cache-control': 'no-store' }))
         expect(input.reads()).toBe(0)

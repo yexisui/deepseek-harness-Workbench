@@ -1,4 +1,4 @@
-import { components, type Definition, type RoleDefinition, type State } from './model.ts'
+import { components, type Component, type Definition, type RoleDefinition, type State } from './model.ts'
 import { compatibilityIssues, dependencyName, missingAssociations, supportDependencies } from './composition.ts'
 import { roleIconIds, roleIconAssetIdPattern, type RoleIconSpec } from './appearance.ts'
 import { REQUIREMENTS_CAPABILITY_ID } from './requirements-model.ts'
@@ -22,10 +22,10 @@ export function roleIcon(value: unknown): RoleIconSpec {
   if (icon.kind === 'png' && typeof icon.assetId === 'string' && roleIconAssetIdPattern.test(icon.assetId)) return { kind: 'png', assetId: icon.assetId }
   throw new InputError('岗位图标无效，请选择推荐图标或重新上传 PNG')
 }
-export function definition(value: unknown): Definition {
+export function definition(value: unknown, catalog: readonly Component[] = components): Definition {
   const data = object(value), seen = new Set<string>()
   const result: Definition = { name: text(data.name, '能力名称', 80, true), description: text(data.description, '简介', 1000), instructions: text(data.instructions, '使用说明', 8000), components: list(data.components, 20).map(value => {
-    const part = object(value), componentId = id(part.componentId), descriptor = components.find(c => c.id === componentId)
+    const part = object(value), componentId = text(part.componentId, '组件标识', 160, true), descriptor = catalog.find(c => c.id === componentId)
     if (!descriptor) throw new InputError('此组件尚未适配，不能作为可执行能力添加')
     if (seen.has(componentId)) throw new InputError('组件重复；请在已有组件中调整动作')
     seen.add(componentId)
@@ -36,7 +36,7 @@ export function definition(value: unknown): Definition {
     if (new Set(actions).size !== actions.length) throw new InputError('动作重复')
     return { componentId, actions }
   }) }
-  const dependencies = supportDependencies(result)
+  const dependencies = supportDependencies(result, catalog)
   const associations = [...result.components.map(p => p.componentId), ...dependencies]
   for (const key of ['excludedDependencies', 'componentOrder'] as const) {
     if (data[key] === undefined) continue
@@ -64,9 +64,9 @@ export function roleDefinition(value: unknown, state: State): RoleDefinition {
     return { capabilityId, version, enabled: bool(binding.enabled), ...(actions === undefined ? {} : { actions: [...new Set(actions)] }) }
   }) }
 }
-export function issues(definition: Definition, capabilityId?: string): string[] {
-  const missing = missingAssociations(definition, capabilityId)
-  return [...compatibilityIssues(definition, capabilityId), ...(definition.components.length === 0 && !missing.length ? ['尚未添加组件'] : definition.components.flatMap(p => p.actions.length ? [] : ['至少选择一个业务动作'])), ...missing.map(id => `缺少必需组件：${components.find(c => c.id === id)?.name ?? dependencyName(id)}，补回后才能发布`)]
+export function issues(definition: Definition, capabilityId?: string, catalog: readonly Component[] = components): string[] {
+  const missing = missingAssociations(definition, capabilityId, catalog)
+  return [...compatibilityIssues(definition, capabilityId, catalog), ...(definition.components.length === 0 && !missing.length ? ['尚未添加组件'] : definition.components.flatMap(p => p.actions.length ? [] : ['至少选择一个业务动作'])), ...missing.map(id => `缺少必需组件：${catalog.find(c => c.id === id)?.name ?? dependencyName(id)}，补回后才能发布`)]
 }
 export function roleCompositionIssues(value: RoleDefinition): string[] {
   const active = value.capabilities.filter(binding => binding.enabled)
