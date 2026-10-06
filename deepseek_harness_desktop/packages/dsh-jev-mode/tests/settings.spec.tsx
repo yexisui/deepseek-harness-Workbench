@@ -34,6 +34,27 @@ async function render(node:React.ReactNode=<JevSettings/>){await act(async()=>{r
 const button=(text:string)=>Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent===text)!
 async function click(text:string){const b=button(text);expect(b).toBeTruthy();await act(async()=>{b.click();await delay()})}
 const pickerButton=()=>container.querySelector<HTMLButtonElement>('[aria-label="选择候选模型"]')!
+it('offers explicit account mode without silently connecting, preserves candidates and saves the choice',async()=>{
+  const original=globalThis.fetch
+  vi.stubGlobal('fetch',vi.fn(async(url:any,options:any)=>{
+    const result=await original(url,options)
+    if(!String(url).endsWith('/accounts'))return result
+    return new Response(JSON.stringify((await result.json()).map((a:any)=>({...a,configured:{available:true,message:'等待连接检查'}}))))
+  }))
+  await render();await add('cloud/model')
+  const mode=container.querySelector<HTMLSelectElement>('[aria-label="JEV 模型连接方式"]')!
+  expect(mode.value).toBe('intranet');expect(container.querySelector<HTMLButtonElement>('[aria-label="检查 公网模型"]')!.disabled).toBe(true)
+  await act(async()=>{mode.value='account';mode.dispatchEvent(new Event('change',{bubbles:true}));await delay()})
+  expect(container.querySelector<HTMLButtonElement>('[aria-label="检查 公网模型"]')!.disabled).toBe(false)
+  expect(container.textContent).toContain('待审查内容发送给所选模型服务')
+  expect(requests.some(r=>r.url.endsWith('/check'))).toBe(false)
+  await act(async()=>{container.querySelector<HTMLButtonElement>('[aria-label="检查 公网模型"]')!.click();await delay()})
+  expect(requests.find(r=>r.url.endsWith('/check'))?.body.value.connectionMode).toBe('account')
+  await click('取消检查');await click('保存配置')
+  expect(saved.config.value.connectionMode).toBe('account');expect(saved.config.value.enabled).toBe(false)
+  expect(saved.config.value.candidates?.find(c=>c.model==='cloud/model')?.enabled).toBe(false)
+  await render(null);await render();expect(container.querySelector<HTMLSelectElement>('[aria-label="JEV 模型连接方式"]')!.value).toBe('account')
+})
 const modelCheck=(model:string)=>container.querySelector<HTMLInputElement>('[data-model-option="'+model+'"] input')!
 async function choose(model:string){if(pickerButton().getAttribute('aria-expanded')!=='true')await act(async()=>pickerButton().click());const option=modelCheck(model);expect(option.disabled).toBe(false);await act(async()=>option.click())}
 async function add(model:string){await choose(model);await click('添加所选（1）')}

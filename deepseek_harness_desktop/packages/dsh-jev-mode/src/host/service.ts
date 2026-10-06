@@ -44,7 +44,7 @@ export class JevService {
   private key(value:JevConfig){return createHash('sha256').update(connectionConfig(value)+'\n'+this.identity(value)).digest('hex')}
   private singleConnection(value:JevConfig):JevConnection {
     try {
-      if(!value.model)throw new JevError('请选择独立的内网决策模型')
+      if(!value.model)throw new JevError('请选择独立的决策模型')
       if(!this.backends.has(value.backend))throw new JevError('官方 JEV 扩展尚未接入')
       this.ready(value)
       const key=this.key(value),job=this.diagnostic
@@ -64,9 +64,9 @@ export class JevService {
     const enabled=states.filter(s=>rows.find(r=>r.id===s.id)?.enabled),ready=enabled.filter(s=>s.state==='ready').length
     if(!enabled.length)return {state:'unconfigured',message:'候选模型全部关闭；可逐项检查后开启',candidates:states}
     if(enabled.some(s=>s.state==='checking'))return {state:'checking',message:'正在检查候选模型',candidates:states}
-    return {state:ready?'ready':enabled.some(s=>s.state==='unverified')?'unverified':'error',message:ready?'已启用 '+enabled.length+' 项，其中 '+ready+' 项检查通过；按列表顺序尝试':'启用项尚无检查通过的内网模型',candidates:states}
+    return {state:ready?'ready':enabled.some(s=>s.state==='unverified')?'unverified':'error',message:ready?'已启用 '+enabled.length+' 项，其中 '+ready+' 项检查通过；按列表顺序尝试':'启用项尚无检查通过的模型',candidates:states}
   }
-  update(revision:number,value:unknown){return this.store.update(revision,value,candidate=>{if(candidate.enabled&&this.connection(candidate).state!=='ready')throw new JevError('请先检查此配置的内网模型，通过后再开启 JEV')})}
+  update(revision:number,value:unknown){return this.store.update(revision,value,candidate=>{if(candidate.enabled&&this.connection(candidate).state!=='ready')throw new JevError('请先检查此配置的模型，通过后再开启 JEV')})}
   startDiagnostic(raw:unknown):JevDiagnostic {
     const value=config(raw)
     if(this.diagnostic?.result.status==='checking')throw new JevError('已有模型检查正在进行，请等待或取消')
@@ -74,7 +74,7 @@ export class JevService {
     const backend=this.backends.get(value.backend);if(!backend)throw new JevError('官方 JEV 扩展尚未接入')
     const keys=new Map<string,string>();for(const row of rows.filter(r=>r.enabled)){try{keys.set(row.model,this.key(candidateConfig(value,row)))}catch{}}
     const started=Date.now(),controller=new AbortController()
-    const result:JevDiagnostic={id:randomUUID(),config:value,startedAt:new Date(started).toISOString(),status:'checking',message:'正在请求所选内网模型…',elapsedMs:0,attempts:[]}
+    const result:JevDiagnostic={id:randomUUID(),config:value,startedAt:new Date(started).toISOString(),status:'checking',message:'正在请求所选模型…',elapsedMs:0,attempts:[]}
     const job={keys,result,controller,done:Promise.resolve()};this.diagnostic=job
     job.done=(async()=>{
       const signal=controller.signal

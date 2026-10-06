@@ -11,6 +11,7 @@ export type JevConfig = {
   enabled: boolean; backend: 'self-owned' | 'official-reserved'; model: string;
   reasoningEffort: '' | 'low' | 'medium' | 'high'; timeoutMs: number; maxChecks: number; maxContextChars: number;
   candidates?: JevCandidate[]; totalTimeoutMs?: number;
+  connectionMode?: 'intranet' | 'account';
 }
 export const defaults: JevConfig = { enabled: false, backend: 'self-owned', model: '', reasoningEffort: '', timeoutMs: 45000, maxChecks: 16, maxContextChars: 24000 }
 export type SavedConfig = { schema: 1 | 2; revision: number; value: JevConfig }
@@ -31,6 +32,7 @@ export function config(raw: unknown): JevConfig {
   if (typeof d.model !== 'string' || d.model.length > 250 || /[\r\n]/.test(d.model)) throw new JevTechnicalError('JEV 决策模型无效',400)
   if (!['','low','medium','high'].includes(String(d.reasoningEffort))) throw new JevError('JEV 思考强度无效',400)
   const number = (key: string,min: number,max: number) => { const n=d[key];if(typeof n!=='number'||!Number.isInteger(n)||n<min||n>max)throw new JevError(`JEV ${key} 超出范围`,400);return n }
+  if(d.connectionMode!==undefined&&!['intranet','account'].includes(String(d.connectionMode)))throw new JevError('JEV 连接方式无效',400)
   let items: JevCandidate[] | undefined
   if(d.candidates!==undefined){
     if(!Array.isArray(d.candidates)||d.candidates.length>12)throw new JevError('最多添加 12 个 JEV 候选模型',400)
@@ -40,7 +42,7 @@ export function config(raw: unknown): JevConfig {
       ids.add(c.id);models.add(c.model.trim());return {id:c.id,model:c.model.trim(),enabled:c.enabled,reasoningEffort:c.reasoningEffort}
     })
   }
-  return { enabled:d.enabled,backend:d.backend as JevConfig['backend'],model:d.model.trim(),reasoningEffort:d.reasoningEffort as JevConfig['reasoningEffort'],timeoutMs:number('timeoutMs',5000,120000),maxChecks:number('maxChecks',3,32),maxContextChars:number('maxContextChars',4000,64000),...(items?{candidates:items}:{}),...(d.totalTimeoutMs===undefined?{}:{totalTimeoutMs:number('totalTimeoutMs',5000,300000)}) }
+  return { enabled:d.enabled,backend:d.backend as JevConfig['backend'],model:d.model.trim(),reasoningEffort:d.reasoningEffort as JevConfig['reasoningEffort'],timeoutMs:number('timeoutMs',5000,120000),maxChecks:number('maxChecks',3,32),maxContextChars:number('maxContextChars',4000,64000),...(d.connectionMode===undefined?{}:{connectionMode:d.connectionMode as JevConfig['connectionMode']}),...(items?{candidates:items}:{}),...(d.totalTimeoutMs===undefined?{}:{totalTimeoutMs:number('totalTimeoutMs',5000,300000)}) }
 }
 export type Decision = { decision: 'allow' | 'clarify' | 'block'; summary: string; missing: string[]; checks: { criterion: string; verdict: 'supported' | 'uncertain' | 'unsupported'; evidence: string }[] }
 export function decision(raw: string): Decision {
@@ -57,7 +59,7 @@ export type JevConnection = { state: 'unconfigured'|'unverified'|'checking'|'rea
 export type JevActiveRun = { id: string; scope: string; revision: number; enabled: boolean; model: string; startedAt: string; checkingSince?: string; stage?: JevTrace['stage']; phase: 'working'|'checking'; lastStatus?: JevTrace['status']; candidatePosition?: number; candidateTotal?: number }
 export type JevStatus = { config: SavedConfig; state: 'off'|'ready'|'unavailable'; message: string; descriptor: typeof descriptor; traces: JevTrace[]; connection?: JevConnection; diagnostic?: JevDiagnostic; active?: JevActiveRun[] }
 export type JevModel = { id: string; name: string; reasoning?: JevConfig['reasoningEffort'][] }
-export type JevAccount = { id: string; name: string; available: boolean; models: JevModel[]; message?: string }
+export type JevAccount = { id: string; name: string; available: boolean; models: JevModel[]; message?: string; configured?:{available:boolean;message:string} }
 export const connectionConfig = (value: JevConfig) => JSON.stringify({...value,enabled:false})
 /** Future official implementations register this same contract explicitly; no official client is shipped. */
 export interface JevBackend { id: JevConfig['backend']; assess(input: { stage: JevTrace['stage']; scope: string; context: string; config: JevConfig }, signal: AbortSignal): Promise<Decision> }
