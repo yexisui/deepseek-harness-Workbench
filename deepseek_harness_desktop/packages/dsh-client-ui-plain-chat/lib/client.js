@@ -844,9 +844,9 @@ window.__ModuleLoader__.load({
 		function resolveBinding(state, binding) {
 			return state.capabilities.find((c) => c.id === binding.capabilityId)?.versions.find((v) => v.version === binding.version);
 		}
-		function actionsOf(definition) {
+		function actionsOf(definition, catalog = components) {
 			return [...new Set(definition?.components.flatMap((part) => {
-				return components.find((c) => c.id === part.componentId)?.dependencies.some((dep) => definition.excludedDependencies?.includes(dep)) ? [] : part.actions;
+				return catalog.find((c) => c.id === part.componentId)?.dependencies.some((dep) => definition.excludedDependencies?.includes(dep)) ? [] : part.actions;
 			}) ?? [])];
 		}
 		/** 永久删除必须保护所有历史岗位版本，不能只检查当前列表或活动会话。 */
@@ -875,47 +875,47 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region ../dsh-capabilities/src/core/composition.ts
-		function availableComponents(capabilityId) {
-			const scoped = components.filter((c) => c.capabilityIds?.includes(capabilityId ?? ""));
-			return scoped.length ? scoped : components.filter((c) => !c.capabilityIds);
+		function availableComponents(capabilityId, catalog = components) {
+			const scoped = catalog.filter((c) => c.capabilityIds?.includes(capabilityId ?? ""));
+			return scoped.length ? scoped : catalog.filter((c) => !c.capabilityIds);
 		}
-		function requiredComponents(capabilityId) {
-			return availableComponents(capabilityId).filter((c) => c.required);
+		function requiredComponents(capabilityId, catalog = components) {
+			return availableComponents(capabilityId, catalog).filter((c) => c.required);
 		}
 		function compositionSupported(data, capabilityId) {
-			return (data.compositionVersion ?? 0) >= Math.max(1, ...availableComponents(capabilityId).map((c) => c.compositionVersion));
+			return (data.compositionVersion ?? 0) >= Math.max(1, ...availableComponents(capabilityId, data.components).map((c) => c.compositionVersion));
 		}
-		function compatibilityIssues(value, capabilityId) {
-			const allowed = availableComponents(capabilityId);
-			return value.components.filter((p) => !allowed.some((c) => c.id === p.componentId)).map((p) => `${components.find((c) => c.id === p.componentId)?.name ?? p.componentId}不支持当前能力的执行流程`);
+		function compatibilityIssues(value, capabilityId, catalog = components) {
+			const allowed = availableComponents(capabilityId, catalog);
+			return value.components.filter((p) => !allowed.some((c) => c.id === p.componentId)).map((p) => `${catalog.find((c) => c.id === p.componentId)?.name ?? p.componentId}不支持当前能力的执行流程`);
 		}
-		function missingAssociations(value, capabilityId) {
-			return [...requiredComponents(capabilityId).filter((c) => !value.components.some((p) => p.componentId === c.id)).map((c) => c.id), ...missingDependencies(value)];
+		function missingAssociations(value, capabilityId, catalog = components) {
+			return [...requiredComponents(capabilityId, catalog).filter((c) => !value.components.some((p) => p.componentId === c.id)).map((c) => c.id), ...missingDependencies(value, catalog)];
 		}
 		const dependencyName = (id) => id.replace("@deepseek-ai/dsh-", "");
 		/** Environment requirements (CLI/extension) are not removable plugin associations. */
-		function supportDependencies(value) {
-			return [...new Set(value.components.flatMap((part) => components.find((c) => c.id === part.componentId)?.dependencies.filter((id) => id.startsWith("@")) ?? []))];
+		function supportDependencies(value, catalog = components) {
+			return [...new Set(value.components.flatMap((part) => catalog.find((c) => c.id === part.componentId)?.dependencies.filter((id) => id.startsWith("@")) ?? []))];
 		}
-		function dependencyUsers(value, id) {
+		function dependencyUsers(value, id, catalog = components) {
 			return value.components.flatMap((part) => {
-				const descriptor = components.find((c) => c.id === part.componentId);
+				const descriptor = catalog.find((c) => c.id === part.componentId);
 				return descriptor?.dependencies.includes(id) ? [descriptor] : [];
 			});
 		}
-		function missingDependencies(value) {
-			return supportDependencies(value).filter((id) => value.excludedDependencies?.includes(id));
+		function missingDependencies(value, catalog = components) {
+			return supportDependencies(value, catalog).filter((id) => value.excludedDependencies?.includes(id));
 		}
-		function compositionIds(value) {
-			const ids = [...value.components.map((p) => p.componentId), ...supportDependencies(value).filter((id) => !value.excludedDependencies?.includes(id))];
+		function compositionIds(value, catalog = components) {
+			const ids = [...value.components.map((p) => p.componentId), ...supportDependencies(value, catalog).filter((id) => !value.excludedDependencies?.includes(id))];
 			return [...(value.componentOrder ?? []).filter((id) => ids.includes(id)), ...ids.filter((id) => !value.componentOrder?.includes(id))];
 		}
-		function addAssociation(value, id) {
-			if (supportDependencies(value).includes(id)) return {
+		function addAssociation(value, id, catalog = components) {
+			if (supportDependencies(value, catalog).includes(id)) return {
 				...value,
 				excludedDependencies: (value.excludedDependencies ?? []).filter((dep) => dep !== id)
 			};
-			const descriptor = components.find((c) => c.id === id);
+			const descriptor = catalog.find((c) => c.id === id);
 			if (!descriptor || value.components.some((p) => p.componentId === id)) return value;
 			return {
 				...value,
@@ -925,8 +925,8 @@ window.__ModuleLoader__.load({
 				}]
 			};
 		}
-		function removeAssociation(value, id) {
-			if (supportDependencies(value).includes(id)) return {
+		function removeAssociation(value, id, catalog = components) {
+			if (supportDependencies(value, catalog).includes(id)) return {
 				...value,
 				excludedDependencies: [.../* @__PURE__ */ new Set([...value.excludedDependencies ?? [], id])],
 				componentOrder: (value.componentOrder ?? []).filter((key) => key !== id)
@@ -935,14 +935,14 @@ window.__ModuleLoader__.load({
 				...value,
 				components: value.components.filter((p) => p.componentId !== id)
 			};
-			const needed = supportDependencies(next);
+			const needed = supportDependencies(next, catalog);
 			next.excludedDependencies = (value.excludedDependencies ?? []).filter((dep) => needed.includes(dep));
 			const remaining = [...next.components.map((p) => p.componentId), ...needed];
 			next.componentOrder = (value.componentOrder ?? []).filter((key) => remaining.includes(key));
 			return next;
 		}
-		function moveAssociation(value, id, target) {
-			const ids = compositionIds(value), from = ids.indexOf(id), to = ids.indexOf(target);
+		function moveAssociation(value, id, target, catalog = components) {
+			const ids = compositionIds(value, catalog), from = ids.indexOf(id), to = ids.indexOf(target);
 			if (from < 0 || to < 0 || from === to) return value;
 			ids.splice(from, 1);
 			ids.splice(to, 0, id);
@@ -950,6 +950,789 @@ window.__ModuleLoader__.load({
 				...value,
 				componentOrder: ids
 			};
+		}
+		//#endregion
+		//#region ../dsh-capabilities/src/core/validation.ts
+		function issues(definition, capabilityId, catalog = components) {
+			const missing = missingAssociations(definition, capabilityId, catalog);
+			return [
+				...compatibilityIssues(definition, capabilityId, catalog),
+				...definition.components.length === 0 && !missing.length ? ["尚未添加组件"] : definition.components.flatMap((p) => p.actions.length ? [] : ["至少选择一个业务动作"]),
+				...missing.map((id) => `缺少必需组件：${catalog.find((c) => c.id === id)?.name ?? dependencyName(id)}，补回后才能发布`)
+			];
+		}
+		function roleCompositionIssues(value) {
+			const active = value.capabilities.filter((binding) => binding.enabled);
+			if (active.some((binding) => binding.capabilityId === "developer-workspace") && active.some((binding) => binding.capabilityId !== "developer-workspace")) return ["开发工作区暂不支持与其他执行能力混用；草稿可以保存，请停用其他能力后发布。"];
+			return active.some((binding) => binding.capabilityId === "requirements-analysis") && active.some((binding) => binding.capabilityId !== "requirements-analysis") ? ["需求分析使用独立工作区，暂不支持与其他执行能力混用。请停用或移除其他能力后发布；草稿可以继续保存。"] : [];
+		}
+		//#endregion
+		//#region ../dsh-capabilities/src/core/distribution.ts
+		const packageComponentId = (id, part) => `pkg:${id}:${part}`;
+		const packageActionId = (id, part, action) => `pack:${id}:${part}:${action}`;
+		function packageDefinition(m) {
+			return {
+				name: m.name,
+				description: m.description,
+				instructions: m.instructions,
+				components: m.components.map((c) => ({
+					componentId: packageComponentId(m.id, c.id),
+					actions: c.actions.map((a) => packageActionId(m.id, c.id, a.id))
+				}))
+			};
+		}
+		function catalogFor(state) {
+			const extra = /* @__PURE__ */ new Map();
+			for (const release of Object.values(state.packageReleases ?? {})) {
+				const m = release.manifest, scope = state.capabilities.filter((c) => c.packageOrigin?.id === m.id).map((c) => c.id);
+				for (const part of m.components) {
+					const id = packageComponentId(m.id, part.id), old = extra.get(id);
+					extra.set(id, {
+						id,
+						name: part.name,
+						provider: m.id,
+						version: m.version,
+						actions: [.../* @__PURE__ */ new Set([...old?.actions ?? [], ...part.actions.map((a) => packageActionId(m.id, part.id, a.id))])],
+						actionLabels: {
+							...old?.actionLabels,
+							...Object.fromEntries(part.actions.map((a) => [packageActionId(m.id, part.id, a.id), a.name]))
+						},
+						dependencies: [],
+						icon: "document",
+						sourceLabel: m.author,
+						management: "package",
+						capabilityIds: scope,
+						compositionVersion: 2
+					});
+				}
+			}
+			return [...components, ...extra.values()];
+		}
+		function definitionChanged(a, b) {
+			return !b || [
+				"name",
+				"description",
+				"instructions",
+				"components",
+				"excludedDependencies",
+				"componentOrder"
+			].some((k) => JSON.stringify(a[k] ?? []) !== JSON.stringify(b[k] ?? []));
+		}
+		//#endregion
+		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/Roles.module.css.mjs
+		const css$13 = ".fwzdhW_section,.fwzdhW_dialog,.fwzdhW_picker,.fwzdhW_presetDisclosure{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);font:inherit}.fwzdhW_section{box-sizing:border-box;width:100%;padding:4px 0 0}.fwzdhW_sectionHeader{justify-content:space-between;align-items:center;gap:20px;margin-bottom:22px;display:flex}.fwzdhW_titleRow{align-items:center;gap:12px;display:flex}.fwzdhW_section h2,.fwzdhW_dialog h2{letter-spacing:-.4px;margin:0;font-size:20px;font-weight:650}.fwzdhW_sectionHeader p{color:var(--role-muted);margin:8px 0 0;font-size:13px;line-height:1.7}.fwzdhW_previewBadge,.fwzdhW_exampleBadge{border:1px solid var(--role-border);color:var(--role-muted);white-space:nowrap;border-radius:6px;flex-shrink:0;align-items:center;padding:3px 8px;font-size:11px;font-weight:500;line-height:1.4;display:inline-flex}.fwzdhW_exampleBadge{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-color:#0000}.fwzdhW_primary,.fwzdhW_secondary{border:1px solid var(--role-border);font:inherit;cursor:pointer;white-space:nowrap;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:550}.fwzdhW_primary{background:var(--role-accent);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:#0000}.fwzdhW_secondary{background:var(--role-bg);color:var(--role-text)}.fwzdhW_primary:hover:not(:disabled){filter:brightness(1.08)}.fwzdhW_primary:disabled{opacity:.42;cursor:not-allowed}.fwzdhW_cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;display:grid}.fwzdhW_selectionStatus{min-height:30px;color:var(--role-muted);justify-content:space-between;align-items:center;gap:12px;margin:-4px 0 18px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_roleCard{transition:box-shadow .18s,border-color .18s;position:relative}.fwzdhW_cardSelect{z-index:1;cursor:pointer;background:0 0;border:0;border-radius:12px 12px 0 0;padding:0;position:absolute;inset:0 0 51px}.fwzdhW_cardSelect:hover{background:color-mix(in srgb,var(--role-color) 5%,transparent)}.fwzdhW_roleCard .fwzdhW_cardAction{z-index:2;position:relative}.fwzdhW_cardBody{border-radius:10px 10px 0 0;flex:1;margin:-22px -22px 0;padding:22px 22px 0;position:relative}.fwzdhW_cardBody .fwzdhW_cardSelect{border-radius:10px 10px 0 0;inset:0}.fwzdhW_cardSelect:disabled{cursor:default}.fwzdhW_cardSelect:disabled:hover{background:0 0}.fwzdhW_roleCard .fwzdhW_cardSummary{-webkit-line-clamp:3;overflow-wrap:anywhere;-webkit-box-orient:vertical;min-height:5.4em;display:-webkit-box;overflow:hidden}.fwzdhW_cardControls{z-index:2;border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border));flex-wrap:wrap;align-items:center;gap:8px 14px;display:flex;position:relative}.fwzdhW_cardControls .fwzdhW_cardAction{border-top:0;flex:1 0 100%;width:auto;min-width:0}.fwzdhW_cardControls .fwzdhW_textButton{min-height:44px;color:var(--role-muted)}.fwzdhW_roleCard .fwzdhW_chatCardNote{padding:14px 0;font-size:12px}.fwzdhW_selectedCard{box-shadow:0 0 0 2px var(--role-color),0 7px 20px color-mix(in srgb,var(--role-color) 20%,transparent);animation:.3s ease-out fwzdhW_roleSelect}.fwzdhW_roleCard .fwzdhW_exampleBadge.fwzdhW_selectedBadge{background:var(--role-color);color:var(--role-on-color,white)}@keyframes fwzdhW_roleSelect{0%,to{transform:translate(0)}30%{transform:translate(-3px)}60%{transform:translate(3px)}}@media (prefers-reduced-motion:reduce){.fwzdhW_selectedCard{animation:none}}.fwzdhW_currentAssistant{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);box-sizing:border-box;border:1px solid color-mix(in srgb,var(--role-color) 22%,transparent);background:color-mix(in srgb,var(--role-bg) 88%,transparent);backdrop-filter:blur(12px);max-width:100%;min-height:38px;color:var(--role-text);text-align:left;font:inherit;cursor:pointer;border-radius:22px;align-items:center;gap:8px;padding:6px 12px 6px 7px;transition:background .16s,border-color .16s,box-shadow .16s;display:inline-flex;box-shadow:0 2px 8px #182c5008}.fwzdhW_currentAssistant:hover{background:color-mix(in srgb,var(--role-color) 8%,var(--role-bg));border-color:color-mix(in srgb,var(--role-color) 45%,transparent);box-shadow:0 3px 12px #182c5010}.fwzdhW_currentAssistant:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_currentAssistant .fwzdhW_icon{border-radius:50%;width:24px;height:24px}.fwzdhW_currentAssistant .fwzdhW_icon svg{width:15px;height:15px}.fwzdhW_currentText{text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:13px;font-weight:550;line-height:20px;overflow:hidden}.fwzdhW_currentHint{color:var(--role-muted);border-left:1px solid color-mix(in srgb,var(--role-muted) 20%,transparent);flex-shrink:0;padding:0 6px;font-size:10px;line-height:16px}.fwzdhW_currentArrow{width:14px;height:14px;color:var(--role-muted);flex-shrink:0}@media (width<=400px){.fwzdhW_currentHint{display:none}}.fwzdhW_roleCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:14px;flex-direction:column;min-width:0;padding:22px 22px 0;display:flex}.fwzdhW_cardTop{justify-content:space-between;align-items:center;gap:12px;display:flex}.fwzdhW_icon{width:42px;height:42px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));border-radius:11px;flex-shrink:0;justify-content:center;align-items:center;display:inline-flex}.fwzdhW_icon svg{width:23px;height:23px}.fwzdhW_icon img{object-fit:contain;width:100%;height:100%;padding:4px;display:block}.fwzdhW_currentAssistant .fwzdhW_icon img{padding:2px}.fwzdhW_icon{color:color-mix(in srgb,var(--role-color,var(--role-accent)) 65%,var(--role-text));background:color-mix(in srgb,var(--role-color,var(--role-accent)) 20%,var(--role-bg))}.fwzdhW_roleCard,.fwzdhW_livePreview{border-color:color-mix(in srgb,var(--role-color) 40%,var(--role-border));border-top:4px solid var(--role-color);background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg)))}.fwzdhW_roleCard .fwzdhW_exampleBadge,.fwzdhW_roleCard .fwzdhW_tags span{background:color-mix(in srgb,var(--role-color) 15%,var(--role-bg));color:color-mix(in srgb,var(--role-color) 45%,var(--role-text))}.fwzdhW_roleCard .fwzdhW_cardAction{color:color-mix(in srgb,var(--role-color) 55%,var(--role-text));border-top-color:color-mix(in srgb,var(--role-color) 25%,var(--role-border))}.fwzdhW_roleCard h3{margin:18px 0 8px;font-size:16px;font-weight:650}.fwzdhW_roleCard p{color:var(--role-muted);margin:0;font-size:13px;line-height:1.8}.fwzdhW_tags{flex-wrap:wrap;gap:7px;margin:18px 0 22px;display:flex}.fwzdhW_tags span{background:color-mix(in srgb,var(--role-muted) 8%,var(--role-bg));color:var(--role-muted);border-radius:5px;padding:4px 8px;font-size:11px}.fwzdhW_cardAction{border:0;border-top:1px solid var(--role-border);width:100%;color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;justify-content:space-between;align-items:center;margin-top:auto;padding:14px 0;font-size:13px;display:flex}.fwzdhW_createCard{border:1px dashed var(--role-border);width:100%;color:var(--role-muted);font:inherit;cursor:pointer;background:0 0;border-radius:14px;justify-content:flex-start;align-items:center;gap:13px;margin-top:16px;padding:16px 20px;display:flex}.fwzdhW_createCard:hover{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.fwzdhW_createCard strong{color:var(--role-text);font-size:14px;font-weight:550}.fwzdhW_createCard>span:last-child{text-align:left;font-size:12px;line-height:1.8}.fwzdhW_plus{border:1px solid var(--role-border);border-radius:50%;place-items:center;width:38px;height:38px;font-size:24px;font-weight:300;display:grid}.fwzdhW_createCard .fwzdhW_plus{flex-shrink:0;width:30px;height:30px}.fwzdhW_createCard strong{flex-shrink:0}@media (width<=680px){.fwzdhW_createCard{flex-wrap:wrap}.fwzdhW_createCard>span:last-child{width:100%}}.fwzdhW_sectionNote{color:var(--role-muted);margin:14px 0 0;font-size:12px;line-height:1.8}.fwzdhW_presetDisclosure{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;margin-top:24px}.fwzdhW_presetDisclosure>summary{cursor:pointer;justify-content:space-between;align-items:center;gap:16px;padding:14px 16px;font-size:14px;font-weight:550;list-style:none;display:flex}.fwzdhW_presetDisclosure>summary::-webkit-details-marker{display:none}.fwzdhW_presetDisclosure>summary:hover{background:color-mix(in srgb,var(--role-muted) 5%,transparent);border-radius:10px}.fwzdhW_presetDisclosure>summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px;border-radius:10px}.fwzdhW_disclosureChevron{width:16px;height:16px;color:var(--role-muted);flex-shrink:0}.fwzdhW_presetDisclosure[open]>summary .fwzdhW_disclosureChevron{transform:rotate(90deg)}.fwzdhW_disclosureContent{border-top:1px solid var(--role-border);padding:18px 16px}.fwzdhW_dialog{background:var(--role-bg);border:1px solid var(--role-border);border-radius:18px;width:560px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 40px);padding:0;overflow:auto;box-shadow:0 24px 90px #10223d30}.fwzdhW_dialog::backdrop{backdrop-filter:blur(3px);background:#0e18224d}.fwzdhW_dialog[open]{flex-direction:column;display:flex}.fwzdhW_wide{width:1240px;height:min(850px,100dvh - 40px);overflow:hidden}.fwzdhW_editorDetails{border:1px solid var(--role-border);border-radius:8px;padding:0 12px}.fwzdhW_editorDetails>summary{cursor:pointer;color:var(--role-muted);padding:10px 0;font-size:12px}.fwzdhW_editorDetails>fieldset,.fwzdhW_editorDetails>div{padding:8px 0 14px}.fwzdhW_colorSample{border-radius:50%;width:11px;height:11px;margin-left:10px;display:inline-block}.fwzdhW_dialogHeader{border-bottom:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:20px;padding:22px 26px;display:flex}.fwzdhW_dialogHeader h2{font-size:18px}.fwzdhW_close{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-radius:6px;width:32px;height:32px;font-size:25px;line-height:1}.fwzdhW_close:hover{background:color-mix(in srgb,var(--role-muted) 10%,var(--role-bg))}.fwzdhW_editorScroll{min-height:0;padding:20px 26px 24px;overflow:auto}.fwzdhW_intro{color:var(--role-muted);margin:0 0 16px;font-size:13px;line-height:1.8}.fwzdhW_notice{background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border:1px solid var(--role-border);color:var(--role-muted);border-radius:8px;align-items:center;gap:10px;margin-bottom:24px;padding:11px 13px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_editorGrid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:28px;display:grid}.fwzdhW_fields{flex-direction:column;gap:18px;display:flex}.fwzdhW_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.fwzdhW_field input,.fwzdhW_field textarea{box-sizing:border-box;border:1px solid var(--role-border);width:100%;color:var(--role-text);background:var(--role-bg);font:inherit;border-radius:8px;padding:10px 12px;font-weight:400;line-height:1.7}.fwzdhW_field textarea{resize:vertical;min-height:85px}.fwzdhW_field input::placeholder,.fwzdhW_field textarea::placeholder{color:var(--role-muted);opacity:.75}.fwzdhW_field input:focus,.fwzdhW_field textarea:focus{outline:2px solid color-mix(in srgb,var(--role-accent) 22%,transparent);border-color:var(--role-accent)}.fwzdhW_colorField{border:0;min-width:0;margin:0;padding:0}.fwzdhW_colorField legend{margin-bottom:10px;padding:0;font-size:13px;font-weight:550}.fwzdhW_palette{flex-wrap:wrap;gap:10px;display:flex}.fwzdhW_swatch{cursor:pointer;color:#fff;text-shadow:0 1px 2px #0007;border:2px solid #0000;border-radius:50%;place-items:center;width:28px;height:28px;padding:0;font-size:16px;display:grid}.fwzdhW_swatch[aria-pressed=true]{outline:2px solid var(--role-text);outline-offset:3px}.fwzdhW_customColor{flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;font-size:12px;display:flex}.fwzdhW_customColor label,.fwzdhW_customColor input{cursor:pointer}.fwzdhW_customColor input{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);border-radius:6px;width:34px;height:30px;padding:2px}.fwzdhW_customColor input:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_customColor code{color:var(--role-muted);font-size:12px}.fwzdhW_livePreview{overflow-wrap:anywhere;border-radius:12px;padding:20px}.fwzdhW_previewHeading{justify-content:space-between;align-items:center;font-size:12px;font-weight:600;display:flex}.fwzdhW_dot{background:var(--role-color,var(--role-accent));border-radius:50%;width:6px;height:6px}.fwzdhW_caption{color:var(--role-muted);margin:6px 0 0;font-size:12px;line-height:1.7}.fwzdhW_previewIdentity{align-items:center;gap:12px;margin:24px 0;display:flex}.fwzdhW_previewIdentity h3{margin:0;font-size:16px;font-weight:650}.fwzdhW_previewSection{margin-top:20px}.fwzdhW_previewSection h4{letter-spacing:.5px;color:var(--role-muted);margin:0 0 8px;font-size:11px;font-weight:500}.fwzdhW_previewSection p{white-space:pre-wrap;margin:0;font-size:12px;line-height:1.9}.fwzdhW_empty{color:var(--role-muted);opacity:.65}.fwzdhW_sessionHint{border-top:1px solid var(--role-border);color:var(--role-muted);margin:24px 0 0;padding-top:15px;font-size:11px;line-height:1.7}.fwzdhW_footer{border-top:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:16px;padding:16px 26px;display:flex}.fwzdhW_footer p{color:var(--role-muted);margin:0;font-size:11px;line-height:1.7}.fwzdhW_actions{gap:10px;display:flex}.fwzdhW_picker{border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:10px;align-items:center;gap:9px;padding:6px 10px 6px 6px;font-size:13px;display:inline-flex}.fwzdhW_picker .fwzdhW_icon{border-radius:6px;width:27px;height:27px}.fwzdhW_picker .fwzdhW_icon svg{width:17px;height:17px}.fwzdhW_choices{padding:22px 26px 26px;overflow:auto}.fwzdhW_choice{border:1px solid var(--role-border);text-align:left;background:var(--role-bg);width:100%;color:var(--role-text);font:inherit;cursor:pointer;border-radius:12px;align-items:center;gap:14px;margin-bottom:12px;padding:17px;display:flex}.fwzdhW_choice:hover,.fwzdhW_chosen{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg))}.fwzdhW_choiceText{flex-direction:column;flex:1;gap:8px;min-width:0;display:flex}.fwzdhW_choiceText strong{flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:600;display:flex}.fwzdhW_choiceText>span{color:var(--role-muted);font-size:12px;line-height:1.7}.fwzdhW_radio{border:1px solid var(--role-border);border-radius:50%;flex-shrink:0;place-items:center;width:19px;height:19px;font-size:12px;display:grid}.fwzdhW_chosen .fwzdhW_radio{color:#fff;border-color:var(--role-accent);background:var(--role-accent)}.fwzdhW_choiceTools{border-bottom:1px solid var(--role-border);justify-content:space-between;gap:16px;padding:2px 0 14px;display:flex}.fwzdhW_textButton,.fwzdhW_back{color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;border:0;padding:6px 0;font-size:12px}.fwzdhW_section>.fwzdhW_textButton{color:var(--role-text)}.fwzdhW_section>.fwzdhW_textButton:focus-visible{outline-color:var(--role-text)}.fwzdhW_back{align-self:flex-start;margin:14px 26px 0}.fwzdhW_section button:focus-visible,.fwzdhW_dialog button:focus-visible,.fwzdhW_picker:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}@media (width<=680px){.fwzdhW_cards,.fwzdhW_editorGrid{grid-template-columns:1fr}.fwzdhW_sectionHeader{flex-direction:column;align-items:flex-start;gap:14px}.fwzdhW_createCard{padding:22px}.fwzdhW_dialogHeader,.fwzdhW_editorScroll,.fwzdhW_choices{padding:16px}.fwzdhW_footer{flex-direction:column;align-items:flex-end;gap:10px;padding:14px 16px}.fwzdhW_notice{align-items:flex-start}.fwzdhW_dialog{max-height:calc(100dvh - 24px)}.fwzdhW_livePreview{padding:16px}}";
+		const tagId$13 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Roles.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$13) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$13;
+			tag.textContent = css$13;
+			document.head.appendChild(tag);
+		}
+		var Roles_module_css_default = {
+			"actions": "fwzdhW_actions",
+			"back": "fwzdhW_back",
+			"caption": "fwzdhW_caption",
+			"cardAction": "fwzdhW_cardAction",
+			"cardBody": "fwzdhW_cardBody",
+			"cardControls": "fwzdhW_cardControls",
+			"cardSelect": "fwzdhW_cardSelect",
+			"cardSummary": "fwzdhW_cardSummary",
+			"cardTop": "fwzdhW_cardTop",
+			"cards": "fwzdhW_cards",
+			"chatCardNote": "fwzdhW_chatCardNote",
+			"choice": "fwzdhW_choice",
+			"choiceText": "fwzdhW_choiceText",
+			"choiceTools": "fwzdhW_choiceTools",
+			"choices": "fwzdhW_choices",
+			"chosen": "fwzdhW_chosen",
+			"close": "fwzdhW_close",
+			"colorField": "fwzdhW_colorField",
+			"colorSample": "fwzdhW_colorSample",
+			"createCard": "fwzdhW_createCard",
+			"currentArrow": "fwzdhW_currentArrow",
+			"currentAssistant": "fwzdhW_currentAssistant",
+			"currentHint": "fwzdhW_currentHint",
+			"currentText": "fwzdhW_currentText",
+			"customColor": "fwzdhW_customColor",
+			"dialog": "fwzdhW_dialog",
+			"dialogHeader": "fwzdhW_dialogHeader",
+			"disclosureChevron": "fwzdhW_disclosureChevron",
+			"disclosureContent": "fwzdhW_disclosureContent",
+			"dot": "fwzdhW_dot",
+			"editorDetails": "fwzdhW_editorDetails",
+			"editorGrid": "fwzdhW_editorGrid",
+			"editorScroll": "fwzdhW_editorScroll",
+			"empty": "fwzdhW_empty",
+			"exampleBadge": "fwzdhW_exampleBadge",
+			"field": "fwzdhW_field",
+			"fields": "fwzdhW_fields",
+			"footer": "fwzdhW_footer",
+			"icon": "fwzdhW_icon",
+			"intro": "fwzdhW_intro",
+			"livePreview": "fwzdhW_livePreview",
+			"notice": "fwzdhW_notice",
+			"palette": "fwzdhW_palette",
+			"picker": "fwzdhW_picker",
+			"plus": "fwzdhW_plus",
+			"presetDisclosure": "fwzdhW_presetDisclosure",
+			"previewBadge": "fwzdhW_previewBadge",
+			"previewHeading": "fwzdhW_previewHeading",
+			"previewIdentity": "fwzdhW_previewIdentity",
+			"previewSection": "fwzdhW_previewSection",
+			"primary": "fwzdhW_primary",
+			"radio": "fwzdhW_radio",
+			"roleCard": "fwzdhW_roleCard",
+			"roleSelect": "fwzdhW_roleSelect",
+			"secondary": "fwzdhW_secondary",
+			"section": "fwzdhW_section",
+			"sectionHeader": "fwzdhW_sectionHeader",
+			"sectionNote": "fwzdhW_sectionNote",
+			"selectedBadge": "fwzdhW_selectedBadge",
+			"selectedCard": "fwzdhW_selectedCard",
+			"selectionStatus": "fwzdhW_selectionStatus",
+			"sessionHint": "fwzdhW_sessionHint",
+			"swatch": "fwzdhW_swatch",
+			"tags": "fwzdhW_tags",
+			"textButton": "fwzdhW_textButton",
+			"titleRow": "fwzdhW_titleRow",
+			"wide": "fwzdhW_wide"
+		};
+		//#endregion
+		//#region src/client/PreviewModal.tsx
+		function Modal$1({ title, onClose, children, wide = false, closeLabel, className = "" }) {
+			const ref = (0, react.useRef)(null);
+			const titleId = (0, react.useId)();
+			(0, react.useEffect)(() => {
+				const previous = document.activeElement;
+				const dialog = ref.current;
+				dialog.showModal();
+				return () => {
+					dialog.close();
+					if (previous?.isConnected) previous.focus();
+				};
+			}, []);
+			return (0, react_dom.createPortal)(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dialog", {
+				ref,
+				className: `${Roles_module_css_default.dialog} ${wide ? Roles_module_css_default.wide : ""} ${className}`,
+				"aria-labelledby": titleId,
+				onKeyDown: (event) => {
+					if (event.key !== "Escape") return;
+					event.stopPropagation();
+					if (!event.defaultPrevented) {
+						event.preventDefault();
+						onClose();
+					}
+				},
+				onCancel: (event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					onClose();
+				},
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: Roles_module_css_default.dialogHeader,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", {
+						id: titleId,
+						children: title
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						type: "button",
+						autoFocus: true,
+						className: Roles_module_css_default.close,
+						onClick: onClose,
+						"aria-label": closeLabel,
+						children: "×"
+					})]
+				}), children]
+			}), document.body);
+		}
+		//#endregion
+		//#region src/client/capability-client.ts
+		let view = {
+			data: null,
+			error: "",
+			revision: 0
+		};
+		const listeners = /* @__PURE__ */ new Set();
+		let pending;
+		function emit(patch) {
+			view = {
+				...view,
+				...patch,
+				revision: view.revision + 1
+			};
+			listeners.forEach((fn) => fn());
+		}
+		async function request$2(path, body) {
+			const response = await fetch(`/api/capabilities/${path}`, {
+				credentials: "same-origin",
+				...body === void 0 ? {} : {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify(body)
+				}
+			});
+			const value = await response.json().catch(() => ({ error: "能力服务尚未加载，请检查工作台运行配置。" }));
+			if (!response.ok) throw new Error(value.error ?? "能力服务请求失败");
+			return value;
+		}
+		const capabilityClient = {
+			getSnapshot: () => view,
+			subscribe: (fn) => {
+				listeners.add(fn);
+				return () => {
+					listeners.delete(fn);
+				};
+			},
+			refresh(force = false) {
+				if (pending) return force ? pending.then(() => capabilityClient.refresh()) : pending;
+				pending = request$2("state").then((data) => {
+					for (const component of data.components) Object.assign(actionNames, component.actionLabels ?? {});
+					emit({
+						data,
+						error: ""
+					});
+				}).catch((error) => emit({ error: String(error.message ?? error) })).finally(() => {
+					pending = void 0;
+				});
+				return pending;
+			},
+			async command(command, revision = view.data?.state.revision) {
+				if (revision === void 0) throw new Error("请先等待能力数据加载");
+				const result = await request$2("command", {
+					revision,
+					command
+				});
+				await capabilityClient.refresh();
+				return result.id;
+			},
+			async repairPresets() {
+				const result = await request$2("presets/repair", { revision: view.data?.state.revision });
+				await capabilityClient.refresh();
+				if (result.presetIssues.length) throw new Error(result.presetIssues.join("；"));
+			},
+			async componentCommand(command) {
+				try {
+					const result = await request$2("components/command", command);
+					await capabilityClient.refresh();
+					return result;
+				} catch (error) {
+					await capabilityClient.refresh();
+					throw error;
+				}
+			},
+			async componentPreview(id, action) {
+				return request$2("components/preview", {
+					id,
+					action
+				});
+			},
+			async check(connect = false) {
+				await request$2(connect ? "connect" : "check", {});
+				await capabilityClient.refresh();
+			},
+			async stop(sessionId) {
+				await request$2("stop", { sessionId });
+				await capabilityClient.refresh();
+			},
+			async uploadRoleIcon(dataUrl) {
+				const result = await request$2("icons", { dataUrl });
+				if (!/^[a-f0-9]{64}$/.test(result.id)) throw new Error("图标保存结果无效，请重试");
+				return result.id;
+			}
+		};
+		function useCapabilities() {
+			const state = (0, react.useSyncExternalStore)(capabilityClient.subscribe, capabilityClient.getSnapshot);
+			(0, react.useEffect)(() => {
+				capabilityClient.refresh();
+				const refresh = () => {
+					if (!document.hidden) capabilityClient.refresh();
+				};
+				const timer = window.setInterval(refresh, 15e3);
+				window.addEventListener("focus", refresh);
+				return () => {
+					clearInterval(timer);
+					window.removeEventListener("focus", refresh);
+				};
+			}, []);
+			return state;
+		}
+		const editorDrafts = /* @__PURE__ */ new Map();
+		//#endregion
+		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css.mjs
+		const css$12 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:32px;height:32px;display:inline-flex;position:relative}.eqpZFq_recycleSelect input{opacity:0;cursor:pointer;z-index:1;width:100%;height:100%;margin:0;position:absolute;inset:0}.eqpZFq_selectionMark{box-sizing:border-box;border:1px solid var(--role-muted);background:var(--role-bg);border-radius:5px;justify-content:center;align-items:center;width:20px;height:20px;display:flex}.eqpZFq_selectionMark svg{fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;width:18px;height:18px}.eqpZFq_recycleSelect input:checked+.eqpZFq_selectionMark,.eqpZFq_recycleSelect input:indeterminate+.eqpZFq_selectionMark{color:#fff;background:#344575;border-color:#7585b1}.eqpZFq_recycleSelect input:focus-visible+.eqpZFq_selectionMark{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_recycleSelect input:disabled{cursor:default}.eqpZFq_recycleSelect input:disabled+.eqpZFq_selectionMark{opacity:.45}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}.eqpZFq_compositionFieldset{border:0;min-width:0;margin:0;padding:0}.eqpZFq_compositionInfo{border:1px solid var(--role-border);border-radius:9px;margin-bottom:18px;padding:12px}.eqpZFq_compositionInfo summary{color:var(--role-muted);cursor:pointer;font-size:12px}.eqpZFq_compositionInfo[open] summary{margin-bottom:16px}.eqpZFq_associationRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;padding:14px 16px;display:flex}.eqpZFq_associationIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_associationIdentity>div{min-width:0}.eqpZFq_associationIdentity strong{margin-right:8px}.eqpZFq_associationIdentity small{color:var(--role-muted);overflow-wrap:anywhere;margin-top:5px;font-size:11px;display:block}.eqpZFq_associationSymbol{width:34px;height:34px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 10%,transparent);border-radius:8px;flex-shrink:0;place-items:center;font-size:22px;display:grid}.eqpZFq_associationActions{flex-shrink:0;align-items:center;gap:6px;display:flex}.eqpZFq_compositionFeedback,.eqpZFq_compositionToolbar{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;padding:12px;font-size:12px;display:flex}.eqpZFq_compositionToolbar{z-index:1;position:sticky;bottom:0;box-shadow:0 -5px 12px #00000008}.eqpZFq_missingAssociations{border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border));background:color-mix(in srgb,#be8432 8%,var(--role-bg));border-radius:9px;margin:10px 0;padding:12px;font-size:12px}.eqpZFq_missingRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;display:flex}.eqpZFq_missingRow small{color:var(--role-muted)}@media (width<=650px){.eqpZFq_associationRow{flex-wrap:wrap;align-items:flex-start;padding:12px}.eqpZFq_associationActions{margin-left:auto}}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}.eqpZFq_versionValue{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px}.eqpZFq_presetIssues{overflow-wrap:anywhere;padding-left:20px}.eqpZFq_listToolbar{justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px;display:flex}.eqpZFq_listToolbar .eqpZFq_tabs{flex:1;margin:0}.eqpZFq_capabilityList{flex-direction:column;gap:8px;display:flex}.eqpZFq_capabilityRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;align-items:center;gap:8px;min-width:0;padding:0 12px 0 0;display:flex}.eqpZFq_capabilityRow:hover{border-color:var(--role-accent)}.eqpZFq_capabilityOpen{text-align:left;min-width:0;min-height:80px;color:inherit;font:inherit;cursor:pointer;background:0 0;border:0;border-radius:10px;flex:1;align-items:center;gap:12px;padding:12px 8px 12px 14px;display:flex}.eqpZFq_capabilityOpen>:first-child{flex-shrink:0}.eqpZFq_capabilityIdentity{flex:1;min-width:0}.eqpZFq_capabilityIdentity strong,.eqpZFq_capabilityIdentity small{text-overflow:ellipsis;white-space:nowrap;display:block;overflow:hidden}.eqpZFq_capabilityIdentity strong{font-size:14px}.eqpZFq_capabilityIdentity small{color:var(--role-muted);margin-top:5px;font-size:12px}.eqpZFq_capabilityIdentity .eqpZFq_draftHint{color:var(--role-accent)}.eqpZFq_capabilityStatus{color:var(--role-muted);flex-shrink:0;font-size:12px}.eqpZFq_filterPanel{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;flex-wrap:wrap;align-items:flex-start;gap:18px;margin-bottom:14px;padding:16px;display:flex}.eqpZFq_filterPanel fieldset{border:0;flex:1;min-width:170px;padding:0}.eqpZFq_filterPanel legend{font-size:13px;font-weight:600}.eqpZFq_filterSummary{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px;font-size:12px;display:flex}.eqpZFq_moreMenu{position:relative}.eqpZFq_morePanel{z-index:3;border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;min-width:120px;padding:6px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 4px 16px #0002}.eqpZFq_morePanel .eqpZFq_button{text-align:left;border:0;width:100%}.eqpZFq_detailBack{margin-bottom:18px}.eqpZFq_detailIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_detailIdentity h3{overflow-wrap:anywhere}.eqpZFq_detailDescription{color:var(--role-muted);overflow-wrap:anywhere;font-size:13px}.eqpZFq_detailDisclosure{border-top:1px solid var(--role-border);overflow-wrap:anywhere;margin-top:12px;padding:14px 0;font-size:13px}.eqpZFq_detailDisclosure summary{cursor:pointer;color:var(--role-muted)}.eqpZFq_detailDisclosure[open] summary{color:var(--role-text);margin-bottom:12px}@media (width<=600px){.eqpZFq_capabilityOpen{grid-template-columns:32px minmax(0,1fr) 10px;column-gap:10px;display:grid}.eqpZFq_capabilityOpen>:first-child{grid-row:1/3}.eqpZFq_capabilityIdentity{grid-column:2}.eqpZFq_capabilityStatus{grid-column:2;margin-top:5px}.eqpZFq_capabilityOpen>:last-child{grid-area:1/3/3}.eqpZFq_capabilityRow{padding-right:8px}.eqpZFq_detailIdentity{max-width:100%}}";
+		const tagId$12 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$12) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$12;
+			tag.textContent = css$12;
+			document.head.appendChild(tag);
+		}
+		var ManagedCapabilities_module_css_default = {
+			"actions": "eqpZFq_actions",
+			"associationActions": "eqpZFq_associationActions",
+			"associationIdentity": "eqpZFq_associationIdentity",
+			"associationRow": "eqpZFq_associationRow",
+			"associationSymbol": "eqpZFq_associationSymbol",
+			"badge": "eqpZFq_badge",
+			"button": "eqpZFq_button",
+			"capabilityIdentity": "eqpZFq_capabilityIdentity",
+			"capabilityList": "eqpZFq_capabilityList",
+			"capabilityOpen": "eqpZFq_capabilityOpen",
+			"capabilityRow": "eqpZFq_capabilityRow",
+			"capabilityStatus": "eqpZFq_capabilityStatus",
+			"card": "eqpZFq_card",
+			"cardDescription": "eqpZFq_cardDescription",
+			"cardFooter": "eqpZFq_cardFooter",
+			"cardMeta": "eqpZFq_cardMeta",
+			"cardSource": "eqpZFq_cardSource",
+			"cardTop": "eqpZFq_cardTop",
+			"check": "eqpZFq_check",
+			"choice": "eqpZFq_choice",
+			"compositionFeedback": "eqpZFq_compositionFeedback",
+			"compositionFieldset": "eqpZFq_compositionFieldset",
+			"compositionInfo": "eqpZFq_compositionInfo",
+			"compositionToolbar": "eqpZFq_compositionToolbar",
+			"confirmActions": "eqpZFq_confirmActions",
+			"dangerButton": "eqpZFq_dangerButton",
+			"deleteList": "eqpZFq_deleteList",
+			"detailBack": "eqpZFq_detailBack",
+			"detailDescription": "eqpZFq_detailDescription",
+			"detailDisclosure": "eqpZFq_detailDisclosure",
+			"detailIdentity": "eqpZFq_detailIdentity",
+			"dialogBody": "eqpZFq_dialogBody",
+			"draftHint": "eqpZFq_draftHint",
+			"empty": "eqpZFq_empty",
+			"error": "eqpZFq_error",
+			"field": "eqpZFq_field",
+			"fields": "eqpZFq_fields",
+			"filterPanel": "eqpZFq_filterPanel",
+			"filterSummary": "eqpZFq_filterSummary",
+			"footer": "eqpZFq_footer",
+			"grid": "eqpZFq_grid",
+			"heading": "eqpZFq_heading",
+			"iconButton": "eqpZFq_iconButton",
+			"inlineAction": "eqpZFq_inlineAction",
+			"list": "eqpZFq_list",
+			"listToolbar": "eqpZFq_listToolbar",
+			"missingAssociations": "eqpZFq_missingAssociations",
+			"missingRow": "eqpZFq_missingRow",
+			"moreMenu": "eqpZFq_moreMenu",
+			"morePanel": "eqpZFq_morePanel",
+			"muted": "eqpZFq_muted",
+			"notice": "eqpZFq_notice",
+			"page": "eqpZFq_page",
+			"pinLabel": "eqpZFq_pinLabel",
+			"pinned": "eqpZFq_pinned",
+			"pinnedCard": "eqpZFq_pinnedCard",
+			"presetIssues": "eqpZFq_presetIssues",
+			"primary": "eqpZFq_primary",
+			"recycleSelect": "eqpZFq_recycleSelect",
+			"recycleToolbar": "eqpZFq_recycleToolbar",
+			"removalImpact": "eqpZFq_removalImpact",
+			"removeAction": "eqpZFq_removeAction",
+			"row": "eqpZFq_row",
+			"search": "eqpZFq_search",
+			"secretField": "eqpZFq_secretField",
+			"selectedCard": "eqpZFq_selectedCard",
+			"selectionMark": "eqpZFq_selectionMark",
+			"selectionSummary": "eqpZFq_selectionSummary",
+			"status": "eqpZFq_status",
+			"tabs": "eqpZFq_tabs",
+			"tasks": "eqpZFq_tasks",
+			"time": "eqpZFq_time",
+			"versionValue": "eqpZFq_versionValue"
+		};
+		//#endregion
+		//#region src/client/CapabilityDistribution.tsx
+		async function packageRequest(path, body) {
+			const response = await fetch(`/api/capabilities/packages/${path}`, {
+				credentials: "same-origin",
+				...body === void 0 ? {} : {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify(body)
+				}
+			});
+			const value = await response.json();
+			if (!response.ok) throw new Error(value.error ?? "能力包操作失败");
+			return value;
+		}
+		async function discard(token) {
+			await fetch(`/api/capabilities/packages/upload/${encodeURIComponent(token)}`, {
+				method: "DELETE",
+				credentials: "same-origin"
+			}).catch(() => {});
+		}
+		async function discardDownload(id) {
+			await fetch("/api/capabilities/packages/download/" + encodeURIComponent(id), {
+				method: "DELETE",
+				credentials: "same-origin"
+			}).catch(() => {});
+		}
+		async function download(body) {
+			const file = await packageRequest("export-link", body);
+			const a = document.createElement("a");
+			a.href = file.url;
+			a.download = file.name;
+			document.body.append(a);
+			a.click();
+			a.remove();
+			return file;
+		}
+		function CapabilityDistribution({ mode, data, onClose, onImported }) {
+			const [source, setSource] = (0, react.useState)("folder"), [preview, setPreview] = (0, react.useState)(null);
+			const installed = data.state.capabilities.filter((c) => c.versions.some((v) => v.packageHash));
+			const [selected, setSelected] = (0, react.useState)(installed[0]?.id ?? ""), [version, setVersion] = (0, react.useState)(installed[0]?.versions.at(-1)?.version ?? 0);
+			const [busy, setBusy] = (0, react.useState)(false), [progress, setProgress] = (0, react.useState)(""), [error, setError] = (0, react.useState)(""), [trusted, setTrusted] = (0, react.useState)(false);
+			const [draft, setDraft] = (0, react.useState)("keep"), [roles, setRoles] = (0, react.useState)([]);
+			const [exported, setExported] = (0, react.useState)(null);
+			const downloadUrl = (0, react.useRef)(null);
+			const token = (0, react.useRef)(null);
+			(0, react.useEffect)(() => () => {
+				if (token.current) discard(token.current);
+				if (downloadUrl.current) discardDownload(downloadUrl.current);
+			}, []);
+			const select = async (files, kind) => {
+				if (!files?.length || busy) return;
+				setBusy(true);
+				setError("");
+				setPreview(null);
+				setTrusted(false);
+				setRoles([]);
+				setDraft("keep");
+				try {
+					if (token.current) {
+						await discard(token.current);
+						token.current = null;
+					}
+					let entries;
+					if (kind === "zip") entries = [["ability.zip", files[0]]];
+					else {
+						const all = new Map(Array.from(files).map((f) => [f.webkitRelativePath.split("/").slice(1).join("/"), f]));
+						const entry = all.get("capability.json");
+						if (!entry || entry.size > 256 * 1024) throw new Error("请选择根目录含 capability.json 的开发交付目录");
+						const manifest = JSON.parse(await entry.text());
+						if (!manifest.files || typeof manifest.files !== "object" || Array.isArray(manifest.files)) throw new Error("交付清单需要 files 字段");
+						entries = [["capability.json", entry], ...Object.keys(manifest.files).map((path) => {
+							const file = all.get(path);
+							if (!file) throw new Error(`交付清单中的文件不存在：${path}`);
+							return [path, file];
+						})];
+					}
+					if (entries.length > 501 || entries.reduce((n, [, f]) => n + f.size, 0) > 64 * 1024 * 1024) throw new Error("能力包最多 500 个交付文件、64 MiB");
+					const session = await packageRequest("start", { kind });
+					token.current = session.token;
+					for (let i = 0; i < entries.length; i++) {
+						const [path, file] = entries[i];
+						setProgress(`正在准备 ${i + 1}/${entries.length} 个文件`);
+						const response = await fetch(`/api/capabilities/packages/upload/${session.token}?path=${encodeURIComponent(path)}`, {
+							method: "PUT",
+							credentials: "same-origin",
+							headers: { "content-type": "application/octet-stream" },
+							body: file
+						});
+						if (!response.ok) {
+							const value = await response.json();
+							throw new Error(value.error ?? "文件上传失败");
+						}
+					}
+					setProgress("正在检查能力包…");
+					setPreview(await packageRequest("inspect", { token: session.token }));
+				} catch (e) {
+					setError(e instanceof Error ? e.message : String(e));
+					if (token.current) {
+						await discard(token.current);
+						token.current = null;
+					}
+				} finally {
+					setBusy(false);
+					setProgress("");
+				}
+			};
+			const submit = async () => {
+				setBusy(true);
+				setError("");
+				try {
+					if (mode === "export") {
+						const file = await download(source === "installed" ? {
+							id: selected,
+							version
+						} : {
+							token: preview.token,
+							hash: preview.hash
+						});
+						if (downloadUrl.current) URL.revokeObjectURL(downloadUrl.current);
+						downloadUrl.current = file.id;
+						setExported(file);
+						setProgress("能力包已生成。如果浏览器未自动保存，可点击下方文件名。");
+					} else {
+						const result = await packageRequest("install", {
+							token: preview.token,
+							hash: preview.hash,
+							revision: preview.revision,
+							trusted,
+							draft,
+							applyToRoles: roles
+						});
+						await capabilityClient.refresh(true);
+						onImported(result.id, result.duplicate ? "此版本已安装，已打开现有能力。" : result.needsModel ? "能力已导入，请在设置中选择模型后启用。" : "能力已导入，组件状态已重新核对。岗位授权保持原有范围。");
+					}
+				} catch (e) {
+					setError(e instanceof Error ? e.message : String(e));
+				} finally {
+					setBusy(false);
+				}
+			};
+			const cap = installed.find((c) => c.id === selected), published = cap?.versions.find((v) => v.version === version), release = published?.packageHash ? data.state.packageReleases?.[published.packageHash] : void 0;
+			const m = mode === "export" && source === "installed" ? release?.manifest : preview?.manifest;
+			const linked = preview?.existing ? data.state.roles.filter((r) => r.versions.at(-1)?.capabilities.some((b) => b.capabilityId === preview.existing.id)) : [];
+			const ready = mode === "export" && source === "installed" ? !!release : !!preview;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$1, {
+				title: mode === "import" ? "导入能力" : "导出能力",
+				closeLabel: "关闭能力分发",
+				onClose: () => {
+					if (!busy) onClose();
+				},
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.dialogBody}`,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: ManagedCapabilities_module_css_default.muted,
+							children: mode === "import" ? "选择制作者提供的完整能力包，检查后即可导入。" : "从开发交付目录或已安装的完整版本生成一个 ZIP，交给其他工作台导入。"
+						}),
+						mode === "export" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: ["导出来源", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+								disabled: busy,
+								value: source,
+								onChange: (e) => setSource(e.target.value),
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+									value: "folder",
+									children: "本地开发目录"
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+									value: "installed",
+									children: "已安装能力"
+								})]
+							})]
+						}),
+						mode === "export" && source === "installed" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+								className: ManagedCapabilities_module_css_default.field,
+								children: ["能力", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
+									disabled: busy || !installed.length,
+									value: selected,
+									onChange: (e) => {
+										setSelected(e.target.value);
+										setVersion(installed.find((c) => c.id === e.target.value)?.versions.at(-1)?.version ?? 0);
+									},
+									children: installed.map((c) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
+										value: c.id,
+										children: [c.versions.at(-1)?.name ?? c.draft.name, c.removedAt ? "（已移除）" : ""]
+									}, c.id))
+								})]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+								className: ManagedCapabilities_module_css_default.field,
+								children: ["完整发布版本", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
+									disabled: busy || !cap,
+									value: version,
+									onChange: (e) => setVersion(Number(e.target.value)),
+									children: cap?.versions.filter((v) => v.packageHash).map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
+										value: v.version,
+										children: [
+											"本地 v",
+											v.version,
+											" · 包 ",
+											data.state.packageReleases?.[v.packageHash]?.manifest.version
+										]
+									}, v.version))
+								})]
+							}),
+							!installed.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.notice,
+								children: "还没有可分发的已安装能力。你可以直接选择外部开发目录导出。"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.muted,
+								children: "此处列出带完整执行包的版本。工作台内置服务随应用交付，其专用工作区不能独立导出。"
+							}),
+							published && release && definitionChanged(published, packageDefinition(release.manifest)) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.notice,
+								children: "此版本含本地修改，将使用新的派生作品标识并保留原作来源，不覆盖制作者原版。"
+							})
+						] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: [mode === "import" ? "选择能力包（ZIP）" : "选择开发交付目录", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+								type: "file",
+								disabled: busy,
+								accept: mode === "import" ? ".zip" : void 0,
+								...mode === "export" ? {
+									webkitdirectory: "",
+									directory: ""
+								} : {},
+								onChange: (e) => {
+									select(e.target.files, mode === "import" ? "zip" : "folder");
+									e.target.value = "";
+								}
+							})]
+						}),
+						mode === "export" && source === "folder" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: ManagedCapabilities_module_css_default.muted,
+							children: "读取 capability.json 和清单中的已构建文件；不会运行工程安装或构建脚本。"
+						}),
+						m && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+							"aria-label": "能力包预览",
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("h3", { children: [
+									m.name,
+									" ",
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["v", m.version] })
+								] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: m.description }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+									className: ManagedCapabilities_module_css_default.muted,
+									children: [
+										m.author,
+										" · ",
+										m.license
+									]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+									m.components.length,
+									" 个执行组件 · ",
+									m.components.reduce((n, c) => n + c.actions.length, 0),
+									" 个动作",
+									preview && !(mode === "export" && source === "installed") ? ` · ${preview.fileCount} 个文件 · ${(preview.bytes / 1024).toFixed(1)} KiB` : ""
+								] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+									className: ManagedCapabilities_module_css_default.list,
+									children: m.components.map((c) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+										c.name,
+										"：",
+										c.actions.map((a) => a.name).join("、")
+									] }, c.id))
+								}),
+								m.permissions.includes("model") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "使用工作台模型；账号与密钥由接收方本机提供。" }),
+								mode === "import" && preview && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+										className: ManagedCapabilities_module_css_default.notice,
+										children: preview.trust
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+										className: ManagedCapabilities_module_css_default.check,
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+											type: "checkbox",
+											disabled: busy,
+											checked: trusted,
+											onChange: (e) => setTrusted(e.target.checked)
+										}), "我信任此制作者及包内执行代码"]
+									}),
+									preview.needsModel && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "导入后选择工作台模型即可启用，当前不会运行任何任务。" }),
+									preview.existing && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: preview.existing.duplicate ? "此包已安装，将直接打开现有能力。" : `更新现有能力：包 v${preview.existing.version} → v${m.version}` }), !preview.existing.duplicate && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+											className: ManagedCapabilities_module_css_default.list,
+											children: preview.existing.changes.map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("li", { children: v }, v))
+										}),
+										preview.existing.draftChanged && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+											className: ManagedCapabilities_module_css_default.field,
+											children: ["发现本地未发布修改", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+												disabled: busy,
+												value: draft,
+												onChange: (e) => setDraft(e.target.value),
+												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+													value: "keep",
+													children: "保留当前草稿"
+												}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+													value: "replace",
+													children: "保存备份后替换为导入内容"
+												})]
+											})]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+											className: ManagedCapabilities_module_css_default.detailDisclosure,
+											children: [
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "更新岗位引用（默认保持原版本）" }),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "仅下方勾选的岗位会生成采用新版的岗位版本；已有岗位草稿与会话保留。" }),
+												linked.map((role) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+													className: ManagedCapabilities_module_css_default.check,
+													children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+														type: "checkbox",
+														disabled: busy,
+														checked: roles.includes(role.id),
+														onChange: (e) => setRoles(e.target.checked ? [...roles, role.id] : roles.filter((id) => id !== role.id))
+													}), role.draft.name]
+												}, role.id)),
+												!linked.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "暂无岗位引用。" })
+											]
+										})
+									] })] })
+								] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+									className: ManagedCapabilities_module_css_default.detailDisclosure,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "来源与交付清单" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+											className: ManagedCapabilities_module_css_default.muted,
+											children: [
+												m.id,
+												" · ",
+												m.protocol
+											]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "本机配置、岗位授权与任务记录不参与导出。" }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+											className: ManagedCapabilities_module_css_default.list,
+											children: Object.keys(m.files).map((path) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("li", { children: path }, path))
+										})
+									]
+								})
+							]
+						}),
+						progress && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							role: "status",
+							children: progress
+						}),
+						exported && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("a", {
+							className: ManagedCapabilities_module_css_default.button,
+							href: exported.url,
+							download: exported.name,
+							children: ["保存 ", exported.name]
+						}),
+						error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							role: "alert",
+							className: ManagedCapabilities_module_css_default.error,
+							children: error
+						}),
+						preview && preview.revision !== data.state.revision && mode === "import" && !preview.existing?.duplicate && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+							className: ManagedCapabilities_module_css_default.notice,
+							children: ["能力清单有更新，请重新检查后导入。", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: busy,
+								onClick: () => {
+									setBusy(true);
+									packageRequest("inspect", { token: preview.token }).then(setPreview).catch((e) => setError(String(e.message))).finally(() => setBusy(false));
+								},
+								children: "重新检查"
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.confirmActions,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: busy,
+								onClick: onClose,
+								children: "关闭"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
+								disabled: busy || !ready || mode === "import" && (!trusted || preview?.revision !== data.state.revision && !preview?.existing?.duplicate),
+								onClick: () => void submit(),
+								children: busy ? "处理中…" : mode === "export" ? "导出能力包" : preview?.existing?.duplicate ? "打开已有能力" : preview?.existing ? "更新能力" : preview?.needsModel ? "导入并配置" : "导入并启用"
+							})]
+						})
+					]
+				})
+			});
 		}
 		//#endregion
 		//#region ../dsh-capabilities/src/core/component-registry.ts
@@ -960,6 +1743,12 @@ window.__ModuleLoader__.load({
 		};
 		/** Exact exported module identities. A parent package is never an implicit match for a child export. */
 		function pluginRelations(component) {
+			if (component.management === "package") return [{
+				moduleName: "@linxin666/dsh-capabilities",
+				role: "adapter",
+				required: true,
+				reason: "加载能力包构建文件，并执行版本、岗位授权与停止检查"
+			}];
 			return [
 				{
 					moduleName: component.provider,
@@ -985,9 +1774,9 @@ window.__ModuleLoader__.load({
 			return catalog.filter((c) => pluginRelations(c).some((r) => r.moduleName === moduleName));
 		}
 		function adaptedCapabilities(state, component) {
-			return state.capabilities.filter((c) => !c.removedAt && availableComponents(c.id).some((d) => d.id === component.id));
+			return state.capabilities.filter((c) => !c.removedAt && availableComponents(c.id, catalogFor(state)).some((d) => d.id === component.id));
 		}
-		function pluginReferences(state, moduleName, tasks = [], catalog = components) {
+		function pluginReferences(state, moduleName, tasks = [], catalog = catalogFor(state)) {
 			const related = relatedComponents(moduleName, catalog), ids = new Set(related.map((c) => c.id));
 			const refs = related.map((c) => references(state, c.id, tasks));
 			const unique = (values) => [...new Map(values.map((v) => [v.id, v])).values()];
@@ -1002,7 +1791,7 @@ window.__ModuleLoader__.load({
 		function componentPublishIssues(state, registry, ids) {
 			return ids.flatMap((id) => {
 				const meta = registry.metadata[id];
-				return meta?.retiredAt ? [`${components.find((c) => c.id === id)?.name ?? id}已移入回收站，请恢复后发布`] : meta?.enabled === false ? [`${components.find((c) => c.id === id)?.name ?? id}已全局停用，请启用后发布`] : [];
+				return meta?.retiredAt ? [`${catalogFor(state).find((c) => c.id === id)?.name ?? id}已移入回收站，请恢复后发布`] : meta?.enabled === false ? [`${components.find((c) => c.id === id)?.name ?? id}已全局停用，请启用后发布`] : [];
 			});
 		}
 		//#endregion
@@ -2285,13 +3074,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-plugin-manager/src/client/inventory-tree.module.css.mjs
-		const css$13 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=639px){.Z_0aEG_root[data-component-id] .Z_0aEG_moduleList,.Z_0aEG_root[data-component-id] .Z_0aEG_grid{grid-template-columns:1fr}}.Z_0aEG_aiHeader{align-items:center;gap:8px;padding-right:14px;display:flex}.Z_0aEG_importControl{flex-shrink:0;position:relative}.Z_0aEG_importMenu{z-index:20;border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:12px;min-width:190px;padding:5px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 8px 24px #0002}.Z_0aEG_root .Z_0aEG_importMenu button{text-align:left;white-space:nowrap;background:0 0;border:0;width:100%;display:block}.Z_0aEG_root .Z_0aEG_importMenu button:hover{background:color-mix(in srgb,var(--tree-accent) 8%,var(--tree-bg))}.Z_0aEG_importDialog{border:1px solid var(--tree-border);background:var(--tree-bg);width:min(560px,100vw - 32px);max-height:calc(100dvh - 48px);color:var(--tree-text);border-radius:16px;padding:0;box-shadow:0 18px 64px #0003}.Z_0aEG_importDialog::backdrop{backdrop-filter:blur(3px);background:#0005}.Z_0aEG_importDialog .Z_0aEG_importBox{border:0;gap:12px;margin:0;padding:20px}.Z_0aEG_importTitle{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_importDialog p{overflow-wrap:anywhere;margin:0;font-size:12px;line-height:1.6}.Z_0aEG_importDialog .Z_0aEG_preview{border:0;padding:0}.Z_0aEG_importNotice{color:var(--tree-muted);flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.Z_0aEG_card[data-imported=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=520px){.Z_0aEG_toolbar{position:relative}.Z_0aEG_toolbar>.Z_0aEG_search{flex-basis:100%;min-width:0}.Z_0aEG_toolbar>.Z_0aEG_toolButton,.Z_0aEG_importControl>.Z_0aEG_toolButton{gap:5px;padding:8px 9px;font-size:12px}.Z_0aEG_importControl{position:static}.Z_0aEG_importMenu{max-width:100%;left:auto;right:0}}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex:1;width:auto;min-width:0}.Z_0aEG_aiActions{flex-shrink:0;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_aiButton{border-color:color-mix(in srgb,var(--tree-tone) 25%,var(--tree-border));background:color-mix(in srgb,var(--tree-tone) 6%,var(--tree-bg));white-space:nowrap;justify-content:center;align-items:center;gap:6px;font-size:12px;display:inline-flex}.Z_0aEG_aiButton svg{width:15px;height:15px}.Z_0aEG_root .Z_0aEG_aiToggle{background:0 0;border:0;align-items:center;gap:12px;padding:8px 0;display:flex}.Z_0aEG_aiFeedback{background:var(--tree-bg);color:var(--tree-text);border-radius:10px;margin:0 14px 12px;padding:11px 12px;font-size:12px;line-height:1.7}.Z_0aEG_aiFeedback small{color:var(--tree-muted);font-size:11px;display:block}.Z_0aEG_aiFeedback summary{cursor:pointer;color:var(--tree-accent);padding:7px 0}.Z_0aEG_aiFeedback ul{max-height:240px;margin:0;padding:0;list-style:none;overflow:auto}.Z_0aEG_aiFeedback li{border-top:1px solid var(--tree-border);overflow-wrap:anywhere;gap:3px;padding:9px 0;display:grid}.Z_0aEG_aiFeedback button{margin-top:8px;font-size:12px}@container (width<=520px){.Z_0aEG_aiHeader{flex-wrap:wrap;gap:0;padding-right:0}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex-basis:100%}.Z_0aEG_aiActions{justify-content:space-between;width:100%;padding:0 13px 12px}.Z_0aEG_aiFeedback{margin-inline:9px}}.Z_0aEG_categoryList{gap:12px;display:grid}.Z_0aEG_categoryRow{align-items:center;gap:6px;min-width:0;transition:background .16s,opacity .16s;display:flex;position:relative}.Z_0aEG_categoryRow input{flex:1;width:0}.Z_0aEG_categoryModules{gap:6px;min-height:12px;margin-left:14px;display:grid}.Z_0aEG_root .Z_0aEG_dragHandle,.Z_0aEG_root .Z_0aEG_categoryIcon{width:30px;height:34px;color:var(--tree-muted);background:0 0;border-color:#0000;flex-shrink:0;justify-content:center;align-items:center;padding:4px;display:inline-flex}.Z_0aEG_root .Z_0aEG_dragHandle{cursor:grab;touch-action:none;user-select:none}.Z_0aEG_root .Z_0aEG_dragHandle:active{cursor:grabbing}.Z_0aEG_root .Z_0aEG_dragHandle:hover,.Z_0aEG_root .Z_0aEG_categoryIcon:hover{color:var(--tree-accent);background:color-mix(in srgb,var(--tree-accent) 8%,var(--tree-bg))}.Z_0aEG_root .Z_0aEG_dragHandle:focus-visible,.Z_0aEG_root .Z_0aEG_categoryIcon:focus-visible{outline:2px solid var(--tree-accent);outline-offset:2px}.Z_0aEG_root .Z_0aEG_categoryAdd{color:var(--tree-muted);background:0 0;border:0;justify-self:start;align-items:center;gap:6px;padding:6px 8px;display:flex}.Z_0aEG_categoryAdd svg{width:16px;height:16px}.Z_0aEG_editGroup{transition:border-color .16s,box-shadow .16s}.Z_0aEG_editGroup[data-drop-target=true]{border-color:var(--tree-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--tree-accent) 10%,transparent)}[data-dragging=true]{opacity:.4}.Z_0aEG_dropLine{background:var(--tree-accent);border-radius:3px;height:3px;margin:2px 0;animation:.12s ease-out Z_0aEG_treeReveal}.Z_0aEG_emptyDrop{border:1px dashed var(--tree-border);text-align:center;color:var(--tree-muted);border-radius:8px;padding:16px;font-size:12px}.Z_0aEG_dragGhost{z-index:1000;pointer-events:none;border:1px solid var(--tree-accent);background:var(--tree-bg);max-width:240px;color:var(--tree-text);border-radius:10px;padding:10px 16px;font-size:13px;position:fixed;box-shadow:0 8px 24px #0002}.Z_0aEG_dragGhost small{color:var(--tree-muted);margin-top:4px;display:block}.Z_0aEG_moveMenu{color:var(--tree-muted);flex-wrap:wrap;align-items:center;gap:8px;padding:4px 36px;font-size:12px;display:flex}.Z_0aEG_editorFooter{z-index:3;background:var(--tree-bg);border-top:1px solid var(--tree-border);gap:8px;padding:12px 0;display:flex;position:sticky;bottom:0}.Z_0aEG_srOnly{clip-path:inset(50%);white-space:nowrap;width:1px;height:1px;padding:0;position:absolute;overflow:hidden}@container (width<=520px){.Z_0aEG_categoryModules{margin-left:0}.Z_0aEG_editGroup{padding:8px}.Z_0aEG_categoryRow{gap:3px}.Z_0aEG_root .Z_0aEG_categoryRow input{padding:8px 6px}}@media (prefers-reduced-motion:reduce){.Z_0aEG_categoryRow,.Z_0aEG_editGroup,.Z_0aEG_dropLine{transition:none;animation:none}}.Z_0aEG_editGroup,.Z_0aEG_categoryRow{cursor:grab}.Z_0aEG_categoryRow{touch-action:none}.Z_0aEG_root .Z_0aEG_categoryRow input[readonly]{cursor:grab;user-select:none}.Z_0aEG_root .Z_0aEG_categoryRow input:not([readonly]){cursor:text}.Z_0aEG_deleteDialog{border:1px solid var(--tree-border);background:var(--tree-bg);width:min(440px,100vw - 40px);color:var(--tree-text);border-radius:14px;padding:22px;box-shadow:0 18px 64px #0003}.Z_0aEG_deleteDialog::backdrop{background:#0005}.Z_0aEG_deleteDialog p{margin:14px 0}.Z_0aEG_deleteDialog select{width:100%;margin-bottom:16px;display:block}.Z_0aEG_deleteDialog button{margin-right:8px}";
-		const tagId$13 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-plugin-manager/src/client/inventory-tree.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$13) + "]") === null) {
+		const css$11 = ".Z_0aEG_root{--tree-bg:var(--dsw-alias-bg-layer-2,#fff);--tree-text:var(--dsw-alias-label-primary,#263147);--tree-muted:var(--dsw-alias-label-secondary,#7a859b);--tree-border:var(--dsw-alias-border-l2,#dce2ed);--tree-accent:var(--dsw-alias-button-primary-fill,#6478bd);--tree-tone:var(--tree-accent);min-width:0;color:var(--tree-text);font:inherit;gap:22px;display:grid;container-type:inline-size}.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{box-sizing:border-box}.Z_0aEG_root button,.Z_0aEG_root input,.Z_0aEG_root select{font:inherit}.Z_0aEG_toolbar{flex-wrap:wrap;align-items:center;gap:8px;display:flex}.Z_0aEG_root input:not([type=checkbox]),.Z_0aEG_root select{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;border-radius:10px;min-width:0;padding:9px 11px;font-size:13px}.Z_0aEG_root button{border:1px solid var(--tree-border);background:var(--tree-bg);color:inherit;cursor:pointer;border-radius:10px;padding:9px 12px;font-size:13px;transition:background .18s,border-color .18s,box-shadow .18s}.Z_0aEG_root button:hover:not(:disabled){border-color:color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border))}.Z_0aEG_root button:disabled{opacity:.45;cursor:default}.Z_0aEG_root button:focus-visible,.Z_0aEG_root input:focus-visible,.Z_0aEG_root select:focus-visible,.Z_0aEG_root summary:focus-visible{outline:2px solid var(--tree-accent);outline-offset:3px}.Z_0aEG_search{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:11px;flex:1;align-items:center;gap:9px;min-width:180px;padding:0 12px;transition:border-color .18s,box-shadow .18s;display:flex}.Z_0aEG_search>svg{width:18px;height:18px;color:var(--tree-muted);flex-shrink:0}.Z_0aEG_root .Z_0aEG_search input{background:0 0;border:0;outline:none;width:100%;padding:11px 0}.Z_0aEG_search:focus-within{border-color:var(--tree-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--tree-accent) 12%, transparent)}.Z_0aEG_search input::placeholder{color:var(--tree-muted)}.Z_0aEG_root .Z_0aEG_toolButton{justify-content:center;align-items:center;gap:7px;padding:10px 12px;display:inline-flex}.Z_0aEG_toolButton>svg{width:16px;height:16px;color:var(--tree-muted)}.Z_0aEG_scopeToolbar{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_scopeButton{text-align:left;background:0 0;border:0;align-items:center;gap:9px;padding:4px 0;font-size:15px;font-weight:600;display:flex}.Z_0aEG_scopeIcon{width:19px;height:19px;color:var(--tree-accent);flex-shrink:0}.Z_0aEG_scopeButton .Z_0aEG_chevron{margin-left:1px}.Z_0aEG_session{border-bottom:1px solid var(--tree-border);padding-bottom:20px}.Z_0aEG_scopeToolbar select{background:color-mix(in srgb, var(--tree-muted) 6%, var(--tree-bg));border-color:#0000;max-width:52%}.Z_0aEG_muted,.Z_0aEG_scopeDescription{color:var(--tree-muted);margin:9px 0 12px;font-size:12px;line-height:1.7}.Z_0aEG_scopeDescription{flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 16px;display:flex}.Z_0aEG_statusDot{background:#419b7a;border-radius:50%;width:5px;height:5px;margin-left:6px}.Z_0aEG_inactiveCount{border-left:1px solid var(--tree-border);margin-left:6px;padding-left:10px}.Z_0aEG_groupList{gap:12px;animation:.22s ease-out Z_0aEG_treeReveal;display:grid}.Z_0aEG_branch{border:1px solid color-mix(in srgb, var(--tree-tone) 17%, var(--tree-border));background:color-mix(in srgb, var(--tree-tone) 3%, var(--tree-bg));border-radius:15px;min-width:0;transition:border-color .18s,box-shadow .18s,background .18s}.Z_0aEG_branch[data-tone=violet]{--tree-tone:#9780cb}.Z_0aEG_branch[data-tone=amber]{--tree-tone:#b39860}.Z_0aEG_branch[data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 29%, var(--tree-border))}.Z_0aEG_root .Z_0aEG_branchButton{text-align:left;border-radius:inherit;background:0 0;border:0;align-items:center;gap:12px;width:100%;padding:16px;line-height:1.5;display:flex}.Z_0aEG_root .Z_0aEG_branchButton:hover{background:color-mix(in srgb, var(--tree-tone) 5%, transparent)}.Z_0aEG_branchIcon{width:38px;height:38px;color:color-mix(in srgb, var(--tree-tone) 82%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 11%, var(--tree-bg));box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--tree-tone) 9%, transparent);border-radius:12px;flex-shrink:0;place-items:center;transition:transform .22s,background .22s;display:grid}.Z_0aEG_branchIcon svg{width:21px;height:21px}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 17%, var(--tree-bg));transform:translateY(-2px)rotate(-4deg)}.Z_0aEG_branchLabel{flex-direction:column;flex:1;gap:3px;min-width:0;display:flex}.Z_0aEG_branchTitle{overflow-wrap:anywhere;font-size:14px;font-weight:600}.Z_0aEG_branchHint{color:var(--tree-muted);font-size:11px;font-weight:400}.Z_0aEG_branchMeta{flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;display:flex}.Z_0aEG_count{font-variant-numeric:tabular-nums;min-width:29px;color:color-mix(in srgb, var(--tree-tone) 65%, var(--tree-text));background:color-mix(in srgb, var(--tree-tone) 9%, var(--tree-bg));border-radius:8px;flex-shrink:0;justify-content:center;align-items:baseline;gap:3px;padding:3px 8px;font-size:12px;font-weight:600;line-height:1.6;display:inline-flex}.Z_0aEG_countUnit{opacity:.7;font-size:10px;font-weight:400}.Z_0aEG_scopeButton .Z_0aEG_count{margin-left:2px;padding:1px 7px}.Z_0aEG_chevron{width:14px;height:14px;color:var(--tree-muted);flex-shrink:0;transition:transform .22s,color .18s}button[aria-expanded=true]>.Z_0aEG_chevron{color:var(--tree-tone);transform:rotate(90deg)}.Z_0aEG_children{min-width:0;padding:0 12px 12px;animation:.22s ease-out Z_0aEG_treeReveal}.Z_0aEG_moduleList{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:8px;display:grid}.Z_0aEG_branch[data-level=module]{border-color:color-mix(in srgb, var(--tree-border) 65%, transparent);background:color-mix(in srgb, var(--tree-bg) 82%, transparent);border-radius:11px}.Z_0aEG_branch[data-level=module]:hover{border-color:color-mix(in srgb, var(--tree-tone) 32%, var(--tree-border));box-shadow:0 3px 12px #182c5006}.Z_0aEG_branch[data-level=module][data-open=true]{border-color:color-mix(in srgb, var(--tree-tone) 38%, var(--tree-border));grid-column:1/-1}.Z_0aEG_branch[data-level=module]>.Z_0aEG_branchButton{gap:9px;min-height:69px;padding:12px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon{background:color-mix(in srgb, var(--tree-tone) 6%, var(--tree-bg));width:29px;height:29px;box-shadow:none;border-radius:9px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchIcon svg{width:18px;height:18px}.Z_0aEG_branch[data-level=module] .Z_0aEG_branchTitle{font-size:12px;font-weight:500}.Z_0aEG_branch[data-level=module] .Z_0aEG_count{min-width:23px;padding:2px 6px;font-size:11px}.Z_0aEG_branch[data-level=module] .Z_0aEG_countUnit{display:none}.Z_0aEG_branch[data-level=module]>.Z_0aEG_children{padding-top:0}.Z_0aEG_branch[data-level=module] .Z_0aEG_grid{border-top:1px solid var(--tree-border);padding-top:12px}.Z_0aEG_failureCount{color:#bc575e;font-size:10px}.Z_0aEG_emptyState{color:var(--tree-muted);justify-content:center;align-items:center;gap:12px;padding:20px 8px;font-size:13px;display:flex}.Z_0aEG_emptyState>svg{opacity:.65;width:30px;height:30px}.Z_0aEG_emptyState small{margin-top:5px;font-size:11px;display:block}.Z_0aEG_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:6px 0 0;display:grid}.Z_0aEG_card{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;min-width:0;padding:12px;transition:border-color .18s,box-shadow .18s}.Z_0aEG_card:hover{border-color:color-mix(in srgb, var(--tree-tone) 35%, var(--tree-border));box-shadow:0 2px 8px #182c5006}.Z_0aEG_card summary{cursor:pointer;justify-content:space-between;align-items:flex-start;gap:7px;list-style:none;display:flex}.Z_0aEG_card summary::-webkit-details-marker{display:none}.Z_0aEG_card summary:after{content:\"\";border-right:1.5px solid var(--tree-muted);border-bottom:1.5px solid var(--tree-muted);flex-shrink:0;width:6px;height:6px;margin:5px 2px 0 1px;transition:transform .18s;transform:rotate(45deg)}.Z_0aEG_card details[open] summary:after{margin-top:8px;transform:rotate(225deg)}.Z_0aEG_card strong{overflow-wrap:anywhere;flex:1;font-size:12px;font-weight:600;line-height:1.6}.Z_0aEG_card p{color:var(--tree-muted);margin:7px 0 0;font-size:11px;line-height:1.7}.Z_0aEG_card dl{overflow-wrap:anywhere;border-top:1px solid var(--tree-border);padding-top:10px;font-size:11px;animation:.18s ease-out Z_0aEG_treeReveal}.Z_0aEG_card dd{color:var(--tree-muted);margin:3px 0 9px}.Z_0aEG_card dt{font-weight:500}.Z_0aEG_badge{white-space:nowrap;background:color-mix(in srgb, var(--tree-muted) 8%, var(--tree-bg));color:var(--tree-muted);border-radius:5px;align-items:center;gap:4px;padding:2px 5px;font-size:10px;line-height:1.6;display:inline-flex}.Z_0aEG_badge[data-state=active]{background:color-mix(in srgb, #489779 10%, var(--tree-bg));color:color-mix(in srgb, #489779 85%, var(--tree-text))}.Z_0aEG_badge[data-state=active]:before{content:\"\";background:currentColor;border-radius:50%;width:4px;height:4px}.Z_0aEG_badge[data-state=failed]{background:color-mix(in srgb, #c25d64 10%, var(--tree-bg));color:#c25d64}.Z_0aEG_editor{border:1px solid color-mix(in srgb, var(--tree-accent) 40%, var(--tree-border));background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;gap:12px;padding:16px;display:grid}.Z_0aEG_editor p{color:var(--tree-muted);margin:0;font-size:12px;line-height:1.7}.Z_0aEG_editGroup{border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:10px;gap:8px;padding:12px;display:grid}.Z_0aEG_moduleEdit{flex-wrap:wrap;gap:6px;margin-left:12px;display:flex}.Z_0aEG_moduleEdit input{flex:1}.Z_0aEG_select{gap:6px;margin-bottom:8px;font-size:12px;display:flex}.Z_0aEG_select input{accent-color:var(--tree-accent)}.Z_0aEG_error{color:#c25d64;overflow-wrap:anywhere}.Z_0aEG_confirm{background:color-mix(in srgb, #b39860 10%, var(--tree-bg));border-radius:10px;padding:14px}.Z_0aEG_confirm button{margin-left:6px}.Z_0aEG_importBox{border:1px solid var(--tree-border);background:color-mix(in srgb, var(--tree-accent) 3%, var(--tree-bg));border-radius:14px;margin-bottom:20px;padding:18px}.Z_0aEG_importBox p{color:var(--tree-muted);overflow-wrap:anywhere;font-size:13px;line-height:1.7}.Z_0aEG_importBox .Z_0aEG_primary{background:var(--tree-accent);color:var(--dsw-alias-label-primary-foreground,white)}.Z_0aEG_preview{background:var(--tree-bg);border-radius:10px;margin-top:16px;padding:16px}.Z_0aEG_preview dl{grid-template-columns:80px 1fr;gap:8px;font-size:13px;display:grid}.Z_0aEG_preview dd{overflow-wrap:anywhere;margin:0}.Z_0aEG_reveal{animation:.22s ease-out Z_0aEG_treeReveal}@keyframes Z_0aEG_treeReveal{0%{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}@container (width<=520px){.Z_0aEG_moduleList,.Z_0aEG_grid{grid-template-columns:1fr}.Z_0aEG_moduleEdit{margin-left:0}.Z_0aEG_root .Z_0aEG_branchButton{gap:9px;padding:13px}.Z_0aEG_scopeToolbar{flex-wrap:wrap;gap:8px}.Z_0aEG_scopeToolbar select{max-width:100%}.Z_0aEG_children{padding-inline:9px}.Z_0aEG_card summary{flex-wrap:wrap}}@media (prefers-reduced-motion:reduce){.Z_0aEG_root *,.Z_0aEG_root :before,.Z_0aEG_root :after{transition:none!important;animation:none!important}.Z_0aEG_branchButton:hover .Z_0aEG_branchIcon{transform:none}}.Z_0aEG_relationBadges{flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;display:flex}.Z_0aEG_relationBadges span{color:var(--tree-text);background:var(--dsw-alias-bg-layer-3,#eef2fc);border-radius:6px;padding:3px 7px;font-size:12px}.Z_0aEG_card[data-focused=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=639px){.Z_0aEG_root[data-component-id] .Z_0aEG_moduleList,.Z_0aEG_root[data-component-id] .Z_0aEG_grid{grid-template-columns:1fr}}.Z_0aEG_aiHeader{align-items:center;gap:8px;padding-right:14px;display:flex}.Z_0aEG_importControl{flex-shrink:0;position:relative}.Z_0aEG_importMenu{z-index:20;border:1px solid var(--tree-border);background:var(--tree-bg);border-radius:12px;min-width:190px;padding:5px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 8px 24px #0002}.Z_0aEG_root .Z_0aEG_importMenu button{text-align:left;white-space:nowrap;background:0 0;border:0;width:100%;display:block}.Z_0aEG_root .Z_0aEG_importMenu button:hover{background:color-mix(in srgb,var(--tree-accent) 8%,var(--tree-bg))}.Z_0aEG_importDialog{border:1px solid var(--tree-border);background:var(--tree-bg);width:min(560px,100vw - 32px);max-height:calc(100dvh - 48px);color:var(--tree-text);border-radius:16px;padding:0;box-shadow:0 18px 64px #0003}.Z_0aEG_importDialog::backdrop{backdrop-filter:blur(3px);background:#0005}.Z_0aEG_importDialog .Z_0aEG_importBox{border:0;gap:12px;margin:0;padding:20px}.Z_0aEG_importTitle{justify-content:space-between;align-items:center;gap:12px;display:flex}.Z_0aEG_importDialog p{overflow-wrap:anywhere;margin:0;font-size:12px;line-height:1.6}.Z_0aEG_importDialog .Z_0aEG_preview{border:0;padding:0}.Z_0aEG_importNotice{color:var(--tree-muted);flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.Z_0aEG_card[data-imported=true]{outline:2px solid var(--tree-accent);outline-offset:2px}@container (width<=520px){.Z_0aEG_toolbar{position:relative}.Z_0aEG_toolbar>.Z_0aEG_search{flex-basis:100%;min-width:0}.Z_0aEG_toolbar>.Z_0aEG_toolButton,.Z_0aEG_importControl>.Z_0aEG_toolButton{gap:5px;padding:8px 9px;font-size:12px}.Z_0aEG_importControl{position:static}.Z_0aEG_importMenu{max-width:100%;left:auto;right:0}}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex:1;width:auto;min-width:0}.Z_0aEG_aiActions{flex-shrink:0;align-items:center;gap:12px;display:flex}.Z_0aEG_root .Z_0aEG_aiButton{border-color:color-mix(in srgb,var(--tree-tone) 25%,var(--tree-border));background:color-mix(in srgb,var(--tree-tone) 6%,var(--tree-bg));white-space:nowrap;justify-content:center;align-items:center;gap:6px;font-size:12px;display:inline-flex}.Z_0aEG_aiButton svg{width:15px;height:15px}.Z_0aEG_root .Z_0aEG_aiToggle{background:0 0;border:0;align-items:center;gap:12px;padding:8px 0;display:flex}.Z_0aEG_aiFeedback{background:var(--tree-bg);color:var(--tree-text);border-radius:10px;margin:0 14px 12px;padding:11px 12px;font-size:12px;line-height:1.7}.Z_0aEG_aiFeedback small{color:var(--tree-muted);font-size:11px;display:block}.Z_0aEG_aiFeedback summary{cursor:pointer;color:var(--tree-accent);padding:7px 0}.Z_0aEG_aiFeedback ul{max-height:240px;margin:0;padding:0;list-style:none;overflow:auto}.Z_0aEG_aiFeedback li{border-top:1px solid var(--tree-border);overflow-wrap:anywhere;gap:3px;padding:9px 0;display:grid}.Z_0aEG_aiFeedback button{margin-top:8px;font-size:12px}@container (width<=520px){.Z_0aEG_aiHeader{flex-wrap:wrap;gap:0;padding-right:0}.Z_0aEG_aiHeader>.Z_0aEG_branchButton{flex-basis:100%}.Z_0aEG_aiActions{justify-content:space-between;width:100%;padding:0 13px 12px}.Z_0aEG_aiFeedback{margin-inline:9px}}.Z_0aEG_categoryList{gap:12px;display:grid}.Z_0aEG_categoryRow{align-items:center;gap:6px;min-width:0;transition:background .16s,opacity .16s;display:flex;position:relative}.Z_0aEG_categoryRow input{flex:1;width:0}.Z_0aEG_categoryModules{gap:6px;min-height:12px;margin-left:14px;display:grid}.Z_0aEG_root .Z_0aEG_dragHandle,.Z_0aEG_root .Z_0aEG_categoryIcon{width:30px;height:34px;color:var(--tree-muted);background:0 0;border-color:#0000;flex-shrink:0;justify-content:center;align-items:center;padding:4px;display:inline-flex}.Z_0aEG_root .Z_0aEG_dragHandle{cursor:grab;touch-action:none;user-select:none}.Z_0aEG_root .Z_0aEG_dragHandle:active{cursor:grabbing}.Z_0aEG_root .Z_0aEG_dragHandle:hover,.Z_0aEG_root .Z_0aEG_categoryIcon:hover{color:var(--tree-accent);background:color-mix(in srgb,var(--tree-accent) 8%,var(--tree-bg))}.Z_0aEG_root .Z_0aEG_dragHandle:focus-visible,.Z_0aEG_root .Z_0aEG_categoryIcon:focus-visible{outline:2px solid var(--tree-accent);outline-offset:2px}.Z_0aEG_root .Z_0aEG_categoryAdd{color:var(--tree-muted);background:0 0;border:0;justify-self:start;align-items:center;gap:6px;padding:6px 8px;display:flex}.Z_0aEG_categoryAdd svg{width:16px;height:16px}.Z_0aEG_editGroup{transition:border-color .16s,box-shadow .16s}.Z_0aEG_editGroup[data-drop-target=true]{border-color:var(--tree-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--tree-accent) 10%,transparent)}[data-dragging=true]{opacity:.4}.Z_0aEG_dropLine{background:var(--tree-accent);border-radius:3px;height:3px;margin:2px 0;animation:.12s ease-out Z_0aEG_treeReveal}.Z_0aEG_emptyDrop{border:1px dashed var(--tree-border);text-align:center;color:var(--tree-muted);border-radius:8px;padding:16px;font-size:12px}.Z_0aEG_dragGhost{z-index:1000;pointer-events:none;border:1px solid var(--tree-accent);background:var(--tree-bg);max-width:240px;color:var(--tree-text);border-radius:10px;padding:10px 16px;font-size:13px;position:fixed;box-shadow:0 8px 24px #0002}.Z_0aEG_dragGhost small{color:var(--tree-muted);margin-top:4px;display:block}.Z_0aEG_moveMenu{color:var(--tree-muted);flex-wrap:wrap;align-items:center;gap:8px;padding:4px 36px;font-size:12px;display:flex}.Z_0aEG_editorFooter{z-index:3;background:var(--tree-bg);border-top:1px solid var(--tree-border);gap:8px;padding:12px 0;display:flex;position:sticky;bottom:0}.Z_0aEG_srOnly{clip-path:inset(50%);white-space:nowrap;width:1px;height:1px;padding:0;position:absolute;overflow:hidden}@container (width<=520px){.Z_0aEG_categoryModules{margin-left:0}.Z_0aEG_editGroup{padding:8px}.Z_0aEG_categoryRow{gap:3px}.Z_0aEG_root .Z_0aEG_categoryRow input{padding:8px 6px}}@media (prefers-reduced-motion:reduce){.Z_0aEG_categoryRow,.Z_0aEG_editGroup,.Z_0aEG_dropLine{transition:none;animation:none}}.Z_0aEG_editGroup,.Z_0aEG_categoryRow{cursor:grab}.Z_0aEG_categoryRow{touch-action:none}.Z_0aEG_root .Z_0aEG_categoryRow input[readonly]{cursor:grab;user-select:none}.Z_0aEG_root .Z_0aEG_categoryRow input:not([readonly]){cursor:text}.Z_0aEG_deleteDialog{border:1px solid var(--tree-border);background:var(--tree-bg);width:min(440px,100vw - 40px);color:var(--tree-text);border-radius:14px;padding:22px;box-shadow:0 18px 64px #0003}.Z_0aEG_deleteDialog::backdrop{background:#0005}.Z_0aEG_deleteDialog p{margin:14px 0}.Z_0aEG_deleteDialog select{width:100%;margin-bottom:16px;display:block}.Z_0aEG_deleteDialog button{margin-right:8px}";
+		const tagId$11 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-plugin-manager/src/client/inventory-tree.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$11) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$13;
-			tag.textContent = css$13;
+			tag.dataset.pluginCss = tagId$11;
+			tag.textContent = css$11;
 			document.head.appendChild(tag);
 		}
 		var inventory_tree_module_css_default = {
@@ -2386,7 +3175,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region ../dsh-plugin-manager/src/client/AiClassification.tsx
-		async function request$2(action, body) {
+		async function request$1(action, body) {
 			return pluginResponse(await fetch("/api/plugin-manager/ai/" + action, body ? {
 				method: "POST",
 				headers: { "content-type": "application/json" },
@@ -2417,7 +3206,7 @@ window.__ModuleLoader__.load({
 				if (!id) return;
 				try {
 					generation.current++;
-					const data = await request$2("cancel", { id });
+					const data = await request$1("cancel", { id });
 					apply(data);
 					owned.current = void 0;
 				} catch (e) {
@@ -2439,7 +3228,7 @@ window.__ModuleLoader__.load({
 					inFlight = true;
 					const version = generation.current;
 					try {
-						const data = await request$2("status");
+						const data = await request$1("status");
 						if (version === generation.current) apply(data);
 					} catch (e) {
 						if (mounted.current) setError(String(e));
@@ -2456,7 +3245,7 @@ window.__ModuleLoader__.load({
 					}
 				};
 				const pageHide = () => {
-					if (owned.current) request$2("cancel", { id: owned.current }).catch(() => {});
+					if (owned.current) request$1("cancel", { id: owned.current }).catch(() => {});
 				};
 				window.addEventListener("beforeunload", beforeUnload);
 				window.addEventListener("pagehide", pageHide);
@@ -2483,9 +3272,9 @@ window.__ModuleLoader__.load({
 					model: ""
 				});
 				try {
-					const result = await request$2("start", { id });
+					const result = await request$1("start", { id });
 					if (!mounted.current) {
-						request$2("cancel", { id }).catch(() => {});
+						request$1("cancel", { id }).catch(() => {});
 						return;
 					}
 					if (result.id !== id) owned.current = void 0;
@@ -2494,7 +3283,7 @@ window.__ModuleLoader__.load({
 					if (mounted.current) {
 						setError(String(e));
 						try {
-							apply(await request$2("status"));
+							apply(await request$1("status"));
 						} catch {}
 					}
 				} finally {
@@ -2507,7 +3296,7 @@ window.__ModuleLoader__.load({
 				setWorking(true);
 				setError("");
 				try {
-					apply(await request$2("undo", { id: report.id }));
+					apply(await request$1("undo", { id: report.id }));
 					latest.current();
 				} catch (e) {
 					setError(String(e));
@@ -2518,7 +3307,7 @@ window.__ModuleLoader__.load({
 			const retry = async () => {
 				setError("");
 				try {
-					apply(await request$2("status"));
+					apply(await request$1("status"));
 				} catch (e) {
 					setError(e instanceof Error ? e.message : String(e));
 				}
@@ -4403,115 +5192,6 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region src/client/capability-client.ts
-		let view = {
-			data: null,
-			error: "",
-			revision: 0
-		};
-		const listeners = /* @__PURE__ */ new Set();
-		let pending;
-		function emit(patch) {
-			view = {
-				...view,
-				...patch,
-				revision: view.revision + 1
-			};
-			listeners.forEach((fn) => fn());
-		}
-		async function request$1(path, body) {
-			const response = await fetch(`/api/capabilities/${path}`, {
-				credentials: "same-origin",
-				...body === void 0 ? {} : {
-					method: "POST",
-					headers: { "content-type": "application/json" },
-					body: JSON.stringify(body)
-				}
-			});
-			const value = await response.json().catch(() => ({ error: "能力服务尚未加载，请检查工作台运行配置。" }));
-			if (!response.ok) throw new Error(value.error ?? "能力服务请求失败");
-			return value;
-		}
-		const capabilityClient = {
-			getSnapshot: () => view,
-			subscribe: (fn) => {
-				listeners.add(fn);
-				return () => {
-					listeners.delete(fn);
-				};
-			},
-			refresh() {
-				if (pending) return pending;
-				pending = request$1("state").then((data) => emit({
-					data,
-					error: ""
-				})).catch((error) => emit({ error: String(error.message ?? error) })).finally(() => {
-					pending = void 0;
-				});
-				return pending;
-			},
-			async command(command, revision = view.data?.state.revision) {
-				if (revision === void 0) throw new Error("请先等待能力数据加载");
-				const result = await request$1("command", {
-					revision,
-					command
-				});
-				await capabilityClient.refresh();
-				return result.id;
-			},
-			async repairPresets() {
-				const result = await request$1("presets/repair", { revision: view.data?.state.revision });
-				await capabilityClient.refresh();
-				if (result.presetIssues.length) throw new Error(result.presetIssues.join("；"));
-			},
-			async componentCommand(command) {
-				try {
-					const result = await request$1("components/command", command);
-					await capabilityClient.refresh();
-					return result;
-				} catch (error) {
-					await capabilityClient.refresh();
-					throw error;
-				}
-			},
-			async componentPreview(id, action) {
-				return request$1("components/preview", {
-					id,
-					action
-				});
-			},
-			async check(connect = false) {
-				await request$1(connect ? "connect" : "check", {});
-				await capabilityClient.refresh();
-			},
-			async stop(sessionId) {
-				await request$1("stop", { sessionId });
-				await capabilityClient.refresh();
-			},
-			async uploadRoleIcon(dataUrl) {
-				const result = await request$1("icons", { dataUrl });
-				if (!/^[a-f0-9]{64}$/.test(result.id)) throw new Error("图标保存结果无效，请重试");
-				return result.id;
-			}
-		};
-		function useCapabilities() {
-			const state = (0, react.useSyncExternalStore)(capabilityClient.subscribe, capabilityClient.getSnapshot);
-			(0, react.useEffect)(() => {
-				capabilityClient.refresh();
-				const refresh = () => {
-					if (!document.hidden) capabilityClient.refresh();
-				};
-				const timer = window.setInterval(refresh, 15e3);
-				window.addEventListener("focus", refresh);
-				return () => {
-					clearInterval(timer);
-					window.removeEventListener("focus", refresh);
-				};
-			}, []);
-			return state;
-		}
-		const editorDrafts = /* @__PURE__ */ new Map();
-		//#endregion
 		//#region src/client/useCapabilityPanels.ts
 		const minimum = {
 			left: 210,
@@ -4955,13 +5635,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/Capabilities.module.css.mjs
-		const css$12 = ".ChWdyq_banner{border-bottom:1px solid var(--role-border);color:var(--role-muted);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));flex-shrink:0;align-items:center;gap:8px;padding:11px 24px;font-size:12px;line-height:1.6;display:flex}.ChWdyq_bannerDot{background:#c09542;border-radius:50%;flex-shrink:0;width:6px;height:6px}.ChWdyq_workbench{grid-template-columns:var(--library-width) var(--left-rail) minmax(380px,1fr) var(--right-rail) var(--inspector-width);flex:1;grid-template-rows:minmax(0,1fr);min-height:0;font-size:13px;line-height:1.6;transition:grid-template-columns .22s;display:grid;position:relative;overflow:hidden}.ChWdyq_resizing{user-select:none;cursor:col-resize;transition:none}.ChWdyq_workbench *{box-sizing:border-box}.ChWdyq_workbench,.ChWdyq_library,.ChWdyq_canvas,.ChWdyq_inspector{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--role-muted) 30%,transparent) transparent}.ChWdyq_workbench button,.ChWdyq_workbench input,.ChWdyq_workbench select,.ChWdyq_workbench textarea{font:inherit}.ChWdyq_workbench button{cursor:pointer}.ChWdyq_library{background:color-mix(in srgb,var(--role-muted) 4%,var(--role-bg));flex-direction:column;grid-area:1/1;min-width:0;padding:20px 12px 12px;display:flex;overflow:hidden}.ChWdyq_canvas,.ChWdyq_inspector{overscroll-behavior:contain;overflow:auto}.ChWdyq_library[hidden],.ChWdyq_inspector[hidden]{display:none}.ChWdyq_columnHeading{justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;display:flex}.ChWdyq_columnHeading h3{margin:0;font-size:14px;font-weight:650}.ChWdyq_columnHeading p{color:var(--role-muted);margin:5px 0 0;font-size:11px}.ChWdyq_collapseButton{border:1px solid var(--role-border);background:var(--role-bg);width:26px;height:26px;color:var(--role-muted);border-radius:7px;flex-shrink:0;place-items:center;padding:0;line-height:1;display:grid;font-size:22px!important}.ChWdyq_collapseButton:hover{color:var(--role-accent);border-color:var(--role-accent)}.ChWdyq_rail{z-index:2;border-inline:1px solid var(--role-border);background:color-mix(in srgb,var(--role-muted) 3%,var(--role-bg));color:var(--role-muted);cursor:col-resize;touch-action:none;user-select:none;grid-row:1;justify-content:center;align-items:center;min-width:0;display:flex;position:relative;outline-offset:-2px!important}.ChWdyq_leftRail{grid-column:2}.ChWdyq_rightRail{grid-column:4}.ChWdyq_rail:hover,.ChWdyq_rail:focus-visible,.ChWdyq_collapseReady{background:color-mix(in srgb,var(--role-accent) 10%,var(--role-bg));color:var(--role-accent)}.ChWdyq_collapseReady{box-shadow:inset 0 0 0 1px var(--role-accent)}.ChWdyq_railHandle{pointer-events:none;flex-direction:column;justify-content:center;align-items:center;gap:9px;width:100%;min-width:0;height:58px;display:flex}.ChWdyq_railHandle svg{width:18px;height:18px;display:none}.ChWdyq_railArrow{font-size:20px;line-height:14px}.ChWdyq_railGrip{opacity:.55;border-inline:1px solid;width:3px;height:16px}.ChWdyq_railCollapsed{cursor:ew-resize}.ChWdyq_railCollapsed .ChWdyq_railHandle{border-block:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;height:92px;transition:background .15s,box-shadow .15s;box-shadow:0 2px 7px #172b4d08}.ChWdyq_railCollapsed .ChWdyq_railHandle svg{display:block}.ChWdyq_railCollapsed:hover .ChWdyq_railHandle{box-shadow:0 2px 10px color-mix(in srgb,var(--role-accent) 18%,transparent)}.ChWdyq_search{border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;align-items:center;gap:8px;padding:9px 11px;display:flex}.ChWdyq_search svg{width:17px;height:17px;color:var(--role-muted);flex-shrink:0}.ChWdyq_search input{width:100%;min-width:0;color:var(--role-text);background:0 0;border:0;outline:0;font-size:12px}.ChWdyq_search:focus-within{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent);border-color:var(--role-accent)}.ChWdyq_filters{flex-wrap:wrap;flex-shrink:0;gap:3px;margin:12px 0;display:flex}.ChWdyq_filters button{color:var(--role-muted);background:0 0;border:1px solid #0000;border-radius:6px;padding:5px 7px;font-size:11px}.ChWdyq_filters button[aria-pressed=true]{color:var(--role-text);background:var(--role-bg);border-color:var(--role-border);box-shadow:0 1px 3px #00000006}.ChWdyq_library .ChWdyq_columnHeading,.ChWdyq_library .ChWdyq_search{flex-shrink:0}.ChWdyq_library .ChWdyq_columnHeading{margin-bottom:14px}.ChWdyq_manageLink{color:var(--role-accent);text-align:left;cursor:pointer;background:0 0;border:0;margin-top:4px;margin-bottom:6px;padding:4px 0;font-size:11px!important}.ChWdyq_catalog{overscroll-behavior:contain;scrollbar-width:thin;flex-direction:column;flex:1;gap:8px;min-height:0;padding:2px;display:flex;overflow:auto}.ChWdyq_catalogCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-shrink:0;align-items:center;gap:2px;width:100%;min-width:0;min-height:68px;padding:9px 5px 9px 8px;transition:box-shadow .15s,border-color .15s;display:flex}.ChWdyq_catalogCard[draggable=true]{cursor:grab;user-select:none;touch-action:pan-y}.ChWdyq_grip{touch-action:none}.ChWdyq_dragGhost{pointer-events:none;z-index:10;border:1px solid var(--role-accent);background:var(--role-bg);color:var(--role-accent);border-radius:8px;padding:10px 16px;font-size:12px;position:fixed;box-shadow:0 5px 18px #172a4433}.ChWdyq_catalogCard[draggable=true]:active{cursor:grabbing}.ChWdyq_catalogCard:hover{border-color:color-mix(in srgb,var(--role-accent) 50%,var(--role-border))}.ChWdyq_catalogSelected{border-color:color-mix(in srgb,var(--role-accent) 65%,var(--role-border));background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.ChWdyq_catalogInspect{text-align:left;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;align-items:center;gap:7px;padding:0;display:flex;cursor:grab!important}.ChWdyq_catalogInspect>span:nth-child(2){flex-direction:column;flex:1;min-width:0;display:flex}.ChWdyq_catalogInspect strong,.ChWdyq_catalogInspect small{white-space:nowrap;text-overflow:ellipsis;display:block;overflow:hidden}.ChWdyq_catalogInspect strong{font-size:12px;font-weight:600}.ChWdyq_catalogInspect small{color:var(--role-muted);margin-top:2px;font-size:10px}.ChWdyq_quickAdd{width:26px;height:30px;color:var(--role-accent);background:0 0;border:0;border-radius:6px;flex-shrink:0;padding:0;font-size:17px!important}.ChWdyq_quickAdd:hover:not(:disabled){background:color-mix(in srgb,var(--role-accent) 9%,transparent)}.ChWdyq_quickAdd:disabled{cursor:default;color:#39947c;font-size:13px!important}.ChWdyq_grip{width:9px;color:var(--role-muted);opacity:.55;flex-shrink:0;font-size:16px}.ChWdyq_icon{width:32px;height:32px;color:color-mix(in srgb,var(--cap-color) 75%,var(--role-text));background:color-mix(in srgb,var(--cap-color) 11%,var(--role-bg));border-radius:8px;flex-shrink:0;place-items:center;display:inline-grid}.ChWdyq_icon svg{width:20px;height:20px}.ChWdyq_libraryNote{color:var(--role-muted);flex-shrink:0;margin:10px 0 0;padding-inline:2px;font-size:10px}.ChWdyq_emptySearch{text-align:center;color:var(--role-muted);padding:24px 0;font-size:12px}.ChWdyq_emptySearch button{color:var(--role-accent);background:0 0;border:0}.ChWdyq_canvas{grid-area:1/3;min-width:0;padding:24px 26px}.ChWdyq_step{color:var(--role-muted);opacity:.65;font-variant-numeric:tabular-nums;font-size:12px}.ChWdyq_attachedHeading{margin-top:28px}.ChWdyq_count{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-radius:6px;place-items:center;width:20px;height:20px;margin-left:5px;font-size:11px;display:inline-grid}.ChWdyq_dropZone{border:1px dashed var(--role-border);border-radius:12px;padding:10px;transition:background .15s,border-color .15s}.ChWdyq_dragReady{border-color:var(--role-accent)}.ChWdyq_dragOver{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));outline:3px solid color-mix(in srgb,var(--role-accent) 12%,transparent);border-style:solid}.ChWdyq_dropHint{text-align:center;color:var(--role-muted);flex-direction:column;align-items:center;gap:8px;padding:30px 10px;display:flex}.ChWdyq_dropHint>span{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;place-items:center;width:36px;height:36px;font-size:23px;display:grid}.ChWdyq_dropHint strong{font-size:12px;font-weight:500}.ChWdyq_dropHint p{margin:0;font-size:11px}.ChWdyq_dropCompact{flex-direction:row;justify-content:center;padding:10px}.ChWdyq_dropCompact>span{background:0 0;border:0;width:auto;height:auto;font-size:20px}.ChWdyq_attachedCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;align-items:center;margin-bottom:8px;transition:opacity .15s;display:flex}.ChWdyq_attachedSelected{border-color:var(--role-accent);box-shadow:0 0 0 1px color-mix(in srgb,var(--role-accent) 10%,transparent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.ChWdyq_attachedSelect{text-align:left;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;align-items:center;gap:10px;padding:12px;display:flex}.ChWdyq_attachedSelect>span:last-child{flex-direction:column;min-width:0;display:flex}.ChWdyq_attachedSelect strong{font-size:12px;font-weight:550}.ChWdyq_attachedSelect small{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:5px;font-size:10px;display:flex}.ChWdyq_enabledDot,.ChWdyq_disabledDot{background:#36a18b;border-radius:50%;width:5px;height:5px;display:inline-block}.ChWdyq_disabledDot{background:var(--role-muted)}.ChWdyq_disabledCard{opacity:.65}.ChWdyq_remove{width:27px;height:27px;color:var(--role-muted);background:0 0;border:0;border-radius:6px;flex-shrink:0;margin-right:9px;font-size:20px!important}.ChWdyq_remove:hover{background:color-mix(in srgb,var(--role-muted) 10%,var(--role-bg));color:var(--role-text)}.ChWdyq_inspector{background:color-mix(in srgb,var(--role-muted) 2%,var(--role-bg));grid-area:1/5;min-width:0;padding:0 20px 24px}.ChWdyq_inspectorHeader{align-items:center;gap:10px;display:flex}.ChWdyq_inspectorHeader .ChWdyq_inspectorTabs{flex:1;gap:14px;min-width:0}.ChWdyq_inspectorHeader .ChWdyq_collapseButton{margin-top:9px}.ChWdyq_inspectorTabs{border-bottom:1px solid var(--role-border);gap:20px;padding-top:9px;display:flex}.ChWdyq_inspectorTabs button{color:var(--role-muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:15px 0 12px;font-size:12px}.ChWdyq_inspectorTabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent);font-weight:600}.ChWdyq_assistantName{color:var(--role-muted);overflow-wrap:anywhere;margin:18px 0;font-size:11px}.ChWdyq_detailIdentity{align-items:center;gap:10px;display:flex}.ChWdyq_detailIdentity .ChWdyq_icon{width:40px;height:40px}.ChWdyq_detailIdentity h3{margin:0;font-size:15px;font-weight:600}.ChWdyq_detailIdentity span:not(.ChWdyq_icon){color:var(--role-muted);font-size:11px}.ChWdyq_detailDescription{color:var(--role-muted);margin:14px 0;font-size:12px;line-height:1.7}.ChWdyq_connection{background:color-mix(in srgb,#b99449 8%,var(--role-bg));color:var(--role-muted);border-radius:7px;align-items:center;gap:7px;margin-top:12px;margin-bottom:20px;padding:9px 10px;font-size:11px;display:flex}.ChWdyq_statusDot{background:#bc974c;border-radius:50%;width:5px;height:5px}.ChWdyq_switchRow{cursor:pointer;justify-content:space-between;align-items:center;gap:12px;padding:0 0 18px;display:flex;position:relative}.ChWdyq_switchRow>span:first-child{flex:1;min-width:0}.ChWdyq_switchRow strong{font-size:12px;font-weight:500}.ChWdyq_switchRow small{color:var(--role-muted);margin-top:4px;font-size:10px;line-height:1.7;display:block}.ChWdyq_switchRow input{opacity:0;width:32px;height:20px;margin:0;position:absolute;right:0}.ChWdyq_switchTrack{background:color-mix(in srgb,var(--role-muted) 32%,var(--role-bg));pointer-events:none;border-radius:20px;flex-shrink:0;width:32px;height:18px;padding:3px}.ChWdyq_switchTrack:after{content:\"\";background:#fff;border-radius:50%;width:12px;height:12px;transition:transform .15s;display:block;box-shadow:0 1px 3px #0002}.ChWdyq_switchRow input:checked+.ChWdyq_switchTrack{background:var(--role-accent)}.ChWdyq_switchRow input:checked+.ChWdyq_switchTrack:after{transform:translate(14px)}.ChWdyq_switchRow input:focus-visible+.ChWdyq_switchTrack{outline:2px solid var(--role-accent);outline-offset:3px}.ChWdyq_settingsFields{border:0;border-top:1px solid var(--role-border);min-width:0;margin:0;padding:18px 0 0}.ChWdyq_settingsFields:disabled{opacity:.48}.ChWdyq_field{flex-direction:column;gap:8px;margin-bottom:18px;font-size:12px;display:flex}.ChWdyq_field input,.ChWdyq_field select,.ChWdyq_field textarea{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-text);border-radius:7px;width:100%;min-width:0;padding:9px 10px;font-size:12px}.ChWdyq_field textarea{resize:vertical;line-height:1.7}.ChWdyq_field input::placeholder,.ChWdyq_field textarea::placeholder,.ChWdyq_search input::placeholder{color:var(--role-muted);opacity:.8}.ChWdyq_field input:focus,.ChWdyq_field select:focus,.ChWdyq_field textarea:focus{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent);border-color:var(--role-accent)}.ChWdyq_actionsGroup{border:0;margin:0 0 22px;padding:0}.ChWdyq_actionsGroup legend{margin-bottom:10px;font-size:12px}.ChWdyq_actionsGroup label{cursor:pointer;align-items:center;gap:8px;margin:8px 0;font-size:12px;display:flex}.ChWdyq_actionsGroup input{accent-color:var(--role-accent);width:14px;height:14px;margin:0}.ChWdyq_notAdded{padding-bottom:18px}.ChWdyq_notAdded p{color:var(--role-muted);font-size:11px}.ChWdyq_notAdded button{color:var(--dsw-alias-label-primary-foreground,#fff);background:var(--role-accent);border:0;border-radius:7px;width:100%;padding:8px 12px;font-size:12px}.ChWdyq_output{flex-direction:column;gap:9px;margin:18px 0;font-size:12px;display:flex}.ChWdyq_output strong{color:var(--role-muted);border:1px solid var(--role-border);border-radius:7px;padding:10px;font-weight:400}.ChWdyq_inspectorEmpty{color:var(--role-muted);text-align:center;padding:65px 0}.ChWdyq_inspectorEmpty>span{font-size:32px}.ChWdyq_inspectorEmpty h3{font-size:13px;font-weight:500}.ChWdyq_inspectorEmpty p{font-size:12px;line-height:1.8}.ChWdyq_overview{overflow-wrap:anywhere}.ChWdyq_overview h4{margin:20px 0 10px;font-size:12px}.ChWdyq_summaryCaps{flex-wrap:wrap;gap:7px;display:flex}.ChWdyq_summaryCaps span{border:1px solid var(--role-border);color:var(--role-muted);border-radius:6px;padding:4px 7px;font-size:10px}.ChWdyq_muted{color:var(--role-muted);font-size:12px}.ChWdyq_srOnly{clip:rect(0,0,0,0);white-space:nowrap;border:0;width:1px;height:1px;margin:-1px;padding:0;position:absolute;overflow:hidden}.ChWdyq_catalogGroup{color:var(--role-muted);margin:15px 0 7px;font-size:11px;font-weight:500}.ChWdyq_catalogCard,.ChWdyq_sortHandle{user-select:none}.ChWdyq_sortHandle{color:var(--role-muted);cursor:grab;touch-action:none;background:0 0;border:0;flex-shrink:0;padding:9px 3px;font-size:19px}.ChWdyq_sortHandle:active{cursor:grabbing}.ChWdyq_sortHandle:focus-visible{outline:2px solid var(--role-accent);border-radius:5px}.ChWdyq_sortSource{opacity:.5}.ChWdyq_sortTarget{box-shadow:0 -3px 0 var(--role-accent)}.ChWdyq_compact{grid-template-columns:30px minmax(0,1fr) 30px;transition:none}.ChWdyq_compact .ChWdyq_canvas{grid-column:2;padding:20px 16px}.ChWdyq_compact .ChWdyq_library,.ChWdyq_compact .ChWdyq_inspector{z-index:4;grid-column:auto;position:absolute;top:0;bottom:0;box-shadow:0 0 22px #14244124}.ChWdyq_compact .ChWdyq_library{width:var(--library-width);padding:18px 10px 10px;left:0}.ChWdyq_compact .ChWdyq_inspector{width:var(--inspector-width);padding:0 14px 20px;right:0}.ChWdyq_compact .ChWdyq_rail{z-index:5;grid-column:auto;position:absolute;top:0;bottom:0}.ChWdyq_compact .ChWdyq_leftRail{left:var(--library-width);width:var(--left-rail)}.ChWdyq_compact .ChWdyq_rightRail{right:var(--inspector-width);width:var(--right-rail)}@media (width<=1100px){.ChWdyq_canvas{padding:22px 18px}.ChWdyq_library{padding:20px 10px 10px}.ChWdyq_inspector{padding-left:16px;padding-right:16px}}@media (width<=620px){.ChWdyq_banner{padding:10px 16px;font-size:11px}}@media (prefers-reduced-motion:reduce){.ChWdyq_workbench,.ChWdyq_workbench *,.ChWdyq_switchTrack:after{transition:none}}.ChWdyq_attachedCard[data-composition-row][tabindex]{cursor:grab;user-select:none;touch-action:none;transition:transform .12s}.ChWdyq_attachedCard[data-composition-row]:focus-visible{outline:2px solid var(--role-accent);outline-offset:2px}.ChWdyq_sortNumber{color:var(--role-muted);text-align:center;min-width:18px;font-size:12px}@media (prefers-reduced-motion:reduce){.ChWdyq_attachedCard[data-composition-row]{transition:none}}";
-		const tagId$12 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Capabilities.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$12) + "]") === null) {
+		const css$10 = ".ChWdyq_banner{border-bottom:1px solid var(--role-border);color:var(--role-muted);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));flex-shrink:0;align-items:center;gap:8px;padding:11px 24px;font-size:12px;line-height:1.6;display:flex}.ChWdyq_bannerDot{background:#c09542;border-radius:50%;flex-shrink:0;width:6px;height:6px}.ChWdyq_workbench{grid-template-columns:var(--library-width) var(--left-rail) minmax(380px,1fr) var(--right-rail) var(--inspector-width);flex:1;grid-template-rows:minmax(0,1fr);min-height:0;font-size:13px;line-height:1.6;transition:grid-template-columns .22s;display:grid;position:relative;overflow:hidden}.ChWdyq_resizing{user-select:none;cursor:col-resize;transition:none}.ChWdyq_workbench *{box-sizing:border-box}.ChWdyq_workbench,.ChWdyq_library,.ChWdyq_canvas,.ChWdyq_inspector{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--role-muted) 30%,transparent) transparent}.ChWdyq_workbench button,.ChWdyq_workbench input,.ChWdyq_workbench select,.ChWdyq_workbench textarea{font:inherit}.ChWdyq_workbench button{cursor:pointer}.ChWdyq_library{background:color-mix(in srgb,var(--role-muted) 4%,var(--role-bg));flex-direction:column;grid-area:1/1;min-width:0;padding:20px 12px 12px;display:flex;overflow:hidden}.ChWdyq_canvas,.ChWdyq_inspector{overscroll-behavior:contain;overflow:auto}.ChWdyq_library[hidden],.ChWdyq_inspector[hidden]{display:none}.ChWdyq_columnHeading{justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;display:flex}.ChWdyq_columnHeading h3{margin:0;font-size:14px;font-weight:650}.ChWdyq_columnHeading p{color:var(--role-muted);margin:5px 0 0;font-size:11px}.ChWdyq_collapseButton{border:1px solid var(--role-border);background:var(--role-bg);width:26px;height:26px;color:var(--role-muted);border-radius:7px;flex-shrink:0;place-items:center;padding:0;line-height:1;display:grid;font-size:22px!important}.ChWdyq_collapseButton:hover{color:var(--role-accent);border-color:var(--role-accent)}.ChWdyq_rail{z-index:2;border-inline:1px solid var(--role-border);background:color-mix(in srgb,var(--role-muted) 3%,var(--role-bg));color:var(--role-muted);cursor:col-resize;touch-action:none;user-select:none;grid-row:1;justify-content:center;align-items:center;min-width:0;display:flex;position:relative;outline-offset:-2px!important}.ChWdyq_leftRail{grid-column:2}.ChWdyq_rightRail{grid-column:4}.ChWdyq_rail:hover,.ChWdyq_rail:focus-visible,.ChWdyq_collapseReady{background:color-mix(in srgb,var(--role-accent) 10%,var(--role-bg));color:var(--role-accent)}.ChWdyq_collapseReady{box-shadow:inset 0 0 0 1px var(--role-accent)}.ChWdyq_railHandle{pointer-events:none;flex-direction:column;justify-content:center;align-items:center;gap:9px;width:100%;min-width:0;height:58px;display:flex}.ChWdyq_railHandle svg{width:18px;height:18px;display:none}.ChWdyq_railArrow{font-size:20px;line-height:14px}.ChWdyq_railGrip{opacity:.55;border-inline:1px solid;width:3px;height:16px}.ChWdyq_railCollapsed{cursor:ew-resize}.ChWdyq_railCollapsed .ChWdyq_railHandle{border-block:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;height:92px;transition:background .15s,box-shadow .15s;box-shadow:0 2px 7px #172b4d08}.ChWdyq_railCollapsed .ChWdyq_railHandle svg{display:block}.ChWdyq_railCollapsed:hover .ChWdyq_railHandle{box-shadow:0 2px 10px color-mix(in srgb,var(--role-accent) 18%,transparent)}.ChWdyq_search{border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;align-items:center;gap:8px;padding:9px 11px;display:flex}.ChWdyq_search svg{width:17px;height:17px;color:var(--role-muted);flex-shrink:0}.ChWdyq_search input{width:100%;min-width:0;color:var(--role-text);background:0 0;border:0;outline:0;font-size:12px}.ChWdyq_search:focus-within{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent);border-color:var(--role-accent)}.ChWdyq_filters{flex-wrap:wrap;flex-shrink:0;gap:3px;margin:12px 0;display:flex}.ChWdyq_filters button{color:var(--role-muted);background:0 0;border:1px solid #0000;border-radius:6px;padding:5px 7px;font-size:11px}.ChWdyq_filters button[aria-pressed=true]{color:var(--role-text);background:var(--role-bg);border-color:var(--role-border);box-shadow:0 1px 3px #00000006}.ChWdyq_library .ChWdyq_columnHeading,.ChWdyq_library .ChWdyq_search{flex-shrink:0}.ChWdyq_library .ChWdyq_columnHeading{margin-bottom:14px}.ChWdyq_manageLink{color:var(--role-accent);text-align:left;cursor:pointer;background:0 0;border:0;margin-top:4px;margin-bottom:6px;padding:4px 0;font-size:11px!important}.ChWdyq_catalog{overscroll-behavior:contain;scrollbar-width:thin;flex-direction:column;flex:1;gap:8px;min-height:0;padding:2px;display:flex;overflow:auto}.ChWdyq_catalogCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-shrink:0;align-items:center;gap:2px;width:100%;min-width:0;min-height:68px;padding:9px 5px 9px 8px;transition:box-shadow .15s,border-color .15s;display:flex}.ChWdyq_catalogCard[draggable=true]{cursor:grab;user-select:none;touch-action:pan-y}.ChWdyq_grip{touch-action:none}.ChWdyq_dragGhost{pointer-events:none;z-index:10;border:1px solid var(--role-accent);background:var(--role-bg);color:var(--role-accent);border-radius:8px;padding:10px 16px;font-size:12px;position:fixed;box-shadow:0 5px 18px #172a4433}.ChWdyq_catalogCard[draggable=true]:active{cursor:grabbing}.ChWdyq_catalogCard:hover{border-color:color-mix(in srgb,var(--role-accent) 50%,var(--role-border))}.ChWdyq_catalogSelected{border-color:color-mix(in srgb,var(--role-accent) 65%,var(--role-border));background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.ChWdyq_catalogInspect{text-align:left;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;align-items:center;gap:7px;padding:0;display:flex;cursor:grab!important}.ChWdyq_catalogInspect>span:nth-child(2){flex-direction:column;flex:1;min-width:0;display:flex}.ChWdyq_catalogInspect strong,.ChWdyq_catalogInspect small{white-space:nowrap;text-overflow:ellipsis;display:block;overflow:hidden}.ChWdyq_catalogInspect strong{font-size:12px;font-weight:600}.ChWdyq_catalogInspect small{color:var(--role-muted);margin-top:2px;font-size:10px}.ChWdyq_quickAdd{width:26px;height:30px;color:var(--role-accent);background:0 0;border:0;border-radius:6px;flex-shrink:0;padding:0;font-size:17px!important}.ChWdyq_quickAdd:hover:not(:disabled){background:color-mix(in srgb,var(--role-accent) 9%,transparent)}.ChWdyq_quickAdd:disabled{cursor:default;color:#39947c;font-size:13px!important}.ChWdyq_grip{width:9px;color:var(--role-muted);opacity:.55;flex-shrink:0;font-size:16px}.ChWdyq_icon{width:32px;height:32px;color:color-mix(in srgb,var(--cap-color) 75%,var(--role-text));background:color-mix(in srgb,var(--cap-color) 11%,var(--role-bg));border-radius:8px;flex-shrink:0;place-items:center;display:inline-grid}.ChWdyq_icon svg{width:20px;height:20px}.ChWdyq_libraryNote{color:var(--role-muted);flex-shrink:0;margin:10px 0 0;padding-inline:2px;font-size:10px}.ChWdyq_emptySearch{text-align:center;color:var(--role-muted);padding:24px 0;font-size:12px}.ChWdyq_emptySearch button{color:var(--role-accent);background:0 0;border:0}.ChWdyq_canvas{grid-area:1/3;min-width:0;padding:24px 26px}.ChWdyq_step{color:var(--role-muted);opacity:.65;font-variant-numeric:tabular-nums;font-size:12px}.ChWdyq_attachedHeading{margin-top:28px}.ChWdyq_count{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-radius:6px;place-items:center;width:20px;height:20px;margin-left:5px;font-size:11px;display:inline-grid}.ChWdyq_dropZone{border:1px dashed var(--role-border);border-radius:12px;padding:10px;transition:background .15s,border-color .15s}.ChWdyq_dragReady{border-color:var(--role-accent)}.ChWdyq_dragOver{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));outline:3px solid color-mix(in srgb,var(--role-accent) 12%,transparent);border-style:solid}.ChWdyq_dropHint{text-align:center;color:var(--role-muted);flex-direction:column;align-items:center;gap:8px;padding:30px 10px;display:flex}.ChWdyq_dropHint>span{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;place-items:center;width:36px;height:36px;font-size:23px;display:grid}.ChWdyq_dropHint strong{font-size:12px;font-weight:500}.ChWdyq_dropHint p{margin:0;font-size:11px}.ChWdyq_dropCompact{flex-direction:row;justify-content:center;padding:10px}.ChWdyq_dropCompact>span{background:0 0;border:0;width:auto;height:auto;font-size:20px}.ChWdyq_attachedCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;align-items:center;margin-bottom:8px;transition:opacity .15s;display:flex}.ChWdyq_attachedSelected{border-color:var(--role-accent);box-shadow:0 0 0 1px color-mix(in srgb,var(--role-accent) 10%,transparent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.ChWdyq_attachedSelect{text-align:left;min-width:0;color:var(--role-text);background:0 0;border:0;flex:1;align-items:center;gap:10px;padding:12px;display:flex}.ChWdyq_attachedSelect>span:last-child{flex-direction:column;min-width:0;display:flex}.ChWdyq_attachedSelect strong{font-size:12px;font-weight:550}.ChWdyq_attachedSelect small{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:5px;font-size:10px;display:flex}.ChWdyq_enabledDot,.ChWdyq_disabledDot{background:#36a18b;border-radius:50%;width:5px;height:5px;display:inline-block}.ChWdyq_disabledDot{background:var(--role-muted)}.ChWdyq_disabledCard{opacity:.65}.ChWdyq_remove{width:27px;height:27px;color:var(--role-muted);background:0 0;border:0;border-radius:6px;flex-shrink:0;margin-right:9px;font-size:20px!important}.ChWdyq_remove:hover{background:color-mix(in srgb,var(--role-muted) 10%,var(--role-bg));color:var(--role-text)}.ChWdyq_inspector{background:color-mix(in srgb,var(--role-muted) 2%,var(--role-bg));grid-area:1/5;min-width:0;padding:0 20px 24px}.ChWdyq_inspectorHeader{align-items:center;gap:10px;display:flex}.ChWdyq_inspectorHeader .ChWdyq_inspectorTabs{flex:1;gap:14px;min-width:0}.ChWdyq_inspectorHeader .ChWdyq_collapseButton{margin-top:9px}.ChWdyq_inspectorTabs{border-bottom:1px solid var(--role-border);gap:20px;padding-top:9px;display:flex}.ChWdyq_inspectorTabs button{color:var(--role-muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:15px 0 12px;font-size:12px}.ChWdyq_inspectorTabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent);font-weight:600}.ChWdyq_assistantName{color:var(--role-muted);overflow-wrap:anywhere;margin:18px 0;font-size:11px}.ChWdyq_detailIdentity{align-items:center;gap:10px;display:flex}.ChWdyq_detailIdentity .ChWdyq_icon{width:40px;height:40px}.ChWdyq_detailIdentity h3{margin:0;font-size:15px;font-weight:600}.ChWdyq_detailIdentity span:not(.ChWdyq_icon){color:var(--role-muted);font-size:11px}.ChWdyq_detailDescription{color:var(--role-muted);margin:14px 0;font-size:12px;line-height:1.7}.ChWdyq_connection{background:color-mix(in srgb,#b99449 8%,var(--role-bg));color:var(--role-muted);border-radius:7px;align-items:center;gap:7px;margin-top:12px;margin-bottom:20px;padding:9px 10px;font-size:11px;display:flex}.ChWdyq_statusDot{background:#bc974c;border-radius:50%;width:5px;height:5px}.ChWdyq_switchRow{cursor:pointer;justify-content:space-between;align-items:center;gap:12px;padding:0 0 18px;display:flex;position:relative}.ChWdyq_switchRow>span:first-child{flex:1;min-width:0}.ChWdyq_switchRow strong{font-size:12px;font-weight:500}.ChWdyq_switchRow small{color:var(--role-muted);margin-top:4px;font-size:10px;line-height:1.7;display:block}.ChWdyq_switchRow input{opacity:0;width:32px;height:20px;margin:0;position:absolute;right:0}.ChWdyq_switchTrack{background:color-mix(in srgb,var(--role-muted) 32%,var(--role-bg));pointer-events:none;border-radius:20px;flex-shrink:0;width:32px;height:18px;padding:3px}.ChWdyq_switchTrack:after{content:\"\";background:#fff;border-radius:50%;width:12px;height:12px;transition:transform .15s;display:block;box-shadow:0 1px 3px #0002}.ChWdyq_switchRow input:checked+.ChWdyq_switchTrack{background:var(--role-accent)}.ChWdyq_switchRow input:checked+.ChWdyq_switchTrack:after{transform:translate(14px)}.ChWdyq_switchRow input:focus-visible+.ChWdyq_switchTrack{outline:2px solid var(--role-accent);outline-offset:3px}.ChWdyq_settingsFields{border:0;border-top:1px solid var(--role-border);min-width:0;margin:0;padding:18px 0 0}.ChWdyq_settingsFields:disabled{opacity:.48}.ChWdyq_field{flex-direction:column;gap:8px;margin-bottom:18px;font-size:12px;display:flex}.ChWdyq_field input,.ChWdyq_field select,.ChWdyq_field textarea{border:1px solid var(--role-border);background:var(--role-bg);color:var(--role-text);border-radius:7px;width:100%;min-width:0;padding:9px 10px;font-size:12px}.ChWdyq_field textarea{resize:vertical;line-height:1.7}.ChWdyq_field input::placeholder,.ChWdyq_field textarea::placeholder,.ChWdyq_search input::placeholder{color:var(--role-muted);opacity:.8}.ChWdyq_field input:focus,.ChWdyq_field select:focus,.ChWdyq_field textarea:focus{outline:2px solid color-mix(in srgb,var(--role-accent) 25%,transparent);border-color:var(--role-accent)}.ChWdyq_actionsGroup{border:0;margin:0 0 22px;padding:0}.ChWdyq_actionsGroup legend{margin-bottom:10px;font-size:12px}.ChWdyq_actionsGroup label{cursor:pointer;align-items:center;gap:8px;margin:8px 0;font-size:12px;display:flex}.ChWdyq_actionsGroup input{accent-color:var(--role-accent);width:14px;height:14px;margin:0}.ChWdyq_notAdded{padding-bottom:18px}.ChWdyq_notAdded p{color:var(--role-muted);font-size:11px}.ChWdyq_notAdded button{color:var(--dsw-alias-label-primary-foreground,#fff);background:var(--role-accent);border:0;border-radius:7px;width:100%;padding:8px 12px;font-size:12px}.ChWdyq_output{flex-direction:column;gap:9px;margin:18px 0;font-size:12px;display:flex}.ChWdyq_output strong{color:var(--role-muted);border:1px solid var(--role-border);border-radius:7px;padding:10px;font-weight:400}.ChWdyq_inspectorEmpty{color:var(--role-muted);text-align:center;padding:65px 0}.ChWdyq_inspectorEmpty>span{font-size:32px}.ChWdyq_inspectorEmpty h3{font-size:13px;font-weight:500}.ChWdyq_inspectorEmpty p{font-size:12px;line-height:1.8}.ChWdyq_overview{overflow-wrap:anywhere}.ChWdyq_overview h4{margin:20px 0 10px;font-size:12px}.ChWdyq_summaryCaps{flex-wrap:wrap;gap:7px;display:flex}.ChWdyq_summaryCaps span{border:1px solid var(--role-border);color:var(--role-muted);border-radius:6px;padding:4px 7px;font-size:10px}.ChWdyq_muted{color:var(--role-muted);font-size:12px}.ChWdyq_srOnly{clip:rect(0,0,0,0);white-space:nowrap;border:0;width:1px;height:1px;margin:-1px;padding:0;position:absolute;overflow:hidden}.ChWdyq_catalogGroup{color:var(--role-muted);margin:15px 0 7px;font-size:11px;font-weight:500}.ChWdyq_catalogCard,.ChWdyq_sortHandle{user-select:none}.ChWdyq_sortHandle{color:var(--role-muted);cursor:grab;touch-action:none;background:0 0;border:0;flex-shrink:0;padding:9px 3px;font-size:19px}.ChWdyq_sortHandle:active{cursor:grabbing}.ChWdyq_sortHandle:focus-visible{outline:2px solid var(--role-accent);border-radius:5px}.ChWdyq_sortSource{opacity:.5}.ChWdyq_sortTarget{box-shadow:0 -3px 0 var(--role-accent)}.ChWdyq_compact{grid-template-columns:30px minmax(0,1fr) 30px;transition:none}.ChWdyq_compact .ChWdyq_canvas{grid-column:2;padding:20px 16px}.ChWdyq_compact .ChWdyq_library,.ChWdyq_compact .ChWdyq_inspector{z-index:4;grid-column:auto;position:absolute;top:0;bottom:0;box-shadow:0 0 22px #14244124}.ChWdyq_compact .ChWdyq_library{width:var(--library-width);padding:18px 10px 10px;left:0}.ChWdyq_compact .ChWdyq_inspector{width:var(--inspector-width);padding:0 14px 20px;right:0}.ChWdyq_compact .ChWdyq_rail{z-index:5;grid-column:auto;position:absolute;top:0;bottom:0}.ChWdyq_compact .ChWdyq_leftRail{left:var(--library-width);width:var(--left-rail)}.ChWdyq_compact .ChWdyq_rightRail{right:var(--inspector-width);width:var(--right-rail)}@media (width<=1100px){.ChWdyq_canvas{padding:22px 18px}.ChWdyq_library{padding:20px 10px 10px}.ChWdyq_inspector{padding-left:16px;padding-right:16px}}@media (width<=620px){.ChWdyq_banner{padding:10px 16px;font-size:11px}}@media (prefers-reduced-motion:reduce){.ChWdyq_workbench,.ChWdyq_workbench *,.ChWdyq_switchTrack:after{transition:none}}.ChWdyq_attachedCard[data-composition-row][tabindex]{cursor:grab;user-select:none;touch-action:none;transition:transform .12s}.ChWdyq_attachedCard[data-composition-row]:focus-visible{outline:2px solid var(--role-accent);outline-offset:2px}.ChWdyq_sortNumber{color:var(--role-muted);text-align:center;min-width:18px;font-size:12px}@media (prefers-reduced-motion:reduce){.ChWdyq_attachedCard[data-composition-row]{transition:none}}";
+		const tagId$10 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Capabilities.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$10) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$12;
-			tag.textContent = css$12;
+			tag.dataset.pluginCss = tagId$10;
+			tag.textContent = css$10;
 			document.head.appendChild(tag);
 		}
 		var Capabilities_module_css_default = {
@@ -5352,21 +6032,6 @@ window.__ModuleLoader__.load({
 			] });
 		}
 		//#endregion
-		//#region ../dsh-capabilities/src/core/validation.ts
-		function issues(definition, capabilityId) {
-			const missing = missingAssociations(definition, capabilityId);
-			return [
-				...compatibilityIssues(definition, capabilityId),
-				...definition.components.length === 0 && !missing.length ? ["尚未添加组件"] : definition.components.flatMap((p) => p.actions.length ? [] : ["至少选择一个业务动作"]),
-				...missing.map((id) => `缺少必需组件：${components.find((c) => c.id === id)?.name ?? dependencyName(id)}，补回后才能发布`)
-			];
-		}
-		function roleCompositionIssues(value) {
-			const active = value.capabilities.filter((binding) => binding.enabled);
-			if (active.some((binding) => binding.capabilityId === "developer-workspace") && active.some((binding) => binding.capabilityId !== "developer-workspace")) return ["开发工作区暂不支持与其他执行能力混用；草稿可以保存，请停用其他能力后发布。"];
-			return active.some((binding) => binding.capabilityId === "requirements-analysis") && active.some((binding) => binding.capabilityId !== "requirements-analysis") ? ["需求分析使用独立工作区，暂不支持与其他执行能力混用。请停用或移除其他能力后发布；草稿可以继续保存。"] : [];
-		}
-		//#endregion
 		//#region src/client/capability-presentation.ts
 		function capabilityManagement(data, capability) {
 			const kinds = (latest(capability.versions) ?? capability.draft).components.map((part) => data.components.find((c) => c.id === part.componentId)?.management);
@@ -5399,13 +6064,16 @@ window.__ModuleLoader__.load({
 				group
 			});
 			if (capability.removedAt) return status("已移除", "能力已移除，请在能力中心恢复。", "disabled");
+			const packageStatus = data.packages?.find((h) => h.capabilityId === capability.id);
+			if (capability.packageOrigin && packageStatus && !packageStatus.ready) return status(packageStatus.needsModel ? "待配置" : "组件待就绪", packageStatus.message, "pending");
 			if (!capability.enabled) return status("已停用", "能力已停用，请在能力中心启用。", "disabled");
 			if (!version) return status("草稿", "能力尚未发布。", "draft");
 			if (!parts.length || descriptors.some((value) => !value)) return status("组件待适配", "部分组件尚未适配，请在组件中心检查。", "pending");
 			if (parts.some((part) => data.state.componentRestrictions?.[part.componentId]?.enabled === false)) return status("组件已停用", "关联组件已全局停用，请在组件中心检查。", "pending");
-			const problems = issues(version, capability.id);
+			const problems = issues(version, capability.id, data.components);
 			if (problems.length) return status("组件待完善", problems.join("；"), "pending");
 			if (descriptors.some((value) => value?.management !== management)) return status("分项检测", "此能力包含不同服务，请在组件中心分别检查。", "unknown");
+			if (management === "package") return packageStatus?.ready ? status("已启用", packageStatus.message, "ready") : status("待检测", "正在读取执行组件状态", "unknown");
 			if (management === "developer") return status("项目内检测", "进入开发对话并绑定项目后检测文件、Git 和验证环境；默认只读。", "context");
 			const service = management === "requirements" ? requirements : management === "meeting-asr" ? meeting : void 0;
 			if (management === "requirements" || management === "meeting-asr") {
@@ -5417,92 +6085,6 @@ window.__ModuleLoader__.load({
 			if (management !== "browser" || data.health.state === "unknown") return status("状态未知", data.health.message || "尚未检测连接。", "unknown");
 			return status(data.health.state === "ready" ? "可使用" : "待连接", data.health.message, data.health.state === "ready" ? "ready" : "pending");
 		}
-		//#endregion
-		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css.mjs
-		const css$11 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:32px;height:32px;display:inline-flex;position:relative}.eqpZFq_recycleSelect input{opacity:0;cursor:pointer;z-index:1;width:100%;height:100%;margin:0;position:absolute;inset:0}.eqpZFq_selectionMark{box-sizing:border-box;border:1px solid var(--role-muted);background:var(--role-bg);border-radius:5px;justify-content:center;align-items:center;width:20px;height:20px;display:flex}.eqpZFq_selectionMark svg{fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;width:18px;height:18px}.eqpZFq_recycleSelect input:checked+.eqpZFq_selectionMark,.eqpZFq_recycleSelect input:indeterminate+.eqpZFq_selectionMark{color:#fff;background:#344575;border-color:#7585b1}.eqpZFq_recycleSelect input:focus-visible+.eqpZFq_selectionMark{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_recycleSelect input:disabled{cursor:default}.eqpZFq_recycleSelect input:disabled+.eqpZFq_selectionMark{opacity:.45}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}.eqpZFq_compositionFieldset{border:0;min-width:0;margin:0;padding:0}.eqpZFq_compositionInfo{border:1px solid var(--role-border);border-radius:9px;margin-bottom:18px;padding:12px}.eqpZFq_compositionInfo summary{color:var(--role-muted);cursor:pointer;font-size:12px}.eqpZFq_compositionInfo[open] summary{margin-bottom:16px}.eqpZFq_associationRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;padding:14px 16px;display:flex}.eqpZFq_associationIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_associationIdentity>div{min-width:0}.eqpZFq_associationIdentity strong{margin-right:8px}.eqpZFq_associationIdentity small{color:var(--role-muted);overflow-wrap:anywhere;margin-top:5px;font-size:11px;display:block}.eqpZFq_associationSymbol{width:34px;height:34px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 10%,transparent);border-radius:8px;flex-shrink:0;place-items:center;font-size:22px;display:grid}.eqpZFq_associationActions{flex-shrink:0;align-items:center;gap:6px;display:flex}.eqpZFq_compositionFeedback,.eqpZFq_compositionToolbar{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;padding:12px;font-size:12px;display:flex}.eqpZFq_compositionToolbar{z-index:1;position:sticky;bottom:0;box-shadow:0 -5px 12px #00000008}.eqpZFq_missingAssociations{border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border));background:color-mix(in srgb,#be8432 8%,var(--role-bg));border-radius:9px;margin:10px 0;padding:12px;font-size:12px}.eqpZFq_missingRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;display:flex}.eqpZFq_missingRow small{color:var(--role-muted)}@media (width<=650px){.eqpZFq_associationRow{flex-wrap:wrap;align-items:flex-start;padding:12px}.eqpZFq_associationActions{margin-left:auto}}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}.eqpZFq_versionValue{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px}.eqpZFq_presetIssues{overflow-wrap:anywhere;padding-left:20px}.eqpZFq_listToolbar{justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px;display:flex}.eqpZFq_listToolbar .eqpZFq_tabs{flex:1;margin:0}.eqpZFq_capabilityList{flex-direction:column;gap:8px;display:flex}.eqpZFq_capabilityRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;align-items:center;gap:8px;min-width:0;padding:0 12px 0 0;display:flex}.eqpZFq_capabilityRow:hover{border-color:var(--role-accent)}.eqpZFq_capabilityOpen{text-align:left;min-width:0;min-height:80px;color:inherit;font:inherit;cursor:pointer;background:0 0;border:0;border-radius:10px;flex:1;align-items:center;gap:12px;padding:12px 8px 12px 14px;display:flex}.eqpZFq_capabilityOpen>:first-child{flex-shrink:0}.eqpZFq_capabilityIdentity{flex:1;min-width:0}.eqpZFq_capabilityIdentity strong,.eqpZFq_capabilityIdentity small{text-overflow:ellipsis;white-space:nowrap;display:block;overflow:hidden}.eqpZFq_capabilityIdentity strong{font-size:14px}.eqpZFq_capabilityIdentity small{color:var(--role-muted);margin-top:5px;font-size:12px}.eqpZFq_capabilityIdentity .eqpZFq_draftHint{color:var(--role-accent)}.eqpZFq_capabilityStatus{color:var(--role-muted);flex-shrink:0;font-size:12px}.eqpZFq_filterPanel{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;flex-wrap:wrap;align-items:flex-start;gap:18px;margin-bottom:14px;padding:16px;display:flex}.eqpZFq_filterPanel fieldset{border:0;flex:1;min-width:170px;padding:0}.eqpZFq_filterPanel legend{font-size:13px;font-weight:600}.eqpZFq_filterSummary{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px;font-size:12px;display:flex}.eqpZFq_moreMenu{position:relative}.eqpZFq_morePanel{z-index:3;border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;min-width:120px;padding:6px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 4px 16px #0002}.eqpZFq_morePanel .eqpZFq_button{text-align:left;border:0;width:100%}.eqpZFq_detailBack{margin-bottom:18px}.eqpZFq_detailIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_detailIdentity h3{overflow-wrap:anywhere}.eqpZFq_detailDescription{color:var(--role-muted);overflow-wrap:anywhere;font-size:13px}.eqpZFq_detailDisclosure{border-top:1px solid var(--role-border);overflow-wrap:anywhere;margin-top:12px;padding:14px 0;font-size:13px}.eqpZFq_detailDisclosure summary{cursor:pointer;color:var(--role-muted)}.eqpZFq_detailDisclosure[open] summary{color:var(--role-text);margin-bottom:12px}@media (width<=600px){.eqpZFq_capabilityOpen{grid-template-columns:32px minmax(0,1fr) 10px;column-gap:10px;display:grid}.eqpZFq_capabilityOpen>:first-child{grid-row:1/3}.eqpZFq_capabilityIdentity{grid-column:2}.eqpZFq_capabilityStatus{grid-column:2;margin-top:5px}.eqpZFq_capabilityOpen>:last-child{grid-area:1/3/3}.eqpZFq_capabilityRow{padding-right:8px}.eqpZFq_detailIdentity{max-width:100%}}";
-		const tagId$11 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$11) + "]") === null) {
-			const tag = document.createElement("style");
-			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$11;
-			tag.textContent = css$11;
-			document.head.appendChild(tag);
-		}
-		var ManagedCapabilities_module_css_default = {
-			"actions": "eqpZFq_actions",
-			"associationActions": "eqpZFq_associationActions",
-			"associationIdentity": "eqpZFq_associationIdentity",
-			"associationRow": "eqpZFq_associationRow",
-			"associationSymbol": "eqpZFq_associationSymbol",
-			"badge": "eqpZFq_badge",
-			"button": "eqpZFq_button",
-			"capabilityIdentity": "eqpZFq_capabilityIdentity",
-			"capabilityList": "eqpZFq_capabilityList",
-			"capabilityOpen": "eqpZFq_capabilityOpen",
-			"capabilityRow": "eqpZFq_capabilityRow",
-			"capabilityStatus": "eqpZFq_capabilityStatus",
-			"card": "eqpZFq_card",
-			"cardDescription": "eqpZFq_cardDescription",
-			"cardFooter": "eqpZFq_cardFooter",
-			"cardMeta": "eqpZFq_cardMeta",
-			"cardSource": "eqpZFq_cardSource",
-			"cardTop": "eqpZFq_cardTop",
-			"check": "eqpZFq_check",
-			"choice": "eqpZFq_choice",
-			"compositionFeedback": "eqpZFq_compositionFeedback",
-			"compositionFieldset": "eqpZFq_compositionFieldset",
-			"compositionInfo": "eqpZFq_compositionInfo",
-			"compositionToolbar": "eqpZFq_compositionToolbar",
-			"confirmActions": "eqpZFq_confirmActions",
-			"dangerButton": "eqpZFq_dangerButton",
-			"deleteList": "eqpZFq_deleteList",
-			"detailBack": "eqpZFq_detailBack",
-			"detailDescription": "eqpZFq_detailDescription",
-			"detailDisclosure": "eqpZFq_detailDisclosure",
-			"detailIdentity": "eqpZFq_detailIdentity",
-			"dialogBody": "eqpZFq_dialogBody",
-			"draftHint": "eqpZFq_draftHint",
-			"empty": "eqpZFq_empty",
-			"error": "eqpZFq_error",
-			"field": "eqpZFq_field",
-			"fields": "eqpZFq_fields",
-			"filterPanel": "eqpZFq_filterPanel",
-			"filterSummary": "eqpZFq_filterSummary",
-			"footer": "eqpZFq_footer",
-			"grid": "eqpZFq_grid",
-			"heading": "eqpZFq_heading",
-			"iconButton": "eqpZFq_iconButton",
-			"inlineAction": "eqpZFq_inlineAction",
-			"list": "eqpZFq_list",
-			"listToolbar": "eqpZFq_listToolbar",
-			"missingAssociations": "eqpZFq_missingAssociations",
-			"missingRow": "eqpZFq_missingRow",
-			"moreMenu": "eqpZFq_moreMenu",
-			"morePanel": "eqpZFq_morePanel",
-			"muted": "eqpZFq_muted",
-			"notice": "eqpZFq_notice",
-			"page": "eqpZFq_page",
-			"pinLabel": "eqpZFq_pinLabel",
-			"pinned": "eqpZFq_pinned",
-			"pinnedCard": "eqpZFq_pinnedCard",
-			"presetIssues": "eqpZFq_presetIssues",
-			"primary": "eqpZFq_primary",
-			"recycleSelect": "eqpZFq_recycleSelect",
-			"recycleToolbar": "eqpZFq_recycleToolbar",
-			"removalImpact": "eqpZFq_removalImpact",
-			"removeAction": "eqpZFq_removeAction",
-			"row": "eqpZFq_row",
-			"search": "eqpZFq_search",
-			"secretField": "eqpZFq_secretField",
-			"selectedCard": "eqpZFq_selectedCard",
-			"selectionMark": "eqpZFq_selectionMark",
-			"selectionSummary": "eqpZFq_selectionSummary",
-			"status": "eqpZFq_status",
-			"tabs": "eqpZFq_tabs",
-			"tasks": "eqpZFq_tasks",
-			"time": "eqpZFq_time",
-			"versionValue": "eqpZFq_versionValue"
-		};
 		//#endregion
 		//#region src/client/CapabilitySelection.tsx
 		function CapabilitySelection({ checked, mixed = false, disabled = false, label, onChange }) {
@@ -5532,133 +6114,6 @@ window.__ModuleLoader__.load({
 					}) : null
 				})]
 			});
-		}
-		//#endregion
-		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/Roles.module.css.mjs
-		const css$10 = ".fwzdhW_section,.fwzdhW_dialog,.fwzdhW_picker,.fwzdhW_presetDisclosure{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);font:inherit}.fwzdhW_section{box-sizing:border-box;width:100%;padding:4px 0 0}.fwzdhW_sectionHeader{justify-content:space-between;align-items:center;gap:20px;margin-bottom:22px;display:flex}.fwzdhW_titleRow{align-items:center;gap:12px;display:flex}.fwzdhW_section h2,.fwzdhW_dialog h2{letter-spacing:-.4px;margin:0;font-size:20px;font-weight:650}.fwzdhW_sectionHeader p{color:var(--role-muted);margin:8px 0 0;font-size:13px;line-height:1.7}.fwzdhW_previewBadge,.fwzdhW_exampleBadge{border:1px solid var(--role-border);color:var(--role-muted);white-space:nowrap;border-radius:6px;flex-shrink:0;align-items:center;padding:3px 8px;font-size:11px;font-weight:500;line-height:1.4;display:inline-flex}.fwzdhW_exampleBadge{background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));color:var(--role-accent);border-color:#0000}.fwzdhW_primary,.fwzdhW_secondary{border:1px solid var(--role-border);font:inherit;cursor:pointer;white-space:nowrap;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:550}.fwzdhW_primary{background:var(--role-accent);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:#0000}.fwzdhW_secondary{background:var(--role-bg);color:var(--role-text)}.fwzdhW_primary:hover:not(:disabled){filter:brightness(1.08)}.fwzdhW_primary:disabled{opacity:.42;cursor:not-allowed}.fwzdhW_cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;display:grid}.fwzdhW_selectionStatus{min-height:30px;color:var(--role-muted);justify-content:space-between;align-items:center;gap:12px;margin:-4px 0 18px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_roleCard{transition:box-shadow .18s,border-color .18s;position:relative}.fwzdhW_cardSelect{z-index:1;cursor:pointer;background:0 0;border:0;border-radius:12px 12px 0 0;padding:0;position:absolute;inset:0 0 51px}.fwzdhW_cardSelect:hover{background:color-mix(in srgb,var(--role-color) 5%,transparent)}.fwzdhW_roleCard .fwzdhW_cardAction{z-index:2;position:relative}.fwzdhW_cardBody{border-radius:10px 10px 0 0;flex:1;margin:-22px -22px 0;padding:22px 22px 0;position:relative}.fwzdhW_cardBody .fwzdhW_cardSelect{border-radius:10px 10px 0 0;inset:0}.fwzdhW_cardSelect:disabled{cursor:default}.fwzdhW_cardSelect:disabled:hover{background:0 0}.fwzdhW_roleCard .fwzdhW_cardSummary{-webkit-line-clamp:3;overflow-wrap:anywhere;-webkit-box-orient:vertical;min-height:5.4em;display:-webkit-box;overflow:hidden}.fwzdhW_cardControls{z-index:2;border-top:1px solid color-mix(in srgb,var(--role-color) 25%,var(--role-border));flex-wrap:wrap;align-items:center;gap:8px 14px;display:flex;position:relative}.fwzdhW_cardControls .fwzdhW_cardAction{border-top:0;flex:1 0 100%;width:auto;min-width:0}.fwzdhW_cardControls .fwzdhW_textButton{min-height:44px;color:var(--role-muted)}.fwzdhW_roleCard .fwzdhW_chatCardNote{padding:14px 0;font-size:12px}.fwzdhW_selectedCard{box-shadow:0 0 0 2px var(--role-color),0 7px 20px color-mix(in srgb,var(--role-color) 20%,transparent);animation:.3s ease-out fwzdhW_roleSelect}.fwzdhW_roleCard .fwzdhW_exampleBadge.fwzdhW_selectedBadge{background:var(--role-color);color:var(--role-on-color,white)}@keyframes fwzdhW_roleSelect{0%,to{transform:translate(0)}30%{transform:translate(-3px)}60%{transform:translate(3px)}}@media (prefers-reduced-motion:reduce){.fwzdhW_selectedCard{animation:none}}.fwzdhW_currentAssistant{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);box-sizing:border-box;border:1px solid color-mix(in srgb,var(--role-color) 22%,transparent);background:color-mix(in srgb,var(--role-bg) 88%,transparent);backdrop-filter:blur(12px);max-width:100%;min-height:38px;color:var(--role-text);text-align:left;font:inherit;cursor:pointer;border-radius:22px;align-items:center;gap:8px;padding:6px 12px 6px 7px;transition:background .16s,border-color .16s,box-shadow .16s;display:inline-flex;box-shadow:0 2px 8px #182c5008}.fwzdhW_currentAssistant:hover{background:color-mix(in srgb,var(--role-color) 8%,var(--role-bg));border-color:color-mix(in srgb,var(--role-color) 45%,transparent);box-shadow:0 3px 12px #182c5010}.fwzdhW_currentAssistant:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_currentAssistant .fwzdhW_icon{border-radius:50%;width:24px;height:24px}.fwzdhW_currentAssistant .fwzdhW_icon svg{width:15px;height:15px}.fwzdhW_currentText{text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:13px;font-weight:550;line-height:20px;overflow:hidden}.fwzdhW_currentHint{color:var(--role-muted);border-left:1px solid color-mix(in srgb,var(--role-muted) 20%,transparent);flex-shrink:0;padding:0 6px;font-size:10px;line-height:16px}.fwzdhW_currentArrow{width:14px;height:14px;color:var(--role-muted);flex-shrink:0}@media (width<=400px){.fwzdhW_currentHint{display:none}}.fwzdhW_roleCard{border:1px solid var(--role-border);background:var(--role-bg);border-radius:14px;flex-direction:column;min-width:0;padding:22px 22px 0;display:flex}.fwzdhW_cardTop{justify-content:space-between;align-items:center;gap:12px;display:flex}.fwzdhW_icon{width:42px;height:42px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg));border-radius:11px;flex-shrink:0;justify-content:center;align-items:center;display:inline-flex}.fwzdhW_icon svg{width:23px;height:23px}.fwzdhW_icon img{object-fit:contain;width:100%;height:100%;padding:4px;display:block}.fwzdhW_currentAssistant .fwzdhW_icon img{padding:2px}.fwzdhW_icon{color:color-mix(in srgb,var(--role-color,var(--role-accent)) 65%,var(--role-text));background:color-mix(in srgb,var(--role-color,var(--role-accent)) 20%,var(--role-bg))}.fwzdhW_roleCard,.fwzdhW_livePreview{border-color:color-mix(in srgb,var(--role-color) 40%,var(--role-border));border-top:4px solid var(--role-color);background:linear-gradient(135deg,color-mix(in srgb,var(--role-color) 18%,var(--role-bg)),color-mix(in srgb,var(--role-color) 6%,var(--role-bg)))}.fwzdhW_roleCard .fwzdhW_exampleBadge,.fwzdhW_roleCard .fwzdhW_tags span{background:color-mix(in srgb,var(--role-color) 15%,var(--role-bg));color:color-mix(in srgb,var(--role-color) 45%,var(--role-text))}.fwzdhW_roleCard .fwzdhW_cardAction{color:color-mix(in srgb,var(--role-color) 55%,var(--role-text));border-top-color:color-mix(in srgb,var(--role-color) 25%,var(--role-border))}.fwzdhW_roleCard h3{margin:18px 0 8px;font-size:16px;font-weight:650}.fwzdhW_roleCard p{color:var(--role-muted);margin:0;font-size:13px;line-height:1.8}.fwzdhW_tags{flex-wrap:wrap;gap:7px;margin:18px 0 22px;display:flex}.fwzdhW_tags span{background:color-mix(in srgb,var(--role-muted) 8%,var(--role-bg));color:var(--role-muted);border-radius:5px;padding:4px 8px;font-size:11px}.fwzdhW_cardAction{border:0;border-top:1px solid var(--role-border);width:100%;color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;justify-content:space-between;align-items:center;margin-top:auto;padding:14px 0;font-size:13px;display:flex}.fwzdhW_createCard{border:1px dashed var(--role-border);width:100%;color:var(--role-muted);font:inherit;cursor:pointer;background:0 0;border-radius:14px;justify-content:flex-start;align-items:center;gap:13px;margin-top:16px;padding:16px 20px;display:flex}.fwzdhW_createCard:hover{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 3%,var(--role-bg))}.fwzdhW_createCard strong{color:var(--role-text);font-size:14px;font-weight:550}.fwzdhW_createCard>span:last-child{text-align:left;font-size:12px;line-height:1.8}.fwzdhW_plus{border:1px solid var(--role-border);border-radius:50%;place-items:center;width:38px;height:38px;font-size:24px;font-weight:300;display:grid}.fwzdhW_createCard .fwzdhW_plus{flex-shrink:0;width:30px;height:30px}.fwzdhW_createCard strong{flex-shrink:0}@media (width<=680px){.fwzdhW_createCard{flex-wrap:wrap}.fwzdhW_createCard>span:last-child{width:100%}}.fwzdhW_sectionNote{color:var(--role-muted);margin:14px 0 0;font-size:12px;line-height:1.8}.fwzdhW_presetDisclosure{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;margin-top:24px}.fwzdhW_presetDisclosure>summary{cursor:pointer;justify-content:space-between;align-items:center;gap:16px;padding:14px 16px;font-size:14px;font-weight:550;list-style:none;display:flex}.fwzdhW_presetDisclosure>summary::-webkit-details-marker{display:none}.fwzdhW_presetDisclosure>summary:hover{background:color-mix(in srgb,var(--role-muted) 5%,transparent);border-radius:10px}.fwzdhW_presetDisclosure>summary:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px;border-radius:10px}.fwzdhW_disclosureChevron{width:16px;height:16px;color:var(--role-muted);flex-shrink:0}.fwzdhW_presetDisclosure[open]>summary .fwzdhW_disclosureChevron{transform:rotate(90deg)}.fwzdhW_disclosureContent{border-top:1px solid var(--role-border);padding:18px 16px}.fwzdhW_dialog{background:var(--role-bg);border:1px solid var(--role-border);border-radius:18px;width:560px;max-width:calc(100vw - 32px);max-height:calc(100dvh - 40px);padding:0;overflow:auto;box-shadow:0 24px 90px #10223d30}.fwzdhW_dialog::backdrop{backdrop-filter:blur(3px);background:#0e18224d}.fwzdhW_dialog[open]{flex-direction:column;display:flex}.fwzdhW_wide{width:1240px;height:min(850px,100dvh - 40px);overflow:hidden}.fwzdhW_editorDetails{border:1px solid var(--role-border);border-radius:8px;padding:0 12px}.fwzdhW_editorDetails>summary{cursor:pointer;color:var(--role-muted);padding:10px 0;font-size:12px}.fwzdhW_editorDetails>fieldset,.fwzdhW_editorDetails>div{padding:8px 0 14px}.fwzdhW_colorSample{border-radius:50%;width:11px;height:11px;margin-left:10px;display:inline-block}.fwzdhW_dialogHeader{border-bottom:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:20px;padding:22px 26px;display:flex}.fwzdhW_dialogHeader h2{font-size:18px}.fwzdhW_close{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-radius:6px;width:32px;height:32px;font-size:25px;line-height:1}.fwzdhW_close:hover{background:color-mix(in srgb,var(--role-muted) 10%,var(--role-bg))}.fwzdhW_editorScroll{min-height:0;padding:20px 26px 24px;overflow:auto}.fwzdhW_intro{color:var(--role-muted);margin:0 0 16px;font-size:13px;line-height:1.8}.fwzdhW_notice{background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border:1px solid var(--role-border);color:var(--role-muted);border-radius:8px;align-items:center;gap:10px;margin-bottom:24px;padding:11px 13px;font-size:12px;line-height:1.7;display:flex}.fwzdhW_editorGrid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:28px;display:grid}.fwzdhW_fields{flex-direction:column;gap:18px;display:flex}.fwzdhW_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.fwzdhW_field input,.fwzdhW_field textarea{box-sizing:border-box;border:1px solid var(--role-border);width:100%;color:var(--role-text);background:var(--role-bg);font:inherit;border-radius:8px;padding:10px 12px;font-weight:400;line-height:1.7}.fwzdhW_field textarea{resize:vertical;min-height:85px}.fwzdhW_field input::placeholder,.fwzdhW_field textarea::placeholder{color:var(--role-muted);opacity:.75}.fwzdhW_field input:focus,.fwzdhW_field textarea:focus{outline:2px solid color-mix(in srgb,var(--role-accent) 22%,transparent);border-color:var(--role-accent)}.fwzdhW_colorField{border:0;min-width:0;margin:0;padding:0}.fwzdhW_colorField legend{margin-bottom:10px;padding:0;font-size:13px;font-weight:550}.fwzdhW_palette{flex-wrap:wrap;gap:10px;display:flex}.fwzdhW_swatch{cursor:pointer;color:#fff;text-shadow:0 1px 2px #0007;border:2px solid #0000;border-radius:50%;place-items:center;width:28px;height:28px;padding:0;font-size:16px;display:grid}.fwzdhW_swatch[aria-pressed=true]{outline:2px solid var(--role-text);outline-offset:3px}.fwzdhW_customColor{flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;font-size:12px;display:flex}.fwzdhW_customColor label,.fwzdhW_customColor input{cursor:pointer}.fwzdhW_customColor input{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);border-radius:6px;width:34px;height:30px;padding:2px}.fwzdhW_customColor input:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.fwzdhW_customColor code{color:var(--role-muted);font-size:12px}.fwzdhW_livePreview{overflow-wrap:anywhere;border-radius:12px;padding:20px}.fwzdhW_previewHeading{justify-content:space-between;align-items:center;font-size:12px;font-weight:600;display:flex}.fwzdhW_dot{background:var(--role-color,var(--role-accent));border-radius:50%;width:6px;height:6px}.fwzdhW_caption{color:var(--role-muted);margin:6px 0 0;font-size:12px;line-height:1.7}.fwzdhW_previewIdentity{align-items:center;gap:12px;margin:24px 0;display:flex}.fwzdhW_previewIdentity h3{margin:0;font-size:16px;font-weight:650}.fwzdhW_previewSection{margin-top:20px}.fwzdhW_previewSection h4{letter-spacing:.5px;color:var(--role-muted);margin:0 0 8px;font-size:11px;font-weight:500}.fwzdhW_previewSection p{white-space:pre-wrap;margin:0;font-size:12px;line-height:1.9}.fwzdhW_empty{color:var(--role-muted);opacity:.65}.fwzdhW_sessionHint{border-top:1px solid var(--role-border);color:var(--role-muted);margin:24px 0 0;padding-top:15px;font-size:11px;line-height:1.7}.fwzdhW_footer{border-top:1px solid var(--role-border);flex-shrink:0;justify-content:space-between;align-items:center;gap:16px;padding:16px 26px;display:flex}.fwzdhW_footer p{color:var(--role-muted);margin:0;font-size:11px;line-height:1.7}.fwzdhW_actions{gap:10px;display:flex}.fwzdhW_picker{border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:10px;align-items:center;gap:9px;padding:6px 10px 6px 6px;font-size:13px;display:inline-flex}.fwzdhW_picker .fwzdhW_icon{border-radius:6px;width:27px;height:27px}.fwzdhW_picker .fwzdhW_icon svg{width:17px;height:17px}.fwzdhW_choices{padding:22px 26px 26px;overflow:auto}.fwzdhW_choice{border:1px solid var(--role-border);text-align:left;background:var(--role-bg);width:100%;color:var(--role-text);font:inherit;cursor:pointer;border-radius:12px;align-items:center;gap:14px;margin-bottom:12px;padding:17px;display:flex}.fwzdhW_choice:hover,.fwzdhW_chosen{border-color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg))}.fwzdhW_choiceText{flex-direction:column;flex:1;gap:8px;min-width:0;display:flex}.fwzdhW_choiceText strong{flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:600;display:flex}.fwzdhW_choiceText>span{color:var(--role-muted);font-size:12px;line-height:1.7}.fwzdhW_radio{border:1px solid var(--role-border);border-radius:50%;flex-shrink:0;place-items:center;width:19px;height:19px;font-size:12px;display:grid}.fwzdhW_chosen .fwzdhW_radio{color:#fff;border-color:var(--role-accent);background:var(--role-accent)}.fwzdhW_choiceTools{border-bottom:1px solid var(--role-border);justify-content:space-between;gap:16px;padding:2px 0 14px;display:flex}.fwzdhW_textButton,.fwzdhW_back{color:var(--role-accent);font:inherit;cursor:pointer;background:0 0;border:0;padding:6px 0;font-size:12px}.fwzdhW_section>.fwzdhW_textButton{color:var(--role-text)}.fwzdhW_section>.fwzdhW_textButton:focus-visible{outline-color:var(--role-text)}.fwzdhW_back{align-self:flex-start;margin:14px 26px 0}.fwzdhW_section button:focus-visible,.fwzdhW_dialog button:focus-visible,.fwzdhW_picker:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}@media (width<=680px){.fwzdhW_cards,.fwzdhW_editorGrid{grid-template-columns:1fr}.fwzdhW_sectionHeader{flex-direction:column;align-items:flex-start;gap:14px}.fwzdhW_createCard{padding:22px}.fwzdhW_dialogHeader,.fwzdhW_editorScroll,.fwzdhW_choices{padding:16px}.fwzdhW_footer{flex-direction:column;align-items:flex-end;gap:10px;padding:14px 16px}.fwzdhW_notice{align-items:flex-start}.fwzdhW_dialog{max-height:calc(100dvh - 24px)}.fwzdhW_livePreview{padding:16px}}";
-		const tagId$10 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Roles.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$10) + "]") === null) {
-			const tag = document.createElement("style");
-			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$10;
-			tag.textContent = css$10;
-			document.head.appendChild(tag);
-		}
-		var Roles_module_css_default = {
-			"actions": "fwzdhW_actions",
-			"back": "fwzdhW_back",
-			"caption": "fwzdhW_caption",
-			"cardAction": "fwzdhW_cardAction",
-			"cardBody": "fwzdhW_cardBody",
-			"cardControls": "fwzdhW_cardControls",
-			"cardSelect": "fwzdhW_cardSelect",
-			"cardSummary": "fwzdhW_cardSummary",
-			"cardTop": "fwzdhW_cardTop",
-			"cards": "fwzdhW_cards",
-			"chatCardNote": "fwzdhW_chatCardNote",
-			"choice": "fwzdhW_choice",
-			"choiceText": "fwzdhW_choiceText",
-			"choiceTools": "fwzdhW_choiceTools",
-			"choices": "fwzdhW_choices",
-			"chosen": "fwzdhW_chosen",
-			"close": "fwzdhW_close",
-			"colorField": "fwzdhW_colorField",
-			"colorSample": "fwzdhW_colorSample",
-			"createCard": "fwzdhW_createCard",
-			"currentArrow": "fwzdhW_currentArrow",
-			"currentAssistant": "fwzdhW_currentAssistant",
-			"currentHint": "fwzdhW_currentHint",
-			"currentText": "fwzdhW_currentText",
-			"customColor": "fwzdhW_customColor",
-			"dialog": "fwzdhW_dialog",
-			"dialogHeader": "fwzdhW_dialogHeader",
-			"disclosureChevron": "fwzdhW_disclosureChevron",
-			"disclosureContent": "fwzdhW_disclosureContent",
-			"dot": "fwzdhW_dot",
-			"editorDetails": "fwzdhW_editorDetails",
-			"editorGrid": "fwzdhW_editorGrid",
-			"editorScroll": "fwzdhW_editorScroll",
-			"empty": "fwzdhW_empty",
-			"exampleBadge": "fwzdhW_exampleBadge",
-			"field": "fwzdhW_field",
-			"fields": "fwzdhW_fields",
-			"footer": "fwzdhW_footer",
-			"icon": "fwzdhW_icon",
-			"intro": "fwzdhW_intro",
-			"livePreview": "fwzdhW_livePreview",
-			"notice": "fwzdhW_notice",
-			"palette": "fwzdhW_palette",
-			"picker": "fwzdhW_picker",
-			"plus": "fwzdhW_plus",
-			"presetDisclosure": "fwzdhW_presetDisclosure",
-			"previewBadge": "fwzdhW_previewBadge",
-			"previewHeading": "fwzdhW_previewHeading",
-			"previewIdentity": "fwzdhW_previewIdentity",
-			"previewSection": "fwzdhW_previewSection",
-			"primary": "fwzdhW_primary",
-			"radio": "fwzdhW_radio",
-			"roleCard": "fwzdhW_roleCard",
-			"roleSelect": "fwzdhW_roleSelect",
-			"secondary": "fwzdhW_secondary",
-			"section": "fwzdhW_section",
-			"sectionHeader": "fwzdhW_sectionHeader",
-			"sectionNote": "fwzdhW_sectionNote",
-			"selectedBadge": "fwzdhW_selectedBadge",
-			"selectedCard": "fwzdhW_selectedCard",
-			"selectionStatus": "fwzdhW_selectionStatus",
-			"sessionHint": "fwzdhW_sessionHint",
-			"swatch": "fwzdhW_swatch",
-			"tags": "fwzdhW_tags",
-			"textButton": "fwzdhW_textButton",
-			"titleRow": "fwzdhW_titleRow",
-			"wide": "fwzdhW_wide"
-		};
-		//#endregion
-		//#region src/client/PreviewModal.tsx
-		function Modal$1({ title, onClose, children, wide = false, closeLabel, className = "" }) {
-			const ref = (0, react.useRef)(null);
-			const titleId = (0, react.useId)();
-			(0, react.useEffect)(() => {
-				const previous = document.activeElement;
-				const dialog = ref.current;
-				dialog.showModal();
-				return () => {
-					dialog.close();
-					if (previous?.isConnected) previous.focus();
-				};
-			}, []);
-			return (0, react_dom.createPortal)(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("dialog", {
-				ref,
-				className: `${Roles_module_css_default.dialog} ${wide ? Roles_module_css_default.wide : ""} ${className}`,
-				"aria-labelledby": titleId,
-				onKeyDown: (event) => {
-					if (event.key !== "Escape") return;
-					event.stopPropagation();
-					if (!event.defaultPrevented) {
-						event.preventDefault();
-						onClose();
-					}
-				},
-				onCancel: (event) => {
-					event.preventDefault();
-					event.stopPropagation();
-					onClose();
-				},
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-					className: Roles_module_css_default.dialogHeader,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", {
-						id: titleId,
-						children: title
-					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						type: "button",
-						autoFocus: true,
-						className: Roles_module_css_default.close,
-						onClick: onClose,
-						"aria-label": closeLabel,
-						children: "×"
-					})]
-				}), children]
-			}), document.body);
 		}
 		//#endregion
 		//#region src/client/ManagedCapabilityCards.tsx
@@ -5691,9 +6146,20 @@ window.__ModuleLoader__.load({
 			});
 		}
 		function capabilityImpact(data, id) {
+			const roles = data.state.roles.filter((r) => r.draft.capabilities.some((b) => b.capabilityId === id) || latest(r.versions)?.capabilities.some((b) => b.capabilityId === id));
+			const tasks = data.tasks.filter((t) => t.status !== "stopped" && data.state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.some((b) => b.enabled && b.capabilityId === id));
+			const componentIds = new Set(data.state.capabilities.find((c) => c.id === id)?.versions.flatMap((v) => v.components.map((p) => p.componentId)) ?? []);
+			for (const activity of data.componentActivities ?? []) if (activity.kind === "package" && !activity.roleId && activity.componentIds.some((component) => componentIds.has(component))) tasks.push({
+				sessionId: activity.id,
+				roleId: "",
+				roleVersion: 0,
+				name: activity.name,
+				status: activity.status === "stopping" ? "stopping" : "running",
+				browserSessions: []
+			});
 			return {
-				roles: data.state.roles.filter((r) => r.draft.capabilities.some((b) => b.capabilityId === id) || latest(r.versions)?.capabilities.some((b) => b.capabilityId === id)),
-				tasks: data.tasks.filter((t) => t.status !== "stopped" && data.state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.some((b) => b.enabled && b.capabilityId === id))
+				roles,
+				tasks
 			};
 		}
 		function ManagedCapabilityCard({ capability: c, data, busy, onManage, onPin, onRemove, onRestore, onPurge, selection, meetingStatus, requirementsStatus }) {
@@ -5867,7 +6333,7 @@ window.__ModuleLoader__.load({
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
 									className: ManagedCapabilities_module_css_default.muted,
-									children: [cap.id === "developer-workspace" ? "移除后将阻止开发任务后续执行，已有代码、任务和验证记录保留。" : cap.id === "requirements-analysis" ? "移除后将阻止新建需求分析和继续调用模型；已保存的需求记录与确认版本仍保留。" : cap.id === "meeting-transcription" ? "移除后将无法新建或继续处理会议录音；已有会议记录仍保留。" : tasks.length ? "相关会话的后续调用将被阻止，并请求停止其浏览器任务。" : "没有相关的活动会话。", "共享插件及其他能力保持不变。"]
+									children: [cap.packageOrigin ? "移除后将停止此能力的执行任务并撤销后续调用；构建版本、岗位引用与结果记录保留。" : cap.id === "developer-workspace" ? "移除后将阻止开发任务后续执行，已有代码、任务和验证记录保留。" : cap.id === "requirements-analysis" ? "移除后将阻止新建需求分析和继续调用模型；已保存的需求记录与确认版本仍保留。" : cap.id === "meeting-transcription" ? "移除后将无法新建或继续处理会议录音；已有会议记录仍保留。" : tasks.length ? "相关会话的后续调用将被阻止，并请求停止其浏览器任务。" : "没有相关的活动会话。", "共享插件及其他能力保持不变。"]
 								})
 							]
 						}),
@@ -5911,6 +6377,15 @@ window.__ModuleLoader__.load({
 		//#region src/client/ComponentService.tsx
 		/** Module differences live here; shared composition views never assume a browser environment. */
 		const adapters = {
+			package: ({ data, component }) => ({
+				description: "能力包自带的执行组件，动作按所绑定的发布版本运行。",
+				status: data.packages?.find((h) => component?.capabilityIds?.includes(h.capabilityId))?.message ?? "正在读取能力包状态",
+				title: "能力包执行器",
+				name: "本机 Node.js 组件",
+				detail: "构建文件随能力分发，工作台模型账号留在本机。可在设置页配置、运行或停止。",
+				configuration: "能力设置",
+				publishNotice: "草稿不影响现有任务；缩小动作范围或停用会撤销后续调用。已有岗位保持固定版本。"
+			}),
 			developer: () => ({
 				description: "在开发工作区读取项目、按任务授权编辑、查看真实 Git 差异并运行已确认的检查。",
 				status: "项目和服务可用性在开发工作区实际检测",
@@ -5947,10 +6422,13 @@ window.__ModuleLoader__.load({
 			})
 		};
 		function componentService(component, context) {
-			const presentation = adapters[component.management](context);
+			const presentation = adapters[component.management]({
+				...context,
+				component
+			});
 			return {
 				...presentation,
-				summary: component.actions.length ? component.actions.map((action) => actionNames[action]).join("、") : presentation.description
+				summary: component.actions.length ? component.actions.map((action) => component.actionLabels?.[action] ?? actionNames[action] ?? action).join("、") : presentation.description
 			};
 		}
 		function ComponentEnvironment({ component, data, meetingStatus, requirementsStatus, onConfigure, disabled = false }) {
@@ -8591,7 +9069,7 @@ window.__ModuleLoader__.load({
 					...catalog.some((d) => d.id === c.id) ? pluginRelations(c).map((p) => p.moduleName) : [],
 					...catalog.some((d) => d.id === c.id) ? adaptedCapabilities(data.state, c).map((cap) => cap.draft.name) : []
 				].join(" ").toLocaleLowerCase();
-				return (filter === "removed" ? !!m.retiredAt : !m.retiredAt) && (filter !== "pinned" || m.pinned) && (filter !== "unused" || !r.capabilities.length) && (filter !== "candidate" || isCandidate) && (filter !== "pending" || isCandidate || m.enabled === false || c.management === "browser" && data.health.state !== "ready" || c.management === "meeting-asr" && !meetingStatus?.ready || c.management === "requirements" && !requirementsStatus?.ready) && (!category || (m.category ?? "未分类") === category) && text.includes(query.trim().toLocaleLowerCase());
+				return (filter === "removed" ? !!m.retiredAt : !m.retiredAt) && (filter !== "pinned" || m.pinned) && (filter !== "unused" || !r.capabilities.length) && (filter !== "candidate" || isCandidate) && (filter !== "pending" || isCandidate || m.enabled === false || c.management === "browser" && data.health.state !== "ready" || c.management === "meeting-asr" && !meetingStatus?.ready || c.management === "requirements" && !requirementsStatus?.ready || c.management === "package" && data.packages?.some((h) => c.capabilityIds?.includes(h.capabilityId) && !h.ready)) && (!category || (m.category ?? "未分类") === category) && text.includes(query.trim().toLocaleLowerCase());
 			}).sort((a, b) => Number(Boolean(metadata(b.id).pinned ?? b.pinned)) - Number(Boolean(metadata(a.id).pinned ?? a.pinned)));
 			visibleIds.current = new Set(visible.map((c) => c.id));
 			const visibleCurrent = !!current && visibleIds.current.has(selected), selectedIndex = visible.findIndex((c) => c.id === selected);
@@ -9295,22 +9773,22 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region src/client/ComponentComposition.tsx
-		const associationName = (id) => components.find((c) => c.id === id)?.name ?? dependencyName(id);
+		const associationName = (id, catalog = components) => catalog.find((c) => c.id === id)?.name ?? dependencyName(id);
 		function compositionItems(draft, capabilityId, data) {
-			return compositionIds(draft).map((id) => {
+			return compositionIds(draft, data?.components).map((id) => {
 				const part = draft.components.find((p) => p.componentId === id);
 				return {
 					id,
-					name: data?.components.find((c) => c.id === id)?.name ?? associationName(id),
-					icon: components.find((c) => c.id === id)?.icon ?? "support",
-					subtitle: part ? `${requiredComponents(capabilityId).some((c) => c.id === id) ? "必需组件" : "业务组件"} · ${part.actions.map((a) => actionNames[a]).join(" · ") || "未选择动作"}` : `必需支持 · ${dependencyUsers(draft, id).map((c) => c.name).join("、")}`
+					name: data?.components.find((c) => c.id === id)?.name ?? associationName(id, data?.components),
+					icon: (data?.components ?? components).find((c) => c.id === id)?.icon ?? "support",
+					subtitle: part ? `${requiredComponents(capabilityId, data?.components).some((c) => c.id === id) ? "必需组件" : "业务组件"} · ${part.actions.map((a) => actionNames[a]).join(" · ") || "未选择动作"}` : `必需支持 · ${dependencyUsers(draft, id, data?.components).map((c) => c.name).join("、")}`
 				};
 			});
 		}
 		function compositionLibrary(draft, capabilityId, data) {
-			const business = availableComponents(capabilityId).map((c) => data?.components.find((d) => d.id === c.id) ?? c);
+			const business = availableComponents(capabilityId, data?.components).map((c) => data?.components.find((d) => d.id === c.id) ?? c);
 			const support = [...new Set(business.flatMap((c) => c.dependencies.filter((id) => id.startsWith("@"))))];
-			const needed = supportDependencies(draft);
+			const needed = supportDependencies(draft, data?.components);
 			return [...business.map((c) => ({
 				id: c.id,
 				name: c.name,
@@ -9322,7 +9800,7 @@ window.__ModuleLoader__.load({
 				id,
 				name: dependencyName(id),
 				icon: "support",
-				subtitle: needed.includes(id) ? missingDependencies(draft).includes(id) ? "缺少关联 · 拖入补回" : "必需支持" : "先添加对应业务组件",
+				subtitle: needed.includes(id) ? missingDependencies(draft, data?.components).includes(id) ? "缺少关联 · 拖入补回" : "必需支持" : "先添加对应业务组件",
 				disabled: !needed.includes(id),
 				group: "支持组件"
 			}))];
@@ -9332,7 +9810,7 @@ window.__ModuleLoader__.load({
 			value.excludedDependencies,
 			value.componentOrder
 		]);
-		function useAssociationEditing(draft, change, capabilityId) {
+		function useAssociationEditing(draft, change, capabilityId, data) {
 			const [removing, setRemoving] = (0, react.useState)(null);
 			const [undo, setUndo] = (0, react.useState)(null);
 			const feedback = undo && undo.after === compositionKey(draft) ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -9363,13 +9841,14 @@ window.__ModuleLoader__.load({
 					id: removing,
 					draft,
 					capabilityId,
+					data,
 					onClose: () => setRemoving(null),
 					onConfirm: () => {
-						const next = removeAssociation(draft, removing);
+						const next = removeAssociation(draft, removing, data?.components);
 						setUndo({
 							before: structuredClone(draft),
 							after: compositionKey(next),
-							name: associationName(removing)
+							name: associationName(removing, data?.components)
 						});
 						change(next);
 						setRemoving(null);
@@ -9378,12 +9857,12 @@ window.__ModuleLoader__.load({
 				feedback
 			};
 		}
-		function RemoveAssociationDialog({ id, draft, capabilityId, onClose, onConfirm }) {
-			const users = dependencyUsers(draft, id), required = users.length > 0 || requiredComponents(capabilityId).some((c) => c.id === id);
+		function RemoveAssociationDialog({ id, draft, capabilityId, data, onClose, onConfirm }) {
+			const users = dependencyUsers(draft, id, data?.components), required = users.length > 0 || requiredComponents(capabilityId, data?.components).some((c) => c.id === id);
 			const part = draft.components.find((p) => p.componentId === id);
 			const actions = [...new Set(users.length ? draft.components.filter((p) => users.some((c) => c.id === p.componentId)).flatMap((p) => p.actions) : part?.actions ?? [])];
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$1, {
-				title: `移除 ${associationName(id)} 组件关联？`,
+				title: `移除 ${associationName(id, data?.components)} 组件关联？`,
 				closeLabel: "取消移除关联",
 				onClose,
 				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -9423,8 +9902,8 @@ window.__ModuleLoader__.load({
 				})
 			});
 		}
-		function MissingAssociations({ draft, change, capabilityId, disabled = false }) {
-			const missing = missingAssociations(draft, capabilityId);
+		function MissingAssociations({ draft, change, capabilityId, data, disabled = false }) {
+			const missing = missingAssociations(draft, capabilityId, data?.components);
 			return missing.length ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: ManagedCapabilities_module_css_default.missingAssociations,
 				role: "status",
@@ -9434,22 +9913,22 @@ window.__ModuleLoader__.load({
 					" 个必需组件，暂时无法发布"
 				] }), missing.map((id) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: ManagedCapabilities_module_css_default.missingRow,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [associationName(id), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [associationName(id, data?.components), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
 						" · ",
-						dependencyUsers(draft, id).map((c) => c.name).join("、") || "当前能力",
+						dependencyUsers(draft, id, data?.components).map((c) => c.name).join("、") || "当前能力",
 						"需要"
 					] })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 						className: ManagedCapabilities_module_css_default.button,
 						disabled,
-						onClick: () => change(addAssociation(draft, id)),
-						children: ["补回 ", associationName(id)]
+						onClick: () => change(addAssociation(draft, id, data?.components)),
+						children: ["补回 ", associationName(id, data?.components)]
 					})]
 				}, id))]
 			}) : null;
 		}
 		function SupportInspector({ id, draft, data, change }) {
-			const users = dependencyUsers(draft, id), status = data.dependencies?.find((d) => d.id === id);
-			const missing = missingDependencies(draft).includes(id);
+			const users = dependencyUsers(draft, id, data?.components), status = data.dependencies?.find((d) => d.id === id);
+			const missing = missingDependencies(draft, data?.components).includes(id);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: dependencyName(id) }),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
@@ -9466,7 +9945,7 @@ window.__ModuleLoader__.load({
 				] }),
 				users.length > 0 && missing && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 					className: ManagedCapabilities_module_css_default.button,
-					onClick: () => change(addAssociation(draft, id)),
+					onClick: () => change(addAssociation(draft, id, data?.components)),
 					children: "补回组件"
 				}),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
@@ -9492,7 +9971,7 @@ window.__ModuleLoader__.load({
 					]
 				}),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: info.description }),
-				requiredComponents(capabilityId).some((c) => c.id === component.id) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+				requiredComponents(capabilityId, data?.components).some((c) => c.id === component.id) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 					className: ManagedCapabilities_module_css_default.notice,
 					children: "必需组件 · 可从草稿移除，补回组件并选择动作后才能发布。"
 				}),
@@ -9504,7 +9983,7 @@ window.__ModuleLoader__.load({
 						children: component.dependencies.map((dep) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
 							dependencyName(dep),
 							" · ",
-							dep.startsWith("@") ? missingDependencies(draft).includes(dep) ? "缺少关联" : part ? "已关联" : "待添加" : "运行环境"
+							dep.startsWith("@") ? missingDependencies(draft, data?.components).includes(dep) ? "缺少关联" : part ? "已关联" : "待添加" : "运行环境"
 						] }, dep))
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
@@ -9528,7 +10007,7 @@ window.__ModuleLoader__.load({
 		function ComponentRelations({ data, capabilityId, onEdit, meetingStatus, requirementsStatus, onConfigure }) {
 			const cap = data.state.capabilities.find((c) => c.id === capabilityId);
 			const { draft, change, dirty, revision, discard } = useCapabilityDefinition(capabilityId, data);
-			const edit = useAssociationEditing(draft, change, capabilityId);
+			const edit = useAssociationEditing(draft, change, capabilityId, data);
 			const [inspecting, setInspecting] = (0, react.useState)(null);
 			const [busy, setBusy] = (0, react.useState)(false), [message, setMessage] = (0, react.useState)(""), [discarding, setDiscarding] = (0, react.useState)(false);
 			const save = async () => {
@@ -9567,7 +10046,7 @@ window.__ModuleLoader__.load({
 								className: ManagedCapabilities_module_css_default.muted,
 								children: [
 									"草稿 · ",
-									compositionIds(draft).length,
+									compositionIds(draft, data?.components).length,
 									" 个关联 · ",
 									referenced.length,
 									" 个岗位引用"
@@ -9602,16 +10081,17 @@ window.__ModuleLoader__.load({
 								draft,
 								change,
 								capabilityId,
+								data,
 								disabled
 							}),
 							compositionItems(draft, capabilityId, data).map((item) => {
-								const business = components.find((c) => c.id === item.id), status = data.dependencies?.find((d) => d.id === (business?.provider ?? item.id));
+								const business = data.components.find((c) => c.id === item.id), status = data.dependencies?.find((d) => d.id === (business?.provider ?? item.id));
 								const info = business && componentService(business, {
 									data,
 									meetingStatus,
 									requirementsStatus
 								});
-								const required = requiredComponents(capabilityId).some((c) => c.id === item.id);
+								const required = requiredComponents(capabilityId, data?.components).some((c) => c.id === item.id);
 								return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 									className: ManagedCapabilities_module_css_default.associationRow,
 									"data-association": item.id,
@@ -9685,7 +10165,7 @@ window.__ModuleLoader__.load({
 						className: ManagedCapabilities_module_css_default.error,
 						children: "配置已在其他页面变化。当前草稿保留；请在组合编辑器核对最新配置后再保存。"
 					}),
-					availableComponents(capabilityId).filter((c, i, all) => all.findIndex((other) => other.management === c.management) === i).map((component) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentEnvironment, {
+					availableComponents(capabilityId, data?.components).filter((c, i, all) => all.findIndex((other) => other.management === c.management) === i).map((component) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComponentEnvironment, {
 						component,
 						data,
 						meetingStatus,
@@ -12316,6 +12796,365 @@ window.__ModuleLoader__.load({
 			] });
 		}
 		//#endregion
+		//#region src/client/PackageCapabilitySettings.tsx
+		const jobNames = {
+			running: "执行中",
+			stopping: "正在停止",
+			stopped: "已停止",
+			done: "执行成功",
+			error: "执行失败"
+		};
+		function PackageCapabilitySettings({ item, data }) {
+			const version = latest(item.versions), release = version?.packageHash ? data.state.packageReleases?.[version.packageHash] : void 0;
+			const health = data.packages?.find((h) => h.capabilityId === item.id);
+			const actions = release?.manifest.components.flatMap((c) => c.actions.filter((a) => version?.components.some((p) => p.actions.includes(packageActionId(release.manifest.id, c.id, a.id)))).map((a) => ({
+				...a,
+				key: packageActionId(release.manifest.id, c.id, a.id)
+			}))) ?? [];
+			const [model, setModel] = (0, react.useState)(data.state.packageModels?.[item.id] ?? ""), [configRevision, setConfigRevision] = (0, react.useState)(null);
+			const [action, setAction] = (0, react.useState)(actions[0]?.key ?? ""), [input, setInput] = (0, react.useState)(""), [jsonInput, setJsonInput] = (0, react.useState)(false);
+			const [busy, setBusy] = (0, react.useState)(false), [message, setMessage] = (0, react.useState)(""), [error, setError] = (0, react.useState)("");
+			const [jobs, setJobs] = (0, react.useState)([]), [job, setJob] = (0, react.useState)(null), [rollback, setRollback] = (0, react.useState)(null);
+			useLeaveGuard(configRevision !== null, () => {
+				setModel(data.state.packageModels?.[item.id] ?? "");
+				setConfigRevision(null);
+			});
+			(0, react.useEffect)(() => {
+				if (configRevision === null) setModel(data.state.packageModels?.[item.id] ?? "");
+			}, [
+				data.state.revision,
+				configRevision,
+				item.id
+			]);
+			(0, react.useEffect)(() => {
+				if (!actions.some((a) => a.key === action)) setAction(actions[0]?.key ?? "");
+			}, [version?.version]);
+			(0, react.useEffect)(() => {
+				let alive = true;
+				packageRequest(`tasks?id=${encodeURIComponent(item.id)}`).then((v) => {
+					if (alive) setJobs(v);
+				}).catch((e) => {
+					if (alive) setError(e.message);
+				});
+				return () => {
+					alive = false;
+				};
+			}, [
+				item.id,
+				job?.status,
+				data.state.revision
+			]);
+			(0, react.useEffect)(() => {
+				const running = job && ["running", "stopping"].includes(job.status) ? job.id : jobs.find((j) => ["running", "stopping"].includes(j.status))?.id;
+				if (!running) return;
+				let alive = true;
+				const timer = setInterval(() => {
+					packageRequest(`task/${running}`).then((value) => {
+						if (alive) setJob(value);
+					}).catch((e) => {
+						if (alive) setError(e.message);
+					});
+				}, 700);
+				return () => {
+					alive = false;
+					clearInterval(timer);
+				};
+			}, [
+				job?.id,
+				job?.status,
+				jobs.find((j) => ["running", "stopping"].includes(j.status))?.id
+			]);
+			const run = async (work) => {
+				setBusy(true);
+				setError("");
+				setMessage("");
+				try {
+					await work();
+				} catch (e) {
+					setError(e instanceof Error ? e.message : String(e));
+				} finally {
+					setBusy(false);
+				}
+			};
+			const disabled = busy || !!item.removedAt, running = job && ["running", "stopping"].includes(job.status);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+				"aria-label": "外部能力设置",
+				children: [
+					release?.manifest.permissions.includes("model") && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: ManagedCapabilities_module_css_default.muted,
+							children: "模型账号复用工作台配置，模型选择只在本机保存。"
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: [
+								"工作台模型",
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									value: model,
+									disabled,
+									placeholder: "留空使用工作台默认模型",
+									maxLength: 240,
+									onChange: (e) => {
+										setModel(e.target.value);
+										setConfigRevision(configRevision ?? data.state.revision);
+									}
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "填写已配置的“提供方/模型”；账号和密钥在工作台模型设置中管理。" })
+							]
+						}),
+						(configRevision !== null || health?.needsModel) && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.actions,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled,
+								onClick: () => {
+									setModel(data.state.packageModels?.[item.id] ?? "");
+									setConfigRevision(null);
+								},
+								children: "取消修改"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled,
+								onClick: () => void run(async () => {
+									await packageRequest("configure", {
+										id: item.id,
+										model,
+										revision: configRevision ?? data.state.revision,
+										enable: true
+									});
+									setConfigRevision(null);
+									await capabilityClient.refresh(true);
+									setMessage("配置已保存并启用；实际调用结果见任务记录。");
+								}),
+								children: "保存并启用"
+							})]
+						}),
+						configRevision !== null && configRevision !== data.state.revision && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: ManagedCapabilities_module_css_default.notice,
+							children: "能力清单已更新，当前输入保留；请取消修改后重新核对。"
+						})
+					] }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: ManagedCapabilities_module_css_default.fields,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: [
+								"运行的动作",
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
+									value: action,
+									disabled: disabled || !!running,
+									onChange: (e) => setAction(e.target.value),
+									children: actions.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: a.key,
+										children: a.name
+									}, a.key))
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: actions.find((a) => a.key === action)?.description })
+							]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.field,
+							children: ["输入内容", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("textarea", {
+								rows: 5,
+								disabled: disabled || !!running,
+								value: input,
+								maxLength: 256e3,
+								onChange: (e) => setInput(e.target.value),
+								placeholder: "按动作说明填写要处理的内容"
+							})]
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+						className: ManagedCapabilities_module_css_default.detailDisclosure,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "输入格式" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+								className: ManagedCapabilities_module_css_default.check,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									type: "checkbox",
+									checked: jsonInput,
+									disabled: disabled || !!running,
+									onChange: (e) => setJsonInput(e.target.checked)
+								}), "按 JSON 对象或数组解析输入"]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.muted,
+								children: "默认将输入作为文本传给动作；仅在能力说明要求时切换。"
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: ManagedCapabilities_module_css_default.actions,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
+							disabled: disabled || !item.enabled || !health?.ready || !action || !!running || configRevision !== null,
+							onClick: () => void run(async () => {
+								let value = input;
+								if (jsonInput) try {
+									value = JSON.parse(input);
+								} catch {
+									throw new Error("JSON 输入格式不正确");
+								}
+								setJob(await packageRequest("run", {
+									id: item.id,
+									version: version?.version,
+									action,
+									input: value
+								}));
+							}),
+							children: "运行动作"
+						}), running && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: ManagedCapabilities_module_css_default.button,
+							disabled: busy,
+							onClick: () => void run(async () => {
+								setJob(await packageRequest("stop", { id: job.id }));
+							}),
+							children: "停止任务"
+						})]
+					}),
+					job && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						"aria-live": "polite",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: jobNames[job.status] }),
+								" · 本地 v",
+								job.version,
+								job.finishedAt ? ` · ${new Date(job.finishedAt).toLocaleString()}` : ""
+							] }),
+							job.error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.error,
+								children: job.error
+							}),
+							job.status === "done" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("pre", {
+								className: ManagedCapabilities_module_css_default.versionValue,
+								style: {
+									whiteSpace: "pre-wrap",
+									overflowWrap: "anywhere",
+									maxHeight: 360,
+									overflow: "auto"
+								},
+								children: typeof job.output === "string" ? job.output : JSON.stringify(job.output, null, 2)
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+						className: ManagedCapabilities_module_css_default.detailDisclosure,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+								"最近任务（",
+								jobs.length,
+								"）"
+							] }),
+							jobs.map((j) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: ManagedCapabilities_module_css_default.row,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: jobNames[j.status] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+									new Date(j.createdAt).toLocaleString(),
+									" · 本地 v",
+									j.version
+								] })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									disabled: busy,
+									onClick: () => void run(async () => setJob(await packageRequest(`task/${j.id}`))),
+									children: "查看结果"
+								})]
+							}, j.id)),
+							!jobs.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "尚未运行。安装就绪不代表任务已验证。" })
+						]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+						className: ManagedCapabilities_module_css_default.detailDisclosure,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "能力包来源与回退" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+								release?.manifest.author,
+								" · ",
+								release?.manifest.id,
+								" · 包 v",
+								release?.manifest.version
+							] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: ManagedCapabilities_module_css_default.muted,
+								children: "回退会创建采用旧代码的新本地版本并停用能力。检查后手动启用；岗位绑定版本、草稿和历史任务保留。"
+							}),
+							item.versions.filter((v) => v.packageHash && v.version !== version?.version).map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: ManagedCapabilities_module_css_default.row,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
+									"本地 v",
+									v.version,
+									" · 包 v",
+									data.state.packageReleases?.[v.packageHash]?.manifest.version
+								] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									disabled,
+									onClick: () => setRollback(v.version),
+									children: "选择回退"
+								})]
+							}, v.version)),
+							rollback !== null && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: ManagedCapabilities_module_css_default.notice,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
+									"确认回退到本地 v",
+									rollback,
+									" 并停止此能力的活动任务？"
+								] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: ManagedCapabilities_module_css_default.actions,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										className: ManagedCapabilities_module_css_default.button,
+										disabled: busy,
+										onClick: () => setRollback(null),
+										children: "取消"
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										className: ManagedCapabilities_module_css_default.button,
+										disabled,
+										onClick: () => void run(async () => {
+											await packageRequest("rollback", {
+												id: item.id,
+												version: rollback,
+												revision: data.state.revision
+											});
+											setRollback(null);
+											await capabilityClient.refresh(true);
+											setMessage("已回退并保持停用，请检查后启用。");
+										}),
+										children: "确认回退并停用"
+									})]
+								})]
+							}),
+							!!item.packageOrigin?.draftBackups.length && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+								"导入前保留的草稿（",
+								item.packageOrigin.draftBackups.length,
+								"）"
+							] }), item.packageOrigin.draftBackups.map((backup, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: ManagedCapabilities_module_css_default.row,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: backup.definition.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: new Date(backup.savedAt).toLocaleString() })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									disabled,
+									onClick: () => void run(async () => {
+										await packageRequest("restore-draft", {
+											id: item.id,
+											index,
+											revision: data.state.revision
+										});
+										await capabilityClient.refresh(true);
+										setMessage("备份已恢复至草稿，已发布执行版本保持原状。");
+									}),
+									children: "恢复到草稿"
+								})]
+							}, backup.savedAt + index))] })
+						]
+					}),
+					message && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "status",
+						children: message
+					}),
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.error,
+						role: "alert",
+						children: error
+					})
+				]
+			});
+		}
+		//#endregion
 		//#region src/client/developer-client.ts
 		const developerUrl = (route, params = {}) => "/api/capabilities/developer/" + route + "?" + new URLSearchParams(params);
 		async function developerApi(route, params = {}, body, method = body === void 0 ? "GET" : "POST") {
@@ -12963,7 +13802,10 @@ window.__ModuleLoader__.load({
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 							"data-capability-config": true,
-							children: kind === "developer" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DeveloperProjectSettings, {
+							children: kind === "package" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PackageCapabilitySettings, {
+								item,
+								data
+							}) : kind === "developer" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DeveloperProjectSettings, {
 								disabled: !!item.removedAt,
 								onEditingChange: onEditing
 							}) : kind === "requirements" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [requirementsError && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
@@ -13094,7 +13936,7 @@ window.__ModuleLoader__.load({
 		function CapabilityEditor({ id, data, onClose, onSaved, compositionFocus = false, meetingStatus, requirementsStatus, onConfigure, requestedComponentId, restore }) {
 			const cap = data.state.capabilities.find((c) => c.id === id);
 			const { draft, revision, change, rebase } = useCapabilityDefinition(id, data);
-			const associationEdit = useAssociationEditing(draft, change, id);
+			const associationEdit = useAssociationEditing(draft, change, id, data);
 			const [managingComponents, setManagingComponents] = (0, react.useState)(!!restoredFrame(restore, "components"));
 			useNavigationFrame("capability-editor", 30, () => ({
 				section: "capability-center",
@@ -13106,12 +13948,12 @@ window.__ModuleLoader__.load({
 				}
 			}));
 			(0, react.useEffect)(() => {
-				if (requestedComponentId && availableComponents(id).some((c) => c.id === requestedComponentId) && !data.registry?.metadata[requestedComponentId]?.retiredAt && data.registry?.metadata[requestedComponentId]?.enabled !== false) change(addAssociation(draft, requestedComponentId));
+				if (requestedComponentId && availableComponents(id, data.components).some((c) => c.id === requestedComponentId) && !data.registry?.metadata[requestedComponentId]?.retiredAt && data.registry?.metadata[requestedComponentId]?.enabled !== false) change(addAssociation(draft, requestedComponentId, data.components));
 			}, [requestedComponentId]);
 			const [selected, setSelected] = (0, react.useState)(restoredFrame(restore, "capability-editor")?.view?.selected ?? draft.components[0]?.componentId ?? null);
 			const [busy, setBusy] = (0, react.useState)(false), [message, setMessage] = (0, react.useState)(""), [review, setReview] = (0, react.useState)(false), [applyRoles, setApplyRoles] = (0, react.useState)([]);
 			const part = draft.components.find((p) => p.componentId === selected), descriptor = data.components.find((c) => c.id === selected);
-			const publishProblems = [...issues(draft, id), ...data.registry ? componentPublishIssues(data.state, data.registry, draft.components.map((p) => p.componentId)) : []];
+			const publishProblems = [...issues(draft, id, data.components), ...data.registry ? componentPublishIssues(data.state, data.registry, draft.components.map((p) => p.componentId)) : []];
 			const linked = data.state.roles.filter((r) => latest(r.versions)?.capabilities.some((b) => b.capabilityId === id));
 			const save = async (publish) => {
 				setBusy(true);
@@ -13167,7 +14009,7 @@ window.__ModuleLoader__.load({
 							attachedTitle: "当前组件组合",
 							removeIcon: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "remove" }),
 							onAdd: (componentId) => {
-								change(addAssociation(draft, componentId));
+								change(addAssociation(draft, componentId, data.components));
 								setSelected(componentId);
 							},
 							onRemove: associationEdit.request,
@@ -13175,7 +14017,8 @@ window.__ModuleLoader__.load({
 							compositionNotice: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [associationEdit.feedback, /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MissingAssociations, {
 								draft,
 								change,
-								capabilityId: id
+								capabilityId: id,
+								data
 							})] }),
 							form: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 								open: !compositionFocus,
@@ -13331,7 +14174,7 @@ window.__ModuleLoader__.load({
 									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["新动作：", actionsOf(draft).map((a) => actionNames[a]).join("、") || "无"] }),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 										className: ManagedCapabilities_module_css_default.notice,
-										children: [...new Set(availableComponents(id).map((component) => componentService(component, {
+										children: [...new Set(availableComponents(id, data.components).map((component) => componentService(component, {
 											data,
 											meetingStatus,
 											requirementsStatus
@@ -13384,7 +14227,7 @@ window.__ModuleLoader__.load({
 			const [filter, setFilter] = (0, react.useState)(saved.filter === "pinned" || saved.filter === "removed" ? saved.filter : "all");
 			const [filters, setFilters] = (0, react.useState)(() => restoreListFilters(saved)), [recycleQuery, setRecycleQuery] = (0, react.useState)(saved.recycleQuery ?? "");
 			const [listFilter, setListFilter] = (0, react.useState)(saved.listFilter ?? (saved.filter === "pinned" ? "pinned" : "all"));
-			const [more, setMore] = (0, react.useState)(false);
+			const [distribution, setDistribution] = (0, react.useState)(null);
 			const [editor, setEditor] = (0, react.useState)(saved.editor ?? (entry?.edit ? {
 				id: entry.capabilityId,
 				compositionFocus: true,
@@ -13463,7 +14306,6 @@ window.__ModuleLoader__.load({
 					scrollMemory.current = next.scroll ?? {};
 					setRole(next.role ?? null);
 					setCompositionReturn(next.compositionReturn ?? null);
-					setMore(false);
 					setEditor(next.editor ?? (link.edit ? {
 						id: link.capabilityId,
 						compositionFocus: true,
@@ -13535,47 +14377,13 @@ window.__ModuleLoader__.load({
 						}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.actions,
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
+								onClick: () => setDistribution("import"),
+								children: "导入能力"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: ManagedCapabilities_module_css_default.button,
-								onClick: () => setEditor({}),
-								children: "＋ 创建能力"
-							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								className: ManagedCapabilities_module_css_default.moreMenu,
-								onBlur: (e) => {
-									if (!e.currentTarget.contains(e.relatedTarget)) setMore(false);
-								},
-								onKeyDown: (e) => {
-									if (e.key === "Escape") {
-										e.preventDefault();
-										e.stopPropagation();
-										setMore(false);
-									}
-								},
-								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									"aria-expanded": more,
-									onClick: () => setMore(!more),
-									children: "更多"
-								}), more && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: ManagedCapabilities_module_css_default.morePanel,
-									children: [managementEntries && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										className: ManagedCapabilities_module_css_default.button,
-										onClick: () => openWorkbenchLink({ section: "component-center" }),
-										children: "组件库"
-									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										className: ManagedCapabilities_module_css_default.button,
-										onClick: () => openWorkbenchLink({ section: "plugins" }),
-										children: "插件管理"
-									})] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-										className: ManagedCapabilities_module_css_default.button,
-										onClick: () => {
-											setListFilter(filter);
-											setFilter("removed");
-											setMore(false);
-											setNotice("");
-										},
-										children: ["回收站", removedCount ? ` ${removedCount}` : ""]
-									})]
-								})]
+								onClick: () => setDistribution("export"),
+								children: "导出能力"
 							})]
 						})]
 					}),
@@ -13655,6 +14463,39 @@ window.__ModuleLoader__.load({
 							pinned
 						}))
 					}),
+					!item && filter !== "removed" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("nav", {
+						className: ManagedCapabilities_module_css_default.actions,
+						"aria-label": "能力管理",
+						children: [managementEntries && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: ManagedCapabilities_module_css_default.button,
+							onClick: () => openWorkbenchLink({ section: "component-center" }),
+							children: "组件库"
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: ManagedCapabilities_module_css_default.button,
+							onClick: () => openWorkbenchLink({ section: "plugins" }),
+							children: "插件管理"
+						})] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							className: ManagedCapabilities_module_css_default.button,
+							onClick: () => {
+								setListFilter(filter);
+								setFilter("removed");
+								setNotice("");
+							},
+							children: ["回收站", removedCount ? ` ${removedCount}` : ""]
+						})]
+					}),
+					distribution && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityDistribution, {
+						mode: distribution,
+						data,
+						onClose: () => setDistribution(null),
+						onImported: (id, message) => {
+							setDistribution(null);
+							setFilter("all");
+							setSelected(id);
+							setTab("settings");
+							setNotice(message);
+						}
+					}),
 					removing && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RemoveCapabilityDialog, {
 						id: removing,
 						data,
@@ -13662,7 +14503,7 @@ window.__ModuleLoader__.load({
 						onRemoved: () => {
 							setRemoving(null);
 							setSelected(null);
-							setNotice("能力已移除，可在“更多 → 回收站”中恢复。");
+							setNotice("能力已移除，可在“回收站”中恢复。");
 						}
 					}),
 					editor && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityEditor, {

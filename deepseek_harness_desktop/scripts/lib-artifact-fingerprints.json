@@ -4,7 +4,7 @@
   "packages/dsh-web-all": "e960d104d6fc1e66f17d472f80abed780efd36252dfb84bbf43212d925824c3f",
   "packages/skins/skin-center": "ab55e0f4a95fb5f7e1db24a82ad5b35d9dabdd496bf89b44c2af8b6305470917",
   "packages/dsh-jev-mode": "9746fd5e456f5a1c73b8aad33e1cc2ca18eeae63ba5aa4a1536d849ae03db8c0",
-  "packages/dsh-capabilities": "45c2717145e2342fa3863c095b648627c6a628afc30dc2cdc2da5eeb586170a1",
-  "packages/dsh-client-ui-plain-chat": "2712f4ddc034193b374e6d3f2f41e693c4c4f7f047fc270e665e2411d993d6ad",
+  "packages/dsh-capabilities": "52940149c0c68cd692e24ed7116ccabcab1c4a53ea1dc31d293f18360835c4eb",
+  "packages/dsh-client-ui-plain-chat": "66391b75d3f62c97ee01d0456605a274ca2515c48c37c621bb08b9967cb53bd0",
   "packages/dsh-plugin-manager": "18452b6108b3fc08f41fc083bd0d9ec5c24d442261eec1433b2ade4878e67f4b"
 }
