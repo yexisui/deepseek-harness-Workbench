@@ -1,10 +1,10 @@
 {
   "packages/dsh-market": "c63f75f67d3eeb3d506e30ebd1a3aebc1dce84bfaeee97b7922ec3e3d4e08c51",
   "packages/dsh-preset-center": "4071e8d2e0ce34f1785ce96ea283102aa34aa419a351b1c9921aeec806fb25c5",
-  "packages/dsh-web-all": "02fba71ba56676c0b06fc412df36164f2609a00356f7e8574e503871eb6fb18d",
+  "packages/dsh-web-all": "ba6ea9ff6b39edb98579d521574cc4a9c55b2aa64d2f1146ae5fd5cad17b39bd",
   "packages/skins/skin-center": "ab55e0f4a95fb5f7e1db24a82ad5b35d9dabdd496bf89b44c2af8b6305470917",
   "packages/dsh-jev-mode": "fcf0deec429f86f0da729be88aa0b32c44fb514a7d849a68867a2e6e3ddc2858",
-  "packages/dsh-capabilities": "9e58a6a6ce8d5b6bcb8f88334a95e202becbe4fbd816ae16ea6386b4671057ab",
-  "packages/dsh-client-ui-plain-chat": "20c2dc400935f2a6c0454573dce55b7b800502dbf88b7d6191b8584e0d01dd41",
+  "packages/dsh-capabilities": "2db899c230877f47803625352665a252aa50fba4ad2ba1331e437eb0dc9933e8",
+  "packages/dsh-client-ui-plain-chat": "4b7f3b9ef3100afcc334e37e339360d63ec56d54d6ec7490c9b8aedb21f9a8ba",
   "packages/dsh-plugin-manager": "ad758b2a009923138d8c883ca601d648b06d3fae57d003126c2937a4fc98e45b"
 }

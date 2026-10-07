@@ -10459,7 +10459,7 @@ window.__ModuleLoader__.load({
 					children: "采用当前技能版本"
 				})] }),
 				note: binding ? "保存草稿保留编辑；发布后新对话使用所选技能版本。移除不删除技能文件。" : void 0,
-				source: skill ? `${skill.scope === "global" ? "工作台全局" : skill.scope} · ${skill.enabled ? "已启用" : "已停用"}` : void 0
+				source: skill ? `${skill.scope === "global" ? "技能库" : skill.scope} · ${skill.enabled ? "已启用" : "已停用"}` : void 0
 			});
 		}
 		//#endregion
