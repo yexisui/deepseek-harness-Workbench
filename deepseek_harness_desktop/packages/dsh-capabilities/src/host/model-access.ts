@@ -1,3 +1,4 @@
+import { hasTiming, parseSegments } from '../core/meeting-timing.ts'
 import type { Context } from '@deepseek-ai/cordis'
 import { createHash } from 'node:crypto'
 import { InputError } from '../core/validation.ts'
@@ -95,6 +96,7 @@ export class ModelAccess {
       const value = await this.resolve(ref, format, maxMb)
       const form = new FormData()
       form.set('model', value.model); form.set('response_format', format)
+      if (format === 'verbose_json') form.set('timestamp_granularities[]', 'segment')
       form.set('file', new Blob([Buffer.from(speechSample, 'base64')], { type: 'audio/wav' }), 'speech-check.wav')
       const response = await fetch(value.endpoint, { method: 'POST', redirect: 'error', headers: value.apiKey ? { Authorization: `Bearer ${value.apiKey}` } : {}, body: form, signal: AbortSignal.timeout(60_000) })
       if (!response.ok) throw new InputError(response.status === 401 || response.status === 403 ? '认证失败，请在模型模块检查 API Key 与访问权限' : response.status === 404 || response.status === 405 ? '服务未提供兼容的音频转写接口，请选择支持转写的模型' : `转写检测失败（HTTP ${response.status}），请检查模型、配额和响应格式`, 422)
@@ -103,7 +105,7 @@ export class ModelAccess {
       if (!text) throw new InputError('接口可访问，但没有返回可用的转写文本', 422)
       // A generic JSON/text endpoint is not proof of speech recognition.
       if (!/hello|speech|recognition|test|语音|识别|测试/i.test(text)) throw new InputError('接口返回了文本，但与检测短句不符，未通过语音识别验证', 422)
-      const result = { fingerprint: this.fingerprint(value), at: new Date().toISOString(), text: text.slice(0, 500), timestamps: Boolean(data.segments?.some(s => Number.isFinite(s.start) && Number.isFinite(s.end))), speakers: Boolean(data.segments?.some(s => s.speaker !== undefined || s.speaker_id !== undefined)) }
+      const result = { fingerprint: this.fingerprint(value), at: new Date().toISOString(), text: text.slice(0, 500), timestamps: parseSegments(data).some(hasTiming), speakers: Boolean(data.segments?.some(s => s.speaker !== undefined || s.speaker_id !== undefined)) }
       if (result.fingerprint !== this.fingerprint(await this.resolve(ref, format, maxMb))) throw new InputError('检测期间模型配置已变化，请重新检测', 409)
       this.checks.set(ref, result)
       const { fingerprint: _, ...safe } = result

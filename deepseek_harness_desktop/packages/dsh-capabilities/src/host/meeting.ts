@@ -1,3 +1,4 @@
+import { hasTiming, parseSegments, sourceKey, type TranscriptSegment } from '../core/meeting-timing.ts'
 import { createReadStream, openAsBlob } from 'node:fs'
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -9,7 +10,7 @@ import { allowedActions, wasRevoked } from '../core/policy.ts'
 import { MEETING_CAPABILITY_ID, MEETING_ROLE_ID } from '../core/default-roles.ts'
 import { InputError } from '../core/validation.ts'
 
-export type MeetingSegment = { id: string; start: number; end: number; speaker: string; text: string }
+export type MeetingSegment = TranscriptSegment
 export type MeetingItem = { text: string; sourceIds: string[] }
 export type MeetingAction = MeetingItem & { owner: string; deadline: string }
 export type MeetingMinutes = { title: string; overview: string; decisions: MeetingItem[]; actions: MeetingAction[]; unknown: MeetingItem[] }
@@ -19,6 +20,7 @@ export type MeetingJob = {
   mode: 'quick' | 'guided'; audience: string; focus: string; summaryModel: string
   role?: MeetingRole
   status: 'uploading' | 'transcribing' | 'transcribed' | 'generating' | 'ready' | 'error'
+  timingStatus?: 'processing' | 'ready' | 'error'; timingError?: string; timing?: { segments: MeetingSegment[]; links: Record<string, string[]> };
   error?: string; segments: MeetingSegment[]; minutes?: MeetingMinutes
 }
 export type MeetingSummary = Pick<MeetingJob, 'id' | 'mode' | 'audience' | 'focus' | 'summaryModel' | 'status' | 'updatedAt' | 'createdAt'> & { title: string; roleVersion?: number }
@@ -50,18 +52,6 @@ export function config(override?: Partial<MeetingAsrConfig>) {
   return { endpoint, model, apiKey, format, maxBytes }
 }
 
-function parseSegments(data: any): MeetingSegment[] {
-  const rows = Array.isArray(data?.segments) ? data.segments : Array.isArray(data?.transcripts) ? data.transcripts.flatMap((part: any) => Array.isArray(part?.sentences) ? part.sentences : []) : []
-  const segments = rows.map((row: any, index: number) => ({
-    id: `s${index + 1}`,
-    start: Math.max(0, Number(row.begin_time ?? Number(row.start) * 1000) || 0),
-    end: Math.max(0, Number(row.end_time ?? Number(row.end) * 1000) || 0),
-    speaker: string(row.speaker, 100) || (row.speaker_id === undefined || row.speaker_id === null ? '发言人' : `发言人 ${Number(row.speaker_id) + 1}`),
-    text: string(row.text, 5000),
-  })).filter((row: MeetingSegment) => row.text)
-  return segments.length ? segments : string(data?.text, 100_000) ? [{ id: 's1', start: 0, end: 0, speaker: '发言人', text: string(data.text, 100_000) }] : []
-}
-
 function parseMinutes(raw: string, segments: MeetingSegment[]): MeetingMinutes {
   const first = raw.indexOf('{'), last = raw.lastIndexOf('}')
   if (first < 0 || last < first) throw new Error('纪要模型没有返回可解析的结构')
@@ -77,6 +67,7 @@ function parseMinutes(raw: string, segments: MeetingSegment[]): MeetingMinutes {
 }
 
 export class MeetingService {
+  private timingRunning = new Set<string>()
   private running = new Set<string>()
   private deleted = new Set<string>()
   private controllers = new Map<string, AbortController>()
@@ -128,6 +119,7 @@ export class MeetingService {
       if (!ID.test(file.replace(/\.json$/, '')) || !file.endsWith('.json')) continue
       try {
         const job = await this.get(file.slice(0, -5))
+        if (job.timingStatus === 'processing') { job.timingStatus = 'error'; job.timingError = '时间定位被重启中断，原纪要保留，可重新补全'; await this.save(job) }
         if (!['uploading', 'transcribing', 'generating'].includes(job.status)) continue
         job.status = 'error'
         job.error = job.size ? '处理被工作台重启中断，请点击重试' : '上传被工作台重启中断，请重新选择录音'
@@ -150,7 +142,7 @@ export class MeetingService {
   private audio(job: MeetingJob) { return join(this.root, `${job.id}${job.extension}`) }
   async get(id: string): Promise<MeetingJob> {
     for (let attempt = 0; attempt < 3; attempt++) {
-      try { const job = JSON.parse(await readFile(this.path(id), 'utf8')) as MeetingJob; job.summaryModel ??= ''; return job }
+      try { const job = JSON.parse(await readFile(this.path(id), 'utf8')) as MeetingJob; job.summaryModel ??= ''; job.segments = job.segments.map(row => hasTiming(row) ? row : { ...row, start: null, end: null }); return job }
       catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new InputError('会议任务不存在', 404); if (!(error instanceof SyntaxError) || attempt === 2) throw error; await sleep(10) }
     }
     throw new Error('会议状态暂不可读')
@@ -266,6 +258,7 @@ export class MeetingService {
       const form = new FormData()
       form.set('model', model)
       form.set('response_format', format)
+      if (format === 'verbose_json') form.set('timestamp_granularities[]', 'segment')
       form.set('file', await openAsBlob(this.audio(job)), job.fileName)
       const sent = await fetch(endpoint, { method: 'POST', redirect: 'error', headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}, body: form, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20 * 60_000)]) })
       const response = await sent.text()
@@ -282,13 +275,14 @@ export class MeetingService {
     finally { this.running.delete(id); this.controllers.delete(id) }
   }
   private ask(prompt: string, modelRoute: string, signal?: AbortSignal) { return this.workbenchText(prompt, modelRoute, signal) }
-  private transcriptText(rows: MeetingSegment[]) { return rows.map(row => `[${row.id} ${Math.floor(row.start / 60000).toString().padStart(2, '0')}:${Math.floor(row.start % 60000 / 1000).toString().padStart(2, '0')} ${row.speaker}] ${row.text}`).join('\n') }
+  private transcriptText(rows: MeetingSegment[]) { return rows.map(row => `[${row.id} ${hasTiming(row) ? Math.floor(row.start / 1000) + '秒' : '时间未知'} ${row.speaker}] ${row.text}`).join('\n') }
   async generate(id: string, edited?: MeetingSegment[], instruction?: string, summaryModel?: string) {
     return this.track(id, () => this.startGenerate(id, edited, instruction, summaryModel))
   }
   private async startGenerate(id: string, edited?: MeetingSegment[], instruction?: string, summaryModel?: string) {
     const job = await this.get(id)
     this.role(job.role?.version, job.createdAt)
+    if (this.timingRunning.has(id) || job.timingStatus === 'processing') throw new InputError('时间定位处理中，请完成后再修改纪要', 409)
     if (!['transcribed', 'ready', 'error'].includes(job.status) || !job.segments.length) throw new InputError('请先完成录音转写', 409)
     if (edited) {
       if (edited.length !== job.segments.length || edited.some((row, index) => row.id !== job.segments[index].id)) throw new InputError('转写片段与原录音不一致')
@@ -319,8 +313,52 @@ export class MeetingService {
       const reviewed=await jev?.check('review',{transcript:text,minutes},controller.signal)
       if(reviewed?.decision==='clarify')throw new InputError('JEV 纪要复核需要确认，未覆盖已有纪要：'+reviewed.summary,409)
       controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt)
-      job.minutes = minutes; job.status = 'ready'; await this.save(job)
+      delete job.timing; delete job.timingStatus; delete job.timingError; job.minutes = minutes; job.status = 'ready'; await this.save(job)
     } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? '组件已停用，本次处理已停止；历史结果保留' : errorText(error); await this.save(job) } finally { jev?.finish(); if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
+  }
+  async repairTiming(id: string) {
+    if (this.running.has(id)) throw new InputError('此会议正在处理，请稍后重试', 409)
+    this.running.add(id); this.timingRunning.add(id)
+    try {
+      const job = await this.get(id)
+      this.role(job.role?.version, job.createdAt)
+      if (job.status !== 'ready' || !job.minutes || !job.size) throw new InputError('请先完成会议纪要', 409)
+      job.timingStatus = 'processing'; delete job.timingError; await this.save(job)
+      void this.track(id, () => this.finishTiming(job)).catch(() => {})
+      return job
+    } catch (error) { this.running.delete(id); this.timingRunning.delete(id); throw error }
+  }
+  private async finishTiming(job: MeetingJob) {
+    const controller = new AbortController(); this.controllers.set(job.id, controller)
+    try {
+      const { endpoint, model, apiKey } = this.resolveAsr ? config(await this.resolveAsr()) : this.config()
+      if (!endpoint || !model) throw new Error('请在能力中心选择支持时间戳的识别模型')
+      const form = new FormData()
+      form.set('model', model); form.set('response_format', 'verbose_json'); form.set('timestamp_granularities[]', 'segment')
+      form.set('file', await openAsBlob(this.audio(job)), job.fileName)
+      const response = await fetch(endpoint, { method: 'POST', redirect: 'error', headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}, body: form, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20 * 60_000)]) })
+      if (!response.ok) throw new Error(`补全时间定位失败（HTTP ${response.status}），请在能力中心检测支持时间戳的模型；原纪要保留`)
+      const segments = parseSegments(await response.json()).filter(hasTiming).map((row, index) => ({ ...row, id: `t${index + 1}` }))
+      if (!segments.length) throw new Error('当前服务未返回有效时间戳。请在能力中心选择支持时间戳的识别模型；原纪要与校对内容已保留')
+      const items = [...job.minutes!.decisions, ...job.minutes!.actions, ...job.minutes!.unknown]
+      const transcript = JSON.stringify(segments)
+      if (transcript.length > 80000) throw new Error('带时间戳转写过长，本次未关联；原纪要保留')
+      const raw = await this.ask(`只为现有纪要查找录音来源，不修改任何纪要文字。返回 JSON {"links":[{"index":0,"sources":[{"id":"t1","quote":"该片段中的逐字原文"}]}]}。index 对应纪要数组；每项最多4个来源，无直接证据或仅表示信息缺失的事项返回空 sources。quote 必须为对应片段中的连续原文，禁止猜测时间。纪要：${JSON.stringify(items.map(i => i.text))}\n带时间戳转写：${transcript}`, job.summaryModel, controller.signal)
+      const parsed = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1))
+      const links: Record<string, string[]> = {}
+      for (const entry of Array.isArray(parsed.links) ? parsed.links : []) {
+        if (!Number.isInteger(entry.index) || !items[entry.index]) continue
+        const ids = (Array.isArray(entry.sources) ? entry.sources : []).filter((src: any) => typeof src.quote === 'string' && src.quote.trim().length >= 4 && segments.some(row => row.id === src.id && row.text.includes(src.quote.trim()))).map((src: any) => src.id as string)
+        links[sourceKey(items[entry.index])] = [...new Set<string>(ids)].slice(0, 4)
+      }
+      if (!Object.values(links).some(ids => ids.length)) throw new Error('已取得时间片段，但未找到可靠纪要来源；原纪要保留')
+      controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt)
+      job.timing = { segments, links }; job.timingStatus = 'ready'; delete job.timingError
+      await this.save(job)
+    } catch (error) {
+      job.timingStatus = 'error'; job.timingError = controller.signal.aborted ? '时间定位已停止，原纪要保留' : errorText(error)
+      await this.save(job)
+    } finally { this.running.delete(job.id); this.timingRunning.delete(job.id); if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
   }
   async componentActivities() {
     const rows = await Promise.all([...this.controllers.keys()].map(async id => {

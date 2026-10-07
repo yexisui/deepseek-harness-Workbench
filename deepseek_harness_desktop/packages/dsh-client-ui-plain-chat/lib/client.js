@@ -19451,6 +19451,55 @@ window.__ModuleLoader__.load({
 			};
 		}
 		//#endregion
+		//#region ../dsh-capabilities/src/core/meeting-timing.ts
+		function hasTiming(row) {
+			return typeof row.start === "number" && typeof row.end === "number" && Number.isFinite(row.start) && Number.isFinite(row.end) && row.start >= 0 && row.end > row.start;
+		}
+		const sourceKey = (item) => JSON.stringify([item.text, item.sourceIds]);
+		//#endregion
+		//#region src/client/meeting-playback.ts
+		async function event(media, name, signal, action) {
+			return new Promise((resolve, reject) => {
+				const done = (error) => {
+					clearTimeout(timer);
+					media.removeEventListener(name, ready);
+					media.removeEventListener("error", failed);
+					signal.removeEventListener("abort", aborted);
+					error ? reject(error) : resolve();
+				};
+				const ready = () => done();
+				const failed = () => done(/* @__PURE__ */ new Error("录音加载或定位失败，请重试"));
+				const aborted = () => done(/* @__PURE__ */ new Error("已取消定位"));
+				const timer = setTimeout(() => done(/* @__PURE__ */ new Error("录音加载或定位超时，请重试")), 15e3);
+				media.addEventListener(name, ready, { once: true });
+				media.addEventListener("error", failed, { once: true });
+				signal.addEventListener("abort", aborted, { once: true });
+				if (signal.aborted) {
+					aborted();
+					return;
+				}
+				try {
+					action?.();
+				} catch {
+					failed();
+				}
+			});
+		}
+		async function playAt(media, seconds, signal) {
+			if (media.readyState < 1) await event(media, "loadedmetadata", signal);
+			signal.throwIfAborted();
+			if (!Number.isFinite(seconds) || seconds < 0 || !Number.isFinite(media.duration) || seconds >= media.duration) throw new Error("来源时间超出录音范围，无法准确定位");
+			if (Math.abs(media.currentTime - seconds) > .05 || media.seeking) await event(media, "seeked", signal, () => {
+				media.currentTime = seconds;
+			});
+			signal.throwIfAborted();
+			try {
+				await media.play();
+			} catch {
+				throw new Error("无法自动播放，请点击播放器播放按钮");
+			}
+		}
+		//#endregion
 		//#region src/client/print-document.ts
 		/** Print an escaped document without requiring a popup window in desktop shells. */
 		function printDocument(html) {
@@ -19621,6 +19670,8 @@ window.__ModuleLoader__.load({
 			const [availability, setAvailability] = (0, react.useState)(null);
 			const [notice, setNotice] = (0, react.useState)("");
 			const [busy, setBusy] = (0, react.useState)(false);
+			const [sourceRequest, setSourceRequest] = (0, react.useState)(null);
+			const [timingConfirm, setTimingConfirm] = (0, react.useState)(false);
 			const input = (0, react.useRef)(null);
 			const player = (0, react.useRef)(null);
 			const scroll = (0, react.useRef)(null);
@@ -19702,7 +19753,7 @@ window.__ModuleLoader__.load({
 				};
 				check();
 				const timer = window.setInterval(() => {
-					if (!job || [
+					if (!job || job.timingStatus === "processing" || [
 						"uploading",
 						"transcribing",
 						"generating"
@@ -19715,7 +19766,8 @@ window.__ModuleLoader__.load({
 			}, [
 				jobId,
 				mode,
-				job?.status
+				job?.status,
+				job?.timingStatus
 			]);
 			(0, react.useEffect)(() => {
 				if (tab === "chat" && scroll.current?.scrollTo) scroll.current.scrollTo({
@@ -19849,7 +19901,7 @@ window.__ModuleLoader__.load({
 				}
 			};
 			const generate = async (instruction) => {
-				if (!jobId || busy) return;
+				if (!jobId || busy || job?.timingStatus === "processing") return;
 				setBusy(true);
 				setPhase("processing");
 				try {
@@ -19872,6 +19924,10 @@ window.__ModuleLoader__.load({
 			};
 			const revise = (value) => {
 				if (phase !== "ready" || !value.trim()) return;
+				if (job?.timingStatus === "processing") {
+					setNotice("正在补全时间定位，请完成后再修改纪要");
+					return;
+				}
 				add({
 					kind: "user",
 					text: value
@@ -19882,6 +19938,10 @@ window.__ModuleLoader__.load({
 				generate(value);
 			};
 			const send = () => {
+				if (job?.timingStatus === "processing") {
+					setNotice("正在补全时间定位，请完成后再发送，输入已保留");
+					return;
+				}
 				const value = draft.trim();
 				if (!value) return;
 				setDraft("");
@@ -19897,29 +19957,70 @@ window.__ModuleLoader__.load({
 				});
 				else setNotice(phase === "transcript" ? "请先在转写原文中核对并确认" : phase === "processing" ? "正在处理录音，请稍候" : "请先上传录音");
 			};
-			const seek = (id) => {
-				const row = job?.segments.find((segment) => segment.id === id);
-				if (!row) return;
+			const seek = (id, timed = false, play = true) => {
 				setShowTranscript(true);
-				window.setTimeout(() => {
-					document.getElementById(`meeting-source-${id}`)?.scrollIntoView({
-						behavior: "smooth",
-						block: "center"
-					});
-					if (player.current) {
-						player.current.currentTime = row.start / 1e3;
-						player.current.play().catch(() => {});
-					}
-				}, 0);
+				setSourceRequest({
+					id,
+					timed,
+					play
+				});
 			};
-			const sourceLinks = (item) => item.sourceIds.map((id) => {
-				const row = job?.segments.find((segment) => segment.id === id);
-				return row ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-					className: MeetingDemo_module_css_default.sourceLink,
-					onClick: () => seek(id),
-					children: ["回听 ", formatTime(row.start)]
-				}, id) : null;
-			});
+			(0, react.useEffect)(() => {
+				if (!sourceRequest || tab !== "chat") return;
+				const row = (sourceRequest.timed ? job?.timing?.segments : job?.segments)?.find((row) => row.id === sourceRequest.id);
+				if (!row) return;
+				document.getElementById(`meeting-source-${row.id}`)?.scrollIntoView?.({
+					behavior: "smooth",
+					block: "center"
+				});
+				const controller = new AbortController();
+				if (sourceRequest.play && player.current) playAt(player.current, sourceRequest.fromStart ? 0 : hasTiming(row) ? row.start / 1e3 : 0, controller.signal).catch((error) => {
+					if (!controller.signal.aborted) setNotice(error.message);
+				});
+				return () => controller.abort();
+			}, [
+				sourceRequest,
+				showTranscript,
+				tab
+			]);
+			const repairTiming = async () => {
+				if (!jobId || busy) return;
+				setTimingConfirm(false);
+				setBusy(true);
+				try {
+					setJob(await api("/timing", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ id: jobId })
+					}));
+					log("请求补全时间定位，保留原纪要和校对内容");
+				} catch (error) {
+					setNotice(error instanceof Error ? error.message : String(error));
+				} finally {
+					setBusy(false);
+				}
+			};
+			const sourceLinks = (item) => {
+				const timed = job?.timing?.links[sourceKey(item)];
+				if (timed?.length) return timed.map((id) => {
+					const row = job?.timing?.segments.find((row) => row.id === id);
+					return row && hasTiming(row) ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						className: MeetingDemo_module_css_default.sourceLink,
+						onClick: () => seek(id, true),
+						children: ["回听 ", formatTime(row.start)]
+					}, id) : null;
+				});
+				return item.sourceIds.map((id) => {
+					const row = job?.segments.find((row) => row.id === id);
+					return row ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: MeetingDemo_module_css_default.sourceLink,
+						onClick: () => seek(id, false, hasTiming(row)),
+						children: hasTiming(row) ? `回听 ${formatTime(row.start)}` : "查看原文"
+					}, id) : null;
+				});
+			};
+			const displaySegments = sourceRequest?.timed && job?.timing ? job.timing.segments : job?.segments ?? [];
+			const segmentLabel = (row) => hasTiming(row) ? formatTime(row.start) : "时间未知";
 			const modelControl = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 				className: MeetingDemo_module_css_default.modelControl,
 				children: ["纪要模型", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
@@ -19958,36 +20059,59 @@ window.__ModuleLoader__.load({
 				children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: MeetingDemo_module_css_default.cardHead,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "录音转写" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: editable ? "请先核对原文" : "转写原文" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [job?.segments.length ?? 0, " 个片段"] })]
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "录音转写" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: editable ? "请先核对原文" : "转写原文" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [(editable ? segments : displaySegments).length, " 个片段"] })]
 					}),
 					jobId && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: MeetingDemo_module_css_default.audioBar,
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("audio", {
-							ref: player,
-							controls: true,
-							preload: "metadata",
-							src: `${endpoint}/audio/${jobId}`
-						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "点击时间戳可从对应位置回听" })]
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("audio", {
+								ref: player,
+								controls: true,
+								preload: "metadata",
+								src: `${endpoint}/audio/${jobId}`
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: (editable ? segments : displaySegments).some(hasTiming) ? "点击有效时间戳回听；未知时间仅查看原文" : "当前转写未提供分段时间，可从头播放" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: MeetingDemo_module_css_default.sourceLink,
+								onClick: () => {
+									const row = (editable ? segments : displaySegments)[0];
+									if (row) {
+										setShowTranscript(true);
+										setSourceRequest({
+											id: row.id,
+											timed: Boolean(sourceRequest?.timed),
+											play: true,
+											fromStart: true
+										});
+									}
+								},
+								children: "从头播放"
+							})
+						]
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 						className: MeetingDemo_module_css_default.transcriptRows,
-						children: (editable ? segments : job?.segments ?? []).map((row, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						children: (editable ? segments : displaySegments).map((row, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: MeetingDemo_module_css_default.transcriptRow,
 							id: `meeting-source-${row.id}`,
+							style: sourceRequest?.id === row.id ? {
+								outline: "2px solid var(--color-primary, #6683bd)",
+								outlineOffset: "2px"
+							} : void 0,
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: MeetingDemo_module_css_default.sourceLink,
-								onClick: () => seek(row.id),
-								children: formatTime(row.start)
+								onClick: () => seek(row.id, !editable && Boolean(sourceRequest?.timed), hasTiming(row)),
+								children: hasTiming(row) ? formatTime(row.start) : "原文"
 							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: editable ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 								className: MeetingDemo_module_css_default.speakerInput,
-								"aria-label": `${formatTime(row.start)} 发言人`,
+								"aria-label": `${segmentLabel(row)} 发言人`,
 								value: row.speaker,
 								onChange: (event) => setSegments((current) => current.map((item, i) => i === index ? {
 									...item,
 									speaker: event.target.value
 								} : item))
 							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("textarea", {
-								"aria-label": `${formatTime(row.start)} 转写文字`,
+								"aria-label": `${segmentLabel(row)} 转写文字`,
 								value: row.text,
 								onChange: (event) => setSegments((current) => current.map((item, i) => i === index ? {
 									...item,
@@ -20000,7 +20124,7 @@ window.__ModuleLoader__.load({
 						className: MeetingDemo_module_css_default.cardFooter,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "可修改说话人和识别文字，确认后生成纪要。" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							className: MeetingDemo_module_css_default.primary,
-							disabled: busy,
+							disabled: busy || job?.timingStatus === "processing",
 							onClick: () => void generate(),
 							children: "确认转写，生成纪要 →"
 						})]
@@ -20052,7 +20176,10 @@ window.__ModuleLoader__.load({
 								children: "打印 / 保存 PDF"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								onClick: () => setShowTranscript((value) => !value),
+								onClick: () => {
+									setSourceRequest(null);
+									setShowTranscript((value) => !value);
+								},
 								children: showTranscript ? "收起转写" : "查看转写原文"
 							})
 						]
@@ -20060,10 +20187,45 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: MeetingDemo_module_css_default.modelRow,
 						children: [modelControl, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							disabled: busy,
+							disabled: busy || job?.timingStatus === "processing",
 							onClick: () => void generate(),
 							children: "用所选模型重新生成"
 						})]
+					}),
+					!job.segments.every(hasTiming) && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.cardFooter,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: job.timingStatus === "processing" ? "正在补全时间定位，原纪要保留…" : job.timingError || (job.timing ? "已关联有依据的时间片段；其余条目仍可查看原文" : "当前转写缺少分段时间，来源暂不支持准确回听") }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								disabled: busy || job.timingStatus === "processing" || job.status !== "ready",
+								onClick: () => setTimingConfirm(true),
+								children: "补全时间定位"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: () => openWorkbenchLink({
+									section: "capability-center",
+									capabilityId: "meeting-transcription"
+								}),
+								children: "识别模型设置"
+							})
+						]
+					}),
+					timingConfirm && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.cardFooter,
+						role: "group",
+						"aria-label": "确认补全时间定位",
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "将使用当前识别模型重新处理已保存录音，并用纪要模型关联来源，可能产生调用费用。原纪要与人工校对内容保留；服务没有返回时间戳时不会估算时间。" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								disabled: busy,
+								onClick: () => void repairTiming(),
+								children: "开始补全"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: () => setTimingConfirm(false),
+								children: "取消"
+							})
+						]
 					}),
 					showTranscript && transcriptCard(false)
 				]
@@ -20181,6 +20343,7 @@ window.__ModuleLoader__.load({
 						]
 					}), modelControl] })
 				] }), message.id);
+				if (message.kind === "transcript" && phase !== "transcript") return null;
 				if (message.kind === "transcript") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "转写已完成。请核对说话人和关键内容，确认后生成纪要。" }), transcriptCard(true)] }), message.id);
 				if (message.kind === "minutes") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "纪要已生成。你可以继续在下方对话框提出修改。" }),

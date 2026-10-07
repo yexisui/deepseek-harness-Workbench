@@ -15,6 +15,38 @@ import { isDeepStrictEqual } from "node:util";
 var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
 var __require = /* #__PURE__ */ (() => createRequire(import.meta.url))();
 //#endregion
+//#region src/core/meeting-timing.ts
+function hasTiming(row) {
+	return typeof row.start === "number" && typeof row.end === "number" && Number.isFinite(row.start) && Number.isFinite(row.end) && row.start >= 0 && row.end > row.start;
+}
+const sourceKey = (item) => JSON.stringify([item.text, item.sourceIds]);
+const text$1 = (v, max) => typeof v === "string" ? v.trim().slice(0, max) : "";
+const milliseconds = (v, scale) => typeof v === "number" && Number.isFinite(v) && v >= 0 ? v * scale : null;
+function parseSegments(data) {
+	const segments = (Array.isArray(data?.segments) && data.segments.length ? data.segments : Array.isArray(data?.transcripts) ? data.transcripts.flatMap((p) => Array.isArray(p?.sentences) ? p.sentences : []) : Array.isArray(data?.words) ? data.words : []).map((row, index) => {
+		const start = row.begin_time !== void 0 ? milliseconds(row.begin_time, 1) : milliseconds(row.start, 1e3);
+		const end = row.end_time !== void 0 ? milliseconds(row.end_time, 1) : milliseconds(row.end, 1e3);
+		const valid = hasTiming({
+			start,
+			end
+		});
+		return {
+			id: `s${index + 1}`,
+			start: valid ? start : null,
+			end: valid ? end : null,
+			speaker: text$1(row.speaker, 100) || (row.speaker_id == null ? "发言人" : `发言人 ${row.speaker_id}`),
+			text: text$1(row.text ?? row.word, 1e5)
+		};
+	}).filter((row) => row.text);
+	return segments.length ? segments : text$1(data?.text, 1e5) ? [{
+		id: "s1",
+		start: null,
+		end: null,
+		speaker: "发言人",
+		text: text$1(data.text, 1e5)
+	}] : [];
+}
+//#endregion
 //#region src/core/requirements-model.ts
 /** Persisted requirements contracts. Pure data and rendering, shared by host and UI. */
 const REQUIREMENTS_CAPABILITY_ID = "requirements-analysis";
@@ -957,22 +989,6 @@ function config$1(override) {
 		maxBytes
 	};
 }
-function parseSegments(data) {
-	const segments = (Array.isArray(data?.segments) ? data.segments : Array.isArray(data?.transcripts) ? data.transcripts.flatMap((part) => Array.isArray(part?.sentences) ? part.sentences : []) : []).map((row, index) => ({
-		id: `s${index + 1}`,
-		start: Math.max(0, Number(row.begin_time ?? Number(row.start) * 1e3) || 0),
-		end: Math.max(0, Number(row.end_time ?? Number(row.end) * 1e3) || 0),
-		speaker: string$1(row.speaker, 100) || (row.speaker_id === void 0 || row.speaker_id === null ? "发言人" : `发言人 ${Number(row.speaker_id) + 1}`),
-		text: string$1(row.text, 5e3)
-	})).filter((row) => row.text);
-	return segments.length ? segments : string$1(data?.text, 1e5) ? [{
-		id: "s1",
-		start: 0,
-		end: 0,
-		speaker: "发言人",
-		text: string$1(data.text, 1e5)
-	}] : [];
-}
 function parseMinutes(raw, segments) {
 	const first = raw.indexOf("{"), last = raw.lastIndexOf("}");
 	if (first < 0 || last < first) throw new Error("纪要模型没有返回可解析的结构");
@@ -1004,6 +1020,7 @@ var MeetingService = class {
 	jev;
 	skillGuidance;
 	resolveAsr;
+	timingRunning = /* @__PURE__ */ new Set();
 	running = /* @__PURE__ */ new Set();
 	deleted = /* @__PURE__ */ new Set();
 	controllers = /* @__PURE__ */ new Map();
@@ -1075,6 +1092,11 @@ var MeetingService = class {
 			if (!ID.test(file.replace(/\.json$/, "")) || !file.endsWith(".json")) continue;
 			try {
 				const job = await this.get(file.slice(0, -5));
+				if (job.timingStatus === "processing") {
+					job.timingStatus = "error";
+					job.timingError = "时间定位被重启中断，原纪要保留，可重新补全";
+					await this.save(job);
+				}
 				if (![
 					"uploading",
 					"transcribing",
@@ -1126,6 +1148,11 @@ var MeetingService = class {
 		for (let attempt = 0; attempt < 3; attempt++) try {
 			const job = JSON.parse(await readFile(this.path(id), "utf8"));
 			job.summaryModel ??= "";
+			job.segments = job.segments.map((row) => hasTiming(row) ? row : {
+				...row,
+				start: null,
+				end: null
+			});
 			return job;
 		} catch (error) {
 			if (error.code === "ENOENT") throw new InputError("会议任务不存在", 404);
@@ -1304,6 +1331,7 @@ var MeetingService = class {
 			const form = new FormData();
 			form.set("model", model);
 			form.set("response_format", format);
+			if (format === "verbose_json") form.set("timestamp_granularities[]", "segment");
 			form.set("file", await openAsBlob(this.audio(job)), job.fileName);
 			const sent = await fetch(endpoint, {
 				method: "POST",
@@ -1345,7 +1373,7 @@ var MeetingService = class {
 		return this.workbenchText(prompt, modelRoute, signal);
 	}
 	transcriptText(rows) {
-		return rows.map((row) => `[${row.id} ${Math.floor(row.start / 6e4).toString().padStart(2, "0")}:${Math.floor(row.start % 6e4 / 1e3).toString().padStart(2, "0")} ${row.speaker}] ${row.text}`).join("\n");
+		return rows.map((row) => `[${row.id} ${hasTiming(row) ? Math.floor(row.start / 1e3) + "秒" : "时间未知"} ${row.speaker}] ${row.text}`).join("\n");
 	}
 	async generate(id, edited, instruction, summaryModel) {
 		return this.track(id, () => this.startGenerate(id, edited, instruction, summaryModel));
@@ -1353,6 +1381,7 @@ var MeetingService = class {
 	async startGenerate(id, edited, instruction, summaryModel) {
 		const job = await this.get(id);
 		this.role(job.role?.version, job.createdAt);
+		if (this.timingRunning.has(id) || job.timingStatus === "processing") throw new InputError("时间定位处理中，请完成后再修改纪要", 409);
 		if (![
 			"transcribed",
 			"ready",
@@ -1402,6 +1431,9 @@ var MeetingService = class {
 			if (reviewed?.decision === "clarify") throw new InputError("JEV 纪要复核需要确认，未覆盖已有纪要：" + reviewed.summary, 409);
 			controller.signal.throwIfAborted();
 			this.role(job.role?.version, job.createdAt);
+			delete job.timing;
+			delete job.timingStatus;
+			delete job.timingError;
 			job.minutes = minutes;
 			job.status = "ready";
 			await this.save(job);
@@ -1411,6 +1443,84 @@ var MeetingService = class {
 			await this.save(job);
 		} finally {
 			jev?.finish();
+			if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id);
+		}
+	}
+	async repairTiming(id) {
+		if (this.running.has(id)) throw new InputError("此会议正在处理，请稍后重试", 409);
+		this.running.add(id);
+		this.timingRunning.add(id);
+		try {
+			const job = await this.get(id);
+			this.role(job.role?.version, job.createdAt);
+			if (job.status !== "ready" || !job.minutes || !job.size) throw new InputError("请先完成会议纪要", 409);
+			job.timingStatus = "processing";
+			delete job.timingError;
+			await this.save(job);
+			this.track(id, () => this.finishTiming(job)).catch(() => {});
+			return job;
+		} catch (error) {
+			this.running.delete(id);
+			this.timingRunning.delete(id);
+			throw error;
+		}
+	}
+	async finishTiming(job) {
+		const controller = new AbortController();
+		this.controllers.set(job.id, controller);
+		try {
+			const { endpoint, model, apiKey } = this.resolveAsr ? config$1(await this.resolveAsr()) : this.config();
+			if (!endpoint || !model) throw new Error("请在能力中心选择支持时间戳的识别模型");
+			const form = new FormData();
+			form.set("model", model);
+			form.set("response_format", "verbose_json");
+			form.set("timestamp_granularities[]", "segment");
+			form.set("file", await openAsBlob(this.audio(job)), job.fileName);
+			const response = await fetch(endpoint, {
+				method: "POST",
+				redirect: "error",
+				headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+				body: form,
+				signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20 * 6e4)])
+			});
+			if (!response.ok) throw new Error(`补全时间定位失败（HTTP ${response.status}），请在能力中心检测支持时间戳的模型；原纪要保留`);
+			const segments = parseSegments(await response.json()).filter(hasTiming).map((row, index) => ({
+				...row,
+				id: `t${index + 1}`
+			}));
+			if (!segments.length) throw new Error("当前服务未返回有效时间戳。请在能力中心选择支持时间戳的识别模型；原纪要与校对内容已保留");
+			const items = [
+				...job.minutes.decisions,
+				...job.minutes.actions,
+				...job.minutes.unknown
+			];
+			const transcript = JSON.stringify(segments);
+			if (transcript.length > 8e4) throw new Error("带时间戳转写过长，本次未关联；原纪要保留");
+			const raw = await this.ask(`只为现有纪要查找录音来源，不修改任何纪要文字。返回 JSON {"links":[{"index":0,"sources":[{"id":"t1","quote":"该片段中的逐字原文"}]}]}。index 对应纪要数组；每项最多4个来源，无直接证据或仅表示信息缺失的事项返回空 sources。quote 必须为对应片段中的连续原文，禁止猜测时间。纪要：${JSON.stringify(items.map((i) => i.text))}\n带时间戳转写：${transcript}`, job.summaryModel, controller.signal);
+			const parsed = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
+			const links = {};
+			for (const entry of Array.isArray(parsed.links) ? parsed.links : []) {
+				if (!Number.isInteger(entry.index) || !items[entry.index]) continue;
+				const ids = (Array.isArray(entry.sources) ? entry.sources : []).filter((src) => typeof src.quote === "string" && src.quote.trim().length >= 4 && segments.some((row) => row.id === src.id && row.text.includes(src.quote.trim()))).map((src) => src.id);
+				links[sourceKey(items[entry.index])] = [...new Set(ids)].slice(0, 4);
+			}
+			if (!Object.values(links).some((ids) => ids.length)) throw new Error("已取得时间片段，但未找到可靠纪要来源；原纪要保留");
+			controller.signal.throwIfAborted();
+			this.role(job.role?.version, job.createdAt);
+			job.timing = {
+				segments,
+				links
+			};
+			job.timingStatus = "ready";
+			delete job.timingError;
+			await this.save(job);
+		} catch (error) {
+			job.timingStatus = "error";
+			job.timingError = controller.signal.aborted ? "时间定位已停止，原纪要保留" : errorText$1(error);
+			await this.save(job);
+		} finally {
+			this.running.delete(job.id);
+			this.timingRunning.delete(job.id);
 			if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id);
 		}
 	}
@@ -1633,6 +1743,7 @@ var ModelAccess = class {
 			const form = new FormData();
 			form.set("model", value.model);
 			form.set("response_format", format);
+			if (format === "verbose_json") form.set("timestamp_granularities[]", "segment");
 			form.set("file", new Blob([Buffer.from(speechSample, "base64")], { type: "audio/wav" }), "speech-check.wav");
 			const response = await fetch(value.endpoint, {
 				method: "POST",
@@ -1650,7 +1761,7 @@ var ModelAccess = class {
 				fingerprint: this.fingerprint(value),
 				at: (/* @__PURE__ */ new Date()).toISOString(),
 				text: text.slice(0, 500),
-				timestamps: Boolean(data.segments?.some((s) => Number.isFinite(s.start) && Number.isFinite(s.end))),
+				timestamps: parseSegments(data).some(hasTiming),
 				speakers: Boolean(data.segments?.some((s) => s.speaker !== void 0 || s.speaker_id !== void 0))
 			};
 			if (result.fingerprint !== this.fingerprint(await this.resolve(ref, format, maxMb))) throw new InputError("检测期间模型配置已变化，请重新检测", 409);
@@ -15122,6 +15233,7 @@ async function apply(ctx, config = {}) {
 					return json$1(res, 200, await asrStatus());
 				}
 				if (route === "/api/capabilities/meeting/create") return json$1(res, 201, await meeting.create(body));
+				if (route === "/api/capabilities/meeting/timing") return json$1(res, 202, await meeting.repairTiming(text(body.id, "任务标识", 36)));
 				if (route === "/api/capabilities/meeting/retry") return json$1(res, 202, await meeting.retry(text(body.id, "任务标识", 36)));
 				if (route === "/api/capabilities/meeting/generate") {
 					const id = text(body.id, "任务标识", 36);

@@ -73,6 +73,6 @@ describe('meeting service', () => {
     let job = await service.get(created.id)
     for (let i = 0; i < 100 && job.status === 'transcribing'; i++) { await new Promise(resolve => setTimeout(resolve, 10)); job = await service.get(created.id) }
     expect(job.status).toBe('transcribed')
-    expect(job.segments).toEqual([{ id: 's1', start: 0, end: 0, speaker: '发言人', text: '本地识别完成。' }])
+    expect(job.segments).toEqual([{ id: 's1', start: null, end: null, speaker: '发言人', text: '本地识别完成。' }])
   })
 })
