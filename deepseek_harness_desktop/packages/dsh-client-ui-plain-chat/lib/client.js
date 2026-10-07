@@ -10320,6 +10320,95 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region src/client/RoleAccessoryInspector.tsx
+		/** Shared role-local controls; changes follow the editor's draft/publish lifecycle. */
+		function RoleAccessoryInspector({ name, description, enabled, onEnabled, version, note, source, children }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: name }),
+				description && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: description }),
+				enabled !== void 0 && onEnabled ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+					className: ManagedCapabilities_module_css_default.check,
+					children: ["在此岗位中启用 ", /* @__PURE__ */ (0, react_jsx_runtime.jsx)(EnableSwitch, {
+						label: "在此岗位中启用 " + name,
+						checked: enabled,
+						onChange: onEnabled
+					})]
+				}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "添加到岗位后，可设置是否启用。" }),
+				version,
+				note && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+					className: ManagedCapabilities_module_css_default.muted,
+					children: note
+				}),
+				source && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+					className: ManagedCapabilities_module_css_default.muted,
+					children: ["来源：", source]
+				}),
+				children
+			] });
+		}
+		//#endregion
+		//#region src/client/RoleCapabilityInspector.tsx
+		function RoleCapabilityInspector({ capability, binding, version, allowActionScope, message, manageLabel, onChange, onManage }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(RoleAccessoryInspector, {
+				name: capability.draft.name,
+				description: capability.draft.description,
+				enabled: binding?.enabled,
+				onEnabled: (enabled) => onChange({ enabled }),
+				version: binding && (capability.versions.length > 1 ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+					className: ManagedCapabilities_module_css_default.field,
+					children: ["能力版本", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
+						"aria-label": "采用的能力版本",
+						value: binding.version,
+						onChange: (e) => onChange({
+							version: Number(e.target.value),
+							actions: void 0
+						}),
+						children: capability.versions.map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
+							value: v.version,
+							children: [
+								"v",
+								v.version,
+								" · ",
+								v.createdAt.slice(0, 10)
+							]
+						}, v.version))
+					})]
+				}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["能力版本：v", binding.version] })),
+				note: binding ? "保存草稿保留编辑；发布后新对话使用所选能力版本。移除不卸载共享能力。" : void 0,
+				source: `${capability.source === "builtin" ? "工作台内置" : "工作台自建"} · ${capability.removedAt ? "已移除" : capability.enabled ? "已启用" : "已停用"}`,
+				children: [
+					capability.removedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: "此能力已移除，当前不可执行。可从岗位中移除此配件，或在能力中心恢复。"
+					}),
+					binding && allowActionScope && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+						className: ManagedCapabilities_module_css_default.check,
+						children: ["为此岗位缩小动作范围 ", /* @__PURE__ */ (0, react_jsx_runtime.jsx)(EnableSwitch, {
+							label: "为此岗位缩小动作范围",
+							checked: binding.actions !== void 0,
+							onChange: (enabled) => onChange({ actions: enabled ? actionsOf(version) : void 0 })
+						})]
+					}), binding.actions !== void 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ActionFields, {
+						value: binding.actions,
+						available: actionsOf(version),
+						onChange: (actions) => onChange({ actions })
+					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: ["继承该版本默认动作：", actionsOf(version).map((a) => actionNames[a]).join("、")]
+					})] }),
+					message && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: message
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						onClick: onManage,
+						children: [manageLabel, " ↗"]
+					})
+				]
+			});
+		}
+		//#endregion
 		//#region src/client/RoleSkills.tsx
 		function useRoleSkillCatalog() {
 			const [skills, setSkills] = (0, react.useState)([]), [error, setError] = (0, react.useState)("");
@@ -10339,45 +10428,27 @@ window.__ModuleLoader__.load({
 			};
 		}
 		function RoleSkillInspector({ binding, skill, onChange }) {
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: binding?.name ?? skill?.name }),
-				skill && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: skill.description }),
-				binding ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-						className: ManagedCapabilities_module_css_default.check,
-						children: ["在此岗位中启用 ", /* @__PURE__ */ (0, react_jsx_runtime.jsx)(EnableSwitch, {
-							label: "在此岗位中启用 " + binding.name,
-							checked: binding.enabled,
-							onChange: (enabled) => onChange({
-								...binding,
-								enabled
-							})
-						})]
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleAccessoryInspector, {
+				name: binding?.name ?? skill?.name ?? "技能",
+				description: skill?.description,
+				enabled: binding?.enabled,
+				onEnabled: (enabled) => {
+					if (binding) onChange({
+						...binding,
+						enabled
+					});
+				},
+				version: binding && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["技能版本：", binding.hash.slice(0, 12)] }), skill && skill.hash !== binding.hash && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					className: ManagedCapabilities_module_css_default.button,
+					onClick: () => onChange({
+						...binding,
+						hash: skill.hash
 					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["技能版本：", binding.hash.slice(0, 12)] }),
-					skill && skill.hash !== binding.hash && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						className: ManagedCapabilities_module_css_default.button,
-						onClick: () => onChange({
-							...binding,
-							hash: skill.hash
-						}),
-						children: "采用当前技能版本"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-						className: ManagedCapabilities_module_css_default.muted,
-						children: "保存草稿保留编辑；发布后新对话使用所选技能版本。移除不删除技能文件。"
-					})
-				] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "添加到岗位后，可设置是否启用。" }),
-				skill && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-					className: ManagedCapabilities_module_css_default.muted,
-					children: [
-						"来源：",
-						skill.scope === "global" ? "工作台全局" : skill.scope,
-						" · ",
-						skill.enabled ? "已启用" : "已停用"
-					]
-				})
-			] });
+					children: "采用当前技能版本"
+				})] }),
+				note: binding ? "保存草稿保留编辑；发布后新对话使用所选技能版本。移除不删除技能文件。" : void 0,
+				source: skill ? `${skill.scope === "global" ? "工作台全局" : skill.scope} · ${skill.enabled ? "已启用" : "已停用"}` : void 0
+			});
 		}
 		//#endregion
 		//#region src/client/role-catalog.ts
@@ -11915,116 +11986,16 @@ window.__ModuleLoader__.load({
 								...draft,
 								skills: (draft.skills ?? []).map((b) => b.id === value.id ? value : b)
 							})
-						}) : cap?.id === "meeting-transcription" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: cap.draft.name }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-								className: ManagedCapabilities_module_css_default.muted,
-								children: cap.draft.description
-							}),
-							cap.removedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-								className: ManagedCapabilities_module_css_default.notice,
-								children: "此能力已移除，请在能力中心恢复后使用。"
-							}),
-							binding && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-								className: ManagedCapabilities_module_css_default.check,
-								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-									type: "checkbox",
-									checked: binding.enabled,
-									onChange: (e) => updateBinding({ enabled: e.target.checked })
-								}), "在此岗位中启用录音转写"]
-							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-								className: ManagedCapabilities_module_css_default.field,
-								children: ["采用的能力版本", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
-									value: binding.version,
-									onChange: (e) => updateBinding({
-										version: Number(e.target.value),
-										actions: void 0
-									}),
-									children: cap.versions.map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
-										value: v.version,
-										children: [
-											"v",
-											v.version,
-											" · ",
-											v.createdAt.slice(0, 10)
-										]
-									}, v.version))
-								})]
-							})] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-								className: ManagedCapabilities_module_css_default.notice,
-								children: meetingStatus?.message ?? "正在检查语音识别配置…"
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								className: ManagedCapabilities_module_css_default.button,
-								onClick: () => setCenter(true),
-								children: "管理录音转写能力 ↗"
-							})
-						] }) : cap ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: cap.draft.name }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-								className: ManagedCapabilities_module_css_default.muted,
-								children: cap.draft.description
-							}),
-							cap.removedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-								className: ManagedCapabilities_module_css_default.notice,
-								children: "此能力已移除，当前不可执行。可从岗位中移除此配件，或在能力中心恢复。"
-							}),
-							binding ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.check,
-									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-										type: "checkbox",
-										checked: binding.enabled,
-										onChange: (e) => updateBinding({ enabled: e.target.checked })
-									}), "在此岗位中启用"]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.field,
-									children: ["采用的能力版本", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("select", {
-										value: binding.version,
-										onChange: (e) => updateBinding({
-											version: Number(e.target.value),
-											actions: void 0
-										}),
-										children: cap.versions.map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
-											value: v.version,
-											children: [
-												"v",
-												v.version,
-												" · ",
-												v.createdAt.slice(0, 10)
-											]
-										}, v.version))
-									})]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.check,
-									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-										type: "checkbox",
-										checked: binding.actions !== void 0,
-										onChange: (e) => updateBinding({ actions: e.target.checked ? actionsOf(version) : void 0 })
-									}), "为此岗位缩小动作范围"]
-								}),
-								binding.actions !== void 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ActionFields, {
-									value: binding.actions,
-									available: actionsOf(version),
-									onChange: (actions) => updateBinding({ actions })
-								}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-									className: ManagedCapabilities_module_css_default.muted,
-									children: ["继承该版本默认动作：", actionsOf(version).map((a) => actionNames[a]).join("、")]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									className: ManagedCapabilities_module_css_default.notice,
-									children: describe(cap, version).message
-								})
-							] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "先添加此能力，再设置岗位覆盖。" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								className: ManagedCapabilities_module_css_default.button,
-								onClick: () => setCenter(true),
-								children: "查看能力及关联组件 ↗"
-							})
-						] }) : id === "meeting-minutes-demo" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						}) : cap ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleCapabilityInspector, {
+							capability: cap,
+							binding,
+							version,
+							allowActionScope: cap.id !== MEETING_CAPABILITY_ID,
+							message: cap.id === "meeting-transcription" ? meetingStatus?.message : binding ? describe(cap, version).message : void 0,
+							manageLabel: cap.id === "meeting-transcription" ? "管理录音转写能力" : "查看能力及关联组件",
+							onChange: updateBinding,
+							onManage: () => setCenter(true)
+						}) : id === "meeting-minutes-demo" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.notice,
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "会议录音转纪要" }),
