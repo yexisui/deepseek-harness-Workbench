@@ -12834,6 +12834,67 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region ../../shared/client/ManagementRow.tsx
+		function ManagementIcon({ kind }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				width: "18",
+				height: "18",
+				viewBox: "0 0 24 24",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.7",
+				strokeLinecap: "round",
+				strokeLinejoin: "round",
+				"aria-hidden": "true",
+				children: kind === "pin" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M16 3 21 8l-4 1-3 5v3l-7-7h3l5-3z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m3 21 7-7" })] }) : kind === "remove" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" }) }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6" }) })
+			});
+		}
+		function ManagementRow({ name, description, status, statusHint, icon, hint, onOpen, openLabel, pinned, onPin, pinLabel, busy, attributes }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
+				className: ManagedCapabilities_module_css_default.capabilityRow,
+				...attributes,
+				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+					className: ManagedCapabilities_module_css_default.capabilityOpen,
+					"aria-label": openLabel,
+					onClick: onOpen,
+					children: [
+						icon ?? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							className: Capabilities_module_css_default.icon,
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "file" })
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+							className: ManagedCapabilities_module_css_default.capabilityIdentity,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: name }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: description }),
+								hint && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+									className: ManagedCapabilities_module_css_default.draftHint,
+									children: hint
+								})
+							]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							className: ManagedCapabilities_module_css_default.capabilityStatus,
+							title: statusHint,
+							children: status
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							"aria-hidden": "true",
+							children: "›"
+						})
+					]
+				}), onPin && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					className: `${ManagedCapabilities_module_css_default.iconButton} ${pinned ? ManagedCapabilities_module_css_default.pinned : ""}`,
+					disabled: busy,
+					"aria-label": pinLabel,
+					title: pinned ? "取消收藏" : "收藏",
+					"aria-pressed": !!pinned,
+					onClick: onPin,
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "pin" })
+				})]
+			});
+		}
+		//#endregion
 		//#region src/client/CapabilityList.tsx
 		const emptyListFilters = () => ({
 			states: [],
@@ -12941,45 +13002,20 @@ window.__ModuleLoader__.load({
 					className: ManagedCapabilities_module_css_default.capabilityList,
 					children: visible.map((c) => {
 						const definition = capabilityDisplayDefinition(c), status = capabilityPresentation(data, c, latest(c.versions), meetingStatus, requirementsStatus), changed = capabilityHasUnpublishedChanges(c);
-						return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
-							className: ManagedCapabilities_module_css_default.capabilityRow,
-							"data-managed-capability": c.id,
-							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-								className: ManagedCapabilities_module_css_default.capabilityOpen,
-								"aria-label": `管理能力：${definition.name}`,
-								onClick: () => onOpen(c.id),
-								children: [
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: status.icon }),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-										className: ManagedCapabilities_module_css_default.capabilityIdentity,
-										children: [
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: definition.name }),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: definition.description || "尚未填写能力简介" }),
-											changed && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
-												className: ManagedCapabilities_module_css_default.draftHint,
-												children: "有未发布修改"
-											})
-										]
-									}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										className: ManagedCapabilities_module_css_default.capabilityStatus,
-										title: status.message,
-										children: status.label
-									}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										"aria-hidden": "true",
-										children: "›"
-									})
-								]
-							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								className: `${ManagedCapabilities_module_css_default.iconButton} ${c.pinned ? ManagedCapabilities_module_css_default.pinned : ""}`,
-								disabled: busy,
-								"aria-label": `${c.pinned ? "取消收藏" : "收藏能力"}：${definition.name}`,
-								title: c.pinned ? "取消收藏" : "收藏",
-								"aria-pressed": c.pinned,
-								onClick: () => onPin(c.id, !c.pinned),
-								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityActionIcon, { kind: "pin" })
-							})]
+						return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementRow, {
+							name: definition.name,
+							description: definition.description || "尚未填写能力简介",
+							status: status.label,
+							statusHint: status.message,
+							icon: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(CapabilityGlyph, { kind: status.icon }),
+							hint: changed ? "有未发布修改" : void 0,
+							openLabel: `管理能力：${definition.name}`,
+							onOpen: () => onOpen(c.id),
+							pinned: c.pinned,
+							busy,
+							pinLabel: `${c.pinned ? "取消收藏" : "收藏能力"}：${definition.name}`,
+							onPin: () => onPin(c.id, !c.pinned),
+							attributes: { "data-managed-capability": c.id }
 						}, c.id);
 					})
 				}),
