@@ -6781,7 +6781,7 @@ window.__ModuleLoader__.load({
 				timeoutMs: number("timeoutMs", 5e3, 12e4),
 				maxChecks: number("maxChecks", 3, 32),
 				maxContextChars: number("maxContextChars", 4e3, 64e3),
-				...d.connectionMode === void 0 ? {} : { connectionMode: d.connectionMode },
+				connectionMode: "account",
 				...items ? { candidates: items } : {},
 				...d.totalTimeoutMs === void 0 ? {} : { totalTimeoutMs: number("totalTimeoutMs", 5e3, 3e5) }
 			};
@@ -6998,14 +6998,14 @@ window.__ModuleLoader__.load({
 		};
 		const connectionName = {
 			unconfigured: "待配置",
-			unverified: "待验证",
+			unverified: "待检查",
 			checking: "检查中",
 			ready: "检查通过",
 			error: "检查异常"
 		};
 		const fieldName = {
 			enabled: "全局开关",
-			connectionMode: "模型连接方式",
+			connectionMode: "模型配置",
 			backend: "接入方式",
 			model: "决策模型",
 			reasoningEffort: "思考强度",
@@ -7384,7 +7384,7 @@ window.__ModuleLoader__.load({
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "模型接入与后续扩展" }),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: ManagedCapabilities_module_css_default.row,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "工作台模型 · 当前接入方式" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "支持严格内网或显式复用模型账号，独立维护候选顺序，技术失败时依序切换。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "候选模型" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "按候选顺序调用，关闭项跳过，调用失败时尝试下一项。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						className: ManagedCapabilities_module_css_default.button,
 						onClick: () => openWorkbenchLink({ section: "models" }),
 						children: "管理模型账号 ↗"
@@ -7408,7 +7408,7 @@ window.__ModuleLoader__.load({
 							" · ",
 							descriptor.version
 						] }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "代码、配置与轨迹独立管理。严格内网传输拒绝公网目标和重定向；复用账号时使用现有模型适配器，目标与模型设置一致。模型判断不等同于官方 Jev 能力或实际测试通过；不保存完整思维过程。原生流式回答可能先于结束复核显示。" })
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "代码、配置与轨迹独立管理。模型地址、协议和凭据由模型设置统一管理。模型判断不等同于官方 Jev 能力或实际测试通过；不保存完整思维过程。原生流式回答可能先于结束复核显示。" })
 					]
 				})
 			] });
@@ -7850,7 +7850,7 @@ window.__ModuleLoader__.load({
 												}),
 												(inList || !a.available) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
 													title: inList ? void 0 : a.message,
-													children: inList ? "已在候选" : "JEV 配置受限"
+													children: inList ? "已在候选" : "账号不可用"
 												})
 											]
 										}, m.id);
@@ -7928,7 +7928,7 @@ window.__ModuleLoader__.load({
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
 											title: account?.available === false ? account.message : state?.message,
 											className: state?.state === "error" || account?.available === false ? JevControls_module_css_default.warning : ManagedCapabilities_module_css_default.muted,
-											children: account?.available === false ? "JEV 配置受限：" + account.message : !account && !loading ? "账号或模型已移除，请核对配置" : state ? connectionName[state.state] + " · " + state.message : row.enabled ? "等待检查" : "已关闭 · 默认跳过"
+											children: account?.available === false ? "账号不可用：" + account.message : !account && !loading ? "账号或模型已移除，请核对配置" : state ? connectionName[state.state] + " · " + state.message : row.enabled ? "等待检查" : "已关闭 · 默认跳过"
 										})
 									]
 								}),
@@ -8004,7 +8004,7 @@ window.__ModuleLoader__.load({
 					}),
 					rows.some((c) => accounts.some((a) => !a.available && a.models.some((m) => m.id === c.model))) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 						className: `${ManagedCapabilities_module_css_default.notice} ${JevControls_module_css_default.catalogNotice}`,
-						children: value.connectionMode === "account" ? "所选模型账号尚未启用或适配器未就绪，请到模型设置中检查；并不表示密钥失效。" : "当前为严格内网模式。公网 DeepSeek 账号需选择上方“复用模型账号”；内网账号请核对地址和协议。配置受限并不表示密钥失效。"
+						children: "所选模型账号尚未启用或适配器未就绪，请到模型设置中检查。"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ManagedCapabilities_module_css_default.actions,
@@ -8328,16 +8328,13 @@ window.__ModuleLoader__.load({
 						tabIndex: 0,
 						children: [
 							view.tab === "configuration" && (value ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 									className: JevControls_module_css_default.connectionSummary,
-									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+									children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
 										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: ["模型连接 · ", connection ? connectionName[connection.state] : "正在读取"] }),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: !candidates(value).length ? "添加已有模型，并开启需要参与检查的候选项。" : connection?.message ?? "正在核对当前配置的检查记录" }),
 										connection?.checkedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["最近检查：", new Date(connection.checkedAt).toLocaleString()] })
-									] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										className: ManagedCapabilities_module_css_default.badge,
-										children: value.connectionMode === "account" ? "复用模型账号" : "严格内网"
-									})]
+									] })
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("fieldset", {
 									className: ManagedCapabilities_module_css_default.compositionFieldset,
@@ -8345,38 +8342,9 @@ window.__ModuleLoader__.load({
 									children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 										className: ManagedCapabilities_module_css_default.fields,
 										children: [
-											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-												className: ManagedCapabilities_module_css_default.field,
-												children: [
-													"模型连接方式",
-													/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-														"aria-label": "JEV 模型连接方式",
-														value: value.connectionMode ?? "intranet",
-														disabled: !!checking || checkBusy,
-														onChange: (e) => {
-															setChecked(null);
-															change({ connectionMode: e.target.value });
-														},
-														children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-															value: "intranet",
-															children: "严格内网"
-														}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-															value: "account",
-															children: "复用模型账号（可含公网）"
-														})]
-													}),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: value.connectionMode === "account" ? "使用模型设置中的地址、凭据与协议。检查和运行会将待审查内容发送给所选模型服务；不调用 Jev 官网。" : "仅允许内网地址。公网 DeepSeek 账号请选“复用模型账号”，内网部署继续使用此项。" })
-												]
-											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevModelFields, {
 												value,
-												accounts: value.connectionMode === "account" ? accounts.map((a) => ({
-													...a,
-													...a.configured ?? {
-														available: false,
-														message: "请刷新模型列表以读取账号连接状态"
-													}
-												})) : accounts,
+												accounts,
 												loading: loadingAccounts,
 												refresh: () => void refreshAccounts(),
 												change,
@@ -8604,7 +8572,7 @@ window.__ModuleLoader__.load({
 						"aria-checked": enabled,
 						"data-unavailable": enabled && data?.state === "unavailable",
 						disabled: !data || busy,
-						title: !enabled && data?.connection?.state !== "ready" ? "先配置并检查内网模型" : data?.message ?? "正在加载 JEV 设置",
+						title: !enabled && data?.connection?.state !== "ready" ? "先选择并检查模型" : data?.message ?? "正在加载 JEV 设置",
 						onClick: toggle,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: JevControls_module_css_default.track }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: ["JEV · ", modeLabel(data)] })]
 					}),
