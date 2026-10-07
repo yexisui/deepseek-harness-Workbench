@@ -13,6 +13,9 @@ import { allowedActions, browserActions, callViolation, roleForPreset, wasRevoke
 import { relatedComponents, packageComponents, modulePackage, type ComponentActivity } from '../core/component-registry.ts'
 import { browserPackage, components, type DependencyHealth, type Health, type RoleVersion, type Task } from '../core/model.ts'
 import type { CapabilityStore } from './store.ts'
+import {dirname} from 'node:path'
+import {RoleSkills} from './role-skills.ts'
+import {allowedRoleSkills} from '../core/policy.ts'
 
 type Upstream = typeof BrowserSkill
 type Live = { agent: Agent; roleId: string; version: RoleVersion; task: Task; disposers: (() => void)[]; calls: Map<string, { abort: AbortController; settled: Promise<void> }>; stopped: boolean; revealed: boolean }
@@ -32,6 +35,7 @@ export class CapabilityRuntime {
   private probe?: Promise<Health>
   private daemon?: ChildProcess
   private active = true
+  private get skillAssets(){return new RoleSkills(dirname(this.store.directory))}
   constructor(readonly ctx: Context, readonly store: CapabilityStore, readonly config: { bskPath: string; bskHome: string; port: number }) {}
   async loadProvider() {
     try {
@@ -119,17 +123,23 @@ export class CapabilityRuntime {
       })
       live.disposers.push(agent.ctx.tools.register({...tool,execute:(args,exec)=>this.execute(live,tool,args,exec)}))
     }
-    // 仅有岗位职责的助手可以正常对话，但不展示尚未装配的浏览器技能。
-    if (live.stopped || !browserActions(allowedActions(this.store.snapshot(), live.roleId, live.version)).length) return
+    const hasBrowser=browserActions(allowedActions(this.store.snapshot(),live.roleId,live.version)).length>0
+    const bound=allowedRoleSkills(this.store.snapshot(),live.roleId,live.version)
+    if(live.stopped||(!hasBrowser&&!bound.length))return
     const skills = agent.ctx.get('skills')
-    if (skills) live.disposers.push(skills.register({ name: 'browser-skill', description: '当前岗位的网页导航、读取与截图能力。', content: guide, source: 'bundled' }))
+    if (hasBrowser&&skills) live.disposers.push(skills.register({ name: 'browser-skill', description: '当前岗位的网页导航、读取与截图能力。', content: guide, source: 'bundled' }))
     live.disposers.push(agent.ctx.tools.register(defineTool({
-      name: 'skill', description: '加载此岗位的浏览器技能及获准使用的工具。', parameters: { name: { type: 'string', required: true, enum: ['browser-skill'] } },
+      name: 'skill', description: '按任务需要加载此岗位已绑定的技能说明。可用技能：'+[...hasBrowser?['browser-skill']:[],...bound.map(s=>s.name)].join('、'), parameters: { name: { type: 'string', required: true, enum: [...hasBrowser?['browser-skill']:[],...bound.map(s=>s.name)] } },
       output: { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: String(value) }] },
-      execute: async (_args, exec) => { const violation = this.authorize(exec); if (violation) throw new Error(violation); this.reveal(live); return guide },
+      execute: async (args, exec) => { const violation = this.authorize(exec); if (violation) throw new Error(violation);if(args.name==='browser-skill'){this.reveal(live);return guide}const binding=bound.find(b=>b.name===args.name)!;return this.skillAssets.load(binding,agent.session.header.cwd) },
+    })))
+    if(bound.length)live.disposers.push(agent.ctx.tools.register(defineTool({
+      name:'skill_resource',description:'读取已绑定技能包内的模板或参考文本；不提供包外文件或脚本执行权限。',parameters:{name:{type:'string',required:true,enum:bound.map(b=>b.name)},path:{type:'string',required:true,description:'技能包内的相对文件路径'}},
+      output:{schema:{type:'string'},render:(_args,value)=>[{type:'text',text:String(value)}]},
+      execute:async(args,exec)=>{const violation=this.authorize(exec);if(violation)throw Error(violation);return this.skillAssets.resource(bound.find(b=>b.name===args.name)!,args.path,agent.session.header.cwd)}
     })))
     // Replay is handled through the current SDK's immutable session snapshot.
-    if (this.health.loaded && agent.session.snapshotEvents().some(event => event.type === 'tool/call' && String((event.data as { name?: string }).name).startsWith('browser_'))) this.reveal(live)
+    if (hasBrowser&&this.health.loaded && agent.session.snapshotEvents().some(event => event.type === 'tool/call' && String((event.data as { name?: string }).name).startsWith('browser_'))) this.reveal(live)
   }
   private reveal(live: Live) {
     if (live.revealed) return
@@ -160,6 +170,7 @@ export class CapabilityRuntime {
       const version=this.store.snapshot().capabilities.find(c=>c.id===binding?.capabilityId)?.versions.find(v=>v.version===binding?.version)
       return this.packageRunner && version?.packageHash && version.components.some(p=>p.actions.includes(args.action as any)) && allowed.includes(args.action as any) ? undefined : '岗位未授权此能力动作。'
     }
+    if(exec.name==='skill_resource'||(exec.name==='skill'&&args.name!=='browser-skill'))return allowedRoleSkills(this.store.snapshot(),live.roleId,live.version).some(s=>s.name===args.name)?undefined:'技能调用失败：岗位未绑定此技能，或该绑定已停用。'
     if (!this.health.loaded) return 'BrowserSkill 插件未加载。'
     if (exec.name === 'skill') return args.name === 'browser-skill' && browserActions(allowed).length ? undefined : '岗位未授权此技能。'
     return callViolation(exec.name, args, allowed, this.owned(live.agent.id))

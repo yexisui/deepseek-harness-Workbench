@@ -29,6 +29,7 @@ describe('managed capability card actions', () => {
     HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
     HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
     vi.stubGlobal('fetch', vi.fn(async (url: string, options?: RequestInit) => {
+      if (url.endsWith('/dsh-skill-explorer/manage/list')) return { ok: true, json: async () => ({ skills: [{ id:'e5163661-906f-4075-976d-159db1281ad4', name:'requirement-review', hash:'a'.repeat(64), description:'需求检查', scope:'global', enabled:true }] }) }
       if (url.endsWith('/meeting/config')) return { ok: true, json: async () => ({ ready: false, state: 'unconfigured', message: '请配置语音识别接口', provider: '自定义语音识别接口' }) }
       if (url.endsWith('/state')) return { ok: true, json: async () => snapshot() }
       if (url.endsWith('/command')) {
@@ -217,6 +218,28 @@ describe('managed capability card actions', () => {
     expect(role.draft.capabilities).toEqual([])
     expect(latest(role.versions)!.capabilities).toHaveLength(1)
     expect(store.snapshot().capabilities[0]!.removedAt).toBeTruthy()
+  })
+
+  it('adds a skill through the shared library and preserves draft bindings without changing the published role', async () => {
+    const saved = await makeRole('技能岗位')
+    await capabilityClient.refresh()
+    await act(async () => root.render(<ManagedRoleEditor id={saved.id} onClose={() => {}}/>))
+    const dialog = document.querySelector('dialog')!
+    await click('添加 requirement-review', dialog)
+    expect(button('添加 requirement-review', dialog)?.disabled).toBe(true)
+    await click('保存草稿', dialog)
+    let role = store.snapshot().roles.find(r => r.id === saved.id)!
+    expect(role.draft.skills).toEqual([{id:'e5163661-906f-4075-976d-159db1281ad4',name:'requirement-review',hash:'a'.repeat(64),enabled:true}])
+    expect(latest(role.versions)!.skills).toBeUndefined()
+    await act(async () => root.render(<></>))
+    editorDrafts.clear()
+    await act(async () => root.render(<ManagedRoleEditor id={saved.id} onClose={() => {}}/>))
+    expect(button('移除 requirement-review')).toBeTruthy()
+    await click('移除 requirement-review')
+    await click('保存草稿')
+    role = store.snapshot().roles.find(r => r.id === saved.id)!
+    expect(role.draft.skills).toEqual([])
+    expect(latest(role.versions)!.capabilities).toHaveLength(1)
   })
 
   it('supports card selection, an indeterminate select-all, and clears selections when the search changes', async () => {

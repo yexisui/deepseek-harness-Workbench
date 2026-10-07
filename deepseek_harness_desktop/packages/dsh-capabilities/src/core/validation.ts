@@ -47,6 +47,14 @@ export function definition(value: unknown, catalog: readonly Component[] = compo
   }
   return result
 }
+export function skillBindings(value:unknown):NonNullable<RoleDefinition['skills']>{
+  const ids=new Set<string>(),names=new Set<string>()
+  return list(value,30).map(value=>{const b=object(value),skillId=text(b.id,'技能标识',36,true),name=text(b.name,'技能名称',64,true),hash=text(b.hash,'技能版本',64,true)
+    if(!/^[a-f0-9-]{36}$/.test(skillId)||!/^[a-z0-9][a-z0-9-]*$/.test(name)||name==='browser-skill'||!/^[a-f0-9]{64}$/.test(hash))throw new InputError('技能绑定格式无效')
+    if(ids.has(skillId)||names.has(name))throw new InputError('同一技能不能重复添加');ids.add(skillId);names.add(name)
+    return {id:skillId,name,hash,enabled:bool(b.enabled)}
+  })
+}
 export function roleDefinition(value: unknown, state: State): RoleDefinition {
   const data = object(value), color = text(data.color, '颜色', 7), seen = new Set<string>()
   if (!/^#[0-9a-f]{6}$/i.test(color)) throw new InputError('颜色无效')
@@ -62,7 +70,7 @@ export function roleDefinition(value: unknown, state: State): RoleDefinition {
       return a as typeof cap.components[number]['actions'][number]
     })
     return { capabilityId, version, enabled: bool(binding.enabled), ...(actions === undefined ? {} : { actions: [...new Set(actions)] }) }
-  }) }
+  }),...(data.skills===undefined?{}:{skills:skillBindings(data.skills)}) }
 }
 export function issues(definition: Definition, capabilityId?: string, catalog: readonly Component[] = components): string[] {
   const missing = missingAssociations(definition, capabilityId, catalog)

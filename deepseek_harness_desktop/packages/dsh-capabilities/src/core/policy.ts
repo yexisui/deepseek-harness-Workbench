@@ -31,6 +31,12 @@ export function allowedActions(state: State, roleId: string, snapshot: RoleVersi
   return [...allowed]
 }
 export function browserActions(actions: readonly Action[]): Action[] { return actions.filter(action => action === 'navigate' || action === 'read' || action === 'screenshot') }
+/** Published snapshots keep their skill version; removals cannot be undone for old sessions. */
+export function allowedRoleSkills(state:State,roleId:string,snapshot:RoleVersion){
+  const role=state.roles.find(r=>r.id===roleId)
+  if(!role?.enabled||role.archivedAt)return []
+  return (snapshot.skills??[]).filter(old=>old.enabled&&role.versions.filter(v=>v.version>=snapshot.version).every(v=>(v.skills??[]).some(now=>now.id===old.id&&now.name===old.name&&now.enabled)))
+}
 export function requiredAction(tool: string, args: Record<string, unknown>): Action | 'session' | undefined {
   if (tool === 'browser_session' && ['start', 'stop', 'list'].includes(String(args.action))) return args.url === undefined ? 'session' : 'navigate'
   if (tool === 'browser_page' && args.action === 'navigate') return 'navigate'

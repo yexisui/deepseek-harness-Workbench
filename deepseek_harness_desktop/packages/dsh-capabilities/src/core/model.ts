@@ -9,7 +9,8 @@ export type Definition = { name: string; description: string; instructions: stri
 export type Version = Definition & { version: number; createdAt: string; packageHash?: string }
 export type Capability = { id: string; packageOrigin?: import('./distribution.ts').PackageOrigin; source: 'builtin' | 'local'; enabled: boolean; pinned: boolean; removedAt?: string; draft: Definition; versions: Version[] }
 export type Binding = { capabilityId: string; version: number; enabled: boolean; actions?: Action[] }
-export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec; duties: string; requirements: string; format: string; capabilities: Binding[] }
+export type SkillBinding = { id: string; name: string; hash: string; enabled: boolean }
+export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec; duties: string; requirements: string; format: string; capabilities: Binding[]; skills?: SkillBinding[] }
 export type RoleVersion = RoleDefinition & { version: number; preset: string; createdAt: string }
 export type Role = { archivedAt?: string; id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
 export type State = { packageModels?: Record<string,string>; packageReleases?: Record<string, import('./distribution.ts').PackageRelease>; componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
@@ -89,5 +90,5 @@ export function references(state: State, componentId: string, tasks: Task[] = []
 export const rolePresentation = (role: Role): RoleDefinition => latest(role.versions) ?? role.draft
 export function roleHasUnpublishedChanges(role: Role) {
   const published = latest(role.versions)
-  return !!published && (['name', 'color', 'icon', 'duties', 'requirements', 'format', 'capabilities'] as const).some(key => JSON.stringify(role.draft[key]) !== JSON.stringify(published[key]))
+  return !!published && (['name', 'color', 'icon', 'duties', 'requirements', 'format', 'capabilities', 'skills'] as const).some(key => JSON.stringify(role.draft[key]) !== JSON.stringify(published[key]))
 }

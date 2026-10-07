@@ -22,7 +22,7 @@ export class DeveloperService {
   private tail: Promise<unknown> = Promise.resolve()
   private running = new Map<string, { cwd: string; controller: AbortController; promise?: Promise<void> }>()
   private closed = false
-  constructor(readonly root: string, readonly git: GitService, private model: Model, private run: Run, private state: () => State, private jev?: JevService) {}
+  constructor(readonly root: string, readonly git: GitService, private model: Model, private run: Run, private state: () => State, private jev?: JevService, private skillGuidance?: (roleId:string,version:number,cwd?:string)=>string) {}
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private path(id: string, sub = '') { if (!UUID.test(id)) throw new InputError('开发任务标识无效'); return join(this.root, sub, id + '.json') }
   private async atomic(file: string, value: unknown) {
@@ -234,7 +234,7 @@ export class DeveloperService {
       }
       for (let step = 0; step < 24; step++) {
         signal.throwIfAborted(); task = await this.get(id); const role = this.authorize(task)
-        const prompt = JSON.stringify({ project: task.cwd, permission: task.permission, role: { duties: role.duties, requirements: role.requirements, format: role.format }, files: listing.files.slice(0, 2500), conversation: task.messages.slice(-16), operations: evidence.slice(-24) })
+        const prompt = JSON.stringify({ project: task.cwd, permission: task.permission, role: { duties: role.duties, requirements: role.requirements, format: role.format, skills: this.skillGuidance?.(task.roleId,task.roleVersion,task.cwd) }, files: listing.files.slice(0, 2500), conversation: task.messages.slice(-16), operations: evidence.slice(-24) })
         const output = await this.model(prompt + (jev?.guidance() ?? ''), task.model, signal); signal.throwIfAborted()
         let command: Record<string, unknown>
         try { command = object(JSON.parse(output.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, ''))) }
