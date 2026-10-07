@@ -20,7 +20,7 @@ beforeEach(async()=>{
   vi.stubGlobal('fetch',vi.fn(async(url:any,options:any)=>{
     const body=options?.body?JSON.parse(options.body):undefined;requests.push({url:String(url),body})
     let response:any=saved
-    if(String(url).endsWith('/accounts'))response=[{id:'lan',name:'内网账号',available:true,models:[{id:'lan/one',name:'模型一'},{id:'lan/two',name:'模型二',reasoning:['low']}]},{id:'cloud',name:'公网账号',available:false,models:[{id:'cloud/model',name:'公网模型'}],message:'账号未配置内网地址'}]
+    if(String(url).endsWith('/accounts'))response=[{id:'lan',name:'内网账号',available:true,models:[{id:'lan/one',name:'模型一'},{id:'lan/two',name:'模型二',reasoning:['low']}]},{id:'cloud',name:'公网账号',available:false,models:[{id:'cloud/model',name:'公网模型'}],message:'模型账号未启用'}]
     if(String(url).endsWith('/connection'))response={state:connection,message:'本地检查状态'}
     if(String(url).endsWith('/config')){saved={...saved,config:{schema:1,revision:saved.config.revision+1,value:body.value}};response=saved}
     if(String(url).endsWith('/check')){saved={...saved,diagnostic:{id:'test-check',config:body.value,status:'checking',startedAt:new Date().toISOString(),elapsedMs:0,message:'正在请求'}};response=saved.diagnostic}
@@ -34,26 +34,25 @@ async function render(node:React.ReactNode=<JevSettings/>){await act(async()=>{r
 const button=(text:string)=>Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent===text)!
 async function click(text:string){const b=button(text);expect(b).toBeTruthy();await act(async()=>{b.click();await delay()})}
 const pickerButton=()=>container.querySelector<HTMLButtonElement>('[aria-label="选择候选模型"]')!
-it('offers explicit account mode without silently connecting, preserves candidates and saves the choice',async()=>{
+it('uses available models without a connection selector, badge or automatic request',async()=>{
   const original=globalThis.fetch
   vi.stubGlobal('fetch',vi.fn(async(url:any,options:any)=>{
     const result=await original(url,options)
     if(!String(url).endsWith('/accounts'))return result
-    return new Response(JSON.stringify((await result.json()).map((a:any)=>({...a,configured:{available:true,message:'等待连接检查'}}))))
+    return new Response(JSON.stringify((await result.json()).map((a:any)=>({...a,available:true,message:'等待连接检查'}))))
   }))
   await render();await add('cloud/model')
-  const mode=container.querySelector<HTMLSelectElement>('[aria-label="JEV 模型连接方式"]')!
-  expect(mode.value).toBe('intranet');expect(container.querySelector<HTMLButtonElement>('[aria-label="检查 公网模型"]')!.disabled).toBe(true)
-  await act(async()=>{mode.value='account';mode.dispatchEvent(new Event('change',{bubbles:true}));await delay()})
+  expect(container.querySelector('[aria-label="JEV 模型连接方式"]')).toBeNull()
+  expect(container.textContent).not.toMatch(/复用模型账号|严格内网|内网地址/)
   expect(container.querySelector<HTMLButtonElement>('[aria-label="检查 公网模型"]')!.disabled).toBe(false)
-  expect(container.textContent).toContain('待审查内容发送给所选模型服务')
   expect(requests.some(r=>r.url.endsWith('/check'))).toBe(false)
   await act(async()=>{container.querySelector<HTMLButtonElement>('[aria-label="检查 公网模型"]')!.click();await delay()})
-  expect(requests.find(r=>r.url.endsWith('/check'))?.body.value.connectionMode).toBe('account')
+  expect(requests.find(r=>r.url.endsWith('/check'))?.body.value.model).toBe('cloud/model')
   await click('取消检查');await click('保存配置')
-  expect(saved.config.value.connectionMode).toBe('account');expect(saved.config.value.enabled).toBe(false)
+  expect(saved.config.value.enabled).toBe(false)
   expect(saved.config.value.candidates?.find(c=>c.model==='cloud/model')?.enabled).toBe(false)
-  await render(null);await render();expect(container.querySelector<HTMLSelectElement>('[aria-label="JEV 模型连接方式"]')!.value).toBe('account')
+  await render(null);await render();expect(container.querySelector('[aria-label="JEV 模型连接方式"]')).toBeNull()
+  await click('模块与扩展');expect(container.textContent).not.toMatch(/复用模型账号|严格内网|内网地址/)
 })
 const modelCheck=(model:string)=>container.querySelector<HTMLInputElement>('[data-model-option="'+model+'"] input')!
 async function choose(model:string){if(pickerButton().getAttribute('aria-expanded')!=='true')await act(async()=>pickerButton().click());const option=modelCheck(model);expect(option.disabled).toBe(false);await act(async()=>option.click())}
@@ -64,7 +63,7 @@ it('batches selections across providers in catalog order without saving or enabl
   expect(requests.some(r=>r.url.endsWith('/config'))).toBe(false)
   await click('添加所选（2）');expect(pickerButton().getAttribute('aria-expanded')).toBe('false')
   expect(container.querySelector('[aria-label="启用 模型二"]')?.getAttribute('aria-checked')).toBe('false');expect(container.querySelector('[aria-label="启用 公网模型"]')?.getAttribute('aria-checked')).toBe('false')
-  expect(container.textContent).toContain('并不表示密钥失效');expect(container.querySelector<HTMLButtonElement>('[aria-label="检查 公网模型"]')!.disabled).toBe(true)
+  expect(container.textContent).toContain('请到模型设置中检查');expect(container.querySelector<HTMLButtonElement>('[aria-label="检查 公网模型"]')!.disabled).toBe(true)
   await click('保存配置');expect(saved.config.value.candidates?.map(c=>c.model)).toEqual(['lan/one','lan/two','cloud/model']);expect(saved.config.value.candidates?.map(c=>c.enabled)).toEqual([true,false,false])
   await render(null);await render();expect(container.querySelectorAll('[role="switch"]')).toHaveLength(3)
 })
@@ -112,7 +111,7 @@ it('supports keyboard selection, Escape and duplicate prevention in the model li
 })
 it('guides an unverified top switch to settings without saving enabled mode',async()=>{await render(<JevToggle/>);await act(async()=>container.querySelector<HTMLButtonElement>('[role="switch"]')!.click());expect(pendingNavigation('jev-mode')?.tab).toBe('configuration');expect(requests.some(r=>r.url.endsWith('/config'))).toBe(false)})
 it('shows unavailable account reasons and checks unsaved configuration while global mode stays off',async()=>{
-  await render();await add('cloud/model');expect(container.textContent).toContain('公网账号');expect(container.textContent).toContain('账号未配置内网地址');expect(container.textContent).not.toContain('待配置或不可用账号')
+  await render();await add('cloud/model');expect(container.textContent).toContain('公网账号');expect(container.textContent).toContain('模型账号未启用');expect(container.textContent).not.toContain('待配置或不可用账号')
   await add('lan/two');expect(container.querySelector('[aria-label="启用 模型二"]')?.getAttribute('aria-checked')).toBe('false');await act(async()=>{container.querySelector<HTMLButtonElement>('[aria-label="检查 模型二"]')!.click();await delay()})
   expect(requests.find(r=>r.url.endsWith('/check'))?.body.value.model).toBe('lan/two');expect(saved.config.value.enabled).toBe(false);expect(saved.config.value.model).toBe('lan/one');expect(container.textContent).toContain('取消检查')
   await click('取消检查');expect(requests.find(r=>r.url.endsWith('/check/cancel'))?.body.id).toBe('test-check');expect(container.textContent).toContain('检查已取消')

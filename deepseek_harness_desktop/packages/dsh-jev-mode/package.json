@@ -2,7 +2,7 @@
   "name": "@linxin666/dsh-jev-mode",
   "version": "0.1.0-local.1",
   "private": true,
-  "description": "独立的内网 JEV 式决策增强、全局配置与岗位适配服务",
+  "description": "独立的 JEV 式决策增强、全局配置与岗位适配服务",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
