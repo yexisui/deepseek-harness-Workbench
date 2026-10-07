@@ -51,6 +51,7 @@ const candidates = (value) => value.candidates ?? (value.model ? [{
 	enabled: true,
 	reasoningEffort: value.reasoningEffort
 }] : []);
+const hasEnabledModel = (value) => candidates(value).some((row) => row.enabled);
 function candidateConfig(value, item) {
 	const { candidates: _c, totalTimeoutMs: _t, ...base } = value;
 	return {
@@ -148,10 +149,6 @@ var JevStore = class {
 		value: { ...defaults }
 	};
 	previousRoutingConfig;
-	routingCheck = false;
-	requiresModelCheck() {
-		return this.routingCheck;
-	}
 	tail = Promise.resolve();
 	traces = [];
 	validations = [];
@@ -183,10 +180,7 @@ var JevStore = class {
 				revision: d.revision,
 				value: config(d.value)
 			};
-			if (d.value.connectionMode !== "account") {
-				this.previousRoutingConfig = original;
-				this.routingCheck = true;
-			}
+			if (d.value.connectionMode !== "account") this.previousRoutingConfig = original;
 		} catch (e) {
 			if (e.code !== "ENOENT") throw new JevError("JEV 配置无法读取；请保留文件并检查，不能自动覆盖");
 		}
@@ -275,7 +269,6 @@ var JevStore = class {
 			await this.atomic("config.json", next);
 			this.saved = next;
 			this.previousRoutingConfig = void 0;
-			this.routingCheck = false;
 			return this.snapshot();
 		});
 	}
@@ -375,14 +368,12 @@ var JevRun = class {
 	scope;
 	id = randomUUID();
 	snapshot;
-	routingCheck;
 	count = 0;
 	calls = 0;
 	last;
 	constructor(service, scope) {
 		this.service = service;
 		this.scope = scope;
-		this.routingCheck = service.store.requiresModelCheck();
 		this.snapshot = service.store.snapshot();
 		this.snapshot.value.candidates?.forEach(Object.freeze);
 		if (this.snapshot.value.candidates) Object.freeze(this.snapshot.value.candidates);
@@ -420,7 +411,6 @@ var JevRun = class {
 		let result, status = "error", summary = "JEV 检查未完成";
 		try {
 			signal?.throwIfAborted();
-			if (this.routingCheck && this.service.connection(cfg).state !== "ready") throw new JevError("模型调用方式已更新，请先检查候选模型");
 			if (++this.count > cfg.maxChecks) throw new JevError("JEV 本轮达到检查次数上限；当前自动动作已停止，可新开一轮");
 			const backend = this.service.backends.get(cfg.backend);
 			if (!backend) throw new JevError("官方 JEV 扩展接口已预留，尚未接入；不会调用官网");
@@ -528,13 +518,13 @@ var JevService = class {
 				};
 				return {
 					state: last.status === "passed" ? "ready" : "error",
-					message: last.message,
+					message: last.status === "passed" ? "检查通过" : last.message,
 					checkedAt: last.finishedAt
 				};
 			}
 			return {
 				state: "unverified",
-				message: "配置已填写，尚未通过连接及决策格式检查"
+				message: "尚未检查，可直接调用"
 			};
 		} catch (e) {
 			return {
@@ -552,7 +542,7 @@ var JevService = class {
 		const enabled = states.filter((s) => rows.find((r) => r.id === s.id)?.enabled), ready = enabled.filter((s) => s.state === "ready").length;
 		if (!enabled.length) return {
 			state: "unconfigured",
-			message: "候选模型全部关闭；可逐项检查后开启",
+			message: "候选模型全部关闭",
 			candidates: states
 		};
 		if (enabled.some((s) => s.state === "checking")) return {
@@ -562,13 +552,13 @@ var JevService = class {
 		};
 		return {
 			state: ready ? "ready" : enabled.some((s) => s.state === "unverified") ? "unverified" : "error",
-			message: ready ? "已启用 " + enabled.length + " 项，其中 " + ready + " 项检查通过；按列表顺序尝试" : "启用项尚无检查通过的模型",
+			message: ready ? "已启用 " + enabled.length + " 项，其中 " + ready + " 项检查通过" : "按候选顺序直接调用；检查为可选测试",
 			candidates: states
 		};
 	}
 	update(revision, value) {
 		return this.store.update(revision, value, (candidate) => {
-			if (candidate.enabled && this.connection(candidate).state !== "ready") throw new JevError("请先检查此配置的模型，通过后再开启 JEV");
+			if (candidate.enabled && !hasEnabledModel(candidate)) throw new JevError("请至少开启一个候选模型");
 		});
 	}
 	startDiagnostic(raw) {
@@ -622,7 +612,7 @@ var JevService = class {
 							startedAt: result.startedAt,
 							finishedAt: (/* @__PURE__ */ new Date()).toISOString(),
 							status: attempt.status === "allowed" ? "passed" : attempt.status === "cancelled" ? "cancelled" : "failed",
-							message: attempt.status === "allowed" ? "连接及决策格式检查通过；业务结果仍需逐次核对" : decision ? "模型已响应，但诊断未通过：" + decision.summary : attempt.summary,
+							message: attempt.status === "allowed" ? "检查通过" : decision ? "模型已响应，但诊断未通过：" + decision.summary : attempt.summary,
 							elapsedMs: attempt.elapsedMs,
 							decision
 						};
@@ -631,14 +621,14 @@ var JevService = class {
 						try {
 							await this.store.validate(key, completed);
 						} catch {
-							throw new JevError("检查记录保存失败，请重试；不能启用未经保存确认的配置");
+							throw new JevError("检查记录保存失败，请重试");
 						}
 					}
 				});
 				signal.throwIfAborted();
 				if (result.decision.decision !== "allow") throw new JevError("模型已响应，但诊断未通过：" + result.decision.summary);
 				result.status = "passed";
-				result.message = `检查完成：${result.attempts.filter((a) => a.status === "allowed").length} 项通过；业务结果仍需逐次核对`;
+				result.message = "检查通过";
 			} catch (e) {
 				result.status = controller.signal.aborted ? "cancelled" : "failed";
 				result.message = controller.signal.aborted ? "检查已取消" : e instanceof JevError ? e.message : signal.aborted ? "检查超时，请核对服务或调整超时设置" : "连接检查失败，请核对模型账号与服务";
@@ -673,10 +663,19 @@ var JevService = class {
 	}
 	status(scope) {
 		const config = this.store.snapshot(), connection = this.connection(config.value);
+		const callable = this.backends.has(config.value.backend) && candidates(config.value).some((row) => {
+			if (!row.enabled) return false;
+			try {
+				this.ready(candidateConfig(config.value, row));
+				return true;
+			} catch {
+				return false;
+			}
+		});
 		return {
 			config,
-			state: config.value.enabled ? connection.state === "ready" ? "ready" : "unavailable" : "off",
-			message: config.value.enabled ? connection.message : "全局已关闭；保留模型设置，可独立检查连接",
+			state: config.value.enabled ? callable ? "ready" : "unavailable" : "off",
+			message: config.value.enabled ? callable ? "按候选顺序调用已开启模型" : "没有可执行的启用模型，请核对模型配置" : "全局已关闭；保留模型设置，可独立检查连接",
 			connection,
 			diagnostic: this.diagnosticStatus(),
 			active: [...this.active.values()].filter((r) => !scope || r.scope === scope).map((r) => ({ ...r })),

@@ -6727,6 +6727,7 @@ window.__ModuleLoader__.load({
 			enabled: true,
 			reasoningEffort: value.reasoningEffort
 		}] : []);
+		const hasEnabledModel = (value) => candidates(value).some((row) => row.enabled);
 		function candidateConfig(value, item) {
 			const { candidates: _c, totalTimeoutMs: _t, ...base } = value;
 			return {
@@ -6998,7 +6999,7 @@ window.__ModuleLoader__.load({
 		};
 		const connectionName = {
 			unconfigured: "待配置",
-			unverified: "待检查",
+			unverified: "未检查",
 			checking: "检查中",
 			ready: "检查通过",
 			error: "检查异常"
@@ -7926,9 +7927,9 @@ window.__ModuleLoader__.load({
 											]
 										}),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
-											title: account?.available === false ? account.message : state?.message,
+											title: account?.available === false ? account.message : state?.state === "ready" ? void 0 : state?.message,
 											className: state?.state === "error" || account?.available === false ? JevControls_module_css_default.warning : ManagedCapabilities_module_css_default.muted,
-											children: account?.available === false ? "账号不可用：" + account.message : !account && !loading ? "账号或模型已移除，请核对配置" : state ? connectionName[state.state] + " · " + state.message : row.enabled ? "等待检查" : "已关闭 · 默认跳过"
+											children: account?.available === false ? "账号不可用：" + account.message : !account && !loading ? "账号或模型已移除，请核对配置" : state ? state.state === "ready" ? "检查通过" : connectionName[state.state] + " · " + state.message : row.enabled ? "未检查" : "已关闭 · 默认跳过"
 										})
 									]
 								}),
@@ -8127,7 +8128,7 @@ window.__ModuleLoader__.load({
 			const root = (0, react.useRef)(null), scroll = (0, react.useRef)(view.scroll), pendingScroll = (0, react.useRef)(view.scroll), accountSequence = (0, react.useRef)(0), accountRequest = (0, react.useRef)(null);
 			const value = draft ?? data?.config.value, invalid = value ? fieldErrors(value) : {}, valid = Object.keys(invalid).length === 0, conflict = !!draft && base?.revision !== data?.config.revision;
 			const diagnostic = data?.diagnostic, checking = diagnostic?.status === "checking", candidateKey = value ? connectionConfig(value) : "";
-			const connection = !draft ? data?.connection : checked?.key === candidateKey ? checked.connection : void 0, canEnable = connection?.state === "ready" && !checking;
+			const connection = !draft ? data?.connection : checked?.key === candidateKey ? checked.connection : void 0, canEnable = !!value && hasEnabledModel(value);
 			const patchView = (patch) => setView((v) => ({
 				...v,
 				...patch
@@ -8384,7 +8385,7 @@ window.__ModuleLoader__.load({
 														role: diagnostic.status === "failed" ? "alert" : "status",
 														className: diagnostic.status === "failed" ? JevControls_module_css_default.error : void 0,
 														children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-															diagnostic.message,
+															diagnostic.status === "passed" ? "检查通过" : diagnostic.message,
 															" · ",
 															(diagnostic.elapsedMs / 1e3).toFixed(1),
 															" 秒"
@@ -8432,7 +8433,7 @@ window.__ModuleLoader__.load({
 															children: "开启"
 														})]
 													}),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: canEnable ? "连接检查已通过，可以开启并保存。" : "至少一个已开启候选项检查通过后可开启全局模式；关闭候选项不影响岗位设置。" })
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: canEnable ? "可以直接开启使用，检查仅用于测试模型是否可用。" : "请先开启至少一个候选模型。" })
 												]
 											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsx)(JevAdvanced, {
@@ -8500,7 +8501,7 @@ window.__ModuleLoader__.load({
 											onClick: () => void save(),
 											children: "保存配置"
 										}),
-										value.enabled && !canEnable && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "当前模型配置需要检查通过后才能保存为开启状态；也可以先关闭并保存。" })
+										value.enabled && !canEnable && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "请至少开启一个候选模型，或关闭全局模式后保存。" })
 									]
 								}),
 								message && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
@@ -8543,7 +8544,7 @@ window.__ModuleLoader__.load({
 			const { data, error, busy } = useJev(), [notice, setNotice] = (0, react.useState)(""), enabled = data?.config.value.enabled ?? false;
 			const toggle = () => {
 				if (!data) return;
-				if (!enabled && data.connection?.state !== "ready") {
+				if (!enabled && !hasEnabledModel(data.config.value)) {
 					openWorkbenchLink({
 						section: "jev-mode",
 						tab: "configuration"
@@ -8572,7 +8573,7 @@ window.__ModuleLoader__.load({
 						"aria-checked": enabled,
 						"data-unavailable": enabled && data?.state === "unavailable",
 						disabled: !data || busy,
-						title: !enabled && data?.connection?.state !== "ready" ? "先选择并检查模型" : data?.message ?? "正在加载 JEV 设置",
+						title: !enabled && data && !hasEnabledModel(data.config.value) ? "先开启一个候选模型" : data?.message ?? "正在加载 JEV 设置",
 						onClick: toggle,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { className: JevControls_module_css_default.track }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: ["JEV · ", modeLabel(data)] })]
 					}),
