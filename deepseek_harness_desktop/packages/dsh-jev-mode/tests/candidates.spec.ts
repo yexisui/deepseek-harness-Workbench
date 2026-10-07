@@ -27,8 +27,8 @@ it('lists added accounts even when ineligible, omits dormant providers and never
   const listModels=vi.fn(async()=>[{id:'deepseek-flash',name:'DeepSeek-V41-Flash'}])
   const routes=[{provider:'deepseek-official',displayName:'DeepSeek',settingsNs:'deepseek',settingsPath:[]},{provider:'lan',displayName:'内网',settingsNs:'lan',settingsPath:[],declared:true},{provider:'dormant',displayName:'未添加',settingsNs:'empty',settingsPath:[],declared:false}]
   const profiles:any={deepseek:{apiKey:'never-return-me'},lan:{baseURL:'http://127.0.0.1/v1',models:[{id:'one',name:'内网模型'}]}}
-  const ctx:any={get:(name:string)=>name==='llm'?{listProviders:()=>[{id:'deepseek-official'}],listConfigurableProviders:()=>routes,listModels}:name==='settings'?{get:(id:string)=>profiles[id]}:undefined}
+  const ctx:any={get:(name:string)=>name==='llm'?{stream:vi.fn(),listProviders:()=>[{id:'deepseek-official'}],listConfigurableProviders:()=>routes,listModels}:name==='settings'?{get:(id:string)=>profiles[id]}:undefined}
   const result=await accountCatalog(ctx);expect(result.map(a=>a.id)).toEqual(['deepseek-official','lan'])
-  expect(result[0]).toMatchObject({available:false,models:[{id:'deepseek-official/deepseek-flash'}]});expect(result[1]?.available).toBe(true)
+  expect(result[0]).toMatchObject({available:true,models:[{id:'deepseek-official/deepseek-flash'}]});expect(result[1]?.available).toBe(false);expect(result[1]?.message).toContain('未启用')
   expect(listModels).toHaveBeenCalledExactlyOnceWith('deepseek-official');expect(JSON.stringify(result)).not.toContain('never-return-me')
 })

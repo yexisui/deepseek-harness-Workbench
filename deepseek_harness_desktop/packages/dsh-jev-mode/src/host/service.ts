@@ -5,10 +5,11 @@ import { JevStore } from './store.ts'
 export class JevRun {
   readonly id=randomUUID()
   readonly snapshot: ReturnType<JevStore['snapshot']>
+  private routingCheck:boolean
   private count=0
   private calls=0
   private last:Decision|undefined
-  constructor(private service:JevService,readonly scope:string){this.snapshot=service.store.snapshot();this.snapshot.value.candidates?.forEach(Object.freeze);if(this.snapshot.value.candidates)Object.freeze(this.snapshot.value.candidates);Object.freeze(this.snapshot.value);Object.freeze(this.snapshot);service.active.set(this.id,{id:this.id,scope,revision:this.snapshot.revision,enabled:this.enabled,model:this.snapshot.value.model,startedAt:new Date().toISOString(),phase:'working'})}
+  constructor(private service:JevService,readonly scope:string){this.routingCheck=service.store.requiresModelCheck();this.snapshot=service.store.snapshot();this.snapshot.value.candidates?.forEach(Object.freeze);if(this.snapshot.value.candidates)Object.freeze(this.snapshot.value.candidates);Object.freeze(this.snapshot.value);Object.freeze(this.snapshot);service.active.set(this.id,{id:this.id,scope,revision:this.snapshot.revision,enabled:this.enabled,model:this.snapshot.value.model,startedAt:new Date().toISOString(),phase:'working'})}
   get enabled(){return this.snapshot.value.enabled}
   finish(){this.service.active.delete(this.id)}
   guidance(){return this.last?`\nJEV 本轮附加审查（不能扩大岗位权限；事实仍须核对）：${JSON.stringify(this.last)}`:''}
@@ -20,6 +21,7 @@ export class JevRun {
     let result:Decision|undefined,status:JevTrace['status']='error',summary='JEV 检查未完成'
     try{
       signal?.throwIfAborted()
+      if(this.routingCheck&&this.service.connection(cfg).state!=='ready')throw new JevError('模型调用方式已更新，请先检查候选模型')
       if(++this.count>cfg.maxChecks)throw new JevError('JEV 本轮达到检查次数上限；当前自动动作已停止，可新开一轮')
       const backend=this.service.backends.get(cfg.backend);if(!backend)throw new JevError('官方 JEV 扩展接口已预留，尚未接入；不会调用官网')
       const raw=typeof context==='string'?context:JSON.stringify(context)

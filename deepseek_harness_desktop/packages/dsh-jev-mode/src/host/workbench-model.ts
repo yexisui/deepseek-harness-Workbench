@@ -5,7 +5,7 @@ import {decision,JevError,JevTechnicalError,type JevBackend,type JevConfig} from
 import {modelAccount,accountKey} from './model-account.ts'
 import {reviewPrompt} from './review-prompt.ts'
 
-/** Explicit account mode delegates transport/credentials to the existing chat adapter. */
+/** Delegate transport and credentials to the configured chat adapter. */
 export class WorkbenchModel {
   private credentials=new Map<string,string>()
   constructor(private ctx:Context){}

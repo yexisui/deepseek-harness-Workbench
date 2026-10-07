@@ -27,7 +27,7 @@ it.each(['clarify','block'] as const)('stops an action on a valid %s instead of 
   expect(store.history()[0]?.status).toBe(kind==='block'?'blocked':'clarify')
 })
 it('skips an ineligible account without issuing its request',async()=>{
-  const assess=vi.fn<JevBackend['assess']>(async()=>pass),{service,store}=await setup(assess,v=>{if(v.model==='lan/one')throw new JevError('公网模型不能作为决策模型')})
+  const assess=vi.fn<JevBackend['assess']>(async()=>pass),{service,store}=await setup(assess,v=>{if(v.model==='lan/one')throw new JevError('所选模型账号未启用')})
   await service.begin('native:test').check('begin','hello');expect(assess.mock.calls[0]?.[0].config.model).toBe('lan/two');expect(store.history()[0]?.attempts?.[1]?.status).toBe('skipped')
 })
 it('cancellation aborts the chain, including an adapter that ignores its signal',async()=>{
@@ -59,11 +59,14 @@ it('validates candidates separately and preserves checks across reordering and s
   expect(service.connection({...cfg,candidates:cfg.candidates!.map(c=>({...c,enabled:false}))}).state).toBe('unconfigured')
   identity='v2';expect(service.connection(reversed).state).toBe('unverified');await expect(service.update(2,reversed)).rejects.toThrow('先检查')
 })
-it('falls back through real HTTP 503 and invalid JSON to an intranet success without rerunning a business action',async()=>{
+it('falls back through real HTTP 503 and invalid JSON to a configured-model success without rerunning a business action',async()=>{
   const called:string[]=[],server=createServer((req,res)=>{called.push(req.url!);if(req.url?.startsWith('/one')){res.writeHead(503);res.end();return}res.end(JSON.stringify({choices:[{message:{content:req.url?.startsWith('/two')?'invalid':JSON.stringify(pass)}}]}))})
   await new Promise<void>(r=>server.listen(0,'127.0.0.1',r));const port=(server.address() as any).port
   try{
-    const routes=['one','two','three'].map(id=>({provider:id,settingsNs:id,settingsPath:[]})),ctx:any={get:(name:string)=>name==='llm'?{listConfigurableProviders:()=>routes}:name==='settings'?{get:(id:string)=>({baseURL:'http://127.0.0.1:'+port+'/'+id})}:undefined},backend=new SelfOwnedBackend(ctx)
+    const routes=['one','two','three'].map(id=>({provider:id,settingsNs:id,settingsPath:[]})),ctx:any={get:(name:string)=>name==='llm'?{listConfigurableProviders:()=>routes,listProviders:()=>routes.map(r=>({id:r.provider})),stream:async function*({provider,signal}:any){
+      const res=await fetch('http://127.0.0.1:'+port+'/'+provider+'/chat/completions',{signal});if(!res.ok)throw {status:res.status}
+      const body:any=await res.json();yield {type:'text-delta',text:body.choices[0].message.content};yield {type:'finish',reason:{kind:'stop'}}
+    }}:name==='settings'?{get:(id:string)=>({baseURL:'http://127.0.0.1:'+port+'/'+id})}:undefined},backend=new SelfOwnedBackend(ctx)
     const {store}=await setup(async()=>pass),service=new JevService(store,backend,c=>backend.ready(c));await store.update(1,{...cfg,candidates:routes.map(r=>({id:r.provider,model:r.provider+'/model',enabled:true,reasoningEffort:''}))})
     const business=vi.fn(async()=> '你好');expect(await service.text('native:test','复述你好',business)).toBe('你好');expect(business).toHaveBeenCalledTimes(1)
     expect(called).toEqual(['/one/chat/completions','/two/chat/completions','/three/chat/completions','/one/chat/completions','/two/chat/completions','/three/chat/completions'])

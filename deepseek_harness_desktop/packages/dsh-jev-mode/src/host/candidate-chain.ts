@@ -45,5 +45,5 @@ export async function candidateChain(input:{
     if(result&&!input.diagnostic)return result
   }
   if(accepted)return accepted
-  throw new JevError(input.attempts.some(a=>a.status==='error')?'全部启用模型检查失败，当前自动步骤已停止':'没有可执行的启用模型，请添加并开启可用的内网模型')
+  throw new JevError(input.attempts.some(a=>a.status==='error')?'全部启用模型检查失败，当前自动步骤已停止':'没有可执行的启用模型，请添加并开启可用的模型')
 }
