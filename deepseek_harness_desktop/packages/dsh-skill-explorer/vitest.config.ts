@@ -1,7 +1,9 @@
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { defineConfig } from 'vitest/config'
+import {fileURLToPath} from 'node:url'
 
 export default defineConfig({
+  resolve: {alias: {react:fileURLToPath(new URL('./node_modules/react',import.meta.url))}},
   plugins: [tsconfigPaths({
     projects: [
       './tsconfig.vitest.json',

@@ -1,6 +1,6 @@
 import seed from './classification-seed.json'
 
-export interface InventoryEntry { entryId: string; moduleName: string; enabled: boolean; fiberPhase: string | null; origin?: string }
+export interface InventoryEntry { entryId: string; moduleName: string; enabled: boolean; fiberPhase: string | null; origin?: string; runtimeEnabled?:boolean; pendingRestart?:boolean; controlReason?:string; sourceModule?:string }
 export interface CategoryGroup { id: string; name: string }
 export interface CategoryModule extends CategoryGroup { groupId: string }
 export interface Classification { version: 1; revision: number; groups: CategoryGroup[]; modules: CategoryModule[]; assignments: Record<string,string> }

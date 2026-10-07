@@ -14,6 +14,8 @@ import { isSkillExplorerAllowed } from './access.ts'
 import { buildPayload, collectSkills, findProjectRoot, projectSkillRoot, trashSkillFile, userSkillRoot, writeSkillFile, type CollectOptions, type SkillEntry } from './collect.ts'
 import { setFrontmatterField } from './frontmatter.ts'
 import { readJsonBody, writeJson } from './http.ts'
+import { ManagedSkills } from './managed.ts'
+import {join as joinPath} from 'node:path'
 
 /** Route paths (client bundle mirrors these literals; tests assert both sides). */
 export const ROUTES = {
@@ -92,6 +94,22 @@ export function makeRoutes(ctx: Context, deps: SkillRoutesDeps): WebRoute[] {
     }
   }
 
+  const managed = new ManagedSkills(dshHome, sessionProjectRoots)
+  const managedRoute = (action: string, method: string): WebRoute => ({kind:'exact',path:'/api/dsh-skill-explorer/manage/'+action,handler:async(req,res)=>{
+    if(!guard(req,res,method))return
+    try {
+      if(method==='GET') {
+        if(action==='detail'){writeJson(res,200,managed.detail(new URL(req.url??'','http://localhost').searchParams.get('id')??''));return}
+        if(action==='export'){const id=new URL(req.url??'','http://localhost').searchParams.get('id')??'',out=managed.export(id);res.writeHead(200,{'content-type':'application/zip','content-disposition':`attachment; filename="${out.name}"`,'cache-control':'no-store'});res.end(out.bytes);return}
+        writeJson(res,200,{...managed.read(),projects:sessionProjectRoots()});return
+      }
+      const b=(await readJsonBody(req,{maxBytes:46*1024*1024,objectOnly:true})) as Record<string,any>|null
+      if(!b)throw Error('无效请求')
+      const result=action==='inspect'?managed.inspect(b as Parameters<ManagedSkills['inspect']>[0]):action==='commit'?managed.commit(String(b.id),b.choices,b.enabled===true):action==='discard'?managed.discard(String(b.id)):managed.change(String(b.id),Number(b.revision),String(b.action),b.value)
+      writeJson(res,200,result??{ok:true})
+    }catch(error){writeJson(res,400,{error:error instanceof Error?error.message:String(error)})}
+  }})
+
   /** Collect options shared by list/set-enabled/delete/health handlers. */
   const collectOptions = (cwd: string): CollectOptions => ({
     cwd,
@@ -128,6 +146,8 @@ export function makeRoutes(ctx: Context, deps: SkillRoutesDeps): WebRoute[] {
   }
 
   const routes: WebRoute[] = [
+    ...['list','export','detail'].map(action=>managedRoute(action,'GET')),
+    ...['inspect','commit','discard','change'].map(action=>managedRoute(action,'POST')),
     {
       kind: 'exact',
       path: ROUTES.list,
@@ -141,7 +161,8 @@ export function makeRoutes(ctx: Context, deps: SkillRoutesDeps): WebRoute[] {
           const cwd = queryParam(url, 'cwd') ?? sessionCwds[0] ?? DEFAULT_CWD()
           const projectRoots = sessionProjectRoots()
           const { skills, complete } = await collectSkills(collectOptions(cwd))
-          writeJson(res, 200, buildPayload(skills, complete, cwd, [...new Set(projectRoots)]))
+          const owned=new Set(managed.read().skills.map(s=>joinPath(s.root,s.name,'SKILL.md')))
+          writeJson(res, 200, buildPayload(skills.filter(s=>!s.path||!owned.has(s.path)), complete, cwd, [...new Set(projectRoots)]))
         } catch (error) {
           logger.warn(error)
           writeJson(res, 500, { error: error instanceof Error ? error.message : String(error) })
@@ -165,6 +186,8 @@ export function makeRoutes(ctx: Context, deps: SkillRoutesDeps): WebRoute[] {
             writeJson(res, 400, { error: 'expected { name, path, enabled }' })
             return
           }
+          const managedState=managed.read(),owned=managedState.skills.find(s=>joinPath(s.root,s.name,'SKILL.md')===path)
+          if(owned){managed.change(owned.id,managedState.revision,'enabled',enabled);writeJson(res,200,{name,enabled,modelInvocable:enabled&&owned.auto,path});return}
           // The client path is only an identity claim: a fresh scan must
           // resolve the same effective skill before any file is touched.
           const skill = await resolveMutationSkill(name, path, DEFAULT_CWD(), res)
@@ -250,6 +273,10 @@ export function makeRoutes(ctx: Context, deps: SkillRoutesDeps): WebRoute[] {
           const { name, path } = payload
           if (typeof name !== 'string' || !NAME_PATTERN.test(name) || typeof path !== 'string' || path.trim() === '') {
             writeJson(res, 400, { error: 'expected { name, path }' })
+            return
+          }
+          if(managed.read().skills.some(s=>joinPath(s.root,s.name,'SKILL.md')===path)){
+            writeJson(res,409,{error:'此技能由 Skills 导入模块管理，请从该模块移除以保留完整资源和恢复记录'})
             return
           }
           const skill = await resolveMutationSkill(name, path, DEFAULT_CWD(), res)

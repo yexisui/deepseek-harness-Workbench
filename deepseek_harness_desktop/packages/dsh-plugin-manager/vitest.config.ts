@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitest/config'
+import {fileURLToPath} from 'node:url'
 
 export default defineConfig({
+  resolve: {alias: {react:fileURLToPath(new URL('./node_modules/react',import.meta.url))}},
   // npm SDK packages reference sourcemaps that are not published (files
   // exclude *.map); do not attempt to load them during transform.
   server: {

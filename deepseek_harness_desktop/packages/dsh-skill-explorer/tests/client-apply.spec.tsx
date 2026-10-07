@@ -12,6 +12,7 @@ describe('skill-explorer client apply', () => {
     const registered: string[] = []
     const disposers: Array<() => void> = []
     const ctx = {
+      slots: {inject: (_:string,fn:()=>unknown)=>fn(),register:()=>()=>{}},
       effect: (fn: () => unknown) => {
         const disposer = fn()
         disposers.push(() => {

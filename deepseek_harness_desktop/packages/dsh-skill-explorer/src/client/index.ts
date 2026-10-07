@@ -22,6 +22,7 @@ import { setRuntimeTranslate } from './panel-helpers.ts'
 import { en, zh, type SkillExplorerKey } from './locales.ts'
 import { mountPanel } from './panel-mount.tsx'
 import { mountSidebarEntry } from './sidebar-entry.ts'
+import { SkillsSettings } from './SkillPanel.tsx'
 
 /** Locale namespace this plugin owns. */
 const NS = 'dsh-skill-explorer'
@@ -46,6 +47,8 @@ export type { SkillApi } from './api.ts'
  * @param ctx - client root context (locale service).
  */
 export function apply(ctx: ClientContext): void {
+
+  ctx.slots.inject('settings.section' as never, () => {try{return ctx.slots.register({name:'settings.section',id:'skills',order:22,label:()=> 'Skills 技能',locale:NS} as never, SkillsSettings as never)}catch{return()=>{}}})
 
   ctx.effect(() => {
     try {
