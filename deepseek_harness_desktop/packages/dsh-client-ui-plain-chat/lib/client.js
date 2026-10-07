@@ -870,7 +870,8 @@ window.__ModuleLoader__.load({
 				"duties",
 				"requirements",
 				"format",
-				"capabilities"
+				"capabilities",
+				"skills"
 			].some((key) => JSON.stringify(role.draft[key]) !== JSON.stringify(published[key]));
 		}
 		//#endregion
@@ -5848,7 +5849,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 		/** Reuses the tested resize/drag hooks and the established compact row design. */
-		function ManagedWorkbench({ library, attached, selected, onSelect, onAdd, onRemove, form, inspector, title, libraryTitle, onManage, manageLabel = "管理能力", onReorder, removeIcon, attachedTitle = "已添加的配件", compositionNotice }) {
+		function ManagedWorkbench({ library, attached, selected, onSelect, onAdd, onRemove, form, inspector, title, libraryTitle, onManage, manageLabel = "管理能力", onReorder, removeIcon, attachedTitle = "已添加的配件", compositionNotice, libraryNote = "仅列出已适配的组件和已发布的能力" }) {
 			const panels = useCapabilityPanels(attached.length > 0), prefix = (0, react.useId)();
 			const [query, setQuery] = (0, react.useState)(""), [feedback, setFeedback] = (0, react.useState)(null);
 			const cards = (0, react.useRef)(/* @__PURE__ */ new Map());
@@ -5996,7 +5997,7 @@ window.__ModuleLoader__.load({
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 									className: Capabilities_module_css_default.libraryNote,
-									children: "仅列出已适配的组件和已发布的能力"
+									children: libraryNote
 								})
 							]
 						}),
@@ -10319,6 +10320,66 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region src/client/RoleSkills.tsx
+		function useRoleSkillCatalog() {
+			const [skills, setSkills] = (0, react.useState)([]), [error, setError] = (0, react.useState)("");
+			(0, react.useEffect)(() => {
+				const controller = new AbortController();
+				fetch("/api/dsh-skill-explorer/manage/list", { signal: controller.signal }).then(async (r) => {
+					if (!r.ok) throw Error("无法读取 Skills 列表");
+					return r.json();
+				}).then((data) => setSkills(data.skills.filter((v) => !v.removed))).catch((e) => {
+					if (!controller.signal.aborted) setError("技能列表读取失败：" + String(e.message));
+				});
+				return () => controller.abort();
+			}, []);
+			return {
+				skills,
+				error
+			};
+		}
+		function RoleSkillInspector({ binding, skill, onChange }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: binding?.name ?? skill?.name }),
+				skill && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: skill.description }),
+				binding ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+						className: ManagedCapabilities_module_css_default.check,
+						children: ["在此岗位中启用 ", /* @__PURE__ */ (0, react_jsx_runtime.jsx)(EnableSwitch, {
+							label: "在此岗位中启用 " + binding.name,
+							checked: binding.enabled,
+							onChange: (enabled) => onChange({
+								...binding,
+								enabled
+							})
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["技能版本：", binding.hash.slice(0, 12)] }),
+					skill && skill.hash !== binding.hash && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.button,
+						onClick: () => onChange({
+							...binding,
+							hash: skill.hash
+						}),
+						children: "采用当前技能版本"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: "保存草稿保留编辑；发布后新对话使用所选技能版本。移除不删除技能文件。"
+					})
+				] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "添加到岗位后，可设置是否启用。" }),
+				skill && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+					className: ManagedCapabilities_module_css_default.muted,
+					children: [
+						"来源：",
+						skill.scope === "global" ? "工作台全局" : skill.scope,
+						" · ",
+						skill.enabled ? "已启用" : "已停用"
+					]
+				})
+			] });
+		}
+		//#endregion
 		//#region src/client/role-catalog.ts
 		const roleIds = [
 			"analyst",
@@ -11468,7 +11529,8 @@ window.__ModuleLoader__.load({
 			format: "输出格式",
 			color: "配色",
 			icon: "图标",
-			capabilities: "能力与动作范围"
+			capabilities: "能力与动作范围",
+			skills: "Skills 技能与版本"
 		};
 		function roleVersionChanges(version, previous) {
 			return previous ? Object.entries(fields).filter(([key]) => JSON.stringify(version[key]) !== JSON.stringify(previous[key])).map(([, label]) => label) : ["首次发布"];
@@ -11506,9 +11568,9 @@ window.__ModuleLoader__.load({
 							className: ManagedCapabilities_module_css_default.versionValue,
 							children: version[field] || "未填写"
 						})] }, field)) }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("ul", {
 							className: ManagedCapabilities_module_css_default.list,
-							children: version.capabilities.map((binding) => {
+							children: [version.capabilities.map((binding) => {
 								const capability = resolveBinding(data.state, binding);
 								return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
 									capability?.name ?? "能力缺失",
@@ -11517,7 +11579,13 @@ window.__ModuleLoader__.load({
 									" · ",
 									binding.enabled ? (binding.actions ?? actionsOf(capability)).map((action) => actionNames[action]).join("、") || "无执行动作" : "岗位中停用"
 								] }, binding.capabilityId);
-							})
+							}), version.skills?.map((binding) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+								binding.name,
+								" · Skill · ",
+								binding.hash.slice(0, 12),
+								" · ",
+								binding.enabled ? "岗位中启用" : "岗位中停用"
+							] }, "skill:" + binding.id))]
 						}),
 						!role.archivedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 							className: ManagedCapabilities_module_css_default.button,
@@ -11581,6 +11649,7 @@ window.__ModuleLoader__.load({
 		function RoleForm({ id, onClose, restore }) {
 			const restored = restoredFrame(restore, "role-editor")?.view;
 			const { data } = useCapabilities(), state = data.state, role = state.roles.find((r) => r.id === id), key = `role:${id ?? "new"}`, cached = editorDrafts.get(key);
+			const { skills: skillCatalog, error: skillCatalogError } = useRoleSkillCatalog();
 			const meetingStatus = useMeetingStatus();
 			const { availability: requirementsStatus } = useRequirementAvailability(state.revision);
 			const [draft, setDraft] = (0, react.useState)(() => structuredClone(cached?.value ?? role?.draft ?? emptyRole()));
@@ -11608,6 +11677,7 @@ window.__ModuleLoader__.load({
 					revision
 				});
 			};
+			const skillId = selected?.startsWith("skill:") ? selected.slice(6) : void 0, skillBinding = draft.skills?.find((b) => b.id === skillId), selectedSkill = skillCatalog.find((s) => s.id === skillId);
 			const binding = draft.capabilities.find((b) => b.capabilityId === selected), cap = state.capabilities.find((c) => c.id === selected), version = binding && resolveBinding(state, binding);
 			const describe = (c, v = c && latest(c.versions)) => c ? capabilityPresentation(data, c, v, meetingStatus, requirementsStatus) : {
 				icon: "document",
@@ -11651,14 +11721,21 @@ window.__ModuleLoader__.load({
 					selected,
 					onSelect: setSelected,
 					onManage: () => setCenter(true),
-					library: state.capabilities.filter((c) => !c.removedAt && c.versions.length && (id === "meeting-minutes-demo" ? c.id === "meeting-transcription" : c.id !== "meeting-transcription")).map((c) => ({
+					libraryNote: "列出已发布的能力及已导入的 Skills 技能",
+					library: [...state.capabilities.filter((c) => !c.removedAt && c.versions.length && (id === "meeting-minutes-demo" ? c.id === "meeting-transcription" : c.id !== "meeting-transcription")).map((c) => ({
 						id: c.id,
 						name: c.draft.name,
 						icon: describe(c).icon,
 						subtitle: `v${latest(c.versions).version} · ${c.enabled ? "已发布" : "已停用"}`,
 						disabled: id === MEETING_ROLE_ID
-					})),
-					attached: draft.capabilities.map((b) => {
+					})), ...skillCatalog.filter((s) => s.name !== "browser-skill").map((s) => ({
+						id: "skill:" + s.id,
+						name: s.name,
+						subtitle: "Skill · " + s.description,
+						icon: "document",
+						group: "Skills 技能"
+					}))],
+					attached: [...draft.capabilities.map((b) => {
 						const c = state.capabilities.find((c) => c.id === b.capabilityId), presentation = describe(c, resolveBinding(state, b));
 						return {
 							id: b.capabilityId,
@@ -11667,8 +11744,28 @@ window.__ModuleLoader__.load({
 							subtitle: `v${b.version} · ${c?.removedAt ? "能力已移除" : !b.enabled ? "岗位中停用" : !c?.enabled ? "能力已停用" : presentation.label}`,
 							removable: b.capabilityId !== MEETING_CAPABILITY_ID
 						};
-					}),
+					}), ...(draft.skills ?? []).map((b) => ({
+						id: "skill:" + b.id,
+						name: b.name,
+						subtitle: "Skill · " + b.hash.slice(0, 12) + (b.enabled ? "" : " · 岗位中停用"),
+						icon: "document",
+						removable: true
+					}))],
 					onAdd: (capabilityId) => {
+						if (capabilityId.startsWith("skill:")) {
+							const row = skillCatalog.find((s) => s.id === capabilityId.slice(6));
+							if (row && !draft.skills?.some((b) => b.id === row.id)) change({
+								...draft,
+								skills: [...draft.skills ?? [], {
+									id: row.id,
+									name: row.name,
+									hash: row.hash,
+									enabled: true
+								}]
+							});
+							setSelected(capabilityId);
+							return;
+						}
 						if (id === "meeting-minutes-demo") return;
 						const c = state.capabilities.find((c) => c.id === capabilityId), v = c && latest(c.versions);
 						if (v && !c?.removedAt && !draft.capabilities.some((b) => b.capabilityId === capabilityId)) change({
@@ -11682,11 +11779,23 @@ window.__ModuleLoader__.load({
 						setSelected(capabilityId);
 					},
 					onRemove: (capabilityId) => {
+						if (capabilityId.startsWith("skill:")) {
+							change({
+								...draft,
+								skills: (draft.skills ?? []).filter((b) => b.id !== capabilityId.slice(6))
+							});
+							return;
+						}
 						if (capabilityId !== "meeting-transcription") change({
 							...draft,
 							capabilities: draft.capabilities.filter((b) => b.capabilityId !== capabilityId)
 						});
 					},
+					compositionNotice: skillCatalogError ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "alert",
+						className: ManagedCapabilities_module_css_default.error,
+						children: skillCatalogError
+					}) : void 0,
 					form: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.fields}`,
 						children: [
@@ -11799,7 +11908,14 @@ window.__ModuleLoader__.load({
 					}),
 					inspector: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 						className: ManagedCapabilities_module_css_default.page,
-						children: cap?.id === "meeting-transcription" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+						children: skillId ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleSkillInspector, {
+							binding: skillBinding,
+							skill: selectedSkill,
+							onChange: (value) => change({
+								...draft,
+								skills: (draft.skills ?? []).map((b) => b.id === value.id ? value : b)
+							})
+						}) : cap?.id === "meeting-transcription" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: cap.draft.name }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 								className: ManagedCapabilities_module_css_default.muted,
@@ -11983,15 +12099,20 @@ window.__ModuleLoader__.load({
 								" · v",
 								(latest(role?.versions ?? [])?.version ?? 0) + 1
 							] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("ul", {
 								className: ManagedCapabilities_module_css_default.list,
-								children: draft.capabilities.map((b) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+								children: [draft.skills?.map((b) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
+									b.name,
+									" · Skill · ",
+									b.hash.slice(0, 12),
+									b.enabled ? "" : " · 停用"
+								] }, "skill:" + b.id)), draft.capabilities.map((b) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("li", { children: [
 									state.capabilities.find((c) => c.id === b.capabilityId)?.draft.name,
 									" · v",
 									b.version,
 									" · ",
 									b.enabled ? (b.actions ?? actionsOf(resolveBinding(state, b))).map((a) => actionNames[a]).join("、") : "停用"
-								] }, b.capabilityId))
+								] }, b.capabilityId))]
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 								className: ManagedCapabilities_module_css_default.notice,
