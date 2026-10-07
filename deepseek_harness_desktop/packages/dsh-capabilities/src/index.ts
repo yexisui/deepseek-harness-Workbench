@@ -1,3 +1,4 @@
+import { ModelAccess } from './host/model-access.ts'
 import {RoleSkills} from './host/role-skills.ts'
 import { CapabilityPackages } from './host/packages.ts'
 import { PackageRunner } from './host/package-runner.ts'
@@ -32,7 +33,7 @@ import { apply as installJev } from '../../dsh-jev-mode/src/index.ts'
 
 const ASR_NAMESPACE = 'meeting-asr'
 const AsrSchema: z<MeetingAsrConfig> = z.object({
-  endpoint: z.string(), model: z.string(), apiKey: z.string().role('secret'),
+  modelRef: z.string().default(''), endpoint: z.string(), model: z.string(), apiKey: z.string().role('secret'),
   format: z.union(['json', 'verbose_json']), maxMb: z.number().step(1).min(1).max(100),
 })
 
@@ -79,21 +80,30 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
     })
   })
   const asrDescriptor = () => asrSettings?.describe().find(item => item.ns === ASR_NAMESPACE)
+  const modelAccess = new ModelAccess(ctx)
   const effectiveAsr = () => {
     const value = currentAsr()
+    if (value.modelRef) return modelAccess.metadata(value.modelRef, value.format, value.maxMb)
     const user = asrDescriptor()?.user as Partial<MeetingAsrConfig> | undefined
     // Never forward the environment's bearer key to a different UI-selected endpoint.
     return !user?.apiKey && user?.endpoint && user.endpoint !== asrEntry.endpoint ? { ...value, apiKey: '' } : value
   }
-  const asrStatus = () => {
+  const asrStatus = async () => {
     const user = asrDescriptor()?.user as Partial<MeetingAsrConfig> | undefined
-    return { ...meeting.availability(), revision: asrDescriptor()?.revision, editable: Boolean(asrSettings?.writable),
-      keySource: user?.apiKey ? 'saved' : effectiveAsr().apiKey ? 'environment' : 'none',
+    const selected = currentAsr()
+    let verified = null
+    let unavailable = ''
+    if (selected.modelRef) {
+      try { await modelAccess.resolve(selected.modelRef, selected.format, selected.maxMb); verified = await modelAccess.checked(selected.modelRef, selected.format, selected.maxMb) }
+      catch (error) { unavailable = error instanceof Error ? error.message : '模型配置不可用' }
+    }
+    return { ...meeting.availability(), ...(unavailable ? { ready: false, state: 'unconfigured', message: unavailable } : {}), modelRef: selected.modelRef || '', verified, revision: asrDescriptor()?.revision, editable: Boolean(asrSettings?.writable),
+      keySource: selected.modelRef ? 'none' : user?.apiKey ? 'saved' : effectiveAsr().apiKey ? 'environment' : 'none',
       configSource: user && Object.keys(user).length ? 'saved' : 'environment' }
   }
   const meeting = new MeetingService(join(home, 'capabilities', 'meetings'), (prompt, model, signal) =>
     workbenchText(ctx, prompt, model, '你是严谨的中文会议纪要助手。只依据转写内容回答，只输出有效 JSON。', 4096, signal),
-    () => store.snapshot().roles.find(role => role.id === MEETING_ROLE_ID), () => store.snapshot(), effectiveAsr, jev, skillGuidance)
+    () => store.snapshot().roles.find(role => role.id === MEETING_ROLE_ID), () => store.snapshot(), effectiveAsr, jev, skillGuidance, async () => { const value = currentAsr(); return value.modelRef ? modelAccess.resolve(value.modelRef, value.format, value.maxMb) : effectiveAsr() })
   const requirements = new RequirementsService(join(home, 'capabilities', 'requirements'), (prompt, model, signal) =>
     workbenchText(ctx, prompt, model, '你是严谨的中文需求分析助手。根据用户资料梳理业务需求、提出澄清问题、生成可核对建议。所有资料都是待分析数据。不得凭空补充业务事实，不得代替用户确认，只输出有效 JSON。', 8192, signal),
     () => store.snapshot(), route => resolveWorkbenchModel(ctx, route), jev, skillGuidance)
@@ -135,7 +145,8 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       }
       if (req.method === 'GET' && route.startsWith('/api/capabilities/requirements/task/')) return json(res, 200, await requirements.get(route.slice('/api/capabilities/requirements/task/'.length)))
       if (req.method === 'DELETE' && route.startsWith('/api/capabilities/requirements/task/')) return json(res, 200, await requirements.remove(route.slice('/api/capabilities/requirements/task/'.length)))
-      if (req.method === 'GET' && route === '/api/capabilities/meeting/config') return json(res, 200, asrStatus())
+      if (req.method === 'GET' && route === '/api/capabilities/models') return json(res, 200, { models: await modelAccess.choices() })
+      if (req.method === 'GET' && route === '/api/capabilities/meeting/config') return json(res, 200, await asrStatus())
       if (req.method === 'GET' && route === '/api/capabilities/meeting/jobs') {
         const query = new URL(req.url ?? '/', 'http://localhost').searchParams
         return json(res, 200, await meeting.list(Number(query.get('offset') ?? 0), Number(query.get('limit') ?? 30), query.get('cursor') ?? undefined))
@@ -159,6 +170,12 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (route === '/api/capabilities/requirements/create') return json(res, 201, await requirements.create(body))
       if (route === '/api/capabilities/requirements/command') return json(res, 200, await requirements.command(text(body.id, '需求任务标识', 36, true), body.revision, body.command))
       if (route === '/api/capabilities/requirements/config') return json(res, 200, await requirements.configure(body.revision, body.defaults))
+      if (route === '/api/capabilities/models/reveal') return json(res, 200, await modelAccess.reveal(text(body.provider, '模型服务', 200, true)))
+      if (route === '/api/capabilities/meeting/check-model') {
+        const ref = text(body.modelRef, '模型', 400, true)
+        const format = body.format === 'verbose_json' ? 'verbose_json' : 'json'
+        return json(res, 200, await modelAccess.check(ref, format, Number(body.maxMb ?? 25)))
+      }
       if (route === '/api/capabilities/meeting/config/reveal') {
         const user = asrDescriptor()?.user as Partial<MeetingAsrConfig> | undefined
         if (!user?.apiKey) throw new InputError('当前密钥由环境变量提供，不能在界面查看', 403)
@@ -169,7 +186,13 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
         const revision = Number(body.revision)
         if (!Number.isInteger(revision)) throw new InputError('配置版本无效，请刷新后重试')
         if (body.reset === true) await asrSettings.replace(ASR_NAMESPACE, {}, revision)
-        else {
+        else if (body.modelRef !== undefined) {
+          const modelRef = text(body.modelRef, '模型', 400, true)
+          const format = body.format === 'verbose_json' ? 'verbose_json' : 'json'
+          const maxMb = Number(body.maxMb ?? 25)
+          await modelAccess.resolve(modelRef, format, maxMb)
+          await asrSettings.mutate(ASR_NAMESPACE, [{ op: 'set', path: ['modelRef'], value: modelRef }, { op: 'set', path: ['format'], value: format }, { op: 'set', path: ['maxMb'], value: maxMb }], revision)
+        } else {
           const endpoint = text(body.endpoint, '服务地址', 2048, true).trim()
           const model = text(body.model, '识别模型', 200, true).trim()
           const format = body.format === 'json' ? 'json' : body.format === 'verbose_json' ? 'verbose_json' : ''
@@ -186,7 +209,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
           if (body.clearKey === true) ops.push({ op: 'unset', path: ['apiKey'] })
           await asrSettings.mutate(ASR_NAMESPACE, ops, revision)
         }
-        return json(res, 200, asrStatus())
+        return json(res, 200, await asrStatus())
       }
       if (route === '/api/capabilities/meeting/create') return json(res, 201, await meeting.create(body))
       if (route === '/api/capabilities/meeting/retry') return json(res, 202, await meeting.retry(text(body.id, '任务标识', 36)))

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-export type MeetingAvailability = { ready: boolean; error?: string; state?: 'ready' | 'unconfigured' | 'disabled'; message: string; endpointHost?: string; endpoint?: string; asrModel?: string; format?: 'json' | 'verbose_json'; maxMb?: number; hasKey?: boolean; keySource?: 'saved' | 'environment' | 'none'; configSource?: 'saved' | 'environment'; editable?: boolean; revision?: number; provider?: string; maxBytes?: number }
+export type MeetingAvailability = { modelRef?: string; verified?: { at: string; text: string; timestamps: boolean; speakers: boolean } | null; ready: boolean; error?: string; state?: 'ready' | 'unconfigured' | 'disabled'; message: string; endpointHost?: string; endpoint?: string; asrModel?: string; format?: 'json' | 'verbose_json'; maxMb?: number; hasKey?: boolean; keySource?: 'saved' | 'environment' | 'none'; configSource?: 'saved' | 'environment'; editable?: boolean; revision?: number; provider?: string; maxBytes?: number }
 
 export function useMeetingAvailability(revision?: number) {
   const [status, setStatus] = useState<MeetingAvailability | null>(null)

@@ -1,81 +1,57 @@
-import { useLeaveGuard } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
-import { useState } from 'react'
+import { useLeaveGuard, openWorkbenchLink } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
+import { useEffect, useRef, useState } from 'react'
 import type { MeetingAvailability } from './meeting-capability-status.ts'
 import s from './ManagedCapabilities.module.css'
 
+type Choice = { id: string; name: string; provider: string; selectable: boolean; reason?: string }
+type Check = { at: string; text: string; timestamps: boolean; speakers: boolean }
 type Props = { status: MeetingAvailability | null; refresh: () => Promise<void>; disabled?: boolean; onEditingChange?: (editing: boolean) => void }
-
-async function post(path: string, body: object) {
-  const response = await fetch(`/api/capabilities/meeting/${path}`, {
-    method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
-  })
-  const result = await response.json() as { error?: string; apiKey?: string }
-  if (!response.ok) throw new Error(result.error || `保存失败（${response.status}）`)
-  return result
+async function api(path: string, body?: object) {
+  const response = await fetch(`/api/capabilities/${path}`, { method: body ? 'POST' : 'GET', credentials: 'same-origin', headers: body ? { 'content-type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined })
+  const value = await response.json()
+  if (!response.ok) throw new Error(value.error || `操作失败（${response.status}）`)
+  return value
 }
-
-function EyeIcon({ visible }: { visible: boolean }) {
-  return <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/>
-    {!visible && <path d="M3 21 21 3"/>}
-  </svg>
-}
-
 export function MeetingAsrSettings({ status, refresh, disabled, onEditingChange }: Props) {
-  const [editing, setEditing] = useState(false)
-  const [endpoint, setEndpoint] = useState(''), [model, setModel] = useState('')
-  const [format, setFormat] = useState<'json' | 'verbose_json'>('verbose_json'), [maxMb, setMaxMb] = useState(25)
-  const [keyDraft, setKeyDraft] = useState(''), [keyDirty, setKeyDirty] = useState(false), [keyVisible, setKeyVisible] = useState(false)
-  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('')
-  const start = () => {
-    setEndpoint(status?.endpoint ?? ''); setModel(status?.asrModel ?? '')
-    setFormat(status?.format === 'json' ? 'json' : 'verbose_json'); setMaxMb(status?.maxMb ?? 25)
-    setKeyDraft(''); setKeyDirty(false); setKeyVisible(false); setError(''); setNotice(''); setEditing(true); onEditingChange?.(true)
-  }
-  const stop = () => { setEditing(false); setKeyDraft(''); setKeyVisible(false); setKeyDirty(false); setError(''); onEditingChange?.(false) }
+  const [editing, setEditing] = useState(false), [models, setModels] = useState<Choice[]>([])
+  const [selected, setSelected] = useState(''), [search, setSearch] = useState('')
+  const [format, setFormat] = useState<'json' | 'verbose_json'>('json'), [maxMb, setMaxMb] = useState(25)
+  const [busy, setBusy] = useState(''), [error, setError] = useState(''), [notice, setNotice] = useState('')
+  const [result, setResult] = useState<Check | null>(null)
+  const sequence = useRef(0)
+  const reload = async () => { try { const data = await api('models'); if (!Array.isArray(data.models)) throw new Error('模型列表暂不可用，请刷新或重启工作台后重试'); setModels(data.models) } catch (e) { setError(e instanceof Error ? e.message : '读取模型失败') } }
+  useEffect(() => { void reload(); return () => { sequence.current++ } }, [])
+  const stop = () => { sequence.current++; setEditing(false); setBusy(''); setError(''); setResult(null); onEditingChange?.(false) }
   useLeaveGuard(editing, stop)
-  const toggleKey = async () => {
-    if (keyVisible) { setKeyVisible(false); if (!keyDirty) setKeyDraft(''); return }
-    if (!keyDraft && status?.keySource === 'saved') {
-      setBusy(true); setError('')
-      try { const value = await post('config/reveal', {}); setKeyDraft(value.apiKey ?? '') }
-      catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); return }
-      finally { setBusy(false) }
-    } else if (!keyDraft && status?.keySource === 'environment') {
-      setError('环境变量提供的密钥不能在界面查看；可直接输入新密钥覆盖。')
-      return
-    }
-    setKeyVisible(true)
+  const start = () => { setSelected(status?.modelRef || ''); setFormat(status?.modelRef ? status.format || 'json' : 'json'); setMaxMb(status?.maxMb || 25); setError(''); setNotice(''); setResult(null); setEditing(true); onEditingChange?.(true); void reload() }
+  const check = async () => {
+    const version = ++sequence.current
+    setBusy('check'); setError(''); setResult(null)
+    try { const data = await api('meeting/check-model', { modelRef: selected, format, maxMb }); if (version === sequence.current) setResult(data) }
+    catch (e) { if (version === sequence.current) setError(e instanceof Error ? e.message : '检测失败') }
+    finally { if (version === sequence.current) setBusy('') }
   }
-  const save = async (clearKey = false) => {
-    if (!endpoint.trim() || !model.trim()) { setError('请填写服务地址和识别模型'); return }
-    if (!Number.isInteger(maxMb) || maxMb < 1 || maxMb > 100) { setError('录音大小限制应为 1–100 MB'); return }
-    setBusy(true); setError(''); setNotice('')
-    try {
-      await post('config', { revision: status?.revision, endpoint: endpoint.trim(), model: model.trim(), format, maxMb,
-        ...(clearKey ? { clearKey: true } : keyDirty && keyDraft.trim() ? { apiKey: keyDraft.trim() } : {}) })
-      await refresh(); stop(); setNotice(clearKey ? '已移除界面保存的密钥。' : '识别配置已保存并生效。')
-    } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
-    finally { setBusy(false) }
+  const save = async () => {
+    setBusy('save'); setError('')
+    try { await api('meeting/config', { revision: status?.revision, modelRef: selected, format, maxMb }); await refresh(); stop(); setNotice('模型选择已保存，新转写任务立即生效。') }
+    catch (e) { setError(e instanceof Error ? e.message : '保存失败') }
+    finally { setBusy('') }
   }
-  const reset = async () => {
-    if (!window.confirm('恢复使用工作台环境变量中的语音识别配置？')) return
-    setBusy(true); setError('')
-    try { await post('config', { revision: status?.revision, reset: true }); await refresh(); stop(); setNotice('已恢复使用环境变量配置。') }
-    catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
-    finally { setBusy(false) }
-  }
+  const chosen = models.find(model => model.id === selected)
+  const filtered = models.filter(model => model.id === selected || `${model.name} ${model.provider} ${model.id}`.toLowerCase().includes(search.toLowerCase()))
   return <>
-    <div className={s.row}><div><strong>兼容语音识别接口</strong><small>服务地址：{status?.endpoint || '待配置'}</small><small>识别模型：{status?.asrModel || '待配置'}</small><small>API Key：{status?.hasKey ? '********' : '未配置或本地服务无需密钥'}{status?.keySource === 'environment' ? '（环境变量）' : ''}</small></div>
-      {!editing && <button className={s.button} disabled={disabled || !status?.editable} onClick={start}>编辑识别配置</button>}</div>
+    <div className={s.row}><div style={{ minWidth: 0, overflowWrap: 'anywhere' }}><strong>语音识别模型</strong><small>{status?.modelRef || (status?.endpoint ? `旧版配置：${status.asrModel}（选择统一模型后切换）` : '待选择')}</small><small>地址和 API Key 由模型模块统一管理</small><small>{status?.verified ? `转写已验证 · ${new Date(status.verified.at).toLocaleString()}` : '尚未验证转写支持'}</small></div>{!editing && <button className={s.button} disabled={disabled || !status?.editable} onClick={start}>选择模型</button>}</div>
     {editing && <div className={s.fields} data-meeting-asr-editor>
-      <label className={s.field}>服务地址<input aria-label="语音识别服务地址" value={endpoint} onChange={event => setEndpoint(event.target.value)} placeholder="https://.../v1/audio/transcriptions"/></label>
-      <label className={s.field}>识别模型<input aria-label="语音识别模型" value={model} onChange={event => setModel(event.target.value)} placeholder="例如 whisper-1"/></label>
-      <label className={s.field}>API Key<div className={s.secretField}><input aria-label="语音识别 API Key" type={keyVisible ? 'text' : 'password'} value={keyDraft} placeholder={status?.hasKey ? '********' : '可选，本地服务可留空'} autoComplete="off" spellCheck={false} onChange={event => { setKeyDraft(event.target.value); setKeyDirty(true) }}/><button type="button" className={s.iconButton} aria-label={keyVisible ? '隐藏 API Key' : '显示 API Key'} title={keyVisible ? '隐藏 API Key' : '显示 API Key'} disabled={busy} onClick={() => void toggleKey()}><EyeIcon visible={keyVisible}/></button></div></label>
-      <div className={s.actions}><label className={s.field}>响应格式<select value={format} onChange={event => setFormat(event.target.value as 'json' | 'verbose_json')}><option value="verbose_json">verbose_json（含时间片段）</option><option value="json">json</option></select></label><label className={s.field}>录音大小上限（MB）<input aria-label="录音大小上限" type="number" min="1" max="100" value={maxMb} onChange={event => setMaxMb(Number(event.target.value))}/></label></div>
-      <div className={s.actions}><button className={`${s.button} ${s.primary}`} disabled={busy} onClick={() => void save()}>{busy ? '保存中…' : '保存配置'}</button><button className={s.button} disabled={busy} onClick={stop}>取消</button>{status?.keySource === 'saved' && <button className={s.button} disabled={busy} onClick={() => void save(true)}>移除已保存密钥</button>}{status?.configSource === 'saved' && <button className={s.button} disabled={busy} onClick={() => void reset()}>恢复环境变量配置</button>}</div>
+      <label className={s.field}>搜索模型<input value={search} onChange={e => setSearch(e.target.value)} aria-label="搜索语音模型" placeholder="模型名称或服务商" disabled={!!busy}/></label>
+      <label className={s.field}>识别模型<select aria-label="语音识别模型" value={selected} disabled={!!busy} onChange={e => { setSelected(e.target.value); setResult(null); setError('') }}><option value="">请选择已管理的模型</option>{selected && !models.some(m => m.id === selected) && <option value={selected} disabled>{selected}（已移除或停用）</option>}{[...new Set(filtered.map(m => m.provider))].map(provider => <optgroup key={provider} label={provider}>{filtered.filter(m => m.provider === provider).map(m => <option key={m.id} value={m.id} disabled={!m.selectable}>{m.name}{m.selectable ? ' · 待检测转写支持' : ' · 未适配'}</option>)}</optgroup>)}</select></label>
+      {chosen?.reason && <p className={s.muted}>{chosen.reason}</p>}
+      <div className={s.actions}><button className={s.button} disabled={!!busy} onClick={() => void reload()}>刷新模型</button><button className={s.button} disabled={!!busy} onClick={() => openWorkbenchLink({ section: 'models' })}>管理模型 ↗</button></div>
+      <details><summary>转写选项</summary><div className={s.actions}><label className={s.field}>响应格式<select disabled={!!busy} value={format} onChange={e => { setFormat(e.target.value as 'json' | 'verbose_json'); setResult(null) }}><option value="json">JSON（通用文本）</option><option value="verbose_json">详细 JSON（服务支持时含时间片段）</option></select></label><label className={s.field}>录音上限（MB）<input type="number" min={1} max={100} disabled={!!busy} value={maxMb} onChange={e => { setMaxMb(Number(e.target.value)); setResult(null) }}/></label></div></details>
+      <p className={s.muted}>检测将向所选模型发送一段内置短语音，不使用你的录音；可能产生少量调用费用。检测不保存选择。</p>
+      <div className={s.actions}><button className={s.button} disabled={!!busy || !chosen?.selectable} onClick={() => void check()}>{busy === 'check' ? '正在检测…' : '检测转写'}</button><button className={`${s.button} ${s.primary}`} disabled={!!busy || !chosen?.selectable} onClick={() => void save()}>{busy === 'save' ? '保存中…' : '保存选择'}</button><button className={s.button} disabled={!!busy} onClick={stop}>取消</button></div>
+      {result && <p className={s.notice} role="status">转写检测通过：{result.text}<br/>时间片段：{result.timestamps ? '本次返回' : '本次未返回'}；说话人：{result.speakers ? '本次返回' : '本次未返回'}</p>}
     </div>}
     {error && <p className={s.error} role="alert">{error}</p>}{notice && <p className={s.notice} role="status">{notice}</p>}
-    <p className={s.muted}>录音转写使用这里的接口；纪要生成模型仍在会议对话中选择。保存后无需重启工作台。</p>
+    <p className={s.muted}>识别模型负责录音转文字，纪要模型仍在会议对话中选择。已配置不代表支持语音，请先检测。</p>
   </>
 }

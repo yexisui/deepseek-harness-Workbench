@@ -6525,7 +6525,7 @@ window.__ModuleLoader__.load({
 				status: meetingStatus?.ready ? "识别接口已配置 · 待实际调用验证" : meetingStatus?.message ?? "正在读取识别配置…",
 				title: "语音识别服务",
 				name: "兼容音频转写接口",
-				detail: "接口配置独立保存，作用于新转写任务。工作台提供设置存储与纪要模型；凭据不会写入能力版本。",
+				detail: "从模型模块选择识别模型并检测，地址与凭据统一管理。保存选择后作用于新转写任务；凭据不会写入能力版本。",
 				configuration: "配置服务",
 				publishNotice: "当前会议流程必须保留转写组件和动作。发布新的能力版本不会清除录音、转写、纪要或服务配置；岗位是否采用新版本由下方选择决定。"
 			})
@@ -13640,156 +13640,117 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region src/client/MeetingAsrSettings.tsx
-		async function post$2(path, body) {
-			const response = await fetch(`/api/capabilities/meeting/${path}`, {
-				method: "POST",
+		async function api$1(path, body) {
+			const response = await fetch(`/api/capabilities/${path}`, {
+				method: body ? "POST" : "GET",
 				credentials: "same-origin",
-				headers: { "content-type": "application/json" },
-				body: JSON.stringify(body)
+				headers: body ? { "content-type": "application/json" } : {},
+				body: body ? JSON.stringify(body) : void 0
 			});
-			const result = await response.json();
-			if (!response.ok) throw new Error(result.error || `保存失败（${response.status}）`);
-			return result;
-		}
-		function EyeIcon({ visible }) {
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
-				"aria-hidden": "true",
-				viewBox: "0 0 24 24",
-				width: "18",
-				height: "18",
-				fill: "none",
-				stroke: "currentColor",
-				strokeWidth: "1.8",
-				strokeLinecap: "round",
-				strokeLinejoin: "round",
-				children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" }),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
-						cx: "12",
-						cy: "12",
-						r: "2.5"
-					}),
-					!visible && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 21 21 3" })
-				]
-			});
+			const value = await response.json();
+			if (!response.ok) throw new Error(value.error || `操作失败（${response.status}）`);
+			return value;
 		}
 		function MeetingAsrSettings({ status, refresh, disabled, onEditingChange }) {
-			const [editing, setEditing] = (0, react.useState)(false);
-			const [endpoint, setEndpoint] = (0, react.useState)(""), [model, setModel] = (0, react.useState)("");
-			const [format, setFormat] = (0, react.useState)("verbose_json"), [maxMb, setMaxMb] = (0, react.useState)(25);
-			const [keyDraft, setKeyDraft] = (0, react.useState)(""), [keyDirty, setKeyDirty] = (0, react.useState)(false), [keyVisible, setKeyVisible] = (0, react.useState)(false);
-			const [busy, setBusy] = (0, react.useState)(false), [error, setError] = (0, react.useState)(""), [notice, setNotice] = (0, react.useState)("");
-			const start = () => {
-				setEndpoint(status?.endpoint ?? "");
-				setModel(status?.asrModel ?? "");
-				setFormat(status?.format === "json" ? "json" : "verbose_json");
-				setMaxMb(status?.maxMb ?? 25);
-				setKeyDraft("");
-				setKeyDirty(false);
-				setKeyVisible(false);
-				setError("");
-				setNotice("");
-				setEditing(true);
-				onEditingChange?.(true);
+			const [editing, setEditing] = (0, react.useState)(false), [models, setModels] = (0, react.useState)([]);
+			const [selected, setSelected] = (0, react.useState)(""), [search, setSearch] = (0, react.useState)("");
+			const [format, setFormat] = (0, react.useState)("json"), [maxMb, setMaxMb] = (0, react.useState)(25);
+			const [busy, setBusy] = (0, react.useState)(""), [error, setError] = (0, react.useState)(""), [notice, setNotice] = (0, react.useState)("");
+			const [result, setResult] = (0, react.useState)(null);
+			const sequence = (0, react.useRef)(0);
+			const reload = async () => {
+				try {
+					const data = await api$1("models");
+					if (!Array.isArray(data.models)) throw new Error("模型列表暂不可用，请刷新或重启工作台后重试");
+					setModels(data.models);
+				} catch (e) {
+					setError(e instanceof Error ? e.message : "读取模型失败");
+				}
 			};
+			(0, react.useEffect)(() => {
+				reload();
+				return () => {
+					sequence.current++;
+				};
+			}, []);
 			const stop = () => {
+				sequence.current++;
 				setEditing(false);
-				setKeyDraft("");
-				setKeyVisible(false);
-				setKeyDirty(false);
+				setBusy("");
 				setError("");
+				setResult(null);
 				onEditingChange?.(false);
 			};
 			useLeaveGuard(editing, stop);
-			const toggleKey = async () => {
-				if (keyVisible) {
-					setKeyVisible(false);
-					if (!keyDirty) setKeyDraft("");
-					return;
-				}
-				if (!keyDraft && status?.keySource === "saved") {
-					setBusy(true);
-					setError("");
-					try {
-						const value = await post$2("config/reveal", {});
-						setKeyDraft(value.apiKey ?? "");
-					} catch (cause) {
-						setError(cause instanceof Error ? cause.message : String(cause));
-						return;
-					} finally {
-						setBusy(false);
-					}
-				} else if (!keyDraft && status?.keySource === "environment") {
-					setError("环境变量提供的密钥不能在界面查看；可直接输入新密钥覆盖。");
-					return;
-				}
-				setKeyVisible(true);
-			};
-			const save = async (clearKey = false) => {
-				if (!endpoint.trim() || !model.trim()) {
-					setError("请填写服务地址和识别模型");
-					return;
-				}
-				if (!Number.isInteger(maxMb) || maxMb < 1 || maxMb > 100) {
-					setError("录音大小限制应为 1–100 MB");
-					return;
-				}
-				setBusy(true);
+			const start = () => {
+				setSelected(status?.modelRef || "");
+				setFormat(status?.modelRef ? status.format || "json" : "json");
+				setMaxMb(status?.maxMb || 25);
 				setError("");
 				setNotice("");
+				setResult(null);
+				setEditing(true);
+				onEditingChange?.(true);
+				reload();
+			};
+			const check = async () => {
+				const version = ++sequence.current;
+				setBusy("check");
+				setError("");
+				setResult(null);
 				try {
-					await post$2("config", {
-						revision: status?.revision,
-						endpoint: endpoint.trim(),
-						model: model.trim(),
+					const data = await api$1("meeting/check-model", {
+						modelRef: selected,
 						format,
-						maxMb,
-						...clearKey ? { clearKey: true } : keyDirty && keyDraft.trim() ? { apiKey: keyDraft.trim() } : {}
+						maxMb
 					});
-					await refresh();
-					stop();
-					setNotice(clearKey ? "已移除界面保存的密钥。" : "识别配置已保存并生效。");
-				} catch (cause) {
-					setError(cause instanceof Error ? cause.message : String(cause));
+					if (version === sequence.current) setResult(data);
+				} catch (e) {
+					if (version === sequence.current) setError(e instanceof Error ? e.message : "检测失败");
 				} finally {
-					setBusy(false);
+					if (version === sequence.current) setBusy("");
 				}
 			};
-			const reset = async () => {
-				if (!window.confirm("恢复使用工作台环境变量中的语音识别配置？")) return;
-				setBusy(true);
+			const save = async () => {
+				setBusy("save");
 				setError("");
 				try {
-					await post$2("config", {
+					await api$1("meeting/config", {
 						revision: status?.revision,
-						reset: true
+						modelRef: selected,
+						format,
+						maxMb
 					});
 					await refresh();
 					stop();
-					setNotice("已恢复使用环境变量配置。");
-				} catch (cause) {
-					setError(cause instanceof Error ? cause.message : String(cause));
+					setNotice("模型选择已保存，新转写任务立即生效。");
+				} catch (e) {
+					setError(e instanceof Error ? e.message : "保存失败");
 				} finally {
-					setBusy(false);
+					setBusy("");
 				}
 			};
+			const chosen = models.find((model) => model.id === selected);
+			const filtered = models.filter((model) => model.id === selected || `${model.name} ${model.provider} ${model.id}`.toLowerCase().includes(search.toLowerCase()));
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: ManagedCapabilities_module_css_default.row,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "兼容语音识别接口" }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["服务地址：", status?.endpoint || "待配置"] }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: ["识别模型：", status?.asrModel || "待配置"] }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-							"API Key：",
-							status?.hasKey ? "********" : "未配置或本地服务无需密钥",
-							status?.keySource === "environment" ? "（环境变量）" : ""
-						] })
-					] }), !editing && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						style: {
+							minWidth: 0,
+							overflowWrap: "anywhere"
+						},
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "语音识别模型" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: status?.modelRef || (status?.endpoint ? `旧版配置：${status.asrModel}（选择统一模型后切换）` : "待选择") }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "地址和 API Key 由模型模块统一管理" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: status?.verified ? `转写已验证 · ${new Date(status.verified.at).toLocaleString()}` : "尚未验证转写支持" })
+						]
+					}), !editing && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						className: ManagedCapabilities_module_css_default.button,
 						disabled: disabled || !status?.editable,
 						onClick: start,
-						children: "编辑识别配置"
+						children: "选择模型"
 					})]
 				}),
 				editing && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -13798,102 +13759,136 @@ window.__ModuleLoader__.load({
 					children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 							className: ManagedCapabilities_module_css_default.field,
-							children: ["服务地址", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-								"aria-label": "语音识别服务地址",
-								value: endpoint,
-								onChange: (event) => setEndpoint(event.target.value),
-								placeholder: "https://.../v1/audio/transcriptions"
+							children: ["搜索模型", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+								value: search,
+								onChange: (e) => setSearch(e.target.value),
+								"aria-label": "搜索语音模型",
+								placeholder: "模型名称或服务商",
+								disabled: !!busy
 							})]
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 							className: ManagedCapabilities_module_css_default.field,
-							children: ["识别模型", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+							children: ["识别模型", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
 								"aria-label": "语音识别模型",
-								value: model,
-								onChange: (event) => setModel(event.target.value),
-								placeholder: "例如 whisper-1"
+								value: selected,
+								disabled: !!busy,
+								onChange: (e) => {
+									setSelected(e.target.value);
+									setResult(null);
+									setError("");
+								},
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: "",
+										children: "请选择已管理的模型"
+									}),
+									selected && !models.some((m) => m.id === selected) && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
+										value: selected,
+										disabled: true,
+										children: [selected, "（已移除或停用）"]
+									}),
+									[...new Set(filtered.map((m) => m.provider))].map((provider) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("optgroup", {
+										label: provider,
+										children: filtered.filter((m) => m.provider === provider).map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
+											value: m.id,
+											disabled: !m.selectable,
+											children: [m.name, m.selectable ? " · 待检测转写支持" : " · 未适配"]
+										}, m.id))
+									}, provider))
+								]
 							})]
 						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-							className: ManagedCapabilities_module_css_default.field,
-							children: ["API Key", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								className: ManagedCapabilities_module_css_default.secretField,
-								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-									"aria-label": "语音识别 API Key",
-									type: keyVisible ? "text" : "password",
-									value: keyDraft,
-									placeholder: status?.hasKey ? "********" : "可选，本地服务可留空",
-									autoComplete: "off",
-									spellCheck: false,
-									onChange: (event) => {
-										setKeyDraft(event.target.value);
-										setKeyDirty(true);
-									}
-								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									type: "button",
-									className: ManagedCapabilities_module_css_default.iconButton,
-									"aria-label": keyVisible ? "隐藏 API Key" : "显示 API Key",
-									title: keyVisible ? "隐藏 API Key" : "显示 API Key",
-									disabled: busy,
-									onClick: () => void toggleKey(),
-									children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(EyeIcon, { visible: keyVisible })
-								})]
-							})]
+						chosen?.reason && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: ManagedCapabilities_module_css_default.muted,
+							children: chosen.reason
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: ManagedCapabilities_module_css_default.actions,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: !!busy,
+								onClick: () => void reload(),
+								children: "刷新模型"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: !!busy,
+								onClick: () => openWorkbenchLink({ section: "models" }),
+								children: "管理模型 ↗"
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "转写选项" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.actions,
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 								className: ManagedCapabilities_module_css_default.field,
 								children: ["响应格式", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+									disabled: !!busy,
 									value: format,
-									onChange: (event) => setFormat(event.target.value),
+									onChange: (e) => {
+										setFormat(e.target.value);
+										setResult(null);
+									},
 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-										value: "verbose_json",
-										children: "verbose_json（含时间片段）"
-									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
 										value: "json",
-										children: "json"
+										children: "JSON（通用文本）"
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+										value: "verbose_json",
+										children: "详细 JSON（服务支持时含时间片段）"
 									})]
 								})]
 							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 								className: ManagedCapabilities_module_css_default.field,
-								children: ["录音大小上限（MB）", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-									"aria-label": "录音大小上限",
+								children: ["录音上限（MB）", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 									type: "number",
-									min: "1",
-									max: "100",
+									min: 1,
+									max: 100,
+									disabled: !!busy,
 									value: maxMb,
-									onChange: (event) => setMaxMb(Number(event.target.value))
+									onChange: (e) => {
+										setMaxMb(Number(e.target.value));
+										setResult(null);
+									}
 								})]
 							})]
+						})] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: ManagedCapabilities_module_css_default.muted,
+							children: "检测将向所选模型发送一段内置短语音，不使用你的录音；可能产生少量调用费用。检测不保存选择。"
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.actions,
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: ManagedCapabilities_module_css_default.button,
+									disabled: !!busy || !chosen?.selectable,
+									onClick: () => void check(),
+									children: busy === "check" ? "正在检测…" : "检测转写"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
-									disabled: busy,
+									disabled: !!busy || !chosen?.selectable,
 									onClick: () => void save(),
-									children: busy ? "保存中…" : "保存配置"
+									children: busy === "save" ? "保存中…" : "保存选择"
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									className: ManagedCapabilities_module_css_default.button,
-									disabled: busy,
+									disabled: !!busy,
 									onClick: stop,
 									children: "取消"
-								}),
-								status?.keySource === "saved" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									disabled: busy,
-									onClick: () => void save(true),
-									children: "移除已保存密钥"
-								}),
-								status?.configSource === "saved" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									disabled: busy,
-									onClick: () => void reset(),
-									children: "恢复环境变量配置"
 								})
+							]
+						}),
+						result && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+							className: ManagedCapabilities_module_css_default.notice,
+							role: "status",
+							children: [
+								"转写检测通过：",
+								result.text,
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("br", {}),
+								"时间片段：",
+								result.timestamps ? "本次返回" : "本次未返回",
+								"；说话人：",
+								result.speakers ? "本次返回" : "本次未返回"
 							]
 						})
 					]
@@ -13910,7 +13905,7 @@ window.__ModuleLoader__.load({
 				}),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 					className: ManagedCapabilities_module_css_default.muted,
-					children: "录音转写使用这里的接口；纪要生成模型仍在会议对话中选择。保存后无需重启工作台。"
+					children: "识别模型负责录音转文字，纪要模型仍在会议对话中选择。已配置不代表支持语音，请先检测。"
 				})
 			] });
 		}

@@ -26,7 +26,7 @@ const adapters: Record<Component['management'], (context: Context) => Presentati
     description: '使用兼容音频转写接口识别录音。当前仅适配会议纪要助手流程；纪要模型在对话中选择。',
     status: meetingStatus?.ready ? '识别接口已配置 · 待实际调用验证' : meetingStatus?.message ?? '正在读取识别配置…',
     title: '语音识别服务', name: '兼容音频转写接口',
-    detail: '接口配置独立保存，作用于新转写任务。工作台提供设置存储与纪要模型；凭据不会写入能力版本。',
+    detail: '从模型模块选择识别模型并检测，地址与凭据统一管理。保存选择后作用于新转写任务；凭据不会写入能力版本。',
     configuration: '配置服务',
     publishNotice: '当前会议流程必须保留转写组件和动作。发布新的能力版本不会清除录音、转写、纪要或服务配置；岗位是否采用新版本由下方选择决定。',
   }),

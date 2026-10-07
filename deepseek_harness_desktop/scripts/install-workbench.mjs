@@ -51,3 +51,7 @@ for (const entry of entries) {
   if (installed.dshWorkbench?.authorServicesRemoved !== 1 || installed.dshWorkbench?.documentationArchived !== 1) throw new Error('Customized package was not selected: ' + entry.name)
 }
 console.log('Verified: all ' + entries.length + ' custom workbench packages are installed.')
+
+// Reapply the checked Models key control after official package installation.
+const keyPatch = spawnSync(process.execPath, [fileURLToPath(new URL("./lib/patch-model-key.mjs", import.meta.url)), require.resolve("@deepseek-ai/dsh-client-ui-settings-models/client")], { stdio: "inherit", windowsHide: true })
+if (keyPatch.error || keyPatch.status !== 0) throw keyPatch.error ?? new Error("Models key patch failed")

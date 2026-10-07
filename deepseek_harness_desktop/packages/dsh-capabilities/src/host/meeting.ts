@@ -30,7 +30,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const string = (value: unknown, max = 200) => typeof value === 'string' ? value.trim().slice(0, max) : ''
 const errorText = (error: unknown) => error instanceof Error ? error.message : String(error)
 
-export type MeetingAsrConfig = { endpoint: string; model: string; apiKey: string; format: 'json' | 'verbose_json'; maxMb: number }
+export type MeetingAsrConfig = { modelRef?: string; endpoint: string; model: string; apiKey: string; format: 'json' | 'verbose_json'; maxMb: number }
 
 export function config(override?: Partial<MeetingAsrConfig>) {
   const endpoint = (override?.endpoint ?? process.env.MEETING_ASR_URL ?? '').trim()
@@ -95,7 +95,7 @@ export class MeetingService {
     void task.finally(() => { pending.delete(task); if (!pending.size && this.pending.get(id) === pending) this.pending.delete(id) }).catch(() => {})
     return task
   }
-  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly jev?: JevService, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) {}
+  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly jev?: JevService, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly resolveAsr?: () => Promise<MeetingAsrConfig>) {}
   private config() { return config(this.asrSettings?.()) }
   private capabilityError(): string | undefined {
     if (!this.currentState) return
@@ -142,7 +142,7 @@ export class MeetingService {
       const binding = latest(role?.versions ?? [])?.capabilities.find(item => item.capabilityId === MEETING_CAPABILITY_ID)
       const roleUnavailable = this.currentState && role && (!role.enabled ? '会议纪要助手已停用，请在岗位助手中启用' : !binding?.enabled || (binding.actions && !binding.actions.includes('transcribe')) ? '会议纪要助手未启用录音转写能力' : '')
       const state = unavailable || roleUnavailable ? 'disabled' : !value.endpoint || !value.model ? 'unconfigured' : 'ready'
-      return { ready: state === 'ready', state, provider: '自定义语音识别接口', endpointHost: value.endpoint ? new URL(value.endpoint).origin : '', endpoint: value.endpoint, asrModel: value.model, format: value.format, maxMb: value.maxBytes / 1024 / 1024, hasKey: Boolean(value.apiKey), maxBytes: value.maxBytes, message: unavailable || roleUnavailable || (state === 'ready' ? '语音识别接口已配置，尚需实际调用验证' : '请在默认配置中填写语音识别接口与模型') }
+      return { ready: state === 'ready', state, provider: '自定义语音识别接口', endpointHost: value.endpoint ? new URL(value.endpoint).origin : '', endpoint: value.endpoint, asrModel: value.model, format: value.format, maxMb: value.maxBytes / 1024 / 1024, hasKey: Boolean(value.apiKey), maxBytes: value.maxBytes, message: unavailable || roleUnavailable || (state === 'ready' ? '语音识别接口已配置，尚需实际调用验证' : '请在默认配置中选择识别模型，并检测转写支持') }
     }
     catch (error) { return { ready: false, provider: '自定义语音识别接口', maxBytes: 25 * 1024 * 1024, message: errorText(error) } }
   }
@@ -261,15 +261,15 @@ export class MeetingService {
     this.running.add(id)
     const controller = new AbortController(); this.controllers.set(id, controller)
     try {
-      const job = await this.get(id), { endpoint, apiKey, model, format } = this.config()
+      const job = await this.get(id), { endpoint, apiKey, model, format } = this.resolveAsr ? config(await this.resolveAsr()) : this.config()
       if (!endpoint || !model) throw new Error('请先配置语音识别接口和模型')
       const form = new FormData()
       form.set('model', model)
       form.set('response_format', format)
       form.set('file', await openAsBlob(this.audio(job)), job.fileName)
-      const sent = await fetch(endpoint, { method: 'POST', headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}, body: form, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20 * 60_000)]) })
+      const sent = await fetch(endpoint, { method: 'POST', redirect: 'error', headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}, body: form, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20 * 60_000)]) })
       const response = await sent.text()
-      if (!sent.ok) throw new Error(`语音识别失败（${sent.status}）：${response.slice(0, 300)}`)
+      if (!sent.ok) throw new Error(`语音识别失败（HTTP ${sent.status}），请在模型模块检查接口、Key、模型和配额`)
       let transcript: any
       try { transcript = JSON.parse(response) } catch { throw new Error('语音识别接口没有返回有效 JSON') }
       const segments = parseSegments(transcript)

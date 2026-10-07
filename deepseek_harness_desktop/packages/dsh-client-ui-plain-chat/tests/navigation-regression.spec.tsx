@@ -156,6 +156,6 @@ it('NR21 restores plugin search after traversing component and capability detail
 })
 
 it('NR22 protects meeting configuration when declining global departure',async()=>{
- await render(<ManagedCenter initialId="meeting-transcription"/>);await click('设置');await click('编辑识别配置');await fill(host.querySelector('[aria-label="语音识别模型"]')!,'qa-unsaved-asr');const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
- await act(async()=>{openCapabilityLink({section:'plugins'});await new Promise(r=>setTimeout(r,15))});expect(confirm).toHaveBeenCalledOnce();expect(host.querySelector<HTMLInputElement>('[aria-label="语音识别模型"]')!.value).toBe('qa-unsaved-asr')
+ await render(<ManagedCenter initialId="meeting-transcription"/>);await click('设置');await click('选择模型');await fill(host.querySelector('[aria-label="搜索语音模型"]')!,'qa-unsaved-asr');const confirm=vi.spyOn(window,'confirm').mockReturnValue(false)
+ await act(async()=>{openCapabilityLink({section:'plugins'});await new Promise(r=>setTimeout(r,15))});expect(confirm).toHaveBeenCalledOnce();expect(host.querySelector<HTMLInputElement>('[aria-label="搜索语音模型"]')!.value).toBe('qa-unsaved-asr')
 })
