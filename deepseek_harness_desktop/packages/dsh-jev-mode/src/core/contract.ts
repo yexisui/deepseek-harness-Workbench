@@ -22,6 +22,7 @@ export class JevError extends Error {
 /** Only a technical failure may advance the candidate chain. Business decisions never do. */
 export class JevTechnicalError extends JevError {}
 export const candidates = (value: JevConfig): JevCandidate[] => value.candidates ?? (value.model ? [{id:'legacy',model:value.model,enabled:true,reasoningEffort:value.reasoningEffort}] : [])
+export const hasEnabledModel = (value: JevConfig) => candidates(value).some(row => row.enabled)
 export function candidateConfig(value: JevConfig, item: JevCandidate): JevConfig {
   const {candidates: _c, totalTimeoutMs: _t, ...base} = value
   return {...base, model:item.model, reasoningEffort:item.reasoningEffort}

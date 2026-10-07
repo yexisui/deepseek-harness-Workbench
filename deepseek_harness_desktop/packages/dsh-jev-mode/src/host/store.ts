@@ -5,8 +5,6 @@ import { config, defaults, JevError, type SavedConfig, type JevTrace, type JevDi
 export class JevStore {
   private saved: SavedConfig = {schema:1,revision:0,value:{...defaults}}
   private previousRoutingConfig?: string
-  private routingCheck = false
-  requiresModelCheck() {return this.routingCheck}
   private tail: Promise<unknown> = Promise.resolve()
   private traces: JevTrace[] = []
   private validations: {key: string; result: JevDiagnostic}[] = []
@@ -18,7 +16,7 @@ export class JevStore {
   }
   async init() {
     await mkdir(this.root,{recursive:true})
-    try {const original=await readFile(join(this.root,'config.json'),'utf8'),d=JSON.parse(original);if(![1,2].includes(d.schema)||!Number.isSafeInteger(d.revision)||d.revision<0)throw new Error();this.saved={schema:d.schema,revision:d.revision,value:config(d.value)};if(d.value.connectionMode!=='account'){this.previousRoutingConfig=original;this.routingCheck=true}}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw new JevError('JEV 配置无法读取；请保留文件并检查，不能自动覆盖')}
+    try {const original=await readFile(join(this.root,'config.json'),'utf8'),d=JSON.parse(original);if(![1,2].includes(d.schema)||!Number.isSafeInteger(d.revision)||d.revision<0)throw new Error();this.saved={schema:d.schema,revision:d.revision,value:config(d.value)};if(d.value.connectionMode!=='account'){this.previousRoutingConfig=original}}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw new JevError('JEV 配置无法读取；请保留文件并检查，不能自动覆盖')}
     try {const d=JSON.parse(await readFile(join(this.root,'traces.json'),'utf8'));if(!Array.isArray(d))throw new Error();this.traces=d.slice(-200)}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw new JevError('JEV 轨迹无法读取；请保留文件并检查')}
     try {const d=JSON.parse(await readFile(join(this.root,'validations.json'),'utf8'));if(!Array.isArray(d)||d.some(v=>typeof v.key!=='string'||!['passed','failed','cancelled'].includes(v.result?.status)))throw new Error();this.validations=d.slice(-20)}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw new JevError('JEV 检查记录无法读取；请保留文件并检查')}
   }
@@ -42,7 +40,7 @@ export class JevStore {
       let backup;try{backup=await open(join(this.root,'config.before-model-routing.json'),'wx')}catch(e){if((e as NodeJS.ErrnoException).code!=='EEXIST')throw e}
       if(backup)try{await backup.writeFile(this.previousRoutingConfig);await backup.sync()}finally{await backup.close()}
     }
-    const next:SavedConfig={schema,revision:revision+1,value:parsed};await this.atomic('config.json',next);this.saved=next;this.previousRoutingConfig=undefined;this.routingCheck=false;return this.snapshot()
+    const next:SavedConfig={schema,revision:revision+1,value:parsed};await this.atomic('config.json',next);this.saved=next;this.previousRoutingConfig=undefined;return this.snapshot()
   })}
   record(trace: JevTrace) {return this.serial(async()=>{const next=[...this.traces,trace].slice(-200);await this.atomic('traces.json',next);this.traces=next})}
   close() {return this.tail}

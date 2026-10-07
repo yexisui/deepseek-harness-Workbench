@@ -57,7 +57,7 @@ it('validates candidates separately and preserves checks across reordering and s
   const reversed={...cfg,candidates:[...cfg.candidates!].reverse()};expect(service.connection(reversed).state).toBe('ready');expect(service.connection(reversed).candidates?.find(c=>c.id==='one')?.state).toBe('error')
   await service.update(1,reversed);expect(store.snapshot().value.enabled).toBe(true)
   expect(service.connection({...cfg,candidates:cfg.candidates!.map(c=>({...c,enabled:false}))}).state).toBe('unconfigured')
-  identity='v2';expect(service.connection(reversed).state).toBe('unverified');await expect(service.update(2,reversed)).rejects.toThrow('先检查')
+  identity='v2';expect(service.connection(reversed).state).toBe('unverified');await service.update(2,reversed);expect(service.status().state).toBe('ready')
 })
 it('falls back through real HTTP 503 and invalid JSON to a configured-model success without rerunning a business action',async()=>{
   const called:string[]=[],server=createServer((req,res)=>{called.push(req.url!);if(req.url?.startsWith('/one')){res.writeHead(503);res.end();return}res.end(JSON.stringify({choices:[{message:{content:req.url?.startsWith('/two')?'invalid':JSON.stringify(pass)}}]}))})

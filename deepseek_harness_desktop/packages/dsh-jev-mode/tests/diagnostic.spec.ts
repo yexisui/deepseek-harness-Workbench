@@ -3,7 +3,7 @@ import {afterEach,expect,it,vi} from 'vitest'
 import {mkdtemp,rm} from 'node:fs/promises'
 import {tmpdir} from 'node:os'
 import {join} from 'node:path'
-import {defaults,type Decision,type JevBackend} from '../src/core/contract.ts'
+import {defaults,JevTechnicalError,type Decision,type JevBackend} from '../src/core/contract.ts'
 import {JevStore} from '../src/host/store.ts'
 import {JevService} from '../src/host/service.ts'
 const roots:string[]=[]
@@ -14,14 +14,14 @@ async function setup(assess:JevBackend['assess']=async()=>pass,identity=()=> 'ac
   const root=await mkdtemp(join(tmpdir(),'jev-diagnostic-'));roots.push(root)
   const store=new JevStore(root);await store.init();return {store,service:new JevService(store,{id:'self-owned',assess},()=>{},identity),root}
 }
-it('checks an unsaved model while off, persists validation and enables only the checked configuration',async()=>{
+it('checks an unsaved model while off and persists validation independently of configuration',async()=>{
   const {service,store,root}=await setup()
-  await expect(service.update(0,{...candidate,enabled:true})).rejects.toThrow('先检查')
+  expect(service.connection(candidate).state).toBe('unverified')
   const check=service.startDiagnostic(candidate);expect(check.status).toBe('checking')
   await vi.waitFor(()=>expect(service.connection(candidate).state).toBe('ready'))
   expect(store.snapshot().value).toEqual(defaults);expect(store.history()).toEqual([])
   await service.update(0,{...candidate,enabled:true});expect(service.status().state).toBe('ready')
-  await expect(service.update(1,{...candidate,model:'lan/other',enabled:true})).rejects.toThrow('先检查')
+  expect(service.connection({...candidate,model:'lan/other'}).state).toBe('unverified')
   const reload=new JevStore(root);await reload.init();const next=new JevService(reload,{id:'self-owned',assess:async()=>pass},()=>{},()=> 'account-v1')
   expect(next.status().connection?.state).toBe('ready');expect(next.status().connection?.checkedAt).toBeTruthy()
 })
@@ -33,7 +33,7 @@ it('aborts the actual model request and never activates global mode during diagn
   await expect(service.cancelDiagnostic('wrong')).rejects.toThrow('不属于')
   const result=await service.cancelDiagnostic(job.id)
   expect(aborted).toBe(true);expect(result?.status).toBe('cancelled');expect(store.snapshot().value.enabled).toBe(false)
-  await expect(service.update(0,{...candidate,enabled:true})).rejects.toThrow('先检查')
+  await service.update(0,{...candidate,enabled:true});expect(service.status().state).toBe('ready')
 })
 it('does not reuse validation after the account endpoint changes',async()=>{
   let endpoint='v1';const {service}=await setup(async()=>pass,()=>endpoint)
@@ -59,4 +59,29 @@ it('keeps transport errors sanitized and refuses an inconclusive diagnostic',asy
   const {service}=await setup(async()=>({...pass,decision:'clarify',summary:'需要更多信息'}))
   service.startDiagnostic(candidate);await vi.waitFor(()=>expect(service.connection(candidate).state).toBe('error'))
   expect(service.diagnosticStatus()?.message).toContain('未通过')
+})
+
+it('enables and executes an unchecked model, including after a model change and restart',async()=>{
+  const assess=vi.fn<JevBackend['assess']>(async()=>pass),{service,store,root}=await setup(assess)
+  await service.update(0,{...candidate,enabled:true})
+  expect(assess).not.toHaveBeenCalled();expect(service.status().state).toBe('ready');expect(service.connection(candidate).state).toBe('unverified')
+  await service.update(1,{...candidate,enabled:true,model:'lan/other'})
+  const reload=new JevStore(root);await reload.init();const next=new JevService(reload,{id:'self-owned',assess},()=>{})
+  expect(next.diagnosticStatus()).toBeUndefined();expect(next.status().state).toBe('ready')
+  const run=next.begin('native:unchecked');expect(await run.check('begin','hello')).toEqual(pass);run.finish()
+  expect(assess).toHaveBeenCalledTimes(1);expect(assess.mock.calls[0]?.[0].config.model).toBe('lan/other')
+  expect(store.history()).toEqual([])
+})
+it('does not let failed diagnostic history block direct execution or overwrite it as passed',async()=>{
+  const assess=vi.fn<JevBackend['assess']>().mockRejectedValueOnce(new JevTechnicalError('临时失败')).mockResolvedValue(pass),{service,store}=await setup(assess)
+  service.startDiagnostic(candidate);await vi.waitFor(()=>expect(service.diagnosticStatus()?.status).toBe('failed'))
+  await service.update(0,{...candidate,enabled:true});expect(service.status().state).toBe('ready');expect(service.connection(candidate).state).toBe('error')
+  const run=service.begin('native:retry');expect(await run.check('begin','hello')).toEqual(pass);run.finish()
+  expect(store.history().at(-1)?.status).toBe('allowed');expect(service.diagnosticStatus()?.status).toBe('failed')
+})
+it('still requires an enabled candidate, but allows saving an empty configuration while off',async()=>{
+  const {service}=await setup()
+  await expect(service.update(0,{...defaults,enabled:true,candidates:[]})).rejects.toThrow('至少开启')
+  await expect(service.update(0,{...defaults,enabled:true,candidates:[{id:'off',model:'lan/model',enabled:false,reasoningEffort:''}]})).rejects.toThrow('至少开启')
+  await service.update(0,{...defaults,candidates:[]});expect(service.status().state).toBe('off')
 })
