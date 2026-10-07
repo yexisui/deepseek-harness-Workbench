@@ -1,3 +1,5 @@
+import {ManagedSkills} from '../../../dsh-skill-explorer/src/managed.ts'
+import {dirname} from 'node:path'
 import { catalogFor, manifest, digestPattern, packageDefinition } from '../core/distribution.ts'
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, open, rename, unlink } from 'node:fs/promises'
@@ -249,6 +251,12 @@ export class CapabilityStore {
           const selected = new Set(ids)
           next.capabilities = next.capabilities.filter(cap => !selected.has(cap.id))
         }
+       } else if(command.type==='role.skills'){
+        const row=new ManagedSkills(dirname(this.directory),()=>[]).read().skills.find(s=>s.id===command.skillId&&!s.removed);if(!row)throw new InputError('技能不存在或已移除');
+        if(!Array.isArray(command.roleIds)||command.roleIds.some(id=>typeof id!=='string'||!next.roles.some(r=>r.id===id&&!r.archivedAt)))throw new InputError('岗位已改变，请刷新后重试');
+        const selected=new Set(command.roleIds);
+        for(const role of next.roles.filter(r=>!r.archivedAt)){const bindings=role.draft.skills??[],old=bindings.find(b=>b.id===row.id);if(selected.has(role.id)){role.draft.skills=old?bindings.map(b=>b.id===row.id?{...b,enabled:true}:b):[...bindings,{id:row.id,name:row.name,hash:row.hash,enabled:true}]}else if(old){role.draft.skills=bindings.map(b=>b.id===row.id?{...b,enabled:false}:b)}}
+        target=row.id;
       } else if (command.type === 'role.save') {
         const value = roleDefinition(command.definition, next), publish = bool(command.publish)
         if (publish && roleCompositionIssues(value).length) throw new InputError(roleCompositionIssues(value).join('；'))

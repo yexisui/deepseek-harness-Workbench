@@ -62,6 +62,7 @@ export class CapabilityRuntime {
     } catch (error) { this.health = { ...this.health, state: 'missing', message: `BrowserSkill 未加载：${error instanceof Error ? error.message : String(error)}` } }
   }
   async init() {
+    this.disposers.push(this.ctx.tools.guard(exec=>{if(exec.name!=='skill'||!exec.agent||this.live.has(exec.agent.id))return;const args=exec.arguments as Record<string,unknown>|undefined;return this.skillAssets.ordinaryViolation(args?.name,exec.agent.session.header.createdAt)}))
     this.disposers.push(this.ctx.tools.guard(exec => (exec.name.startsWith('browser_') || exec.name === 'capability_action') ? this.authorize(exec) : undefined))
     this.disposers.push(this.ctx.on('agent/created', ({ agent }) => this.attach(agent)))
     this.disposers.push(this.ctx.on('agent/session-start', ({ agent }) => this.attach(agent)))
@@ -124,7 +125,7 @@ export class CapabilityRuntime {
       live.disposers.push(agent.ctx.tools.register({...tool,execute:(args,exec)=>this.execute(live,tool,args,exec)}))
     }
     const hasBrowser=browserActions(allowedActions(this.store.snapshot(),live.roleId,live.version)).length>0
-    const bound=allowedRoleSkills(this.store.snapshot(),live.roleId,live.version)
+    const bound=this.skillAssets.bindings(this.store.snapshot(),live.roleId,live.version,live.agent.session.header.createdAt)
     if(live.stopped||(!hasBrowser&&!bound.length))return
     const skills = agent.ctx.get('skills')
     if (hasBrowser&&skills) live.disposers.push(skills.register({ name: 'browser-skill', description: '当前岗位的网页导航、读取与截图能力。', content: guide, source: 'bundled' }))
@@ -170,7 +171,7 @@ export class CapabilityRuntime {
       const version=this.store.snapshot().capabilities.find(c=>c.id===binding?.capabilityId)?.versions.find(v=>v.version===binding?.version)
       return this.packageRunner && version?.packageHash && version.components.some(p=>p.actions.includes(args.action as any)) && allowed.includes(args.action as any) ? undefined : '岗位未授权此能力动作。'
     }
-    if(exec.name==='skill_resource'||(exec.name==='skill'&&args.name!=='browser-skill'))return allowedRoleSkills(this.store.snapshot(),live.roleId,live.version).some(s=>s.name===args.name)?undefined:'技能调用失败：岗位未绑定此技能，或该绑定已停用。'
+    if(exec.name==='skill_resource'||(exec.name==='skill'&&args.name!=='browser-skill'))return this.skillAssets.bindings(this.store.snapshot(),live.roleId,live.version,live.agent.session.header.createdAt).some(s=>s.name===args.name)?undefined:'技能调用失败：岗位未绑定此技能，或该绑定已停用。'
     if (!this.health.loaded) return 'BrowserSkill 插件未加载。'
     if (exec.name === 'skill') return args.name === 'browser-skill' && browserActions(allowed).length ? undefined : '岗位未授权此技能。'
     return callViolation(exec.name, args, allowed, this.owned(live.agent.id))

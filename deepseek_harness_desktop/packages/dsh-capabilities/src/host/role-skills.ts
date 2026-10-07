@@ -31,10 +31,20 @@ export class RoleSkills {
     try{const file=safeLocalPath(relative),{files}=this.version(binding,cwd);return this.text(files.get(file),file)}
     catch(e){throw Error('技能资源读取失败（'+binding.name+'）：'+(e instanceof Error?e.message:String(e)))}
   }
+  ordinaryViolation(name:unknown,createdAt:number){
+    const row=this.managed.read().skills.find(r=>r.name===name&&r.scope==='global');if(!row?.usage)return;
+    if(row.removed||!row.enabled)return '技能加载失败：此技能已停用或移除。';
+    if(!this.managed.globalBindings(createdAt).some(b=>b.id===row.id))return '技能加载失败：此技能不在当前对话的使用范围内，请使用已发布的指定岗位或新建对话。';
+  }
+  bindings(state:State,roleId:string,version:RoleVersion,at:number){
+    const role=state.roles.find(r=>r.id===roleId);if(!role?.enabled||role.archivedAt)return [];
+    const explicit=allowedRoleSkills(state,roleId,version),global=this.managed.globalBindings(at).filter(b=>!(version.skills??[]).some(s=>s.id===b.id)&&!role.versions.filter(v=>v.version>=version.version).some(v=>v.skills?.some(s=>s.id===b.id&&!s.enabled)));
+    return [...explicit,...global];
+  }
   /** Specialized workflows receive the same pinned guidance during their actual model request. */
-  guidance(state:State,roleId:string,version:RoleVersion,cwd?:string){
-    const original=(version.skills??[]).filter(s=>s.enabled);if(!original.length)return ''
-    const allowed=allowedRoleSkills(state,roleId,version);const result:unknown[]=[];let total=0
+  guidance(state:State,roleId:string,version:RoleVersion,cwd?:string,createdAt:number=0){
+    const original=[...(version.skills??[]).filter(s=>s.enabled),...this.bindings(state,roleId,version,createdAt).filter(s=>!version.skills?.some(b=>b.id===s.id))];if(!original.length)return ''
+    const allowed=this.bindings(state,roleId,version,createdAt);const result:unknown[]=[];let total=0
     for(const binding of original){
       if(!allowed.some(b=>b.id===binding.id))throw Error('技能加载失败（'+binding.name+'）：岗位已移除或停用此技能，请新建任务')
       const loaded=JSON.parse(this.load(binding,cwd));const resources:Record<string,string>={}

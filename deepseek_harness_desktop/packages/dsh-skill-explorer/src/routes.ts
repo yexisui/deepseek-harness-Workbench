@@ -106,7 +106,7 @@ export function makeRoutes(ctx: Context, deps: SkillRoutesDeps): WebRoute[] {
       }
       const b=(await readJsonBody(req,{maxBytes:46*1024*1024,objectOnly:true})) as Record<string,any>|null
       if(!b)throw Error('无效请求')
-      const result=action==='inspect'?managed.inspect(b as Parameters<ManagedSkills['inspect']>[0]):action==='commit'?managed.commit(String(b.id),b.choices,b.enabled===true):action==='discard'?managed.discard(String(b.id)):managed.change(String(b.id),Number(b.revision),String(b.action),b.value)
+      const result=action==='tags'?managed.tagChange(Number(b.revision),String(b.from),b.to):action==='inspect'?managed.inspect(b as Parameters<ManagedSkills['inspect']>[0]):action==='commit'?managed.commit(String(b.id),b.choices,b.enabled===true):action==='discard'?managed.discard(String(b.id)):managed.change(String(b.id),Number(b.revision),String(b.action),b.value)
       writeJson(res,200,result??{ok:true})
     }catch(error){writeJson(res,400,{error:error instanceof Error?error.message:String(error)})}
   }})
@@ -148,7 +148,7 @@ export function makeRoutes(ctx: Context, deps: SkillRoutesDeps): WebRoute[] {
 
   const routes: WebRoute[] = [
     ...['list','export','detail','resource'].map(action=>managedRoute(action,'GET')),
-    ...['inspect','commit','discard','change'].map(action=>managedRoute(action,'POST')),
+    ...['inspect','commit','discard','change','tags'].map(action=>managedRoute(action,'POST')),
     {
       kind: 'exact',
       path: ROUTES.list,

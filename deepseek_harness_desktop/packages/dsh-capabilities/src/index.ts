@@ -43,7 +43,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   const home = dshHome(), store = new CapabilityStore(join(home, 'capabilities'))
   await store.init()
   const skillAssets=new RoleSkills(home)
-  const skillGuidance=(roleId:string,version:number,cwd?:string)=>{const state=store.snapshot(),role=state.roles.find(r=>r.id===roleId)?.versions.find(v=>v.version===version);if(!role)throw Error('岗位技能加载失败：岗位版本不存在');return skillAssets.guidance(state,roleId,role,cwd)}
+  const skillGuidance=(roleId:string,version:number,cwd?:string,createdAt?:number)=>{const state=store.snapshot(),role=state.roles.find(r=>r.id===roleId)?.versions.find(v=>v.version===version);if(!role)throw Error('岗位技能加载失败：岗位版本不存在');return skillAssets.guidance(state,roleId,role,cwd,createdAt)}
   const jev = await installJev(ctx)
   let developer: DeveloperService | undefined
   let developerContext: Context | undefined
