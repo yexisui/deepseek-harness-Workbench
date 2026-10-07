@@ -12242,12 +12242,13 @@ async function workbenchText(ctx, prompt, selectedModel, system, maxTokens, sign
 			source: { kind: "user" }
 		}],
 		temperature: .1,
-		maxTokens,
+		...maxTokens === void 0 ? {} : { maxTokens },
 		signal: combined
 	})) {
 		if (combined.aborted) throw new Error(signal?.aborted ? "本次分析已停止" : "模型处理超时，请重试");
 		if (chunk.type === "text-delta") result += chunk.text ?? "";
 		if (result.length > 512e3) throw new Error("模型返回内容过长，请缩小分析范围");
+		if (chunk.type === "finish" && chunk.reason?.kind === "max-tokens") throw new Error("模型输出达到所选模型的 token 上限，正文可能被截断；请在模型设置中调整最大输出 token 数后重试");
 		if (chunk.type === "finish" && chunk.reason?.kind === "error") throw new Error(chunk.reason.failure?.message || "工作台模型处理失败");
 	}
 	if (!result.trim()) throw new Error("工作台模型没有返回内容");
@@ -14890,7 +14891,7 @@ async function apply(ctx, config = {}) {
 			configSource: user && Object.keys(user).length ? "saved" : "environment"
 		};
 	};
-	const meeting = new MeetingService(join(home, "capabilities", "meetings"), (prompt, model, signal) => workbenchText(ctx, prompt, model, "你是严谨的中文会议纪要助手。只依据转写内容回答，只输出有效 JSON。", 4096, signal), () => store.snapshot().roles.find((role) => role.id === MEETING_ROLE_ID), () => store.snapshot(), effectiveAsr, jev, skillGuidance, async () => {
+	const meeting = new MeetingService(join(home, "capabilities", "meetings"), (prompt, model, signal) => workbenchText(ctx, prompt, model, "你是严谨的中文会议纪要助手。只依据转写内容回答，只输出有效 JSON。", void 0, signal), () => store.snapshot().roles.find((role) => role.id === MEETING_ROLE_ID), () => store.snapshot(), effectiveAsr, jev, skillGuidance, async () => {
 		const value = currentAsr();
 		return value.modelRef ? modelAccess.resolve(value.modelRef, value.format, value.maxMb) : effectiveAsr();
 	});
