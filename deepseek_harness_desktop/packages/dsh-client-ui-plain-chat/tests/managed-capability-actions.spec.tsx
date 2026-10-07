@@ -268,7 +268,7 @@ describe('managed capability card actions', () => {
     expect(button('恢复选中')!.disabled).toBe(true)
     await select('选择能力：浏览器操作')
     expect(checkbox('选择能力：浏览器操作').checked).toBe(true)
-    expect(checkbox('选择能力：浏览器操作').parentElement!.querySelector('svg')).not.toBeNull()
+    expect(checkbox('选择能力：浏览器操作').className).toContain('pill')
     expect(container.querySelector('[data-managed-capability="browser"]')!.getAttribute('data-selected')).toBe('true')
     expect(checkbox('全选回收站能力').indeterminate).toBe(true)
     expect(checkbox('全选回收站能力').checked).toBe(false)
