@@ -1511,9 +1511,22 @@ var ModelAccess = class {
 		let value = settings.get(entry.settingsNs);
 		for (const key of entry.settingsPath) value = value && typeof value === "object" ? value[key] : void 0;
 		if (!value || typeof value !== "object") throw new InputError("模型配置不可用", 409);
+		const profile = value;
+		if (entry.settingsNs === "llm-deepseek") {
+			const environment = this.ctx.get("launchEnvironment");
+			const inherited = environment ? environment.get("DEEPSEEK_BASE_URL")?.value : process.env.DEEPSEEK_BASE_URL;
+			return {
+				entry,
+				value: {
+					...profile,
+					baseURL: profile.baseURL ?? inherited ?? "https://api.deepseek.com",
+					apiKeyEnv: profile.apiKeyEnv ?? "DEEPSEEK_API_KEY"
+				}
+			};
+		}
 		return {
 			entry,
-			value
+			value: profile
 		};
 	}
 	credentials() {

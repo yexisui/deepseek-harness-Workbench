@@ -23,7 +23,15 @@ export class ModelAccess {
     let value: unknown = settings.get(entry.settingsNs)
     for (const key of entry.settingsPath) value = value && typeof value === 'object' ? (value as Record<string, unknown>)[key] : undefined
     if (!value || typeof value !== 'object') throw new InputError('模型配置不可用', 409)
-    return { entry, value: value as Profile }
+    const profile = value as Profile
+    // Native DeepSeek resolves an omitted URL through launch environment, then
+    // its built-in default. Match that adapter instead of requiring a UI override.
+    if (entry.settingsNs === 'llm-deepseek') {
+      const environment = this.ctx.get('launchEnvironment') as { get(name: string): { value: string } | undefined } | undefined
+      const inherited = environment ? environment.get('DEEPSEEK_BASE_URL')?.value : process.env.DEEPSEEK_BASE_URL
+      return { entry, value: { ...profile, baseURL: profile.baseURL ?? inherited ?? 'https://api.deepseek.com', apiKeyEnv: profile.apiKeyEnv ?? 'DEEPSEEK_API_KEY' } }
+    }
+    return { entry, value: profile }
   }
   private credentials() { return this.ctx.get('credentials') as unknown as Credentials }
   async reveal(provider: string) {

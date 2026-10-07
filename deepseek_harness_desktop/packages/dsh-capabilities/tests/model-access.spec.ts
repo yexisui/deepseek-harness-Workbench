@@ -50,3 +50,24 @@ it('does not accept arbitrary text or echo upstream credential errors', async ()
   await expect(access.check('gateway/speech','json',25)).rejects.toThrow('认证')
   expect(await access.checked('gateway/speech','json',25)).toBeNull()
 })
+
+it('resolves native DeepSeek defaults, launch environment and explicit overrides in adapter order', async () => {
+  let profile: Record<string,string> = {}
+  let inherited: string | undefined
+  let requestedRef = ''
+  const services = {
+    llm: { listProviders: () => [{id:'deepseek-official'}], listConfigurableProviders: () => [{provider:'deepseek-official',settingsNs:'llm-deepseek',settingsPath:[],displayName:'DeepSeek'}], listModels:async()=>[{id:'deepseek-flash',name:'Flash'}] },
+    settings: { get: () => profile },
+    launchEnvironment: { get: () => inherited === undefined ? undefined : {value:inherited} },
+    credentials: { resolve: async (ref: string) => { requestedRef=ref; return {value:'test-only',source:'file'} } },
+  }
+  const access = new ModelAccess({get:(name:keyof typeof services)=>services[name]} as never)
+  expect((await access.choices())[0]?.selectable).toBe(true)
+  expect((await access.resolve('deepseek-official/deepseek-flash','json',25)).endpoint).toBe('https://api.deepseek.com/audio/transcriptions')
+  expect(requestedRef).toBe('DEEPSEEK_API_KEY')
+  inherited='https://gateway.example/v1'
+  expect(access.metadata('deepseek-official/deepseek-flash','json',25).endpoint).toBe('https://gateway.example/v1/audio/transcriptions')
+  profile={baseURL:'https://override.example/v1',apiKeyEnv:'CUSTOM_KEY'}
+  expect((await access.resolve('deepseek-official/deepseek-flash','json',25)).endpoint).toBe('https://override.example/v1/audio/transcriptions')
+  expect(requestedRef).toBe('CUSTOM_KEY')
+})

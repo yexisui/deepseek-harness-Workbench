@@ -13792,8 +13792,7 @@ window.__ModuleLoader__.load({
 										label: provider,
 										children: filtered.filter((m) => m.provider === provider).map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("option", {
 											value: m.id,
-											disabled: !m.selectable,
-											children: [m.name, m.selectable ? " · 待检测转写支持" : " · 未适配"]
+											children: [m.name, m.selectable ? " · 待检测转写支持" : " · 查看原因"]
 										}, m.id))
 									}, provider))
 								]
