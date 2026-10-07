@@ -109,7 +109,7 @@ it('supports keyboard selection, Escape and duplicate prevention in the model li
   await act(async()=>{document.activeElement!.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))});expect(pickerButton().getAttribute('aria-expanded')).toBe('false');expect(document.activeElement).toBe(pickerButton())
   await add('lan/two');await act(async()=>pickerButton().click());expect(modelCheck('lan/two').disabled).toBe(true)
 })
-it('guides an unverified top switch to settings without saving enabled mode',async()=>{await render(<JevToggle/>);await act(async()=>container.querySelector<HTMLButtonElement>('[role="switch"]')!.click());expect(pendingNavigation('jev-mode')?.tab).toBe('configuration');expect(requests.some(r=>r.url.endsWith('/config'))).toBe(false)})
+it.each(['unverified','error','checking'] as const)('enables the top switch with diagnostic state %s without starting a check',async state=>{saved.connection={state,message:'检查状态'};await jevClient.refresh();await render(<JevToggle/>);await act(async()=>container.querySelector<HTMLButtonElement>('[role="switch"]')!.click());expect(saved.config.value.enabled).toBe(true);expect(requests.some(r=>r.url.endsWith('/check'))).toBe(false)})
 it('shows unavailable account reasons and checks unsaved configuration while global mode stays off',async()=>{
   await render();await add('cloud/model');expect(container.textContent).toContain('公网账号');expect(container.textContent).toContain('模型账号未启用');expect(container.textContent).not.toContain('待配置或不可用账号')
   await add('lan/two');expect(container.querySelector('[aria-label="启用 模型二"]')?.getAttribute('aria-checked')).toBe('false');await act(async()=>{container.querySelector<HTMLButtonElement>('[aria-label="检查 模型二"]')!.click();await delay()})
@@ -151,3 +151,22 @@ it('queries the selected conversation independently and distinguishes a fixed ro
   await render(<JevActivity scope="native:old"/>);expect(requests.some(r=>r.url.endsWith('state?scope=native%3Aold'))).toBe(true);expect(container.textContent).toContain('正在结果复核');expect(container.textContent).toContain('下一轮生效')
 })
 
+
+it('saves enabled settings before any optional model check',async()=>{
+  saved.config.value={...defaults,candidates:[]};await jevClient.refresh();await render();await add('lan/two')
+  const mode=container.querySelector<HTMLSelectElement>('select[aria-label="JEV 全局开关"]')!;expect(mode.options[1]!.disabled).toBe(true)
+  await act(async()=>{container.querySelector<HTMLButtonElement>('[aria-label="启用 模型二"]')!.click();await delay()})
+  expect(mode.options[1]!.disabled).toBe(false)
+  await act(async()=>{mode.value='true';mode.dispatchEvent(new Event('change',{bubbles:true}));await delay()});await click('保存配置')
+  expect(saved.config.value.enabled).toBe(true);expect(requests.some(r=>r.url.endsWith('/check'))).toBe(false)
+  await render(null);await render();expect(container.querySelector<HTMLSelectElement>('[aria-label="JEV 全局开关"]')!.value).toBe('true')
+})
+it('guides the top switch to settings only when every candidate is disabled',async()=>{
+  saved.config.value={...defaults,candidates:[{id:'one',model:'lan/one',enabled:false,reasoningEffort:''}]};await jevClient.refresh();await render(<JevToggle/>)
+  await act(async()=>container.querySelector<HTMLButtonElement>('[role="switch"]')!.click());expect(pendingNavigation('jev-mode')?.tab).toBe('configuration');expect(requests.some(r=>r.url.endsWith('/config'))).toBe(false)
+})
+it('shows only the short success label for old stored diagnostic messages',async()=>{
+  saved.connection={state:'ready',message:'连接及决策格式检查通过；业务结果仍需逐次核对'};await jevClient.refresh();await render()
+  const row=container.querySelector('[aria-roledescription="可拖动的模型选项"]')!
+  expect(row.textContent).toContain('检查通过');expect(row.textContent).not.toContain('业务结果');expect(row.querySelector('[title*="业务结果"]')).toBeNull()
+})

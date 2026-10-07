@@ -1,4 +1,5 @@
 import React,{useEffect,useState} from 'react'
+import {hasEnabledModel} from '../core/contract.ts'
 import {jevClient,useJev,useJevScope} from './client.ts'
 import {connectionName,modelSummary,modeLabel,stageName} from './view-model.ts'
 import {JevTraceDetail} from './JevTraces.tsx'
@@ -10,10 +11,10 @@ export {JevSettings} from './JevSettings.tsx'
 
 export function JevToggle(){
   const {data,error,busy}=useJev(),[notice,setNotice]=useState(''),enabled=data?.config.value.enabled??false
-  const toggle=()=>{if(!data)return;if(!enabled&&data.connection?.state!=='ready'){openWorkbenchLink({section:'jev-mode',tab:'configuration'});return}void jevClient.save({...data.config.value,enabled:!enabled}).then(()=>setNotice('已保存，从下一轮生效')).catch(()=>{})}
+  const toggle=()=>{if(!data)return;if(!enabled&&!hasEnabledModel(data.config.value)){openWorkbenchLink({section:'jev-mode',tab:'configuration'});return}void jevClient.save({...data.config.value,enabled:!enabled}).then(()=>setNotice('已保存，从下一轮生效')).catch(()=>{})}
   useEffect(()=>{if(!notice)return;const t=setTimeout(()=>setNotice(''),6000);return()=>clearTimeout(t)},[notice])
   return <div className={`${s.page} ${css.control}`} data-jev-control>
-    <button className={`${s.button} ${css.toggle}`} type="button" role="switch" aria-label="JEV 模式" aria-checked={enabled} data-unavailable={enabled&&data?.state==='unavailable'} disabled={!data||busy} title={!enabled&&data?.connection?.state!=='ready'?'先选择并检查模型':data?.message??'正在加载 JEV 设置'} onClick={toggle}><span className={css.track}/><span>JEV · {modeLabel(data)}</span></button>
+    <button className={`${s.button} ${css.toggle}`} type="button" role="switch" aria-label="JEV 模式" aria-checked={enabled} data-unavailable={enabled&&data?.state==='unavailable'} disabled={!data||busy} title={!enabled&&data&&!hasEnabledModel(data.config.value)?'先开启一个候选模型':data?.message??'正在加载 JEV 设置'} onClick={toggle}><span className={css.track}/><span>JEV · {modeLabel(data)}</span></button>
     <button type="button" className={s.iconButton} aria-label="JEV 设置" title="JEV 设置与运行轨迹" onClick={()=>openWorkbenchLink({section:'jev-mode'})}><CapabilityActionIcon kind="settings"/></button>
     {(error||notice)&&<div className={error?css.error:css.feedback} role={error?'alert':'status'}>{error||notice}{error&&<button className={s.button} onClick={()=>openWorkbenchLink({section:'jev-mode'})}>查看设置</button>}</div>}
   </div>
