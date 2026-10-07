@@ -1,3 +1,4 @@
+import { PillCheckbox } from '../../../../shared/client/PillCheckbox.tsx'
 import { PackageCapabilitySettings } from './PackageCapabilitySettings.tsx'
 import React, { useEffect, useRef } from 'react'
 import { latest, actionsOf, actionNames, type Capability, type Snapshot } from '../../../dsh-capabilities/src/core/model.ts'
@@ -32,7 +33,7 @@ export function ManagedCapabilityDetail({item,data,tab,onTab,busy,meetingStatus,
   <div className={s.tabs} aria-label="能力详情">{[['settings','设置'],['components','组件'],['usage','使用情况']].map(([value,label])=><button key={value} aria-pressed={current===value} onClick={()=>onTab(value!)}>{label}</button>)}</div>
   {current==='settings'&&<>
    <div className={s.row}><div><strong>{presentation.label}</strong><small>{presentation.message}</small>{kind==='browser'&&<small>检测时间：{data.health.checkedAt?new Date(data.health.checkedAt).toLocaleString():'尚未检测'}</small>}</div><div className={s.actions}>{kind==='browser'?<><button className={`${s.button} ${data.health.state==='ready'?s.primary:''}`} disabled={disabled} onClick={()=>onCheck()}>检测连接</button><button className={`${s.button} ${data.health.state==='ready'?'':s.primary}`} disabled={disabled} onClick={()=>onCheck(true)}>启动本地连接</button></>:kind==='requirements'||kind==='meeting-asr'?<button className={s.button} disabled={busy} onClick={()=>void(kind==='requirements'?refreshRequirements():refreshMeeting())}>刷新状态</button>:null}</div></div>
-   <label className={s.check}><input type="checkbox" checked={item.enabled} disabled={disabled} onChange={e=>onToggle(e.target.checked)}/>启用此能力</label>
+   <label className={s.check}><PillCheckbox type="checkbox" checked={item.enabled} disabled={disabled} onChange={e=>onToggle(e.target.checked)}/>启用此能力</label>
    <p className={s.muted}>停用将阻止后续调用，保留配置、岗位引用与历史记录。影响范围：{impact.roles.length} 个岗位、{impact.tasks.length} 个活动会话。</p>
    {compositionReturn&&<button className={s.button} onClick={onReturnComposition}>← 返回组件组合</button>}
    <div data-capability-config>{kind==='package'?<PackageCapabilitySettings item={item} data={data}/>:kind==='developer'?<DeveloperProjectSettings disabled={!!item.removedAt} onEditingChange={onEditing}/>:kind==='requirements'?<>{requirementsError&&<p className={s.error} role="alert">{requirementsError}</p>}<RequirementsSettings status={requirementsStatus} onSaved={acceptRequirements} disabled={!!item.removedAt} onEditingChange={onEditing}/></>:kind==='meeting-asr'?<><MeetingAsrSettings status={meetingStatus} refresh={refreshMeeting} disabled={!!item.removedAt} onEditingChange={onEditing}/><p className={s.muted}>录音会发送至你配置的识别服务，纪要由工作台已配置的模型生成。接口已配置不代表转写已验证。</p></>:!kind?<p className={s.notice}>请在组件中检查各项配置与适配范围。</p>:null}</div>

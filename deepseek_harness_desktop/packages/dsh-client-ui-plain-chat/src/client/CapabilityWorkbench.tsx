@@ -1,3 +1,4 @@
+import { PillCheckbox } from '../../../../shared/client/PillCheckbox.tsx'
 import React, { useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { ChatKey } from './locales.ts'
 import type { AssistantRole } from './role-catalog.ts'
@@ -66,7 +67,7 @@ export function CapabilityWorkbench({ t, mode, name, form, preview, onOpenRole }
     setAttached(previous => previous.filter(entry => entry !== id))
     setAnnouncement(t('capRemoveAnnouncement') + t(catalog.find(entry => entry.id === id)!.name))
   }
-  const switchControl = (label: ChatKey, hint: ChatKey, checked: boolean, onChange: (value: boolean) => void) => <label className={s.switchRow}><span><strong>{t(label)}</strong><small>{t(hint)}</small></span><input type="checkbox" role="switch" checked={checked} onChange={event => onChange(event.target.checked)} /><span className={s.switchTrack} aria-hidden="true" /></label>
+  const switchControl = (label: ChatKey, hint: ChatKey, checked: boolean, onChange: (value: boolean) => void) => <label className={s.switchRow}><span><strong>{t(label)}</strong><small>{t(hint)}</small></span><PillCheckbox type="checkbox" role="switch" checked={checked} onChange={event => onChange(event.target.checked)} /></label>
   const rail = (side: PanelSide) => {
     const isOpen = side === 'left' ? panels.leftOpen : panels.rightOpen
     const label = t(side === 'left' ? (isOpen ? 'capHideLibrary' : 'capShowLibrary') : (isOpen ? 'capHideSettings' : 'capShowSettings'))

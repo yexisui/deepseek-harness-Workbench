@@ -1,0 +1,9 @@
+.pill.pill[type=checkbox]{appearance:none!important;-webkit-appearance:none!important;box-sizing:border-box!important;position:relative!important;inset:auto!important;display:inline-block!important;flex:none!important;width:46px!important;min-width:46px!important;height:28px!important;min-height:28px!important;margin:0 8px 0 0!important;padding:3px!important;border:0!important;border-radius:999px!important;background:#858b95!important;opacity:1!important;vertical-align:middle;cursor:pointer;transition:background .18s ease}
+.pill.pill[type=checkbox]::before{content:'';display:block;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0003;transition:transform .18s ease}
+.pill.pill[type=checkbox]:checked{background:#25834a!important}
+.pill.pill[type=checkbox]:checked::before{transform:translateX(18px)}
+.pill.pill[type=checkbox]:indeterminate{background:#68768b!important}
+.pill.pill[type=checkbox]:indeterminate::before{transform:translateX(9px)}
+.pill.pill[type=checkbox]:disabled{opacity:.55!important;cursor:not-allowed}
+.pill.pill[type=checkbox]:focus-visible{outline:3px solid #4d90ef;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.pill.pill[type=checkbox],.pill.pill[type=checkbox]::before{transition:none}}

@@ -1,3 +1,4 @@
+import { PillCheckbox } from '../../../../shared/client/PillCheckbox.tsx'
 import React, { useEffect, useRef, useState } from 'react'
 import type { Snapshot } from '../../../dsh-capabilities/src/core/model.ts'
 import { definitionChanged, packageDefinition, type PackagePreview } from '../../../dsh-capabilities/src/core/distribution.ts'
@@ -91,11 +92,11 @@ export function CapabilityDistribution({mode,data,onClose,onImported}:{mode:'imp
       {m.permissions.includes('model')&&<p>使用工作台模型；账号与密钥由接收方本机提供。</p>}
       {mode==='import'&&preview&&<>
         <p className={s.notice}>{preview.trust}</p>
-        <label className={s.check}><input type="checkbox" disabled={busy} checked={trusted} onChange={e=>setTrusted(e.target.checked)}/>我信任此制作者及包内执行代码</label>
+        <label className={s.check}><PillCheckbox type="checkbox" disabled={busy} checked={trusted} onChange={e=>setTrusted(e.target.checked)}/>我信任此制作者及包内执行代码</label>
         {preview.needsModel&&<p>导入后选择工作台模型即可启用，当前不会运行任何任务。</p>}
         {preview.existing&&<><p>{preview.existing.duplicate?'此包已安装，将直接打开现有能力。':`更新现有能力：包 v${preview.existing.version} → v${m.version}`}</p>{!preview.existing.duplicate&&<><ul className={s.list}>{preview.existing.changes.map(v=><li key={v}>{v}</li>)}</ul>
           {preview.existing.draftChanged&&<label className={s.field}>发现本地未发布修改<select disabled={busy} value={draft} onChange={e=>setDraft(e.target.value as typeof draft)}><option value="keep">保留当前草稿</option><option value="replace">保存备份后替换为导入内容</option></select></label>}
-          <details className={s.detailDisclosure}><summary>更新岗位引用（默认保持原版本）</summary><p>仅下方勾选的岗位会生成采用新版的岗位版本；已有岗位草稿与会话保留。</p>{linked.map(role=><label className={s.check} key={role.id}><input type="checkbox" disabled={busy} checked={roles.includes(role.id)} onChange={e=>setRoles(e.target.checked?[...roles,role.id]:roles.filter(id=>id!==role.id))}/>{role.draft.name}</label>)}{!linked.length&&<p>暂无岗位引用。</p>}</details></>}
+          <details className={s.detailDisclosure}><summary>更新岗位引用（默认保持原版本）</summary><p>仅下方选中的岗位会生成采用新版的岗位版本；已有岗位草稿与会话保留。</p>{linked.map(role=><label className={s.check} key={role.id}><PillCheckbox type="checkbox" disabled={busy} checked={roles.includes(role.id)} onChange={e=>setRoles(e.target.checked?[...roles,role.id]:roles.filter(id=>id!==role.id))}/>{role.draft.name}</label>)}{!linked.length&&<p>暂无岗位引用。</p>}</details></>}
         </>}
       </>}
       <details className={s.detailDisclosure}><summary>来源与交付清单</summary><p className={s.muted}>{m.id} · {m.protocol}</p><p>本机配置、岗位授权与任务记录不参与导出。</p><ul className={s.list}>{Object.keys(m.files).map(path=><li key={path}>{path}</li>)}</ul></details>
