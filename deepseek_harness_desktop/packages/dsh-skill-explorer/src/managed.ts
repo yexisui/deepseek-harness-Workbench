@@ -9,7 +9,7 @@ import {packageZip} from '../../dsh-capabilities/src/host/package-archive.ts'
 const LIMIT=32*1024*1024, NAME=/^[a-z0-9][a-z0-9-]{0,63}$/
 const digest=(data:Buffer|string)=>createHash('sha256').update(data).digest('hex')
 type Files=Map<string,Buffer>
-export interface ManagedSkill {id:string;name:string;description:string;root:string;scope:string;hash:string;enabled:boolean;auto:boolean;manual:boolean;category:string;warnings:string[];previous?:string;hashes?:string[];removed?:boolean;updatedAt:string}
+export interface ManagedSkill {id:string;name:string;description:string;root:string;scope:string;hash:string;enabled:boolean;auto:boolean;manual:boolean;category:string;warnings:string[];previous?:string;hashes?:string[];pinned?:boolean;removed?:boolean;updatedAt:string}
 interface Database {revision:number;skills:ManagedSkill[]}
 interface Candidate {key:string;name:string;description:string;hash:string;warnings:string[];error?:string;files:Files}
 interface Preview {id:string;root:string;scope:string;expires:number;revision:number;candidates:Candidate[]}
@@ -91,7 +91,7 @@ export class ManagedSkills {
    const old=db.skills.find(s=>s.root===p.root&&s.name===name);if(choice.mode==='copy'&&old)throw Error('副本名称已存在')
    if(old)this.verifyCurrent(old);else if(fs.existsSync(path.join(p.root,name)))throw Error('目标存在非本模块管理的技能，请另存副本')
    const files=new Map(c.files);files.set('SKILL.md',Buffer.from(rewrite(files.get('SKILL.md')!.toString('utf8'),{name})));const hash=this.archive(files),fm=parseFrontmatter(files.get('SKILL.md')!.toString())
-   const row:ManagedSkill={id:old?.id??randomUUID(),name,description:c.description,root:p.root,scope:p.scope,hash,enabled:old?.enabled??enabled,auto:old?.auto??fm.disableModelInvocation!==true,manual:old?.manual??fm.userInvocable!==false,category:old?.category??'未分类',warnings:c.warnings,previous:old&&old.hash!==hash?old.hash:old?.previous,updatedAt:new Date().toISOString()}
+   const row:ManagedSkill={id:old?.id??randomUUID(),name,description:c.description,root:p.root,scope:p.scope,hash,enabled:old?.enabled??enabled,auto:old?.auto??fm.disableModelInvocation!==true,manual:old?.manual??fm.userInvocable!==false,pinned:old?.pinned,category:old?.category??'未分类',warnings:c.warnings,previous:old&&old.hash!==hash?old.hash:old?.previous,updatedAt:new Date().toISOString()}
    row.hashes=[...new Set([hash,...old?.hashes??[],...old?[old.hash,...old.previous?[old.previous]:[]]:[]])]
    return {old,row}
   })
@@ -101,7 +101,7 @@ export class ManagedSkills {
   this.previews.delete(id);return {ok:true,count:planned.length-unchanged,unchanged}
  }
  change(id:string,revision:number,action:string,value?:unknown){
-  const db=this.read();if(db.revision!==revision)throw Error('列表已改变，请刷新后重试');const row=db.skills.find(s=>s.id===id);if(!row)throw Error('技能不存在');this.verifyCurrent(row);const old=structuredClone(row)
+  const db=this.read();if(db.revision!==revision)throw Error('列表已改变，请刷新后重试');const row=db.skills.find(s=>s.id===id);if(!row)throw Error('技能不存在');if(action==='pinned'){if(typeof value!=='boolean')throw Error('无效收藏状态');row.pinned=value;this.save(db);return {ok:true}}this.verifyCurrent(row);const old=structuredClone(row)
   if(action==='enabled'){if(typeof value!=='boolean')throw Error('无效开关');row.enabled=value}
   else if(action==='auto'){if(typeof value!=='boolean')throw Error('无效开关');row.auto=value}
   else if(action==='category'){if(typeof value!=='string'||!value.trim()||value.length>40)throw Error('分类需为 1–40 个字符');row.category=value.trim()}
@@ -114,6 +114,7 @@ export class ManagedSkills {
   return {ok:true}
  }
  detail(id:string){const row=this.read().skills.find(s=>s.id===id);if(!row)throw Error('技能不存在');const files=filesAt(this.asset(row.hash));return {content:files.get('SKILL.md')!.toString('utf8'),files:[...files.keys()]}}
+ resource(id:string,relative:string){const row=this.read().skills.find(s=>s.id===id);if(!row)throw Error('技能不存在');const file=safeLocalPath(relative),files=filesAt(this.asset(row.hash)),bytes=files.get(file);if(!bytes)throw Error('资源不存在');if(bytes.length>128*1024)throw Error('文件超过文本预览大小限制，请导出后查看');if(!/\.(md|txt|json|ya?ml|csv|ts|js|py|html|css|xml|toml|ini|sh)$/i.test(file))throw Error('此文件不支持文本预览，请导出后查看');let content:string;try{content=new TextDecoder('utf-8',{fatal:true}).decode(bytes);if(content.includes('\0'))throw Error()}catch{throw Error('此文件不是 UTF-8 文本，请导出后查看')}return {path:file,content}}
  /** Read a role-pinned immutable version only at the point of actual use. */
  readVersion(id:string,hash:string){const row=this.read().skills.find(s=>s.id===id);if(!row||row.removed)throw Error('技能已移除');if(!row.enabled)throw Error('技能已停用');if(![row.hash,row.previous,...row.hashes??[]].includes(hash))throw Error('岗位绑定的技能版本不存在');const files=filesAt(this.asset(hash));if(hashFiles(files)!==hash)throw Error('技能版本文件已改变');return {row,files}}
  export(id:string){const row=this.read().skills.find(s=>s.id===id);if(!row)throw Error('技能不存在');let files=filesAt(this.asset(row.hash));if(!row.removed){try{this.verifyCurrent(row)}catch{files=filesAt(path.join(row.root,row.name))}}return {name:row.name+'.zip',bytes:packageZip(files)}}

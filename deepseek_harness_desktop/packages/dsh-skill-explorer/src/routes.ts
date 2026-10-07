@@ -99,6 +99,7 @@ export function makeRoutes(ctx: Context, deps: SkillRoutesDeps): WebRoute[] {
     if(!guard(req,res,method))return
     try {
       if(method==='GET') {
+        if(action==='resource'){const q=new URL(req.url??'','http://localhost').searchParams;writeJson(res,200,managed.resource(q.get('id')??'',q.get('path')??''));return}
         if(action==='detail'){writeJson(res,200,managed.detail(new URL(req.url??'','http://localhost').searchParams.get('id')??''));return}
         if(action==='export'){const id=new URL(req.url??'','http://localhost').searchParams.get('id')??'',out=managed.export(id);res.writeHead(200,{'content-type':'application/zip','content-disposition':`attachment; filename="${out.name}"`,'cache-control':'no-store'});res.end(out.bytes);return}
         writeJson(res,200,{...managed.read(),projects:sessionProjectRoots()});return
@@ -146,7 +147,7 @@ export function makeRoutes(ctx: Context, deps: SkillRoutesDeps): WebRoute[] {
   }
 
   const routes: WebRoute[] = [
-    ...['list','export','detail'].map(action=>managedRoute(action,'GET')),
+    ...['list','export','detail','resource'].map(action=>managedRoute(action,'GET')),
     ...['inspect','commit','discard','change'].map(action=>managedRoute(action,'POST')),
     {
       kind: 'exact',

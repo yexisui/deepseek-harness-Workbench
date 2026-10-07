@@ -19,7 +19,7 @@ export interface SkillPanelProps {
 }
 
 /** One shared settings/overlay surface; discovery continues using the existing registry. */
-export function SkillsSettings(){const [api]=useState(()=>new SkillApi());const [cwd,setCwd]=useState<string>();return <><ManagedPanel/><details><summary>其他已发现技能（项目、插件及旧技能）</summary><p>下方旧技能开关控制 AI 自动选用；插件提供的技能由其来源插件管理。</p><ListTab api={api} refreshTick={0} onCwd={setCwd}/></details></>}
+export function SkillsSettings(){return <ManagedPanel/>}
 
 type Tab = 'list' | 'create'
 
