@@ -220,6 +220,27 @@ describe('managed capability card actions', () => {
     expect(store.snapshot().capabilities[0]!.removedAt).toBeTruthy()
   })
 
+  it('uses role-local switches for meeting and browser accessories without changing published or global enablement', async () => {
+    const browser = await makeRole('统一配件岗位')
+    const meeting = store.snapshot().roles.find(r => r.draft.capabilities.some(b => b.capabilityId === 'meeting-transcription'))!
+    for (const [id,name] of [[browser.id,'浏览器操作'],[meeting.id,'会议录音转写']]) {
+      await capabilityClient.refresh()
+      await act(async () => root.render(<ManagedRoleEditor key={id} id={id} onClose={() => {}}/>))
+      const dialog = document.querySelector('dialog')!, toggle = button('在此岗位中启用 '+name,dialog)!
+      expect(toggle.getAttribute('role')).toBe('switch')
+      expect(toggle.getAttribute('aria-checked')).toBe('true')
+      expect(dialog.textContent).toContain('能力版本：v1')
+      await click('在此岗位中启用 '+name,dialog)
+      expect(toggle.getAttribute('aria-checked')).toBe('false')
+      expect(store.snapshot().roles.find(r=>r.id===id)!.draft.capabilities[0]!.enabled).toBe(true)
+      await click('保存草稿',dialog)
+      const role=store.snapshot().roles.find(r=>r.id===id)!
+      expect(role.draft.capabilities[0]!.enabled).toBe(false)
+      expect(latest(role.versions)!.capabilities[0]!.enabled).toBe(true)
+      expect(store.snapshot().capabilities.find(c=>c.id===role.draft.capabilities[0]!.capabilityId)!.enabled).toBe(true)
+    }
+  })
+
   it('adds a skill through the shared library and preserves draft bindings without changing the published role', async () => {
     const saved = await makeRole('技能岗位')
     await capabilityClient.refresh()
