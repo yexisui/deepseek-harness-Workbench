@@ -1,3 +1,4 @@
+import { printDocument } from './print-document.ts'
 import React, { useEffect, useRef, useState } from 'react'
 import type { RoleDefinition } from '../../../dsh-capabilities/src/core/model.ts'
 import { RoleAppearanceIcon } from './RoleAppearance.tsx'
@@ -88,7 +89,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
         } else if (next.status === 'ready') {
           setPhase('ready')
           setSegments(next.segments)
-          setMessages(current => current.some(message => message.kind === 'minutes') ? current : [...current, { id: nextId.current++, kind: 'minutes' }])
+          setMessages(current => { const completed = current.map(message => message.kind === 'assistant' && message.text === '正在根据录音与现有纪要修改…' ? { ...message, text: '已根据你的要求更新上方纪要。' } : message); return completed.some(message => message.kind === 'minutes') ? completed : [...completed, { id: nextId.current++, kind: 'minutes' }] })
         }
       } catch (error) { if (active) setNotice(error instanceof Error ? error.message : String(error)) }
     }
@@ -165,11 +166,8 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
   const copyMinutes = async () => { if (!job?.minutes) return; try { await navigator.clipboard.writeText(minutesText(job.minutes)); setNotice('已复制当前纪要') } catch { setNotice('复制失败，可选中文字手动复制') } }
   const printMinutes = () => {
     if (!job?.minutes) return
-    const windowRef = window.open('', '_blank', 'width=900,height=700')
-    if (!windowRef) { setNotice('打印窗口被拦截，请允许弹出窗口后重试'); return }
     const html = minutesText(job.minutes).split('\n').map(line => `<div>${escapeHtml(line) || '&nbsp;'}</div>`).join('')
-    windowRef.document.write(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>${escapeHtml(job.minutes.title)}</title><style>body{font:15px/1.7 system-ui,sans-serif;max-width:760px;margin:40px auto;color:#202938}div{white-space:pre-wrap}div:first-child{font-size:24px;font-weight:700;margin-bottom:20px}@page{size:A4;margin:18mm}</style></head><body>${html}</body></html>`)
-    windowRef.document.close(); windowRef.focus(); windowRef.print()
+    printDocument(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>${escapeHtml(job.minutes.title)}</title><style>body{font:15px/1.7 system-ui,sans-serif;max-width:760px;margin:40px auto;color:#202938}div{white-space:pre-wrap}div:first-child{font-size:24px;font-weight:700;margin-bottom:20px}@page{size:A4;margin:18mm}</style></head><body>${html}</body></html>`)
   }
   const transcriptCard = (editable: boolean) => <div className={s.resultCard}>
     <div className={s.cardHead}><div><small>录音转写</small><h3>{editable ? '请先核对原文' : '转写原文'}</h3></div><span>{job?.segments.length ?? 0} 个片段</span></div>
@@ -202,3 +200,4 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
     <input ref={input} type="file" accept=".mp3,.m4a,.wav,.aac,.flac,.ogg,.opus,.webm,.mp4" hidden onChange={event => void onFile(event.target.files?.[0])}/>
   </div>
 }
+
