@@ -353,6 +353,7 @@ if (!gotLock) {
     // purpose, and focusing on every retry is the #1382 popup loop.
     if (!shouldRaiseWindowOnSecondInstance(argv, { quitting, window: mainWindow })) return;
     if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
     mainWindow.focus();
   });
   app.whenReady().then(run).catch((error) => {
