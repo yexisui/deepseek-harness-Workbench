@@ -1,7 +1,7 @@
 ﻿#requires -Version 5.1
 [CmdletBinding()]
 param(
-    [ValidateSet('Deploy', 'Build', 'Check', 'Inspect', 'Desktop', 'Web')]
+    [ValidateSet('Deploy', 'Build', 'Check', 'Inspect', 'Desktop', 'Web', 'Tools')]
     [string]$Mode = 'Deploy',
     [string]$SourceName,
     [switch]$Repair
@@ -386,7 +386,11 @@ function Check-Installation {
     Invoke-Tool $script:Node @($script:Pnpm, '--version')
     Write-Log 'Installed files, versions, bundle registrations and launchers checked. Model replies require user configuration.'
 }
+function Install-ExternalTools {
+    & (Join-Path $script:Root 'external-tools\install.ps1')
+}
 function Main {
+    if ($Mode -eq 'Tools') { Install-ExternalTools; return }
     if ([Environment]::OSVersion.Platform -ne 'Win32NT' -or [Environment]::OSVersion.Version.Major -lt 10) { throw 'Windows 10/11 or equivalent Windows Server is required.' }
     $arch = $env:PROCESSOR_ARCHITEW6432
     if (-not $arch) { $arch = $env:PROCESSOR_ARCHITECTURE }
@@ -431,6 +435,7 @@ function Main {
         $script:Moved = $false
         if (Test-Path -LiteralPath $selectionFile) { $script:Moved = (Read-Json $selectionFile).lastRoot -ne $script:Root }
         if ($Mode -eq 'Deploy') {
+            $script:Step = 'External tools'; Install-ExternalTools
             $script:Step = 'Node.js'; Install-Node
             $baseline = Get-Baseline
             $script:Step = 'DSH and pnpm'; Install-NpmEnvironment 'runtime' $baseline.runtime
