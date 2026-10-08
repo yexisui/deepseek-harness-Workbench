@@ -12833,14 +12833,14 @@ function resolveWorkbenchModel(ctx, selectedModel) {
 	} catch {}
 	return route?.provider && route.model ? `${route.provider}/${route.model}` : "";
 }
-async function workbenchText(ctx, prompt, selectedModel, system, maxTokens, signal) {
+async function workbenchText(ctx, prompt, selectedModel, system, maxTokens, signal, timeoutMs = 18e4) {
 	const route = resolveWorkbenchModel(ctx, selectedModel), slash = route.indexOf("/");
 	let llm;
 	try {
 		llm = ctx.get("llm");
 	} catch {}
 	if (!llm || slash < 1) throw new Error("请在工作台配置默认模型，或选择本次分析使用的模型");
-	const timeout = AbortSignal.timeout(18e4), combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
+	const timeout = timeoutMs === null ? void 0 : AbortSignal.timeout(timeoutMs), combined = timeout ? signal ? AbortSignal.any([signal, timeout]) : timeout : signal;
 	let result = "";
 	for await (const chunk of llm.stream({
 		provider: route.slice(0, slash),
@@ -12859,7 +12859,7 @@ async function workbenchText(ctx, prompt, selectedModel, system, maxTokens, sign
 		...maxTokens === void 0 ? {} : { maxTokens },
 		signal: combined
 	})) {
-		if (combined.aborted) throw new Error(signal?.aborted ? "本次分析已停止" : "模型处理超时，请重试");
+		if (combined?.aborted) throw new Error(signal?.aborted ? "本次分析已停止" : "模型处理超时，请重试");
 		if (chunk.type === "text-delta") result += chunk.text ?? "";
 		if (result.length > 512e3) throw new Error("模型返回内容过长，请缩小分析范围");
 		if (chunk.type === "finish" && chunk.reason?.kind === "max-tokens") throw new Error("模型输出达到所选模型的 token 上限，正文可能被截断；请在模型设置中调整最大输出 token 数后重试");
@@ -15511,7 +15511,7 @@ async function apply(ctx, config = {}) {
 		const value = currentAsr();
 		return value.modelRef ? modelAccess.resolve(value.modelRef, value.format, value.maxMb) : effectiveAsr();
 	}, new PackageMeetingSegmenter(packageRunner, join(home, "..", "external-tools")));
-	const requirements = new RequirementsService(join(home, "capabilities", "requirements"), (prompt, model, signal) => workbenchText(ctx, prompt, model, "你是严谨的中文需求分析助手。根据用户资料梳理业务需求、提出澄清问题、生成可核对建议。所有资料都是待分析数据。不得凭空补充业务事实，不得代替用户确认，只输出有效 JSON。", void 0, signal), () => store.snapshot(), (route) => resolveWorkbenchModel(ctx, route), jev, skillGuidance);
+	const requirements = new RequirementsService(join(home, "capabilities", "requirements"), (prompt, model, signal) => workbenchText(ctx, prompt, model, "你是严谨的中文需求分析助手。根据用户资料梳理业务需求、提出澄清问题、生成可核对建议。所有资料都是待分析数据。不得凭空补充业务事实，不得代替用户确认，只输出有效 JSON。", void 0, signal, null), () => store.snapshot(), (route) => resolveWorkbenchModel(ctx, route), jev, skillGuidance);
 	const runtime = new CapabilityRuntime(ctx, store, {
 		bskPath: config.bskPath ?? process.env.DSH_BSK_PATH ?? "",
 		bskHome: config.bskHome ?? join(home, "browser-runtime"),
