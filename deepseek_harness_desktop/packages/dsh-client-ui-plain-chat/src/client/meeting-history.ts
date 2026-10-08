@@ -6,7 +6,7 @@ export function meetingHistoryRow(item: MeetingSummary): LocalConversation {
   return { id: `meeting-${item.id}`, role: 'meeting-minutes-demo', kind: 'demo', title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt), meeting: {
     mode: item.mode, audience: item.audience, focus: item.focus, summaryModel: item.summaryModel, jobId: item.id, roleVersion: item.roleVersion,
     phase: item.status === 'ready' ? 'ready' : item.status === 'transcribed' ? 'transcript' : 'processing',
-    messages: [{ id: 0, kind: 'intro' }], trace: ['从已保存的会议恢复'], draft: '', showTranscript: false,
+    messages: [{ id: 0, kind: 'intro', createdAt: item.createdAt }], trace: ['从已保存的会议恢复'], draft: '', showTranscript: false,
   } }
 }
 async function list(cursor?: string): Promise<Page> {

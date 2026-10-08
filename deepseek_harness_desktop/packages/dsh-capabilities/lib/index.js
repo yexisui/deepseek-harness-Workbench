@@ -1507,6 +1507,7 @@ var MeetingService = class {
 			controller.signal.throwIfAborted();
 			this.role(latest.role?.version, latest.createdAt);
 			latest.segments = segments;
+			latest.transcribedAt = (/* @__PURE__ */ new Date()).toISOString();
 			latest.status = "transcribed";
 			await this.save(latest);
 			if (latest.mode === "quick") await this.generate(id);
@@ -1613,6 +1614,7 @@ var MeetingService = class {
 			delete job.timingStatus;
 			delete job.timingError;
 			job.minutes = minutes;
+			job.minutesGeneratedAt = (/* @__PURE__ */ new Date()).toISOString();
 			job.status = "ready";
 			await this.save(job);
 		} catch (error) {

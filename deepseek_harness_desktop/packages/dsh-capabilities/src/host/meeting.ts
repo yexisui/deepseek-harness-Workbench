@@ -17,6 +17,7 @@ export type MeetingAction = MeetingItem & { owner: string; deadline: string }
 export type MeetingMinutes = { title: string; overview: string; decisions: MeetingItem[]; actions: MeetingAction[]; unknown: MeetingItem[] }
 type MeetingRole = { version: number; name: string; duties: string; requirements: string; format: string }
 export type MeetingJob = {
+  transcribedAt?: string; minutesGeneratedAt?: string;
   id: string; fileName: string; extension: string; size: number; createdAt: string; updatedAt: string
   mode: 'quick' | 'guided'; audience: string; focus: string; summaryModel: string
   role?: MeetingRole
@@ -260,7 +261,7 @@ export class MeetingService {
       if (!segments.length) throw new Error('未识别到可用语音，请检查录音内容')
       const latest = await this.get(id)
       controller.signal.throwIfAborted(); this.role(latest.role?.version, latest.createdAt)
-      latest.segments = segments; latest.status = 'transcribed'; await this.save(latest)
+      latest.segments = segments; latest.transcribedAt = new Date().toISOString(); latest.status = 'transcribed'; await this.save(latest)
       if (latest.mode === 'quick') await this.generate(id)
     } catch (error) { if (!this.deleted.has(id)) { const job = await this.get(id); job.status = 'error'; job.error = errorText(error); await this.save(job) } }
     finally { this.running.delete(id); if (this.controllers.get(id) === controller) this.controllers.delete(id) }
@@ -318,7 +319,7 @@ export class MeetingService {
       const reviewed=await jev?.check('review',{transcript:text,minutes},controller.signal)
       if(reviewed?.decision==='clarify')throw new InputError('JEV 纪要复核需要确认，未覆盖已有纪要：'+reviewed.summary,409)
       controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt)
-      delete job.timing; delete job.timingStatus; delete job.timingError; job.minutes = minutes; job.status = 'ready'; await this.save(job)
+      delete job.timing; delete job.timingStatus; delete job.timingError; job.minutes = minutes; job.minutesGeneratedAt = new Date().toISOString(); job.status = 'ready'; await this.save(job)
     } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? '组件已停用，本次处理已停止；历史结果保留' : errorText(error); await this.save(job) } finally { jev?.finish(); if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
   }
   async repairTiming(id: string) {

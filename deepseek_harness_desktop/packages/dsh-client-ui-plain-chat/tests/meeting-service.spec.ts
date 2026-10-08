@@ -49,6 +49,9 @@ describe('meeting service', () => {
     let job = await service.get(created.id)
     for (let i = 0; i < 100 && job.status !== 'ready' && job.status !== 'error'; i++) { await new Promise(resolve => setTimeout(resolve, 10)); job = await service.get(created.id) }
     expect(job.status, job.error).toBe('ready')
+    expect(Number.isFinite(Date.parse(job.transcribedAt!))).toBe(true)
+    expect(Number.isFinite(Date.parse(job.minutesGeneratedAt!))).toBe(true)
+    expect((await service.get(created.id)).minutesGeneratedAt).toBe(job.minutesGeneratedAt)
     expect(job.segments[0]).toMatchObject({ id: 's1', start: 2000, speaker: '发言人 1' })
     expect(job.minutes?.actions[0]).toMatchObject({ owner: '王磊', sourceIds: ['s1'] })
     expect(requests).toEqual([{ url: 'https://speech.example.com/v1/audio/transcriptions', model: 'local-whisper' }])

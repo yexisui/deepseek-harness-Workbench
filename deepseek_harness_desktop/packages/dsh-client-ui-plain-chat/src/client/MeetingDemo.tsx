@@ -1,3 +1,4 @@
+import { MessageTime } from './MessageTime.tsx'
 import { hasTiming, sourceKey, type TranscriptSegment } from '../../../dsh-capabilities/src/core/meeting-timing.ts'
 import { playAt } from './meeting-playback.ts'
 import { printDocument } from './print-document.ts'
@@ -11,12 +12,12 @@ import s from './MeetingDemo.module.css'
 
 type Mode = 'quick' | 'guided' | null
 type Phase = 'start' | 'audience' | 'focus' | 'upload' | 'processing' | 'transcript' | 'ready'
-type Message = { id: number; kind: 'intro' | 'user' | 'assistant' | 'upload' | 'transcript' | 'minutes'; text?: string; file?: string }
+type Message = { createdAt?: string; id: number; kind: 'intro' | 'user' | 'assistant' | 'upload' | 'transcript' | 'minutes'; text?: string; file?: string }
 type Segment = TranscriptSegment
 type Item = { text: string; sourceIds: string[] }
 type Action = Item & { owner: string; deadline: string }
 type Minutes = { title: string; overview: string; decisions: Item[]; actions: Action[]; unknown: Item[] }
-type Job = { id: string; fileName: string; size: number; status: 'uploading' | 'transcribing' | 'transcribed' | 'generating' | 'ready' | 'error'; error?: string; segments: Segment[]; minutes?: Minutes; timingStatus?: 'processing' | 'ready' | 'error'; timingError?: string; timing?: { segments: Segment[]; links: Record<string, string[]> } }
+type Job = { createdAt: string; updatedAt: string; transcribedAt?: string; minutesGeneratedAt?: string; id: string; fileName: string; size: number; status: 'uploading' | 'transcribing' | 'transcribed' | 'generating' | 'ready' | 'error'; error?: string; segments: Segment[]; minutes?: Minutes; timingStatus?: 'processing' | 'ready' | 'error'; timingError?: string; timing?: { segments: Segment[]; links: Record<string, string[]> } }
 type Availability = { ready: boolean; message: string; maxBytes: number; provider: string }
 export type MeetingDemoState = { mode: Mode; phase: Phase; audience: string; focus: string; summaryModel: string; messages: Message[]; trace: string[]; draft: string; jobId: string | null; showTranscript: boolean; roleVersion?: number; tab?: 'chat'|'trace' }
 
@@ -55,7 +56,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
   const [focus, setFocus] = useState(initial.current?.focus ?? '')
   const [summaryModel, setSummaryModel] = useState(initial.current?.summaryModel ?? '')
   const [models, setModels] = useState<Array<{ id: string; name: string }>>([])
-  const [messages, setMessages] = useState<Message[]>(initial.current?.messages ?? [{ id: 0, kind: 'intro' }])
+  const [messages, setMessages] = useState<Message[]>(initial.current?.messages ?? [{ id: 0, kind: 'intro', createdAt: new Date().toISOString() }])
   const [trace, setTrace] = useState<string[]>(initial.current?.trace ?? ['打开会议纪要助手'])
   const [tab, setTab] = useState<'chat' | 'trace'>(initial.current?.tab === 'trace'?'trace':'chat')
   const [draft, setDraft] = useState(initial.current?.draft ?? '')
@@ -89,11 +90,11 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
         if (next.status === 'transcribed' && mode === 'guided') {
           setPhase('transcript')
           setSegments(current => current.length ? current : next.segments)
-          setMessages(current => current.some(message => message.kind === 'transcript') ? current : [...current, { id: nextId.current++, kind: 'transcript' }])
+          setMessages(current => current.some(message => message.kind === 'transcript') ? current : [...current, { id: nextId.current++, kind: 'transcript', createdAt: next.transcribedAt }])
         } else if (next.status === 'ready') {
           setPhase('ready')
           setSegments(next.segments)
-          setMessages(current => { const completed = current.map(message => message.kind === 'assistant' && message.text === '正在根据录音与现有纪要修改…' ? { ...message, text: '已根据你的要求更新上方纪要。' } : message); return completed.some(message => message.kind === 'minutes') ? completed : [...completed, { id: nextId.current++, kind: 'minutes' }] })
+          setMessages(current => { const completed = current.map(message => message.kind === 'assistant' && message.text === '正在根据录音与现有纪要修改…' ? { ...message, text: '已根据你的要求更新上方纪要。', createdAt: next.minutesGeneratedAt } : message); return completed.some(message => message.kind === 'minutes') ? completed : [...completed, { id: nextId.current++, kind: 'minutes', createdAt: next.minutesGeneratedAt }] })
         }
       } catch (error) { if (active) setNotice(error instanceof Error ? error.message : String(error)) }
     }
@@ -103,7 +104,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
   }, [jobId, mode, job?.status, job?.timingStatus])
   useEffect(() => { if (tab === 'chat' && scroll.current?.scrollTo) scroll.current.scrollTo({ top: scroll.current.scrollHeight, behavior: 'smooth' }) }, [messages, phase, tab])
   useEffect(() => { if (!notice) return; const timer = window.setTimeout(() => setNotice(''), 6000); return () => window.clearTimeout(timer) }, [notice])
-  const add = (...entries: Omit<Message, 'id'>[]) => setMessages(current => [...current, ...entries.map(entry => ({ ...entry, id: nextId.current++ }))])
+  const add = (...entries: Omit<Message, 'id'>[]) => setMessages(current => [...current, ...entries.map(entry => ({ ...entry, createdAt: new Date().toISOString(), id: nextId.current++ }))])
   const log = (value: string) => setTrace(current => [...current, value])
   const chooseMode = (value: Exclude<Mode, null>) => {
     if (phase !== 'start') return
@@ -207,14 +208,16 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
     {timingConfirm && <div className={s.cardFooter} role="group" aria-label="确认补全时间定位"><p>将使用当前识别模型重新处理已保存录音，并用纪要模型关联来源，可能产生调用费用。原纪要与人工校对内容保留；已关联分段定位能力时按录音切片获取时间，否则使用识别服务返回的时间戳。</p><button disabled={busy} onClick={() => void repairTiming()}>开始补全</button><button onClick={() => setTimingConfirm(false)}>取消</button></div>}
     {showTranscript && transcriptCard(false)}
   </div>
-  const assistantMessage = (children: React.ReactNode, key: number) => <article className={s.message} key={key}><RoleAppearanceIcon roleId={MEETING_DEMO_ROLE_ID} icon={assistantIcon} color={assistantColor}/><div className={s.messageBody}><div className={s.byline}>{assistantName}</div>{children}</div></article>
+  const assistantMessage = (children: React.ReactNode, key: number, time?: React.ReactNode) => <article className={s.message} key={key}><RoleAppearanceIcon roleId={MEETING_DEMO_ROLE_ID} icon={assistantIcon} color={assistantColor}/><div className={s.messageBody}><div className={s.byline}>{assistantName}</div>{children}{time}</div></article>
   const renderMessage = (message: Message) => {
-    if (message.kind === 'user' || message.kind === 'upload') return <article className={s.userMessage} key={message.id}><div>{message.kind === 'upload' ? <>♫　<strong>{message.file}</strong><small>会议录音</small></> : message.text}</div></article>
-    if (message.kind === 'intro') return assistantMessage(<><p className={s.lead}>你好，我是{assistantName}。</p><p>我可以帮你把会议录音整理为结论和待办。先选择这次的处理方式：</p>{mode ? <p className={s.selectedMode}>已选择 {mode === 'quick' ? '快速生成' : '引导整理'} · 后续仍可在对话中修改</p> : <div className={s.modes}><button onClick={() => chooseMode('quick')}><b>⚡　快速生成</b><span>上传录音后直接生成纪要草稿</span><em>适合马上看结果 →</em></button><button onClick={() => chooseMode('guided')}><b>☷　引导整理</b><span>先选用途与重点，再核对转写</span><em>适合需要把控细节 →</em></button></div>}<p className={s.muted}>录音由你配置的语音识别接口处理；纪要使用工作台模型。{availability?.message}</p></>, message.id)
-    if (message.kind === 'assistant') return assistantMessage(<><p>{message.text}</p>{phase === 'audience' && message.text?.startsWith('先选择') && <div className={s.choices}>{['团队同步', '领导汇报', '客户沟通'].map(value => <button key={value} onClick={() => chooseAudience(value)}>{value}</button>)}</div>}{phase === 'focus' && message.text === '这次希望重点突出什么？' && <div className={s.choices}>{['结论与待办', '风险与问题', '完整讨论'].map(value => <button key={value} onClick={() => chooseFocus(value)}>{value}</button>)}</div>}{phase === 'upload' && (message.text?.startsWith('上传录音') || message.text?.startsWith('准备好了')) && <><div className={s.uploadPrompt}><span>♫</span><div><strong>添加会议录音</strong><small>MP3、M4A、WAV 等 · 最大 {Math.round((availability?.maxBytes ?? 25 * 1024 * 1024) / 1024 / 1024)} MB</small></div><button className={s.primary} disabled={!availability?.ready || busy} onClick={() => input.current?.click()}>选择录音</button>{!availability?.ready && <button type="button" onClick={() => openCapabilityLink({ section: 'capability-center', capabilityId: MEETING_CAPABILITY_ID })}>前往能力中心</button>}</div>{modelControl}</>}</>, message.id)
+    const value = message.kind === 'minutes' ? job?.minutesGeneratedAt ?? message.createdAt : message.kind === 'transcript' ? job?.transcribedAt ?? message.createdAt : message.createdAt ?? (message.kind === 'intro' || message.kind === 'upload' ? job?.createdAt : undefined)
+    const stamp = <MessageTime value={value ?? (message.kind === 'minutes' ? job?.updatedAt : undefined)} label={!value && message.kind === 'minutes' ? '任务最后更新：' : ''}/>
+    if (message.kind === 'user' || message.kind === 'upload') return <article className={s.userMessage} key={message.id}><div>{message.kind === 'upload' ? <>♫　<strong>{message.file}</strong><small>会议录音</small></> : message.text}{stamp}</div></article>
+    if (message.kind === 'intro') return assistantMessage(<><p className={s.lead}>你好，我是{assistantName}。</p><p>我可以帮你把会议录音整理为结论和待办。先选择这次的处理方式：</p>{mode ? <p className={s.selectedMode}>已选择 {mode === 'quick' ? '快速生成' : '引导整理'} · 后续仍可在对话中修改</p> : <div className={s.modes}><button onClick={() => chooseMode('quick')}><b>⚡　快速生成</b><span>上传录音后直接生成纪要草稿</span><em>适合马上看结果 →</em></button><button onClick={() => chooseMode('guided')}><b>☷　引导整理</b><span>先选用途与重点，再核对转写</span><em>适合需要把控细节 →</em></button></div>}<p className={s.muted}>录音由你配置的语音识别接口处理；纪要使用工作台模型。{availability?.message}</p></>, message.id, stamp)
+    if (message.kind === 'assistant') return assistantMessage(<><p>{message.text}</p>{phase === 'audience' && message.text?.startsWith('先选择') && <div className={s.choices}>{['团队同步', '领导汇报', '客户沟通'].map(value => <button key={value} onClick={() => chooseAudience(value)}>{value}</button>)}</div>}{phase === 'focus' && message.text === '这次希望重点突出什么？' && <div className={s.choices}>{['结论与待办', '风险与问题', '完整讨论'].map(value => <button key={value} onClick={() => chooseFocus(value)}>{value}</button>)}</div>}{phase === 'upload' && (message.text?.startsWith('上传录音') || message.text?.startsWith('准备好了')) && <><div className={s.uploadPrompt}><span>♫</span><div><strong>添加会议录音</strong><small>MP3、M4A、WAV 等 · 最大 {Math.round((availability?.maxBytes ?? 25 * 1024 * 1024) / 1024 / 1024)} MB</small></div><button className={s.primary} disabled={!availability?.ready || busy} onClick={() => input.current?.click()}>选择录音</button>{!availability?.ready && <button type="button" onClick={() => openCapabilityLink({ section: 'capability-center', capabilityId: MEETING_CAPABILITY_ID })}>前往能力中心</button>}</div>{modelControl}</>}</>, message.id, stamp)
     if (message.kind === 'transcript' && phase !== 'transcript') return null
-    if (message.kind === 'transcript') return assistantMessage(<><p>转写已完成。请核对说话人和关键内容，确认后生成纪要。</p>{transcriptCard(true)}</>, message.id)
-    if (message.kind === 'minutes') return assistantMessage(<><p>纪要已生成。你可以继续在下方对话框提出修改。</p>{minutesCard()}<div className={s.choices}><span>试试：</span>{['把待办放在前面', '缩短摘要', '突出待确认事项'].map(value => <button key={value} onClick={() => revise(value)}>{value}</button>)}</div></>, message.id)
+    if (message.kind === 'transcript') return assistantMessage(<><p>转写已完成。请核对说话人和关键内容，确认后生成纪要。</p>{transcriptCard(true)}</>, message.id, stamp)
+    if (message.kind === 'minutes') return assistantMessage(<><p>纪要已生成。你可以继续在下方对话框提出修改。</p>{minutesCard()}<div className={s.choices}><span>试试：</span>{['把待办放在前面', '缩短摘要', '突出待确认事项'].map(value => <button key={value} onClick={() => revise(value)}>{value}</button>)}</div></>, message.id, stamp)
     return null
   }
   const status = job?.status

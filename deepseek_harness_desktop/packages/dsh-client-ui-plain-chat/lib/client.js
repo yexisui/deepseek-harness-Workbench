@@ -14993,6 +14993,32 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region src/client/MessageTime.tsx
+		function MessageTime({ value, label = "" }) {
+			const date = value ? new Date(value) : null;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				style: {
+					marginTop: 8,
+					fontSize: 12,
+					fontWeight: 400,
+					lineHeight: 1.5,
+					color: "var(--dsw-alias-label-secondary, #758095)"
+				},
+				children: date && Number.isFinite(date.getTime()) ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("time", {
+					dateTime: date.toISOString(),
+					children: [label, date.toLocaleString("zh-CN", {
+						year: "numeric",
+						month: "2-digit",
+						day: "2-digit",
+						hour: "2-digit",
+						minute: "2-digit",
+						second: "2-digit",
+						hour12: false
+					})]
+				}) : "时间未记录"
+			});
+		}
+		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/DeveloperAssistant.module.css.mjs
 		const css$4 = "._4WjmSG_workspace{--dev-accent:#22a58b;--dev-bg:var(--dsw-alias-bg-layer-2,#fff);--dev-panel:var(--dsw-alias-bg-layer-1,#f5f7f8);--dev-border:var(--dsw-alias-border-l2,#e2e6e8);--dev-text:var(--dsw-alias-label-primary,#263338);--dev-muted:var(--dsw-alias-label-secondary,#68777d);min-width:0;height:100%;min-height:460px;color:var(--dev-text);background:var(--dev-bg);flex-direction:column;font-size:13px;display:flex;overflow:hidden;container-type:inline-size}._4WjmSG_workspace *,._4WjmSG_dialog *{box-sizing:border-box}._4WjmSG_workspace button,._4WjmSG_dialog button{font:inherit;color:inherit;border:1px solid var(--dev-border,#dce3e5);background:var(--dev-bg,transparent);cursor:pointer;border-radius:7px;padding:6px 10px;line-height:1.4}._4WjmSG_workspace button:hover,._4WjmSG_dialog button:hover{background:#22a58b17}._4WjmSG_workspace button:disabled,._4WjmSG_dialog button:disabled{opacity:.48;cursor:default}._4WjmSG_workspace button:focus-visible,._4WjmSG_workspace input:focus-visible,._4WjmSG_workspace textarea:focus-visible,._4WjmSG_workspace select:focus-visible{outline:2px solid var(--dev-accent);outline-offset:2px}._4WjmSG_workspace button[aria-pressed=true]{color:var(--dev-accent);background:#22a58b17}._4WjmSG_workspace input,._4WjmSG_workspace select,._4WjmSG_workspace textarea,._4WjmSG_dialog input,._4WjmSG_dialog textarea,._4WjmSG_dialog select{font:inherit;color:inherit;background:var(--dev-bg,transparent);border:1px solid var(--dev-border,#dce3e5);border-radius:7px;min-width:0;max-width:100%;padding:8px}._4WjmSG_header{justify-content:space-between;align-items:center;gap:12px;padding:13px 20px 10px;display:flex}._4WjmSG_eyebrow{color:var(--dev-accent);letter-spacing:.12em;font-size:10px}._4WjmSG_header h2{margin:3px 0;font-size:18px;font-weight:650}._4WjmSG_actions,._4WjmSG_codeBar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}._4WjmSG_context{align-items:center;gap:7px;padding:0 20px 10px;display:flex}._4WjmSG_context>span{color:var(--dev-muted);white-space:nowrap;text-overflow:ellipsis;flex:1;min-width:20px;font-size:11px;overflow:hidden}._4WjmSG_context>select{margin-left:auto}._4WjmSG_tabs{border-bottom:1px solid var(--dev-border);flex-shrink:0;gap:5px;padding:0 14px;display:flex;overflow-x:auto}._4WjmSG_tabs button{white-space:nowrap;color:var(--dev-muted);border:0;border-bottom:2px solid #0000;border-radius:0;padding:10px 15px}._4WjmSG_tabs button[aria-selected=true]{color:var(--dev-accent);border-bottom-color:var(--dev-accent);font-weight:650}._4WjmSG_refresh{background:var(--dev-panel);color:var(--dev-muted);justify-content:space-between;align-items:center;padding:5px 20px;font-size:11px;display:flex}._4WjmSG_refresh button{padding:2px 9px;font-size:11px}._4WjmSG_body{flex:1;grid-template-columns:minmax(0,1fr) 322px;min-height:0;display:grid;position:relative;overflow:hidden}._4WjmSG_noChat{grid-template-columns:minmax(0,1fr)}._4WjmSG_main{flex-direction:column;min-width:0;min-height:0;display:flex;overflow:hidden}._4WjmSG_editor{flex:1;min-width:0;min-height:0;display:flex;position:relative}._4WjmSG_files{border-right:1px solid var(--dev-border);background:var(--dev-panel);flex-direction:column;flex:0 0 200px;gap:8px;width:200px;min-height:0;padding:10px;display:flex}._4WjmSG_files ._4WjmSG_codeBar{border:0;justify-content:space-between;padding:0}._4WjmSG_files small{color:var(--dev-muted);font-size:10px}._4WjmSG_files ._4WjmSG_codeBar button{padding:2px 5px;font-size:10px}._4WjmSG_fileRows{flex:1;min-height:0;overflow:auto}._4WjmSG_fileRows button{text-align:left;overflow-wrap:anywhere;border:0;border-radius:5px;width:100%;padding:7px 5px;font-size:11px;display:block}._4WjmSG_fileRows small{display:block}._4WjmSG_fileRows h4{color:var(--dev-muted);margin:17px 4px 6px;font-size:11px}._4WjmSG_fileRows b{color:var(--dev-accent)}._4WjmSG_code{flex-direction:column;flex:1;min-width:0;min-height:0;display:flex;overflow:hidden}._4WjmSG_openFiles{background:var(--dev-panel);flex-shrink:0;display:flex;overflow-x:auto}._4WjmSG_openFiles>span{white-space:nowrap;display:flex}._4WjmSG_openFiles button{border-width:0 1px 1px 0;border-radius:0;font-size:11px}._4WjmSG_codeBar{border-bottom:1px solid var(--dev-border);flex-shrink:0;padding:8px 12px}._4WjmSG_codeBar strong{white-space:nowrap;text-overflow:ellipsis;max-width:260px;font-size:12px;overflow:hidden}._4WjmSG_codeBar small{color:var(--dev-muted);overflow-wrap:anywhere;font-size:10px}._4WjmSG_codeBar button{padding:3px 7px;font-size:11px}._4WjmSG_codeBar h3{margin:0 auto 0 0;font-size:14px}._4WjmSG_codeScroll{flex:1;min-height:0;padding:8px 0 20px;overflow:auto}._4WjmSG_codePane{min-width:0;overflow:auto}._4WjmSG_codeLine{align-items:baseline;min-height:22px;font:12px/1.8 Consolas,ui-monospace,monospace;display:flex}._4WjmSG_codeLine>button{font:inherit;min-width:50px;color:var(--dev-muted);background:0 0;border:0;border-radius:0;flex-shrink:0;padding:0 10px}._4WjmSG_codeLine code{white-space:pre;padding-right:18px}._4WjmSG_selectedLine{background:#22a58b26}._4WjmSG_split{grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:100%;display:grid}._4WjmSG_split>:first-child{border-right:1px solid var(--dev-border)}._4WjmSG_patch{white-space:pre;max-height:55vh;margin:0;padding:6px 14px;font:12px/1.8 Consolas,ui-monospace,monospace;overflow:auto}._4WjmSG_codeScroll>._4WjmSG_patch{max-height:none;overflow:visible}._4WjmSG_patch>span{min-width:fit-content;display:block}._4WjmSG_patch br{display:none}._4WjmSG_added{color:light-dark(#168365,#72cbb4);background:#22a58b21}._4WjmSG_removed{color:light-dark(#bf424c,#ec919b);background:#d4515b1a}._4WjmSG_hunk{color:light-dark(#557db7,#8faee0);background:#557db71a}._4WjmSG_chat{border-left:1px solid var(--dev-border);background:var(--dev-bg);flex-direction:column;min-height:0;display:flex;overflow:hidden}._4WjmSG_chat>._4WjmSG_codeBar{justify-content:space-between}._4WjmSG_messages{flex:1;min-height:0;padding:14px;overflow:auto}._4WjmSG_messages article{overflow-wrap:anywhere;margin-bottom:17px}._4WjmSG_messages small{color:var(--dev-muted);font-size:10px}._4WjmSG_messages p{white-space:pre-wrap;margin:5px 0;line-height:1.7}._4WjmSG_messages pre{white-space:pre-wrap;font-size:11px}._4WjmSG_userMessage{background:var(--dev-panel);border-radius:10px;padding:10px 12px}._4WjmSG_assistantMessage{padding:4px}._4WjmSG_execution{border:1px solid var(--dev-border);border-left:3px solid var(--dev-accent);border-radius:6px;padding:10px;font-size:11px}._4WjmSG_composer{border-top:1px solid var(--dev-border);flex-direction:column;gap:8px;padding:12px;display:flex}._4WjmSG_composer textarea{resize:vertical;width:100%;min-height:104px;max-height:240px;line-height:1.6}._4WjmSG_composer ._4WjmSG_actions{justify-content:space-between}._4WjmSG_composer small{color:var(--dev-muted);font-size:10px}._4WjmSG_contextChips{flex-wrap:wrap;gap:4px;display:flex}._4WjmSG_contextChips button{text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:10px;overflow:hidden}._4WjmSG_workspace ._4WjmSG_primary,._4WjmSG_dialog ._4WjmSG_primary{background:var(--dsw-alias-button-primary-fill,#168f77);color:var(--dsw-alias-label-primary-foreground,#fff);border-color:#0000}._4WjmSG_workspace ._4WjmSG_primary:hover,._4WjmSG_dialog ._4WjmSG_primary:hover{background:var(--dsw-alias-button-primary-hover,#107c66)}._4WjmSG_footer{border-top:1px solid var(--dev-border);background:var(--dev-panel);color:var(--dev-muted);justify-content:space-between;align-items:center;gap:8px;padding:6px 14px;font-size:10px;display:flex}._4WjmSG_footer button{border:0;padding:2px;font-size:11px}._4WjmSG_empty{text-align:center;color:var(--dev-muted);padding:32px 22px;line-height:1.8}._4WjmSG_empty input,._4WjmSG_empty select{width:min(520px,100%);margin:12px auto;display:block}._4WjmSG_error{color:#c34350;overflow-wrap:anywhere;background:#c3435012;margin:0;padding:8px 14px;font-size:12px}._4WjmSG_notice{background:#bc8e3114;justify-content:space-between;gap:10px;padding:8px 15px;display:flex}._4WjmSG_scroll{flex:1;min-height:0;padding:16px;overflow:auto}._4WjmSG_row{border-bottom:1px solid var(--dev-border);overflow-wrap:anywhere;justify-content:space-between;align-items:center;gap:12px;padding:12px 2px;display:flex}._4WjmSG_row small,._4WjmSG_card small{color:var(--dev-muted);margin:4px 0;font-size:11px;display:block}._4WjmSG_card{border:1px solid var(--dev-border);overflow-wrap:anywhere;border-radius:9px;margin:12px 0;padding:15px}._4WjmSG_card code{margin:9px 0;font-size:12px;display:block}._4WjmSG_card p{font-size:12px}._4WjmSG_versionGrid{flex:1;grid-template-columns:245px minmax(0,1fr);min-height:0;display:grid}._4WjmSG_history{border-right:1px solid var(--dev-border);overflow:auto}._4WjmSG_history button{text-align:left;border-width:0 0 1px;border-radius:0;width:100%;padding:13px;display:block}._4WjmSG_history b{font-size:12px;display:block}._4WjmSG_history small{color:var(--dev-muted);margin-top:4px;font-size:10px;display:block}._4WjmSG_terminal{color:#d2e5e7;white-space:pre-wrap;overflow-wrap:anywhere;background:#15232a;border-radius:8px;min-height:170px;padding:15px;font:12px/1.7 Consolas,monospace}._4WjmSG_dialog{flex-direction:column;gap:12px;max-height:76vh;padding:18px;display:flex;overflow:auto}._4WjmSG_dialog label{flex-direction:column;gap:7px;display:flex}._4WjmSG_dialog textarea{min-height:100px}._4WjmSG_dialog pre{max-width:100%;overflow:auto}._4WjmSG_fileToggle{display:none}@container (width<=1099px){._4WjmSG_files{display:none}._4WjmSG_filesOpen{z-index:3;width:250px;display:flex;position:absolute;top:0;bottom:0;left:0;box-shadow:8px 0 24px #0002}._4WjmSG_fileToggle{align-self:start;margin:6px 10px;display:block;font-size:11px!important}._4WjmSG_versionGrid{grid-template-columns:190px minmax(0,1fr)}}@container (width<=799px){._4WjmSG_body{grid-template-columns:minmax(0,1fr)}._4WjmSG_chat{z-index:4;border-left:0;position:absolute;inset:0}._4WjmSG_header{flex-wrap:wrap;padding:10px}._4WjmSG_header h2{font-size:16px}._4WjmSG_header ._4WjmSG_actions button{font-size:11px}._4WjmSG_context{flex-wrap:wrap;padding:0 10px 8px}._4WjmSG_context span{flex-basis:100%;order:4}._4WjmSG_context select{max-width:110px}._4WjmSG_tabs{padding:0 5px}._4WjmSG_tabs button{padding:9px 12px}._4WjmSG_versionGrid{grid-template-columns:minmax(0,1fr);overflow:auto}._4WjmSG_history{max-height:200px}._4WjmSG_versionGrid ._4WjmSG_code{min-height:330px}._4WjmSG_footer>span{display:none}._4WjmSG_row{flex-wrap:wrap}._4WjmSG_codeBar strong{max-width:100%}}@media (prefers-color-scheme:dark){._4WjmSG_workspace{--dev-bg:var(--dsw-alias-bg-layer-2,#192126);--dev-panel:var(--dsw-alias-bg-layer-1,#202b31);--dev-border:var(--dsw-alias-border-l2,#35434a);--dev-text:var(--dsw-alias-label-primary,#deeaec);--dev-muted:var(--dsw-alias-label-secondary,#99a9af)}._4WjmSG_added{color:#72cbb4}._4WjmSG_removed{color:#ec919b}}._4WjmSG_dialog{--dev-bg:var(--dsw-alias-bg-layer-2,#fff);--dev-border:var(--dsw-alias-border-l2,#e2e6e8);color:var(--dsw-alias-label-primary,#263338);background:var(--dev-bg)}";
 		const tagId$4 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/DeveloperAssistant.module.css";
@@ -16308,7 +16334,8 @@ window.__ModuleLoader__.load({
 														c.end,
 														" · ",
 														c.version.slice(0, 8)
-													] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("pre", { children: c.text })] }, i))
+													] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("pre", { children: c.text })] }, i)),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)(MessageTime, { value: m.at })
 												]
 											}, m.id)),
 											!task?.messages.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
@@ -18121,12 +18148,11 @@ window.__ModuleLoader__.load({
 						}),
 						task.messages.map((message) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
 							className: message.role === "user" ? RequirementsAssistant_module_css_default.userMessage : RequirementsAssistant_module_css_default.assistantMessage,
-							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-								message.role === "user" ? "你" : assistantName,
-								" · ",
-								time(message.createdAt),
-								message.context && ` · ${contextLabel(message.context)}`
-							] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: message.text })]
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [message.role === "user" ? "你" : assistantName, message.context && ` · ${contextLabel(message.context)}`] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: message.text }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)(MessageTime, { value: message.createdAt })
+							]
 						}, message.id)),
 						running && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
 							className: RequirementsAssistant_module_css_default.progress,
@@ -19706,7 +19732,8 @@ window.__ModuleLoader__.load({
 			const [models, setModels] = (0, react.useState)([]);
 			const [messages, setMessages] = (0, react.useState)(initial.current?.messages ?? [{
 				id: 0,
-				kind: "intro"
+				kind: "intro",
+				createdAt: (/* @__PURE__ */ new Date()).toISOString()
 			}]);
 			const [trace, setTrace] = (0, react.useState)(initial.current?.trace ?? ["打开会议纪要助手"]);
 			const [tab, setTab] = (0, react.useState)(initial.current?.tab === "trace" ? "trace" : "chat");
@@ -19779,7 +19806,8 @@ window.__ModuleLoader__.load({
 							setSegments((current) => current.length ? current : next.segments);
 							setMessages((current) => current.some((message) => message.kind === "transcript") ? current : [...current, {
 								id: nextId.current++,
-								kind: "transcript"
+								kind: "transcript",
+								createdAt: next.transcribedAt
 							}]);
 						} else if (next.status === "ready") {
 							setPhase("ready");
@@ -19787,11 +19815,13 @@ window.__ModuleLoader__.load({
 							setMessages((current) => {
 								const completed = current.map((message) => message.kind === "assistant" && message.text === "正在根据录音与现有纪要修改…" ? {
 									...message,
-									text: "已根据你的要求更新上方纪要。"
+									text: "已根据你的要求更新上方纪要。",
+									createdAt: next.minutesGeneratedAt
 								} : message);
 								return completed.some((message) => message.kind === "minutes") ? completed : [...completed, {
 									id: nextId.current++,
-									kind: "minutes"
+									kind: "minutes",
+									createdAt: next.minutesGeneratedAt
 								}];
 							});
 						}
@@ -19834,6 +19864,7 @@ window.__ModuleLoader__.load({
 			}, [notice]);
 			const add = (...entries) => setMessages((current) => [...current, ...entries.map((entry) => ({
 				...entry,
+				createdAt: (/* @__PURE__ */ new Date()).toISOString(),
 				id: nextId.current++
 			}))]);
 			const log = (value) => setTrace((current) => [...current, value]);
@@ -20282,7 +20313,7 @@ window.__ModuleLoader__.load({
 					showTranscript && transcriptCard(false)
 				]
 			});
-			const assistantMessage = (children, key) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
+			const assistantMessage = (children, key, time) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
 				className: MeetingDemo_module_css_default.message,
 				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleAppearanceIcon, {
 					roleId: MEETING_DEMO_ROLE_ID,
@@ -20290,20 +20321,29 @@ window.__ModuleLoader__.load({
 					color: assistantColor
 				}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: MeetingDemo_module_css_default.messageBody,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-						className: MeetingDemo_module_css_default.byline,
-						children: assistantName
-					}), children]
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							className: MeetingDemo_module_css_default.byline,
+							children: assistantName
+						}),
+						children,
+						time
+					]
 				})]
 			}, key);
 			const renderMessage = (message) => {
+				const value = message.kind === "minutes" ? job?.minutesGeneratedAt ?? message.createdAt : message.kind === "transcript" ? job?.transcribedAt ?? message.createdAt : message.createdAt ?? (message.kind === "intro" || message.kind === "upload" ? job?.createdAt : void 0);
+				const stamp = /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MessageTime, {
+					value: value ?? (message.kind === "minutes" ? job?.updatedAt : void 0),
+					label: !value && message.kind === "minutes" ? "任务最后更新：" : ""
+				});
 				if (message.kind === "user" || message.kind === "upload") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("article", {
 					className: MeetingDemo_module_css_default.userMessage,
-					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: message.kind === "upload" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [message.kind === "upload" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 						"♫　",
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: message.file }),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "会议录音" })
-					] }) : message.text })
+					] }) : message.text, stamp] })
 				}, message.id);
 				if (message.kind === "intro") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
@@ -20344,7 +20384,7 @@ window.__ModuleLoader__.load({
 						className: MeetingDemo_module_css_default.muted,
 						children: ["录音由你配置的语音识别接口处理；纪要使用工作台模型。", availability?.message]
 					})
-				] }), message.id);
+				] }), message.id, stamp);
 				if (message.kind === "assistant") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: message.text }),
 					phase === "audience" && message.text?.startsWith("先选择") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
@@ -20394,9 +20434,9 @@ window.__ModuleLoader__.load({
 							})
 						]
 					}), modelControl] })
-				] }), message.id);
+				] }), message.id, stamp);
 				if (message.kind === "transcript" && phase !== "transcript") return null;
-				if (message.kind === "transcript") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "转写已完成。请核对说话人和关键内容，确认后生成纪要。" }), transcriptCard(true)] }), message.id);
+				if (message.kind === "transcript") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "转写已完成。请核对说话人和关键内容，确认后生成纪要。" }), transcriptCard(true)] }), message.id, stamp);
 				if (message.kind === "minutes") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "纪要已生成。你可以继续在下方对话框提出修改。" }),
 					minutesCard(),
@@ -20411,7 +20451,7 @@ window.__ModuleLoader__.load({
 							children: value
 						}, value))]
 					})
-				] }), message.id);
+				] }), message.id, stamp);
 				return null;
 			};
 			const status = job?.status;
@@ -21131,7 +21171,8 @@ window.__ModuleLoader__.load({
 					phase: item.status === "ready" ? "ready" : item.status === "transcribed" ? "transcript" : "processing",
 					messages: [{
 						id: 0,
-						kind: "intro"
+						kind: "intro",
+						createdAt: item.createdAt
 					}],
 					trace: ["从已保存的会议恢复"],
 					draft: "",
