@@ -65,7 +65,6 @@ describe('persistent requirements workflow',()=>{
     task=await env.command(task,{type:'save',mode:'quick'})
     expect(task.mode).toBe('quick');expect(task.dataRevision).toBe(before.dataRevision)
     for(const key of ['requirements','materials','questions','flows','rules','versions','messages','proposal','document'] as const)expect(task[key]).toEqual(before[key])
-    task=await env.command(task,{type:'proposal.apply',proposalId:task.proposal!.id,ids:task.proposal!.items.map(item=>item.id)})
     expect(task.requirements[0]!.status).toBe('confirmed');expect(task.requirements).toHaveLength(2)
   })
   it('requires stopping the active run before changing its analysis mode',async()=>{
@@ -99,17 +98,15 @@ describe('persistent requirements workflow',()=>{
     expect((await reopened.get(second.id)).title).toBe('第二份分析')
     expect(reopened.availability().defaults.model).toBe('test/selected')
   })
-  it('keeps model output as pending suggestions, validates evidence, and permits partial adoption',async()=>{
+  it('automatically applies model output while validating evidence and retaining suggestion provenance',async()=>{
     const env=await setup(async prompt=>{
       const input=JSON.parse(prompt.slice(prompt.indexOf('\n输入（最近30条消息，先前已整理事实在结构化条目内）：\n')+'\n输入（最近30条消息，先前已整理事实在结构化条目内）：\n'.length))
       return JSON.stringify({summary:'整理出两条候选需求。',items:[{kind:'requirement',value:{...basic,status:'confirmed',sources:[{messageId:input.messages.at(-1).id,quote:'员工可以提交申请'}]}},{kind:'requirement',value:{...basic,title:'额外建议',sources:[{materialId:'invented',revision:1,quote:'虚构依据'}]}}]})
     })
     let t=await env.command(env.task,{type:'run',operation:'analyze',instruction:'员工可以提交申请',requestId:randomUUID()});t=await finished(env.service,t.id)
-    expect(t.requirements).toHaveLength(0);expect(t.run?.status,t.run?.error).toBe('ready');expect(t.proposal?.items).toHaveLength(2)
-    const [one,two]=t.proposal!.items
-    t=await env.command(t,{type:'proposal.apply',proposalId:t.proposal!.id,ids:[one!.id]})
+    expect(t.requirements).toHaveLength(2);expect(t.run?.status,t.run?.error).toBe('ready');expect(t.proposal?.items).toHaveLength(2)
+    expect(t.proposal!.items.every(i=>i.accepted)).toBe(true)
     expect(t.requirements[0]?.status).toBe('pending');expect(t.requirements[0]?.origin).toBe('source')
-    t=await env.command(t,{type:'proposal.apply',proposalId:t.proposal!.id,ids:[two!.id]})
     expect(t.requirements).toHaveLength(2);expect(t.requirements[1]?.origin).toBe('assistant');expect(t.requirements[1]?.sources).toEqual([])
     await expect(env.command(t,{type:'requirement.save',requirement:{...basic,sources:[{materialId:'invented',quote:'bad'}]}})).rejects.toThrow('来源引用')
   })
@@ -121,7 +118,7 @@ describe('persistent requirements workflow',()=>{
     const repeated=await env.command(env.task,request);expect(repeated.run?.id).toBe(request.requestId);expect(calls).toBe(1)
     t=await env.command(t,{type:'requirement.save',requirement:{...basic,title:'用户手工新增'}})
     resolveModel(JSON.stringify({summary:'分析完成',items:[{kind:'requirement',value:basic}]}));t=await finished(env.service,t.id)
-    await expect(env.command(t,{type:'proposal.apply',proposalId:t.proposal!.id,ids:t.proposal!.items.map(i=>i.id)})).rejects.toThrow('已经改变')
+    expect(t.run?.status).toBe('error');expect(t.run?.error).toContain('已被编辑')
     expect((await env.service.get(t.id)).requirements[0]?.title).toBe('用户手工新增')
   })
   it('normalizes model prose arrays and null fields while keeping manual inputs strict',async()=>{
@@ -132,7 +129,6 @@ describe('persistent requirements workflow',()=>{
     ]}))
     let t=await env.command(env.task,{type:'run',operation:'analyze',instruction:'整理需求',requestId:randomUUID()});t=await finished(env.service,t.id)
     expect(t.run?.status,t.run?.error).toBe('ready')
-    t=await env.command(t,{type:'proposal.apply',proposalId:t.proposal!.id,ids:t.proposal!.items.map(i=>i.id)})
     expect(t.requirements[0]?.acceptance).toBe('申请保存成功\n状态显示待审批')
     expect(t.flows[0]?.action).toBe('填写\n发送');expect(t.overview.roles).toBe('员工\n审批人')
     await expect(env.command(t,{type:'requirement.save',requirement:{...basic,acceptance:['invalid'] as never}})).rejects.toThrow('acceptance')
@@ -157,7 +153,7 @@ describe('persistent requirements workflow',()=>{
     t=await env.command(t,{type:'version.restore',id:t.versions[0]!.id})
     expect(t.requirements).toHaveLength(2);expect(t.requirements[0]?.description).toBe(basic.description);expect(t.requirements[0]?.status).toBe('review')
   })
-  it('preserves source revisions and makes generated documents stale after an edit',async()=>{
+  it('preserves source revisions and refreshes generated documents after an edit',async()=>{
     const env=await setup();let t=await env.command(env.task,{type:'material.save',material:{name:'原说明',kind:'text',text:'员工提交报销申请。'}})
     const material=t.materials[0]!
     t=await env.command(t,{type:'requirement.save',requirement:{...basic,sources:[{materialId:material.id,revision:1,quote:'员工提交报销申请。'}]}})
@@ -165,7 +161,7 @@ describe('persistent requirements workflow',()=>{
     t=await env.command(t,{type:'document.generate',depth:'standard'})
     expect(t.document?.dataRevision).toBe(t.dataRevision)
     t=await env.command(t,{type:'material.save',material:{id:material.id,name:'新说明',kind:'text',text:'财务人员代提交报销申请。'}})
-    expect(t.materials[0]?.history[0]?.text).toBe('员工提交报销申请。');expect(t.requirements[0]?.status).toBe('review');expect(t.document!.dataRevision).toBeLessThan(t.dataRevision)
+    expect(t.materials[0]?.history[0]?.text).toBe('员工提交报销申请。');expect(t.requirements[0]?.status).toBe('review');expect(t.document!.dataRevision).toBe(t.dataRevision)
     t=await env.command(t,{type:'material.remove',id:material.id,removed:true})
     expect(t.requirements[0]?.sources[0]?.revision).toBe(1)
   })

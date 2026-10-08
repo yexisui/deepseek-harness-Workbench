@@ -21,11 +21,31 @@ export type RequirementData = { overview: RequirementOverview; requirements: Req
 export type RequirementMessage = { id: string; role: 'user' | 'assistant'; text: string; createdAt: string; context?: string }
 export type RequirementEvent = { id: string; at: string; kind: 'material' | 'analysis' | 'change' | 'confirm' | 'export' | 'version'; text: string; objectId?: string }
 export type ProposalItem = { id: string; kind: 'requirement' | 'flow' | 'rule' | 'question' | 'overview'; targetId?: string; value: Requirement | RequirementFlow | RequirementRule | RequirementQuestion | RequirementOverview; accepted?: boolean; rejected?: boolean }
-export type RequirementProposal = { id: string; baseRevision: number; summary: string; items: ProposalItem[]; createdAt: string }
+export type RequirementProposal = { sections?: {id:string;content:string}[]; id: string; baseRevision: number; summary: string; items: ProposalItem[]; createdAt: string }
 export type RequirementRun = { id: string; operation: 'analyze' | 'clarify' | 'check' | 'revise' | 'document'; status: 'running' | 'ready' | 'error' | 'stopped' | 'interrupted'; startedAt: string; finishedAt?: string; error?: string; model: string; instruction: string; context?: string; baseRevision: number }
 export type RequirementVersion = { id: string; number: number; title: string; note: string; createdAt: string; selectedIds: string[]; data: RequirementData; materials: RequirementMaterial[]; settings: RequirementSettings; markdown: string }
 export type RequirementDocument = { markdown: string; dataRevision: number; depth: RequirementSettings['depth']; selectedIds: string[]; createdAt: string }
+export type RequirementSection = { id: string; title: string; guidance: string; enabled: boolean; content: string; contentSet?: boolean }
+export type RequirementProject = { path: string; ledger: boolean; ledgerName: string; files: string[]; error?: string }
+export type RequirementRevision = { id: string; at: string; summary: string; sections: RequirementSection[]; data: RequirementData }
+export const defaultRequirementSections = (): RequirementSection[] => [
+  ['problem','当前问题','现在是什么情况，有哪些具体表现'], ['outcome','期望结果','调整后的行为和结果'],
+  ['changes','本次修改要求','逐条列出要实现的行为'], ['preserve','保留要求','必须保持的原有行为'],
+  ['questions','待确认问题','尚不明确、冲突或需要业务决定的内容'], ['acceptance','验收示例','输入或操作以及预期结果'],
+].map(([id,title,guidance])=>({id,title,guidance,enabled:true,content:''}))
+export function requirementSectionContent(section: RequirementSection, task: RequirementData): string {
+  if(section.contentSet || section.content) return section.content
+  const rows=activeRequirements(task)
+  const fallback: Record<string,string>={problem:task.overview.background,outcome:task.overview.goal,
+    changes:rows.map(r=>r.number+' '+r.title+'：'+r.description+(r.origin==='assistant'?'（助手建议）':'')).join('\n'),
+    preserve:rows.filter(r=>r.kind==='constraint').map(r=>r.description).join('\n'),
+    questions:openQuestions(task).map(q=>q.number+' '+q.question+(q.answer?'；当前答复：'+q.answer:'')).join('\n'),
+    acceptance:rows.map(r=>r.acceptance?r.number+' '+r.acceptance:'').filter(Boolean).join('\n')}
+  return fallback[section.id]??''
+}
 export type RequirementTask = RequirementData & {
+  sections?: RequirementSection[]; project?: RequirementProject; revisions?: RequirementRevision[]
+
   schema: 1; id: string; revision: number; dataRevision: number; title: string; mode: 'quick' | 'guided'
   roleId: string; roleVersion: number; capabilityId: string; capabilityVersion: number; authorityAt: number
   roleGuidance: { name: string; duties: string; requirements: string; format: string }
@@ -37,6 +57,12 @@ export type RequirementSummary = Pick<RequirementTask, 'id' | 'title' | 'mode' |
 export type RequirementDefaults = Pick<RequirementSettings, 'depth' | 'questionStyle' | 'model'>
 export type RequirementAvailability = { ready: boolean; message: string; modelConfigured: boolean; defaults: RequirementDefaults; revision: number; maxTextChars: number }
 export type RequirementCommand =
+  | { type: 'sections.save'; sections: RequirementSection[]; baseDataRevision?: number }
+  | { type: 'revision.restore'; id: string }
+  | { type: 'project.attach'; path: string; ledger: boolean }
+  | { type: 'project.detach' }
+  | { type: 'project.refresh' }
+  | { type: 'project.import'; path: string }
   | { type: 'save'; title?: string; overview?: RequirementOverview; settings?: RequirementSettings; draft?: string; mode?: 'quick' | 'guided' }
   | { type: 'material.save'; material: Partial<RequirementMaterial> & { name: string; kind: RequirementMaterial['kind']; text: string } }
   | { type: 'material.remove'; id: string; removed: boolean }
@@ -69,7 +95,8 @@ export const requirementStatusNames: Record<RequirementStatus, string> = { pendi
 export const questionStatusNames: Record<RequirementQuestion['status'], string> = { open: '待回答', answered: '已回答·待处理', resolved: '已解决', deferred: '暂缓', dismissed: '不适用' }
 export const activeRequirements = (task: RequirementData) => task.requirements.filter(item => !item.removed)
 export const openQuestions = (task: RequirementData) => task.questions.filter(item => !['resolved', 'dismissed'].includes(item.status))
-export function requirementMarkdown(task: RequirementData & { title: string; materials?: RequirementMaterial[] }, depth: RequirementSettings['depth'] = 'standard', selectedIds?: string[]): string {
+export function requirementMarkdown(task: RequirementData & { title: string; materials?: RequirementMaterial[]; sections?: RequirementSection[] }, depth: RequirementSettings['depth'] = 'standard', selectedIds?: string[]): string {
+  if(task.sections) return ['# '+task.title, '> 需求工作草稿；需求确认不代表实现或验收完成。', ...task.sections.filter(s=>s.enabled).map(s=>'## '+s.title+'\n\n'+(requirementSectionContent(s,task)||'待补充'))].join('\n\n')+'\n'
   const requirements = activeRequirements(task).filter(item => !selectedIds || selectedIds.includes(item.id))
   const included = new Set(requirements.map(item => item.id))
   const related = (ids: string[]) => !ids.length || ids.some(id => included.has(id))

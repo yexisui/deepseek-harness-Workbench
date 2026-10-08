@@ -107,8 +107,8 @@ it('NR10 preserves role draft across an embedded center and explicit return',asy
  await render(<ManagedRoleEditor id="builtin-developer" onClose={()=>{}}/>);await fill(field('助手名称'),'保留岗位草稿');await click('查看能力及关联组件 ↗');await click('← 返回岗位，保留草稿');expect(field('助手名称').value).toBe('保留岗位草稿')
 })
 it('NR11 restores the requirement document workspace after remount',async()=>{
- const view=<RequirementsAssistant taskId={taskId} roleId="builtin-analyst" roleVersion={1} onCommit={()=>{}}/>;await render(view);await click('需求工作区');await click('需求文档');await remount(view)
- expect(host.querySelector('[aria-label="需求分析视图"] [aria-selected="true"]')?.textContent).toBe('需求工作区');expect(host.querySelector('[aria-label="需求工作区页面"] [aria-selected="true"]')?.textContent).toBe('需求文档')
+ const view=<RequirementsAssistant taskId={taskId} roleId="builtin-analyst" roleVersion={1} onCommit={()=>{}}/>;await render(view);await click('需求结果');await click('需求文档');await remount(view)
+ expect(host.querySelector('[aria-label="需求分析视图"] [aria-selected="true"]')?.textContent).toBe('需求结果');expect(host.querySelector('[aria-label="需求工作区页面"] [aria-selected="true"]')?.textContent).toBe('需求文档')
 })
 
 it('NR12 restores meeting trace along with its existing snapshot',async()=>{

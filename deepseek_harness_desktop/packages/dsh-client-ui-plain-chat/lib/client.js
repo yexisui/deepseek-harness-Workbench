@@ -683,6 +683,56 @@ window.__ModuleLoader__.load({
 		/** Persisted requirements contracts. Pure data and rendering, shared by host and UI. */
 		const REQUIREMENTS_CAPABILITY_ID = "requirements-analysis";
 		const REQUIREMENTS_COMPONENT_ID = "requirements-service";
+		const defaultRequirementSections = () => [
+			[
+				"problem",
+				"当前问题",
+				"现在是什么情况，有哪些具体表现"
+			],
+			[
+				"outcome",
+				"期望结果",
+				"调整后的行为和结果"
+			],
+			[
+				"changes",
+				"本次修改要求",
+				"逐条列出要实现的行为"
+			],
+			[
+				"preserve",
+				"保留要求",
+				"必须保持的原有行为"
+			],
+			[
+				"questions",
+				"待确认问题",
+				"尚不明确、冲突或需要业务决定的内容"
+			],
+			[
+				"acceptance",
+				"验收示例",
+				"输入或操作以及预期结果"
+			]
+		].map(([id, title, guidance]) => ({
+			id,
+			title,
+			guidance,
+			enabled: true,
+			content: ""
+		}));
+		function requirementSectionContent(section, task) {
+			if (section.contentSet || section.content) return section.content;
+			const rows = activeRequirements(task);
+			return {
+				problem: task.overview.background,
+				outcome: task.overview.goal,
+				changes: rows.map((r) => r.number + " " + r.title + "：" + r.description + (r.origin === "assistant" ? "（助手建议）" : "")).join("\n"),
+				preserve: rows.filter((r) => r.kind === "constraint").map((r) => r.description).join("\n"),
+				questions: openQuestions(task).map((q) => q.number + " " + q.question + (q.answer ? "；当前答复：" + q.answer : "")).join("\n"),
+				acceptance: rows.map((r) => r.acceptance ? r.number + " " + r.acceptance : "").filter(Boolean).join("\n")
+			}[section.id] ?? "";
+		}
 		const defaultRequirementSettings = () => ({
 			purpose: "discussion",
 			depth: "standard",
@@ -732,6 +782,70 @@ window.__ModuleLoader__.load({
 		};
 		const activeRequirements = (task) => task.requirements.filter((item) => !item.removed);
 		const openQuestions = (task) => task.questions.filter((item) => !["resolved", "dismissed"].includes(item.status));
+		function requirementMarkdown(task, depth = "standard", selectedIds) {
+			if (task.sections) return [
+				"# " + task.title,
+				"> 需求工作草稿；需求确认不代表实现或验收完成。",
+				...task.sections.filter((s) => s.enabled).map((s) => "## " + s.title + "\n\n" + (requirementSectionContent(s, task) || "待补充"))
+			].join("\n\n") + "\n";
+			const requirements = activeRequirements(task).filter((item) => !selectedIds || selectedIds.includes(item.id));
+			const included = new Set(requirements.map((item) => item.id));
+			const related = (ids) => !ids.length || ids.some((id) => included.has(id));
+			const value = (s) => s.trim() || "待确认";
+			const sourceLabel = (source) => {
+				const material = task.materials?.find((m) => m.id === source.materialId);
+				return `${(material && source.revision !== material.revision ? material.history.find((h) => h.revision === source.revision)?.name ?? material.name : material?.name) ?? (source.messageId ? "用户对话" : "保留的资料引文")}${source.revision ? ` · 修订 ${source.revision}` : ""}「${source.quote}」`;
+			};
+			const lines = [
+				`# ${task.title || "需求说明"}`,
+				"",
+				"## 业务背景与目标",
+				"",
+				`背景：${value(task.overview.background)}`,
+				"",
+				`目标：${value(task.overview.goal)}`,
+				"",
+				"## 范围与角色",
+				"",
+				`本次范围：${value(task.overview.scope)}`,
+				"",
+				`暂不包含：${value(task.overview.excluded)}`,
+				"",
+				`使用角色：${value(task.overview.roles)}`
+			];
+			if (depth !== "brief") {
+				lines.push("", "## 业务流程", "");
+				for (const [i, step] of task.flows.filter((f) => related(f.requirementIds)).entries()) lines.push(`${i + 1}. ${step.name}｜${value(step.actor)}：${value(step.action)}`, `   条件：${value(step.condition)}；结果：${value(step.result)}；下一步：${value(step.next)}；异常：${value(step.exception)}`);
+			}
+			lines.push("", "## 需求清单", "");
+			for (const r of requirements) {
+				lines.push(`### ${r.number} ${r.title}`, "", `状态：${requirementStatusNames[r.status]}｜优先级：${{
+					must: "必须",
+					should: "应该",
+					could: "可以"
+				}[r.priority]}｜模块：${value(r.module)}`, "", value(r.description), "", `验收标准：${value(r.acceptance)}`);
+				if (depth !== "brief") for (const [label, field] of [
+					["角色", r.actor],
+					["触发条件", r.trigger],
+					["前置条件", r.preconditions],
+					["操作步骤", r.steps],
+					["业务规则", r.rules],
+					["异常处理", r.exceptions]
+				]) lines.push("", `${label}：${value(field)}`);
+				if (depth === "detailed") lines.push("", `输入：${value(r.inputs)}`, "", `输出：${value(r.outputs)}`);
+				lines.push("", `来源：${r.sources.length ? r.sources.map(sourceLabel).join("；") : r.origin === "user" ? "用户手工整理" : "助手建议，待核实依据"}`);
+			}
+			if (depth !== "brief") {
+				lines.push("", "## 业务规则", "");
+				for (const r of task.rules.filter((r) => related(r.requirementIds))) lines.push(`- ${r.name}：${value(r.condition)} → ${value(r.action)}；例外：${value(r.exception)}`);
+			}
+			lines.push("", "## 待确认事项", "");
+			for (const q of openQuestions(task).filter((q) => related(q.requirementIds))) lines.push(`- ${q.number} ${q.question}（${questionStatusNames[q.status]}${q.blocking ? "，影响确认" : ""}）${q.answer ? `\n  当前答复：${q.answer}` : ""}`);
+			if (!openQuestions(task).filter((q) => related(q.requirementIds)).length) lines.push("当前范围暂无未处理问题。");
+			lines.push("", "## 资料来源", "");
+			for (const m of task.materials ?? []) lines.push(`- ${m.name}，修订 ${m.revision}${m.removed ? "（已从后续分析移除，引用快照保留）" : ""}`);
+			return lines.join("\n") + "\n";
+		}
 		//#endregion
 		//#region ../dsh-capabilities/src/core/developer-model.ts
 		const DEVELOPER_CAPABILITY_ID = "developer-workspace";
@@ -16609,6 +16723,437 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css.mjs
+		const css$3 = ".P-xFQa_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#546da9);--accent-text:var(--dsw-alias-brand-primary,var(--accent));--soft:color-mix(in srgb,var(--accent) 6%,var(--surface));color:var(--ink);background:var(--dsw-alias-bg-layer-1,var(--surface));font:inherit;flex-direction:column;width:100%;height:100%;min-height:0;font-size:13px;display:flex;overflow:hidden}.P-xFQa_root *{box-sizing:border-box}.P-xFQa_root button,.P-xFQa_root input,.P-xFQa_root textarea,.P-xFQa_root select{font:inherit}.P-xFQa_root button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 11px;line-height:1.35;transition:border-color .15s,background .15s}.P-xFQa_root button:hover:not(:disabled){border-color:var(--accent);color:var(--accent-text);background:var(--soft)}.P-xFQa_root button:disabled{opacity:.45;cursor:not-allowed}.P-xFQa_root :is(button,input,textarea,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}.P-xFQa_root input:not([type=checkbox]),.P-xFQa_root textarea,.P-xFQa_root select{border:1px solid var(--border);color:var(--ink);background:var(--surface);border-radius:8px;min-width:0;padding:9px 11px}.P-xFQa_root input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex:none;width:15px;height:15px}.P-xFQa_root textarea{resize:vertical;width:100%;line-height:1.65}.P-xFQa_root h2{margin:0 0 6px;font-size:20px;font-weight:650;line-height:1.4}.P-xFQa_root h3{margin:0 0 8px;font-size:14px;font-weight:650;line-height:1.6}.P-xFQa_root p{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;line-height:1.75}.P-xFQa_root small{color:var(--muted);font-size:11px;line-height:1.6}.P-xFQa_root summary{cursor:pointer}.P-xFQa_root details>summary{padding:8px 0}.P-xFQa_primary{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;font-weight:600!important}.P-xFQa_muted{color:var(--muted);font-size:12px;line-height:1.7}.P-xFQa_block{margin-top:5px;display:block}.P-xFQa_heading{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;gap:16px;min-height:66px;padding:13px 28px;display:flex}.P-xFQa_heading>div:first-child{flex-direction:column;gap:4px;min-width:0;display:flex}.P-xFQa_heading strong{text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:650;overflow:hidden}.P-xFQa_saveState{color:var(--muted);font-size:10px}.P-xFQa_heading button{padding:6px 8px;font-size:11px}.P-xFQa_countBadge{border:1px solid var(--border);color:var(--muted);white-space:nowrap;border-radius:6px;padding:4px 7px;font-size:10px}.P-xFQa_tabs{border-bottom:1px solid var(--border);scrollbar-width:thin;flex:none;gap:27px;min-height:43px;padding:0 28px;display:flex;overflow-x:auto}.P-xFQa_tabs button{color:var(--muted);white-space:nowrap;background:0 0;border:0;border-bottom:2px solid #0000;border-radius:0;flex:none;padding:11px 0;font-size:13px}.P-xFQa_tabs button[aria-selected=true]{border-bottom-color:var(--accent);color:var(--ink);font-weight:650}.P-xFQa_tabs button:hover:not(:disabled){border-bottom-color:var(--accent);background:0 0}.P-xFQa_subtabs{background:var(--soft);flex:none}.P-xFQa_subtabs .P-xFQa_tabs{gap:24px;min-height:42px}.P-xFQa_subtabs .P-xFQa_tabs button{font-size:12px}.P-xFQa_scroll{overscroll-behavior:contain;scroll-behavior:smooth;flex:1;min-height:0;overflow:auto}.P-xFQa_chat{width:min(930px,100% - 64px);margin:auto;padding:30px 0}.P-xFQa_intro{align-items:flex-start;gap:15px;margin:3px 0 24px;display:flex}.P-xFQa_intro>span:first-child{border-radius:12px;flex:none;width:38px;height:38px}.P-xFQa_intro>div{min-width:0}.P-xFQa_intro small{font-size:11px;font-weight:650}.P-xFQa_intro h2{margin:4px 0 8px;font-size:21px}.P-xFQa_intro p{color:var(--muted);font-size:13px}.P-xFQa_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:24px 0;display:grid}.P-xFQa_modes button{text-align:left;border-color:color-mix(in srgb,var(--accent) 28%,var(--border));border-radius:14px;flex-direction:column;align-items:flex-start;min-height:190px;padding:22px;transition:transform .2s,border-color .2s;display:flex;box-shadow:0 4px 20px #182c5006}.P-xFQa_modes button:hover:not(:disabled){transform:translateY(-2px)}.P-xFQa_modes button>span{color:var(--accent-text);background:var(--soft);border-radius:10px;place-items:center;width:34px;height:34px;margin-bottom:13px;font-size:21px;display:grid}.P-xFQa_modes b{font-size:16px}.P-xFQa_modes p{color:var(--muted);font-size:12px}.P-xFQa_modes em{color:var(--accent-text);margin-top:auto;padding-top:15px;font-size:11px;font-style:normal}.P-xFQa_modes button[aria-pressed=true]{border-color:var(--accent);background:var(--soft)}.P-xFQa_modes b small{color:var(--accent-text);margin-left:6px;font-size:10px;font-weight:500}.P-xFQa_chooser{padding:20px 0}.P-xFQa_chooser .P-xFQa_intro{margin:0 0 16px}.P-xFQa_chooser .P-xFQa_intro h2{margin-bottom:6px}.P-xFQa_chooser .P-xFQa_chooserSummary{margin:12px 0;padding:12px 16px}.P-xFQa_chooser .P-xFQa_modes{margin:12px 0}.P-xFQa_chooser .P-xFQa_modes button{min-height:150px;padding:16px}.P-xFQa_chooser .P-xFQa_modes button>span{width:28px;height:28px;margin-bottom:8px;font-size:18px}.P-xFQa_chooser .P-xFQa_modes b{font-size:15px}.P-xFQa_chooser .P-xFQa_modes p{margin:6px 0}.P-xFQa_chooser .P-xFQa_modes em{padding-top:8px}.P-xFQa_chooserSummary{background:var(--soft);border:1px solid var(--border);border-radius:12px;justify-content:space-between;align-items:center;gap:16px;margin:20px 0;padding:17px 20px;display:flex}.P-xFQa_chooserSummary>div{min-width:0}.P-xFQa_chooserSummary strong{overflow-wrap:anywhere;font-size:14px}.P-xFQa_chooserSummary p{color:var(--muted);margin:5px 0 0;font-size:11px}.P-xFQa_chooserSummary button{flex:none;font-size:12px}.P-xFQa_chooserReturn{justify-content:space-between;align-items:center;gap:12px;margin:18px 0;display:flex}.P-xFQa_chooserReturn button{font-size:11px}.P-xFQa_draftRetry{color:var(--muted);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:3px 20px;padding:8px 13px;font-size:11px;display:flex}.P-xFQa_draftRetry button{padding:5px 9px;font-size:11px}.P-xFQa_workflow{color:var(--muted);justify-content:center;align-items:center;gap:14px;padding:10px 0;font-size:11px;display:flex}.P-xFQa_workflow i{color:var(--border);font-style:normal}.P-xFQa_toolbar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}.P-xFQa_toolbar button{padding:6px 9px;font-size:11px}.P-xFQa_tag,.P-xFQa_status,.P-xFQa_warningTag{border:1px solid var(--border);width:max-content;color:var(--muted);white-space:nowrap;border-radius:6px;align-items:center;padding:3px 7px;font-size:10px;line-height:1.6;display:inline-flex}.P-xFQa_status[data-status=confirmed],.P-xFQa_status[data-status=resolved]{color:#3e9273;border-color:color-mix(in srgb,#4d9c78 25%,var(--border));background:color-mix(in srgb,#4d9c78 6%,var(--surface))}.P-xFQa_status[data-status=review],.P-xFQa_warningTag{color:#ad7839;background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-color:color-mix(in srgb,#c79b4a 30%,var(--border))}.P-xFQa_card{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:16px 0;padding:19px 21px}.P-xFQa_card p{font-size:12px}.P-xFQa_sectionHead{justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;display:flex}.P-xFQa_sectionHead>div:first-child{min-width:0}.P-xFQa_sectionHead h3{margin-bottom:0}.P-xFQa_sectionHead p{color:var(--muted);margin:4px 0 0;font-size:12px}.P-xFQa_sectionHead button{white-space:nowrap;font-size:11px}.P-xFQa_userMessage{border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));background:var(--soft);border-radius:14px 14px 4px;max-width:82%;margin:22px 0 22px auto;padding:13px 17px}.P-xFQa_assistantMessage{margin:24px 0;padding:0 4px}.P-xFQa_assistantMessage small{font-weight:600}.P-xFQa_assistantMessage p,.P-xFQa_userMessage p{margin:5px 0}.P-xFQa_progress{border:1px solid var(--border);border-radius:12px;align-items:center;gap:14px;margin:20px 0;padding:17px;display:flex}.P-xFQa_progress>div{flex:1}.P-xFQa_progress p{color:var(--muted);margin:4px 0 0;font-size:11px}.P-xFQa_spinner{border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;width:20px;height:20px;animation:1.1s linear infinite P-xFQa_spin}@keyframes P-xFQa_spin{to{transform:rotate(360deg)}}.P-xFQa_runError,.P-xFQa_error{color:#b25555;background:color-mix(in srgb,#c46565 7%,var(--surface));border:1px solid color-mix(in srgb,#c46565 25%,var(--border));border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.7}.P-xFQa_runError{margin:18px 0}.P-xFQa_error{white-space:pre-wrap;flex:none;justify-content:space-between;gap:10px;max-height:180px;margin:9px 20px;display:flex;overflow:auto}.P-xFQa_error button,.P-xFQa_notice button{color:inherit;background:0 0;border:0;align-self:flex-start;padding:0 4px}.P-xFQa_notice{background:var(--soft);color:var(--accent-text);border-radius:7px;flex:none;justify-content:space-between;gap:10px;margin:7px 20px;padding:8px 12px;font-size:12px;display:flex}.P-xFQa_availability{background:var(--soft);color:var(--muted);border-bottom:1px solid var(--border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:8px 28px;font-size:11px;display:flex}.P-xFQa_availability button{padding:4px 8px;font-size:11px}.P-xFQa_proposal{border:1px solid var(--border);border-radius:9px;margin:10px 0;padding:4px 13px}.P-xFQa_proposal summary{align-items:center;gap:8px;display:flex}.P-xFQa_proposal summary strong{overflow-wrap:anywhere;flex:1;font-size:12px}.P-xFQa_proposal summary small{white-space:nowrap;font-size:10px}.P-xFQa_details{grid-template-columns:92px minmax(0,1fr);gap:8px 12px;margin:12px 0;font-size:12px;line-height:1.65;display:grid}.P-xFQa_details dt{color:var(--muted)}.P-xFQa_details dd{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.P-xFQa_before{background:color-mix(in srgb,#c79b4a 6%,var(--surface));color:var(--muted);border-left:2px solid var(--border);margin-bottom:5px;padding:4px 7px}.P-xFQa_sources{flex-wrap:wrap;gap:6px;margin:5px 0;display:flex}.P-xFQa_sources button{color:var(--accent-text);background:0 0;border:0;padding:2px 0;font-size:10px}.P-xFQa_questionPreview{border-top:1px solid var(--border);padding:12px 0}.P-xFQa_questionPreview b{font-size:12px}.P-xFQa_questionPreview p{color:var(--muted);font-size:11px}.P-xFQa_questionPreview button{margin-right:8px;font-size:11px}.P-xFQa_workspace{width:min(1180px,100% - 56px);margin:0 auto;padding:26px 0 36px}.P-xFQa_stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0;display:grid}.P-xFQa_stats button{border-radius:12px;flex-direction:column;align-items:flex-start;padding:19px 18px;display:flex}.P-xFQa_stats strong{color:var(--accent-text);letter-spacing:-.5px;font-size:27px;font-weight:600}.P-xFQa_stats strong small{font-size:13px;font-weight:400}.P-xFQa_stats span{color:var(--muted);margin-top:6px;font-size:11px}.P-xFQa_twoColumns{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;display:grid}.P-xFQa_twoColumns .P-xFQa_card{margin:7px 0}.P-xFQa_compactList{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.8}.P-xFQa_compactList li{padding:5px 0}.P-xFQa_compactList time{color:var(--muted);margin-right:8px;font-size:10px}.P-xFQa_dimmed{opacity:.65}.P-xFQa_excerpt{-webkit-line-clamp:2;color:var(--muted);-webkit-box-orient:vertical;max-width:440px;display:-webkit-box;overflow:hidden;font-size:11px!important}.P-xFQa_filters{flex-wrap:wrap;gap:9px;margin:18px 0;display:flex}.P-xFQa_filters input{flex:1;min-width:150px;max-width:430px}.P-xFQa_filters select{min-width:130px}.P-xFQa_selectionBar{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--soft);border-radius:9px;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;padding:10px 13px;display:flex}.P-xFQa_selectionBar>span{color:var(--accent-text);margin-right:8px;font-size:11px}.P-xFQa_selectionBar button{padding:5px 8px;font-size:11px}.P-xFQa_tableWrap{border:1px solid var(--border);border-radius:11px;margin-top:15px;overflow:auto}.P-xFQa_table{border-collapse:collapse;width:100%;min-width:700px;font-size:12px}.P-xFQa_table th{text-align:left;background:var(--soft);color:var(--muted);white-space:nowrap;padding:11px 12px;font-size:11px;font-weight:500}.P-xFQa_table td{border-top:1px solid var(--border);vertical-align:top;padding:13px 12px}.P-xFQa_table td:first-child{width:34px}.P-xFQa_table td:nth-child(2){width:40%}.P-xFQa_table td:last-child{min-width:130px}.P-xFQa_rowTitle{color:var(--ink);text-align:left;flex-direction:column;gap:3px;display:flex;background:0 0!important;border:0!important;padding:0!important}.P-xFQa_rowTitle small{color:var(--accent-text);font-size:10px}.P-xFQa_rowTitle strong{font-size:13px;font-weight:600}.P-xFQa_rowActions{flex-wrap:wrap;gap:5px;display:flex}.P-xFQa_rowActions button{padding:4px 6px;font-size:10px}.P-xFQa_rowActions details{width:100%}.P-xFQa_rowActions summary{color:var(--muted);font-size:10px;padding:5px 0!important}.P-xFQa_rowActions details>div{flex-wrap:wrap;gap:5px;margin-top:3px;display:flex}.P-xFQa_flowCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;gap:14px;margin:15px 0;padding:19px;display:flex}.P-xFQa_flowCard>div{flex:1;min-width:0}.P-xFQa_flowCard p{font-size:12px}.P-xFQa_stepNumber{background:var(--soft);width:29px;height:29px;color:var(--accent-text);border-radius:9px;flex:none;place-items:center;font-size:12px;display:grid}.P-xFQa_flowDetails{color:var(--muted);grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 20px;margin:10px 0;font-size:11px;line-height:1.75;display:grid}.P-xFQa_choices{flex-wrap:wrap;gap:7px;margin:11px 0;display:flex}.P-xFQa_choices button{color:var(--accent-text);background:var(--soft);font-size:11px}.P-xFQa_field{flex-direction:column;gap:7px;min-width:0;margin:15px 0;display:flex}.P-xFQa_field>span{font-size:12px;font-weight:550}.P-xFQa_field>span small{color:var(--muted);font-size:10px;font-weight:400}.P-xFQa_field textarea{min-height:90px}.P-xFQa_field input,.P-xFQa_field select{width:100%}.P-xFQa_check{align-items:center;gap:6px;font-size:12px;display:inline-flex}.P-xFQa_relations{border:1px solid var(--border);border-radius:9px;margin:16px 0;padding:10px 12px}.P-xFQa_relations legend{color:var(--muted);padding:0 6px;font-size:12px}.P-xFQa_relations label{align-items:center;gap:8px;padding:6px 0;font-size:12px;display:flex}.P-xFQa_documentControls{border:1px solid var(--border);background:var(--soft);border-radius:11px;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0;padding:8px 16px 16px;display:flex}.P-xFQa_documentControls .P-xFQa_field{flex:1;min-width:140px;margin:5px 0 0}.P-xFQa_documentControls button{min-height:35px;font-size:12px}.P-xFQa_document{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:20px 0;padding:35px 42px;font-size:12px;line-height:1.85}.P-xFQa_document h1{margin:0 0 20px;font-size:23px}.P-xFQa_document h2{color:var(--accent-text);border-bottom:1px solid var(--border);margin-top:24px;padding-bottom:9px;font-size:17px}.P-xFQa_document h3{margin-top:18px;font-size:14px}.P-xFQa_document p{margin:4px 0}.P-xFQa_docGap{height:5px}.P-xFQa_warning{color:#ad7839;border:1px solid color-mix(in srgb,#c79b4a 35%,var(--border));background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-radius:8px;margin:12px 0;padding:11px 14px;font-size:12px;line-height:1.7}.P-xFQa_versionRow{border-top:1px solid var(--border);align-items:center;gap:10px;padding:12px 0;display:flex}.P-xFQa_versionRow>div{flex:1;min-width:0}.P-xFQa_versionRow strong{font-size:12px;display:block}.P-xFQa_versionRow small{margin-top:4px;display:block}.P-xFQa_versionRow button{font-size:11px}.P-xFQa_timeline{margin:16px 0;padding:10px 0;list-style:none}.P-xFQa_timeline li{border-top:1px solid var(--border);gap:20px;padding:13px 0;display:flex}.P-xFQa_timeline time{color:var(--muted);flex:none;width:110px;padding-top:4px;font-size:11px}.P-xFQa_timeline p{margin:0;font-size:12px}.P-xFQa_timeline button{color:var(--accent-text);background:0 0;border:0;padding:5px 0;font-size:10px}.P-xFQa_composerWrap{flex:none;width:min(970px,100% - 44px);margin:auto;padding:6px 0 14px}.P-xFQa_quickActions{flex-wrap:wrap;gap:6px;margin-bottom:9px;display:flex}.P-xFQa_quickActions button{color:var(--muted);background:0 0;border-radius:7px;padding:5px 9px;font-size:10px}.P-xFQa_composer{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5010}.P-xFQa_composer>textarea{background:0 0;border:0;border-radius:0;min-height:65px;max-height:160px;padding:2px 0;font-size:14px}.P-xFQa_composer>textarea:focus-visible{outline-offset:2px;outline-width:1px}.P-xFQa_composer>textarea::placeholder{color:var(--muted)}.P-xFQa_composerTools,.P-xFQa_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.P-xFQa_composerTools button{color:var(--accent-text);background:0 0;border:0;padding:2px 5px;font-size:22px}.P-xFQa_composerTools select{color:var(--muted);border:0;max-width:200px;padding:4px 3px;font-size:10px}.P-xFQa_composerTools small{font-size:10px}.P-xFQa_composerTools .P-xFQa_send{background:var(--accent);color:#fff;border-radius:50%;width:35px;height:35px;font-size:24px}.P-xFQa_contextNote{background:var(--soft);color:var(--accent-text);border-radius:7px;justify-content:space-between;gap:10px;margin-bottom:8px;padding:7px 10px;font-size:11px;display:flex}.P-xFQa_contextNote button{color:var(--accent-text);background:0 0;border:0;padding:0 4px}.P-xFQa_empty{text-align:center;color:var(--muted);flex-direction:column;align-items:center;padding:55px 20px;font-size:12px;line-height:1.8;display:flex}.P-xFQa_empty>span{opacity:.4;padding-bottom:10px;font-size:33px}.P-xFQa_empty h3{color:var(--ink);font-size:15px}.P-xFQa_empty button{margin-top:12px}.P-xFQa_overlay{z-index:1300;backdrop-filter:blur(2px);background:#13213555;justify-content:center;align-items:center;padding:24px;display:flex;position:fixed;inset:0}.P-xFQa_dialog{border:1px solid var(--border);background:var(--surface);width:min(760px,100%);max-height:calc(100dvh - 48px);color:var(--ink);border-radius:15px;flex-direction:column;display:flex;overflow:hidden;box-shadow:0 20px 70px #1118273d}.P-xFQa_dialog:focus{outline:none}.P-xFQa_dialog>header{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;padding:16px 23px;display:flex}.P-xFQa_dialog>header h2{margin:0;font-size:16px}.P-xFQa_dialog>header button{color:var(--muted);background:0 0;border:0;padding:0 5px;font-size:22px}.P-xFQa_dialogBody{min-height:0;padding:12px 24px 22px;overflow:auto}.P-xFQa_dialogBody>.P-xFQa_error{margin:2px 0 10px}.P-xFQa_dialogBody>details{border-top:1px solid var(--border);margin:16px 0}.P-xFQa_dialogBody>details>summary{font-size:13px;font-weight:600}.P-xFQa_dialog>footer{border-top:1px solid var(--border);flex-wrap:wrap;flex:none;justify-content:flex-end;align-items:center;gap:9px;padding:14px 22px;display:flex}.P-xFQa_dialog>footer>span{margin-right:auto;font-size:10px}.P-xFQa_dialog blockquote{border-left:3px solid var(--accent);background:var(--soft);white-space:pre-wrap;margin:14px 0;padding:12px 15px;line-height:1.8}.P-xFQa_rawText{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0;font-size:12px;line-height:1.85}.P-xFQa_conflict{border:1px solid var(--border);background:var(--soft);border-radius:9px;padding:14px}.P-xFQa_conflict button{font-size:11px}@media (width<=850px){.P-xFQa_heading{padding:12px 18px}.P-xFQa_heading .P-xFQa_countBadge{display:none}.P-xFQa_tabs{gap:22px;padding:0 18px}.P-xFQa_chat{width:calc(100% - 38px)}.P-xFQa_workspace{width:calc(100% - 36px)}.P-xFQa_sectionHead{flex-wrap:wrap}.P-xFQa_stats{gap:8px}.P-xFQa_stats button{padding:15px 12px}.P-xFQa_document{padding:26px}.P-xFQa_flowDetails{grid-template-columns:1fr}}@media (width<=600px){.P-xFQa_root{font-size:12px}.P-xFQa_heading{gap:8px;min-height:58px}.P-xFQa_heading strong{font-size:13px}.P-xFQa_heading .P-xFQa_toolbar{flex:none;gap:4px}.P-xFQa_heading button{padding:5px;font-size:10px}.P-xFQa_tabs,.P-xFQa_subtabs .P-xFQa_tabs{gap:23px;padding:0 15px}.P-xFQa_chat{width:calc(100% - 28px);padding:21px 0}.P-xFQa_intro{gap:10px}.P-xFQa_intro h2{font-size:18px}.P-xFQa_intro p{font-size:11px}.P-xFQa_intro>span:first-child{width:30px;height:30px}.P-xFQa_modes{grid-template-columns:1fr;gap:10px;margin-top:16px}.P-xFQa_modes button{min-height:145px;padding:16px}.P-xFQa_modes button>span{width:26px;height:26px;margin-bottom:9px;font-size:17px}.P-xFQa_modes b{font-size:14px}.P-xFQa_modes em{padding-top:8px}.P-xFQa_workflow{gap:8px;font-size:10px}.P-xFQa_card{padding:15px}.P-xFQa_workspace{width:calc(100% - 28px);padding:20px 0}.P-xFQa_twoColumns{grid-template-columns:1fr}.P-xFQa_stats{grid-template-columns:repeat(2,minmax(0,1fr))}.P-xFQa_stats strong{font-size:24px}.P-xFQa_table{min-width:640px}.P-xFQa_table td,.P-xFQa_table th{padding:10px}.P-xFQa_composerWrap{width:calc(100% - 20px);padding-bottom:8px}.P-xFQa_quickActions{gap:5px}.P-xFQa_quickActions button{padding:5px 6px;font-size:9px}.P-xFQa_composer{border-radius:15px;padding:10px 12px}.P-xFQa_composer>textarea{min-height:58px;font-size:13px}.P-xFQa_composerTools small{display:none}.P-xFQa_composerTools select{max-width:185px}.P-xFQa_error,.P-xFQa_notice{margin:6px 12px;font-size:11px}.P-xFQa_availability{padding:8px 14px}.P-xFQa_proposal{padding:2px 10px}.P-xFQa_proposal summary{flex-wrap:wrap;gap:6px}.P-xFQa_proposal summary strong{flex-basis:60%}.P-xFQa_proposal summary small{padding-left:22px}.P-xFQa_details{grid-template-columns:75px minmax(0,1fr);gap:7px 9px;font-size:11px}.P-xFQa_flowCard{gap:10px;padding:14px}.P-xFQa_stepNumber{width:24px;height:24px}.P-xFQa_flowCard .P-xFQa_sectionHead{margin-bottom:6px}.P-xFQa_flowCard .P-xFQa_toolbar{gap:5px}.P-xFQa_document{padding:22px 18px}.P-xFQa_document h1{font-size:19px}.P-xFQa_document h2{font-size:15px}.P-xFQa_versionRow{flex-wrap:wrap}.P-xFQa_versionRow>div{flex-basis:100%}.P-xFQa_timeline li{flex-direction:column;gap:3px}.P-xFQa_timeline time{width:auto}.P-xFQa_overlay{padding:8px}.P-xFQa_dialog{border-radius:12px;max-height:calc(100dvh - 16px)}.P-xFQa_dialog>header{padding:13px 16px}.P-xFQa_dialogBody{padding:9px 16px 18px}.P-xFQa_dialog>footer{padding:12px 16px}.P-xFQa_dialog>footer>span{display:none}}@media (prefers-reduced-motion:reduce){.P-xFQa_root button,.P-xFQa_modes button{transition:none}.P-xFQa_modes button:hover:not(:disabled){transform:none}.P-xFQa_spinner{animation:none}.P-xFQa_scroll{scroll-behavior:auto}}.P-xFQa_notebook{min-width:0;margin:12px 0}.P-xFQa_guide{background:var(--soft);border-radius:12px;margin:12px 0;padding:16px}.P-xFQa_guide .P-xFQa_toolbar{flex-wrap:wrap}.P-xFQa_guide button[aria-pressed=true]{border-color:var(--accent);color:var(--accent-text)}.P-xFQa_sectionRow{border:1px solid var(--border);background:var(--surface);touch-action:pan-x;border-radius:10px;flex-direction:column;gap:8px;margin:10px 0;padding:12px;transition:transform .15s;display:flex}.P-xFQa_sectionRow[data-dragging=true]{opacity:.55}.P-xFQa_sectionRow[data-target=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--soft)}.P-xFQa_sectionRow input{flex:1;width:100%}.P-xFQa_notebook select{max-width:100%}@media (width<=600px){.P-xFQa_notebook .P-xFQa_toolbar{flex-wrap:wrap}.P-xFQa_sectionRow{padding:8px}}.P-xFQa_sortPreview{z-index:10001;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid;border-radius:12px;padding:12px 20px;position:fixed;transform:translate(12px,12px);box-shadow:0 8px 30px #0003}.P-xFQa_notebook .P-xFQa_card p{white-space:pre-wrap;overflow-wrap:anywhere}.P-xFQa_notebook .P-xFQa_toolbar{flex-wrap:wrap}@media (prefers-reduced-motion:reduce){.P-xFQa_sectionRow{transition:none}}";
+		const tagId$3 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$3;
+			tag.textContent = css$3;
+			document.head.appendChild(tag);
+		}
+		var RequirementsAssistant_module_css_default = {
+			"assistantMessage": "P-xFQa_assistantMessage",
+			"availability": "P-xFQa_availability",
+			"before": "P-xFQa_before",
+			"block": "P-xFQa_block",
+			"card": "P-xFQa_card",
+			"chat": "P-xFQa_chat",
+			"check": "P-xFQa_check",
+			"choices": "P-xFQa_choices",
+			"chooser": "P-xFQa_chooser",
+			"chooserReturn": "P-xFQa_chooserReturn",
+			"chooserSummary": "P-xFQa_chooserSummary",
+			"compactList": "P-xFQa_compactList",
+			"composer": "P-xFQa_composer",
+			"composerTools": "P-xFQa_composerTools",
+			"composerWrap": "P-xFQa_composerWrap",
+			"conflict": "P-xFQa_conflict",
+			"contextNote": "P-xFQa_contextNote",
+			"countBadge": "P-xFQa_countBadge",
+			"details": "P-xFQa_details",
+			"dialog": "P-xFQa_dialog",
+			"dialogBody": "P-xFQa_dialogBody",
+			"dimmed": "P-xFQa_dimmed",
+			"docGap": "P-xFQa_docGap",
+			"document": "P-xFQa_document",
+			"documentControls": "P-xFQa_documentControls",
+			"draftRetry": "P-xFQa_draftRetry",
+			"empty": "P-xFQa_empty",
+			"error": "P-xFQa_error",
+			"excerpt": "P-xFQa_excerpt",
+			"field": "P-xFQa_field",
+			"filters": "P-xFQa_filters",
+			"flowCard": "P-xFQa_flowCard",
+			"flowDetails": "P-xFQa_flowDetails",
+			"guide": "P-xFQa_guide",
+			"heading": "P-xFQa_heading",
+			"intro": "P-xFQa_intro",
+			"modes": "P-xFQa_modes",
+			"muted": "P-xFQa_muted",
+			"notebook": "P-xFQa_notebook",
+			"notice": "P-xFQa_notice",
+			"overlay": "P-xFQa_overlay",
+			"primary": "P-xFQa_primary",
+			"progress": "P-xFQa_progress",
+			"proposal": "P-xFQa_proposal",
+			"questionPreview": "P-xFQa_questionPreview",
+			"quickActions": "P-xFQa_quickActions",
+			"rawText": "P-xFQa_rawText",
+			"relations": "P-xFQa_relations",
+			"root": "P-xFQa_root",
+			"rowActions": "P-xFQa_rowActions",
+			"rowTitle": "P-xFQa_rowTitle",
+			"runError": "P-xFQa_runError",
+			"saveState": "P-xFQa_saveState",
+			"scroll": "P-xFQa_scroll",
+			"sectionHead": "P-xFQa_sectionHead",
+			"sectionRow": "P-xFQa_sectionRow",
+			"selectionBar": "P-xFQa_selectionBar",
+			"send": "P-xFQa_send",
+			"sortPreview": "P-xFQa_sortPreview",
+			"sources": "P-xFQa_sources",
+			"spin": "P-xFQa_spin",
+			"spinner": "P-xFQa_spinner",
+			"stats": "P-xFQa_stats",
+			"status": "P-xFQa_status",
+			"stepNumber": "P-xFQa_stepNumber",
+			"subtabs": "P-xFQa_subtabs",
+			"table": "P-xFQa_table",
+			"tableWrap": "P-xFQa_tableWrap",
+			"tabs": "P-xFQa_tabs",
+			"tag": "P-xFQa_tag",
+			"timeline": "P-xFQa_timeline",
+			"toolbar": "P-xFQa_toolbar",
+			"twoColumns": "P-xFQa_twoColumns",
+			"userMessage": "P-xFQa_userMessage",
+			"versionRow": "P-xFQa_versionRow",
+			"warning": "P-xFQa_warning",
+			"warningTag": "P-xFQa_warningTag",
+			"workflow": "P-xFQa_workflow",
+			"workspace": "P-xFQa_workspace"
+		};
+		//#endregion
+		//#region src/client/RequirementsNotebook.tsx
+		function RequirementsNotebook({ task, busy, mode, view, onCommand, onGuide }) {
+			const [editing, setEditing] = (0, react.useState)(false), [rows, setRows] = (0, react.useState)([]), [projectPath, setProjectPath] = (0, react.useState)(""), [ledger, setLedger] = (0, react.useState)(true), [file, setFile] = (0, react.useState)(""), [step, setStep] = (0, react.useState)(0), [projectOpen, setProjectOpen] = (0, react.useState)(false);
+			const baseRevision = (0, react.useRef)(void 0), dialog = (0, react.useRef)(null);
+			(0, react.useEffect)(() => {
+				if (!editing) return;
+				const previous = document.activeElement;
+				dialog.current?.querySelector("button")?.focus();
+				return () => previous?.focus();
+			}, [editing]);
+			const sections = task?.sections ?? defaultRequirementSections(), enabled = sections.filter((x) => x.enabled);
+			(0, react.useEffect)(() => {
+				setProjectPath(task?.project?.path ?? "");
+				setLedger(task?.project?.ledger ?? true);
+			}, [task?.project?.path, task?.project?.ledger]);
+			const change = (id, patch) => setRows((current) => current.map((r) => r.id === id ? {
+				...r,
+				...patch
+			} : r));
+			const sort = useCompositionSort((id, target) => setRows((current) => {
+				const result = [...current], a = result.findIndex((r) => r.id === id), b = result.findIndex((r) => r.id === target);
+				const [row] = result.splice(a, 1);
+				result.splice(b, 0, row);
+				return result;
+			}), rows.map((x) => x.id));
+			const edit = () => {
+				baseRevision.current = task?.dataRevision;
+				setRows(structuredClone(sections).map((r) => ({
+					...r,
+					content: task ? requirementSectionContent(r, task) : r.content
+				})));
+				setEditing(true);
+			};
+			const current = enabled[Math.min(step, Math.max(enabled.length - 1, 0))];
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+				className: RequirementsAssistant_module_css_default.notebook,
+				children: [
+					view === "setup" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: RequirementsAssistant_module_css_default.toolbar,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									onClick: () => setProjectOpen(!projectOpen),
+									children: task?.project ? "项目：" + task.project.path.split(/[\\/]/).pop() : "关联本地项目（可选）"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+									onClick: edit,
+									children: [
+										"整理内容 · 已选 ",
+										enabled.length,
+										" 项"
+									]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+									className: RequirementsAssistant_module_css_default.muted,
+									children: task?.project?.ledger ? "自动维护 " + task.project.ledgerName : "未关联项目也可直接分析"
+								})
+							]
+						}),
+						projectOpen && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: RequirementsAssistant_module_css_default.card,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "关联项目文件夹" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+									className: RequirementsAssistant_module_css_default.field,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "项目文件夹路径" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+										"aria-label": "项目文件夹路径",
+										value: projectPath,
+										placeholder: "例如 C:\\\\项目\\\\语音助手",
+										onChange: (e) => setProjectPath(e.target.value)
+									})]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+									className: RequirementsAssistant_module_css_default.check,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
+										checked: ledger,
+										onChange: (e) => setLedger(e.target.checked)
+									}), "在项目根目录自动维护 PERF_PLAN.md"]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+									className: RequirementsAssistant_module_css_default.muted,
+									children: "沿用已有同名台账；仅更新当前需求记录，保留其他内容。关联时读取根目录说明和已有台账；其余文件可自行选择加入资料。"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: RequirementsAssistant_module_css_default.toolbar,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											disabled: busy || !projectPath.trim(),
+											onClick: async () => {
+												if (await onCommand({
+													type: "project.attach",
+													path: projectPath.trim(),
+													ledger
+												})) setProjectOpen(false);
+											},
+											children: "关联项目"
+										}),
+										task?.project && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											disabled: busy,
+											onClick: () => void onCommand({ type: "project.detach" }),
+											children: "解除关联"
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											onClick: () => setProjectOpen(false),
+											children: "暂不关联"
+										})
+									]
+								})
+							]
+						}),
+						task?.project && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+							className: RequirementsAssistant_module_css_default.card,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+									"项目资料 · ",
+									task.project.files.length,
+									" 个可选文件"
+								] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: RequirementsAssistant_module_css_default.toolbar,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+											"aria-label": "项目资料文件",
+											value: file,
+											onChange: (e) => setFile(e.target.value),
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+												value: "",
+												children: "选择相关文件"
+											}), task.project.files.map((p) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+												value: p,
+												children: p
+											}, p))]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											disabled: busy || !file,
+											onClick: () => void onCommand({
+												type: "project.import",
+												path: file
+											}),
+											children: "读取为参考资料"
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											disabled: busy,
+											onClick: () => void onCommand({ type: "project.refresh" }),
+											children: "刷新文件与台账"
+										})
+									]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [task.project.path, " · 已导入的资料参与分析"] })
+							]
+						}),
+						mode === "guided" && current && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: RequirementsAssistant_module_css_default.guide,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+									className: RequirementsAssistant_module_css_default.toolbar,
+									children: enabled.map((r, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+										"aria-pressed": i === step,
+										onClick: () => setStep(i),
+										children: [
+											i + 1,
+											". ",
+											r.title
+										]
+									}, r.id))
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: current.title }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: current.guidance }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: RequirementsAssistant_module_css_default.toolbar,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											disabled: busy,
+											onClick: () => onGuide("请围绕「" + current.title + "」逐步引导，先整理现有信息，再问必要的问题。"),
+											children: "围绕此项继续"
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											onClick: edit,
+											children: "编辑整理内容"
+										}),
+										step < enabled.length - 1 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											onClick: () => setStep(step + 1),
+											children: "暂时跳过，下一项"
+										})
+									]
+								})
+							]
+						})
+					] }),
+					view === "result" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: RequirementsAssistant_module_css_default.sectionHead,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "当前需求结果" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "随讨论自动更新，可直接编辑和交付。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy,
+							onClick: edit,
+							children: "编辑内容与栏目"
+						})]
+					}), enabled.map((r) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+						className: RequirementsAssistant_module_css_default.card,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: r.title }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: task ? requirementSectionContent(r, task) || "待补充" : "待补充" })]
+					}, r.id))] }),
+					task?.project?.error && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						role: "alert",
+						className: RequirementsAssistant_module_css_default.error,
+						children: [
+							"需求已保存，台账同步失败：",
+							task.project.error,
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								disabled: busy,
+								onClick: () => void onCommand({ type: "project.refresh" }),
+								children: "重试同步"
+							})
+						]
+					}),
+					editing && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: RequirementsAssistant_module_css_default.overlay,
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+							ref: dialog,
+							className: RequirementsAssistant_module_css_default.dialog,
+							role: "dialog",
+							"aria-modal": "true",
+							"aria-label": "整理内容配置",
+							onKeyDown: (e) => {
+								if (e.key === "Escape" && !sort.sorting) setEditing(false);
+								if (e.key === "Tab") {
+									const els = Array.from(dialog.current?.querySelectorAll("button:not(:disabled),input,textarea,[tabindex=\"0\"]") ?? []), first = els[0], last = els.at(-1);
+									if (e.shiftKey && document.activeElement === first) {
+										e.preventDefault();
+										last?.focus();
+									} else if (!e.shiftKey && document.activeElement === last) {
+										e.preventDefault();
+										first?.focus();
+									}
+								}
+							},
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("header", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "整理哪些内容" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									"aria-label": "关闭整理内容配置",
+									onClick: () => setEditing(false),
+									children: "×"
+								})] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: RequirementsAssistant_module_css_default.dialogBody,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+											className: RequirementsAssistant_module_css_default.muted,
+											children: "默认六项，可取消、增加和拖动整项排序。取消选中保留内容。"
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+											ref: sort.root,
+											children: rows.map((r, index) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+												"data-composition-row": r.id,
+												tabIndex: 0,
+												"aria-label": "调整顺序：" + r.title,
+												className: RequirementsAssistant_module_css_default.sectionRow,
+												style: sort.style(r.id),
+												onPointerDown: (e) => sort.start(r.id, e),
+												onClickCapture: sort.click,
+												onKeyDown: (e) => sort.key(r.id, e),
+												"data-dragging": sort.sorting?.id === r.id,
+												"data-target": sort.sorting?.target === r.id,
+												children: [
+													/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+														className: RequirementsAssistant_module_css_default.toolbar,
+														children: [
+															/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: index + 1 }),
+															/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
+																"aria-label": "选择栏目 " + r.title,
+																checked: r.enabled,
+																onChange: (e) => change(r.id, { enabled: e.target.checked })
+															}),
+															/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+																"aria-label": "栏目名称 " + (index + 1),
+																value: r.title,
+																onChange: (e) => change(r.id, { title: e.target.value })
+															})
+														]
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+														"aria-label": "栏目说明 " + (index + 1),
+														value: r.guidance,
+														placeholder: "希望整理什么（可选）",
+														onChange: (e) => change(r.id, { guidance: e.target.value })
+													}),
+													view === "result" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("textarea", {
+														"aria-label": "编辑 " + r.title,
+														value: r.content,
+														rows: 4,
+														onChange: (e) => change(r.id, { content: e.target.value })
+													})
+												]
+											}, r.id))
+										}),
+										sort.sorting && !sort.sorting.keyboard && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+											className: RequirementsAssistant_module_css_default.sortPreview,
+											style: {
+												left: sort.sorting.x,
+												top: sort.sorting.y
+											},
+											children: rows.find((r) => r.id === sort.sorting?.id)?.title
+										}),
+										sort.sorting && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+											role: "status",
+											children: "正在调整栏目顺序；空格放下，Esc 取消"
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											disabled: rows.length >= 30,
+											onClick: () => setRows((current) => [...current, {
+												id: crypto.randomUUID(),
+												title: "自定义栏目",
+												guidance: "",
+												enabled: true,
+												content: ""
+											}]),
+											children: "＋ 新增栏目"
+										})
+									]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("footer", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									onClick: () => setEditing(false),
+									children: "取消"
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									className: RequirementsAssistant_module_css_default.primary,
+									disabled: busy || rows.some((r) => !r.title.trim()),
+									onClick: async () => {
+										if (await onCommand({
+											type: "sections.save",
+											sections: rows,
+											baseDataRevision: baseRevision.current
+										})) setEditing(false);
+									},
+									children: "保存"
+								})] })
+							]
+						})
+					})
+				]
+			});
+		}
+		//#endregion
 		//#region src/client/requirements-client.ts
 		var RequirementsApiError = class extends Error {
 			status;
@@ -16678,98 +17223,10 @@ window.__ModuleLoader__.load({
 			};
 		}
 		//#endregion
-		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css.mjs
-		const css$3 = ".P-xFQa_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#546da9);--accent-text:var(--dsw-alias-brand-primary,var(--accent));--soft:color-mix(in srgb,var(--accent) 6%,var(--surface));color:var(--ink);background:var(--dsw-alias-bg-layer-1,var(--surface));font:inherit;flex-direction:column;width:100%;height:100%;min-height:0;font-size:13px;display:flex;overflow:hidden}.P-xFQa_root *{box-sizing:border-box}.P-xFQa_root button,.P-xFQa_root input,.P-xFQa_root textarea,.P-xFQa_root select{font:inherit}.P-xFQa_root button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 11px;line-height:1.35;transition:border-color .15s,background .15s}.P-xFQa_root button:hover:not(:disabled){border-color:var(--accent);color:var(--accent-text);background:var(--soft)}.P-xFQa_root button:disabled{opacity:.45;cursor:not-allowed}.P-xFQa_root :is(button,input,textarea,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}.P-xFQa_root input:not([type=checkbox]),.P-xFQa_root textarea,.P-xFQa_root select{border:1px solid var(--border);color:var(--ink);background:var(--surface);border-radius:8px;min-width:0;padding:9px 11px}.P-xFQa_root input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex:none;width:15px;height:15px}.P-xFQa_root textarea{resize:vertical;width:100%;line-height:1.65}.P-xFQa_root h2{margin:0 0 6px;font-size:20px;font-weight:650;line-height:1.4}.P-xFQa_root h3{margin:0 0 8px;font-size:14px;font-weight:650;line-height:1.6}.P-xFQa_root p{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;line-height:1.75}.P-xFQa_root small{color:var(--muted);font-size:11px;line-height:1.6}.P-xFQa_root summary{cursor:pointer}.P-xFQa_root details>summary{padding:8px 0}.P-xFQa_primary{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;font-weight:600!important}.P-xFQa_muted{color:var(--muted);font-size:12px;line-height:1.7}.P-xFQa_block{margin-top:5px;display:block}.P-xFQa_heading{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;gap:16px;min-height:66px;padding:13px 28px;display:flex}.P-xFQa_heading>div:first-child{flex-direction:column;gap:4px;min-width:0;display:flex}.P-xFQa_heading strong{text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:650;overflow:hidden}.P-xFQa_saveState{color:var(--muted);font-size:10px}.P-xFQa_heading button{padding:6px 8px;font-size:11px}.P-xFQa_countBadge{border:1px solid var(--border);color:var(--muted);white-space:nowrap;border-radius:6px;padding:4px 7px;font-size:10px}.P-xFQa_tabs{border-bottom:1px solid var(--border);scrollbar-width:thin;flex:none;gap:27px;min-height:43px;padding:0 28px;display:flex;overflow-x:auto}.P-xFQa_tabs button{color:var(--muted);white-space:nowrap;background:0 0;border:0;border-bottom:2px solid #0000;border-radius:0;flex:none;padding:11px 0;font-size:13px}.P-xFQa_tabs button[aria-selected=true]{border-bottom-color:var(--accent);color:var(--ink);font-weight:650}.P-xFQa_tabs button:hover:not(:disabled){border-bottom-color:var(--accent);background:0 0}.P-xFQa_subtabs{background:var(--soft);flex:none}.P-xFQa_subtabs .P-xFQa_tabs{gap:24px;min-height:42px}.P-xFQa_subtabs .P-xFQa_tabs button{font-size:12px}.P-xFQa_scroll{overscroll-behavior:contain;scroll-behavior:smooth;flex:1;min-height:0;overflow:auto}.P-xFQa_chat{width:min(930px,100% - 64px);margin:auto;padding:30px 0}.P-xFQa_intro{align-items:flex-start;gap:15px;margin:3px 0 24px;display:flex}.P-xFQa_intro>span:first-child{border-radius:12px;flex:none;width:38px;height:38px}.P-xFQa_intro>div{min-width:0}.P-xFQa_intro small{font-size:11px;font-weight:650}.P-xFQa_intro h2{margin:4px 0 8px;font-size:21px}.P-xFQa_intro p{color:var(--muted);font-size:13px}.P-xFQa_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:24px 0;display:grid}.P-xFQa_modes button{text-align:left;border-color:color-mix(in srgb,var(--accent) 28%,var(--border));border-radius:14px;flex-direction:column;align-items:flex-start;min-height:190px;padding:22px;transition:transform .2s,border-color .2s;display:flex;box-shadow:0 4px 20px #182c5006}.P-xFQa_modes button:hover:not(:disabled){transform:translateY(-2px)}.P-xFQa_modes button>span{color:var(--accent-text);background:var(--soft);border-radius:10px;place-items:center;width:34px;height:34px;margin-bottom:13px;font-size:21px;display:grid}.P-xFQa_modes b{font-size:16px}.P-xFQa_modes p{color:var(--muted);font-size:12px}.P-xFQa_modes em{color:var(--accent-text);margin-top:auto;padding-top:15px;font-size:11px;font-style:normal}.P-xFQa_modes button[aria-pressed=true]{border-color:var(--accent);background:var(--soft)}.P-xFQa_modes b small{color:var(--accent-text);margin-left:6px;font-size:10px;font-weight:500}.P-xFQa_chooser{padding:20px 0}.P-xFQa_chooser .P-xFQa_intro{margin:0 0 16px}.P-xFQa_chooser .P-xFQa_intro h2{margin-bottom:6px}.P-xFQa_chooser .P-xFQa_chooserSummary{margin:12px 0;padding:12px 16px}.P-xFQa_chooser .P-xFQa_modes{margin:12px 0}.P-xFQa_chooser .P-xFQa_modes button{min-height:150px;padding:16px}.P-xFQa_chooser .P-xFQa_modes button>span{width:28px;height:28px;margin-bottom:8px;font-size:18px}.P-xFQa_chooser .P-xFQa_modes b{font-size:15px}.P-xFQa_chooser .P-xFQa_modes p{margin:6px 0}.P-xFQa_chooser .P-xFQa_modes em{padding-top:8px}.P-xFQa_chooserSummary{background:var(--soft);border:1px solid var(--border);border-radius:12px;justify-content:space-between;align-items:center;gap:16px;margin:20px 0;padding:17px 20px;display:flex}.P-xFQa_chooserSummary>div{min-width:0}.P-xFQa_chooserSummary strong{overflow-wrap:anywhere;font-size:14px}.P-xFQa_chooserSummary p{color:var(--muted);margin:5px 0 0;font-size:11px}.P-xFQa_chooserSummary button{flex:none;font-size:12px}.P-xFQa_chooserReturn{justify-content:space-between;align-items:center;gap:12px;margin:18px 0;display:flex}.P-xFQa_chooserReturn button{font-size:11px}.P-xFQa_draftRetry{color:var(--muted);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:3px 20px;padding:8px 13px;font-size:11px;display:flex}.P-xFQa_draftRetry button{padding:5px 9px;font-size:11px}.P-xFQa_workflow{color:var(--muted);justify-content:center;align-items:center;gap:14px;padding:10px 0;font-size:11px;display:flex}.P-xFQa_workflow i{color:var(--border);font-style:normal}.P-xFQa_toolbar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}.P-xFQa_toolbar button{padding:6px 9px;font-size:11px}.P-xFQa_tag,.P-xFQa_status,.P-xFQa_warningTag{border:1px solid var(--border);width:max-content;color:var(--muted);white-space:nowrap;border-radius:6px;align-items:center;padding:3px 7px;font-size:10px;line-height:1.6;display:inline-flex}.P-xFQa_status[data-status=confirmed],.P-xFQa_status[data-status=resolved]{color:#3e9273;border-color:color-mix(in srgb,#4d9c78 25%,var(--border));background:color-mix(in srgb,#4d9c78 6%,var(--surface))}.P-xFQa_status[data-status=review],.P-xFQa_warningTag{color:#ad7839;background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-color:color-mix(in srgb,#c79b4a 30%,var(--border))}.P-xFQa_card{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:16px 0;padding:19px 21px}.P-xFQa_card p{font-size:12px}.P-xFQa_sectionHead{justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;display:flex}.P-xFQa_sectionHead>div:first-child{min-width:0}.P-xFQa_sectionHead h3{margin-bottom:0}.P-xFQa_sectionHead p{color:var(--muted);margin:4px 0 0;font-size:12px}.P-xFQa_sectionHead button{white-space:nowrap;font-size:11px}.P-xFQa_userMessage{border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));background:var(--soft);border-radius:14px 14px 4px;max-width:82%;margin:22px 0 22px auto;padding:13px 17px}.P-xFQa_assistantMessage{margin:24px 0;padding:0 4px}.P-xFQa_assistantMessage small{font-weight:600}.P-xFQa_assistantMessage p,.P-xFQa_userMessage p{margin:5px 0}.P-xFQa_progress{border:1px solid var(--border);border-radius:12px;align-items:center;gap:14px;margin:20px 0;padding:17px;display:flex}.P-xFQa_progress>div{flex:1}.P-xFQa_progress p{color:var(--muted);margin:4px 0 0;font-size:11px}.P-xFQa_spinner{border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;width:20px;height:20px;animation:1.1s linear infinite P-xFQa_spin}@keyframes P-xFQa_spin{to{transform:rotate(360deg)}}.P-xFQa_runError,.P-xFQa_error{color:#b25555;background:color-mix(in srgb,#c46565 7%,var(--surface));border:1px solid color-mix(in srgb,#c46565 25%,var(--border));border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.7}.P-xFQa_runError{margin:18px 0}.P-xFQa_error{white-space:pre-wrap;flex:none;justify-content:space-between;gap:10px;max-height:180px;margin:9px 20px;display:flex;overflow:auto}.P-xFQa_error button,.P-xFQa_notice button{color:inherit;background:0 0;border:0;align-self:flex-start;padding:0 4px}.P-xFQa_notice{background:var(--soft);color:var(--accent-text);border-radius:7px;flex:none;justify-content:space-between;gap:10px;margin:7px 20px;padding:8px 12px;font-size:12px;display:flex}.P-xFQa_availability{background:var(--soft);color:var(--muted);border-bottom:1px solid var(--border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:8px 28px;font-size:11px;display:flex}.P-xFQa_availability button{padding:4px 8px;font-size:11px}.P-xFQa_proposal{border:1px solid var(--border);border-radius:9px;margin:10px 0;padding:4px 13px}.P-xFQa_proposal summary{align-items:center;gap:8px;display:flex}.P-xFQa_proposal summary strong{overflow-wrap:anywhere;flex:1;font-size:12px}.P-xFQa_proposal summary small{white-space:nowrap;font-size:10px}.P-xFQa_details{grid-template-columns:92px minmax(0,1fr);gap:8px 12px;margin:12px 0;font-size:12px;line-height:1.65;display:grid}.P-xFQa_details dt{color:var(--muted)}.P-xFQa_details dd{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.P-xFQa_before{background:color-mix(in srgb,#c79b4a 6%,var(--surface));color:var(--muted);border-left:2px solid var(--border);margin-bottom:5px;padding:4px 7px}.P-xFQa_sources{flex-wrap:wrap;gap:6px;margin:5px 0;display:flex}.P-xFQa_sources button{color:var(--accent-text);background:0 0;border:0;padding:2px 0;font-size:10px}.P-xFQa_questionPreview{border-top:1px solid var(--border);padding:12px 0}.P-xFQa_questionPreview b{font-size:12px}.P-xFQa_questionPreview p{color:var(--muted);font-size:11px}.P-xFQa_questionPreview button{margin-right:8px;font-size:11px}.P-xFQa_workspace{width:min(1180px,100% - 56px);margin:0 auto;padding:26px 0 36px}.P-xFQa_stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0;display:grid}.P-xFQa_stats button{border-radius:12px;flex-direction:column;align-items:flex-start;padding:19px 18px;display:flex}.P-xFQa_stats strong{color:var(--accent-text);letter-spacing:-.5px;font-size:27px;font-weight:600}.P-xFQa_stats strong small{font-size:13px;font-weight:400}.P-xFQa_stats span{color:var(--muted);margin-top:6px;font-size:11px}.P-xFQa_twoColumns{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;display:grid}.P-xFQa_twoColumns .P-xFQa_card{margin:7px 0}.P-xFQa_compactList{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.8}.P-xFQa_compactList li{padding:5px 0}.P-xFQa_compactList time{color:var(--muted);margin-right:8px;font-size:10px}.P-xFQa_dimmed{opacity:.65}.P-xFQa_excerpt{-webkit-line-clamp:2;color:var(--muted);-webkit-box-orient:vertical;max-width:440px;display:-webkit-box;overflow:hidden;font-size:11px!important}.P-xFQa_filters{flex-wrap:wrap;gap:9px;margin:18px 0;display:flex}.P-xFQa_filters input{flex:1;min-width:150px;max-width:430px}.P-xFQa_filters select{min-width:130px}.P-xFQa_selectionBar{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--soft);border-radius:9px;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;padding:10px 13px;display:flex}.P-xFQa_selectionBar>span{color:var(--accent-text);margin-right:8px;font-size:11px}.P-xFQa_selectionBar button{padding:5px 8px;font-size:11px}.P-xFQa_tableWrap{border:1px solid var(--border);border-radius:11px;margin-top:15px;overflow:auto}.P-xFQa_table{border-collapse:collapse;width:100%;min-width:700px;font-size:12px}.P-xFQa_table th{text-align:left;background:var(--soft);color:var(--muted);white-space:nowrap;padding:11px 12px;font-size:11px;font-weight:500}.P-xFQa_table td{border-top:1px solid var(--border);vertical-align:top;padding:13px 12px}.P-xFQa_table td:first-child{width:34px}.P-xFQa_table td:nth-child(2){width:40%}.P-xFQa_table td:last-child{min-width:130px}.P-xFQa_rowTitle{color:var(--ink);text-align:left;flex-direction:column;gap:3px;display:flex;background:0 0!important;border:0!important;padding:0!important}.P-xFQa_rowTitle small{color:var(--accent-text);font-size:10px}.P-xFQa_rowTitle strong{font-size:13px;font-weight:600}.P-xFQa_rowActions{flex-wrap:wrap;gap:5px;display:flex}.P-xFQa_rowActions button{padding:4px 6px;font-size:10px}.P-xFQa_rowActions details{width:100%}.P-xFQa_rowActions summary{color:var(--muted);font-size:10px;padding:5px 0!important}.P-xFQa_rowActions details>div{flex-wrap:wrap;gap:5px;margin-top:3px;display:flex}.P-xFQa_flowCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;gap:14px;margin:15px 0;padding:19px;display:flex}.P-xFQa_flowCard>div{flex:1;min-width:0}.P-xFQa_flowCard p{font-size:12px}.P-xFQa_stepNumber{background:var(--soft);width:29px;height:29px;color:var(--accent-text);border-radius:9px;flex:none;place-items:center;font-size:12px;display:grid}.P-xFQa_flowDetails{color:var(--muted);grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 20px;margin:10px 0;font-size:11px;line-height:1.75;display:grid}.P-xFQa_choices{flex-wrap:wrap;gap:7px;margin:11px 0;display:flex}.P-xFQa_choices button{color:var(--accent-text);background:var(--soft);font-size:11px}.P-xFQa_field{flex-direction:column;gap:7px;min-width:0;margin:15px 0;display:flex}.P-xFQa_field>span{font-size:12px;font-weight:550}.P-xFQa_field>span small{color:var(--muted);font-size:10px;font-weight:400}.P-xFQa_field textarea{min-height:90px}.P-xFQa_field input,.P-xFQa_field select{width:100%}.P-xFQa_check{align-items:center;gap:6px;font-size:12px;display:inline-flex}.P-xFQa_relations{border:1px solid var(--border);border-radius:9px;margin:16px 0;padding:10px 12px}.P-xFQa_relations legend{color:var(--muted);padding:0 6px;font-size:12px}.P-xFQa_relations label{align-items:center;gap:8px;padding:6px 0;font-size:12px;display:flex}.P-xFQa_documentControls{border:1px solid var(--border);background:var(--soft);border-radius:11px;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0;padding:8px 16px 16px;display:flex}.P-xFQa_documentControls .P-xFQa_field{flex:1;min-width:140px;margin:5px 0 0}.P-xFQa_documentControls button{min-height:35px;font-size:12px}.P-xFQa_document{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:20px 0;padding:35px 42px;font-size:12px;line-height:1.85}.P-xFQa_document h1{margin:0 0 20px;font-size:23px}.P-xFQa_document h2{color:var(--accent-text);border-bottom:1px solid var(--border);margin-top:24px;padding-bottom:9px;font-size:17px}.P-xFQa_document h3{margin-top:18px;font-size:14px}.P-xFQa_document p{margin:4px 0}.P-xFQa_docGap{height:5px}.P-xFQa_warning{color:#ad7839;border:1px solid color-mix(in srgb,#c79b4a 35%,var(--border));background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-radius:8px;margin:12px 0;padding:11px 14px;font-size:12px;line-height:1.7}.P-xFQa_versionRow{border-top:1px solid var(--border);align-items:center;gap:10px;padding:12px 0;display:flex}.P-xFQa_versionRow>div{flex:1;min-width:0}.P-xFQa_versionRow strong{font-size:12px;display:block}.P-xFQa_versionRow small{margin-top:4px;display:block}.P-xFQa_versionRow button{font-size:11px}.P-xFQa_timeline{margin:16px 0;padding:10px 0;list-style:none}.P-xFQa_timeline li{border-top:1px solid var(--border);gap:20px;padding:13px 0;display:flex}.P-xFQa_timeline time{color:var(--muted);flex:none;width:110px;padding-top:4px;font-size:11px}.P-xFQa_timeline p{margin:0;font-size:12px}.P-xFQa_timeline button{color:var(--accent-text);background:0 0;border:0;padding:5px 0;font-size:10px}.P-xFQa_composerWrap{flex:none;width:min(970px,100% - 44px);margin:auto;padding:6px 0 14px}.P-xFQa_quickActions{flex-wrap:wrap;gap:6px;margin-bottom:9px;display:flex}.P-xFQa_quickActions button{color:var(--muted);background:0 0;border-radius:7px;padding:5px 9px;font-size:10px}.P-xFQa_composer{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5010}.P-xFQa_composer>textarea{background:0 0;border:0;border-radius:0;min-height:65px;max-height:160px;padding:2px 0;font-size:14px}.P-xFQa_composer>textarea:focus-visible{outline-offset:2px;outline-width:1px}.P-xFQa_composer>textarea::placeholder{color:var(--muted)}.P-xFQa_composerTools,.P-xFQa_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.P-xFQa_composerTools button{color:var(--accent-text);background:0 0;border:0;padding:2px 5px;font-size:22px}.P-xFQa_composerTools select{color:var(--muted);border:0;max-width:200px;padding:4px 3px;font-size:10px}.P-xFQa_composerTools small{font-size:10px}.P-xFQa_composerTools .P-xFQa_send{background:var(--accent);color:#fff;border-radius:50%;width:35px;height:35px;font-size:24px}.P-xFQa_contextNote{background:var(--soft);color:var(--accent-text);border-radius:7px;justify-content:space-between;gap:10px;margin-bottom:8px;padding:7px 10px;font-size:11px;display:flex}.P-xFQa_contextNote button{color:var(--accent-text);background:0 0;border:0;padding:0 4px}.P-xFQa_empty{text-align:center;color:var(--muted);flex-direction:column;align-items:center;padding:55px 20px;font-size:12px;line-height:1.8;display:flex}.P-xFQa_empty>span{opacity:.4;padding-bottom:10px;font-size:33px}.P-xFQa_empty h3{color:var(--ink);font-size:15px}.P-xFQa_empty button{margin-top:12px}.P-xFQa_overlay{z-index:1300;backdrop-filter:blur(2px);background:#13213555;justify-content:center;align-items:center;padding:24px;display:flex;position:fixed;inset:0}.P-xFQa_dialog{border:1px solid var(--border);background:var(--surface);width:min(760px,100%);max-height:calc(100dvh - 48px);color:var(--ink);border-radius:15px;flex-direction:column;display:flex;overflow:hidden;box-shadow:0 20px 70px #1118273d}.P-xFQa_dialog:focus{outline:none}.P-xFQa_dialog>header{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;padding:16px 23px;display:flex}.P-xFQa_dialog>header h2{margin:0;font-size:16px}.P-xFQa_dialog>header button{color:var(--muted);background:0 0;border:0;padding:0 5px;font-size:22px}.P-xFQa_dialogBody{min-height:0;padding:12px 24px 22px;overflow:auto}.P-xFQa_dialogBody>.P-xFQa_error{margin:2px 0 10px}.P-xFQa_dialogBody>details{border-top:1px solid var(--border);margin:16px 0}.P-xFQa_dialogBody>details>summary{font-size:13px;font-weight:600}.P-xFQa_dialog>footer{border-top:1px solid var(--border);flex-wrap:wrap;flex:none;justify-content:flex-end;align-items:center;gap:9px;padding:14px 22px;display:flex}.P-xFQa_dialog>footer>span{margin-right:auto;font-size:10px}.P-xFQa_dialog blockquote{border-left:3px solid var(--accent);background:var(--soft);white-space:pre-wrap;margin:14px 0;padding:12px 15px;line-height:1.8}.P-xFQa_rawText{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0;font-size:12px;line-height:1.85}.P-xFQa_conflict{border:1px solid var(--border);background:var(--soft);border-radius:9px;padding:14px}.P-xFQa_conflict button{font-size:11px}@media (width<=850px){.P-xFQa_heading{padding:12px 18px}.P-xFQa_heading .P-xFQa_countBadge{display:none}.P-xFQa_tabs{gap:22px;padding:0 18px}.P-xFQa_chat{width:calc(100% - 38px)}.P-xFQa_workspace{width:calc(100% - 36px)}.P-xFQa_sectionHead{flex-wrap:wrap}.P-xFQa_stats{gap:8px}.P-xFQa_stats button{padding:15px 12px}.P-xFQa_document{padding:26px}.P-xFQa_flowDetails{grid-template-columns:1fr}}@media (width<=600px){.P-xFQa_root{font-size:12px}.P-xFQa_heading{gap:8px;min-height:58px}.P-xFQa_heading strong{font-size:13px}.P-xFQa_heading .P-xFQa_toolbar{flex:none;gap:4px}.P-xFQa_heading button{padding:5px;font-size:10px}.P-xFQa_tabs,.P-xFQa_subtabs .P-xFQa_tabs{gap:23px;padding:0 15px}.P-xFQa_chat{width:calc(100% - 28px);padding:21px 0}.P-xFQa_intro{gap:10px}.P-xFQa_intro h2{font-size:18px}.P-xFQa_intro p{font-size:11px}.P-xFQa_intro>span:first-child{width:30px;height:30px}.P-xFQa_modes{grid-template-columns:1fr;gap:10px;margin-top:16px}.P-xFQa_modes button{min-height:145px;padding:16px}.P-xFQa_modes button>span{width:26px;height:26px;margin-bottom:9px;font-size:17px}.P-xFQa_modes b{font-size:14px}.P-xFQa_modes em{padding-top:8px}.P-xFQa_workflow{gap:8px;font-size:10px}.P-xFQa_card{padding:15px}.P-xFQa_workspace{width:calc(100% - 28px);padding:20px 0}.P-xFQa_twoColumns{grid-template-columns:1fr}.P-xFQa_stats{grid-template-columns:repeat(2,minmax(0,1fr))}.P-xFQa_stats strong{font-size:24px}.P-xFQa_table{min-width:640px}.P-xFQa_table td,.P-xFQa_table th{padding:10px}.P-xFQa_composerWrap{width:calc(100% - 20px);padding-bottom:8px}.P-xFQa_quickActions{gap:5px}.P-xFQa_quickActions button{padding:5px 6px;font-size:9px}.P-xFQa_composer{border-radius:15px;padding:10px 12px}.P-xFQa_composer>textarea{min-height:58px;font-size:13px}.P-xFQa_composerTools small{display:none}.P-xFQa_composerTools select{max-width:185px}.P-xFQa_error,.P-xFQa_notice{margin:6px 12px;font-size:11px}.P-xFQa_availability{padding:8px 14px}.P-xFQa_proposal{padding:2px 10px}.P-xFQa_proposal summary{flex-wrap:wrap;gap:6px}.P-xFQa_proposal summary strong{flex-basis:60%}.P-xFQa_proposal summary small{padding-left:22px}.P-xFQa_details{grid-template-columns:75px minmax(0,1fr);gap:7px 9px;font-size:11px}.P-xFQa_flowCard{gap:10px;padding:14px}.P-xFQa_stepNumber{width:24px;height:24px}.P-xFQa_flowCard .P-xFQa_sectionHead{margin-bottom:6px}.P-xFQa_flowCard .P-xFQa_toolbar{gap:5px}.P-xFQa_document{padding:22px 18px}.P-xFQa_document h1{font-size:19px}.P-xFQa_document h2{font-size:15px}.P-xFQa_versionRow{flex-wrap:wrap}.P-xFQa_versionRow>div{flex-basis:100%}.P-xFQa_timeline li{flex-direction:column;gap:3px}.P-xFQa_timeline time{width:auto}.P-xFQa_overlay{padding:8px}.P-xFQa_dialog{border-radius:12px;max-height:calc(100dvh - 16px)}.P-xFQa_dialog>header{padding:13px 16px}.P-xFQa_dialogBody{padding:9px 16px 18px}.P-xFQa_dialog>footer{padding:12px 16px}.P-xFQa_dialog>footer>span{display:none}}@media (prefers-reduced-motion:reduce){.P-xFQa_root button,.P-xFQa_modes button{transition:none}.P-xFQa_modes button:hover:not(:disabled){transform:none}.P-xFQa_spinner{animation:none}.P-xFQa_scroll{scroll-behavior:auto}}";
-		const tagId$3 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
-			const tag = document.createElement("style");
-			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$3;
-			tag.textContent = css$3;
-			document.head.appendChild(tag);
-		}
-		var RequirementsAssistant_module_css_default = {
-			"assistantMessage": "P-xFQa_assistantMessage",
-			"availability": "P-xFQa_availability",
-			"before": "P-xFQa_before",
-			"block": "P-xFQa_block",
-			"card": "P-xFQa_card",
-			"chat": "P-xFQa_chat",
-			"check": "P-xFQa_check",
-			"choices": "P-xFQa_choices",
-			"chooser": "P-xFQa_chooser",
-			"chooserReturn": "P-xFQa_chooserReturn",
-			"chooserSummary": "P-xFQa_chooserSummary",
-			"compactList": "P-xFQa_compactList",
-			"composer": "P-xFQa_composer",
-			"composerTools": "P-xFQa_composerTools",
-			"composerWrap": "P-xFQa_composerWrap",
-			"conflict": "P-xFQa_conflict",
-			"contextNote": "P-xFQa_contextNote",
-			"countBadge": "P-xFQa_countBadge",
-			"details": "P-xFQa_details",
-			"dialog": "P-xFQa_dialog",
-			"dialogBody": "P-xFQa_dialogBody",
-			"dimmed": "P-xFQa_dimmed",
-			"docGap": "P-xFQa_docGap",
-			"document": "P-xFQa_document",
-			"documentControls": "P-xFQa_documentControls",
-			"draftRetry": "P-xFQa_draftRetry",
-			"empty": "P-xFQa_empty",
-			"error": "P-xFQa_error",
-			"excerpt": "P-xFQa_excerpt",
-			"field": "P-xFQa_field",
-			"filters": "P-xFQa_filters",
-			"flowCard": "P-xFQa_flowCard",
-			"flowDetails": "P-xFQa_flowDetails",
-			"heading": "P-xFQa_heading",
-			"intro": "P-xFQa_intro",
-			"modes": "P-xFQa_modes",
-			"muted": "P-xFQa_muted",
-			"notice": "P-xFQa_notice",
-			"overlay": "P-xFQa_overlay",
-			"primary": "P-xFQa_primary",
-			"progress": "P-xFQa_progress",
-			"proposal": "P-xFQa_proposal",
-			"questionPreview": "P-xFQa_questionPreview",
-			"quickActions": "P-xFQa_quickActions",
-			"rawText": "P-xFQa_rawText",
-			"relations": "P-xFQa_relations",
-			"root": "P-xFQa_root",
-			"rowActions": "P-xFQa_rowActions",
-			"rowTitle": "P-xFQa_rowTitle",
-			"runError": "P-xFQa_runError",
-			"saveState": "P-xFQa_saveState",
-			"scroll": "P-xFQa_scroll",
-			"sectionHead": "P-xFQa_sectionHead",
-			"selectionBar": "P-xFQa_selectionBar",
-			"send": "P-xFQa_send",
-			"sources": "P-xFQa_sources",
-			"spin": "P-xFQa_spin",
-			"spinner": "P-xFQa_spinner",
-			"stats": "P-xFQa_stats",
-			"status": "P-xFQa_status",
-			"stepNumber": "P-xFQa_stepNumber",
-			"subtabs": "P-xFQa_subtabs",
-			"table": "P-xFQa_table",
-			"tableWrap": "P-xFQa_tableWrap",
-			"tabs": "P-xFQa_tabs",
-			"tag": "P-xFQa_tag",
-			"timeline": "P-xFQa_timeline",
-			"toolbar": "P-xFQa_toolbar",
-			"twoColumns": "P-xFQa_twoColumns",
-			"userMessage": "P-xFQa_userMessage",
-			"versionRow": "P-xFQa_versionRow",
-			"warning": "P-xFQa_warning",
-			"warningTag": "P-xFQa_warningTag",
-			"workflow": "P-xFQa_workflow",
-			"workspace": "P-xFQa_workspace"
-		};
-		//#endregion
 		//#region src/client/RequirementsAssistant.tsx
 		const mainTabs = [
 			["chat", "对话"],
-			["workspace", "需求工作区"],
+			["workspace", "需求结果"],
 			["trace", "轨迹"]
 		];
 		const workspaceTabs = [
@@ -17013,8 +17470,8 @@ window.__ModuleLoader__.load({
 			const [availability, setAvailability] = (0, react.useState)(null);
 			const [models, setModels] = (0, react.useState)([]);
 			const [tab, setTab] = (0, react.useState)(initial.current.tab ?? "chat");
-			const [workspace, setWorkspace] = (0, react.useState)(initial.current.workspace ?? "overview");
-			const [mode, setMode] = (0, react.useState)(initial.current.mode ?? "guided");
+			const [workspace, setWorkspace] = (0, react.useState)(initial.current.workspace ?? "document");
+			const [mode, setMode] = (0, react.useState)(initial.current.mode ?? "quick");
 			const modeRef = (0, react.useRef)(mode);
 			modeRef.current = mode;
 			const [modeSelected, setModeSelected] = (0, react.useState)(initial.current.modeSelected ?? !!taskId);
@@ -17059,11 +17516,11 @@ window.__ModuleLoader__.load({
 			const running = task?.run?.status === "running";
 			const requirements = task ? activeRequirements(task) : [];
 			const pendingQuestions = task ? openQuestions(task) : [];
-			const pendingProposal = task?.proposal?.items.filter((item) => !item.accepted && !item.rejected) ?? [];
+			task?.proposal?.items.filter((item) => !item.accepted && !item.rejected);
 			const selectedIds = selected.filter((key) => requirements.some((r) => r.id === key));
-			const allSelected = documentRange === "confirmed" ? requirements.filter((r) => r.status === "confirmed").map((r) => r.id) : documentRange === "selected" ? selectedIds : void 0;
+			documentRange === "confirmed" && requirements.filter((r) => r.status === "confirmed").map((r) => r.id);
 			const viewedVersion = task?.versions.find((v) => v.id === versionId);
-			const preview = task ? viewedVersion?.markdown ?? task.document?.markdown ?? "" : "";
+			const preview = task ? viewedVersion?.markdown ?? requirementMarkdown(task) : "";
 			const hasUnsavedDraft = task ? task.draft !== draft : !!draft.trim();
 			const localDraft = (0, react.useRef)({});
 			localDraft.current = {
@@ -17309,7 +17766,7 @@ window.__ModuleLoader__.load({
 						type: "save",
 						mode: selectedMode
 					})) return;
-					setNotice(`已切换为${selectedMode === "quick" ? "快速整理" : "引导分析"}，当前内容已保留。`);
+					setNotice(`已切换为${selectedMode === "quick" ? "简易模式" : "常规模式"}，当前内容已保留。`);
 				}
 				modeRef.current = selectedMode;
 				setMode(selectedMode);
@@ -17604,10 +18061,6 @@ window.__ModuleLoader__.load({
 						children: ["原：", displayValue(key, before[key]) || "未填写"]
 					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [before ? "建议：" : "", displayValue(key, value) || "清空此字段"] })] })] }, key))
 				});
-			}
-			function proposalBefore(item) {
-				if (!task) return;
-				return item.kind === "overview" ? task.overview : item.kind === "requirement" ? task.requirements.find((r) => r.id === item.targetId) : item.kind === "flow" ? task.flows.find((r) => r.id === item.targetId) : item.kind === "rule" ? task.rules.find((r) => r.id === item.targetId) : task.questions.find((r) => r.id === item.targetId);
 			}
 			async function exportDocument(format) {
 				if (!task || !preview) return;
@@ -17942,6 +18395,18 @@ window.__ModuleLoader__.load({
 					]
 				});
 			};
+			async function notebookCommand(value) {
+				if (!await ensureTask()) return;
+				return command(value, void 0, true);
+			}
+			const setupView = /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RequirementsNotebook, {
+				task,
+				mode,
+				busy: busy || !!running,
+				view: "setup",
+				onCommand: notebookCommand,
+				onGuide: (instruction) => void run("clarify", instruction)
+			});
 			const chooserView = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: `${RequirementsAssistant_module_css_default.chat} ${RequirementsAssistant_module_css_default.chooser}`,
 				children: [
@@ -17981,7 +18446,7 @@ window.__ModuleLoader__.load({
 						className: RequirementsAssistant_module_css_default.chooserReturn,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 							className: RequirementsAssistant_module_css_default.muted,
-							children: ["当前方式：", mode === "quick" ? "快速整理" : "引导分析"]
+							children: ["当前方式：", mode === "quick" ? "简易模式" : "常规模式"]
 						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							onClick: showWork,
 							children: "返回对话"
@@ -18007,37 +18472,38 @@ window.__ModuleLoader__.load({
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: RequirementsAssistant_module_css_default.modes,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-							"aria-label": "选择快速整理",
+							"aria-label": "选择简易模式",
 							"aria-pressed": modeSelected && mode === "quick",
 							disabled: busy || loading || running,
 							onClick: () => void begin("quick"),
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "▤" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("b", { children: ["快速整理 ", modeSelected && mode === "quick" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "当前使用" })] }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "已有业务描述、会议纪要或需求初稿，优先整理需求清单和待确认问题。" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("em", { children: "选择快速整理 →" })
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("b", { children: ["简易模式 ", modeSelected && mode === "quick" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "当前使用" })] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "输入问题和参考资料，AI 自动分析、整理并维护结果。" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("em", { children: "选择简易模式 →" })
 							]
 						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-							"aria-label": "选择引导分析",
+							"aria-label": "选择常规模式",
 							"aria-pressed": modeSelected && mode === "guided",
 							disabled: busy || loading || running,
 							onClick: () => void begin("guided"),
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "☷" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("b", { children: ["引导分析 ", modeSelected && mode === "guided" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "当前使用" })] }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "从目标和当前问题出发，逐步明确流程、范围与验收。" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("em", { children: "选择引导分析 →" })
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("b", { children: ["常规模式 ", modeSelected && mode === "guided" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "当前使用" })] }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "按照选中的栏目逐步讨论，随时编辑内容、调整范围和输出。" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("em", { children: "选择常规模式 →" })
 							]
 						})]
 					}),
+					setupView,
 					!task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: RequirementsAssistant_module_css_default.workflow,
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "提供想法" }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", { children: "→" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "澄清问题" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "自动整理" }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", { children: "→" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "核对需求" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "持续完善" }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("i", { children: "→" }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "形成文档" })
 						]
@@ -18047,6 +18513,7 @@ window.__ModuleLoader__.load({
 			const workView = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 				className: RequirementsAssistant_module_css_default.chat,
 				children: [
+					setupView,
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: RequirementsAssistant_module_css_default.intro,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleAppearanceIcon, {
@@ -18065,7 +18532,7 @@ window.__ModuleLoader__.load({
 						className: RequirementsAssistant_module_css_default.toolbar,
 						children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 							className: RequirementsAssistant_module_css_default.tag,
-							children: ["当前方式：", mode === "quick" ? "快速整理" : "引导分析"]
+							children: ["当前方式：", mode === "quick" ? "简易模式" : "常规模式"]
 						})
 					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
 						className: RequirementsAssistant_module_css_default.card,
@@ -18100,7 +18567,7 @@ window.__ModuleLoader__.load({
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 									className: RequirementsAssistant_module_css_default.tag,
-									children: ["当前方式：", task.mode === "quick" ? "快速整理" : "引导分析"]
+									children: ["当前方式：", task.mode === "quick" ? "简易模式" : "常规模式"]
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 									className: RequirementsAssistant_module_css_default.muted,
@@ -18123,7 +18590,7 @@ window.__ModuleLoader__.load({
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: task.mode === "quick" ? "准备好资料后，开始整理" : "先告诉我想解决什么问题" }),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 									className: RequirementsAssistant_module_css_default.muted,
-									children: task.mode === "quick" ? "添加原文或文本文件，再点击“整理需求清单”。生成的建议会先展示给你核对。" : "例如：目前部门报销依靠表格传递，我希望员工能在线提交并查询审批进度。"
+									children: task.mode === "quick" ? "添加原文或文本文件，再点击“整理需求清单”。结果会自动整理并保存，随时可以编辑。" : "例如：目前部门报销依靠表格传递，我希望员工能在线提交并查询审批进度。"
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 									className: RequirementsAssistant_module_css_default.toolbar,
@@ -18163,7 +18630,7 @@ window.__ModuleLoader__.load({
 									"正在",
 									operationNames[task.run.operation],
 									"…"
-								] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "可以编辑工作区或切换会话，结果完成后将作为建议显示。" })] }),
+								] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "可以切换会话；完成后自动更新需求结果。" })] }),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									disabled: busy,
 									onClick: () => void command({ type: "run.stop" }, "本轮分析已停止，原资料和已保存结果保留。"),
@@ -18187,122 +18654,35 @@ window.__ModuleLoader__.load({
 								})
 							]
 						}),
-						task.proposal && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+						task.proposal && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 							className: RequirementsAssistant_module_css_default.card,
 							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: RequirementsAssistant_module_css_default.sectionHead,
-									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "本轮建议 · 采用后加入草稿" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: task.proposal.summary || "核对本轮整理结果" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-										className: RequirementsAssistant_module_css_default.tag,
-										children: [pendingProposal.length, " 项待核对"]
-									})]
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: task.proposal.items.some((i) => !i.accepted && !i.rejected) ? "历史分析建议 · 可继续分析更新" : "已自动整理本轮需求 · 查看更新" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: task.proposal.summary }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									onClick: () => goto("document"),
+									children: "查看完整结果"
 								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									className: RequirementsAssistant_module_css_default.muted,
-									children: "采用表示收进草稿。业务内容仍需在需求清单中逐项确认。"
-								}),
-								pendingProposal.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
-									className: RequirementsAssistant_module_css_default.proposal,
-									open: pendingProposal.length <= 3,
-									children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
-												"aria-label": `选择建议 ${item.id}`,
-												type: "checkbox",
-												checked: proposalSelection.includes(item.id),
-												onClick: (e) => e.stopPropagation(),
-												onChange: (e) => setProposalSelection((current) => e.target.checked ? [...current, item.id] : current.filter((key) => key !== item.id))
-											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-												className: RequirementsAssistant_module_css_default.tag,
-												children: {
-													requirement: "需求",
-													flow: "流程",
-													rule: "规则",
-													question: "问题",
-													overview: "概览"
-												}[item.kind]
-											}),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: String(item.value.title || item.value.name || item.value.question || "业务背景与范围") }),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: item.targetId || item.kind === "overview" ? "修改建议" : "新增建议" })
-										] }),
-										objectDetails(item.value, proposalBefore(item)),
-										"sources" in item.value && sourceLinks(item.value.sources)
-									]
-								}, item.id)),
-								pendingProposal.length ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: RequirementsAssistant_module_css_default.toolbar,
-									children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-											className: RequirementsAssistant_module_css_default.check,
-											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
-												type: "checkbox",
-												checked: pendingProposal.every((p) => proposalSelection.includes(p.id)),
-												onChange: (e) => setProposalSelection(e.target.checked ? pendingProposal.map((p) => p.id) : [])
-											}), "全选"]
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											className: RequirementsAssistant_module_css_default.primary,
-											disabled: busy || !proposalSelection.some((key) => pendingProposal.some((p) => p.id === key)),
-											onClick: () => void command({
-												type: "proposal.apply",
-												proposalId: task.proposal.id,
-												ids: proposalSelection.filter((key) => pendingProposal.some((p) => p.id === key))
-											}, "已采用选中建议，请在需求清单中继续核对并确认。"),
-											children: "采用选中建议"
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											disabled: busy || !proposalSelection.length,
-											onClick: () => void command({
-												type: "proposal.reject",
-												proposalId: task.proposal.id,
-												ids: proposalSelection.filter((key) => pendingProposal.some((p) => p.id === key))
-											}, "所选建议已标记为不采用。"),
-											children: "不采用选中"
-										})
-									]
-								}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									className: RequirementsAssistant_module_css_default.muted,
-									children: "本轮建议已处理。可以继续讨论或检查遗漏。"
+								task.revisions?.at(-1) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									disabled: busy || running,
+									onClick: () => void command({
+										type: "revision.restore",
+										id: task.revisions.at(-1).id
+									}),
+									children: "恢复最近一次修改前"
 								})
 							]
 						}),
-						pendingQuestions.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+						pendingQuestions.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 							className: RequirementsAssistant_module_css_default.card,
-							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								className: RequirementsAssistant_module_css_default.sectionHead,
-								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "接下来需要确认" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-									onClick: () => goto("questions"),
-									children: [
-										"全部 ",
-										pendingQuestions.length,
-										" 项 →"
-									]
-								})]
-							}), pendingQuestions.slice(0, task.settings.questionStyle === "short" ? 3 : 6).map((q) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								className: RequirementsAssistant_module_css_default.questionPreview,
-								children: [
-									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("b", { children: [
-										q.number,
-										" · ",
-										q.question
-									] }),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: q.reason }),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										onClick: () => goto("questions"),
-										children: "回答问题"
-									}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										disabled: busy,
-										onClick: () => void command({
-											type: "question.status",
-											id: q.id,
-											status: "deferred"
-										}, "问题已暂缓，稍后可在待确认页继续处理。"),
-										children: "暂时跳过"
-									})
-								]
-							}, q.id))]
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+								"待确认内容 · ",
+								pendingQuestions.length,
+								" 项（可稍后处理）"
+							] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: () => goto("questions"),
+								children: "查看待确认内容"
+							})]
 						})
 					] })
 				]
@@ -18951,76 +19331,18 @@ window.__ModuleLoader__.load({
 				})
 			] });
 			const documentsView = task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-					className: RequirementsAssistant_module_css_default.sectionHead,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "需求文档" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "从已保存的需求生成讨论稿，或导出固定的确认版本。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						onClick: () => setEditor({
-							kind: "version",
-							value: {
-								ids: selectedIds.length ? selectedIds : requirements.filter((r) => r.status === "confirmed").map((r) => r.id),
-								note: ""
-							}
-						}),
-						disabled: !requirements.some((r) => r.status === "confirmed"),
-						children: "保存确认版本"
-					})]
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RequirementsNotebook, {
+					task,
+					mode,
+					busy: busy || !!running,
+					view: "result",
+					onCommand: notebookCommand,
+					onGuide: (instruction) => void run("clarify", instruction)
 				}),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-					className: RequirementsAssistant_module_css_default.documentControls,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(SelectField, {
-						label: "查看版本",
-						value: versionId,
-						onChange: setVersionId,
-						options: [["", "当前工作草稿"], ...task.versions.map((v) => [v.id, `V${v.number} · ${v.note || v.title}`])]
-					}), !viewedVersion && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(SelectField, {
-							label: "文档模板",
-							value: documentDepth,
-							onChange: (value) => setDocumentDepth(value),
-							options: [
-								["brief", "简要清单"],
-								["standard", "标准需求说明"],
-								["detailed", "详细规格"]
-							]
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(SelectField, {
-							label: "内容范围",
-							value: documentRange,
-							onChange: (value) => setDocumentRange(value),
-							options: [
-								["all", "全部有效需求"],
-								["confirmed", "仅已确认需求"],
-								["selected", `勾选需求（${selectedIds.length}）`]
-							]
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							className: RequirementsAssistant_module_css_default.primary,
-							disabled: busy || allSelected !== void 0 && !allSelected.length,
-							onClick: () => void command({
-								type: "document.generate",
-								depth: documentDepth,
-								selectedIds: allSelected
-							}, "文档已根据当前保存的需求更新。"),
-							children: "更新文档预览"
-						})
-					] })]
-				}),
-				!viewedVersion && task.document && task.document.dataRevision !== task.dataRevision && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-					className: RequirementsAssistant_module_css_default.warning,
-					role: "status",
-					children: "需求内容已有变化，当前文档基于较早的内容，请更新预览后再交付。"
-				}),
-				!viewedVersion && task.document && (documentDepth !== task.document.depth || JSON.stringify(allSelected ?? requirements.map((r) => r.id)) !== JSON.stringify(task.document.selectedIds)) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-					className: RequirementsAssistant_module_css_default.muted,
-					children: "模板或范围已调整，点击“更新文档预览”后生效。"
-				}),
-				preview ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: RequirementsAssistant_module_css_default.toolbar,
 					children: [
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-							className: RequirementsAssistant_module_css_default.tag,
-							children: viewedVersion ? `确认版本 V${viewedVersion.number}` : "讨论稿 · 包含条目状态"
-						}),
+						viewedVersion && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: ["导出内容：确认版本 V", viewedVersion.number] }),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							disabled: busy,
 							onClick: () => void exportDocument("clipboard"),
@@ -19035,54 +19357,43 @@ window.__ModuleLoader__.load({
 							disabled: busy,
 							onClick: () => void exportDocument("print"),
 							children: "打印 / 保存 PDF"
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							onClick: () => {
-								setContext("");
-								updateDraft(`请根据需求文档${viewedVersion ? ` V${viewedVersion.number}` : "当前草稿"}提出修改建议：`);
-								showWork();
-							},
-							children: "讨论文档内容"
 						})
 					]
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DocumentPreview, { text: preview })] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Empty, {
-					title: "生成第一份需求说明",
-					children: "选择文档模板和范围，再点击“更新文档预览”。未确认内容会明确标注。"
 				}),
-				task.versions.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 					className: RequirementsAssistant_module_css_default.card,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "版本记录" }), [...task.versions].reverse().map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+						"修改历史 · ",
+						task.revisions?.length ?? 0,
+						" 次"
+					] }), [...task.revisions ?? []].reverse().map((r) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: RequirementsAssistant_module_css_default.versionRow,
-						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: [
-								"V",
-								v.number,
-								" · ",
-								v.note || v.title
-							] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-								time(v.createdAt),
-								" · ",
-								v.selectedIds.length,
-								" 条已确认需求"
-							] })] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								onClick: () => setVersionId(v.id),
-								children: "查看"
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: r.summary }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MessageTime, { value: r.at })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy || running,
+							onClick: () => void command({
+								type: "revision.restore",
+								id: r.id
 							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								disabled: busy || running,
-								onClick: () => setConfirm({
-									title: "恢复版本到工作草稿",
-									detail: `将 V${v.number} 所含需求和关联内容恢复到工作草稿，并标记为待复核。其他需求和确认版本历史保留。`,
-									command: {
-										type: "version.restore",
-										id: v.id
-									}
-								}),
-								children: "恢复到草稿"
-							})
-						]
-					}, v.id))]
+							children: "恢复到此修改前"
+						})]
+					}, r.id))]
+				}),
+				task.versions.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
+					className: RequirementsAssistant_module_css_default.card,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+							"原有确认版本 · ",
+							task.versions.length,
+							" 份"
+						] }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)(SelectField, {
+							label: "查看版本",
+							value: versionId,
+							onChange: setVersionId,
+							options: [["", "当前需求"], ...task.versions.map((v) => [v.id, "V" + v.number + " " + v.note])]
+						}),
+						viewedVersion && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DocumentPreview, { text: viewedVersion.markdown })
+					]
 				})
 			] });
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -19291,17 +19602,12 @@ window.__ModuleLoader__.load({
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									disabled: busy || running,
-									onClick: () => void run("clarify", "请根据当前目标、角色、范围、流程、规则和验收中仍缺失的信息，继续提出需要确认的关键问题。"),
-									children: "继续澄清"
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									disabled: busy || running,
 									onClick: () => void run("check", "请检查当前需求中的权限、异常、数据校验、重复或冲突，提出有依据的修改建议和待确认问题。"),
 									children: "检查遗漏"
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									onClick: () => goto("document"),
-									children: "生成需求文档"
+									children: "查看需求结果"
 								})
 							]
 						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
