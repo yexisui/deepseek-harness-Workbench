@@ -1,3 +1,4 @@
+import type { MeetingSegmenter } from './meeting-segments.ts'
 import { hasTiming, parseSegments, sourceKey, type TranscriptSegment } from '../core/meeting-timing.ts'
 import { createReadStream, openAsBlob } from 'node:fs'
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
@@ -86,7 +87,7 @@ export class MeetingService {
     void task.finally(() => { pending.delete(task); if (!pending.size && this.pending.get(id) === pending) this.pending.delete(id) }).catch(() => {})
     return task
   }
-  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly jev?: JevService, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly resolveAsr?: () => Promise<MeetingAsrConfig>) {}
+  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly jev?: JevService, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly resolveAsr?: () => Promise<MeetingAsrConfig>, private readonly segmenter?: MeetingSegmenter) {}
   private config() { return config(this.asrSettings?.()) }
   private capabilityError(): string | undefined {
     if (!this.currentState) return
@@ -108,7 +109,7 @@ export class MeetingService {
     if (!published) throw new InputError('会议纪要岗位版本不存在，请重新选择岗位', 409)
     if (this.currentState) {
       const state = this.currentState()
-      if (createdAt && wasRevoked(state, role.id, published, Date.parse(createdAt))) throw new InputError('此会议任务的授权已撤销，请新建会议继续使用', 409)
+      if (createdAt && wasRevoked(state, role.id, { ...published, capabilities: published.capabilities.filter(b => b.capabilityId === MEETING_CAPABILITY_ID) }, Date.parse(createdAt))) throw new InputError('此会议任务的授权已撤销，请新建会议继续使用', 409)
       if (!allowedActions(state, role.id, published).includes('transcribe')) throw new InputError('此会议岗位版本的转写权限已撤销或未获授权，请新建会议继续使用', 409)
     }
     return { version: published.version, name: published.name, duties: published.duties, requirements: published.requirements, format: published.format }
@@ -253,26 +254,30 @@ export class MeetingService {
     this.running.add(id)
     const controller = new AbortController(); this.controllers.set(id, controller)
     try {
-      const job = await this.get(id), { endpoint, apiKey, model, format } = this.resolveAsr ? config(await this.resolveAsr()) : this.config()
-      if (!endpoint || !model) throw new Error('请先配置语音识别接口和模型')
-      const form = new FormData()
-      form.set('model', model)
-      form.set('response_format', format)
-      if (format === 'verbose_json') form.set('timestamp_granularities[]', 'segment')
-      form.set('file', await openAsBlob(this.audio(job)), job.fileName)
-      const sent = await fetch(endpoint, { method: 'POST', redirect: 'error', headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}, body: form, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20 * 60_000)]) })
-      const response = await sent.text()
-      if (!sent.ok) throw new Error(`语音识别失败（HTTP ${sent.status}），请在模型模块检查接口、Key、模型和配额`)
-      let transcript: any
-      try { transcript = JSON.parse(response) } catch { throw new Error('语音识别接口没有返回有效 JSON') }
-      const segments = parseSegments(transcript)
+      const job = await this.get(id), settings = this.resolveAsr ? config(await this.resolveAsr()) : this.config()
+      const recognize = (path: string, name: string, signal: AbortSignal) => this.recognize(path, name, settings, signal)
+      const segments = await this.segmenter?.transcribe(job, this.audio(job), controller.signal, recognize) ?? await recognize(this.audio(job), job.fileName, controller.signal)
       if (!segments.length) throw new Error('未识别到可用语音，请检查录音内容')
       const latest = await this.get(id)
       controller.signal.throwIfAborted(); this.role(latest.role?.version, latest.createdAt)
       latest.segments = segments; latest.status = 'transcribed'; await this.save(latest)
       if (latest.mode === 'quick') await this.generate(id)
     } catch (error) { if (!this.deleted.has(id)) { const job = await this.get(id); job.status = 'error'; job.error = errorText(error); await this.save(job) } }
-    finally { this.running.delete(id); this.controllers.delete(id) }
+    finally { this.running.delete(id); if (this.controllers.get(id) === controller) this.controllers.delete(id) }
+  }
+  private async recognize(path: string, name: string, settings: ReturnType<typeof config>, signal: AbortSignal) {
+    const { endpoint, model, format, apiKey } = settings
+    if (!endpoint || !model) throw new Error('请先配置语音识别接口和模型')
+    signal.throwIfAborted()
+    const form = new FormData()
+    form.set('model', model); form.set('response_format', format)
+    if (format === 'verbose_json') form.set('timestamp_granularities[]', 'segment')
+    form.set('file', await openAsBlob(path), name)
+    const response = await fetch(endpoint, { method: 'POST', redirect: 'error', headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}, body: form, signal: AbortSignal.any([signal, AbortSignal.timeout(20 * 60_000)]) })
+    if (!response.ok) throw new Error(`语音识别失败（HTTP ${response.status}），请在模型模块检查接口、Key、模型和配额`)
+    let data: unknown
+    try { data = await response.json() } catch { throw new Error('语音识别接口没有返回有效 JSON') }
+    return parseSegments(data)
   }
   private ask(prompt: string, modelRoute: string, signal?: AbortSignal) { return this.workbenchText(prompt, modelRoute, signal) }
   private transcriptText(rows: MeetingSegment[]) { return rows.map(row => `[${row.id} ${hasTiming(row) ? Math.floor(row.start / 1000) + '秒' : '时间未知'} ${row.speaker}] ${row.text}`).join('\n') }
@@ -331,14 +336,9 @@ export class MeetingService {
   private async finishTiming(job: MeetingJob) {
     const controller = new AbortController(); this.controllers.set(job.id, controller)
     try {
-      const { endpoint, model, apiKey } = this.resolveAsr ? config(await this.resolveAsr()) : this.config()
-      if (!endpoint || !model) throw new Error('请在能力中心选择支持时间戳的识别模型')
-      const form = new FormData()
-      form.set('model', model); form.set('response_format', 'verbose_json'); form.set('timestamp_granularities[]', 'segment')
-      form.set('file', await openAsBlob(this.audio(job)), job.fileName)
-      const response = await fetch(endpoint, { method: 'POST', redirect: 'error', headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}, body: form, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20 * 60_000)]) })
-      if (!response.ok) throw new Error(`补全时间定位失败（HTTP ${response.status}），请在能力中心检测支持时间戳的模型；原纪要保留`)
-      const segments = parseSegments(await response.json()).filter(hasTiming).map((row, index) => ({ ...row, id: `t${index + 1}` }))
+      const settings = this.resolveAsr ? config(await this.resolveAsr()) : this.config()
+      const segmented = await this.segmenter?.transcribe(job, this.audio(job), controller.signal, (path, name, signal) => this.recognize(path, name, settings, signal), true)
+      const segments = (segmented ?? await this.recognize(this.audio(job), job.fileName, { ...settings, format:'verbose_json' }, controller.signal)).filter(hasTiming).map((row, index) => ({ ...row, id: `t${index + 1}` }))
       if (!segments.length) throw new Error('当前服务未返回有效时间戳。请在能力中心选择支持时间戳的识别模型；原纪要与校对内容已保留')
       const items = [...job.minutes!.decisions, ...job.minutes!.actions, ...job.minutes!.unknown]
       const transcript = JSON.stringify(segments)
@@ -362,7 +362,7 @@ export class MeetingService {
   }
   async componentActivities() {
     const rows = await Promise.all([...this.controllers.keys()].map(async id => {
-      try { const job = await this.get(id); return { id, roleId: MEETING_ROLE_ID, roleVersion: job.role?.version, name: job.fileName, kind: 'meeting', status: job.status, componentIds: ['meeting-asr'] } }
+      try { const job = await this.get(id); return { id, roleId: MEETING_ROLE_ID, roleVersion: job.role?.version, name: job.fileName, kind: 'meeting', status: job.status, componentIds: ['meeting-asr', ...this.segmenter?.components(id) ?? []] } }
       catch { return { id, roleId: MEETING_ROLE_ID, name: '会议任务（记录暂不可读）', kind: 'meeting', status: 'stopping', componentIds: ['meeting-asr'] } }
     }))
     return rows
@@ -372,7 +372,7 @@ export class MeetingService {
       try { const job = await this.get(id); this.role(job.role?.version, job.createdAt) } catch { controller.abort() }
     }))
   }
-  async stopComponents(ids: string[]) { if (ids.includes('meeting-asr')) this.controllers.forEach(controller => controller.abort()) }
+  async stopComponents(ids: string[]) { this.segmenter?.stopComponents(ids); if (ids.includes('meeting-asr')) this.controllers.forEach(controller => controller.abort()) }
   async serveAudio(id: string, req: IncomingMessage, res: ServerResponse) {
     const job = await this.get(id), path = this.audio(job), size = (await stat(path)).size
     const match = /^bytes=(\d+)-(\d*)$/.exec(req.headers.range ?? '')

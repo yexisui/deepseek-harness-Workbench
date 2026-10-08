@@ -20055,7 +20055,11 @@ window.__ModuleLoader__.load({
 					return row && hasTiming(row) ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 						className: MeetingDemo_module_css_default.sourceLink,
 						onClick: () => seek(id, true),
-						children: ["回听 ", formatTime(row.start)]
+						children: [
+							row.timingKind === "chunk" ? "回听片段" : "回听",
+							" ",
+							formatTime(row.start)
+						]
 					}, id) : null;
 				});
 				return item.sourceIds.map((id) => {
@@ -20063,7 +20067,7 @@ window.__ModuleLoader__.load({
 					return row ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						className: MeetingDemo_module_css_default.sourceLink,
 						onClick: () => seek(id, false, hasTiming(row)),
-						children: hasTiming(row) ? `回听 ${formatTime(row.start)}` : "查看原文"
+						children: hasTiming(row) ? `${row.timingKind === "chunk" ? "回听片段" : "回听"} ${formatTime(row.start)}` : "查看原文"
 					}, id) : null;
 				});
 			};
@@ -20118,7 +20122,7 @@ window.__ModuleLoader__.load({
 								preload: "metadata",
 								src: `${endpoint}/audio/${jobId}`
 							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: (editable ? segments : displaySegments).some(hasTiming) ? "点击有效时间戳回听；未知时间仅查看原文" : "当前转写未提供分段时间，可从头播放" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: (editable ? segments : displaySegments).some(hasTiming) ? (editable ? segments : displaySegments).some((row) => row.timingKind === "chunk") ? "按录音片段起点回听；时间表示片段范围" : "点击有效时间戳回听；未知时间仅查看原文" : "当前转写未提供分段时间，可从头播放" }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: MeetingDemo_module_css_default.sourceLink,
 								onClick: () => {
@@ -20263,7 +20267,7 @@ window.__ModuleLoader__.load({
 						role: "group",
 						"aria-label": "确认补全时间定位",
 						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "将使用当前识别模型重新处理已保存录音，并用纪要模型关联来源，可能产生调用费用。原纪要与人工校对内容保留；服务没有返回时间戳时不会估算时间。" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "将使用当前识别模型重新处理已保存录音，并用纪要模型关联来源，可能产生调用费用。原纪要与人工校对内容保留；已关联分段定位能力时按录音切片获取时间，否则使用识别服务返回的时间戳。" }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								disabled: busy,
 								onClick: () => void repairTiming(),

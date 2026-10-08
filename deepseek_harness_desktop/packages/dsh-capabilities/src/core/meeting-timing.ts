@@ -1,4 +1,4 @@
-export type TranscriptSegment = { id: string; start: number | null; end: number | null; speaker: string; text: string }
+export type TranscriptSegment = { timingKind?: 'chunk'; id: string; start: number | null; end: number | null; speaker: string; text: string }
 export function hasTiming(row: { start: number | null; end: number | null }): row is { start: number; end: number } {
   return typeof row.start === 'number' && typeof row.end === 'number' && Number.isFinite(row.start) && Number.isFinite(row.end) && row.start >= 0 && row.end > row.start
 }
