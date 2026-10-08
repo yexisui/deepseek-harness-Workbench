@@ -163,3 +163,4 @@
 
 .notebook .card p{white-space:pre-wrap;overflow-wrap:anywhere}.notebook .toolbar{flex-wrap:wrap}
 @media(prefers-reduced-motion:reduce){.sectionRow{transition:none}}
+.fileDrop{margin:12px 0;padding:16px;border:1px dashed var(--border);border-radius:12px;background:var(--soft);overflow-wrap:anywhere}.fileDrop[data-dragging=true]{border-color:var(--accent);background:var(--surface)}.fileDrop small{display:block;margin-top:8px;color:var(--muted)}.projectFiles{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto;margin:12px 0}.projectFiles label{overflow-wrap:anywhere}

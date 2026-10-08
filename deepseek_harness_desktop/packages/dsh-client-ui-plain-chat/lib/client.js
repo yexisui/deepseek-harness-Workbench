@@ -16724,7 +16724,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css.mjs
-		const css$3 = ".P-xFQa_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#546da9);--accent-text:var(--dsw-alias-brand-primary,var(--accent));--soft:color-mix(in srgb,var(--accent) 6%,var(--surface));color:var(--ink);background:var(--dsw-alias-bg-layer-1,var(--surface));font:inherit;flex-direction:column;width:100%;height:100%;min-height:0;font-size:13px;display:flex;overflow:hidden}.P-xFQa_root *{box-sizing:border-box}.P-xFQa_root button,.P-xFQa_root input,.P-xFQa_root textarea,.P-xFQa_root select{font:inherit}.P-xFQa_root button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 11px;line-height:1.35;transition:border-color .15s,background .15s}.P-xFQa_root button:hover:not(:disabled){border-color:var(--accent);color:var(--accent-text);background:var(--soft)}.P-xFQa_root button:disabled{opacity:.45;cursor:not-allowed}.P-xFQa_root :is(button,input,textarea,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}.P-xFQa_root input:not([type=checkbox]),.P-xFQa_root textarea,.P-xFQa_root select{border:1px solid var(--border);color:var(--ink);background:var(--surface);border-radius:8px;min-width:0;padding:9px 11px}.P-xFQa_root input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex:none;width:15px;height:15px}.P-xFQa_root textarea{resize:vertical;width:100%;line-height:1.65}.P-xFQa_root h2{margin:0 0 6px;font-size:20px;font-weight:650;line-height:1.4}.P-xFQa_root h3{margin:0 0 8px;font-size:14px;font-weight:650;line-height:1.6}.P-xFQa_root p{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;line-height:1.75}.P-xFQa_root small{color:var(--muted);font-size:11px;line-height:1.6}.P-xFQa_root summary{cursor:pointer}.P-xFQa_root details>summary{padding:8px 0}.P-xFQa_primary{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;font-weight:600!important}.P-xFQa_muted{color:var(--muted);font-size:12px;line-height:1.7}.P-xFQa_block{margin-top:5px;display:block}.P-xFQa_heading{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;gap:16px;min-height:66px;padding:13px 28px;display:flex}.P-xFQa_heading>div:first-child{flex-direction:column;gap:4px;min-width:0;display:flex}.P-xFQa_heading strong{text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:650;overflow:hidden}.P-xFQa_saveState{color:var(--muted);font-size:10px}.P-xFQa_heading button{padding:6px 8px;font-size:11px}.P-xFQa_countBadge{border:1px solid var(--border);color:var(--muted);white-space:nowrap;border-radius:6px;padding:4px 7px;font-size:10px}.P-xFQa_tabs{border-bottom:1px solid var(--border);scrollbar-width:thin;flex:none;gap:27px;min-height:43px;padding:0 28px;display:flex;overflow-x:auto}.P-xFQa_tabs button{color:var(--muted);white-space:nowrap;background:0 0;border:0;border-bottom:2px solid #0000;border-radius:0;flex:none;padding:11px 0;font-size:13px}.P-xFQa_tabs button[aria-selected=true]{border-bottom-color:var(--accent);color:var(--ink);font-weight:650}.P-xFQa_tabs button:hover:not(:disabled){border-bottom-color:var(--accent);background:0 0}.P-xFQa_subtabs{background:var(--soft);flex:none}.P-xFQa_subtabs .P-xFQa_tabs{gap:24px;min-height:42px}.P-xFQa_subtabs .P-xFQa_tabs button{font-size:12px}.P-xFQa_scroll{overscroll-behavior:contain;scroll-behavior:smooth;flex:1;min-height:0;overflow:auto}.P-xFQa_chat{width:min(930px,100% - 64px);margin:auto;padding:30px 0}.P-xFQa_intro{align-items:flex-start;gap:15px;margin:3px 0 24px;display:flex}.P-xFQa_intro>span:first-child{border-radius:12px;flex:none;width:38px;height:38px}.P-xFQa_intro>div{min-width:0}.P-xFQa_intro small{font-size:11px;font-weight:650}.P-xFQa_intro h2{margin:4px 0 8px;font-size:21px}.P-xFQa_intro p{color:var(--muted);font-size:13px}.P-xFQa_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:24px 0;display:grid}.P-xFQa_modes button{text-align:left;border-color:color-mix(in srgb,var(--accent) 28%,var(--border));border-radius:14px;flex-direction:column;align-items:flex-start;min-height:190px;padding:22px;transition:transform .2s,border-color .2s;display:flex;box-shadow:0 4px 20px #182c5006}.P-xFQa_modes button:hover:not(:disabled){transform:translateY(-2px)}.P-xFQa_modes button>span{color:var(--accent-text);background:var(--soft);border-radius:10px;place-items:center;width:34px;height:34px;margin-bottom:13px;font-size:21px;display:grid}.P-xFQa_modes b{font-size:16px}.P-xFQa_modes p{color:var(--muted);font-size:12px}.P-xFQa_modes em{color:var(--accent-text);margin-top:auto;padding-top:15px;font-size:11px;font-style:normal}.P-xFQa_modes button[aria-pressed=true]{border-color:var(--accent);background:var(--soft)}.P-xFQa_modes b small{color:var(--accent-text);margin-left:6px;font-size:10px;font-weight:500}.P-xFQa_chooser{padding:20px 0}.P-xFQa_chooser .P-xFQa_intro{margin:0 0 16px}.P-xFQa_chooser .P-xFQa_intro h2{margin-bottom:6px}.P-xFQa_chooser .P-xFQa_chooserSummary{margin:12px 0;padding:12px 16px}.P-xFQa_chooser .P-xFQa_modes{margin:12px 0}.P-xFQa_chooser .P-xFQa_modes button{min-height:150px;padding:16px}.P-xFQa_chooser .P-xFQa_modes button>span{width:28px;height:28px;margin-bottom:8px;font-size:18px}.P-xFQa_chooser .P-xFQa_modes b{font-size:15px}.P-xFQa_chooser .P-xFQa_modes p{margin:6px 0}.P-xFQa_chooser .P-xFQa_modes em{padding-top:8px}.P-xFQa_chooserSummary{background:var(--soft);border:1px solid var(--border);border-radius:12px;justify-content:space-between;align-items:center;gap:16px;margin:20px 0;padding:17px 20px;display:flex}.P-xFQa_chooserSummary>div{min-width:0}.P-xFQa_chooserSummary strong{overflow-wrap:anywhere;font-size:14px}.P-xFQa_chooserSummary p{color:var(--muted);margin:5px 0 0;font-size:11px}.P-xFQa_chooserSummary button{flex:none;font-size:12px}.P-xFQa_chooserReturn{justify-content:space-between;align-items:center;gap:12px;margin:18px 0;display:flex}.P-xFQa_chooserReturn button{font-size:11px}.P-xFQa_draftRetry{color:var(--muted);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:3px 20px;padding:8px 13px;font-size:11px;display:flex}.P-xFQa_draftRetry button{padding:5px 9px;font-size:11px}.P-xFQa_workflow{color:var(--muted);justify-content:center;align-items:center;gap:14px;padding:10px 0;font-size:11px;display:flex}.P-xFQa_workflow i{color:var(--border);font-style:normal}.P-xFQa_toolbar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}.P-xFQa_toolbar button{padding:6px 9px;font-size:11px}.P-xFQa_tag,.P-xFQa_status,.P-xFQa_warningTag{border:1px solid var(--border);width:max-content;color:var(--muted);white-space:nowrap;border-radius:6px;align-items:center;padding:3px 7px;font-size:10px;line-height:1.6;display:inline-flex}.P-xFQa_status[data-status=confirmed],.P-xFQa_status[data-status=resolved]{color:#3e9273;border-color:color-mix(in srgb,#4d9c78 25%,var(--border));background:color-mix(in srgb,#4d9c78 6%,var(--surface))}.P-xFQa_status[data-status=review],.P-xFQa_warningTag{color:#ad7839;background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-color:color-mix(in srgb,#c79b4a 30%,var(--border))}.P-xFQa_card{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:16px 0;padding:19px 21px}.P-xFQa_card p{font-size:12px}.P-xFQa_sectionHead{justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;display:flex}.P-xFQa_sectionHead>div:first-child{min-width:0}.P-xFQa_sectionHead h3{margin-bottom:0}.P-xFQa_sectionHead p{color:var(--muted);margin:4px 0 0;font-size:12px}.P-xFQa_sectionHead button{white-space:nowrap;font-size:11px}.P-xFQa_userMessage{border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));background:var(--soft);border-radius:14px 14px 4px;max-width:82%;margin:22px 0 22px auto;padding:13px 17px}.P-xFQa_assistantMessage{margin:24px 0;padding:0 4px}.P-xFQa_assistantMessage small{font-weight:600}.P-xFQa_assistantMessage p,.P-xFQa_userMessage p{margin:5px 0}.P-xFQa_progress{border:1px solid var(--border);border-radius:12px;align-items:center;gap:14px;margin:20px 0;padding:17px;display:flex}.P-xFQa_progress>div{flex:1}.P-xFQa_progress p{color:var(--muted);margin:4px 0 0;font-size:11px}.P-xFQa_spinner{border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;width:20px;height:20px;animation:1.1s linear infinite P-xFQa_spin}@keyframes P-xFQa_spin{to{transform:rotate(360deg)}}.P-xFQa_runError,.P-xFQa_error{color:#b25555;background:color-mix(in srgb,#c46565 7%,var(--surface));border:1px solid color-mix(in srgb,#c46565 25%,var(--border));border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.7}.P-xFQa_runError{margin:18px 0}.P-xFQa_error{white-space:pre-wrap;flex:none;justify-content:space-between;gap:10px;max-height:180px;margin:9px 20px;display:flex;overflow:auto}.P-xFQa_error button,.P-xFQa_notice button{color:inherit;background:0 0;border:0;align-self:flex-start;padding:0 4px}.P-xFQa_notice{background:var(--soft);color:var(--accent-text);border-radius:7px;flex:none;justify-content:space-between;gap:10px;margin:7px 20px;padding:8px 12px;font-size:12px;display:flex}.P-xFQa_availability{background:var(--soft);color:var(--muted);border-bottom:1px solid var(--border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:8px 28px;font-size:11px;display:flex}.P-xFQa_availability button{padding:4px 8px;font-size:11px}.P-xFQa_proposal{border:1px solid var(--border);border-radius:9px;margin:10px 0;padding:4px 13px}.P-xFQa_proposal summary{align-items:center;gap:8px;display:flex}.P-xFQa_proposal summary strong{overflow-wrap:anywhere;flex:1;font-size:12px}.P-xFQa_proposal summary small{white-space:nowrap;font-size:10px}.P-xFQa_details{grid-template-columns:92px minmax(0,1fr);gap:8px 12px;margin:12px 0;font-size:12px;line-height:1.65;display:grid}.P-xFQa_details dt{color:var(--muted)}.P-xFQa_details dd{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.P-xFQa_before{background:color-mix(in srgb,#c79b4a 6%,var(--surface));color:var(--muted);border-left:2px solid var(--border);margin-bottom:5px;padding:4px 7px}.P-xFQa_sources{flex-wrap:wrap;gap:6px;margin:5px 0;display:flex}.P-xFQa_sources button{color:var(--accent-text);background:0 0;border:0;padding:2px 0;font-size:10px}.P-xFQa_questionPreview{border-top:1px solid var(--border);padding:12px 0}.P-xFQa_questionPreview b{font-size:12px}.P-xFQa_questionPreview p{color:var(--muted);font-size:11px}.P-xFQa_questionPreview button{margin-right:8px;font-size:11px}.P-xFQa_workspace{width:min(1180px,100% - 56px);margin:0 auto;padding:26px 0 36px}.P-xFQa_stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0;display:grid}.P-xFQa_stats button{border-radius:12px;flex-direction:column;align-items:flex-start;padding:19px 18px;display:flex}.P-xFQa_stats strong{color:var(--accent-text);letter-spacing:-.5px;font-size:27px;font-weight:600}.P-xFQa_stats strong small{font-size:13px;font-weight:400}.P-xFQa_stats span{color:var(--muted);margin-top:6px;font-size:11px}.P-xFQa_twoColumns{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;display:grid}.P-xFQa_twoColumns .P-xFQa_card{margin:7px 0}.P-xFQa_compactList{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.8}.P-xFQa_compactList li{padding:5px 0}.P-xFQa_compactList time{color:var(--muted);margin-right:8px;font-size:10px}.P-xFQa_dimmed{opacity:.65}.P-xFQa_excerpt{-webkit-line-clamp:2;color:var(--muted);-webkit-box-orient:vertical;max-width:440px;display:-webkit-box;overflow:hidden;font-size:11px!important}.P-xFQa_filters{flex-wrap:wrap;gap:9px;margin:18px 0;display:flex}.P-xFQa_filters input{flex:1;min-width:150px;max-width:430px}.P-xFQa_filters select{min-width:130px}.P-xFQa_selectionBar{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--soft);border-radius:9px;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;padding:10px 13px;display:flex}.P-xFQa_selectionBar>span{color:var(--accent-text);margin-right:8px;font-size:11px}.P-xFQa_selectionBar button{padding:5px 8px;font-size:11px}.P-xFQa_tableWrap{border:1px solid var(--border);border-radius:11px;margin-top:15px;overflow:auto}.P-xFQa_table{border-collapse:collapse;width:100%;min-width:700px;font-size:12px}.P-xFQa_table th{text-align:left;background:var(--soft);color:var(--muted);white-space:nowrap;padding:11px 12px;font-size:11px;font-weight:500}.P-xFQa_table td{border-top:1px solid var(--border);vertical-align:top;padding:13px 12px}.P-xFQa_table td:first-child{width:34px}.P-xFQa_table td:nth-child(2){width:40%}.P-xFQa_table td:last-child{min-width:130px}.P-xFQa_rowTitle{color:var(--ink);text-align:left;flex-direction:column;gap:3px;display:flex;background:0 0!important;border:0!important;padding:0!important}.P-xFQa_rowTitle small{color:var(--accent-text);font-size:10px}.P-xFQa_rowTitle strong{font-size:13px;font-weight:600}.P-xFQa_rowActions{flex-wrap:wrap;gap:5px;display:flex}.P-xFQa_rowActions button{padding:4px 6px;font-size:10px}.P-xFQa_rowActions details{width:100%}.P-xFQa_rowActions summary{color:var(--muted);font-size:10px;padding:5px 0!important}.P-xFQa_rowActions details>div{flex-wrap:wrap;gap:5px;margin-top:3px;display:flex}.P-xFQa_flowCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;gap:14px;margin:15px 0;padding:19px;display:flex}.P-xFQa_flowCard>div{flex:1;min-width:0}.P-xFQa_flowCard p{font-size:12px}.P-xFQa_stepNumber{background:var(--soft);width:29px;height:29px;color:var(--accent-text);border-radius:9px;flex:none;place-items:center;font-size:12px;display:grid}.P-xFQa_flowDetails{color:var(--muted);grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 20px;margin:10px 0;font-size:11px;line-height:1.75;display:grid}.P-xFQa_choices{flex-wrap:wrap;gap:7px;margin:11px 0;display:flex}.P-xFQa_choices button{color:var(--accent-text);background:var(--soft);font-size:11px}.P-xFQa_field{flex-direction:column;gap:7px;min-width:0;margin:15px 0;display:flex}.P-xFQa_field>span{font-size:12px;font-weight:550}.P-xFQa_field>span small{color:var(--muted);font-size:10px;font-weight:400}.P-xFQa_field textarea{min-height:90px}.P-xFQa_field input,.P-xFQa_field select{width:100%}.P-xFQa_check{align-items:center;gap:6px;font-size:12px;display:inline-flex}.P-xFQa_relations{border:1px solid var(--border);border-radius:9px;margin:16px 0;padding:10px 12px}.P-xFQa_relations legend{color:var(--muted);padding:0 6px;font-size:12px}.P-xFQa_relations label{align-items:center;gap:8px;padding:6px 0;font-size:12px;display:flex}.P-xFQa_documentControls{border:1px solid var(--border);background:var(--soft);border-radius:11px;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0;padding:8px 16px 16px;display:flex}.P-xFQa_documentControls .P-xFQa_field{flex:1;min-width:140px;margin:5px 0 0}.P-xFQa_documentControls button{min-height:35px;font-size:12px}.P-xFQa_document{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:20px 0;padding:35px 42px;font-size:12px;line-height:1.85}.P-xFQa_document h1{margin:0 0 20px;font-size:23px}.P-xFQa_document h2{color:var(--accent-text);border-bottom:1px solid var(--border);margin-top:24px;padding-bottom:9px;font-size:17px}.P-xFQa_document h3{margin-top:18px;font-size:14px}.P-xFQa_document p{margin:4px 0}.P-xFQa_docGap{height:5px}.P-xFQa_warning{color:#ad7839;border:1px solid color-mix(in srgb,#c79b4a 35%,var(--border));background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-radius:8px;margin:12px 0;padding:11px 14px;font-size:12px;line-height:1.7}.P-xFQa_versionRow{border-top:1px solid var(--border);align-items:center;gap:10px;padding:12px 0;display:flex}.P-xFQa_versionRow>div{flex:1;min-width:0}.P-xFQa_versionRow strong{font-size:12px;display:block}.P-xFQa_versionRow small{margin-top:4px;display:block}.P-xFQa_versionRow button{font-size:11px}.P-xFQa_timeline{margin:16px 0;padding:10px 0;list-style:none}.P-xFQa_timeline li{border-top:1px solid var(--border);gap:20px;padding:13px 0;display:flex}.P-xFQa_timeline time{color:var(--muted);flex:none;width:110px;padding-top:4px;font-size:11px}.P-xFQa_timeline p{margin:0;font-size:12px}.P-xFQa_timeline button{color:var(--accent-text);background:0 0;border:0;padding:5px 0;font-size:10px}.P-xFQa_composerWrap{flex:none;width:min(970px,100% - 44px);margin:auto;padding:6px 0 14px}.P-xFQa_quickActions{flex-wrap:wrap;gap:6px;margin-bottom:9px;display:flex}.P-xFQa_quickActions button{color:var(--muted);background:0 0;border-radius:7px;padding:5px 9px;font-size:10px}.P-xFQa_composer{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5010}.P-xFQa_composer>textarea{background:0 0;border:0;border-radius:0;min-height:65px;max-height:160px;padding:2px 0;font-size:14px}.P-xFQa_composer>textarea:focus-visible{outline-offset:2px;outline-width:1px}.P-xFQa_composer>textarea::placeholder{color:var(--muted)}.P-xFQa_composerTools,.P-xFQa_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.P-xFQa_composerTools button{color:var(--accent-text);background:0 0;border:0;padding:2px 5px;font-size:22px}.P-xFQa_composerTools select{color:var(--muted);border:0;max-width:200px;padding:4px 3px;font-size:10px}.P-xFQa_composerTools small{font-size:10px}.P-xFQa_composerTools .P-xFQa_send{background:var(--accent);color:#fff;border-radius:50%;width:35px;height:35px;font-size:24px}.P-xFQa_contextNote{background:var(--soft);color:var(--accent-text);border-radius:7px;justify-content:space-between;gap:10px;margin-bottom:8px;padding:7px 10px;font-size:11px;display:flex}.P-xFQa_contextNote button{color:var(--accent-text);background:0 0;border:0;padding:0 4px}.P-xFQa_empty{text-align:center;color:var(--muted);flex-direction:column;align-items:center;padding:55px 20px;font-size:12px;line-height:1.8;display:flex}.P-xFQa_empty>span{opacity:.4;padding-bottom:10px;font-size:33px}.P-xFQa_empty h3{color:var(--ink);font-size:15px}.P-xFQa_empty button{margin-top:12px}.P-xFQa_overlay{z-index:1300;backdrop-filter:blur(2px);background:#13213555;justify-content:center;align-items:center;padding:24px;display:flex;position:fixed;inset:0}.P-xFQa_dialog{border:1px solid var(--border);background:var(--surface);width:min(760px,100%);max-height:calc(100dvh - 48px);color:var(--ink);border-radius:15px;flex-direction:column;display:flex;overflow:hidden;box-shadow:0 20px 70px #1118273d}.P-xFQa_dialog:focus{outline:none}.P-xFQa_dialog>header{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;padding:16px 23px;display:flex}.P-xFQa_dialog>header h2{margin:0;font-size:16px}.P-xFQa_dialog>header button{color:var(--muted);background:0 0;border:0;padding:0 5px;font-size:22px}.P-xFQa_dialogBody{min-height:0;padding:12px 24px 22px;overflow:auto}.P-xFQa_dialogBody>.P-xFQa_error{margin:2px 0 10px}.P-xFQa_dialogBody>details{border-top:1px solid var(--border);margin:16px 0}.P-xFQa_dialogBody>details>summary{font-size:13px;font-weight:600}.P-xFQa_dialog>footer{border-top:1px solid var(--border);flex-wrap:wrap;flex:none;justify-content:flex-end;align-items:center;gap:9px;padding:14px 22px;display:flex}.P-xFQa_dialog>footer>span{margin-right:auto;font-size:10px}.P-xFQa_dialog blockquote{border-left:3px solid var(--accent);background:var(--soft);white-space:pre-wrap;margin:14px 0;padding:12px 15px;line-height:1.8}.P-xFQa_rawText{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0;font-size:12px;line-height:1.85}.P-xFQa_conflict{border:1px solid var(--border);background:var(--soft);border-radius:9px;padding:14px}.P-xFQa_conflict button{font-size:11px}@media (width<=850px){.P-xFQa_heading{padding:12px 18px}.P-xFQa_heading .P-xFQa_countBadge{display:none}.P-xFQa_tabs{gap:22px;padding:0 18px}.P-xFQa_chat{width:calc(100% - 38px)}.P-xFQa_workspace{width:calc(100% - 36px)}.P-xFQa_sectionHead{flex-wrap:wrap}.P-xFQa_stats{gap:8px}.P-xFQa_stats button{padding:15px 12px}.P-xFQa_document{padding:26px}.P-xFQa_flowDetails{grid-template-columns:1fr}}@media (width<=600px){.P-xFQa_root{font-size:12px}.P-xFQa_heading{gap:8px;min-height:58px}.P-xFQa_heading strong{font-size:13px}.P-xFQa_heading .P-xFQa_toolbar{flex:none;gap:4px}.P-xFQa_heading button{padding:5px;font-size:10px}.P-xFQa_tabs,.P-xFQa_subtabs .P-xFQa_tabs{gap:23px;padding:0 15px}.P-xFQa_chat{width:calc(100% - 28px);padding:21px 0}.P-xFQa_intro{gap:10px}.P-xFQa_intro h2{font-size:18px}.P-xFQa_intro p{font-size:11px}.P-xFQa_intro>span:first-child{width:30px;height:30px}.P-xFQa_modes{grid-template-columns:1fr;gap:10px;margin-top:16px}.P-xFQa_modes button{min-height:145px;padding:16px}.P-xFQa_modes button>span{width:26px;height:26px;margin-bottom:9px;font-size:17px}.P-xFQa_modes b{font-size:14px}.P-xFQa_modes em{padding-top:8px}.P-xFQa_workflow{gap:8px;font-size:10px}.P-xFQa_card{padding:15px}.P-xFQa_workspace{width:calc(100% - 28px);padding:20px 0}.P-xFQa_twoColumns{grid-template-columns:1fr}.P-xFQa_stats{grid-template-columns:repeat(2,minmax(0,1fr))}.P-xFQa_stats strong{font-size:24px}.P-xFQa_table{min-width:640px}.P-xFQa_table td,.P-xFQa_table th{padding:10px}.P-xFQa_composerWrap{width:calc(100% - 20px);padding-bottom:8px}.P-xFQa_quickActions{gap:5px}.P-xFQa_quickActions button{padding:5px 6px;font-size:9px}.P-xFQa_composer{border-radius:15px;padding:10px 12px}.P-xFQa_composer>textarea{min-height:58px;font-size:13px}.P-xFQa_composerTools small{display:none}.P-xFQa_composerTools select{max-width:185px}.P-xFQa_error,.P-xFQa_notice{margin:6px 12px;font-size:11px}.P-xFQa_availability{padding:8px 14px}.P-xFQa_proposal{padding:2px 10px}.P-xFQa_proposal summary{flex-wrap:wrap;gap:6px}.P-xFQa_proposal summary strong{flex-basis:60%}.P-xFQa_proposal summary small{padding-left:22px}.P-xFQa_details{grid-template-columns:75px minmax(0,1fr);gap:7px 9px;font-size:11px}.P-xFQa_flowCard{gap:10px;padding:14px}.P-xFQa_stepNumber{width:24px;height:24px}.P-xFQa_flowCard .P-xFQa_sectionHead{margin-bottom:6px}.P-xFQa_flowCard .P-xFQa_toolbar{gap:5px}.P-xFQa_document{padding:22px 18px}.P-xFQa_document h1{font-size:19px}.P-xFQa_document h2{font-size:15px}.P-xFQa_versionRow{flex-wrap:wrap}.P-xFQa_versionRow>div{flex-basis:100%}.P-xFQa_timeline li{flex-direction:column;gap:3px}.P-xFQa_timeline time{width:auto}.P-xFQa_overlay{padding:8px}.P-xFQa_dialog{border-radius:12px;max-height:calc(100dvh - 16px)}.P-xFQa_dialog>header{padding:13px 16px}.P-xFQa_dialogBody{padding:9px 16px 18px}.P-xFQa_dialog>footer{padding:12px 16px}.P-xFQa_dialog>footer>span{display:none}}@media (prefers-reduced-motion:reduce){.P-xFQa_root button,.P-xFQa_modes button{transition:none}.P-xFQa_modes button:hover:not(:disabled){transform:none}.P-xFQa_spinner{animation:none}.P-xFQa_scroll{scroll-behavior:auto}}.P-xFQa_notebook{min-width:0;margin:12px 0}.P-xFQa_guide{background:var(--soft);border-radius:12px;margin:12px 0;padding:16px}.P-xFQa_guide .P-xFQa_toolbar{flex-wrap:wrap}.P-xFQa_guide button[aria-pressed=true]{border-color:var(--accent);color:var(--accent-text)}.P-xFQa_sectionRow{border:1px solid var(--border);background:var(--surface);touch-action:pan-x;border-radius:10px;flex-direction:column;gap:8px;margin:10px 0;padding:12px;transition:transform .15s;display:flex}.P-xFQa_sectionRow[data-dragging=true]{opacity:.55}.P-xFQa_sectionRow[data-target=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--soft)}.P-xFQa_sectionRow input{flex:1;width:100%}.P-xFQa_notebook select{max-width:100%}@media (width<=600px){.P-xFQa_notebook .P-xFQa_toolbar{flex-wrap:wrap}.P-xFQa_sectionRow{padding:8px}}.P-xFQa_sortPreview{z-index:10001;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid;border-radius:12px;padding:12px 20px;position:fixed;transform:translate(12px,12px);box-shadow:0 8px 30px #0003}.P-xFQa_notebook .P-xFQa_card p{white-space:pre-wrap;overflow-wrap:anywhere}.P-xFQa_notebook .P-xFQa_toolbar{flex-wrap:wrap}@media (prefers-reduced-motion:reduce){.P-xFQa_sectionRow{transition:none}}";
+		const css$3 = ".P-xFQa_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#546da9);--accent-text:var(--dsw-alias-brand-primary,var(--accent));--soft:color-mix(in srgb,var(--accent) 6%,var(--surface));color:var(--ink);background:var(--dsw-alias-bg-layer-1,var(--surface));font:inherit;flex-direction:column;width:100%;height:100%;min-height:0;font-size:13px;display:flex;overflow:hidden}.P-xFQa_root *{box-sizing:border-box}.P-xFQa_root button,.P-xFQa_root input,.P-xFQa_root textarea,.P-xFQa_root select{font:inherit}.P-xFQa_root button{cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 11px;line-height:1.35;transition:border-color .15s,background .15s}.P-xFQa_root button:hover:not(:disabled){border-color:var(--accent);color:var(--accent-text);background:var(--soft)}.P-xFQa_root button:disabled{opacity:.45;cursor:not-allowed}.P-xFQa_root :is(button,input,textarea,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}.P-xFQa_root input:not([type=checkbox]),.P-xFQa_root textarea,.P-xFQa_root select{border:1px solid var(--border);color:var(--ink);background:var(--surface);border-radius:8px;min-width:0;padding:9px 11px}.P-xFQa_root input[type=checkbox]{accent-color:var(--accent);cursor:pointer;flex:none;width:15px;height:15px}.P-xFQa_root textarea{resize:vertical;width:100%;line-height:1.65}.P-xFQa_root h2{margin:0 0 6px;font-size:20px;font-weight:650;line-height:1.4}.P-xFQa_root h3{margin:0 0 8px;font-size:14px;font-weight:650;line-height:1.6}.P-xFQa_root p{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;line-height:1.75}.P-xFQa_root small{color:var(--muted);font-size:11px;line-height:1.6}.P-xFQa_root summary{cursor:pointer}.P-xFQa_root details>summary{padding:8px 0}.P-xFQa_primary{color:#fff!important;background:var(--accent)!important;border-color:var(--accent)!important;font-weight:600!important}.P-xFQa_muted{color:var(--muted);font-size:12px;line-height:1.7}.P-xFQa_block{margin-top:5px;display:block}.P-xFQa_heading{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;gap:16px;min-height:66px;padding:13px 28px;display:flex}.P-xFQa_heading>div:first-child{flex-direction:column;gap:4px;min-width:0;display:flex}.P-xFQa_heading strong{text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:650;overflow:hidden}.P-xFQa_saveState{color:var(--muted);font-size:10px}.P-xFQa_heading button{padding:6px 8px;font-size:11px}.P-xFQa_countBadge{border:1px solid var(--border);color:var(--muted);white-space:nowrap;border-radius:6px;padding:4px 7px;font-size:10px}.P-xFQa_tabs{border-bottom:1px solid var(--border);scrollbar-width:thin;flex:none;gap:27px;min-height:43px;padding:0 28px;display:flex;overflow-x:auto}.P-xFQa_tabs button{color:var(--muted);white-space:nowrap;background:0 0;border:0;border-bottom:2px solid #0000;border-radius:0;flex:none;padding:11px 0;font-size:13px}.P-xFQa_tabs button[aria-selected=true]{border-bottom-color:var(--accent);color:var(--ink);font-weight:650}.P-xFQa_tabs button:hover:not(:disabled){border-bottom-color:var(--accent);background:0 0}.P-xFQa_subtabs{background:var(--soft);flex:none}.P-xFQa_subtabs .P-xFQa_tabs{gap:24px;min-height:42px}.P-xFQa_subtabs .P-xFQa_tabs button{font-size:12px}.P-xFQa_scroll{overscroll-behavior:contain;scroll-behavior:smooth;flex:1;min-height:0;overflow:auto}.P-xFQa_chat{width:min(930px,100% - 64px);margin:auto;padding:30px 0}.P-xFQa_intro{align-items:flex-start;gap:15px;margin:3px 0 24px;display:flex}.P-xFQa_intro>span:first-child{border-radius:12px;flex:none;width:38px;height:38px}.P-xFQa_intro>div{min-width:0}.P-xFQa_intro small{font-size:11px;font-weight:650}.P-xFQa_intro h2{margin:4px 0 8px;font-size:21px}.P-xFQa_intro p{color:var(--muted);font-size:13px}.P-xFQa_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:24px 0;display:grid}.P-xFQa_modes button{text-align:left;border-color:color-mix(in srgb,var(--accent) 28%,var(--border));border-radius:14px;flex-direction:column;align-items:flex-start;min-height:190px;padding:22px;transition:transform .2s,border-color .2s;display:flex;box-shadow:0 4px 20px #182c5006}.P-xFQa_modes button:hover:not(:disabled){transform:translateY(-2px)}.P-xFQa_modes button>span{color:var(--accent-text);background:var(--soft);border-radius:10px;place-items:center;width:34px;height:34px;margin-bottom:13px;font-size:21px;display:grid}.P-xFQa_modes b{font-size:16px}.P-xFQa_modes p{color:var(--muted);font-size:12px}.P-xFQa_modes em{color:var(--accent-text);margin-top:auto;padding-top:15px;font-size:11px;font-style:normal}.P-xFQa_modes button[aria-pressed=true]{border-color:var(--accent);background:var(--soft)}.P-xFQa_modes b small{color:var(--accent-text);margin-left:6px;font-size:10px;font-weight:500}.P-xFQa_chooser{padding:20px 0}.P-xFQa_chooser .P-xFQa_intro{margin:0 0 16px}.P-xFQa_chooser .P-xFQa_intro h2{margin-bottom:6px}.P-xFQa_chooser .P-xFQa_chooserSummary{margin:12px 0;padding:12px 16px}.P-xFQa_chooser .P-xFQa_modes{margin:12px 0}.P-xFQa_chooser .P-xFQa_modes button{min-height:150px;padding:16px}.P-xFQa_chooser .P-xFQa_modes button>span{width:28px;height:28px;margin-bottom:8px;font-size:18px}.P-xFQa_chooser .P-xFQa_modes b{font-size:15px}.P-xFQa_chooser .P-xFQa_modes p{margin:6px 0}.P-xFQa_chooser .P-xFQa_modes em{padding-top:8px}.P-xFQa_chooserSummary{background:var(--soft);border:1px solid var(--border);border-radius:12px;justify-content:space-between;align-items:center;gap:16px;margin:20px 0;padding:17px 20px;display:flex}.P-xFQa_chooserSummary>div{min-width:0}.P-xFQa_chooserSummary strong{overflow-wrap:anywhere;font-size:14px}.P-xFQa_chooserSummary p{color:var(--muted);margin:5px 0 0;font-size:11px}.P-xFQa_chooserSummary button{flex:none;font-size:12px}.P-xFQa_chooserReturn{justify-content:space-between;align-items:center;gap:12px;margin:18px 0;display:flex}.P-xFQa_chooserReturn button{font-size:11px}.P-xFQa_draftRetry{color:var(--muted);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:3px 20px;padding:8px 13px;font-size:11px;display:flex}.P-xFQa_draftRetry button{padding:5px 9px;font-size:11px}.P-xFQa_workflow{color:var(--muted);justify-content:center;align-items:center;gap:14px;padding:10px 0;font-size:11px;display:flex}.P-xFQa_workflow i{color:var(--border);font-style:normal}.P-xFQa_toolbar{flex-wrap:wrap;align-items:center;gap:7px;display:flex}.P-xFQa_toolbar button{padding:6px 9px;font-size:11px}.P-xFQa_tag,.P-xFQa_status,.P-xFQa_warningTag{border:1px solid var(--border);width:max-content;color:var(--muted);white-space:nowrap;border-radius:6px;align-items:center;padding:3px 7px;font-size:10px;line-height:1.6;display:inline-flex}.P-xFQa_status[data-status=confirmed],.P-xFQa_status[data-status=resolved]{color:#3e9273;border-color:color-mix(in srgb,#4d9c78 25%,var(--border));background:color-mix(in srgb,#4d9c78 6%,var(--surface))}.P-xFQa_status[data-status=review],.P-xFQa_warningTag{color:#ad7839;background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-color:color-mix(in srgb,#c79b4a 30%,var(--border))}.P-xFQa_card{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:16px 0;padding:19px 21px}.P-xFQa_card p{font-size:12px}.P-xFQa_sectionHead{justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;display:flex}.P-xFQa_sectionHead>div:first-child{min-width:0}.P-xFQa_sectionHead h3{margin-bottom:0}.P-xFQa_sectionHead p{color:var(--muted);margin:4px 0 0;font-size:12px}.P-xFQa_sectionHead button{white-space:nowrap;font-size:11px}.P-xFQa_userMessage{border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));background:var(--soft);border-radius:14px 14px 4px;max-width:82%;margin:22px 0 22px auto;padding:13px 17px}.P-xFQa_assistantMessage{margin:24px 0;padding:0 4px}.P-xFQa_assistantMessage small{font-weight:600}.P-xFQa_assistantMessage p,.P-xFQa_userMessage p{margin:5px 0}.P-xFQa_progress{border:1px solid var(--border);border-radius:12px;align-items:center;gap:14px;margin:20px 0;padding:17px;display:flex}.P-xFQa_progress>div{flex:1}.P-xFQa_progress p{color:var(--muted);margin:4px 0 0;font-size:11px}.P-xFQa_spinner{border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;width:20px;height:20px;animation:1.1s linear infinite P-xFQa_spin}@keyframes P-xFQa_spin{to{transform:rotate(360deg)}}.P-xFQa_runError,.P-xFQa_error{color:#b25555;background:color-mix(in srgb,#c46565 7%,var(--surface));border:1px solid color-mix(in srgb,#c46565 25%,var(--border));border-radius:8px;padding:10px 13px;font-size:12px;line-height:1.7}.P-xFQa_runError{margin:18px 0}.P-xFQa_error{white-space:pre-wrap;flex:none;justify-content:space-between;gap:10px;max-height:180px;margin:9px 20px;display:flex;overflow:auto}.P-xFQa_error button,.P-xFQa_notice button{color:inherit;background:0 0;border:0;align-self:flex-start;padding:0 4px}.P-xFQa_notice{background:var(--soft);color:var(--accent-text);border-radius:7px;flex:none;justify-content:space-between;gap:10px;margin:7px 20px;padding:8px 12px;font-size:12px;display:flex}.P-xFQa_availability{background:var(--soft);color:var(--muted);border-bottom:1px solid var(--border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:8px 28px;font-size:11px;display:flex}.P-xFQa_availability button{padding:4px 8px;font-size:11px}.P-xFQa_proposal{border:1px solid var(--border);border-radius:9px;margin:10px 0;padding:4px 13px}.P-xFQa_proposal summary{align-items:center;gap:8px;display:flex}.P-xFQa_proposal summary strong{overflow-wrap:anywhere;flex:1;font-size:12px}.P-xFQa_proposal summary small{white-space:nowrap;font-size:10px}.P-xFQa_details{grid-template-columns:92px minmax(0,1fr);gap:8px 12px;margin:12px 0;font-size:12px;line-height:1.65;display:grid}.P-xFQa_details dt{color:var(--muted)}.P-xFQa_details dd{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.P-xFQa_before{background:color-mix(in srgb,#c79b4a 6%,var(--surface));color:var(--muted);border-left:2px solid var(--border);margin-bottom:5px;padding:4px 7px}.P-xFQa_sources{flex-wrap:wrap;gap:6px;margin:5px 0;display:flex}.P-xFQa_sources button{color:var(--accent-text);background:0 0;border:0;padding:2px 0;font-size:10px}.P-xFQa_questionPreview{border-top:1px solid var(--border);padding:12px 0}.P-xFQa_questionPreview b{font-size:12px}.P-xFQa_questionPreview p{color:var(--muted);font-size:11px}.P-xFQa_questionPreview button{margin-right:8px;font-size:11px}.P-xFQa_workspace{width:min(1180px,100% - 56px);margin:0 auto;padding:26px 0 36px}.P-xFQa_stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0;display:grid}.P-xFQa_stats button{border-radius:12px;flex-direction:column;align-items:flex-start;padding:19px 18px;display:flex}.P-xFQa_stats strong{color:var(--accent-text);letter-spacing:-.5px;font-size:27px;font-weight:600}.P-xFQa_stats strong small{font-size:13px;font-weight:400}.P-xFQa_stats span{color:var(--muted);margin-top:6px;font-size:11px}.P-xFQa_twoColumns{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px;display:grid}.P-xFQa_twoColumns .P-xFQa_card{margin:7px 0}.P-xFQa_compactList{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.8}.P-xFQa_compactList li{padding:5px 0}.P-xFQa_compactList time{color:var(--muted);margin-right:8px;font-size:10px}.P-xFQa_dimmed{opacity:.65}.P-xFQa_excerpt{-webkit-line-clamp:2;color:var(--muted);-webkit-box-orient:vertical;max-width:440px;display:-webkit-box;overflow:hidden;font-size:11px!important}.P-xFQa_filters{flex-wrap:wrap;gap:9px;margin:18px 0;display:flex}.P-xFQa_filters input{flex:1;min-width:150px;max-width:430px}.P-xFQa_filters select{min-width:130px}.P-xFQa_selectionBar{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--soft);border-radius:9px;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;padding:10px 13px;display:flex}.P-xFQa_selectionBar>span{color:var(--accent-text);margin-right:8px;font-size:11px}.P-xFQa_selectionBar button{padding:5px 8px;font-size:11px}.P-xFQa_tableWrap{border:1px solid var(--border);border-radius:11px;margin-top:15px;overflow:auto}.P-xFQa_table{border-collapse:collapse;width:100%;min-width:700px;font-size:12px}.P-xFQa_table th{text-align:left;background:var(--soft);color:var(--muted);white-space:nowrap;padding:11px 12px;font-size:11px;font-weight:500}.P-xFQa_table td{border-top:1px solid var(--border);vertical-align:top;padding:13px 12px}.P-xFQa_table td:first-child{width:34px}.P-xFQa_table td:nth-child(2){width:40%}.P-xFQa_table td:last-child{min-width:130px}.P-xFQa_rowTitle{color:var(--ink);text-align:left;flex-direction:column;gap:3px;display:flex;background:0 0!important;border:0!important;padding:0!important}.P-xFQa_rowTitle small{color:var(--accent-text);font-size:10px}.P-xFQa_rowTitle strong{font-size:13px;font-weight:600}.P-xFQa_rowActions{flex-wrap:wrap;gap:5px;display:flex}.P-xFQa_rowActions button{padding:4px 6px;font-size:10px}.P-xFQa_rowActions details{width:100%}.P-xFQa_rowActions summary{color:var(--muted);font-size:10px;padding:5px 0!important}.P-xFQa_rowActions details>div{flex-wrap:wrap;gap:5px;margin-top:3px;display:flex}.P-xFQa_flowCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;gap:14px;margin:15px 0;padding:19px;display:flex}.P-xFQa_flowCard>div{flex:1;min-width:0}.P-xFQa_flowCard p{font-size:12px}.P-xFQa_stepNumber{background:var(--soft);width:29px;height:29px;color:var(--accent-text);border-radius:9px;flex:none;place-items:center;font-size:12px;display:grid}.P-xFQa_flowDetails{color:var(--muted);grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 20px;margin:10px 0;font-size:11px;line-height:1.75;display:grid}.P-xFQa_choices{flex-wrap:wrap;gap:7px;margin:11px 0;display:flex}.P-xFQa_choices button{color:var(--accent-text);background:var(--soft);font-size:11px}.P-xFQa_field{flex-direction:column;gap:7px;min-width:0;margin:15px 0;display:flex}.P-xFQa_field>span{font-size:12px;font-weight:550}.P-xFQa_field>span small{color:var(--muted);font-size:10px;font-weight:400}.P-xFQa_field textarea{min-height:90px}.P-xFQa_field input,.P-xFQa_field select{width:100%}.P-xFQa_check{align-items:center;gap:6px;font-size:12px;display:inline-flex}.P-xFQa_relations{border:1px solid var(--border);border-radius:9px;margin:16px 0;padding:10px 12px}.P-xFQa_relations legend{color:var(--muted);padding:0 6px;font-size:12px}.P-xFQa_relations label{align-items:center;gap:8px;padding:6px 0;font-size:12px;display:flex}.P-xFQa_documentControls{border:1px solid var(--border);background:var(--soft);border-radius:11px;flex-wrap:wrap;align-items:end;gap:12px;margin:20px 0;padding:8px 16px 16px;display:flex}.P-xFQa_documentControls .P-xFQa_field{flex:1;min-width:140px;margin:5px 0 0}.P-xFQa_documentControls button{min-height:35px;font-size:12px}.P-xFQa_document{border:1px solid var(--border);background:var(--surface);border-radius:12px;margin:20px 0;padding:35px 42px;font-size:12px;line-height:1.85}.P-xFQa_document h1{margin:0 0 20px;font-size:23px}.P-xFQa_document h2{color:var(--accent-text);border-bottom:1px solid var(--border);margin-top:24px;padding-bottom:9px;font-size:17px}.P-xFQa_document h3{margin-top:18px;font-size:14px}.P-xFQa_document p{margin:4px 0}.P-xFQa_docGap{height:5px}.P-xFQa_warning{color:#ad7839;border:1px solid color-mix(in srgb,#c79b4a 35%,var(--border));background:color-mix(in srgb,#c79b4a 7%,var(--surface));border-radius:8px;margin:12px 0;padding:11px 14px;font-size:12px;line-height:1.7}.P-xFQa_versionRow{border-top:1px solid var(--border);align-items:center;gap:10px;padding:12px 0;display:flex}.P-xFQa_versionRow>div{flex:1;min-width:0}.P-xFQa_versionRow strong{font-size:12px;display:block}.P-xFQa_versionRow small{margin-top:4px;display:block}.P-xFQa_versionRow button{font-size:11px}.P-xFQa_timeline{margin:16px 0;padding:10px 0;list-style:none}.P-xFQa_timeline li{border-top:1px solid var(--border);gap:20px;padding:13px 0;display:flex}.P-xFQa_timeline time{color:var(--muted);flex:none;width:110px;padding-top:4px;font-size:11px}.P-xFQa_timeline p{margin:0;font-size:12px}.P-xFQa_timeline button{color:var(--accent-text);background:0 0;border:0;padding:5px 0;font-size:10px}.P-xFQa_composerWrap{flex:none;width:min(970px,100% - 44px);margin:auto;padding:6px 0 14px}.P-xFQa_quickActions{flex-wrap:wrap;gap:6px;margin-bottom:9px;display:flex}.P-xFQa_quickActions button{color:var(--muted);background:0 0;border-radius:7px;padding:5px 9px;font-size:10px}.P-xFQa_composer{border:1px solid var(--border);background:var(--surface);border-radius:18px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5010}.P-xFQa_composer>textarea{background:0 0;border:0;border-radius:0;min-height:65px;max-height:160px;padding:2px 0;font-size:14px}.P-xFQa_composer>textarea:focus-visible{outline-offset:2px;outline-width:1px}.P-xFQa_composer>textarea::placeholder{color:var(--muted)}.P-xFQa_composerTools,.P-xFQa_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.P-xFQa_composerTools button{color:var(--accent-text);background:0 0;border:0;padding:2px 5px;font-size:22px}.P-xFQa_composerTools select{color:var(--muted);border:0;max-width:200px;padding:4px 3px;font-size:10px}.P-xFQa_composerTools small{font-size:10px}.P-xFQa_composerTools .P-xFQa_send{background:var(--accent);color:#fff;border-radius:50%;width:35px;height:35px;font-size:24px}.P-xFQa_contextNote{background:var(--soft);color:var(--accent-text);border-radius:7px;justify-content:space-between;gap:10px;margin-bottom:8px;padding:7px 10px;font-size:11px;display:flex}.P-xFQa_contextNote button{color:var(--accent-text);background:0 0;border:0;padding:0 4px}.P-xFQa_empty{text-align:center;color:var(--muted);flex-direction:column;align-items:center;padding:55px 20px;font-size:12px;line-height:1.8;display:flex}.P-xFQa_empty>span{opacity:.4;padding-bottom:10px;font-size:33px}.P-xFQa_empty h3{color:var(--ink);font-size:15px}.P-xFQa_empty button{margin-top:12px}.P-xFQa_overlay{z-index:1300;backdrop-filter:blur(2px);background:#13213555;justify-content:center;align-items:center;padding:24px;display:flex;position:fixed;inset:0}.P-xFQa_dialog{border:1px solid var(--border);background:var(--surface);width:min(760px,100%);max-height:calc(100dvh - 48px);color:var(--ink);border-radius:15px;flex-direction:column;display:flex;overflow:hidden;box-shadow:0 20px 70px #1118273d}.P-xFQa_dialog:focus{outline:none}.P-xFQa_dialog>header{border-bottom:1px solid var(--border);flex:none;justify-content:space-between;align-items:center;padding:16px 23px;display:flex}.P-xFQa_dialog>header h2{margin:0;font-size:16px}.P-xFQa_dialog>header button{color:var(--muted);background:0 0;border:0;padding:0 5px;font-size:22px}.P-xFQa_dialogBody{min-height:0;padding:12px 24px 22px;overflow:auto}.P-xFQa_dialogBody>.P-xFQa_error{margin:2px 0 10px}.P-xFQa_dialogBody>details{border-top:1px solid var(--border);margin:16px 0}.P-xFQa_dialogBody>details>summary{font-size:13px;font-weight:600}.P-xFQa_dialog>footer{border-top:1px solid var(--border);flex-wrap:wrap;flex:none;justify-content:flex-end;align-items:center;gap:9px;padding:14px 22px;display:flex}.P-xFQa_dialog>footer>span{margin-right:auto;font-size:10px}.P-xFQa_dialog blockquote{border-left:3px solid var(--accent);background:var(--soft);white-space:pre-wrap;margin:14px 0;padding:12px 15px;line-height:1.8}.P-xFQa_rawText{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0;font-size:12px;line-height:1.85}.P-xFQa_conflict{border:1px solid var(--border);background:var(--soft);border-radius:9px;padding:14px}.P-xFQa_conflict button{font-size:11px}@media (width<=850px){.P-xFQa_heading{padding:12px 18px}.P-xFQa_heading .P-xFQa_countBadge{display:none}.P-xFQa_tabs{gap:22px;padding:0 18px}.P-xFQa_chat{width:calc(100% - 38px)}.P-xFQa_workspace{width:calc(100% - 36px)}.P-xFQa_sectionHead{flex-wrap:wrap}.P-xFQa_stats{gap:8px}.P-xFQa_stats button{padding:15px 12px}.P-xFQa_document{padding:26px}.P-xFQa_flowDetails{grid-template-columns:1fr}}@media (width<=600px){.P-xFQa_root{font-size:12px}.P-xFQa_heading{gap:8px;min-height:58px}.P-xFQa_heading strong{font-size:13px}.P-xFQa_heading .P-xFQa_toolbar{flex:none;gap:4px}.P-xFQa_heading button{padding:5px;font-size:10px}.P-xFQa_tabs,.P-xFQa_subtabs .P-xFQa_tabs{gap:23px;padding:0 15px}.P-xFQa_chat{width:calc(100% - 28px);padding:21px 0}.P-xFQa_intro{gap:10px}.P-xFQa_intro h2{font-size:18px}.P-xFQa_intro p{font-size:11px}.P-xFQa_intro>span:first-child{width:30px;height:30px}.P-xFQa_modes{grid-template-columns:1fr;gap:10px;margin-top:16px}.P-xFQa_modes button{min-height:145px;padding:16px}.P-xFQa_modes button>span{width:26px;height:26px;margin-bottom:9px;font-size:17px}.P-xFQa_modes b{font-size:14px}.P-xFQa_modes em{padding-top:8px}.P-xFQa_workflow{gap:8px;font-size:10px}.P-xFQa_card{padding:15px}.P-xFQa_workspace{width:calc(100% - 28px);padding:20px 0}.P-xFQa_twoColumns{grid-template-columns:1fr}.P-xFQa_stats{grid-template-columns:repeat(2,minmax(0,1fr))}.P-xFQa_stats strong{font-size:24px}.P-xFQa_table{min-width:640px}.P-xFQa_table td,.P-xFQa_table th{padding:10px}.P-xFQa_composerWrap{width:calc(100% - 20px);padding-bottom:8px}.P-xFQa_quickActions{gap:5px}.P-xFQa_quickActions button{padding:5px 6px;font-size:9px}.P-xFQa_composer{border-radius:15px;padding:10px 12px}.P-xFQa_composer>textarea{min-height:58px;font-size:13px}.P-xFQa_composerTools small{display:none}.P-xFQa_composerTools select{max-width:185px}.P-xFQa_error,.P-xFQa_notice{margin:6px 12px;font-size:11px}.P-xFQa_availability{padding:8px 14px}.P-xFQa_proposal{padding:2px 10px}.P-xFQa_proposal summary{flex-wrap:wrap;gap:6px}.P-xFQa_proposal summary strong{flex-basis:60%}.P-xFQa_proposal summary small{padding-left:22px}.P-xFQa_details{grid-template-columns:75px minmax(0,1fr);gap:7px 9px;font-size:11px}.P-xFQa_flowCard{gap:10px;padding:14px}.P-xFQa_stepNumber{width:24px;height:24px}.P-xFQa_flowCard .P-xFQa_sectionHead{margin-bottom:6px}.P-xFQa_flowCard .P-xFQa_toolbar{gap:5px}.P-xFQa_document{padding:22px 18px}.P-xFQa_document h1{font-size:19px}.P-xFQa_document h2{font-size:15px}.P-xFQa_versionRow{flex-wrap:wrap}.P-xFQa_versionRow>div{flex-basis:100%}.P-xFQa_timeline li{flex-direction:column;gap:3px}.P-xFQa_timeline time{width:auto}.P-xFQa_overlay{padding:8px}.P-xFQa_dialog{border-radius:12px;max-height:calc(100dvh - 16px)}.P-xFQa_dialog>header{padding:13px 16px}.P-xFQa_dialogBody{padding:9px 16px 18px}.P-xFQa_dialog>footer{padding:12px 16px}.P-xFQa_dialog>footer>span{display:none}}@media (prefers-reduced-motion:reduce){.P-xFQa_root button,.P-xFQa_modes button{transition:none}.P-xFQa_modes button:hover:not(:disabled){transform:none}.P-xFQa_spinner{animation:none}.P-xFQa_scroll{scroll-behavior:auto}}.P-xFQa_notebook{min-width:0;margin:12px 0}.P-xFQa_guide{background:var(--soft);border-radius:12px;margin:12px 0;padding:16px}.P-xFQa_guide .P-xFQa_toolbar{flex-wrap:wrap}.P-xFQa_guide button[aria-pressed=true]{border-color:var(--accent);color:var(--accent-text)}.P-xFQa_sectionRow{border:1px solid var(--border);background:var(--surface);touch-action:pan-x;border-radius:10px;flex-direction:column;gap:8px;margin:10px 0;padding:12px;transition:transform .15s;display:flex}.P-xFQa_sectionRow[data-dragging=true]{opacity:.55}.P-xFQa_sectionRow[data-target=true]{border-color:var(--accent);box-shadow:0 0 0 2px var(--soft)}.P-xFQa_sectionRow input{flex:1;width:100%}.P-xFQa_notebook select{max-width:100%}@media (width<=600px){.P-xFQa_notebook .P-xFQa_toolbar{flex-wrap:wrap}.P-xFQa_sectionRow{padding:8px}}.P-xFQa_sortPreview{z-index:10001;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid;border-radius:12px;padding:12px 20px;position:fixed;transform:translate(12px,12px);box-shadow:0 8px 30px #0003}.P-xFQa_notebook .P-xFQa_card p{white-space:pre-wrap;overflow-wrap:anywhere}.P-xFQa_notebook .P-xFQa_toolbar{flex-wrap:wrap}@media (prefers-reduced-motion:reduce){.P-xFQa_sectionRow{transition:none}}.P-xFQa_fileDrop{border:1px dashed var(--border);background:var(--soft);overflow-wrap:anywhere;border-radius:12px;margin:12px 0;padding:16px}.P-xFQa_fileDrop[data-dragging=true]{border-color:var(--accent);background:var(--surface)}.P-xFQa_fileDrop small{color:var(--muted);margin-top:8px;display:block}.P-xFQa_projectFiles{flex-direction:column;gap:8px;max-height:220px;margin:12px 0;display:flex;overflow:auto}.P-xFQa_projectFiles label{overflow-wrap:anywhere}";
 		const tagId$3 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/RequirementsAssistant.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$3) + "]") === null) {
 			const tag = document.createElement("style");
@@ -16764,6 +16764,7 @@ window.__ModuleLoader__.load({
 			"error": "P-xFQa_error",
 			"excerpt": "P-xFQa_excerpt",
 			"field": "P-xFQa_field",
+			"fileDrop": "P-xFQa_fileDrop",
 			"filters": "P-xFQa_filters",
 			"flowCard": "P-xFQa_flowCard",
 			"flowDetails": "P-xFQa_flowDetails",
@@ -16777,6 +16778,7 @@ window.__ModuleLoader__.load({
 			"overlay": "P-xFQa_overlay",
 			"primary": "P-xFQa_primary",
 			"progress": "P-xFQa_progress",
+			"projectFiles": "P-xFQa_projectFiles",
 			"proposal": "P-xFQa_proposal",
 			"questionPreview": "P-xFQa_questionPreview",
 			"quickActions": "P-xFQa_quickActions",
@@ -16815,9 +16817,72 @@ window.__ModuleLoader__.load({
 			"workspace": "P-xFQa_workspace"
 		};
 		//#endregion
+		//#region src/client/RequirementsFileDrop.tsx
+		const REQUIREMENT_FILE_ACCEPT = ".txt,.md,.markdown,.py,.ts,.tsx,.js,.jsx,.json,.yaml,.yml,.csv,.html,.css,.bat,.ps1";
+		async function readRequirementFiles(files, max) {
+			const materials = [];
+			for (const file of files) {
+				if (!".txt,.md,.markdown,.py,.ts,.tsx,.js,.jsx,.json,.yaml,.yml,.csv,.html,.css,.bat,.ps1".split(",").some((ext) => file.name.toLowerCase().endsWith(ext))) throw Error(file.name + "：请选择文本或代码文件，其他文档可粘贴原文");
+				if (file.size > max * 4) throw Error(file.name + "：文件过大，每份资料最多 " + max.toLocaleString() + " 字符");
+				const text = await file.text();
+				if (text.includes("\0") || text.includes("�") || text.length > max || !text.trim()) throw Error(file.name + "：请使用非空 UTF-8 文本，每份最多 " + max.toLocaleString() + " 字符");
+				materials.push({
+					name: file.webkitRelativePath || file.name,
+					kind: /\.(md|markdown)$/i.test(file.name) ? "markdown" : "txt",
+					text
+				});
+			}
+			return materials;
+		}
+		function RequirementsFileDrop({ busy, onFiles }) {
+			const picker = (0, react.useRef)(null), [dragging, setDragging] = (0, react.useState)(false);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: RequirementsAssistant_module_css_default.fileDrop,
+				"data-dragging": dragging,
+				"aria-label": "拖入参考资料",
+				"aria-busy": busy,
+				onDragOver: (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					if (!busy) setDragging(true);
+				},
+				onDragLeave: (e) => {
+					if (!e.currentTarget.contains(e.relatedTarget)) setDragging(false);
+				},
+				onDrop: (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					setDragging(false);
+					if (!busy) onFiles(Array.from(e.dataTransfer.files));
+				},
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "拖入文件作为参考资料，或" }),
+					" ",
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						disabled: busy,
+						onClick: () => picker.current?.click(),
+						children: "选择文件（可多选）"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "支持文本和代码文件，不限制文件数量；单份最多 60,000 字符，总正文最多 180,000 字符。" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+						ref: picker,
+						type: "file",
+						"aria-label": "选择参考资料文件",
+						hidden: true,
+						multiple: true,
+						accept: REQUIREMENT_FILE_ACCEPT,
+						onChange: (e) => {
+							if (!busy) onFiles(Array.from(e.target.files ?? []));
+							e.target.value = "";
+						}
+					})
+				]
+			});
+		}
+		//#endregion
 		//#region src/client/RequirementsNotebook.tsx
-		function RequirementsNotebook({ task, busy, mode, view, onCommand, onGuide }) {
-			const [editing, setEditing] = (0, react.useState)(false), [rows, setRows] = (0, react.useState)([]), [projectPath, setProjectPath] = (0, react.useState)(""), [ledger, setLedger] = (0, react.useState)(true), [file, setFile] = (0, react.useState)(""), [step, setStep] = (0, react.useState)(0), [projectOpen, setProjectOpen] = (0, react.useState)(false);
+		function RequirementsNotebook({ task, busy, mode, view, onCommand, onGuide, onFiles }) {
+			const [editing, setEditing] = (0, react.useState)(false), [rows, setRows] = (0, react.useState)([]), [projectPath, setProjectPath] = (0, react.useState)(""), [ledger, setLedger] = (0, react.useState)(true), [files, setFiles] = (0, react.useState)([]), [step, setStep] = (0, react.useState)(0), [projectOpen, setProjectOpen] = (0, react.useState)(false);
 			const baseRevision = (0, react.useRef)(void 0), dialog = (0, react.useRef)(null);
 			(0, react.useEffect)(() => {
 				if (!editing) return;
@@ -16830,6 +16895,7 @@ window.__ModuleLoader__.load({
 				setProjectPath(task?.project?.path ?? "");
 				setLedger(task?.project?.ledger ?? true);
 			}, [task?.project?.path, task?.project?.ledger]);
+			(0, react.useEffect)(() => setFiles([]), [task?.id, task?.project?.path]);
 			const change = (id, patch) => setRows((current) => current.map((r) => r.id === id ? {
 				...r,
 				...patch
@@ -16925,6 +16991,10 @@ window.__ModuleLoader__.load({
 								})
 							]
 						}),
+						onFiles && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RequirementsFileDrop, {
+							busy,
+							onFiles
+						}),
 						task?.project && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 							className: RequirementsAssistant_module_css_default.card,
 							children: [
@@ -16936,25 +17006,27 @@ window.__ModuleLoader__.load({
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 									className: RequirementsAssistant_module_css_default.toolbar,
 									children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-											"aria-label": "项目资料文件",
-											value: file,
-											onChange: (e) => setFile(e.target.value),
-											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-												value: "",
-												children: "选择相关文件"
-											}), task.project.files.map((p) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-												value: p,
-												children: p
-											}, p))]
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+											className: RequirementsAssistant_module_css_default.check,
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
+												"aria-label": "选择全部项目文件",
+												checked: task.project.files.length > 0 && task.project.files.every((p) => files.includes(p)),
+												onChange: (e) => setFiles(e.target.checked ? task.project.files : [])
+											}), "全选"]
 										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											disabled: busy || !file,
-											onClick: () => void onCommand({
-												type: "project.import",
-												path: file
-											}),
-											children: "读取为参考资料"
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+											disabled: busy || !files.length,
+											onClick: async () => {
+												if (await onCommand({
+													type: "project.importMany",
+													paths: files
+												})) setFiles([]);
+											},
+											children: [
+												"读取选中文件（",
+												files.length,
+												"）"
+											]
 										}),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											disabled: busy,
@@ -16963,7 +17035,18 @@ window.__ModuleLoader__.load({
 										})
 									]
 								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [task.project.path, " · 已导入的资料参与分析"] })
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+									className: RequirementsAssistant_module_css_default.projectFiles,
+									children: task.project.files.map((p) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+										className: RequirementsAssistant_module_css_default.check,
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
+											"aria-label": "选择项目文件 " + p,
+											checked: files.includes(p),
+											onChange: (e) => setFiles((current) => e.target.checked ? [...current, p] : current.filter((x) => x !== p))
+										}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: p })]
+									}, p))
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [task.project.path, " · 支持多选，已导入资料参与分析"] })
 							]
 						}),
 						mode === "guided" && current && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -17820,32 +17903,27 @@ window.__ModuleLoader__.load({
 					showWork();
 				}
 			}
-			async function importFile(file) {
-				if (!file) return;
-				if (!/\.(txt|md|markdown)$/i.test(file.name)) {
-					setError("第一版支持 TXT 和 Markdown 文件，请将其他文档中的文字粘贴到资料页。");
-					return;
-				}
-				const max = availability?.maxTextChars ?? 1e5;
-				if (file.size > max * 4) {
-					setError(`文件过大，请拆成不超过 ${max.toLocaleString()} 字符的资料。`);
-					return;
-				}
+			async function importFiles(files) {
+				if (!files.length || busyRef.current || running) return;
+				const current = await ensureTask();
+				if (!current) return;
+				busyRef.current = true;
+				setBusy(true);
+				setError("");
+				setNotice("");
 				try {
-					const text = await file.text();
-					if (text.includes("\0") || text.length > max) throw new Error(`请使用 UTF-8 文本文件，每份不超过 ${max.toLocaleString()} 字符。`);
-					setEditor({
-						kind: "material",
-						value: {
-							name: file.name,
-							kind: /\.txt$/i.test(file.name) ? "txt" : "markdown",
-							text
-						}
+					const materials = await readRequirementFiles(files, availability?.maxTextChars ?? 6e4);
+					const latest = await commandRequirementTask(current.id, current.revision, {
+						type: "materials.import",
+						materials
 					});
-					setTab("workspace");
-					setWorkspace("materials");
+					acceptTask(latest);
+					setNotice("已处理 " + files.length + " 个文件，相同内容自动跳过；可在资料页查看和编辑。");
 				} catch (e) {
-					setError(e instanceof Error ? e.message : String(e));
+					setError((e instanceof Error ? e.message : String(e)) + "；本批文件未导入，请调整后重试。");
+				} finally {
+					busyRef.current = false;
+					if (mounted.current) setBusy(false);
 				}
 			}
 			function openEditor(kind, object) {
@@ -18404,6 +18482,7 @@ window.__ModuleLoader__.load({
 				mode,
 				busy: busy || !!running,
 				view: "setup",
+				onFiles: importFiles,
 				onCommand: notebookCommand,
 				onGuide: (instruction) => void run("clarify", instruction)
 			});
@@ -18551,7 +18630,7 @@ window.__ModuleLoader__.load({
 									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 										onClick: () => fileInput.current?.click(),
-										children: "添加 TXT / Markdown"
+										children: "选择文件（可多选）"
 									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 										onClick: () => openEditor("requirement"),
@@ -18601,7 +18680,7 @@ window.__ModuleLoader__.load({
 										}),
 										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											onClick: () => fileInput.current?.click(),
-											children: "添加 TXT / Markdown"
+											children: "选择文件（可多选）"
 										}),
 										task.materials.some((m) => !m.removed) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 											className: RequirementsAssistant_module_css_default.primary,
@@ -18753,75 +18832,82 @@ window.__ModuleLoader__.load({
 					})]
 				})
 			] });
-			const materialsView = task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-				className: RequirementsAssistant_module_css_default.sectionHead,
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "资料" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "为每条需求保留可追溯的原文依据。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-					className: RequirementsAssistant_module_css_default.toolbar,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						onClick: () => fileInput.current?.click(),
-						children: "添加文本文件"
-					}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						className: RequirementsAssistant_module_css_default.primary,
-						onClick: () => openEditor("material"),
-						children: "＋ 粘贴资料"
-					})]
-				})]
-			}), !task.materials.length ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Empty, {
-				title: "还没有添加资料",
-				children: "粘贴业务描述、会议纪要，或导入 TXT、Markdown 文件。"
-			}) : task.materials.map((material) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
-				className: `${RequirementsAssistant_module_css_default.card} ${material.removed ? RequirementsAssistant_module_css_default.dimmed : ""}`,
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+			const materialsView = task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RequirementsFileDrop, {
+					busy: busy || !!running,
+					onFiles: importFiles
+				}),
+				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: RequirementsAssistant_module_css_default.sectionHead,
-					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: material.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-						material.kind === "text" ? "粘贴文本" : material.kind.toUpperCase(),
-						" · 修订 ",
-						material.revision,
-						" · ",
-						material.text.length.toLocaleString(),
-						" 字符 · ",
-						requirements.reduce((n, r) => n + r.sources.filter((ref) => ref.materialId === material.id).length, 0),
-						" 处需求引用",
-						material.removed && " · 已移除"
-					] })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h2", { children: "资料" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "为每条需求保留可追溯的原文依据。" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: RequirementsAssistant_module_css_default.toolbar,
-						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								onClick: () => openEditor("material", material),
-								children: "查看 / 编辑"
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								disabled: busy || running || material.removed,
-								onClick: () => {
-									setContext("");
-									run("analyze", `请重新整理资料「${material.name}」（${material.id}）的需求和问题，核对当前已有条目，提出有原文依据的新增或修改建议。`, "");
-								},
-								children: "重新整理"
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								disabled: busy,
-								onClick: () => material.removed ? void command({
-									type: "material.remove",
-									id: material.id,
-									removed: false
-								}, "资料已恢复。") : setConfirm({
-									title: "从本次分析移除资料",
-									detail: "移除后不再用于后续分析。已有需求的引用和原文修订保留，可在这里恢复。",
-									command: {
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							onClick: () => fileInput.current?.click(),
+							children: "选择文件（可多选）"
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: RequirementsAssistant_module_css_default.primary,
+							onClick: () => openEditor("material"),
+							children: "＋ 粘贴资料"
+						})]
+					})]
+				}),
+				!task.materials.length ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Empty, {
+					title: "还没有添加资料",
+					children: "粘贴业务描述、会议纪要，或导入 TXT、Markdown 文件。"
+				}) : task.materials.map((material) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+					className: `${RequirementsAssistant_module_css_default.card} ${material.removed ? RequirementsAssistant_module_css_default.dimmed : ""}`,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: RequirementsAssistant_module_css_default.sectionHead,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: material.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+							material.kind === "text" ? "粘贴文本" : material.kind.toUpperCase(),
+							" · 修订 ",
+							material.revision,
+							" · ",
+							material.text.length.toLocaleString(),
+							" 字符 · ",
+							requirements.reduce((n, r) => n + r.sources.filter((ref) => ref.materialId === material.id).length, 0),
+							" 处需求引用",
+							material.removed && " · 已移除"
+						] })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: RequirementsAssistant_module_css_default.toolbar,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									onClick: () => openEditor("material", material),
+									children: "查看 / 编辑"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									disabled: busy || running || material.removed,
+									onClick: () => {
+										setContext("");
+										run("analyze", `请重新整理资料「${material.name}」（${material.id}）的需求和问题，核对当前已有条目，提出有原文依据的新增或修改建议。`, "");
+									},
+									children: "重新整理"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									disabled: busy,
+									onClick: () => material.removed ? void command({
 										type: "material.remove",
 										id: material.id,
-										removed: true
-									}
-								}),
-								children: material.removed ? "恢复资料" : "移除"
-							})
-						]
+										removed: false
+									}, "资料已恢复。") : setConfirm({
+										title: "从本次分析移除资料",
+										detail: "移除后不再用于后续分析。已有需求的引用和原文修订保留，可在这里恢复。",
+										command: {
+											type: "material.remove",
+											id: material.id,
+											removed: true
+										}
+									}),
+									children: material.removed ? "恢复资料" : "移除"
+								})
+							]
+						})]
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						className: RequirementsAssistant_module_css_default.excerpt,
+						children: [material.text.slice(0, 260), material.text.length > 260 && "…"]
 					})]
-				}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-					className: RequirementsAssistant_module_css_default.excerpt,
-					children: [material.text.slice(0, 260), material.text.length > 260 && "…"]
-				})]
-			}, material.id))] });
+				}, material.id))
+			] });
 			const filteredRequirements = (task?.requirements ?? []).filter((r) => statusFilter === "removed" ? r.removed : !r.removed && (statusFilter === "all" || r.status === statusFilter)).filter((r) => `${r.number} ${r.title} ${r.module} ${r.description}`.toLowerCase().includes(search.toLowerCase()));
 			const requirementsView = task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -19528,7 +19614,7 @@ window.__ModuleLoader__.load({
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 										disabled: busy,
 										onClick: () => fileInput.current?.click(),
-										children: "添加 TXT / Markdown"
+										children: "选择文件（可多选）"
 									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 										className: RequirementsAssistant_module_css_default.primary,
@@ -19686,9 +19772,10 @@ window.__ModuleLoader__.load({
 						ref: fileInput,
 						type: "file",
 						hidden: true,
-						accept: ".txt,.md,.markdown,text/plain,text/markdown",
+						multiple: true,
+						accept: REQUIREMENT_FILE_ACCEPT,
 						onChange: (e) => {
-							importFile(e.target.files?.[0]);
+							importFiles(Array.from(e.target.files ?? []));
 							e.target.value = "";
 						}
 					}),

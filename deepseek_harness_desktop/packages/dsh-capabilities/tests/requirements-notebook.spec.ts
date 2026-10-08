@@ -16,6 +16,21 @@ async function setup(model=async(_prompt:string)=>JSON.stringify({summary:'已�
  return {root,project,service,task,command}
 }
 async function finish(service:RequirementsService,id:string){for(let i=0;i<100;i++){const t=await service.get(id);if(t.run?.status!=='running')return t;await new Promise(r=>setTimeout(r,5))}throw Error('timeout')}
+it('imports more than 100 materials atomically, deduplicates and preserves replaced revisions',async()=>{
+ const e=await setup(),materials=Array.from({length:205},(_,i)=>({name:`file${i}.py`,kind:'txt' as const,text:`print(${i})`}))
+ let t=await e.command(e.task,{type:'materials.import',materials});expect(t.materials).toHaveLength(205)
+ t=await e.command(t,{type:'materials.import',materials});expect(t.materials).toHaveLength(205);expect(t.materials[0].revision).toBe(1)
+ t=await e.command(t,{type:'materials.import',materials:[{...materials[0],text:'print("changed")'}]});expect(t.materials[0].history[0].text).toBe('print(0)');expect(t.materials[0].revision).toBe(2)
+ await expect(e.command(t,{type:'materials.import',materials:[{name:'valid.txt',kind:'txt',text:'new content'},{name:'invalid.txt',kind:'txt',text:'\0'}]})).rejects.toThrow()
+ expect((await e.service.get(t.id)).materials).toEqual(t.materials)
+})
+it('lists over 400 project files and imports multiple selected paths in one command',async()=>{
+ const e=await setup();for(let i=0;i<405;i++)await writeFile(join(e.project,`f${i}.py`),`print(${i})`)
+ let t=await e.command(e.task,{type:'project.attach',path:e.project,ledger:false});expect(t.project?.files).toHaveLength(405)
+ t=await e.command(t,{type:'project.importMany',paths:['f0.py','f404.py']});expect(t.materials.map(x=>x.name)).toEqual(['f0.py','f404.py'])
+ await expect(e.command(t,{type:'project.importMany',paths:['f1.py','../outside.py']})).rejects.toThrow('请选择')
+ expect((await e.service.get(t.id)).materials).toEqual(t.materials)
+})
 it('shares selected, custom and reordered sections across modes, preserving deselected and explicitly cleared content',async()=>{
  const e=await setup();expect(e.task.mode).toBe('quick');expect(e.task.sections?.filter(s=>s.enabled)).toHaveLength(6)
  let t=await e.command(e.task,{type:'save',overview:{...e.task.overview,background:'旧背景'}})

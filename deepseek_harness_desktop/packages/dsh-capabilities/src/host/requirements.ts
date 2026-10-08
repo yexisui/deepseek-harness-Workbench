@@ -220,6 +220,16 @@ export class RequirementsService {
       if(blocking.length) throw new InputError(`${r.number} 仍有关键问题待处理：${blocking.map(q=>q.number).join('、')}`)
     }
   }
+  private importMaterial(task:RequirementTask,raw:unknown) {
+    const m=object(raw),name=text(m.name,'资料名称',2000,true),content=text(m.text,'资料正文',MAX_TEXT,true)
+    if(content.includes('\0'))throw new InputError(name+'：请选择文本资料')
+    const kind=enumValue(m.kind,['text','txt','markdown'],'text')
+    if(task.materials.some(x=>!x.removed&&x.text===content))return
+    const old=task.materials.find(x=>!x.removed&&x.name===name)
+    if(task.materials.filter(x=>!x.removed&&x.id!==old?.id).reduce((n,x)=>n+x.text.length,content.length)>MAX_TOTAL)throw new InputError('资料总正文超过 180000 字符，请选择相关片段；本批文件尚未导入')
+    if(old){old.history.push({revision:old.revision,text:old.text,name:old.name});old.text=content;old.kind=kind;old.revision++;for(const r of task.requirements)if(r.status==='confirmed'&&r.sources.some(s=>s.materialId===old.id))r.status='review'}
+    else task.materials.push({id:randomUUID(),name,kind,text:content,revision:1,history:[]})
+  }
   private upsert<T extends {id:string}>(rows:T[],value:T) { const at=rows.findIndex(r=>r.id===value.id); if(at<0) rows.push(value); else rows[at]=value }
   async command(id:string, revision:unknown, raw:unknown):Promise<RequirementTask> {
     return this.serialized(async()=>{
@@ -249,7 +259,7 @@ export class RequirementsService {
           for(const name of ['AGENTS.md','README.md',task.project.ledgerName]) {
             const entry=task.project.files.find(p=>p.toLowerCase()===name.toLowerCase());if(!entry)continue
             const content=await projectFile(task.project,entry).catch(()=>undefined)
-            if(content!==undefined&&content.length<=24000&&task.materials.length<100&&task.materials.filter(m=>!m.removed).reduce((n,m)=>n+m.text.length,content.length)<=MAX_TOTAL&&!task.materials.some(m=>m.name===entry&&m.text===content))task.materials.push({id:randomUUID(),name:entry,kind:'markdown',text:content,revision:1,history:[]})
+            if(content!==undefined&&content.length<=24000&&task.materials.filter(m=>!m.removed).reduce((n,m)=>n+m.text.length,content.length)<=MAX_TOTAL&&!task.materials.some(m=>m.name===entry&&m.text===content))task.materials.push({id:randomUUID(),name:entry,kind:'markdown',text:content,revision:1,history:[]})
           }
           this.event(task,'material','关联项目：'+task.project.path);break
         }
@@ -258,15 +268,20 @@ export class RequirementsService {
           if(!task.project)throw new InputError('请先关联项目')
           task.project.files=await projectFiles(task.project.path);this.event(task,'change','刷新项目文件与台账');break
         }
-        case 'project.import': {
-          if(!task.project||!task.project.files.includes(c.path))throw new InputError('请选择关联项目中的文件')
-          const content=await projectFile(task.project,c.path)
-          const old=task.materials.find(m=>m.name===c.path&&!m.removed)
-          if(!old&&task.materials.length>=100)throw new InputError('资料数量已达到本任务上限')
-          if(content.length>MAX_TEXT||task.materials.filter(m=>!m.removed&&m.id!==old?.id).reduce((n,m)=>n+m.text.length,content.length)>MAX_TOTAL)throw new InputError('资料过长，请选择相关片段')
-          if(old){old.history.push({revision:old.revision,text:old.text,name:old.name});old.text=content;old.revision++;for(const r of task.requirements)if(r.status==='confirmed'&&r.sources.some(s=>s.materialId===old.id))r.status='review'}
-          else task.materials.push({id:randomUUID(),name:c.path,kind:'text',text:content,revision:1,history:[]})
-          this.event(task,'material','读取项目资料：'+c.path);break
+        case 'project.import':
+        case 'project.importMany': {
+          if(!task.project)throw new InputError('请先关联项目')
+          const paths=c.type==='project.import'?[c.path]:array(c.paths,Infinity).map(p=>text(p,'文件路径',2000,true))
+          for(const path of new Set(paths)) {
+            if(!task.project.files.includes(path))throw new InputError('请选择关联项目中的文件')
+            this.importMaterial(task,{name:path,kind:'text',text:await projectFile(task.project,path)})
+          }
+          this.event(task,'material','读取项目资料：'+[...new Set(paths)].join('、'));break
+        }
+        case 'materials.import': {
+          const materials=array(c.materials,Infinity)
+          for(const material of materials)this.importMaterial(task,material)
+          this.event(task,'material','导入 '+materials.length+' 份资料（相同内容自动跳过）');break
         }
 
         case 'save': {
@@ -290,7 +305,7 @@ export class RequirementsService {
           if(task.materials.filter(x=>!x.removed&&x.id!==m.id).reduce((sum,x)=>sum+x.text.length,content.length)>MAX_TOTAL)throw new InputError('本次资料超过 180000 字符，请拆成多个分析任务')
           if(task.materials.some(x=>!x.removed&&x.id!==m.id&&x.text===content))throw new InputError('相同资料已经存在，请编辑已有资料')
           if(existing){existing.history.push({revision:existing.revision,text:existing.text,name:existing.name});existing.text=content;existing.name=name;existing.kind=kind;existing.revision++;for(const r of task.requirements)if(r.status==='confirmed'&&r.sources.some(s=>s.materialId===existing.id))r.status='review'}
-          else {if(task.materials.length>=100)throw new InputError('资料数量已达到本任务上限');task.materials.push({id:randomUUID(),name,kind,text:content,revision:1,history:[]})}
+          else {task.materials.push({id:randomUUID(),name,kind,text:content,revision:1,history:[]})}
           if(['新需求分析','新的需求分析'].includes(task.title))task.title=name.slice(0,120)
           this.event(task,'material',`${existing?'更新':'添加'}资料：${name}`,existing?.id);break
         }

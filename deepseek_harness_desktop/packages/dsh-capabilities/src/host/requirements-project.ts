@@ -18,7 +18,6 @@ export async function projectFiles(root:string) {
   const files:string[]=[]
   async function visit(dir:string,depth:number){
     for(const entry of await readdir(dir,{withFileTypes:true})){
-      if(files.length>=400)return
       if(entry.isSymbolicLink()||omitted.has(entry.name)||entry.name.startsWith('.'))continue
       const file=join(dir,entry.name)
       if(entry.isDirectory()&&depth<3)await visit(file,depth+1)

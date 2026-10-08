@@ -63,6 +63,8 @@ export type RequirementCommand =
   | { type: 'project.detach' }
   | { type: 'project.refresh' }
   | { type: 'project.import'; path: string }
+  | { type: 'project.importMany'; paths: string[] }
+  | { type: 'materials.import'; materials: Pick<RequirementMaterial, 'name' | 'kind' | 'text'>[] }
   | { type: 'save'; title?: string; overview?: RequirementOverview; settings?: RequirementSettings; draft?: string; mode?: 'quick' | 'guided' }
   | { type: 'material.save'; material: Partial<RequirementMaterial> & { name: string; kind: RequirementMaterial['kind']; text: string } }
   | { type: 'material.remove'; id: string; removed: boolean }
