@@ -63,6 +63,7 @@ export function catalogFor(state: State): readonly Component[] {
   const extra = new Map<string, Component>()
   for (const release of Object.values(state.packageReleases ?? {})) {
     const m = release.manifest, scope = state.capabilities.filter(c => c.packageOrigin?.id === m.id).map(c => c.id)
+    if (!scope.length) continue
     for (const part of m.components) {
       const id = packageComponentId(m.id, part.id), old = extra.get(id)
       extra.set(id, { id, name: part.name, provider: m.id, version: m.version, actions: [...new Set([...(old?.actions ?? []), ...part.actions.map(a => packageActionId(m.id, part.id, a.id))])], actionLabels: { ...old?.actionLabels, ...Object.fromEntries(part.actions.map(a => [packageActionId(m.id, part.id, a.id), a.name])) }, dependencies: [], icon: 'document', sourceLabel: m.author, management: 'package', capabilityIds: scope, compositionVersion: 2 })

@@ -1824,6 +1824,7 @@ function readDirectory(bytes) {
 		} catch {
 			fail("unsupported-zip", "ZIP filenames must use UTF-8. Export the ZIP with UTF-8 filenames.");
 		}
+		decoded = decoded.replaceAll("\\", "/");
 		const directory = decoded.endsWith("/");
 		const name = safeLocalPath(directory ? decoded.slice(0, -1) : decoded);
 		if (((mode & 61440) === 16384 || (attrs & 16) !== 0) && !directory) fail("invalid-zip", "ZIP directory attributes conflict with the filename.");

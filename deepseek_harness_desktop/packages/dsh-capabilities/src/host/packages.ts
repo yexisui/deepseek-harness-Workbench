@@ -1,6 +1,6 @@
 import { loadPackageProvider } from './package-provider.ts'
 import { randomUUID } from 'node:crypto'
-import { mkdir, open, readFile, rename, rm, stat } from 'node:fs/promises'
+import { mkdir, readdir, open, readFile, rename, rm, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { catalogFor, definitionChanged, digestPattern, packageDefinition, packageTrust, type PackageHealth, type PackagePreview } from '../core/distribution.ts'
 import { latest, type State, type Version } from '../core/model.ts'
@@ -81,6 +81,15 @@ export class CapabilityPackages {
       if (!u.checked) {
         let root = u.directory
         if (u.kind === 'zip') { root = join(u.directory,'unpacked'); plainMkdir(root); extractLocalZip(join(u.directory,'ability.zip'),root) }
+        // Accept the single enclosing folder created by common ZIP tools.
+        if (u.kind === 'zip') {
+          for (;;) {
+            const entries = await readdir(root, { withFileTypes: true })
+            if (entries.some(e => e.name === 'capability.json')) break
+            if (entries.length !== 1 || !entries[0]!.isDirectory()) break
+            root = join(root, entries[0]!.name)
+          }
+        }
         u.checked = await checkPackage(root, u.kind === 'folder')
       }
       return this.preview(token, u.checked)
@@ -88,8 +97,6 @@ export class CapabilityPackages {
   }
   private preview(token: string, pack: CheckedPackage): PackagePreview {
     const state = this.store.snapshot(), m = pack.manifest, existing = state.capabilities.find(c => c.packageOrigin?.id === m.id), previous = existing && latest(existing.versions), release = previous?.packageHash && state.packageReleases?.[previous.packageHash]
-    const collision = Object.values(state.packageReleases ?? {}).find(r => r.manifest.id === m.id && r.manifest.version === m.version && r.hash !== pack.hash)
-    if (collision) throw new InputError('同一作品版本已有不同内容，请制作者提升版本号后重新导出',409)
     const changes: string[] = []
     if (previous) {
       if (previous.name !== m.name) changes.push(`名称：${previous.name} → ${m.name}`)
@@ -99,7 +106,7 @@ export class CapabilityPackages {
       if (previous.description !== m.description || previous.instructions !== m.instructions) changes.push('用途或使用说明已更新')
     }
     return { token, hash: pack.hash, manifest: m, bytes:pack.bytes, fileCount:pack.files.size, revision:state.revision, needsModel:m.permissions.includes('model') && !this.model(existing?.id ?? ''), trust:packageTrust,
-      ...(existing ? { existing: { id:existing.id, name:existing.draft.name, duplicate:existing.versions.some(v=>v.packageHash===pack.hash), removed:!!existing.removedAt, draftChanged:definitionChanged(existing.draft,previous), version:release ? release.manifest.version : '', changes } } : {}) }
+      ...(existing ? { existing: { id:existing.id, name:existing.draft.name, duplicate:previous?.packageHash===pack.hash, removed:!!existing.removedAt, draftChanged:definitionChanged(existing.draft,previous), version:release ? release.manifest.version : '', changes } } : {}) }
   }
   model(capabilityId: string, state = this.store.snapshot()) { try { return this.resolveModel(state.packageModels?.[capabilityId] ?? '') } catch { return '' } }
   directory(hash: string) { if (!digestPattern.test(hash)) throw new InputError('能力内容摘要无效'); return join(this.root,'releases',hash) }

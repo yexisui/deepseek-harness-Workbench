@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "protocol": "dsh-worker-v1",
+  "id": "workbench.audio-segment-location",
+  "version": "1.0.0",
+  "name": "录音分段定位",
+  "description": "优先按停顿分段，提供片段级回听。复用会议转写模型，不需要额外 Key。",
+  "instructions": "添加到会议纪要助手后用于后续录音处理。定位到片段起点，不代表逐句精确时间。独立运行可输入 JSON：{\"duration\":60,\"silences\":[{\"start\":21,\"end\":22}]} 查看分段计划。",
+  "author": "工作台",
+  "license": "MIT",
+  "permissions": ["node"],
+  "components": [{"id":"segmenter","name":"录音分段策略","entry":"runtime/main.cjs","actions":[{"id":"plan-audio-segments","name":"规划录音分段","description":"接收音频时长和停顿区间，返回连续覆盖录音的分段计划；音频处理和转写由工作台提供。"}]}],
+  "files": {"runtime/main.cjs":"auto","docs/README.txt":"auto"}
+}

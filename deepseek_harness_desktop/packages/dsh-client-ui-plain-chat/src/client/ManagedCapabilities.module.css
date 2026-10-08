@@ -127,3 +127,8 @@
  .detailIdentity { max-width:100%; }
 }
 
+
+.importDrop { border:1px dashed var(--role-border); border-radius:12px; padding:20px; min-width:0; }
+.importDrop[data-dragging] { border-color:var(--role-accent,#5863b0); background:var(--role-selected,#5863b015); }
+.importFile { overflow-wrap:anywhere; margin:0 0 16px; }
+.importButtons { display:flex; flex-wrap:wrap; gap:8px; }

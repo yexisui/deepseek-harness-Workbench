@@ -770,6 +770,7 @@ function catalogFor(state) {
 	const extra = /* @__PURE__ */ new Map();
 	for (const release of Object.values(state.packageReleases ?? {})) {
 		const m = release.manifest, scope = state.capabilities.filter((c) => c.packageOrigin?.id === m.id).map((c) => c.id);
+		if (!scope.length) continue;
 		for (const part of m.components) {
 			const id = packageComponentId(m.id, part.id), old = extra.get(id);
 			extra.set(id, {
@@ -8575,6 +8576,7 @@ function readDirectory(bytes) {
 		} catch {
 			fail("unsupported-zip", "ZIP filenames must use UTF-8. Export the ZIP with UTF-8 filenames.");
 		}
+		decoded = decoded.replaceAll("\\", "/");
 		const directory = decoded.endsWith("/");
 		const name = safeLocalPath(directory ? decoded.slice(0, -1) : decoded);
 		if (((mode & 61440) === 16384 || (attrs & 16) !== 0) && !directory) fail("invalid-zip", "ZIP directory attributes conflict with the filename.");
@@ -8666,7 +8668,7 @@ async function checkPackage(root, development = false) {
 	if ((all.find((f) => f.rel === "capability.json")?.bytes ?? Infinity) > 256 * 1024) throw new InputError("根目录需要有效的 capability.json（最多 256 KiB）");
 	let raw;
 	try {
-		raw = object(JSON.parse(await readFile(join(root, "capability.json"), "utf8")));
+		raw = object(JSON.parse((await readFile(join(root, "capability.json"), "utf8")).replace(/^\uFEFF/, "")));
 	} catch {
 		throw new InputError("capability.json 不是有效的 JSON 对象");
 	}
@@ -9537,6 +9539,12 @@ var CapabilityPackages = class {
 					plainMkdir(root);
 					extractLocalZip(join(u.directory, "ability.zip"), root);
 				}
+				if (u.kind === "zip") for (;;) {
+					const entries = await readdir(root, { withFileTypes: true });
+					if (entries.some((e) => e.name === "capability.json")) break;
+					if (entries.length !== 1 || !entries[0].isDirectory()) break;
+					root = join(root, entries[0].name);
+				}
 				u.checked = await checkPackage(root, u.kind === "folder");
 			}
 			return this.preview(token, u.checked);
@@ -9546,7 +9554,6 @@ var CapabilityPackages = class {
 	}
 	preview(token, pack) {
 		const state = this.store.snapshot(), m = pack.manifest, existing = state.capabilities.find((c) => c.packageOrigin?.id === m.id), previous = existing && latest(existing.versions), release = previous?.packageHash && state.packageReleases?.[previous.packageHash];
-		if (Object.values(state.packageReleases ?? {}).find((r) => r.manifest.id === m.id && r.manifest.version === m.version && r.hash !== pack.hash)) throw new InputError("同一作品版本已有不同内容，请制作者提升版本号后重新导出", 409);
 		const changes = [];
 		if (previous) {
 			if (previous.name !== m.name) changes.push(`名称：${previous.name} → ${m.name}`);
@@ -9567,7 +9574,7 @@ var CapabilityPackages = class {
 			...existing ? { existing: {
 				id: existing.id,
 				name: existing.draft.name,
-				duplicate: existing.versions.some((v) => v.packageHash === pack.hash),
+				duplicate: previous?.packageHash === pack.hash,
 				removed: !!existing.removedAt,
 				draftChanged: definitionChanged(existing.draft, previous),
 				version: release ? release.manifest.version : "",

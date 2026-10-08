@@ -30,6 +30,18 @@ async function install(env:Awaited<ReturnType<typeof environment>>,version='1.0.
 const action=packageActionId('org.example.text','text','convert')
 
 describe('portable capability distribution',()=>{
+  it('imports Windows ZIP separators, a wrapper directory and a UTF-8 BOM',async()=>{
+    const env=await environment(),pack=await fixture(env.root)
+    const files=new Map([...pack.files].map(([p,b])=>['delivery/'+p,p==='capability.json'?Buffer.concat([Buffer.from([239,187,191]),b]):b]))
+    const zip=packageZip(files)
+    // Alter only filename bytes in local and central records; file CRCs stay intact.
+    for(const name of files.keys()){
+      const from=Buffer.from(name),to=Buffer.from(name.replaceAll('/',String.fromCharCode(92)))
+      let at=zip.indexOf(from);while(at>=0){to.copy(zip,at);at=zip.indexOf(from,at+to.length)}
+    }
+    const p=await upload(env.packs,zip),result=await env.packs.install(p.token,p.hash,p.revision,{trusted:true})
+    expect(await(await env.runner.start(result.id,1,action,'windows')).done).toBe('V1:WINDOWS')
+  })
   it('rejects a provider that cannot load before authority commit and serializes asset rollback against a retry',async()=>{
     const env=await environment(),invalid=await fixture(env.root,'0.1.0','exports.execute=42'),bad=await upload(env.packs,packageZip(invalid.files)),before=env.store.snapshot()
     await expect(env.packs.install(bad.token,bad.hash,bad.revision,{trusted:true})).rejects.toThrow('execute')
@@ -129,9 +141,15 @@ describe('portable capability distribution',()=>{
     const refreshed=await env.packs.inspect(preview.token)
     await expect(env.packs.install(refreshed.token,refreshed.hash,refreshed.revision,{trusted:true})).resolves.toMatchObject({duplicate:false})
   })
-  it('blocks tampering, unknown protocols, conflicting version content and ZIP traversal',async()=>{
+  it('allows same-version updates and blocks tampering, unknown protocols and ZIP traversal',async()=>{
     const env=await environment(),installed=await install(env),pack=await fixture(env.root,'1.0.0',"exports.execute=async()=>42")
-    await expect(upload(env.packs,packageZip(pack.files))).rejects.toThrow('同一作品版本')
+    const updated=await upload(env.packs,packageZip(pack.files))
+    const result=await env.packs.install(updated.token,updated.hash,updated.revision,{trusted:true,draft:'keep'})
+    expect(result.id).toBe(installed.id)
+    expect(env.store.snapshot().capabilities.filter(c=>c.packageOrigin)).toHaveLength(1)
+    expect(await(await env.runner.start(installed.id,2,action,'')).done).toBe(42)
+    const duplicate=await env.packs.install(updated.token,updated.hash,env.store.snapshot().revision,{trusted:true})
+    expect(duplicate.duplicate).toBe(true)
     const corrupt=await fixture(env.root,'3.0.0');corrupt.files.set('runtime/main.cjs',Buffer.from('tampered'))
     await expect(upload(env.packs,packageZip(corrupt.files))).rejects.toThrow('文件校验失败')
     expect(()=>packageZip(new Map([['../escape',Buffer.from('no')]]))).toThrow()
@@ -139,9 +157,9 @@ describe('portable capability distribution',()=>{
     // Release finished upload sessions before another one (the bound is intentional).
     await env.packs.discard(installed.preview.token)
     await expect(upload(env.packs,packageZip(wrong.files))).rejects.toThrow('不支持此能力包协议')
-    await writeFile(join(env.packs.directory(installed.pack.hash),'runtime/main.cjs'),'exports.execute=()=>"changed"')
-    await expect((await env.runner.start(installed.id,1,action,'')).done).rejects.toThrow('校验失败')
-    await expect(env.packs.exportInstalled(installed.id,1)).rejects.toThrow('文件校验失败')
+    await writeFile(join(env.packs.directory(pack.hash),'runtime/main.cjs'),'exports.execute=()=>"changed"')
+    await expect((await env.runner.start(installed.id,2,action,'')).done).rejects.toThrow('校验失败')
+    await expect(env.packs.exportInstalled(installed.id,2)).rejects.toThrow('文件校验失败')
   })
   it('keeps incomplete drafts private, blocks invalid publication, and protects historical role references',async()=>{
     const env=await environment(),installed=await install(env),cap=env.store.snapshot().capabilities.find(c=>c.id===installed.id)!

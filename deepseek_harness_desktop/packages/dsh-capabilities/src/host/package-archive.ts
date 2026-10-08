@@ -20,7 +20,7 @@ export async function checkPackage(root: string, development = false): Promise<C
   if (all.length > 501 || all.reduce((n,f) => n + f.bytes, 0) > packageLimit) throw new InputError('能力包最多 500 个交付文件、64 MiB', 413)
   if ((all.find(f => f.rel === 'capability.json')?.bytes ?? Infinity) > 256 * 1024) throw new InputError('根目录需要有效的 capability.json（最多 256 KiB）')
   let raw: Record<string,unknown>
-  try { raw = object(JSON.parse(await readFile(join(root, 'capability.json'), 'utf8'))) } catch { throw new InputError('capability.json 不是有效的 JSON 对象') }
+  try { raw = object(JSON.parse((await readFile(join(root, 'capability.json'), 'utf8')).replace(/^\uFEFF/, ''))) } catch { throw new InputError('capability.json 不是有效的 JSON 对象') }
   const declared = object(raw.files), paths = new FilePaths(), files = new Map<string,Buffer>()
   paths.add('capability.json')
   for (const rel of Object.keys(declared).sort()) {

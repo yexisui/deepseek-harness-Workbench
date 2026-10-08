@@ -18,8 +18,8 @@ const button=(name:string)=>Array.from(document.querySelectorAll<HTMLButtonEleme
 async function click(name:string){expect(button(name),name).toBeTruthy();await act(async()=>button(name).click())}
 async function waitFor(test:()=>unknown){for(let i=0;i<80;i++){if(test())return;await act(async()=>{await new Promise(resolve=>setTimeout(resolve,10))})};expect(test()).toBeTruthy()}
 function delivery(model=false){const code=Buffer.from('exports.execute=async({input})=>input');const m={schema:1,protocol:'dsh-worker-v1',id:'org.example.ui',version:'1.0.0',name:'文字整理',description:'整理输入内容',instructions:'输入文字运行',author:'UI制作者',license:'MIT',permissions:model?['node','model']:['node'],components:[{id:'text',name:'外部文字组件',entry:'runtime/main.cjs',actions:[{id:'process',name:'整理文字',description:'输入文字并获取结果'}]}],files:{'runtime/main.cjs':sha256(code)}};return new Map([['capability.json',Buffer.from(JSON.stringify(m))],['runtime/main.cjs',code]])}
-async function selectFile(files:NodeFile[]){const input=document.querySelector<HTMLInputElement>('input[type=file]')!;Object.defineProperty(input,'files',{configurable:true,value:files});await act(async()=>input.dispatchEvent(new Event('change',{bubbles:true})));await waitFor(()=>!!document.querySelector('[aria-label="能力包预览"]')||!!document.querySelector('[role=alert]'))}
-async function trust(){const input=Array.from(document.querySelectorAll<HTMLInputElement>('input[type=checkbox]')).find(n=>n.parentElement?.textContent?.includes('我信任'))!;expect(input).toBeTruthy();await act(async()=>input.click())}
+async function selectFile(files:NodeFile[]){const input=document.querySelector<HTMLInputElement>('input[type=file]')!;Object.defineProperty(input,'files',{configurable:true,value:files});await act(async()=>input.dispatchEvent(new Event('change',{bubbles:true})));await waitFor(()=>!button('处理中…')&&(!!document.querySelector('[aria-label="能力包预览"]')||!!document.querySelector('[role=alert]')||!!document.querySelector('.importFile')||Array.from(document.querySelectorAll('p')).some(p=>p.textContent?.includes('仅导入可信来源'))))}
+
 beforeEach(async()=>{
   ;(globalThis as any).IS_REACT_ACT_ENVIRONMENT=true;sessionStorage.clear();editorDrafts.clear();downloaded=undefined
   directory=await mkdtemp(join(tmpdir(),'package-ui-'));store=new CapabilityStore(directory);await store.init();packs=new CapabilityPackages(store,route=>route);await packs.init()
@@ -54,8 +54,8 @@ afterEach(async()=>{await act(async()=>root.unmount());host.remove();await packs
 it('shows only import/export main actions and imports a complete executable version without a draft publishing flow',async()=>{
   expect(button('＋ 创建能力')).toBeUndefined();expect(button('更多')).toBeUndefined();expect(button('组件库').closest('nav')).toBeTruthy()
   await click('导入能力');await selectFile([new NodeFile([new Uint8Array(packageZip(delivery()))],'ability.zip')])
-  expect(button('导入并启用').disabled).toBe(true);expect((host.textContent??'')+(document.body.textContent??'')).toContain('外部文字组件')
-  await trust();await click('导入并启用');await waitFor(()=>!!button('运行动作'))
+  expect(button('导入并启用').disabled).toBe(false);expect(document.body.textContent).toContain('ability.zip');expect(document.querySelector('[aria-label="能力包预览"]')).toBeNull()
+  await click('导入并启用');await waitFor(()=>!!button('运行动作'))
   const cap=store.snapshot().capabilities.find(c=>c.packageOrigin)!
   expect(cap.enabled).toBe(true);expect(cap.versions).toHaveLength(1);expect(document.querySelector('dialog')).toBeNull()
   await click('组件');expect(document.body.textContent).toContain('外部文字组件');await click('编辑组件组合')
@@ -69,10 +69,10 @@ it('exports a developer folder directly while leaving installed capabilities unt
 })
 it('opens the existing identity on a repeated import instead of creating another capability',async()=>{
   const zip=packageZip(delivery()),session=await packs.start('zip');await packs.put(session.token,'ability.zip',(async function*(){yield zip})());const preview=await packs.inspect(session.token);await packs.install(preview.token,preview.hash,preview.revision,{trusted:true});await capabilityClient.refresh()
-  await click('导入能力');await selectFile([new NodeFile([new Uint8Array(zip)],'ability.zip')]);expect(button('打开已有能力')).toBeTruthy();await trust();await click('打开已有能力');await waitFor(()=>!!button('运行动作'));expect(store.snapshot().capabilities.filter(c=>c.packageOrigin)).toHaveLength(1)
+  await click('导入能力');await selectFile([new NodeFile([new Uint8Array(zip)],'ability.zip')]);expect(button('打开已有能力')).toBeTruthy();await click('打开已有能力');await waitFor(()=>!!button('运行动作'));expect(store.snapshot().capabilities.filter(c=>c.packageOrigin)).toHaveLength(1)
 })
 it('takes missing model configuration directly to the shared capability settings and enables after saving',async()=>{
-  await click('导入能力');await selectFile([new NodeFile([new Uint8Array(packageZip(delivery(true)))],'ability.zip')]);await trust();await click('导入并配置');await waitFor(()=>!!button('保存并启用'))
+  await click('导入能力');await selectFile([new NodeFile([new Uint8Array(packageZip(delivery(true)))],'ability.zip')]);await click('导入并配置');await waitFor(()=>!!button('保存并启用'))
   expect(store.snapshot().capabilities.find(c=>c.packageOrigin)!.enabled).toBe(false)
   const input=Array.from(document.querySelectorAll<HTMLInputElement>('input')).find(n=>n.placeholder==='留空使用工作台默认模型')!
   await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,'local/model');input.dispatchEvent(new Event('input',{bubbles:true}))})
@@ -83,4 +83,21 @@ it('keeps a damaged package from writing any capability or enabling the install 
   const before=store.snapshot(),files=delivery();files.set('runtime/main.cjs',Buffer.from('changed'))
   await click('导入能力');await selectFile([new NodeFile([new Uint8Array(packageZip(files))],'ability.zip')])
   expect(document.querySelector('[role=alert]')?.textContent).toContain('文件校验失败');await waitFor(()=>!!button('导入并启用'));expect(button('导入并启用').disabled).toBe(true);expect(store.snapshot()).toEqual(before)
+})
+
+it('drops a ZIP, displays only its filename, then removes and permanently deletes the imported capability',async()=>{
+  await click('导入能力')
+  const file=new NodeFile([new Uint8Array(packageZip(delivery()))],'dropped-tool.zip')
+  const zone=document.querySelector('[aria-label="选择或拖入能力包"]')!
+  const event=new Event('drop',{bubbles:true,cancelable:true})
+  Object.defineProperty(event,'dataTransfer',{value:{files:[file],items:[]}})
+  await act(async()=>zone.dispatchEvent(event));await waitFor(()=>!!button('导入并启用')&&!button('导入并启用').disabled)
+  expect(event.defaultPrevented).toBe(true);expect(document.body.textContent).toContain('dropped-tool.zip')
+  expect(document.querySelector('[aria-label="能力包预览"]')).toBeNull()
+  await click('导入并启用');await waitFor(()=>!!button('运行动作'))
+  const cap=store.snapshot().capabilities.find(c=>c.packageOrigin)!
+  await store.command(store.snapshot().revision,{type:'capability.remove',id:cap.id})
+  await store.command(store.snapshot().revision,{type:'capability.purge',ids:[cap.id]})
+  expect(store.snapshot().capabilities.some(c=>c.id===cap.id)).toBe(false)
+  expect(catalogFor(store.snapshot()).some(c=>c.provider==='org.example.ui')).toBe(false)
 })

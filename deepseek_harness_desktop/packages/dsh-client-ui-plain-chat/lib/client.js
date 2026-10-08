@@ -1009,6 +1009,7 @@ window.__ModuleLoader__.load({
 			const extra = /* @__PURE__ */ new Map();
 			for (const release of Object.values(state.packageReleases ?? {})) {
 				const m = release.manifest, scope = state.capabilities.filter((c) => c.packageOrigin?.id === m.id).map((c) => c.id);
+				if (!scope.length) continue;
 				for (const part of m.components) {
 					const id = packageComponentId(m.id, part.id), old = extra.get(id);
 					extra.set(id, {
@@ -1283,7 +1284,7 @@ window.__ModuleLoader__.load({
 		const editorDrafts = /* @__PURE__ */ new Map();
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css.mjs
-		const css$13 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:54px;height:32px;display:inline-flex;position:relative}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}.eqpZFq_compositionFieldset{border:0;min-width:0;margin:0;padding:0}.eqpZFq_compositionInfo{border:1px solid var(--role-border);border-radius:9px;margin-bottom:18px;padding:12px}.eqpZFq_compositionInfo summary{color:var(--role-muted);cursor:pointer;font-size:12px}.eqpZFq_compositionInfo[open] summary{margin-bottom:16px}.eqpZFq_associationRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;padding:14px 16px;display:flex}.eqpZFq_associationIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_associationIdentity>div{min-width:0}.eqpZFq_associationIdentity strong{margin-right:8px}.eqpZFq_associationIdentity small{color:var(--role-muted);overflow-wrap:anywhere;margin-top:5px;font-size:11px;display:block}.eqpZFq_associationSymbol{width:34px;height:34px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 10%,transparent);border-radius:8px;flex-shrink:0;place-items:center;font-size:22px;display:grid}.eqpZFq_associationActions{flex-shrink:0;align-items:center;gap:6px;display:flex}.eqpZFq_compositionFeedback,.eqpZFq_compositionToolbar{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;padding:12px;font-size:12px;display:flex}.eqpZFq_compositionToolbar{z-index:1;position:sticky;bottom:0;box-shadow:0 -5px 12px #00000008}.eqpZFq_missingAssociations{border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border));background:color-mix(in srgb,#be8432 8%,var(--role-bg));border-radius:9px;margin:10px 0;padding:12px;font-size:12px}.eqpZFq_missingRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;display:flex}.eqpZFq_missingRow small{color:var(--role-muted)}@media (width<=650px){.eqpZFq_associationRow{flex-wrap:wrap;align-items:flex-start;padding:12px}.eqpZFq_associationActions{margin-left:auto}}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}.eqpZFq_versionValue{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px}.eqpZFq_presetIssues{overflow-wrap:anywhere;padding-left:20px}.eqpZFq_listToolbar{justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px;display:flex}.eqpZFq_listToolbar .eqpZFq_tabs{flex:1;margin:0}.eqpZFq_capabilityList{flex-direction:column;gap:8px;display:flex}.eqpZFq_capabilityRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;align-items:center;gap:8px;min-width:0;padding:0 12px 0 0;display:flex}.eqpZFq_capabilityRow:hover{border-color:var(--role-accent)}.eqpZFq_capabilityOpen{text-align:left;min-width:0;min-height:80px;color:inherit;font:inherit;cursor:pointer;background:0 0;border:0;border-radius:10px;flex:1;align-items:center;gap:12px;padding:12px 8px 12px 14px;display:flex}.eqpZFq_capabilityOpen>:first-child{flex-shrink:0}.eqpZFq_capabilityIdentity{flex:1;min-width:0}.eqpZFq_capabilityIdentity strong,.eqpZFq_capabilityIdentity small{text-overflow:ellipsis;white-space:nowrap;display:block;overflow:hidden}.eqpZFq_capabilityIdentity strong{font-size:14px}.eqpZFq_capabilityIdentity small{color:var(--role-muted);margin-top:5px;font-size:12px}.eqpZFq_capabilityIdentity .eqpZFq_draftHint{color:var(--role-accent)}.eqpZFq_capabilityStatus{color:var(--role-muted);flex-shrink:0;font-size:12px}.eqpZFq_filterPanel{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;flex-wrap:wrap;align-items:flex-start;gap:18px;margin-bottom:14px;padding:16px;display:flex}.eqpZFq_filterPanel fieldset{border:0;flex:1;min-width:170px;padding:0}.eqpZFq_filterPanel legend{font-size:13px;font-weight:600}.eqpZFq_filterSummary{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px;font-size:12px;display:flex}.eqpZFq_moreMenu{position:relative}.eqpZFq_morePanel{z-index:3;border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;min-width:120px;padding:6px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 4px 16px #0002}.eqpZFq_morePanel .eqpZFq_button{text-align:left;border:0;width:100%}.eqpZFq_detailBack{margin-bottom:18px}.eqpZFq_detailIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_detailIdentity h3{overflow-wrap:anywhere}.eqpZFq_detailDescription{color:var(--role-muted);overflow-wrap:anywhere;font-size:13px}.eqpZFq_detailDisclosure{border-top:1px solid var(--role-border);overflow-wrap:anywhere;margin-top:12px;padding:14px 0;font-size:13px}.eqpZFq_detailDisclosure summary{cursor:pointer;color:var(--role-muted)}.eqpZFq_detailDisclosure[open] summary{color:var(--role-text);margin-bottom:12px}@media (width<=600px){.eqpZFq_capabilityOpen{grid-template-columns:32px minmax(0,1fr) 10px;column-gap:10px;display:grid}.eqpZFq_capabilityOpen>:first-child{grid-row:1/3}.eqpZFq_capabilityIdentity{grid-column:2}.eqpZFq_capabilityStatus{grid-column:2;margin-top:5px}.eqpZFq_capabilityOpen>:last-child{grid-area:1/3/3}.eqpZFq_capabilityRow{padding-right:8px}.eqpZFq_detailIdentity{max-width:100%}}";
+		const css$13 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:54px;height:32px;display:inline-flex;position:relative}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}.eqpZFq_compositionFieldset{border:0;min-width:0;margin:0;padding:0}.eqpZFq_compositionInfo{border:1px solid var(--role-border);border-radius:9px;margin-bottom:18px;padding:12px}.eqpZFq_compositionInfo summary{color:var(--role-muted);cursor:pointer;font-size:12px}.eqpZFq_compositionInfo[open] summary{margin-bottom:16px}.eqpZFq_associationRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;padding:14px 16px;display:flex}.eqpZFq_associationIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_associationIdentity>div{min-width:0}.eqpZFq_associationIdentity strong{margin-right:8px}.eqpZFq_associationIdentity small{color:var(--role-muted);overflow-wrap:anywhere;margin-top:5px;font-size:11px;display:block}.eqpZFq_associationSymbol{width:34px;height:34px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 10%,transparent);border-radius:8px;flex-shrink:0;place-items:center;font-size:22px;display:grid}.eqpZFq_associationActions{flex-shrink:0;align-items:center;gap:6px;display:flex}.eqpZFq_compositionFeedback,.eqpZFq_compositionToolbar{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;padding:12px;font-size:12px;display:flex}.eqpZFq_compositionToolbar{z-index:1;position:sticky;bottom:0;box-shadow:0 -5px 12px #00000008}.eqpZFq_missingAssociations{border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border));background:color-mix(in srgb,#be8432 8%,var(--role-bg));border-radius:9px;margin:10px 0;padding:12px;font-size:12px}.eqpZFq_missingRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;display:flex}.eqpZFq_missingRow small{color:var(--role-muted)}@media (width<=650px){.eqpZFq_associationRow{flex-wrap:wrap;align-items:flex-start;padding:12px}.eqpZFq_associationActions{margin-left:auto}}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}.eqpZFq_versionValue{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px}.eqpZFq_presetIssues{overflow-wrap:anywhere;padding-left:20px}.eqpZFq_listToolbar{justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px;display:flex}.eqpZFq_listToolbar .eqpZFq_tabs{flex:1;margin:0}.eqpZFq_capabilityList{flex-direction:column;gap:8px;display:flex}.eqpZFq_capabilityRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;align-items:center;gap:8px;min-width:0;padding:0 12px 0 0;display:flex}.eqpZFq_capabilityRow:hover{border-color:var(--role-accent)}.eqpZFq_capabilityOpen{text-align:left;min-width:0;min-height:80px;color:inherit;font:inherit;cursor:pointer;background:0 0;border:0;border-radius:10px;flex:1;align-items:center;gap:12px;padding:12px 8px 12px 14px;display:flex}.eqpZFq_capabilityOpen>:first-child{flex-shrink:0}.eqpZFq_capabilityIdentity{flex:1;min-width:0}.eqpZFq_capabilityIdentity strong,.eqpZFq_capabilityIdentity small{text-overflow:ellipsis;white-space:nowrap;display:block;overflow:hidden}.eqpZFq_capabilityIdentity strong{font-size:14px}.eqpZFq_capabilityIdentity small{color:var(--role-muted);margin-top:5px;font-size:12px}.eqpZFq_capabilityIdentity .eqpZFq_draftHint{color:var(--role-accent)}.eqpZFq_capabilityStatus{color:var(--role-muted);flex-shrink:0;font-size:12px}.eqpZFq_filterPanel{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;flex-wrap:wrap;align-items:flex-start;gap:18px;margin-bottom:14px;padding:16px;display:flex}.eqpZFq_filterPanel fieldset{border:0;flex:1;min-width:170px;padding:0}.eqpZFq_filterPanel legend{font-size:13px;font-weight:600}.eqpZFq_filterSummary{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px;font-size:12px;display:flex}.eqpZFq_moreMenu{position:relative}.eqpZFq_morePanel{z-index:3;border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;min-width:120px;padding:6px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 4px 16px #0002}.eqpZFq_morePanel .eqpZFq_button{text-align:left;border:0;width:100%}.eqpZFq_detailBack{margin-bottom:18px}.eqpZFq_detailIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_detailIdentity h3{overflow-wrap:anywhere}.eqpZFq_detailDescription{color:var(--role-muted);overflow-wrap:anywhere;font-size:13px}.eqpZFq_detailDisclosure{border-top:1px solid var(--role-border);overflow-wrap:anywhere;margin-top:12px;padding:14px 0;font-size:13px}.eqpZFq_detailDisclosure summary{cursor:pointer;color:var(--role-muted)}.eqpZFq_detailDisclosure[open] summary{color:var(--role-text);margin-bottom:12px}@media (width<=600px){.eqpZFq_capabilityOpen{grid-template-columns:32px minmax(0,1fr) 10px;column-gap:10px;display:grid}.eqpZFq_capabilityOpen>:first-child{grid-row:1/3}.eqpZFq_capabilityIdentity{grid-column:2}.eqpZFq_capabilityStatus{grid-column:2;margin-top:5px}.eqpZFq_capabilityOpen>:last-child{grid-area:1/3/3}.eqpZFq_capabilityRow{padding-right:8px}.eqpZFq_detailIdentity{max-width:100%}}.eqpZFq_importDrop{border:1px dashed var(--role-border);border-radius:12px;min-width:0;padding:20px}.eqpZFq_importDrop[data-dragging]{border-color:var(--role-accent,#5863b0);background:var(--role-selected,#5863b015)}.eqpZFq_importFile{overflow-wrap:anywhere;margin:0 0 16px}.eqpZFq_importButtons{flex-wrap:wrap;gap:8px;display:flex}";
 		const tagId$13 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$13) + "]") === null) {
 			const tag = document.createElement("style");
@@ -1336,6 +1337,9 @@ window.__ModuleLoader__.load({
 			"grid": "eqpZFq_grid",
 			"heading": "eqpZFq_heading",
 			"iconButton": "eqpZFq_iconButton",
+			"importButtons": "eqpZFq_importButtons",
+			"importDrop": "eqpZFq_importDrop",
+			"importFile": "eqpZFq_importFile",
 			"inlineAction": "eqpZFq_inlineAction",
 			"list": "eqpZFq_list",
 			"listToolbar": "eqpZFq_listToolbar",
@@ -1407,23 +1411,64 @@ window.__ModuleLoader__.load({
 			const [source, setSource] = (0, react.useState)("folder"), [preview, setPreview] = (0, react.useState)(null);
 			const installed = data.state.capabilities.filter((c) => c.versions.some((v) => v.packageHash));
 			const [selected, setSelected] = (0, react.useState)(installed[0]?.id ?? ""), [version, setVersion] = (0, react.useState)(installed[0]?.versions.at(-1)?.version ?? 0);
-			const [busy, setBusy] = (0, react.useState)(false), [progress, setProgress] = (0, react.useState)(""), [error, setError] = (0, react.useState)(""), [trusted, setTrusted] = (0, react.useState)(false);
-			const [draft, setDraft] = (0, react.useState)("keep"), [roles, setRoles] = (0, react.useState)([]);
+			const [busy, setBusy] = (0, react.useState)(false), [progress, setProgress] = (0, react.useState)(""), [error, setError] = (0, react.useState)("");
+			const draft = "keep", roles = [];
 			const [exported, setExported] = (0, react.useState)(null);
 			const downloadUrl = (0, react.useRef)(null);
 			const token = (0, react.useRef)(null);
+			const picker = (0, react.useRef)(null), folderPicker = (0, react.useRef)(null);
+			const [fileName, setFileName] = (0, react.useState)(""), [dragging, setDragging] = (0, react.useState)(false);
+			const onDrop = async (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				setDragging(false);
+				if (busy) return;
+				const items = Array.from(event.dataTransfer.items ?? []).filter((item) => item.kind === "file");
+				const entry = items[0]?.webkitGetAsEntry?.();
+				if (entry?.isDirectory) {
+					if (items.length !== 1) {
+						setError("请一次选择一个能力包");
+						return;
+					}
+					const files = [];
+					const walk = async (node, prefix) => {
+						if (node.isFile) {
+							const file = await new Promise((resolve, reject) => node.file(resolve, reject));
+							Object.defineProperty(file, "webkitRelativePath", { value: prefix + node.name });
+							files.push(file);
+						} else {
+							const reader = node.createReader();
+							for (;;) {
+								const entries = await new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+								if (!entries.length) break;
+								for (const child of entries) await walk(child, prefix + node.name + "/");
+							}
+						}
+					};
+					try {
+						await walk(entry, "");
+						await select(files, "folder");
+					} catch (e) {
+						setError(e instanceof Error ? e.message : String(e));
+					}
+				} else await select(Array.from(event.dataTransfer.files), "zip");
+			};
 			(0, react.useEffect)(() => () => {
 				if (token.current) discard(token.current);
 				if (downloadUrl.current) discardDownload(downloadUrl.current);
 			}, []);
 			const select = async (files, kind) => {
 				if (!files?.length || busy) return;
+				if (kind === "zip" && (files.length !== 1 || !files[0].name.toLowerCase().endsWith(".zip"))) {
+					setPreview(null);
+					setFileName("");
+					setError("请选择一个 ZIP 能力包");
+					return;
+				}
+				setFileName(kind === "zip" ? files[0].name : files[0].webkitRelativePath.split("/")[0] ?? files[0].name);
 				setBusy(true);
 				setError("");
 				setPreview(null);
-				setTrusted(false);
-				setRoles([]);
-				setDraft("keep");
 				try {
 					if (token.current) {
 						await discard(token.current);
@@ -1433,9 +1478,18 @@ window.__ModuleLoader__.load({
 					if (kind === "zip") entries = [["ability.zip", files[0]]];
 					else {
 						const all = new Map(Array.from(files).map((f) => [f.webkitRelativePath.split("/").slice(1).join("/"), f]));
+						if (!all.has("capability.json")) {
+							const roots = [...all.keys()].filter((p) => p.endsWith("/capability.json"));
+							if (roots.length === 1) {
+								const prefix = roots[0].slice(0, -15);
+								const nested = [...all].filter(([p]) => p.startsWith(prefix)).map(([p, f]) => [p.slice(prefix.length), f]);
+								all.clear();
+								for (const [p, f] of nested) all.set(p, f);
+							}
+						}
 						const entry = all.get("capability.json");
 						if (!entry || entry.size > 256 * 1024) throw new Error("请选择根目录含 capability.json 的开发交付目录");
-						const manifest = JSON.parse(await entry.text());
+						const manifest = JSON.parse((await entry.text()).replace(/^\uFEFF/, ""));
 						if (!manifest.files || typeof manifest.files !== "object" || Array.isArray(manifest.files)) throw new Error("交付清单需要 files 字段");
 						entries = [["capability.json", entry], ...Object.keys(manifest.files).map((path) => {
 							const file = all.get(path);
@@ -1460,7 +1514,7 @@ window.__ModuleLoader__.load({
 							throw new Error(value.error ?? "文件上传失败");
 						}
 					}
-					setProgress("正在检查能力包…");
+					setProgress("正在读取文件…");
 					setPreview(await packageRequest("inspect", { token: session.token }));
 				} catch (e) {
 					setError(e instanceof Error ? e.message : String(e));
@@ -1490,11 +1544,12 @@ window.__ModuleLoader__.load({
 						setExported(file);
 						setProgress("能力包已生成。如果浏览器未自动保存，可点击下方文件名。");
 					} else {
+						const current = await packageRequest("inspect", { token: preview.token });
 						const result = await packageRequest("install", {
 							token: preview.token,
 							hash: preview.hash,
-							revision: preview.revision,
-							trusted,
+							revision: current.revision,
+							trusted: true,
 							draft,
 							applyToRoles: roles
 						});
@@ -1509,7 +1564,6 @@ window.__ModuleLoader__.load({
 			};
 			const cap = installed.find((c) => c.id === selected), published = cap?.versions.find((v) => v.version === version), release = published?.packageHash ? data.state.packageReleases?.[published.packageHash] : void 0;
 			const m = mode === "export" && source === "installed" ? release?.manifest : preview?.manifest;
-			const linked = preview?.existing ? data.state.roles.filter((r) => r.versions.at(-1)?.capabilities.some((b) => b.capabilityId === preview.existing.id)) : [];
 			const ready = mode === "export" && source === "installed" ? !!release : !!preview;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$1, {
 				title: mode === "import" ? "导入能力" : "导出能力",
@@ -1519,10 +1573,19 @@ window.__ModuleLoader__.load({
 				},
 				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.dialogBody}`,
+					onDragOver: mode === "import" ? (e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						if (!busy) setDragging(true);
+					} : void 0,
+					onDragLeave: (e) => {
+						if (!e.currentTarget.contains(e.relatedTarget)) setDragging(false);
+					},
+					onDrop: mode === "import" ? (e) => void onDrop(e) : void 0,
 					children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 							className: ManagedCapabilities_module_css_default.muted,
-							children: mode === "import" ? "选择制作者提供的完整能力包，检查后即可导入。" : "从开发交付目录或已安装的完整版本生成一个 ZIP，交给其他工作台导入。"
+							children: mode === "import" ? "将能力包拖入此窗口，或选择文件后导入。" : "从开发交付目录或已安装的完整版本生成一个 ZIP，交给其他工作台导入。"
 						}),
 						mode === "export" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 							className: ManagedCapabilities_module_css_default.field,
@@ -1584,18 +1647,65 @@ window.__ModuleLoader__.load({
 								className: ManagedCapabilities_module_css_default.notice,
 								children: "此版本含本地修改，将使用新的派生作品标识并保留原作来源，不覆盖制作者原版。"
 							})
-						] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+						] }) : mode === "import" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+							className: ManagedCapabilities_module_css_default.importDrop,
+							"data-dragging": dragging || void 0,
+							"aria-label": "选择或拖入能力包",
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+									className: ManagedCapabilities_module_css_default.importFile,
+									title: fileName,
+									children: fileName || "拖入 ZIP 能力包或交付文件夹"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: ManagedCapabilities_module_css_default.importButtons,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										className: ManagedCapabilities_module_css_default.button,
+										disabled: busy,
+										onClick: () => picker.current?.click(),
+										children: "选择文件"
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										className: ManagedCapabilities_module_css_default.button,
+										disabled: busy,
+										onClick: () => folderPicker.current?.click(),
+										children: "选择文件夹"
+									})]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									ref: picker,
+									"aria-label": "选择能力包文件",
+									type: "file",
+									hidden: true,
+									accept: ".zip",
+									disabled: busy,
+									onChange: (e) => {
+										select(e.target.files, "zip");
+										e.target.value = "";
+									}
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									ref: folderPicker,
+									"aria-label": "选择能力包文件夹",
+									type: "file",
+									hidden: true,
+									disabled: busy,
+									webkitdirectory: "",
+									directory: "",
+									onChange: (e) => {
+										select(e.target.files, "folder");
+										e.target.value = "";
+									}
+								})
+							]
+						}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 							className: ManagedCapabilities_module_css_default.field,
-							children: [mode === "import" ? "选择能力包（ZIP）" : "选择开发交付目录", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+							children: ["选择开发交付目录", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 								type: "file",
 								disabled: busy,
-								accept: mode === "import" ? ".zip" : void 0,
-								...mode === "export" ? {
-									webkitdirectory: "",
-									directory: ""
-								} : {},
+								webkitdirectory: "",
+								directory: "",
 								onChange: (e) => {
-									select(e.target.files, mode === "import" ? "zip" : "folder");
+									select(e.target.files, "folder");
 									e.target.value = "";
 								}
 							})]
@@ -1604,7 +1714,7 @@ window.__ModuleLoader__.load({
 							className: ManagedCapabilities_module_css_default.muted,
 							children: "读取 capability.json 和清单中的已构建文件；不会运行工程安装或构建脚本。"
 						}),
-						m && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+						m && mode === "export" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
 							"aria-label": "能力包预览",
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("h3", { children: [
@@ -1637,60 +1747,6 @@ window.__ModuleLoader__.load({
 									] }, c.id))
 								}),
 								m.permissions.includes("model") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "使用工作台模型；账号与密钥由接收方本机提供。" }),
-								mode === "import" && preview && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-										className: ManagedCapabilities_module_css_default.notice,
-										children: preview.trust
-									}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-										className: ManagedCapabilities_module_css_default.check,
-										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
-											type: "checkbox",
-											disabled: busy,
-											checked: trusted,
-											onChange: (e) => setTrusted(e.target.checked)
-										}), "我信任此制作者及包内执行代码"]
-									}),
-									preview.needsModel && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "导入后选择工作台模型即可启用，当前不会运行任何任务。" }),
-									preview.existing && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: preview.existing.duplicate ? "此包已安装，将直接打开现有能力。" : `更新现有能力：包 v${preview.existing.version} → v${m.version}` }), !preview.existing.duplicate && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ul", {
-											className: ManagedCapabilities_module_css_default.list,
-											children: preview.existing.changes.map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("li", { children: v }, v))
-										}),
-										preview.existing.draftChanged && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-											className: ManagedCapabilities_module_css_default.field,
-											children: ["发现本地未发布修改", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-												disabled: busy,
-												value: draft,
-												onChange: (e) => setDraft(e.target.value),
-												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-													value: "keep",
-													children: "保留当前草稿"
-												}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-													value: "replace",
-													children: "保存备份后替换为导入内容"
-												})]
-											})]
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
-											className: ManagedCapabilities_module_css_default.detailDisclosure,
-											children: [
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "更新岗位引用（默认保持原版本）" }),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "仅下方选中的岗位会生成采用新版的岗位版本；已有岗位草稿与会话保留。" }),
-												linked.map((role) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-													className: ManagedCapabilities_module_css_default.check,
-													children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
-														type: "checkbox",
-														disabled: busy,
-														checked: roles.includes(role.id),
-														onChange: (e) => setRoles(e.target.checked ? [...roles, role.id] : roles.filter((id) => id !== role.id))
-													}), role.draft.name]
-												}, role.id)),
-												!linked.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "暂无岗位引用。" })
-											]
-										})
-									] })] })
-								] }),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 									className: ManagedCapabilities_module_css_default.detailDisclosure,
 									children: [
@@ -1727,17 +1783,9 @@ window.__ModuleLoader__.load({
 							className: ManagedCapabilities_module_css_default.error,
 							children: error
 						}),
-						preview && preview.revision !== data.state.revision && mode === "import" && !preview.existing?.duplicate && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-							className: ManagedCapabilities_module_css_default.notice,
-							children: ["能力清单有更新，请重新检查后导入。", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								className: ManagedCapabilities_module_css_default.button,
-								disabled: busy,
-								onClick: () => {
-									setBusy(true);
-									packageRequest("inspect", { token: preview.token }).then(setPreview).catch((e) => setError(String(e.message))).finally(() => setBusy(false));
-								},
-								children: "重新检查"
-							})]
+						mode === "import" && preview && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: ManagedCapabilities_module_css_default.muted,
+							children: "仅导入可信来源的能力包；点击下方按钮即允许加载包内代码。"
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.confirmActions,
@@ -1748,7 +1796,7 @@ window.__ModuleLoader__.load({
 								children: "关闭"
 							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
-								disabled: busy || !ready || mode === "import" && (!trusted || preview?.revision !== data.state.revision && !preview?.existing?.duplicate),
+								disabled: busy || !ready,
 								onClick: () => void submit(),
 								children: busy ? "处理中…" : mode === "export" ? "导出能力包" : preview?.existing?.duplicate ? "打开已有能力" : preview?.existing ? "更新能力" : preview?.needsModel ? "导入并配置" : "导入并启用"
 							})]
