@@ -783,7 +783,7 @@ window.__ModuleLoader__.load({
 		const activeRequirements = (task) => task.requirements.filter((item) => !item.removed);
 		const openQuestions = (task) => task.questions.filter((item) => !["resolved", "dismissed"].includes(item.status));
 		function requirementMarkdown(task, depth = "standard", selectedIds) {
-			if (task.sections) return [
+			if (task.sections && !selectedIds) return [
 				"# " + task.title,
 				"> 需求工作草稿；需求确认不代表实现或验收完成。",
 				...task.sections.filter((s) => s.enabled).map((s) => "## " + s.title + "\n\n" + (requirementSectionContent(s, task) || "待补充"))
@@ -17520,7 +17520,7 @@ window.__ModuleLoader__.load({
 			const selectedIds = selected.filter((key) => requirements.some((r) => r.id === key));
 			documentRange === "confirmed" && requirements.filter((r) => r.status === "confirmed").map((r) => r.id);
 			const viewedVersion = task?.versions.find((v) => v.id === versionId);
-			const preview = task ? viewedVersion?.markdown ?? requirementMarkdown(task) : "";
+			const preview = task ? viewedVersion?.markdown ?? (documentRange === "selected" && selectedIds.length ? requirementMarkdown(task, documentDepth, selectedIds) : requirementMarkdown(task)) : "";
 			const hasUnsavedDraft = task ? task.draft !== draft : !!draft.trim();
 			const localDraft = (0, react.useRef)({});
 			localDraft.current = {
@@ -18908,6 +18908,7 @@ window.__ModuleLoader__.load({
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							onClick: () => {
+								setVersionId("");
 								setDocumentRange("selected");
 								goto("document");
 							},
@@ -19033,7 +19034,7 @@ window.__ModuleLoader__.load({
 					})
 				}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Empty, {
 					title: search || statusFilter !== "all" ? "没有匹配的需求" : "从第一条需求开始",
-					children: "通过对话整理后采用建议，或点击“新增需求”手工填写。"
+					children: "通过对话自动整理，或点击“新增需求”手工填写。"
 				})
 			] });
 			const flowsView = task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
@@ -19331,7 +19332,17 @@ window.__ModuleLoader__.load({
 				})
 			] });
 			const documentsView = task && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-				/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RequirementsNotebook, {
+				documentRange === "selected" && selectedIds.length > 0 ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+					className: RequirementsAssistant_module_css_default.toolbar,
+					children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [
+						"所选需求文档 · ",
+						selectedIds.length,
+						" 条"
+					] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						onClick: () => setDocumentRange("all"),
+						children: "返回当前需求结果"
+					})]
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DocumentPreview, { text: preview })] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RequirementsNotebook, {
 					task,
 					mode,
 					busy: busy || !!running,

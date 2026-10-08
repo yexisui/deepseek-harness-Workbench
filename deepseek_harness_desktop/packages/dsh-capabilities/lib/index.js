@@ -120,7 +120,7 @@ const questionStatusNames = {
 const activeRequirements = (task) => task.requirements.filter((item) => !item.removed);
 const openQuestions = (task) => task.questions.filter((item) => !["resolved", "dismissed"].includes(item.status));
 function requirementMarkdown(task, depth = "standard", selectedIds) {
-	if (task.sections) return [
+	if (task.sections && !selectedIds) return [
 		"# " + task.title,
 		"> 需求工作草稿；需求确认不代表实现或验收完成。",
 		...task.sections.filter((s) => s.enabled).map((s) => "## " + s.title + "\n\n" + (requirementSectionContent(s, task) || "待补充"))

@@ -319,7 +319,7 @@ it('builds a document from selected items and renders user HTML as plain text', 
   await render({ taskId }); await click('需求结果'); await click('需求清单')
   await act(async () => host.querySelector<HTMLInputElement>('[aria-label="选择 REQ-001"]')!.click())
   await click('生成所选文档')
-  expect(host.textContent).toContain('当前需求结果')
+  expect(host.textContent).toContain('所选需求文档')
   expect(host.textContent).toContain('<img src=x onerror=alert(1)>'); expect(host.querySelector('img[src=x]')).toBeNull()
   const copy = vi.fn(async () => {}); Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: copy } })
   await click('复制'); expect(copy).toHaveBeenCalledWith(expect.stringContaining('REQ-001'))

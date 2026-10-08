@@ -22,7 +22,7 @@ it('shares selected, custom and reordered sections across modes, preserving dese
  const rows=t.sections!.map(s=>({...s,content:s.id==='problem'?'保留内容':'',enabled:s.id!=='problem'})).reverse()
  rows.unshift({id:'custom',title:'业务边界',guidance:'明确边界',content:'本次只调整保存',enabled:true})
  t=await e.command(t,{type:'sections.save',sections:rows,baseDataRevision:t.dataRevision})
- expect(requirementMarkdown(t)).not.toContain('保留内容');expect(requirementMarkdown(t)).toContain('业务边界')
+ expect(requirementMarkdown(t,'standard',[])).not.toContain('业务边界');expect(requirementMarkdown(t)).not.toContain('保留内容');expect(requirementMarkdown(t)).toContain('业务边界')
  const before=structuredClone(t.sections);t=await e.command(t,{type:'save',mode:'guided'});expect(t.sections).toEqual(before)
  t=await e.command(t,{type:'sections.save',sections:t.sections!.map(s=>({...s,enabled:true,content:s.id==='problem'?'':s.content}))})
  expect(requirementMarkdown(t)).not.toContain('旧背景')

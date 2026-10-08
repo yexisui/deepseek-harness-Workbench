@@ -96,7 +96,7 @@ export const questionStatusNames: Record<RequirementQuestion['status'], string> 
 export const activeRequirements = (task: RequirementData) => task.requirements.filter(item => !item.removed)
 export const openQuestions = (task: RequirementData) => task.questions.filter(item => !['resolved', 'dismissed'].includes(item.status))
 export function requirementMarkdown(task: RequirementData & { title: string; materials?: RequirementMaterial[]; sections?: RequirementSection[] }, depth: RequirementSettings['depth'] = 'standard', selectedIds?: string[]): string {
-  if(task.sections) return ['# '+task.title, '> 需求工作草稿；需求确认不代表实现或验收完成。', ...task.sections.filter(s=>s.enabled).map(s=>'## '+s.title+'\n\n'+(requirementSectionContent(s,task)||'待补充'))].join('\n\n')+'\n'
+  if(task.sections && !selectedIds) return ['# '+task.title, '> 需求工作草稿；需求确认不代表实现或验收完成。', ...task.sections.filter(s=>s.enabled).map(s=>'## '+s.title+'\n\n'+(requirementSectionContent(s,task)||'待补充'))].join('\n\n')+'\n'
   const requirements = activeRequirements(task).filter(item => !selectedIds || selectedIds.includes(item.id))
   const included = new Set(requirements.map(item => item.id))
   const related = (ids: string[]) => !ids.length || ids.some(id => included.has(id))
