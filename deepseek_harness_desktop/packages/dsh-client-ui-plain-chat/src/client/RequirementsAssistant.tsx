@@ -11,7 +11,7 @@ import { RoleAppearanceIcon } from './RoleAppearance.tsx'
 import { commandRequirementTask, createRequirementTask, getRequirementConfig, getRequirementTask, RequirementsApiError, sourceText, summarizeRequirementTask } from './requirements-client.ts'
 import s from './RequirementsAssistant.module.css'
 
-type Props = { taskId?: string; draftKey?: string; initialDraft?: string; roleId: string; roleVersion?: number; assistant?: Pick<RoleDefinition, 'name' | 'color' | 'icon'>; loadModels?: () => Promise<Array<{ id: string; name: string }>>; onCommit?: (task: RequirementSummary) => void; onDraftChange?: (draft: string) => void }
+type Props = { initialTitle?: string; taskId?: string; draftKey?: string; initialDraft?: string; roleId: string; roleVersion?: number; assistant?: Pick<RoleDefinition, 'name' | 'color' | 'icon'>; loadModels?: () => Promise<Array<{ id: string; name: string }>>; onCommit?: (task: RequirementSummary) => void; onDraftChange?: (draft: string) => void }
 type MainTab = 'chat' | 'workspace' | 'trace'
 type WorkspaceTab = 'overview' | 'materials' | 'requirements' | 'flows' | 'questions' | 'document'
 type EditorKind = 'overview' | 'settings' | 'material' | 'requirement' | 'flow' | 'rule' | 'question' | 'split' | 'merge' | 'version'
@@ -51,7 +51,7 @@ function Modal({ title, children, footer, onClose }: { title: string; children: 
 }
 function DocumentPreview({ text }: { text: string }) { return <div className={s.document}>{text.split('\n').map((line, i) => line.startsWith('### ') ? <h3 key={i}>{line.slice(4)}</h3> : line.startsWith('## ') ? <h2 key={i}>{line.slice(3)}</h2> : line.startsWith('# ') ? <h1 key={i}>{line.slice(2)}</h1> : line ? <p key={i}>{line}</p> : <div className={s.docGap} key={i}/>)}</div> }
 
-export function RequirementsAssistant({ taskId, draftKey, initialDraft, roleId, roleVersion, assistant, loadModels, onCommit, onDraftChange }: Props) {
+export function RequirementsAssistant({ initialTitle, taskId, draftKey, initialDraft, roleId, roleVersion, assistant, loadModels, onCommit, onDraftChange }: Props) {
   const instanceId = useRef(draftKey ?? id())
   const storageKey = useRef(`workbench-requirement-edit:${taskId || `new:${instanceId.current}`}`)
   const initial = useRef(restoreLocal(storageKey.current))
@@ -139,6 +139,11 @@ export function RequirementsAssistant({ taskId, draftKey, initialDraft, roleId, 
     if (taskId) void getRequirementTask(taskId).then(value => { if (mounted.current) { acceptTask(value); setMode(value.mode); setModeSelected(true); if(initial.current.documentDepth === undefined)setDocumentDepth(value.settings.depth); if (initial.current.draft === undefined) setDraft(value.draft) } }).catch(e => { if (mounted.current) setError(String(e.message ?? e)) }).finally(() => { if (mounted.current) setLoading(false) })
     return () => { mounted.current = false }
   }, [])
+  useEffect(() => {
+    const update = (event: Event) => { const next = (event as CustomEvent<RequirementTask>).detail; if (next.id === taskRef.current?.id) acceptTask(next) }
+    window.addEventListener('workbench-requirement-updated', update)
+    return () => window.removeEventListener('workbench-requirement-updated', update)
+  }, [])
   useEffect(() => { rememberCurrent() }, [draft, editor, mode, modeSelected, chatView, context, answers, task?.id, tab, workspace, search, statusFilter, flowView, questionFilter, documentDepth, documentRange, versionId, traceFilter, selected])
   useLayoutEffect(() => {
     if (scrollArea.current) scrollArea.current.scrollTop = positions.current[positionKey]??0
@@ -177,7 +182,7 @@ export function RequirementsAssistant({ taskId, draftKey, initialDraft, roleId, 
     const pending = (async () => {
       try {
         const settings = { ...defaultRequirementSettings(), ...availability?.defaults }
-        const created = await createRequirementTask({ roleId, roleVersion, mode: modeRef.current, title: (draftRef.current.trim() || titleHint || '新的需求分析').slice(0, 32), settings, requestId: creationId.current, draft: draftRef.current })
+        const created = await createRequirementTask({ roleId, roleVersion, mode: modeRef.current, title: initialTitle || (draftRef.current.trim() || titleHint || '新的需求分析').slice(0, 32), settings, requestId: creationId.current, draft: draftRef.current })
         acceptTask(created); if (mounted.current) { setMode(created.mode); setModeSelected(true) }; return created
       } catch (e) { if (mounted.current) { setError(e instanceof Error ? e.message : String(e)); setDraftSaveFailed(!!draftRef.current.trim()) }; return undefined }
       finally { busyRef.current = false; creationPromise.current = undefined; if (mounted.current) setBusy(false) }

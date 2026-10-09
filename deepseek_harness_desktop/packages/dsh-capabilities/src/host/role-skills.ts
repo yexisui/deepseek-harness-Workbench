@@ -38,7 +38,7 @@ export class RoleSkills {
   }
   bindings(state:State,roleId:string,version:RoleVersion,at:number){
     const role=state.roles.find(r=>r.id===roleId);if(!role?.enabled||role.archivedAt)return [];
-    const explicit=allowedRoleSkills(state,roleId,version),global=this.managed.globalBindings(at).filter(b=>!(version.skills??[]).some(s=>s.id===b.id)&&!role.versions.filter(v=>v.version>=version.version).some(v=>v.skills?.some(s=>s.id===b.id&&!s.enabled)));
+    const explicit=allowedRoleSkills(state,roleId,version),global=this.managed.globalBindings(at).filter(b=>!(version.skills??[]).some(s=>s.id===b.id)&&!role.versions.filter(v=>v.version>=version.version&&!v.directSave).some(v=>v.skills?.some(s=>s.id===b.id&&!s.enabled)));
     return [...explicit,...global];
   }
   /** Specialized workflows receive the same pinned guidance during their actual model request. */

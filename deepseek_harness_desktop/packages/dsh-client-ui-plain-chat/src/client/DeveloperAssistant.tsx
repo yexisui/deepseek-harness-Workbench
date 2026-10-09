@@ -11,7 +11,7 @@ import s from './DeveloperAssistant.module.css'
 
 const tabs = [['develop', '开发'], ['changes', '变更'], ['versions', '版本'], ['runs', '运行']]
 const scopes = [['round', '本轮变更'], ['task', '任务累计'], ['uncommitted', '未提交'], ['branch', '分支比较']]
-type Props = { taskId?: string; draftKey: string; roleId: string; roleVersion?: number; initialDraft?: string; onDraftChange?: (value: string) => void; loadModels: () => Promise<{ id: string; name: string }[]>; onCommit: (task: DeveloperTask) => void }
+type Props = { initialTitle?: string; taskId?: string; draftKey: string; roleId: string; roleVersion?: number; initialDraft?: string; onDraftChange?: (value: string) => void; loadModels: () => Promise<{ id: string; name: string }[]>; onCommit: (task: DeveloperTask) => void }
 type Preference = { cwd: string; tab: string; scope: string; path: string; draft: string; model: string; contexts: DeveloperContext[]; chat: boolean; versionTab: string; runTab: string }
 function saved(key: string, draft = ''): Preference {
   try { const raw = JSON.parse(sessionStorage.getItem(key) ?? '{}'); return { cwd: '', tab: 'develop', scope: 'uncommitted', path: '', draft, model: '', contexts: [], chat: true, versionTab: 'commits', runTab: 'checks', ...raw } } catch { return { cwd: '', tab: 'develop', scope: 'uncommitted', path: '', draft, model: '', contexts: [], chat: true, versionTab: 'commits', runTab: 'checks' } }
@@ -44,12 +44,17 @@ export function DeveloperAssistant(props: Props) {
   const alive = useRef(true), pending = useRef(false), sending = useRef<string | null>(null)
   const cwd = task?.cwd ?? view.cwd, running = !!task && (task.rounds.some(r => r.status === 'running') || task.checks.some(c => c.status === 'running'))
   const accept = (next: DeveloperTask) => { props.onCommit(next); if (!alive.current) return; if (taskRef.current?.id === next.id && taskRef.current.revision > next.revision) return; taskRef.current = next; setTask(next) }
+  useEffect(() => {
+    const update = (event: Event) => { const next = (event as CustomEvent<DeveloperTask>).detail; if (next.id === taskRef.current?.id) accept(next) }
+    window.addEventListener('workbench-developer-updated', update)
+    return () => window.removeEventListener('workbench-developer-updated', update)
+  }, [])
   const run = async (fn: () => Promise<void>) => { if (pending.current) return; pending.current = true; setBusy(true); setError(''); try { await fn() } catch (e) { if (alive.current) setError(e instanceof Error ? e.message : String(e)) } finally { pending.current = false; if (alive.current) setBusy(false) } }
   const refresh = () => setEpoch(e => e + 1)
   const ensure = async () => {
     if (taskRef.current) return taskRef.current
     if (!cwd) throw new Error('请先选择本地项目')
-    const next = await api<DeveloperTask>('create', {}, { requestId, cwd, roleId: props.roleId, roleVersion: props.roleVersion, model: view.model }); accept(next); return next
+    const next = await api<DeveloperTask>('create', {}, { requestId, cwd, title: props.initialTitle, roleId: props.roleId, roleVersion: props.roleVersion, model: view.model }); accept(next); return next
   }
   const taskAction = async (route: string, data: Record<string, unknown> = {}) => { const current = await ensure(); const next = await api<DeveloperTask>(route, {}, { id: current.id, ...data }); accept(next); refresh() }
   const chooseFile = (path: string, side = 'unstaged') => { set({ path }); setGroup(side); setSelectedLines(null); setShowFiles(false); setOpened(items => items.includes(path) ? items : [...items, path]); setHunk(0) }
