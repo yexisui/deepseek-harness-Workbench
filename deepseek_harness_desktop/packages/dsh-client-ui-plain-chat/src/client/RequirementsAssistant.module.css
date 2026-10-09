@@ -181,3 +181,7 @@
 .notebook .projectPickerHint{margin:9px 0 0;font-size:11px;line-height:1.6;color:var(--muted)}
 .notebook .projectPickerError{margin:9px 0 0;font-size:12px;line-height:1.6;color:var(--dsw-alias-label-danger,#b74848)}
 @media(max-width:600px){.projectPicker{padding:12px}.projectPickerRow{flex-wrap:wrap}.projectPickerRow>input{flex-basis:100%}.projectPickerRow>button{width:100%}}
+
+.projectLinkOptions{display:inline-flex;flex-wrap:wrap;gap:7px;padding:4px;border:1px solid var(--border);border-radius:11px;background:var(--soft)}
+.root .projectLinkOptions button[aria-pressed=true]{background:var(--dsw-alias-button-primary-fill);color:var(--dsw-alias-label-primary-foreground);border-color:var(--dsw-alias-button-primary-fill);font-weight:600;box-shadow:0 1px 3px #0002}
+.root .projectLinkOptions button[aria-pressed=true]::before{content:'✓';margin-right:6px}

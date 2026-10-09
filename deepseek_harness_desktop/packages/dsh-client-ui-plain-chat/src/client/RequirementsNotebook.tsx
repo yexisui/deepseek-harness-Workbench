@@ -13,6 +13,21 @@ export function RequirementsNotebook({task,busy,mode,view,onCommand,onGuide,onFi
   useEffect(()=>{if(!editing)return;const previous=document.activeElement as HTMLElement|null;dialog.current?.querySelector<HTMLElement>('button')?.focus();return()=>previous?.focus()},[editing])
   const sections=task?.sections??defaultRequirementSections(),enabled=sections.filter(x=>x.enabled)
   useEffect(()=>{setProjectPath(task?.project?.path??'');setLedger(task?.project?.ledger??true)},[task?.project?.path,task?.project?.ledger])
+  const projectChanging=useRef(false)
+  const [projectUpdating,setProjectUpdating]=useState(false)
+  const attachProject=async(path:string)=>{
+    if(busy||projectChanging.current||!path.trim())return false
+    projectChanging.current=true;setProjectUpdating(true)
+    try{return !!await onCommand({type:'project.attach',path:path.trim(),ledger})}
+    finally{projectChanging.current=false;setProjectUpdating(false)}
+  }
+  const detachProject=async()=>{
+    if(busy||projectChanging.current)return
+    if(!task?.project){setProjectPath('');return}
+    projectChanging.current=true;setProjectUpdating(true)
+    try{if(await onCommand({type:'project.detach'}))setProjectPath('')}
+    finally{projectChanging.current=false;setProjectUpdating(false)}
+  }
   const change=(id:string,patch:Partial<RequirementSection>)=>setRows(current=>current.map(r=>r.id===id?{...r,...patch}:r))
   const sort=useCompositionSort((id,target)=>setRows(current=>{const result=[...current],a=result.findIndex(r=>r.id===id),b=result.findIndex(r=>r.id===target);const [row]=result.splice(a,1);result.splice(b,0,row);return result}),rows.map(x=>x.id))
   const edit=()=>{baseRevision.current=task?.dataRevision;setRows(structuredClone(sections).map(r=>({...r,content:task?requirementSectionContent(r,task):r.content})));setEditing(true)}
@@ -20,7 +35,7 @@ export function RequirementsNotebook({task,busy,mode,view,onCommand,onGuide,onFi
   return <section className={s.notebook}>
     {view==='setup'&&<>
       <div className={s.toolbar}><button onClick={()=>setProjectOpen(!projectOpen)}>{projectOpen?'收起项目设置':task?.project?'项目：'+task.project.path.split(/[\\/]/).pop():'选择项目根目录（可选）'}</button><button onClick={edit}>整理内容 · 已选 {enabled.length} 项</button><span className={s.muted}>{task?.project?.ledger?'自动维护 '+task.project.ledgerName:'未关联项目也可直接分析'}</span></div>
-      {projectOpen&&<div className={s.card}><h3>项目根目录（可选）</h3><ProjectFolderPicker value={projectPath} onChange={setProjectPath} disabled={busy} onBusyChange={setProjectSelecting}/><label className={s.check}><PillCheckbox checked={ledger} onChange={e=>setLedger(e.target.checked)}/>在项目根目录自动维护 PERF_PLAN.md</label><p className={s.muted}>沿用已有同名台账；仅更新当前需求记录，保留其他内容。关联时读取根目录说明和已有台账；其余文件可自行选择加入资料。</p><div className={s.toolbar}><button disabled={busy||projectSelecting||!projectPath.trim()} onClick={async()=>{if(await onCommand({type:'project.attach',path:projectPath.trim(),ledger}))setProjectOpen(false)}}>关联项目</button>{task?.project&&<button disabled={busy} onClick={()=>void onCommand({type:'project.detach'})}>解除关联</button>}<button onClick={()=>setProjectOpen(false)}>暂不关联</button></div></div>}
+      {projectOpen&&<div className={s.card}><h3>项目根目录（可选）</h3><ProjectFolderPicker value={projectPath} onChange={setProjectPath} onSelect={attachProject} disabled={busy||projectUpdating} onBusyChange={setProjectSelecting}/><label className={s.check}><PillCheckbox checked={ledger} onChange={e=>setLedger(e.target.checked)}/>在项目根目录自动维护 PERF_PLAN.md</label><p className={s.muted}>沿用已有同名台账；仅更新当前需求记录，保留其他内容。关联时读取根目录说明和已有台账；其余文件可自行选择加入资料。</p><div className={s.projectLinkOptions} role="group" aria-label="项目关联状态"><button aria-pressed={!!task?.project} disabled={busy||projectUpdating||projectSelecting||!projectPath.trim()} onClick={()=>void attachProject(projectPath)}>关联项目</button><button aria-pressed={!task?.project} disabled={busy||projectUpdating||projectSelecting} onClick={()=>void detachProject()}>解除关联</button></div><p className={s.muted} role="status">{projectUpdating?'正在更新关联…':task?.project?'已关联：'+task.project.path:'当前未关联项目'}</p></div>}
       {onFiles&&<RequirementsFileDrop busy={busy} onFiles={onFiles}/>}
       {!!task?.materials.some(m=>!m.removed)&&<ul className={s.fileTags} aria-label="已选参考资料">{task.materials.filter(m=>!m.removed).map(m=><li key={m.id} className={s.fileTag}><span title={m.name}>{m.name}</span><button type="button" disabled={busy} aria-label={'移除资料 '+m.name} title={'移除 '+m.name} onClick={()=>void onCommand({type:'material.remove',id:m.id,removed:true})}><svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button></li>)}</ul>}
       {mode==='guided'&&current&&<div className={s.guide}><div className={s.toolbar}>{enabled.map((r,i)=><button key={r.id} aria-pressed={i===step} onClick={()=>setStep(i)}>{i+1}. {r.title}</button>)}</div><h3>{current.title}</h3><p>{current.guidance}</p><div className={s.toolbar}><button disabled={busy} onClick={()=>onGuide('请围绕「'+current.title+'」逐步引导，先整理现有信息，再问必要的问题。')}>围绕此项继续</button><button onClick={edit}>编辑整理内容</button>{step<enabled.length-1&&<button onClick={()=>setStep(step+1)}>暂时跳过，下一项</button>}</div></div>}

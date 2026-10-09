@@ -10,11 +10,12 @@ export interface ProjectFolderBridge {
 type Props = {
   value: string
   onChange: (path: string) => void
+  onSelect?: (path: string) => Promise<boolean>
   disabled: boolean
   onBusyChange: (busy: boolean) => void
 }
 
-export function ProjectFolderPicker({ value, onChange, disabled, onBusyChange }: Props) {
+export function ProjectFolderPicker({ value, onChange, onSelect, disabled, onBusyChange }: Props) {
   const bridge = (window as Window & { desktop?: Partial<ProjectFolderBridge> }).desktop
   const [pending, setPending] = useState(false), [dragging, setDragging] = useState(false)
   const [error, setError] = useState(''), [notice, setNotice] = useState('')
@@ -22,12 +23,20 @@ export function ProjectFolderPicker({ value, onChange, disabled, onBusyChange }:
   const unavailable = '请在新版桌面端选择项目根目录或拖入项目文件；也可以在这里粘贴项目根目录的完整路径。'
   useEffect(() => { active.current = true; return () => { active.current = false; onBusyChange(false) } }, [onBusyChange])
 
+  useEffect(() => { setNotice(''); setError('') }, [value])
+
   async function run(action: () => Promise<{ path: string; message: string } | null>) {
     if (disabled || working.current) return
     working.current = true; setPending(true); onBusyChange(true); setError(''); setNotice('')
     try {
       const result = await action()
-      if (active.current && result) { onChange(result.path); setNotice(result.message) }
+      if (active.current && result) {
+        onChange(result.path)
+        if (onSelect) {
+          const saved = await onSelect(result.path)
+          if (active.current) { if (saved) setNotice(result.message + ' 已关联项目。'); else setError('项目关联未成功，请检查路径后重试。') }
+        } else setNotice(result.message)
+      }
     } catch (cause) {
       if (active.current) setError(cause instanceof Error ? cause.message : '无法识别项目路径，请重新选择项目根目录。')
     } finally {
@@ -39,7 +48,7 @@ export function ProjectFolderPicker({ value, onChange, disabled, onBusyChange }:
   const choose = () => run(async () => {
     if (!bridge?.selectProjectDirectory) throw Error(unavailable)
     const path = await bridge.selectProjectDirectory()
-    return path ? { path, message: '已选择项目根目录，点击“关联项目”保存。' } : null
+    return path ? { path, message: '已选择项目根目录。' } : null
   })
 
   const drop = (files: File[]) => run(async () => {
@@ -49,8 +58,8 @@ export function ProjectFolderPicker({ value, onChange, disabled, onBusyChange }:
     if (paths.some(path => !path)) throw Error('无法获取文件的本机路径，请使用“选择项目根目录”。')
     const result = await bridge.resolveProjectPaths(paths)
     return { path: result.path, message: result.detected
-      ? '已识别项目根目录，请核对路径后点击“关联项目”。'
-      : '未找到项目标记，已使用文件所在文件夹；可调整路径后关联。' }
+      ? '已识别项目根目录。'
+      : '未找到项目标记，已使用文件所在文件夹。' }
   })
 
   return <div className={s.projectPicker} role="group" aria-label="项目根目录选择框" aria-busy={pending}

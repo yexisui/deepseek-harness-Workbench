@@ -4,11 +4,27 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { RequirementsNotebook } from '../src/client/RequirementsNotebook.tsx'
 import { ProjectFolderPicker, type ProjectFolderBridge } from '../src/client/ProjectFolderPicker.tsx'
+import type { RequirementTask } from '../../dsh-capabilities/src/core/requirements-model.ts'
 
 let root: Root, host: HTMLDivElement
 const command = vi.fn(async () => undefined)
 let bridge: ProjectFolderBridge
 const desktopWindow = window as Window & { desktop?: ProjectFolderBridge }
+function SavedNotebook({ failDetach = false, failAttach = false }: { failDetach?: boolean; failAttach?: boolean }) {
+  const [task, setTask] = useState<RequirementTask>({ sections: [], materials: [] } as unknown as RequirementTask)
+  return <RequirementsNotebook task={task} busy={false} mode="quick" view="setup" onGuide={() => {}} onCommand={async c => {
+    if (c.type === 'project.attach') {
+      if (failAttach) return undefined
+      const next = { ...task, project: { path: c.path, ledger: c.ledger, ledgerName: 'PERF_PLAN.md', files: [] } } as RequirementTask
+      setTask(next); return next
+    }
+    if (c.type === 'project.detach') {
+      if (failDetach) return undefined
+      const next = { ...task }; delete next.project; setTask(next); return next
+    }
+    return task
+  }}/>
+}
 beforeEach(() => {
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
   host = document.createElement('div'); document.body.append(host); root = createRoot(host)
@@ -41,11 +57,10 @@ async function drop(files = [new File(['content'], 'main.ts')]) {
   return event
 }
 
-it('chooses a native directory without attaching until the user saves', async () => {
+it('automatically attaches the selected native directory', async () => {
   await render(); await click('选择项目根目录')
   expect(input().value).toBe('C:\\项目\\语音助手')
-  expect(command).not.toHaveBeenCalled()
-  await click('关联项目')
+  expect(command).toHaveBeenCalledTimes(1)
   expect(command).toHaveBeenCalledWith({ type: 'project.attach', path: 'C:\\项目\\语音助手', ledger: true })
 })
 
@@ -60,7 +75,7 @@ it('shows the root picker immediately and keeps it separate from the reference f
   await click('添加参考文件（可多选）')
   expect(openFiles).toHaveBeenCalledTimes(1)
   expect(bridge.selectProjectDirectory).toHaveBeenCalledTimes(1)
-  expect(command).not.toHaveBeenCalled()
+  expect(command).toHaveBeenCalledTimes(1)
 })
 
 it('retains the typed directory when the native dialog is cancelled or fails', async () => {
@@ -72,20 +87,20 @@ it('retains the typed directory when the native dialog is cancelled or fails', a
   expect(input().value).toBe('C:\\原项目'); expect(command).not.toHaveBeenCalled()
 })
 
-it('resolves dropped files through their real desktop paths without importing their contents', async () => {
+it('resolves dropped files through their real desktop paths and automatically attaches without importing their contents', async () => {
   await render()
   const files = [new File(['first'], 'main.ts'), new File(['second'], 'test.ts')]
   const event = await drop(files)
   expect(event.defaultPrevented).toBe(true)
   expect(bridge.getPathForFile).toHaveBeenCalledWith(files[0])
   expect(bridge.resolveProjectPaths).toHaveBeenCalledWith(['C:\\项目\\语音助手\\src\\main.ts', 'C:\\项目\\语音助手\\src\\test.ts'])
-  expect(input().value).toBe('C:\\项目\\语音助手'); expect(command).not.toHaveBeenCalled()
+  expect(input().value).toBe('C:\\项目\\语音助手'); expect(command).toHaveBeenCalledWith({type:'project.attach',path:'C:\\项目\\语音助手',ledger:true})
 })
 
 it('shows the containing-folder fallback and preserves the existing value on mixed-project failure', async () => {
   await render()
   vi.mocked(bridge.resolveProjectPaths).mockResolvedValueOnce({ path: 'C:\\临时目录', detected: false })
-  await drop(); expect(host.textContent).toContain('未找到项目标记')
+  await drop(); expect(input().value).toBe('C:\\临时目录')
   vi.mocked(bridge.resolveProjectPaths).mockRejectedValueOnce(new Error('请一次拖入同一项目的文件'))
   await drop(); expect(input().value).toBe('C:\\临时目录')
   expect(host.querySelector('[role="alert"]')?.textContent).toContain('同一项目')
@@ -132,4 +147,36 @@ it('refuses browser virtual files that do not have a native path', async () => {
   vi.mocked(bridge.getPathForFile).mockReturnValue('')
   await drop(); expect(host.textContent).toContain('无法获取文件的本机路径')
   expect(bridge.resolveProjectPaths).not.toHaveBeenCalled(); expect(input().value).toBe('C:\\原项目')
+})
+
+it('has exactly two choices and shows persisted selection after automatic attach and detach', async () => {
+  await act(async () => root.render(<SavedNotebook/>))
+  expect(host.querySelector('[aria-label="项目关联状态"]')!.querySelectorAll('button')).toHaveLength(2)
+  expect(host.textContent).not.toContain('暂不关联')
+  expect(button('解除关联').getAttribute('aria-pressed')).toBe('true')
+  await click('选择项目根目录')
+  expect(button('关联项目').getAttribute('aria-pressed')).toBe('true')
+  expect(button('解除关联').getAttribute('aria-pressed')).toBe('false')
+  expect(host.textContent).toContain('已关联：C:\\项目\\语音助手')
+  await click('解除关联')
+  expect(input().value).toBe('')
+  expect(button('解除关联').getAttribute('aria-pressed')).toBe('true')
+  expect(button('关联项目').getAttribute('aria-pressed')).toBe('false')
+  expect(host.textContent).not.toContain('已关联项目。')
+  expect(host.textContent).toContain('当前未关联项目')
+})
+
+it('does not pretend to detach or clear the saved path when the server rejects detach', async () => {
+  await act(async () => root.render(<SavedNotebook failDetach/>))
+  await click('选择项目根目录'); await click('解除关联')
+  expect(input().value).toBe('C:\\项目\\语音助手')
+  expect(button('关联项目').getAttribute('aria-pressed')).toBe('true')
+})
+
+it('does not show linked state when automatic attach fails and clears an unbound draft without saving', async () => {
+  await act(async () => root.render(<SavedNotebook failAttach/>))
+  await click('选择项目根目录')
+  expect(button('解除关联').getAttribute('aria-pressed')).toBe('true')
+  expect(host.textContent).toContain('项目关联未成功')
+  await click('解除关联'); expect(input().value).toBe('')
 })
