@@ -223,6 +223,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
         return json(res, 200, await asrStatus())
       }
       if (route === '/api/capabilities/meeting/stop') return json(res, 200, await meeting.stop(text(body.id, '任务标识', 36)))
+      if (route === '/api/capabilities/meeting/rename') return json(res, 200, await meeting.rename(text(body.id, '任务标识', 36), text(body.title, '会话名称', 120, true)))
       if (route === '/api/capabilities/meeting/create') return json(res, 201, await meeting.create(body))
       if (route === '/api/capabilities/meeting/timing') return json(res, 202, await meeting.repairTiming(text(body.id, '任务标识', 36)))
       if (route === '/api/capabilities/meeting/retry') return json(res, 202, await meeting.retry(text(body.id, '任务标识', 36)))

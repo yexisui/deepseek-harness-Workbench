@@ -19,11 +19,11 @@ async function download(body:unknown){
 }
 
 export function CapabilityDistribution({mode,data,onClose,onImported}:{mode:'import'|'export';data:Snapshot;onClose:()=>void;onImported:(id:string,message:string)=>void}){
-  const [source,setSource]=useState<'folder'|'installed'>('folder'),[preview,setPreview]=useState<PackagePreview|null>(null)
-  const installed=data.state.capabilities.filter(c=>c.versions.some(v=>v.packageHash))
+  const [source,setSource]=useState<'folder'|'installed'>('installed'),[preview,setPreview]=useState<PackagePreview|null>(null)
+  const installed=data.state.capabilities.filter(c=>!c.removedAt&&c.versions.at(-1)?.packageHash)
   const [selected,setSelected]=useState(installed[0]?.id??''),[version,setVersion]=useState(installed[0]?.versions.at(-1)?.version??0)
   const [busy,setBusy]=useState(false),[progress,setProgress]=useState(''),[error,setError]=useState('')
-  const draft='keep',roles:string[]=[]
+  const draft='replace',roles:string[]=[]
   const [exported,setExported]=useState<{id:string;url:string;name:string}|null>(null)
   const downloadUrl=useRef<string|null>(null)
   const token=useRef<string|null>(null)
@@ -89,7 +89,7 @@ export function CapabilityDistribution({mode,data,onClose,onImported}:{mode:'imp
         const current=await packageRequest<PackagePreview>('inspect',{token:preview!.token})
         const result=await packageRequest<{id:string;duplicate:boolean;needsModel:boolean}>('install',{token:preview!.token,hash:preview!.hash,revision:current.revision,trusted:true,draft,applyToRoles:roles})
         await capabilityClient.refresh(true)
-        onImported(result.id,result.duplicate?'此版本已安装，已打开现有能力。':result.needsModel?'能力已导入，请在设置中选择模型后启用。':'能力已导入，组件状态已重新核对。岗位授权保持原有范围。')
+        onImported(result.id,result.duplicate?'内容相同，已打开现有能力。':result.needsModel?'能力已导入，请在设置中选择模型后启用。':'能力已导入，组件状态已重新核对。岗位授权保持原有范围。')
       }
     }catch(e){setError(e instanceof Error?e.message:String(e))}
     finally{setBusy(false)}
@@ -98,14 +98,13 @@ export function CapabilityDistribution({mode,data,onClose,onImported}:{mode:'imp
   const m=mode==='export'&&source==='installed'?release?.manifest:preview?.manifest
   const ready=mode==='export'&&source==='installed'?!!release:!!preview
   return <Modal title={mode==='import'?'导入能力':'导出能力'} closeLabel="关闭能力分发" onClose={()=>{if(!busy)onClose()}}><div className={`${s.page} ${s.dialogBody}`} onDragOver={mode==='import'?e=>{e.preventDefault();e.stopPropagation();if(!busy)setDragging(true)}:undefined} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDragging(false)}} onDrop={mode==='import'?e=>void onDrop(e):undefined}>
-    <p className={s.muted}>{mode==='import'?'将能力包拖入此窗口，或选择文件后导入。':'从开发交付目录或已安装的完整版本生成一个 ZIP，交给其他工作台导入。'}</p>
+    <p className={s.muted}>{mode==='import'?'将能力包拖入此窗口，或选择文件后导入。':'将当前能力导出为 ZIP，可在其他工作台导入。'}</p>
     {mode==='export'&&<label className={s.field}>导出来源<select disabled={busy} value={source} onChange={e=>setSource(e.target.value as typeof source)}><option value="folder">本地开发目录</option><option value="installed">已安装能力</option></select></label>}
     {mode==='export'&&source==='installed'?<>
       <label className={s.field}>能力<select disabled={busy||!installed.length} value={selected} onChange={e=>{setSelected(e.target.value);setVersion(installed.find(c=>c.id===e.target.value)?.versions.at(-1)?.version??0)}}>{installed.map(c=><option value={c.id} key={c.id}>{c.versions.at(-1)?.name??c.draft.name}{c.removedAt?'（已移除）':''}</option>)}</select></label>
-      <label className={s.field}>完整发布版本<select disabled={busy||!cap} value={version} onChange={e=>setVersion(Number(e.target.value))}>{cap?.versions.filter(v=>v.packageHash).map(v=><option value={v.version} key={v.version}>本地 v{v.version} · 包 {data.state.packageReleases?.[v.packageHash!]?.manifest.version}</option>)}</select></label>
       {!installed.length&&<p className={s.notice}>还没有可分发的已安装能力。你可以直接选择外部开发目录导出。</p>}
-      <p className={s.muted}>此处列出带完整执行包的版本。工作台内置服务随应用交付，其专用工作区不能独立导出。</p>
-      {published&&release&&definitionChanged(published,packageDefinition(release.manifest))&&<p className={s.notice}>此版本含本地修改，将使用新的派生作品标识并保留原作来源，不覆盖制作者原版。</p>}
+      <p className={s.muted}>导出当前使用的能力。工作台内置服务随应用交付，其专用工作区不能独立导出。</p>
+      {published&&release&&definitionChanged(published,packageDefinition(release.manifest))&&<p className={s.notice}>将一并导出你保存的修改。</p>}
     </>:mode==='import'?<section className={s.importDrop} data-dragging={dragging||undefined} aria-label="选择或拖入能力包">
       <p className={s.importFile} title={fileName}>{fileName||'拖入 ZIP 能力包或交付文件夹'}</p>
       <div className={s.importButtons}><button className={s.button} disabled={busy} onClick={()=>picker.current?.click()}>选择文件</button><button className={s.button} disabled={busy} onClick={()=>folderPicker.current?.click()}>选择文件夹</button></div>
@@ -113,7 +112,7 @@ export function CapabilityDistribution({mode,data,onClose,onImported}:{mode:'imp
       <input ref={folderPicker} aria-label="选择能力包文件夹" type="file" hidden disabled={busy} {...{webkitdirectory:'',directory:''}} onChange={e=>{void select(e.target.files,'folder');e.target.value=''}}/>
     </section>:<label className={s.field}>选择开发交付目录<input type="file" disabled={busy} {...{webkitdirectory:'',directory:''}} onChange={e=>{void select(e.target.files,'folder');e.target.value=''}}/></label>}
     {mode==='export'&&source==='folder'&&<p className={s.muted}>读取 capability.json 和清单中的已构建文件；不会运行工程安装或构建脚本。</p>}
-    {m&&mode==='export'&&<section aria-label="能力包预览"><h3>{m.name} <small>v{m.version}</small></h3><p>{m.description}</p><p className={s.muted}>{m.author} · {m.license}</p>
+    {m&&mode==='export'&&<section aria-label="能力包预览"><h3>{m.name}</h3><p>{m.description}</p><p className={s.muted}>{m.author} · {m.license}</p>
       <p>{m.components.length} 个执行组件 · {m.components.reduce((n,c)=>n+c.actions.length,0)} 个动作{preview&&!(mode==='export'&&source==='installed')?` · ${preview.fileCount} 个文件 · ${(preview.bytes/1024).toFixed(1)} KiB`:''}</p>
       <ul className={s.list}>{m.components.map(c=><li key={c.id}>{c.name}：{c.actions.map(a=>a.name).join('、')}</li>)}</ul>
       {m.permissions.includes('model')&&<p>使用工作台模型；账号与密钥由接收方本机提供。</p>}

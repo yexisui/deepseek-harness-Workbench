@@ -1,3 +1,4 @@
+import { applyCapabilitySettings } from '../core/current-settings.ts'
 import { loadPackageProvider } from './package-provider.ts'
 import { randomUUID } from 'node:crypto'
 import { mkdir, readdir, open, readFile, rename, rm, stat } from 'node:fs/promises'
@@ -129,7 +130,7 @@ export class CapabilityPackages {
     const preview = this.preview(token,pack)
     if (preview.existing?.duplicate) return { id:preview.existing.id, duplicate:true, needsModel:preview.needsModel }
     if (preview.existing?.removed) throw new InputError('此能力在回收站中，请先恢复，再导入更新')
-    if (preview.existing?.draftChanged && options.draft !== 'keep' && options.draft !== 'replace') throw new InputError('请明确选择保留或替换本地草稿')
+    // Imported content becomes the current configuration in one operation.
     const roles = list(options.applyToRoles ?? []).map(r=>text(r,'岗位标识',90,true))
     if (new Set(roles).size !== roles.length) throw new InputError('岗位范围重复')
     u.busy = true; let created = false
@@ -148,19 +149,12 @@ export class CapabilityPackages {
         let cap = next.capabilities.find(c=>c.packageOrigin?.id===pack.manifest.id)
         const keepEnabled = cap ? cap.enabled : true
         if (!cap) { cap = {id:`local-${randomUUID()}`,source:'local',enabled:false,pinned:false,draft:value,versions:[],packageOrigin:{id:pack.manifest.id,draftBackups:[]}}; next.capabilities.push(cap) }
-        if (definitionChanged(cap.draft,latest(cap.versions)) && cap.versions.length) cap.packageOrigin!.draftBackups.push({savedAt:now,definition:structuredClone(cap.draft)})
-        if (!cap.versions.length || options.draft === 'replace' || !definitionChanged(cap.draft,latest(cap.versions))) cap.draft = structuredClone(value)
+        cap.draft = structuredClone(value)
         ;(next.packageReleases ??= {})[pack.hash] = { hash:pack.hash, manifest:pack.manifest, installedAt:now }
         const version = (latest(cap.versions)?.version ?? 0)+1
-        cap.versions.push({...structuredClone(value),version,createdAt:now,packageHash:pack.hash})
+        cap.versions.push({...structuredClone(value),version,createdAt:now,packageHash:pack.hash,directSave:true})
         cap.enabled = keepEnabled && this.health(next).find(h=>h.capabilityId===cap!.id)!.ready
-        for (const id of roles) {
-          const role = next.roles.find(r=>r.id===id), current = role && latest(role.versions)
-          if (!role || !current?.capabilities.some(b=>b.capabilityId===cap!.id)) throw new InputError('所选岗位未引用此能力')
-          const v = current.version+1, updated = structuredClone(current)
-          updated.capabilities = updated.capabilities.map(b=>b.capabilityId===cap!.id ? {...b,version,...(b.actions ? {actions:b.actions.filter(a=>value.components.some(p=>p.actions.includes(a)))} : {})} : b)
-          role.versions.push({...updated,version:v,createdAt:now,preset:`workbench-role-${role.id}-v${v}`})
-        }
+        applyCapabilitySettings(next, cap.id, version, now)
         return {id:cap.id,duplicate:false,needsModel:preview.needsModel}
       }, async()=>{
         // Roll back before releasing the writer queue; a concurrent installer cannot lose its assets.
@@ -183,34 +177,13 @@ export class CapabilityPackages {
       return health
     })
   }
-  async rollback(id: string, version: unknown, revision: unknown) {
-    return this.store.transaction(revision,async next=>{
-      const cap = next.capabilities.find(c=>c.id===id), old = cap?.versions.find(v=>v.version===integer(version))
-      if (!cap?.packageOrigin || cap.removedAt || !old?.packageHash) throw new InputError('没有可回退的能力版本')
-      if (!await this.verify(old.packageHash)) throw new InputError('旧版本构建文件缺失或改变，无法回退')
-      // Rollback creates a new version; neither old bindings nor local drafts are overwritten.
-      cap.versions.push({...structuredClone(old),version:latest(cap.versions)!.version+1,createdAt:new Date().toISOString()})
-      cap.enabled = false; (next.revokedAt ??= {})[`capability:${id}`]=Date.now()
-      return {id}
-    })
-  }
-  async restoreDraft(id: string, index: unknown, revision: unknown) {
-    return this.store.transaction(revision,next=>{
-      const cap=next.capabilities.find(c=>c.id===id),backup=cap?.packageOrigin?.draftBackups[integer(index)]
-      if(!cap?.packageOrigin||cap.removedAt||!backup)throw new InputError('草稿备份不存在或能力已移除')
-      const value=structuredClone(backup.definition)
-      cap.packageOrigin.draftBackups.push({savedAt:new Date().toISOString(),definition:structuredClone(cap.draft)})
-      cap.draft=value
-      return {id}
-    })
-  }
   async exportPrepared(token: string, hash: unknown) {
     const u = this.upload(token)
     if (!u.checked || hash !== u.checked.hash) throw new InputError('请重新预览后导出',409)
     return { bytes:packageZip(u.checked.files), name:`${u.checked.manifest.id}-${u.checked.manifest.version}.zip` }
   }
   async exportInstalled(id: string, number: unknown) {
-    const state = this.store.snapshot(), cap = state.capabilities.find(c=>c.id===id), version = cap?.versions.find(v=>v.version===integer(number))
+    const state = this.store.snapshot(), cap = state.capabilities.find(c=>c.id===id), version = number === undefined ? cap?.versions.at(-1) : cap?.versions.find(v=>v.version===integer(number))
     if (!cap || !version?.packageHash) throw new InputError('此版本由工作台内置服务提供，没有可独立分发的执行包；请选择已导入的完整能力版本')
     const pack = await checkPackage(this.directory(version.packageHash))
     if (pack.hash !== version.packageHash) throw new InputError('已安装文件改变，不能导出')

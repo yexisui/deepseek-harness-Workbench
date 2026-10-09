@@ -25,8 +25,6 @@ export async function packageRoutes(packages:CapabilityPackages,runner:PackageRu
   if(route==='inspect')return json(res,200,await packages.inspect(text(body.token,'上传标识',40,true)))
   if(route==='install')return json(res,200,await packages.install(text(body.token,'上传标识',40,true),body.hash,body.revision,body))
   if(route==='configure')return json(res,200,await packages.configure(text(body.id,'能力标识',90,true),body.model,body.revision,body.enable))
-  if(route==='restore-draft')return json(res,200,await packages.restoreDraft(text(body.id,'能力标识',90,true),body.index,body.revision))
-  if(route==='rollback')return json(res,200,await packages.rollback(text(body.id,'能力标识',90,true),body.version,body.revision))
   if(route==='run'){const run=await runner.start(text(body.id,'能力标识',90,true),integer(body.version),text(body.action,'动作标识',220,true) as Action,body.input);return json(res,202,run.job)}
   if(route==='stop')return json(res,200,await runner.stop(text(body.id,'任务标识',40,true)))
   if(route==='export'){
