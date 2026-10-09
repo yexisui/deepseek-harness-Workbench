@@ -53,7 +53,7 @@ export class CapabilityStore {
           if (cap.removedAt !== undefined && (typeof cap.removedAt !== 'string' || !Number.isFinite(Date.parse(cap.removedAt)) || cap.enabled || cap.pinned)) throw new Error('Invalid removed capability data')
           for (const version of cap.versions) { integer(version.version); definition(version, catalogFor(this.state)); if (version.packageHash && !this.state.packageReleases?.[version.packageHash]) throw new Error('Missing package release') }
         }
-        for (const role of this.state.roles) { if (role.archivedAt !== undefined && (typeof role.archivedAt !== 'string' || !Number.isFinite(Date.parse(role.archivedAt)) || role.enabled)) throw new Error('Invalid archived role data'); id(role.id); bool(role.enabled); roleDefinition(role.draft, this.state); for (const version of role.versions) { integer(version.version); if (version.directSave !== undefined) bool(version.directSave); roleDefinition(version, this.state) } }
+        for (const role of this.state.roles) { if (role.removedAt !== undefined && (typeof role.removedAt !== 'string' || !Number.isFinite(Date.parse(role.removedAt)) || !role.archivedAt || role.enabled)) throw new Error('Invalid removed role data'); if (role.archivedAt !== undefined && (typeof role.archivedAt !== 'string' || !Number.isFinite(Date.parse(role.archivedAt)) || role.enabled)) throw new Error('Invalid archived role data'); id(role.id); bool(role.enabled); roleDefinition(role.draft, this.state); for (const version of role.versions) { integer(version.version); if (version.directSave !== undefined) bool(version.directSave); roleDefinition(version, this.state) } }
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
         this.state = initialState(); await this.persist(this.state)
@@ -265,7 +265,8 @@ export class CapabilityStore {
         if (value.icon?.kind === 'png') await this.icons.read(value.icon.assetId)
         let role = next.roles.find(r => r.id === target)
         if (command.id && !role) throw new InputError('岗位不存在', 404)
-        if (role?.archivedAt) throw new InputError('岗位已移除，请先恢复后编辑')
+        if (role?.removedAt) throw new InputError('岗位已永久移除', 404)
+        if (role?.archivedAt) throw new InputError('岗位已归档，请先恢复后编辑')
         const existingBindings = [...(role?.draft.capabilities ?? []), ...(role ? latest(role.versions)?.capabilities ?? [] : [])]
         for (const binding of value.capabilities) {
           if (existingBindings.some(old => old.capabilityId === binding.capabilityId && old.version === binding.version)) continue
@@ -289,25 +290,32 @@ export class CapabilityStore {
       } else if (command.type === 'role.copy') {
         const original = next.roles.find(role => role.id === target)
         if (!original) throw new InputError('岗位不存在', 404)
-        if (original.archivedAt) throw new InputError('岗位已移除，请先恢复后复制')
+        if (original.removedAt) throw new InputError('岗位已永久移除', 404)
+        if (original.archivedAt) throw new InputError('岗位已归档，请先恢复后复制')
         const definition = structuredClone(latest(original.versions) ?? original.draft)
         target = 'local-' + randomUUID()
         next.roles.push({ id: target, enabled: true, draft: { ...definition, name: (definition.name + ' 副本').slice(0, 80) }, versions: [] })
-      } else if (command.type === 'role.archive' || command.type === 'role.restore') {
+      } else if (command.type === 'role.archive' || command.type === 'role.restore' || command.type === 'role.remove') {
         const role = next.roles.find(role => role.id === target)
         if (!role) throw new InputError('岗位不存在', 404)
-        if (command.type === 'role.archive') {
-          if (role.archivedAt) throw new InputError('岗位已移除')
+        if (role.removedAt) throw new InputError('岗位已永久移除', 404)
+        if (command.type === 'role.remove') {
+          if (!role.archivedAt) throw new InputError('请先归档岗位，再移除')
+          // Retain only the existing identity/configuration record for historical task references.
+          role.removedAt = now; role.enabled = false
+          ;(next.revokedAt ??= {})['role:' + target] = Date.parse(now)
+        } else if (command.type === 'role.archive') {
+          if (role.archivedAt) throw new InputError('岗位已归档')
           role.archivedAt = now; role.enabled = false
           ;(next.revokedAt ??= {})['role:' + target] = Date.parse(now)
         } else {
-          if (!role.archivedAt) throw new InputError('岗位未移除')
+          if (!role.archivedAt) throw new InputError('岗位未归档')
           delete role.archivedAt; role.enabled = false
         }
       } else if (command.type === 'role.toggle') {
         const role = next.roles.find(r => r.id === target)
         if (!role) throw new InputError('岗位不存在', 404)
-        if (role.archivedAt) throw new InputError('岗位已移除，请先恢复后启用')
+        if (role.archivedAt) throw new InputError('岗位已归档，请先恢复后启用')
         role.enabled = bool(command.enabled)
         if (!role.enabled) (next.revokedAt ??= {})[`role:${target}`] = Date.parse(now)
       } else throw new InputError('未知操作')
