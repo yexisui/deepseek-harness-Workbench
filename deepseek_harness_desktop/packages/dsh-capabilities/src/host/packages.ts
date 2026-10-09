@@ -1,3 +1,4 @@
+import { adaptExternal, type ImportModel } from './external-package.ts'
 import { applyCapabilitySettings } from '../core/current-settings.ts'
 import { loadPackageProvider } from './package-provider.ts'
 import { randomUUID } from 'node:crypto'
@@ -9,14 +10,15 @@ import { InputError, integer, list, text } from '../core/validation.ts'
 import { CapabilityStore } from './store.ts'
 import { canonical, checkPackage, extractLocalZip, FilePaths, packageLimit, packageZip, plainMkdir, safeLocalPath, sha256, writePackage, type CheckedPackage } from './package-archive.ts'
 
-type Upload = { directory: string; kind: 'folder' | 'zip'; paths: FilePaths; bytes: number; count: number; expires: number; busy: boolean; checked?: CheckedPackage }
+export type ImportProgress = { status:'running'|'done'|'error'; message:string; preview?:PackagePreview }
+type Upload = { processing?:Promise<void>; controller?:AbortController; progress?:ImportProgress; root?:string; preparedAI?:boolean; directory: string; kind: 'folder' | 'zip'; paths: FilePaths; bytes: number; count: number; expires: number; busy: boolean; checked?: CheckedPackage }
 export class CapabilityPackages {
   private uploads = new Map<string,Upload>()
   private downloads = new Map<string,{name:string;expires:number}>()
   private pendingDownloads = 0
   private verified = new Map<string,string | null>()
   private timer?: ReturnType<typeof setInterval>
-  constructor(readonly store: CapabilityStore, private resolveModel: (route: string) => string = route => route) {}
+  constructor(readonly store: CapabilityStore, private resolveModel: (route: string) => string = route => route, private importModel?:ImportModel) {}
   get root() { return join(this.store.directory, 'packages') }
   async init() {
     plainMkdir(this.root); plainMkdir(join(this.root, 'uploads')); plainMkdir(join(this.root, 'releases')); plainMkdir(join(this.root,'exports'))
@@ -28,7 +30,7 @@ export class CapabilityPackages {
     this.store.enableIssues = id => { const health = this.health().find(h => h.capabilityId === id); return health && !health.ready ? [health.message] : [] }
     this.timer = setInterval(() => { void this.expire() }, 60_000); this.timer.unref()
   }
-  async close() { clearInterval(this.timer); for (const token of [...this.uploads.keys()]) await this.discard(token); for(const id of [...this.downloads.keys()])await this.discardDownload(id) }
+  async close() { clearInterval(this.timer); for(const u of this.uploads.values())u.controller?.abort();await Promise.all([...this.uploads.values()].map(u=>u.processing)); for (const token of [...this.uploads.keys()]) await this.discard(token); for(const id of [...this.downloads.keys()])await this.discardDownload(id) }
   private async expire() { for (const [token,u] of this.uploads) if (u.expires < Date.now() && !u.busy) await this.discard(token); for(const [id,d] of this.downloads)if(d.expires<Date.now())await this.discardDownload(id) }
   async prepareDownload(body:Record<string,unknown>) {
     await this.expire()
@@ -65,7 +67,7 @@ export class CapabilityPackages {
     const u = this.upload(token)
     if (u.checked) throw new InputError('已完成预览，不能继续改写文件', 409)
     safeLocalPath(path)
-    if (u.kind === 'zip' ? path !== 'ability.zip' || u.count > 0 : path !== 'capability.json' && !/^(runtime|resources|docs)\//.test(path)) throw new InputError('不是能力包交付文件')
+    if (u.kind === 'zip' && (path !== 'ability.zip' || u.count > 0)) throw new InputError('不是能力包交付文件')
     if (u.count >= 501) throw new InputError('能力包文件数量超过限制', 413)
     u.paths.add(path); u.busy = true
     try {
@@ -76,6 +78,25 @@ export class CapabilityPackages {
     finally { u.busy = false }
   }
   async discard(token: string) { const u = this.uploads.get(token); if (!u || u.busy) return; this.uploads.delete(token); await rm(u.directory,{recursive:true,force:true}) }
+  processStatus(token:string):ImportProgress { const u=this.uploads.get(token);if(!u)throw new InputError('导入文件已释放，请重新选择',410);return u.progress??{status:'error',message:'尚未开始处理'} }
+  async cancelProcessing(token:string){const u=this.uploads.get(token);u?.controller?.abort(new Error('已停止处理，原包已保留'));await u?.processing;return this.processStatus(token)}
+  async processImport(token:string,useAI:boolean,label:string):Promise<ImportProgress>{
+    const u=this.upload(token)
+    if(u.checked&&u.preparedAI===useAI){u.progress={status:'done',message:'已准备',preview:this.preview(token,u.checked)};return u.progress}
+    u.controller=new AbortController();u.busy=true;u.expires=Date.now()+30*60_000
+    u.progress={status:'running',message:'正在整理本地包…'}
+    u.processing=(async()=>{
+      try{
+        if(!u.root){let root=u.directory;if(u.kind==='zip'){root=join(u.directory,'unpacked');await rm(root,{recursive:true,force:true});plainMkdir(root);extractLocalZip(join(u.directory,'ability.zip'),root)}
+          for(;;){const entries=await readdir(root,{withFileTypes:true});if(entries.length!==1||!entries[0]!.isDirectory())break;root=join(root,entries[0]!.name)}u.root=root}
+        // Existing standard packages remain unchanged; external formats are handled by the adapter.
+        try{u.checked=await checkPackage(u.root,true)}catch{u.checked=await adaptExternal(u.root,label,useAI,this.importModel,u.controller!.signal,message=>{u.progress={status:'running',message}})}
+        u.controller!.signal.throwIfAborted();u.preparedAI=useAI;u.progress={status:'done',message:'整理完成',preview:this.preview(token,u.checked)}
+      }catch(error){u.progress={status:'error',message:error instanceof Error?error.message:String(error)}}
+      finally{u.busy=false;u.expires=Date.now()+30*60_000}
+    })()
+    return u.progress
+  }
   async inspect(token: string): Promise<PackagePreview> {
     const u = this.upload(token); u.busy = true
     try {
@@ -161,7 +182,8 @@ export class CapabilityPackages {
         if(created&&!this.store.snapshot().packageReleases?.[pack.hash]){await rm(this.directory(pack.hash),{recursive:true,force:true});this.verified.delete(pack.hash)}
       })
       return result
-    } finally { u.busy = false }
+    } catch(error) { u.preparedAI=undefined; throw error }
+    finally { u.busy = false }
   }
   async configure(id: string, model: unknown, revision: unknown, enable: unknown) {
     const route = text(model,'工作台模型',240).trim()
