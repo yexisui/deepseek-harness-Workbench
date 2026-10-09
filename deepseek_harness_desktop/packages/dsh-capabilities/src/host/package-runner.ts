@@ -46,7 +46,7 @@ export class PackageRunner {
     if(!cap?.enabled||cap.removedAt||!v?.packageHash||!v.components.some(p=>p.actions.includes(action)&&state.componentRestrictions?.[p.componentId]?.enabled!==false))return false
     if((state.revokedAt?.[`capability:${capabilityId}`]??-1)>=createdAt||v.components.some(p=>(state.componentRestrictions?.[p.componentId]?.revokedAt??-1)>=createdAt))return false
     if(cap.versions.filter(v=>v.version>=version).some(v=>!v.components.some(p=>p.actions.includes(action))))return false
-    if(role){const binding=role.version.capabilities.find(b=>b.capabilityId===capabilityId&&b.enabled&&b.version===version);return !!binding&&!wasRevoked(state,role.roleId,role.version,role.sessionCreatedAt)&&allowedActions(state,role.roleId,role.version).includes(action)}
+    if(role){const binding=role.version.capabilities.find(b=>b.capabilityId===capabilityId&&b.enabled&&b.version===version);return !!binding&&!wasRevoked(state,role.roleId,{...role.version,capabilities:[binding]},role.sessionCreatedAt)&&allowedActions(state,role.roleId,role.version).includes(action)}
     return true
   }
   async start(capabilityId:string,version:number,action:Action,input:unknown,options:{signal?:AbortSignal;role?:PackageAuthority}={}){

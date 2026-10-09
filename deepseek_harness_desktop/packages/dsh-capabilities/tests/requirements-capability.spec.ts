@@ -40,7 +40,7 @@ it('saves an incomplete requirement capability draft without changing execution;
   await store.command(state.revision, { type: 'capability.save', id: capabilityId, definition: cap.draft, publish: true })
   expect(latest(store.snapshot().capabilities.find(c => c.id === capabilityId)!.versions)!.version).toBe(2)
 })
-it('supports custom pure requirements roles and blocks unsupported combinations at publication', async () => {
+it('publishes custom requirements roles combined with other capabilities', async () => {
   const store = await open(await mkdtemp(join(tmpdir(), 'requirements-custom-role-')))
   let state = store.snapshot(), value = structuredClone(state.roles.find(r => r.id === roleId)!.draft)
   value.name = '自定义需求岗位'
@@ -49,6 +49,6 @@ it('supports custom pure requirements roles and blocks unsupported combinations 
   expect(allowedActions(state, created.id, latest(state.roles.find(r => r.id === created.id)!.versions)!)).toEqual(['analyze-requirements'])
   value.capabilities.push({ capabilityId: 'browser', version: 1, enabled: true })
   await store.command(state.revision, { type: 'role.save', id: created.id, definition: value, publish: false })
-  await expect(store.command(store.snapshot().revision, { type: 'role.save', id: created.id, definition: value, publish: true })).rejects.toThrow('暂不支持')
+  await expect(store.command(store.snapshot().revision, { type: 'role.save', id: created.id, definition: value, publish: true })).resolves.toBeDefined()
   await expect(store.command(store.snapshot().revision, { type: 'capability.copy', id: capabilityId })).rejects.toThrow('暂不支持复制')
 })

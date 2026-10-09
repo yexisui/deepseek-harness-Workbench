@@ -10,11 +10,11 @@ import { REQUIREMENTS_CAPABILITY_ID, REQUIREMENTS_ROLE_ID, type RequirementTask,
 const roots:string[]=[],services:RequirementsService[]=[]
 afterEach(async()=>{
   for(const service of services.splice(0))await service.close()
-  for(const root of roots.splice(0)){if(!resolve(root).startsWith(resolve(tmpdir())+'\\')&&!resolve(root).startsWith(resolve(tmpdir())+'/'))throw Error('Unsafe cleanup');await rm(root,{recursive:true,force:true})}
+  for(const root of roots.splice(0)){if(!resolve(root).startsWith(resolve(tmpdir())+'\\')&&!resolve(root).startsWith(resolve(tmpdir())+'/'))throw Error('Unsafe cleanup');await rm(root,{recursive:true,force:true,maxRetries:5,retryDelay:100})}
 })
 async function setup(model:(prompt:string,route:string,signal?:AbortSignal)=>Promise<string>=async()=>JSON.stringify({summary:'已梳理，请核对。',items:[]})) {
   const root=await mkdtemp(join(tmpdir(),'dsh-requirements-'));roots.push(root)
-  const state:State=initialState()
+  const state:State=initialState(); for(const role of state.roles)for(const version of role.versions)version.capabilities=state.capabilities.map(c=>({capabilityId:c.id,version:c.versions.at(-1)!.version,enabled:true}))
   const service=new RequirementsService(root,model,()=>state,route=>route||'test/model');services.push(service);await service.init()
   const task=await service.create({roleId:REQUIREMENTS_ROLE_ID,mode:'guided',title:'报销需求'})
   const command=async(task:RequirementTask,c:RequirementCommand)=>service.command(task.id,task.revision,c)

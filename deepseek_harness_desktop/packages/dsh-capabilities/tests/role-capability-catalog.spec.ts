@@ -11,12 +11,12 @@ it('keeps unpublished and disabled records visible and only excludes removed rec
   first.removedAt = new Date().toISOString()
   expect(capabilityCatalog(state.capabilities).some(c => c.id === first.id)).toBe(false)
 })
-it('explains meeting compatibility while allowing the implemented segment extension', () => {
+it('allows every published capability in every role', () => {
   const state = initialState(), meeting = state.capabilities.find(c => c.id === 'meeting-transcription')!
-  expect(roleCapabilityReason('builtin-manager', meeting)).toContain('仅供会议纪要助手')
+  expect(roleCapabilityReason('builtin-manager', meeting)).toBeUndefined()
   expect(roleCapabilityReason(MEETING_ROLE_ID, meeting)).toBeUndefined()
   const cap = structuredClone(state.capabilities[0]!)
-  expect(roleCapabilityReason(MEETING_ROLE_ID, cap)).toContain('尚未接入')
+  expect(roleCapabilityReason(MEETING_ROLE_ID, cap)).toBeUndefined()
   cap.versions[0]!.components = [{componentId:'pkg:audio:segments',actions:['pack:audio:segments:plan-audio-segments']}]
   expect(roleCapabilityReason(MEETING_ROLE_ID, cap)).toBeUndefined()
   cap.enabled = false

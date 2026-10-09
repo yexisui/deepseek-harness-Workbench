@@ -17,12 +17,12 @@ const runner: GitRunner = { async run(args, cwd) { try { const r = await exec('g
 beforeEach(async () => {
   root = await realpath(await mkdtemp(join(tmpdir(), 'developer-service-'))); repo = join(root, 'repo'); await mkdir(repo)
   await runner.run(['init'], repo); await writeFile(join(repo, 'main.ts'), 'original\n'); await runner.run(['add', '.'], repo); await runner.run(['commit', '-m', 'initial'], repo)
-  state = initialState(); model = async () => JSON.stringify({ action: 'finish', message: '只读分析完成，尚未执行测试' }); check = async (_cwd, _command, _signal, output) => { output('real fixture output'); return 0 }
+  state = initialState(); for(const role of state.roles)for(const version of role.versions)version.capabilities=state.capabilities.map(c=>({capabilityId:c.id,version:c.versions.at(-1)!.version,enabled:true})); model = async () => JSON.stringify({ action: 'finish', message: '只读分析完成，尚未执行测试' }); check = async (_cwd, _command, _signal, output) => { output('real fixture output'); return 0 }
   git = new GitService(runner, async path => path === repo ? { ok: true, canonical: repo } : { ok: false, error: { code: 'workspace-unknown', message: 'denied' } })
   service = new DeveloperService(join(root, 'tasks'), git, (prompt, _model, signal) => model(prompt, signal), (...args) => check(...args), () => state)
   await service.init()
 })
-afterEach(async () => { await service.close(); git.workspace.close(); await rm(root, { recursive: true, force: true }) })
+afterEach(async () => { await service.close(); git.workspace.close(); await rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }) })
 async function create() { return service.create({ requestId: randomUUID(), cwd: repo, roleId: 'builtin-developer', roleVersion: 1 }) }
 async function done(id: string) {
   for (let i = 0; i < 300; i++) { const task = await service.get(id); if (![...task.rounds, ...task.checks].some(r => r.status === 'running')) return task; await new Promise(resolve => setTimeout(resolve, 30)) }

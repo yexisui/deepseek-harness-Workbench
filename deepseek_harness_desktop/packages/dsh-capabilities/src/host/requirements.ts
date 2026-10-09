@@ -89,7 +89,7 @@ export class RequirementsService {
     const state = this.state(), role = state.roles.find(r => r.id === roleId)
     const version = roleVersion === undefined ? role?.versions.at(-1) : role?.versions.find(v => v.version === roleVersion)
     if (!role || !version || !allowedActions(state, roleId, version).includes('analyze-requirements')) throw new InputError('岗位未发布可用的需求分析动作，或需求分析能力已停用；请在能力中心检查', 409)
-    if (createdAt !== undefined && wasRevoked(state, roleId, version, createdAt)) throw new InputError('此分析的执行授权已撤销；历史结果保留，请新建分析继续使用', 409)
+    if (createdAt !== undefined && wasRevoked(state, roleId, { ...version, capabilities: version.capabilities.filter(b => b.capabilityId === REQUIREMENTS_CAPABILITY_ID) }, createdAt)) throw new InputError('此分析的执行授权已撤销；历史结果保留，请新建分析继续使用', 409)
     return version
   }
   private authorize(task: RequirementTask) { return this.role(task.roleId, task.roleVersion, task.authorityAt) }

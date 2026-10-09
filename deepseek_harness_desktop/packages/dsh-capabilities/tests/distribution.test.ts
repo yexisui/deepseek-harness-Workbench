@@ -58,15 +58,17 @@ describe('portable capability distribution',()=>{
   })
   it('registers a real managed-agent tool without BrowserSkill and denies forged or revoked role calls',async()=>{
     const env=await environment(),installed=await install(env)
-    const saved=await env.store.command(env.store.snapshot().revision,{type:'role.save',definition:{...emptyRole(),name:'外部能力岗位',capabilities:[{capabilityId:installed.id,version:1,enabled:true}]},publish:true})
+    const saved=await env.store.command(env.store.snapshot().revision,{type:'role.save',definition:{...emptyRole(),name:'外部能力岗位',capabilities:[{capabilityId:installed.id,version:1,enabled:true},{capabilityId:'browser',version:1,enabled:true}]},publish:true})
     const role=env.store.snapshot().roles.find(r=>r.id===saved.id)!,version=role.versions[0]!,registered=new Map<string,any>()
     const agent={id:'external-agent',ctx:{tools:{guard:()=>()=>{},register:(tool:any)=>{registered.set(tool.name,tool);return()=>registered.delete(tool.name)}},get:()=>undefined},session:{header:{createdAt:Date.now()-1000,agentPreset:version.preset},snapshotEvents:()=>[]}}
     const ctx={tools:{guard:()=>()=>{}},on:()=>()=>{},agents:{list:()=>[agent]},agentPresets:{composedPreset:()=>version.preset}}
     const runtime=new CapabilityRuntime(ctx as never,env.store,{bskPath:'',bskHome:'',port:0});runtime.packageRunner=env.runner;await runtime.init();cleanups.push(()=>runtime.dispose())
     expect(runtime.health.loaded).toBe(false);expect(registered.has('capability_action')).toBe(true)
     const args={capabilityId:installed.id,action,input:JSON.stringify('from role')},exec={name:'capability_action',arguments:args,callId:'call-one',signal:new AbortController().signal,agent}
+    await env.store.command(env.store.snapshot().revision,{type:'capability.toggle',id:'browser',enabled:false})
+    expect(runtime.tasks()[0]!.status).not.toBe('stopped')
     expect(await registered.get('capability_action').execute(args,exec)).toBe(JSON.stringify('V1:FROM ROLE'))
-    expect(runtime.authorize({...exec,arguments:{...args,capabilityId:'browser'}} as never)).toContain('未授权')
+    expect(runtime.authorize({...exec,arguments:{...args,capabilityId:'browser'}} as never)).toBeTruthy()
     await env.store.command(env.store.snapshot().revision,{type:'role.save',id:role.id,definition:{...role.draft,capabilities:[{capabilityId:installed.id,version:1,enabled:true,actions:[]}]},publish:true})
     expect(runtime.authorize(exec as never)).toBeTruthy()
     await expect(registered.get('capability_action').execute(args,exec)).rejects.toThrow()

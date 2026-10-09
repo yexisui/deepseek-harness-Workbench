@@ -1,6 +1,7 @@
 /** Local rows that exist before the host creates a real chat Session. */
 export type LocalConversation = {
   id: string
+  workMode?: import('./role-capability-modes.ts').CapabilityMode
   role: string
   kind: 'draft' | 'demo'
   customTitle?: boolean
@@ -45,13 +46,13 @@ export function createLocalConversations(mint: () => string = () => `local-${cry
   const active = () => snapshot.items.find(row => row.id === snapshot.activeId)
   const leave = () => {
     const current = active()
-    update(snapshot.items.filter(row => row !== current || row.kind === 'demo' || row.customTitle || row.draft.trim()), null)
+    update(snapshot.items.filter(row => row !== current || row.kind === 'demo' || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode)), null)
   }
-  const start = (role = 'chat') => {
+  const start = (role = 'chat', workMode?: LocalConversation['workMode']) => {
     const current = active()
-    const retained = snapshot.items.filter(row => row !== current || row.kind === 'demo' || row.customTitle || row.draft.trim())
+    const retained = snapshot.items.filter(row => row !== current || row.kind === 'demo' || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode))
     const now = Date.now()
-    const row: LocalConversation = { id: mint(), role, kind: 'draft', title: '新对话', draft: '', updatedAt: now }
+    const row: LocalConversation = { id: mint(), role, workMode, kind: 'draft', title: '新对话', draft: '', updatedAt: now }
     update([row, ...retained], row.id)
     return row
   }
@@ -84,7 +85,7 @@ export function createLocalConversations(mint: () => string = () => `local-${cry
     open: (id: string) => { if (snapshot.items.some(row => row.id === id)) update(snapshot.items, id) },
     remove: (id: string) => update(snapshot.items.filter(row => row.id !== id), snapshot.activeId === id ? null : snapshot.activeId),
     rename: (id: string, title: string) => patch(id, { title, customTitle: true }),
-    setRole: (id: string, role: string) => patch(id, { role }),
+    setRole: (id: string, role: string) => patch(id, { role, workMode: undefined }),
     setDraft: (id: string, draft: string) => patch(id, { draft, title: snapshot.items.find(row => row.id === id)?.customTitle ? snapshot.items.find(row => row.id === id)!.title : draft.trim() ? draft.trim().slice(0, 28) : '新对话' }),
     setMeeting: (id: string, meeting: unknown, draft: string) => patch(id, { meeting, draft }),
     commitDemo: (id: string, title: string) => patch(id, { kind: 'demo', title: snapshot.items.find(row => row.id === id)?.customTitle ? snapshot.items.find(row => row.id === id)!.title : title }),

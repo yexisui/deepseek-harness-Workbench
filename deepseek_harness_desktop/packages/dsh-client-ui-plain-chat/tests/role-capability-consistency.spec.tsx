@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CapabilityPackages } from '../../dsh-capabilities/src/host/packages.ts'
 import { readFile } from 'node:fs/promises'
-import { mkdtemp } from 'node:fs/promises'
+import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { CapabilityStore } from '../../dsh-capabilities/src/host/store.ts'
@@ -50,7 +50,7 @@ describe('managed capability card actions', () => {
   })
   afterEach(async () => {
     await act(async () => root.unmount())
-    container.remove(); await store.close(); editorDrafts.clear(); sessionStorage.clear()
+    container.remove(); await store.close(); await rm(store.directory,{recursive:true,force:true}); editorDrafts.clear(); sessionStorage.clear()
     vi.restoreAllMocks(); vi.unstubAllGlobals()
   })
 
@@ -94,8 +94,8 @@ describe('managed capability card actions', () => {
       expect(library.textContent).toContain('未发布，请先在能力中心发布')
       expect(library.textContent).toContain('Skills 技能 1 项')
       if(id==='builtin-manager') {
-        expect(button('添加 会议录音转写',library)!.disabled).toBe(true)
-        expect(library.textContent).toContain('仅供会议纪要助手使用')
+        expect(button('添加 会议录音转写',library)!.disabled).toBe(false)
+        expect(library.textContent).not.toContain('仅供会议纪要助手使用')
         await act(async()=>library.querySelector<HTMLButtonElement>('button[title="会议录音转写"]')!.click())
         expect(button('管理录音转写能力 ↗')).toBeTruthy()
       }
@@ -110,7 +110,7 @@ describe('managed capability card actions', () => {
       const published=structuredClone(getRole().versions)
       await capabilityClient.refresh();await act(async()=>root.render(<ManagedRoleEditor id={id} onClose={()=>{}}/>))
       expect(button('添加 录音分段定位')!.disabled).toBe(false)
-      expect(button('添加 浏览器操作')!.disabled).toBe(true)
+      expect(button('添加 浏览器操作')!.disabled).toBe(false)
       await click('添加 录音分段定位');expect(button('添加 录音分段定位')!.disabled).toBe(true)
       await click('保存草稿');expect(getRole().draft.capabilities.some(b=>b.capabilityId===installed.id)).toBe(true);expect(getRole().versions).toEqual(published)
       await act(async()=>root.render(<></>));editorDrafts.clear();await act(async()=>root.render(<ManagedRoleEditor id={id} onClose={()=>{}}/>))

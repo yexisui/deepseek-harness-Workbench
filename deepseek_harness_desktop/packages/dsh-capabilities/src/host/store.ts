@@ -261,9 +261,6 @@ export class CapabilityStore {
       } else if (command.type === 'role.save') {
         const value = roleDefinition(command.definition, next), publish = bool(command.publish)
         if (publish && roleCompositionIssues(value).length) throw new InputError(roleCompositionIssues(value).join('；'))
-        const meetingBinding = value.capabilities.find(binding => binding.capabilityId === MEETING_CAPABILITY_ID)
-        if (target === MEETING_ROLE_ID && !meetingBinding) throw new InputError('会议纪要助手必须保留录音转写能力关联')
-        if (target !== MEETING_ROLE_ID && meetingBinding) { const capability = next.capabilities.find(c => c.id === MEETING_CAPABILITY_ID)!; throw new InputError(roleCapabilityReason(target, capability, capability.versions.find(v => v.version === meetingBinding.version))!) }
         if (value.icon?.kind === 'png') await this.icons.read(value.icon.assetId)
         let role = next.roles.find(r => r.id === target)
         if (command.id && !role) throw new InputError('岗位不存在', 404)
@@ -286,7 +283,6 @@ export class CapabilityStore {
         const original = next.roles.find(role => role.id === target)
         if (!original) throw new InputError('岗位不存在', 404)
         if (original.archivedAt) throw new InputError('岗位已归档，请先恢复后复制')
-        if (target === MEETING_ROLE_ID) throw new InputError('会议纪要使用专用流程，暂不支持复制岗位；可在原岗位中编辑并发布新版本')
         const definition = structuredClone(latest(original.versions) ?? original.draft)
         target = 'local-' + randomUUID()
         next.roles.push({ id: target, enabled: true, draft: { ...definition, name: (definition.name + ' 副本').slice(0, 80) }, versions: [] })

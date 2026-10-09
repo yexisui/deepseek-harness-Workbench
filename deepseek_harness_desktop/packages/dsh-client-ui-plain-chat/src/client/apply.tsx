@@ -1,3 +1,4 @@
+import { roleCapabilityModes, defaultCapabilityMode, type CapabilityMode } from './role-capability-modes.ts'
 import React, { useMemo, useState, useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-ui-slots'
@@ -124,13 +125,13 @@ export function apply(ctx: Context): void {
   }
   // Both the main New button and the ungrouped chat-row + open a fresh draft.
   // A new draft always begins in free chat; published sessions keep their own preset.
-  const startFreshChat = (role = 'chat') => {
+  const startFreshChat = (role = 'chat', mode?: CapabilityMode) => {
     requirementViewKey = `requirements-new-${role}-${++requirementNavigation}`
     requirementHistory.leave()
     developerHistory.leave(); developerViewKey = `developer-new-${++developerNavigation}`
     start.reset()
     clearSavedDraft()
-    localConversations.start(role)
+    localConversations.start(role, mode)
     if (roleSelection.getSnapshot() !== role) roleSelection.select(role)
     revision++
     listeners.forEach(fn => fn())
@@ -274,10 +275,10 @@ export function apply(ctx: Context): void {
       const analysisRole = capabilities.data?.state.roles.find(role => role.id === effectiveRole)
       const analysisVersion = requirement ? analysisRole?.versions.find(version => version.version === requirement.roleVersion) : analysisRole && latest(analysisRole.versions)
       const developerVersion = developer ? analysisRole?.versions.find(v => v.version === developer.roleVersion) : analysisRole && latest(analysisRole.versions)
-      const showDeveloper = Boolean(developer) || usesDeveloper(capabilities.data?.state, developerVersion)
+
       const analysisViewKey = requirementViewKey
-      const showRequirements = Boolean(requirement) || usesRequirements(capabilities.data?.state, analysisVersion)
-      const meetingRole = capabilities.data?.state.roles.find(role => role.id === MEETING_DEMO_ROLE_ID)
+
+      const meetingRole = capabilities.data?.state.roles.find(role => role.id === effectiveRole)
       const savedMeetingVersion = local?.meeting && typeof local.meeting === 'object' ? (local.meeting as { roleVersion?: unknown }).roleVersion : undefined
       const meetingVersion = meetingRole?.versions.find(version => version.version === savedMeetingVersion) ?? (meetingRole && latest(meetingRole.versions))
       const summary = props.useSessions((s: any) => props.sessionId ? s.byId[props.sessionId] : undefined)
@@ -287,6 +288,11 @@ export function apply(ctx: Context): void {
       const noSession = props.sessionId === undefined
       const sessionRole = actualPreset === PRESET_ID ? 'chat' : capabilities.data?.state.roles.find(role => role.versions.some(version => version.preset === actualPreset))?.id
       const displayedRole = noSession ? effectiveRole : sessionRole ?? (actualPreset ? 'chat' : selectedRole)
+      const originRole = capabilities.data?.state.roles.find(role => role.id === displayedRole)
+      const originVersion = noSession ? (developer ? developerVersion : requirement ? analysisVersion : local?.kind === 'demo' ? meetingVersion : originRole && latest(originRole.versions)) : originRole?.versions.find(v => v.preset === actualPreset)
+      const modes = roleCapabilityModes(capabilities.data?.state, originVersion)
+      const workMode: CapabilityMode = developer ? 'developer' : requirement ? 'requirements' : local?.kind === 'demo' ? 'meeting' : local?.workMode && modes.some(m => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes)
+      const showDeveloper = workMode === 'developer', showRequirements = workMode === 'requirements'
       const translate = (key: string, ...args: unknown[]) => key === 'hero.chooseWorkspace' && (plain || noSession) ? t('workspace') : props.t(key, ...args)
       const renderSlot = (key: string, owner: any, ...rest: any[]) => {
         if (key === 'conversation.hero.agentPreset' && noSession) return <ManagedRolePicker t={t} selected={effectiveRole} onSelect={selectRole} />
@@ -320,8 +326,9 @@ export function apply(ctx: Context): void {
         if (binding && local?.kind === 'draft') localConversations.commitChat(local.id)
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && effectiveRole === MEETING_DEMO_ROLE_ID ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /><JevToggle/></div>
+        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /><JevToggle/></div>
         {!noSession&&<JevActivity scope={!noSession?'native:'+props.sessionId:developer?'developer:'+developer.id:requirement?'requirements:'+requirement.id:(local?.meeting as {jobId?:string}|undefined)?.jobId?'meeting:'+(local!.meeting as {jobId:string}).jobId:undefined}/>}
+        {displayedRole !== 'chat' && modes.length > 1 && <nav aria-label="岗位能力入口" className={styles.capabilityModes}>{modes.map(item => <button key={item.mode} type="button" aria-pressed={noSession ? workMode === item.mode : item.mode === 'chat'} onClick={() => { if (noSession && workMode === item.mode) return; startFreshChat(displayedRole, item.mode) }}>{item.label}</button>)}</nav>}
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
         <div className={styles.conversationContent}>{noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
@@ -348,14 +355,14 @@ export function apply(ctx: Context): void {
             if (retained?.kind === 'draft' && retained.role === effectiveRole && (current || retained.draft === origin?.draft)) localConversations.commitChat(retained.id)
             requirementHistory.upsert(task, current)
           }}/>
-          : noSession && (local?.kind === 'demo' || effectiveRole === MEETING_DEMO_ROLE_ID)
-          ? <MeetingDemo conversationTitle={local?.customTitle ? local.title : undefined} key={draftKey} initialState={local?.meeting} assistant={meetingVersion} roleVersion={meetingVersion?.version} loadModels={loadMeetingModels} onSnapshot={state => {
-            const row = localConversations.active() ?? localConversations.start(MEETING_DEMO_ROLE_ID)
+          : noSession && workMode === 'meeting'
+          ? <MeetingDemo conversationTitle={local?.customTitle ? local.title : undefined} key={draftKey} initialState={local?.meeting} assistant={meetingVersion} roleId={effectiveRole} roleVersion={meetingVersion?.version} loadModels={loadMeetingModels} onSnapshot={state => {
+            const row = localConversations.active() ?? localConversations.start(effectiveRole, 'meeting')
             localConversations.setMeeting(row.id, state, state.draft)
           }} onCommit={title => {
-            const row = localConversations.active() ?? localConversations.start(MEETING_DEMO_ROLE_ID)
+            const row = localConversations.active() ?? localConversations.start(effectiveRole, 'meeting')
             localConversations.commitDemo(row.id, title)
-          }} onReset={() => startFreshChat(MEETING_DEMO_ROLE_ID)}/>
+          }} onReset={() => startFreshChat(effectiveRole, 'meeting')}/>
           : <Original {...props} t={translate} renderSlot={renderSlot} selectWorkspace={selectWorkspace} />}</div>
       </div>
     }
