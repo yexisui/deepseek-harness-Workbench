@@ -1,3 +1,4 @@
+import { execution, step } from '../../../../shared/host/execution.ts'
 import type { Context } from '@deepseek-ai/cordis'
 import { randomUUID } from 'node:crypto'
 
@@ -19,14 +20,17 @@ export async function workbenchText(ctx: Context, prompt: string, selectedModel:
   if(!llm || slash < 1)throw new Error('请在工作台配置默认模型，或选择本次分析使用的模型')
   // null removes the workflow deadline while retaining cancellation and provider connection handling.
   const timeout=timeoutMs===null?undefined:AbortSignal.timeout(timeoutMs), combined=timeout?(signal?AbortSignal.any([signal,timeout]):timeout):signal
+  if(execution())execution()!.record.model=route
+  const progressId='model-'+randomUUID();step(progressId,'模型生成','running','等待模型响应',{model:route});let received=false
   let result=''
   for await(const chunk of llm.stream({provider:route.slice(0,slash),model:route.slice(slash+1),system,messages:[{id:randomUUID(),role:'user',content:[{type:'text',text:prompt}],source:{kind:'user'}}],temperature:0.1,...(maxTokens === undefined ? {} : { maxTokens }),signal:combined})) {
     if(combined?.aborted)throw new Error(signal?.aborted?'本次分析已停止':'模型处理超时，请重试')
-    if(chunk.type==='text-delta')result+=chunk.text??''
+    if(chunk.type==='text-delta'){if(!received){step(progressId,'模型生成','running','正在接收正文',{model:route});received=true}result+=chunk.text??''}
     if(result.length>512_000)throw new Error('模型返回内容过长，请缩小分析范围')
     if(chunk.type==='finish'&&chunk.reason?.kind==='max-tokens')throw new Error('模型输出达到所选模型的 token 上限，正文可能被截断；请在模型设置中调整最大输出 token 数后重试')
     if(chunk.type==='finish'&&chunk.reason?.kind==='error')throw new Error(chunk.reason.failure?.message||'工作台模型处理失败')
   }
   if(!result.trim())throw new Error('工作台模型没有返回内容')
+  step(progressId,'模型生成','done','正文接收完成；等待业务校验',{model:route})
   return result
 }

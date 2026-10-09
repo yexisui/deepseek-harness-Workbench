@@ -30,7 +30,7 @@ it('meeting review failure preserves the previous minutes',async()=>{
  const service=new MeetingService(join(env.root,'meeting'),async prompt=>{expect(prompt).toContain('JEV 本轮');return JSON.stringify({title:'新纪要',overview:'讨论',decisions:[],actions:[],unknown:[]})},undefined,undefined,()=>({endpoint:'http://127.0.0.1:9000/v1/audio/transcriptions',model:'fixture'}),env.jev);await service.init()
  const task=await service.create({fileName:'fixture.wav',mode:'guided'}),old={title:'旧纪要',overview:'已核对',decisions:[],actions:[],unknown:[]}
  const job:MeetingJob={...task,status:'ready',segments:[{id:'s1',start:0,end:1000,speaker:'甲',text:'讨论项目'}],minutes:old};await writeFile(join(env.root,'meeting',job.id+'.json'),JSON.stringify(job))
- await service.generate(job.id);const result=await until(()=>service.get(job.id),t=>t.status!=='generating');expect(result.status).toBe('error');expect(result.minutes).toEqual(old);expect(env.store.history().map(t=>t.stage)).toEqual(['begin','review'])
+ await service.generate(job.id);const result=await until(()=>service.get(job.id),t=>t.status!=='generating');expect(result.status).toBe('error');expect(result.minutes).toEqual(old);expect(env.store.history().map(t=>t.stage)).toEqual(['begin','review']);await service.executions.drain()
 })
 it('developer action denial leaves the real file untouched and records a failed round',async()=>{
  const env=await setup(async input=>input.stage==='action'?{...allow,decision:'block',summary:'修改超出用户要求'}:allow),repo=join(env.root,'repo');await mkdir(repo)

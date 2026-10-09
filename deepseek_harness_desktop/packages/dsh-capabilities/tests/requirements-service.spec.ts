@@ -30,6 +30,7 @@ it('cancels the actual analysis when its component is globally stopped and retai
  let signal:AbortSignal|undefined
  const env=await setup(async(_prompt,_route,provided)=>{signal=provided;return new Promise((_resolve,reject)=>provided!.addEventListener('abort',()=>reject(new Error('已停止')),{once:true}))})
  const started=await env.command(env.task,{type:'run',operation:'analyze',requestId:randomUUID(),instruction:'整理业务目标'})
+ for(let i=0;i<100&&!signal;i++)await new Promise(r=>setTimeout(r,5))
  expect((await env.service.componentActivities())[0].componentIds).toEqual(['requirements-service'])
  await env.service.stopComponents(['requirements-service'])
  expect(signal?.aborted).toBe(true);expect((await env.service.get(started.id)).run?.status).toBe('stopped');expect((await env.service.get(started.id)).title).toBe('报销需求')
@@ -115,6 +116,7 @@ describe('persistent requirements workflow',()=>{
     const env=await setup(async()=>{calls++;return await new Promise<string>(r=>{resolveModel=r})})
     const request={type:'run' as const,operation:'analyze' as const,instruction:'整理申请功能',requestId:randomUUID()}
     let t=await env.command(env.task,request)
+    for(let i=0;i<100&&!calls;i++)await new Promise(r=>setTimeout(r,5))
     const repeated=await env.command(env.task,request);expect(repeated.run?.id).toBe(request.requestId);expect(calls).toBe(1)
     t=await env.command(t,{type:'requirement.save',requirement:{...basic,title:'用户手工新增'}})
     resolveModel(JSON.stringify({summary:'分析完成',items:[{kind:'requirement',value:basic}]}));t=await finished(env.service,t.id)
@@ -169,9 +171,12 @@ describe('persistent requirements workflow',()=>{
     let resolveModel!:(s:string)=>void
     const env=await setup(async()=>await new Promise<string>(r=>{resolveModel=r}))
     let t=await env.command(env.task,{type:'run',operation:'clarify',instruction:'设计审批流程',requestId:randomUUID()})
+    for(let i=0;i<100&&!resolveModel;i++)await new Promise(r=>setTimeout(r,5))
     t=await env.command(t,{type:'run.stop'});resolveModel(JSON.stringify({summary:'迟到结果',items:[]}))
     expect((await finished(env.service,t.id)).run?.status).toBe('stopped')
+    const previousResolve=resolveModel
     t=await env.command(t,{type:'run',operation:'clarify',instruction:'再次分析',requestId:randomUUID()})
+    for(let i=0;i<100&&resolveModel===previousResolve;i++)await new Promise(r=>setTimeout(r,5))
     await env.service.remove(t.id);resolveModel(JSON.stringify({summary:'不应恢复',items:[]}));await new Promise(r=>setTimeout(r,15))
     await expect(env.service.get(t.id)).rejects.toThrow('不存在');expect((await env.service.list()).total).toBe(0)
   })

@@ -1,3 +1,4 @@
+import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import { randomUUID, createHash } from 'node:crypto'
 import type { JevService } from '../../../dsh-jev-mode/src/host/service.ts'
 import { mkdir, open, readFile, readdir, rename, unlink } from 'node:fs/promises'
@@ -19,10 +20,11 @@ const hash = (value: string) => createHash('sha256').update(value).digest('hex')
 
 /** Developer jobs have immutable cwd and published role bindings. They do not impersonate native sessions. */
 export class DeveloperService {
+  readonly executions: ExecutionStore
   private tail: Promise<unknown> = Promise.resolve()
   private running = new Map<string, { cwd: string; controller: AbortController; promise?: Promise<void> }>()
   private closed = false
-  constructor(readonly root: string, readonly git: GitService, private model: Model, private run: Run, private state: () => State, private jev?: JevService, private skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) {}
+  constructor(readonly root: string, readonly git: GitService, private model: Model, private run: Run, private state: () => State, private jev?: JevService, private skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) { this.executions = new ExecutionStore(join(root,'_executions')) }
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private path(id: string, sub = '') { if (!UUID.test(id)) throw new InputError('开发任务标识无效'); return join(this.root, sub, id + '.json') }
   private async atomic(file: string, value: unknown) {
@@ -31,6 +33,7 @@ export class DeveloperService {
     try { await rename(temp, file) } finally { await unlink(temp).catch(() => {}) }
   }
   async init() {
+    await this.executions.init()
     for (const folder of ['', 'snapshots', 'projects']) await mkdir(join(this.root, folder), { recursive: true })
     for (const item of (await this.list()).items) {
       const task = await this.get(item.id)
@@ -45,7 +48,8 @@ export class DeveloperService {
   }
   private idle(cwd: string) { if ([...this.running.values()].some(value => value.cwd === cwd)) throw new InputError('此目录有开发或验证正在执行，请先停止或等待完成', 409) }
   private event(task: DeveloperTask, kind: DeveloperTask['events'][number]['kind'], message: string, path?: string) {
-    task.events.push({ id: randomUUID(), at: now(), kind, text: message, ...(path ? { path } : {}) })
+    step('event-'+task.events.length,({read:'读取项目',write:'修改文件',git:'Git操作',run:'运行检查',snapshot:'保存检查点',system:'执行状态'})[kind],'done',message+(path?' · '+path:''))
+    task.events.push({ runId:execution()?.record.id, id: randomUUID(), at: now(), kind, text: message, ...(path ? { path } : {}) })
     if (task.events.length > 3000) task.events.splice(0, task.events.length - 3000)
   }
   private async save(task: DeveloperTask) { task.revision++; task.updatedAt = now(); await this.atomic(this.path(task.id), task); return structuredClone(task) }
@@ -73,7 +77,7 @@ export class DeveloperService {
     const task: DeveloperTask = { schema: 1, id, revision: 0, title: string(data.title, '名称', 120) || '新开发任务', cwd, ...authority, createdAt: now(), updatedAt: now(), permission: 'read', model: string(data.model, '模型', 250), baseline: await this.snapshot(cwd), draft: '', messages: [], rounds: [], checks: [], checkpoints: [], events: [] }
     this.event(task, 'system', '绑定项目并记录任务起点；原有修改保持'); return this.save(task)
   }) }
-  async remove(id: string) { return this.serialized(async () => { const task = await this.get(id); this.idle(task.cwd); await unlink(this.path(id)); return { ok: true } }) }
+  async remove(id: string) { return this.serialized(async () => { const task = await this.get(id); this.idle(task.cwd); await unlink(this.path(id)); await this.executions.remove(id);return { ok: true } }) }
   async configureTask(id: string, revision: unknown, raw: unknown) { return this.update(id, task => {
     if (task.revision !== integer(revision)) throw new InputError('任务已更新，请重新读取后保存', 409)
     this.authorize(task); const data = object(raw)
@@ -143,7 +147,8 @@ export class DeveloperService {
       return { path, reason, action: before.files[path] ? after.files[path] ? '修改' : '恢复' : '移除' }
     }) }
   }
-  async restore(id: string, checkpointId: string, fingerprint: string, names: string[]) { return this.serialized(async () => {
+  async restore(id: string, checkpointId: string, fingerprint: string, names: string[]) {await this.get(id);return this.executions.run(id,{operation:'恢复检查点',input:'恢复选中的文件：'+names.join('、')},()=>this.restoreWork(id,checkpointId,fingerprint,names),()=>({status:'done',summary:'所选文件恢复完成'}))}
+  private async restoreWork(id: string, checkpointId: string, fingerprint: string, names: string[]) { return this.serialized(async () => {
     const task = await this.get(id)
     this.authorize(task); this.idle(task.cwd)
     if (task.permission !== 'edit') throw new InputError('请先允许编辑', 403)
@@ -181,7 +186,8 @@ export class DeveloperService {
     if (!result.ok) throw new InputError(result.error.message, 409)
     this.event(task, 'git', '创建独立工作目录：' + result.path); await this.save(task); return result
   }) }
-  async gitAction(id: string, raw: unknown) { return this.update(id, async task => {
+  async gitAction(id: string, raw: unknown) { await this.get(id); return this.executions.run(id,{operation:'Git 操作',input:'执行已选择的 Git 操作'},()=>this.gitActionWork(id,raw),()=>({status:'done',summary:'Git 操作已完成'})) }
+  private async gitActionWork(id: string, raw: unknown) { return this.update(id, async task => {
     this.authorize(task, 'inspect-git'); this.idle(task.cwd); const data = object(raw)
     if (data.type === 'stage' || data.type === 'unstage') {
       const expected = object(data.expected)
@@ -212,7 +218,7 @@ export class DeveloperService {
     this.authorize(task); this.idle(task.cwd)
     const message = text(data.message, '消息', 30000, true)
     const contexts: DeveloperContext[] = list(data.contexts ?? [], 12).map(value => { const ref = object(value); return { path: text(ref.path, '文件', 1500, true), side: ref.side === 'before' ? 'before' : 'after', version: text(ref.version, '引用版本', 200), start: integer(ref.start), end: integer(ref.end), text: text(ref.text, '片段', 16000) } })
-    task.messages.push({ id: randomUUID(), role: 'user', text: message, at: now(), contexts }); task.draft = ''
+    task.messages.push({ id: randomUUID(), role: 'user', runId:requestId, text: message, at: now(), contexts }); task.draft = ''
     task.model = string(data.model, '模型', 250) || task.model
     const round: DeveloperRound = { id: requestId, at: now(), before: await this.snapshot(task.cwd), status: 'running', writes: [] }
     task.rounds.push(round); this.event(task, 'system', '开始开发轮次；权限：' + (task.permission === 'edit' ? '允许项目内文本编辑' : '只读'))
@@ -221,6 +227,10 @@ export class DeveloperService {
     return task
   }) }
   private async develop(id: string, roundId: string, signal: AbortSignal) {
+    const task=await this.get(id)
+    await this.executions.run(id,{id:roundId,operation:'开发任务',input:task.messages.at(-1)?.text??'执行开发任务',inputKind:'user',model:task.model,roleVersion:task.roleVersion},async()=>{step('permission','检查项目权限','done',task.permission==='edit'?'允许项目内编辑':'只读讨论');await this.developWork(id,roundId,signal);return this.get(id)},value=>{const round=value.rounds.find(r=>r.id===roundId)!;return {status:round.status==='done'?'done':signal.aborted?'stopped':execution()?.record.events.some(e=>e.status==='review')?'review':'failed',summary:round.error||'开发轮次已保存；测试状态以实际验证记录为准',result:round.status==='done'?{kind:'developer',text:value.messages.at(-1)?.text??''}:undefined}})
+  }
+  private async developWork(id: string, roundId: string, signal: AbortSignal) {
     const observed = new Map<string, string>(), evidence: unknown[] = []
     const jev = this.jev?.begin('developer:'+id)
     let formatRetries = 0
@@ -248,7 +258,7 @@ export class DeveloperService {
         if (command.action === 'finish') {
           const reviewed=await jev?.check('review',{messages:task.messages.slice(-16),evidence,answer:command.message},signal)
           if(reviewed?.decision==='clarify')command.message=String(command.message)+'\n\nJEV 待确认：'+reviewed.summary+'\n'+reviewed.missing.join('\n')
-          await this.update(id, current => { current.messages.push({ id: randomUUID(), role: 'assistant', text: text(command.message, '回答', 40000, true), at: now() }) }); break
+          await this.update(id, current => { current.messages.push({ id: randomUUID(), role: 'assistant', runId:roundId, text: text(command.message, '回答', 40000, true), at: now() }) }); break
         }
         const name = string(command.path, '文件路径', 1500)
         if (command.action === 'read') {
@@ -293,14 +303,15 @@ export class DeveloperService {
     this.event(task, 'run', '执行验证：' + command.name)
     const release = await this.git.workspace.lease(task.cwd, requestId)
     try { await this.save(task) } catch (error) { release(); throw error }
-    this.launch(task, release, async signal => {
+    this.launch(task, release, async signal => this.executions.run(id,{id:requestId,operation:'运行验证',input:command.name+'：'+command.command},async()=>{
       let output = '', exitCode: number | null = null, error = ''
       const persist = setInterval(() => { void this.update(id, current => { const check = current.checks.find(c => c.id === requestId)!; check.output = output }).catch(() => {}) }, 1000)
       try { exitCode = await this.run(task.cwd, command.command, signal, chunk => { output = (output + chunk).slice(-160000) }) } catch (e) { error = errorText(e) }
       finally { clearInterval(persist) }
       const after = await this.git.workspace.state(task.cwd).catch(() => undefined)
       await this.update(id, current => { const check = current.checks.find(c => c.id === requestId)!; check.output = output + (error ? '\n' + error : ''); check.exitCode = exitCode; check.finishedAt = now(); check.status = signal.aborted ? 'stopped' : exitCode === 0 && !error ? 'passed' : 'failed'; check.changedDuringRun = after?.fingerprint !== state.fingerprint; this.event(current, 'run', `${command.name}：${check.status}${check.changedDuringRun ? '；运行期间代码有变化' : ''}`) })
-    }); return task
+      return this.get(id)
+    },value=>{const check=value.checks.find(c=>c.id===requestId)!;return {status:check.status==='passed'?'done':check.status==='stopped'?'stopped':'failed',summary:command.name+'：'+check.status+(check.changedDuringRun?'；代码变化，需重新验证':''),result:{kind:'check',text:check.output}}}).then(()=>undefined)); return task
   }) }
   async componentActivities() {
     return Promise.all([...this.running.keys()].map(async id => { const task = await this.get(id); return { id, roleId: task.roleId, roleVersion: task.roleVersion, name: task.title, kind: 'developer', status: 'running', componentIds: ['developer-files', 'developer-git', 'developer-checks'] } }))

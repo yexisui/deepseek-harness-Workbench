@@ -294,7 +294,7 @@ export function apply(ctx: Context): void {
       }
       return <div className={styles.conversationShell}>
         <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && effectiveRole === MEETING_DEMO_ROLE_ID ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /><JevToggle/></div>
-        <JevActivity scope={!noSession?'native:'+props.sessionId:developer?'developer:'+developer.id:requirement?'requirements:'+requirement.id:(local?.meeting as {jobId?:string}|undefined)?.jobId?'meeting:'+(local!.meeting as {jobId:string}).jobId:undefined}/>
+        {!noSession&&<JevActivity scope={!noSession?'native:'+props.sessionId:developer?'developer:'+developer.id:requirement?'requirements:'+requirement.id:(local?.meeting as {jobId?:string}|undefined)?.jobId?'meeting:'+(local!.meeting as {jobId:string}).jobId:undefined}/>}
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
         <div className={styles.conversationContent}>{noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper

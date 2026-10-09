@@ -1,3 +1,4 @@
+import { step } from '../../../../shared/host/execution.ts'
 import { execFile } from 'node:child_process'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { join, resolve, relative, isAbsolute } from 'node:path'
@@ -53,6 +54,7 @@ export class PackageMeetingSegmenter implements MeetingSegmenter {
       catch { throw new Error('缺少 FFmpeg，请运行工作台 deploy.ps1 -Mode Tools 安装外部工具') }
       const tool = (name: string) => { const file = resolve(root, name), rel = relative(root, file); if (!rel || rel.startsWith('..') || isAbsolute(rel)) throw new Error('外部音频工具路径无效'); return file }
       const ffmpeg = tool(pointer.ffmpeg), ffprobe = tool(pointer.ffprobe)
+      step('audio-split','解析录音并规划分段','running')
       const duration = Number((await execute(ffprobe, ['-v','error','-show_entries','format=duration','-of','default=noprint_wrappers=1:nokey=1',audio], combined)).trim())
       if (!Number.isFinite(duration) || duration <= 0) throw new Error('无法读取录音时长')
       const report = await execute(ffmpeg, ['-hide_banner','-nostdin','-i',audio,'-af','silencedetect=noise=-35dB:d=0.35','-f','null','-'], combined)
@@ -63,6 +65,7 @@ export class PackageMeetingSegmenter implements MeetingSegmenter {
       const result = await planned.done as { segments?: {start:number;end:number}[] }
       const plan = result?.segments
       if (!Array.isArray(plan) || !plan.length || plan.some((p,i) => !Number.isFinite(p.start) || !Number.isFinite(p.end) || p.end <= p.start || Math.abs(p.start-(i ? plan[i-1]!.end : 0)) > .01 || p.end > duration+.01) || Math.abs(plan.at(-1)!.end-duration) > .01) throw new Error('分段能力未返回有效的连续录音区间')
+      step('audio-split','解析录音并规划分段','done',plan.length+' 个连续片段')
       temporary = await mkdtemp(join(tmpdir(), 'dsh-meeting-segments-'))
       const rows: TranscriptSegment[] = []
       for (const [index, segment] of plan.entries()) {
@@ -70,8 +73,10 @@ export class PackageMeetingSegmenter implements MeetingSegmenter {
         const file = join(temporary, `part-${index+1}.wav`)
         await execute(ffmpeg, ['-hide_banner','-loglevel','error','-nostdin','-i',audio,'-ss',String(segment.start),'-t',String(segment.end-segment.start),'-vn','-ac','1','-ar','16000','-c:a','pcm_s16le',file], combined)
         check()
+        step('segment-'+index,'转写录音片段 '+(index+1)+'/'+plan.length,'running',undefined,{current:index,total:plan.length})
         const text = (await recognize(file, `part-${index+1}.wav`, combined)).map(r => r.text).join('\n').trim()
         check()
+        step('segment-'+index,'转写录音片段 '+(index+1)+'/'+plan.length,'done',text?'识别完成':'未识别到文字',{current:index+1,total:plan.length})
         if (text) rows.push({ id:`s${rows.length+1}`, start:Math.round(segment.start*1000), end:Math.round(segment.end*1000), speaker:'发言人', text, timingKind:'chunk' })
       }
       if (!rows.length) throw new Error('录音分段后未识别到可用语音')

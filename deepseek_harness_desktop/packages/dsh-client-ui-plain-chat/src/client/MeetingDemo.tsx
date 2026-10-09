@@ -1,3 +1,4 @@
+import { ExecutionHistory } from './ExecutionProcess.tsx'
 import { MessageTime } from './MessageTime.tsx'
 import { hasTiming, sourceKey, type TranscriptSegment } from '../../../dsh-capabilities/src/core/meeting-timing.ts'
 import { playAt } from './meeting-playback.ts'
@@ -71,6 +72,8 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
   const [timingConfirm, setTimingConfirm] = useState(false)
   const input = useRef<HTMLInputElement>(null)
   const player = useRef<HTMLAudioElement>(null)
+  const pinned=useRef(true)
+  const [newProgress,setNewProgress]=useState(false)
   const scroll = useRef<HTMLDivElement>(null)
   const nextId = useRef(Math.max(0, ...messages.map(message => message.id)) + 1)
   const snapshotCallback = useRef(onSnapshot)
@@ -91,6 +94,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
           setPhase('transcript')
           setSegments(current => current.length ? current : next.segments)
           setMessages(current => current.some(message => message.kind === 'transcript') ? current : [...current, { id: nextId.current++, kind: 'transcript', createdAt: next.transcribedAt }])
+        } else if (next.status === 'error' && next.minutes) { setPhase('ready');setSegments(next.segments)
         } else if (next.status === 'ready') {
           setPhase('ready')
           setSegments(next.segments)
@@ -102,7 +106,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
     const timer = window.setInterval(() => { if (!job || job.timingStatus === 'processing' || ['uploading', 'transcribing', 'generating'].includes(job.status)) void check() }, 2500)
     return () => { active = false; window.clearInterval(timer) }
   }, [jobId, mode, job?.status, job?.timingStatus])
-  useEffect(() => { if (tab === 'chat' && scroll.current?.scrollTo) scroll.current.scrollTo({ top: scroll.current.scrollHeight, behavior: 'smooth' }) }, [messages, phase, tab])
+  useEffect(() => { if(tab!=='chat')return;if(pinned.current&&scroll.current?.scrollTo)scroll.current.scrollTo({top:scroll.current.scrollHeight,behavior:'smooth'});else setNewProgress(true) }, [messages,phase,tab])
   useEffect(() => { if (!notice) return; const timer = window.setTimeout(() => setNotice(''), 6000); return () => window.clearTimeout(timer) }, [notice])
   const add = (...entries: Omit<Message, 'id'>[]) => setMessages(current => [...current, ...entries.map(entry => ({ ...entry, createdAt: new Date().toISOString(), id: nextId.current++ }))])
   const log = (value: string) => setTrace(current => [...current, value])
@@ -148,7 +152,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
     } catch (error) { setNotice(error instanceof Error ? error.message : String(error)); setPhase(instruction ? 'ready' : 'transcript') }
     finally { setBusy(false) }
   }
-  const revise = (value: string) => { if (phase !== 'ready' || !value.trim()) return; if (job?.timingStatus === 'processing') { setNotice('正在补全时间定位，请完成后再修改纪要'); return };  add({ kind: 'user', text: value }, { kind: 'assistant', text: '正在根据录音与现有纪要修改…' }); void generate(value) }
+  const revise = (value: string) => { if (phase !== 'ready' || !value.trim()) return; if (job?.timingStatus === 'processing') { setNotice('正在补全时间定位，请完成后再修改纪要'); return };  void generate(value) }
   const send = () => {
     if (job?.timingStatus === 'processing') { setNotice('正在补全时间定位，请完成后再发送，输入已保留'); return }
     const value = draft.trim(); if (!value) return; setDraft('')
@@ -224,7 +228,9 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
   return <div className={s.root} data-meeting-demo="true">
     <div className={s.heading}><div><span>你好</span><strong>{assistantName}</strong></div><div><span className={s.demoBadge}>{availability?.ready ? '录音转纪要' : '待配置'}</span><button onClick={() => onReset?.()}>重新开始</button></div></div>
     <div className={s.tabs} role="tablist" aria-label="会话视图"><button role="tab" aria-selected={tab === 'chat'} onClick={() => setTab('chat')}>对话</button><button role="tab" aria-selected={tab === 'trace'} onClick={() => setTab('trace')}>轨迹</button></div>
-    <div className={s.scroll} ref={scroll} role="tabpanel">{tab === 'chat' ? <div className={s.messages}>{messages.map(renderMessage)}{phase === 'processing' && status !== 'error' && assistantMessage(<div className={s.progress}><span>◌</span><div><strong>{status === 'generating' || status === 'transcribed' ? '正在生成纪要…' : status === 'uploading' ? '正在上传录音…' : '正在转写录音…'}</strong><small>可以切换会话，处理完成后回来查看</small><div className={s.progressTrack}><i/></div></div></div>, -1)}{status === 'error' && assistantMessage(<div className={s.resultCard}><div className={s.cardHead}><div><small>处理失败</small><h3>{job?.error}</h3></div></div><div className={s.cardFooter}><button disabled={busy} onClick={() => void retry()}>重试</button></div></div>, -2)}</div> : <div className={s.trace}><h2>会话轨迹</h2><p>记录本次会议处理步骤。</p><ol>{trace.map((entry, index) => <li key={index}><span>{String(index + 1).padStart(2, '0')}</span>{entry}</li>)}</ol></div>}</div>
+    <div className={s.scroll} ref={scroll} onScroll={()=>{const el=scroll.current;if(el)pinned.current=el.scrollHeight-el.scrollTop-el.clientHeight<80}} role="tabpanel">{tab === 'chat' ? <div className={s.messages}>{messages.filter(m=>m.kind!=='minutes').map(renderMessage)}<ExecutionHistory kind="meeting" id={jobId} active={Boolean(job&&(['uploading','transcribing','generating'].includes(job.status)||job.timingStatus==='processing'))}/>{messages.filter(m=>m.kind==='minutes').map(renderMessage)}{job?.minutes&&!messages.some(m=>m.kind==='minutes')&&assistantMessage(<><p>上一次保存的纪要</p>{minutesCard()}<MessageTime value={job.minutesGeneratedAt}/></>,-4)}{phase === 'processing' && status !== 'error' && assistantMessage(<div className={s.progress}><span>◌</span><div><strong>{status === 'generating' || status === 'transcribed' ? '正在生成纪要…' : status === 'uploading' ? '正在上传录音…' : '正在转写录音…'}</strong><small>可以切换会话，处理完成后回来查看</small><div className={s.progressTrack}><i/></div></div></div>, -1)}{status === 'error' && assistantMessage(<div className={s.resultCard}><div className={s.cardHead}><div><small>本轮未完成</small><h3>{job?.error}</h3></div></div><div className={s.cardFooter}><button disabled={busy} onClick={() => void retry()}>重试</button></div></div>, -2)}</div> : <div className={s.trace}><h2>会话轨迹</h2><p>记录本次会议处理步骤。</p><ol>{trace.map((entry, index) => <li key={index}><span>{String(index + 1).padStart(2, '0')}</span>{entry}</li>)}</ol></div>}</div>
+    {newProgress&&<button className={s.progressAction} onClick={()=>{pinned.current=true;setNewProgress(false);scroll.current?.scrollTo({top:scroll.current.scrollHeight,behavior:'smooth'})}}>有新进展 · 回到底部</button>}
+    {job&&(['transcribing','generating'].includes(job.status)||job.timingStatus==='processing')&&<button className={s.progressAction} disabled={busy} onClick={()=>{setBusy(true);void post<Job>('/stop',{id:jobId}).then(next=>{setJob(next);setNotice('本轮已停止，录音与已保存结果保留')}).catch(e=>setNotice(e.message)).finally(()=>setBusy(false))}}>停止本轮</button>}
     <div className={s.composerWrap}><div className={s.composer}><textarea aria-label="输入消息" value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && event.keyCode !== 229) { event.preventDefault(); send() } }} placeholder={phase === 'start' ? '先选择上方的整理方式，或输入消息' : phase === 'audience' ? '输入纪要用途' : phase === 'focus' ? '输入关注重点' : phase === 'ready' ? '输入要求，继续修改纪要' : '输入消息，继续对话'}/><div className={s.composerTools}><div><button aria-label="添加录音" title="添加录音" disabled={phase !== 'upload' || !availability?.ready || busy} onClick={() => input.current?.click()}>＋</button><span>{availability?.ready ? '录音交由已配置的识别接口处理' : '语音识别尚未配置'}</span></div><div><span>{assistantName}</span><button className={s.send} aria-label="发送消息" disabled={!draft.trim() || busy} onClick={send}>↑</button></div></div></div>{notice && <p className={s.notice} role="status">{notice}</p>}</div>
     <input ref={input} type="file" accept=".mp3,.m4a,.wav,.aac,.flac,.ogg,.opus,.webm,.mp4" hidden onChange={event => void onFile(event.target.files?.[0])}/>
   </div>

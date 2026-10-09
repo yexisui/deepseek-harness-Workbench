@@ -147,6 +147,16 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (req.method === 'GET' && route.startsWith('/api/capabilities/requirements/task/')) return json(res, 200, await requirements.get(route.slice('/api/capabilities/requirements/task/'.length)))
       if (req.method === 'DELETE' && route.startsWith('/api/capabilities/requirements/task/')) return json(res, 200, await requirements.remove(route.slice('/api/capabilities/requirements/task/'.length)))
       if (req.method === 'GET' && route === '/api/capabilities/models') return json(res, 200, { models: await modelAccess.choices() })
+      if(req.method==='GET'&&route==='/api/capabilities/executions') {
+        const query=new URL(req.url!,'http://localhost').searchParams,kind=query.get('kind'),id=text(query.get('id'),'任务标识',36,true)
+        const service=kind==='meeting'?meeting:kind==='requirements'?requirements:kind==='developer'?developer:undefined
+        if(!service)throw new InputError('执行记录类型不可用',400)
+        await service.get(id)
+        const runId=query.get('runId')
+        if(runId)return json(res,200,await service.executions.get(id,runId,Number(query.get('afterSeq')??0)))
+        const page=await service.executions.list(id,Number(query.get('offset')??0),Number(query.get('limit')??10))
+        return json(res,200,query.get('summary')==='1'?{...page,items:page.items.map(({events,result,...record})=>record)}:page)
+      }
       if (req.method === 'GET' && route === '/api/capabilities/meeting/config') return json(res, 200, await asrStatus())
       if (req.method === 'GET' && route === '/api/capabilities/meeting/jobs') {
         const query = new URL(req.url ?? '/', 'http://localhost').searchParams
@@ -212,6 +222,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
         }
         return json(res, 200, await asrStatus())
       }
+      if (route === '/api/capabilities/meeting/stop') return json(res, 200, await meeting.stop(text(body.id, '任务标识', 36)))
       if (route === '/api/capabilities/meeting/create') return json(res, 201, await meeting.create(body))
       if (route === '/api/capabilities/meeting/timing') return json(res, 202, await meeting.repairTiming(text(body.id, '任务标识', 36)))
       if (route === '/api/capabilities/meeting/retry') return json(res, 202, await meeting.retry(text(body.id, '任务标识', 36)))

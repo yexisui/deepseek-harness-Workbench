@@ -1,3 +1,4 @@
+import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import type { MeetingSegmenter } from './meeting-segments.ts'
 import { hasTiming, parseSegments, sourceKey, type TranscriptSegment } from '../core/meeting-timing.ts'
 import { createReadStream, openAsBlob } from 'node:fs'
@@ -69,6 +70,10 @@ function parseMinutes(raw: string, segments: MeetingSegment[]): MeetingMinutes {
 }
 
 export class MeetingService {
+  readonly executions: ExecutionStore
+  private stopped = new Set<string>()
+  private generating = new Set<string>()
+
   private timingRunning = new Set<string>()
   private running = new Set<string>()
   private deleted = new Set<string>()
@@ -88,7 +93,7 @@ export class MeetingService {
     void task.finally(() => { pending.delete(task); if (!pending.size && this.pending.get(id) === pending) this.pending.delete(id) }).catch(() => {})
     return task
   }
-  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly jev?: JevService, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly resolveAsr?: () => Promise<MeetingAsrConfig>, private readonly segmenter?: MeetingSegmenter) {}
+  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly jev?: JevService, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly resolveAsr?: () => Promise<MeetingAsrConfig>, private readonly segmenter?: MeetingSegmenter) { this.executions = new ExecutionStore(join(root,'_executions')) }
   private config() { return config(this.asrSettings?.()) }
   private capabilityError(): string | undefined {
     if (!this.currentState) return
@@ -116,6 +121,7 @@ export class MeetingService {
     return { version: published.version, name: published.name, duties: published.duties, requirements: published.requirements, format: published.format }
   }
   async init() {
+    await this.executions.init()
     await mkdir(this.root, { recursive: true })
     for (const file of await readdir(this.root)) {
       if (!ID.test(file.replace(/\.json$/, '')) || !file.endsWith('.json')) continue
@@ -196,6 +202,7 @@ export class MeetingService {
       await rm(this.audio(job), { force: true })
       await rm(`${this.audio(job)}.upload`, { force: true })
       await rm(this.path(id), { force: true })
+      await this.executions.remove(id)
       this.deleted.add(id)
     } finally { this.removing.delete(id) }
   }
@@ -251,18 +258,28 @@ export class MeetingService {
     return job
   }
   private async transcribe(id: string) {
+    const initial=await this.get(id);this.stopped.delete(id)
+    await this.executions.run(id,{operation:'录音转写',input:'录音：'+initial.fileName+'；'+initial.size+' 字节；'+(initial.mode==='quick'?'快速生成':'引导整理')+'；用途：'+(initial.audience||'通用')+'；重点：'+(initial.focus||'结论与待办'),mode:initial.mode,roleVersion:initial.role?.version},async()=>{
+      step('upload','录音上传完成','done',initial.fileName)
+      await this.transcribeWork(id);return this.get(id)
+    },value=>({status:value.status==='error'?(this.stopped.has(id)?'stopped':'failed'):value.mode==='guided'?'waiting':'done',summary:value.status==='error'?value.error:value.mode==='guided'?'转写已保存，请核对后确认生成':'转写已保存',result:value.segments.length?{kind:'transcript',text:value.segments.map(s=>s.text).join('\n')}:undefined}))
+    const latest=await this.get(id);if(latest.mode==='quick'&&latest.status==='transcribed'&&!this.stopped.has(id))await this.generate(id)
+  }
+  private async transcribeWork(id: string) {
     if (this.running.has(id)) return
     this.running.add(id)
     const controller = new AbortController(); this.controllers.set(id, controller)
     try {
       const job = await this.get(id), settings = this.resolveAsr ? config(await this.resolveAsr()) : this.config()
       const recognize = (path: string, name: string, signal: AbortSignal) => this.recognize(path, name, settings, signal)
+      step('transcribe','语音转写','running')
       const segments = await this.segmenter?.transcribe(job, this.audio(job), controller.signal, recognize) ?? await recognize(this.audio(job), job.fileName, controller.signal)
       if (!segments.length) throw new Error('未识别到可用语音，请检查录音内容')
       const latest = await this.get(id)
       controller.signal.throwIfAborted(); this.role(latest.role?.version, latest.createdAt)
+      step('transcribe','语音转写','done',segments.length+' 个片段')
       latest.segments = segments; latest.transcribedAt = new Date().toISOString(); latest.status = 'transcribed'; await this.save(latest)
-      if (latest.mode === 'quick') await this.generate(id)
+      step('transcript-save','转写保存完成','done',segments.length+' 个片段')
     } catch (error) { if (!this.deleted.has(id)) { const job = await this.get(id); job.status = 'error'; job.error = errorText(error); await this.save(job) } }
     finally { this.running.delete(id); if (this.controllers.get(id) === controller) this.controllers.delete(id) }
   }
@@ -283,23 +300,35 @@ export class MeetingService {
   private ask(prompt: string, modelRoute: string, signal?: AbortSignal) { return this.workbenchText(prompt, modelRoute, signal) }
   private transcriptText(rows: MeetingSegment[]) { return rows.map(row => `[${row.id} ${hasTiming(row) ? Math.floor(row.start / 1000) + '秒' : '时间未知'} ${row.speaker}] ${row.text}`).join('\n') }
   async generate(id: string, edited?: MeetingSegment[], instruction?: string, summaryModel?: string) {
-    return this.track(id, () => this.startGenerate(id, edited, instruction, summaryModel))
+    if(this.controllers.has(id)||this.generating.has(id))throw new InputError('当前会议仍在处理，请等待或停止',409)
+    this.generating.add(id)
+    try{return await this.track(id, () => this.startGenerate(id, edited, instruction, summaryModel))}finally{this.generating.delete(id)}
   }
   private async startGenerate(id: string, edited?: MeetingSegment[], instruction?: string, summaryModel?: string) {
     const job = await this.get(id)
     this.role(job.role?.version, job.createdAt)
     if (this.timingRunning.has(id) || job.timingStatus === 'processing') throw new InputError('时间定位处理中，请完成后再修改纪要', 409)
     if (!['transcribed', 'ready', 'error'].includes(job.status) || !job.segments.length) throw new InputError('请先完成录音转写', 409)
+    const changed=edited?.filter((row,index)=>row.text!==job.segments[index]?.text||row.speaker!==job.segments[index]?.speaker).length??0
     if (edited) {
       if (edited.length !== job.segments.length || edited.some((row, index) => row.id !== job.segments[index].id)) throw new InputError('转写片段与原录音不一致')
       job.segments = edited.map((row, index) => ({ ...job.segments[index], text: string(row.text, 5000), speaker: string(row.speaker, 100) || '发言人' }))
     }
     if (summaryModel !== undefined) job.summaryModel = string(summaryModel, 200)
     job.status = 'generating'; delete job.error; await this.save(job)
-    void this.track(id, () => this.finishGenerate(job, instruction)).catch(() => {})
+    void this.track(id, () => this.finishGenerate(job, instruction,changed)).catch(() => {})
     return job
   }
-  private async finishGenerate(job: MeetingJob, instruction?: string) {
+  private async finishGenerate(job: MeetingJob, instruction?: string, changed=0) {
+    this.stopped.delete(job.id)
+    await this.executions.run(job.id,{operation:job.minutes?'修改会议纪要':'生成会议纪要',input:instruction || (job.mode==='guided'?'确认当前转写并生成纪要':'按当前转写生成纪要'),inputKind:instruction?'user':'operation',model:job.summaryModel,roleVersion:job.role?.version,mode:job.mode},async()=>{
+      step('transcript','使用已保存转写','done',job.segments.length+' 个片段；用途：'+(job.audience||'通用会议纪要')+'；重点：'+(job.focus||'结论与待办'))
+      if(changed)step('corrections','保存转写校对','done',changed+' 个片段已校对；本轮使用校对后的原文')
+      await this.finishGenerateWork(job,instruction)
+      return job
+    },value=>({status:value.status==='ready'?'done':this.stopped.has(job.id)?'stopped':execution()?.record.events.some(e=>e.key.startsWith('jev-review')&&e.status==='review')?'review':'failed',summary:value.status==='ready'?'纪要已保存':(value.error??'本轮未完成')+(value.minutes?'；上一版纪要保留':''),...(value.status==='ready'&&value.minutes?{result:{kind:'minutes',text:JSON.stringify(value.minutes)}}:{})}))
+  }
+  private async finishGenerateWork(job: MeetingJob, instruction?: string) {
     const controller = new AbortController(); this.controllers.set(job.id, controller)
     const jev=this.jev?.begin('meeting:'+job.id)
     try {
@@ -319,8 +348,9 @@ export class MeetingService {
       const reviewed=await jev?.check('review',{transcript:text,minutes},controller.signal)
       if(reviewed?.decision==='clarify')throw new InputError('JEV 纪要复核需要确认，未覆盖已有纪要：'+reviewed.summary,409)
       controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt)
+      step('sources','纪要结构与来源ID检查','done','只核对结构和来源ID有效性，不代表逐条事实已人工确认')
       delete job.timing; delete job.timingStatus; delete job.timingError; job.minutes = minutes; job.minutesGeneratedAt = new Date().toISOString(); job.status = 'ready'; await this.save(job)
-    } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? '组件已停用，本次处理已停止；历史结果保留' : errorText(error); await this.save(job) } finally { jev?.finish(); if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
+    } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? (this.stopped.has(job.id) ? '本轮已停止，历史结果保留' : '组件已停用，本次处理已停止；历史结果保留') : errorText(error); await this.save(job) } finally { jev?.finish(); if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
   }
   async repairTiming(id: string) {
     if (this.running.has(id)) throw new InputError('此会议正在处理，请稍后重试', 409)
@@ -335,6 +365,10 @@ export class MeetingService {
     } catch (error) { this.running.delete(id); this.timingRunning.delete(id); throw error }
   }
   private async finishTiming(job: MeetingJob) {
+    this.stopped.delete(job.id)
+    await this.executions.run(job.id,{operation:'补全时间定位',input:'为现有纪要补充可靠录音来源，保留正文',model:job.summaryModel,mode:job.mode},async()=>{await this.finishTimingWork(job);return job},value=>({status:value.timingStatus==='ready'?'done':this.stopped.has(job.id)?'stopped':'failed',summary:value.timingStatus==='ready'?'时间定位已保存，原纪要正文保留':value.timingError}))
+  }
+  private async finishTimingWork(job: MeetingJob) {
     const controller = new AbortController(); this.controllers.set(job.id, controller)
     try {
       const settings = this.resolveAsr ? config(await this.resolveAsr()) : this.config()
@@ -360,6 +394,14 @@ export class MeetingService {
       job.timingStatus = 'error'; job.timingError = controller.signal.aborted ? '时间定位已停止，原纪要保留' : errorText(error)
       await this.save(job)
     } finally { this.running.delete(job.id); this.timingRunning.delete(job.id); if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
+  }
+  async stop(id:string) {
+    await this.get(id)
+    const controller=this.controllers.get(id)
+    if(!controller)throw new InputError('当前没有可停止的会议处理',409)
+    this.stopped.add(id);controller.abort(new Error('用户停止本轮'))
+    await Promise.allSettled([...(this.pending.get(id)??[])])
+    return this.get(id)
   }
   async componentActivities() {
     const rows = await Promise.all([...this.controllers.keys()].map(async id => {

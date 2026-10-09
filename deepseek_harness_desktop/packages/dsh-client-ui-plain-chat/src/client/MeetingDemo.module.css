@@ -95,3 +95,5 @@
 .notice { margin:5px 0 0; color:var(--accent); font-size:11px; text-align:center; }
 @media(max-width:660px) { .heading { padding:0 15px; min-height:52px; }.heading>div { gap:7px; }.heading strong { font-size:13px; }.tabs { padding:0 15px; }.messages { width:calc(100% - 28px); padding-top:17px; }.message { gap:8px; }.message>span:first-child { width:27px; height:27px; }.messageBody { font-size:13px; }.modes { grid-template-columns:1fr; }.modes button { min-height:100px; }.uploadPrompt>button { flex:1; }.composerWrap { width:calc(100% - 18px); padding-bottom:6px; }.composer { border-radius:16px; }.composerTools>div span { font-size:9px; }.trace { width:calc(100% - 26px); box-sizing:border-box; } }
 @media(prefers-reduced-motion:reduce) { .modes button { transition:none; }.modes button:hover { transform:none; }.progressTrack i { animation:none; } }
+
+.progressAction { align-self:center; flex:none; margin:4px 0; padding:7px 14px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--accent); font-size:12px!important; }

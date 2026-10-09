@@ -1,3 +1,4 @@
+import { execution, step } from '../../../../shared/host/execution.ts'
 import { createHash, randomUUID } from 'node:crypto'
 import { config, candidates, hasEnabledModel, candidateConfig, connectionConfig, type JevAttempt, JevError, descriptor, type Decision, type JevBackend, type JevConfig, type JevStatus, type JevTrace, type JevActiveRun, type JevConnection, type JevDiagnostic } from '../core/contract.ts'
 import { candidateChain } from './candidate-chain.ts'
@@ -13,8 +14,11 @@ export class JevRun {
   finish(){this.service.active.delete(this.id)}
   guidance(){return this.last?`\nJEV 本轮附加审查（不能扩大岗位权限；事实仍须核对）：${JSON.stringify(this.last)}`:''}
   async check(stage:JevTrace['stage'],context:unknown,signal?:AbortSignal):Promise<Decision|undefined>{
-    if(!this.enabled)return undefined
+    if(!this.enabled){execution()?.jev({enabled:false,revision:this.snapshot.revision,runId:this.id});return undefined}
     const started=Date.now(),cfg=this.snapshot.value
+    execution()?.jev({enabled:this.enabled,revision:this.snapshot.revision,runId:this.id})
+    const eventKey='jev-'+stage+'-'+this.count
+    step(eventKey,stage==='begin'?'JEV前置评估':stage==='review'?'JEV结果复核':'JEV动作检查','running')
     const active=this.service.active.get(this.id);if(active)Object.assign(active,{phase:'checking',stage,checkingSince:new Date(started).toISOString()})
     const attempts:JevAttempt[]=[]
     let result:Decision|undefined,status:JevTrace['status']='error',summary='JEV 检查未完成'
@@ -27,13 +31,14 @@ export class JevRun {
       result=await candidateChain({config:cfg,stage,scope:this.scope,backend,signal,attempts,ready:this.service.ready,
         context:raw.length>cfg.maxContextChars?raw.slice(0,cfg.maxContextChars)+'\n[内容已截断，缺失内容不能作为通过依据]':raw,
         consume:()=>{if(++this.calls>cfg.maxChecks)throw new JevError('JEV 本轮模型调用达到次数上限；当前自动动作已停止')},
-        progress:(attempt,total)=>{if(active)Object.assign(active,{model:attempt.model,candidatePosition:attempt.position,candidateTotal:total})}})
+        completed:async(_cfg,attempt)=>{step(eventKey+'-candidate-'+attempt.position,'审查候选 '+attempt.position,attempt.status==='error'?'failed':attempt.status==='cancelled'?'stopped':attempt.status==='allowed'?'done':'review',attempt.summary,{model:attempt.model})},
+        progress:(attempt,total)=>{step(eventKey+'-candidate-'+attempt.position,'审查候选 '+attempt.position+'/'+total,'running','等待审查模型响应',{model:attempt.model});if(active)Object.assign(active,{model:attempt.model,candidatePosition:attempt.position,candidateTotal:total})}})
       if(raw.length>cfg.maxContextChars&&result.decision==='allow')result={...result,decision:'clarify',summary:'检查上下文超出限制，无法确认完整结果。'+result.summary,missing:[...result.missing,'超出上下文上限的内容尚未核对']}
       this.last=result;status=result.decision==='allow'?'allowed':result.decision==='clarify'?'clarify':'blocked';summary=result.summary
       if(result.decision==='block'||stage==='action'&&result.decision!=='allow')throw new JevError('JEV 已停止当前自动步骤：'+summary)
       return result
     }catch(error){if(status==='error')summary=error instanceof JevError?error.message:signal?.aborted?'JEV 检查已取消':'JEV 检查失败或超时；当前自动步骤已停止';throw new JevError(status==='error'?summary:'JEV 已停止当前自动步骤：'+summary)}
-    finally{if(active)Object.assign(active,{phase:'working',checkingSince:undefined,lastStatus:status});await this.service.store.record({id:randomUUID(),at:new Date().toISOString(),runId:this.id,scope:this.scope,stage,revision:this.snapshot.revision,config:cfg,status,summary,decision:result,attempts,elapsedMs:Date.now()-started})}
+    finally{step(eventKey,stage==='begin'?'JEV前置评估':stage==='review'?'JEV结果复核':'JEV动作检查',signal?.aborted?'stopped':status==='allowed'?'done':status==='error'?'failed':'review',summary+(result?'\n'+result.checks.map(c=>c.criterion+'：'+c.verdict+'；'+c.evidence).join('\n')+'\n'+result.missing.map(x=>'待确认：'+x).join('\n'):''));if(active)Object.assign(active,{phase:'working',checkingSince:undefined,lastStatus:status});await this.service.store.record({id:randomUUID(),at:new Date().toISOString(),runId:this.id,scope:this.scope,stage,revision:this.snapshot.revision,config:cfg,status,summary,decision:result,attempts,elapsedMs:Date.now()-started})}
   }
 }
 export class JevService {

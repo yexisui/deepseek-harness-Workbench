@@ -1,3 +1,4 @@
+import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import { attachRequirementProject, projectFiles, projectFile, syncRequirementLedger } from './requirements-project.ts'
 import { randomUUID } from 'node:crypto'
 import type { JevService } from '../../../dsh-jev-mode/src/host/service.ts'
@@ -43,11 +44,12 @@ type ModelRoute = (selectedModel: string) => string
 
 /** Serialized atomic writes; model updates are applied with restorable snapshots. */
 export class RequirementsService {
+  readonly executions: ExecutionStore
   private tail: Promise<unknown> = Promise.resolve()
   private configuration = { revision: 0, defaults: { depth: 'standard', questionStyle: 'short', model: '' } as RequirementDefaults }
   private running = new Map<string, { controller: AbortController; promise?: Promise<void> }>()
   private closed = false
-  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly jev?: JevService, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) {}
+  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly jev?: JevService, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) { this.executions = new ExecutionStore(join(root,'_executions')) }
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private path(id: string) { if (!UUID.test(id)) throw new InputError('需求任务标识无效'); return join(this.root, `${id}.json`) }
   private async atomic(file: string, value: unknown) {
@@ -64,9 +66,11 @@ export class RequirementsService {
     return structuredClone(task)
   }
   private event(task: RequirementTask, kind: RequirementTask['events'][number]['kind'], message: string, objectId?: string) {
-    task.events.push({ id: randomUUID(), at: now(), kind, text: message, ...(objectId ? { objectId } : {}) })
+    step('event-'+task.events.length,'需求操作','done',message)
+    task.events.push({ runId:execution()?.record.id, id: randomUUID(), at: now(), kind, text: message, ...(objectId ? { objectId } : {}) })
   }
   async init() {
+    await this.executions.init()
     await mkdir(this.root, { recursive: true })
     try {
       const raw = object(JSON.parse(await readFile(join(this.root, 'config.json'), 'utf8')))
@@ -169,7 +173,7 @@ export class RequirementsService {
     return { items:rows.slice(offset,offset+limit),total:rows.length,unreadableCount }
   }
   summary(task: RequirementTask): RequirementSummary { return {id:task.id,title:task.title,mode:task.mode,updatedAt:task.updatedAt,roleId:task.roleId,roleVersion:task.roleVersion,confirmed:activeRequirements(task).filter(r=>r.status==='confirmed').length,total:activeRequirements(task).length,openQuestions:openQuestions(task).length,running:task.run?.status==='running'} }
-  async remove(id: string) { return this.serialized(async()=>{ await this.get(id); this.running.get(id)?.controller.abort(); this.running.delete(id); await unlink(this.path(id)); return {ok:true} }) }
+  async remove(id: string) { return this.serialized(async()=>{ await this.get(id); this.running.get(id)?.controller.abort(); this.running.delete(id); await unlink(this.path(id)); await this.executions.remove(id);return {ok:true} }) }
   private sources(raw: unknown, task: RequirementTask, strict = true): SourceRef[] {
     return array(raw ?? [],30).flatMap<SourceRef>(value => {
       const d = object(value), quote = str(d.quote,'来源原文',4000)
@@ -235,7 +239,7 @@ export class RequirementsService {
     return this.serialized(async()=>{
       const task=await this.get(id), c=object(raw) as unknown as RequirementCommand
       // A repeated operation token returns the existing run without another charge.
-      if(c.type==='run' && task.run?.id===c.requestId) return task
+      if(c.type==='run' && (task.run?.id===c.requestId||task.messages.some(m=>m.runId===c.requestId))) return task
       if(integer(revision)!==task.revision) throw new InputError('分析记录已更新，请刷新后核对再保存；当前输入请保留',409)
       let changed=true, launch=false
       switch(c.type) {
@@ -387,7 +391,7 @@ export class RequirementsService {
           const operation=enumValue(c.operation,['analyze','clarify','check','revise','document'],'analyze'),instruction=text(c.instruction,'分析要求',MAX_TEXT,true)
           const selected=this.modelRoute(c.model??task.settings.model);if(!selected)throw new InputError('请先在工作台配置或选择分析模型')
           if(c.context && ![...task.requirements,...task.questions,...task.flows,...task.rules].some(x=>x.id===c.context))throw new InputError('讨论对象不存在')
-          task.messages.push({id:randomUUID(),role:'user',text:instruction,createdAt:now(),...(c.context?{context:c.context}:{})});task.draft=''
+          task.messages.push({id:randomUUID(),role:'user',runId:c.requestId,text:instruction,createdAt:now(),...(c.context?{context:c.context}:{})});task.draft=''
           if(['新需求分析','新的需求分析'].includes(task.title))task.title=instruction.replace(/\s+/g,' ').slice(0,40)
           task.run={id:c.requestId,operation,status:'running',startedAt:now(),model:selected,instruction,context:c.context,baseRevision:task.dataRevision}
           // Check context limits before saving or sending any request.
@@ -443,13 +447,21 @@ export class RequirementsService {
     return {sections,id:randomUUID(),baseRevision:task.run!.baseRevision,summary:text(d.summary,'分析说明',12000,true),items,createdAt:now()}
   }
   private async execute(snapshot:RequirementTask,controller:AbortController) {
+    await this.executions.run(snapshot.id,{id:snapshot.run!.id,operation:({analyze:'整理需求',clarify:'引导澄清',check:'检查需求',revise:'修改需求',document:'整理文档'})[snapshot.run!.operation],input:snapshot.run!.instruction,inputKind:'user',model:snapshot.run!.model,roleVersion:snapshot.roleVersion,mode:snapshot.mode},async()=>{
+      step('materials','读取分析资料','done',snapshot.materials.filter(m=>!m.removed).length+' 份资料；分析栏目：'+(snapshot.sections??[]).filter(s=>s.enabled).map(s=>s.title).join('、'))
+      return controller.signal.aborted?snapshot:(await this.executeWork(snapshot,controller))??snapshot
+    },task=>({status:task.run?.status==='ready'?'done':controller.signal.aborted?'stopped':execution()?.record.events.some(e=>e.key.startsWith('jev-review')&&e.status==='review')?'review':'failed',summary:task.run?.status==='ready'?'需求结果已保存':task.run?.error||'本轮已停止，原结果保留',result:task.run?.status==='ready'?{kind:'requirements',text:(task.proposal?.summary??'需求已更新')+'\n\n'+requirementMarkdown(task)}:undefined}))
+  }
+  private async executeWork(snapshot:RequirementTask,controller:AbortController) {
     const runId=snapshot.run!.id
     try {
       const prompt=this.prompt(snapshot)
       const response=this.jev?await this.jev.text('requirements:'+snapshot.id,prompt,p=>this.model(p,snapshot.run!.model,controller.signal),controller.signal):await this.model(prompt,snapshot.run!.model,controller.signal)
       if(controller.signal.aborted)return
+      step('parse','解析并校验需求结构与来源','running')
       const proposal=this.proposal(response,snapshot)
-      await this.serialized(async()=>{
+      step('parse','解析并校验需求结构与来源','done')
+      return await this.serialized(async()=>{
         const task=await this.get(snapshot.id);if(task.run?.id!==runId||task.run.status!=='running'||controller.signal.aborted)return
         this.authorize(task)
         if(task.dataRevision!==proposal.baseRevision)throw new Error('分析期间需求已被编辑，保留你的修改；请重新分析')
@@ -460,18 +472,18 @@ export class RequirementsService {
           if(updated) {section.content=updated.content;section.contentSet=true}
           else if(section.enabled&&!proposal.sections) section.content=requirementSectionContent({...section,content:'',contentSet:false},task)||section.content
         }
-        task.proposal=proposal;task.run.status='ready';task.run.finishedAt=now();task.messages.push({id:randomUUID(),role:'assistant',text:proposal.summary,createdAt:now()})
-        this.event(task,'analysis',`已自动更新需求：${proposal.sections?.length??proposal.items.length} 项；修改历史已保留`);await this.write(task,true)
+        task.proposal=proposal;task.run.status='ready';task.run.finishedAt=now();task.messages.push({id:randomUUID(),role:'assistant',runId,text:proposal.summary,createdAt:now()})
+        this.event(task,'analysis',`已自动更新需求：${proposal.sections?.length??proposal.items.length} 项；修改历史已保留`);return this.write(task,true)
       })
     } catch(error) {
       if(controller.signal.aborted)return
-      await this.serialized(async()=>{
+      return await this.serialized(async()=>{
         const task=await this.get(snapshot.id).catch(()=>undefined);if(!task||task.run?.id!==runId||task.run.status!=='running')return
-        task.run.status='error';task.run.error=errorMessage(error).slice(0,2000);task.run.finishedAt=now();this.event(task,'analysis',`分析失败：${task.run.error}`);await this.write(task)
+        task.run.status='error';task.run.error=errorMessage(error).slice(0,2000);task.run.finishedAt=now();this.event(task,'analysis',`分析失败：${task.run.error}`);return this.write(task)
       })
     }
   }
   async componentActivities() { return Promise.all([...this.running.keys()].map(async id => { const task = await this.get(id); return { id, roleId: task.roleId, roleVersion: task.roleVersion, name: task.title, kind: 'requirements', status: 'running', componentIds: ['requirements-service'] } })) }
   async stopComponents(ids: string[]) { if (!ids.includes('requirements-service')) return; await this.serialized(async () => { for (const [id, run] of this.running) { run.controller.abort(); const task = await this.get(id); if (task.run?.status === 'running') { task.run.status = 'stopped'; task.run.finishedAt = now(); this.event(task, 'analysis', '组件已全局停用，已停止接收本次分析结果'); await this.write(task) } }; this.running.clear() }) }
-  async close() { this.closed=true;for(const run of this.running.values())run.controller.abort();await this.tail;this.running.clear() }
+  async close() { this.closed=true;for(const run of this.running.values())run.controller.abort();await this.executions.drain();await this.tail;this.running.clear() }
 }
