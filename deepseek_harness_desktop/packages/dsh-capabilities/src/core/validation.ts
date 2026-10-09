@@ -74,6 +74,6 @@ export function roleDefinition(value: unknown, state: State): RoleDefinition {
 }
 export function issues(definition: Definition, capabilityId?: string, catalog: readonly Component[] = components): string[] {
   const missing = missingAssociations(definition, capabilityId, catalog)
-  return [...compatibilityIssues(definition, capabilityId, catalog), ...(definition.components.length === 0 && !missing.length ? ['尚未添加组件'] : definition.components.flatMap(p => p.actions.length ? [] : ['至少选择一个业务动作'])), ...missing.map(id => `缺少必需组件：${catalog.find(c => c.id === id)?.name ?? dependencyName(id)}，补回后才能发布`)]
+  return [...compatibilityIssues(definition, capabilityId, catalog), ...(definition.components.length === 0 && !missing.length ? ['尚未添加组件'] : definition.components.flatMap(p => p.actions.length ? [] : ['至少选择一个业务动作'])), ...missing.map(id => `缺少必需组件：${catalog.find(c => c.id === id)?.name ?? dependencyName(id)}，补回后可使用`)]
 }
 export function roleCompositionIssues(value: RoleDefinition): string[] { return [] }

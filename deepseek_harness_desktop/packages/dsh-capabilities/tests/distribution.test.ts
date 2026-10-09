@@ -94,7 +94,7 @@ describe('portable capability distribution',()=>{
     expect(await (await runner.start(cap.id,1,action,'restart')).done).toBe('V1:RESTART')
     expect(runner.get(task.job.id).status).toBe('done')
   })
-  it('pins role execution to old code, preserves drafts, and rolls back without rebinding roles',async()=>{
+  it('updates current role configuration on import while existing tasks keep their code',async()=>{
     const env=await environment(),first=await install(env)
     const saved=await env.store.command(env.store.snapshot().revision,{type:'role.save',definition:{...emptyRole(),name:'文字岗位',capabilities:[{capabilityId:first.id,version:1,enabled:true}]},publish:true})
     const role=env.store.snapshot().roles.find(r=>r.id===saved.id)!,roleVersion=latest(role.versions)!
@@ -102,15 +102,12 @@ describe('portable capability distribution',()=>{
     await env.store.command(env.store.snapshot().revision,{type:'capability.save',id:cap.id,definition:{...cap.draft,name:'本地未发布名称'},publish:false})
     const next=await install(env,'2.0.0',"exports.execute=async({input})=>'V2:'+input")
     const current=env.store.snapshot().capabilities.find(c=>c.id===first.id)!
-    expect(current.draft.name).toBe('本地未发布名称');expect(current.packageOrigin!.draftBackups).toHaveLength(1)
-    expect(env.store.snapshot().roles.find(r=>r.id===role.id)!.versions).toHaveLength(1)
+    expect(current.draft.name).toBe('外部文字工具');expect(current.packageOrigin!.draftBackups).toHaveLength(0)
+    expect(env.store.snapshot().roles.find(r=>r.id===role.id)!.versions.at(-1)!.capabilities[0].version).toBe(2)
     expect(await(await env.runner.start(first.id,1,action,'old',{role:{roleId:role.id,version:roleVersion,sessionCreatedAt:Date.now()-1000}})).done).toBe('V1:OLD')
     expect(await(await env.runner.start(first.id,2,action,'new')).done).toBe('V2:new')
-    await env.packs.rollback(first.id,1,env.store.snapshot().revision)
-    expect(env.store.snapshot().capabilities.find(c=>c.id===first.id)!.enabled).toBe(false)
-    await env.store.command(env.store.snapshot().revision,{type:'capability.toggle',id:first.id,enabled:true})
-    await new Promise(resolve=>setTimeout(resolve,3))
-    expect(await(await env.runner.start(first.id,3,action,'back')).done).toBe('V1:BACK')
+    const adopted=env.store.snapshot().roles.find(r=>r.id===role.id)!.versions.at(-1)!
+    expect(await(await env.runner.start(first.id,2,action,'role',{role:{roleId:role.id,version:adopted,sessionCreatedAt:Date.now()}})).done).toBe('V2:role')
     expect(next.id).toBe(first.id)
   })
   it('requires configuration, does not export it, and brokers the existing model with real worker RPC',async()=>{
@@ -170,7 +167,7 @@ describe('portable capability distribution',()=>{
     await expect(env.store.command(env.store.snapshot().revision,{type:'capability.save',id:cap.id,definition:{...cap.draft,components:[]},publish:true})).rejects.toThrow('尚未添加组件')
     const role=await env.store.command(env.store.snapshot().revision,{type:'role.save',definition:{...emptyRole(),name:'历史岗位',capabilities:[{capabilityId:cap.id,version:1,enabled:true}]},publish:true})
     await env.store.command(env.store.snapshot().revision,{type:'capability.remove',id:cap.id})
-    await expect(env.store.command(env.store.snapshot().revision,{type:'capability.purge',ids:[cap.id]})).rejects.toThrow('历史版本引用')
+    await expect(env.store.command(env.store.snapshot().revision,{type:'capability.purge',ids:[cap.id]})).rejects.toThrow('当前岗位')
     const r=env.store.snapshot().roles.find(r=>r.id===role.id)!
     expect(allowedActions(env.store.snapshot(),r.id,r.versions[0]!)).toEqual([])
   })

@@ -32,7 +32,7 @@ export function useExecutionHistory(kind:string,id?:string|null,active=false) {
   },[kind,id,limit,active])
   return {runs:page.items.slice().reverse(),error,hasMore:page.total>page.items.length,more:()=>setLimit(n=>n+10)}
 }
-function resultText(record:ExecutionRecord){if(record.result?.kind!=='minutes')return record.result?.text;try{const m=JSON.parse(record.result.text);return [m.title,m.overview,'主要结论',...m.decisions.map((x:any)=>'• '+x.text),'行动项',...m.actions.map((x:any)=>'• '+x.text+'｜'+(x.owner||'负责人待确认')+'｜'+(x.deadline||'期限待确认')),'待确认',...m.unknown.map((x:any)=>'• '+x.text)].join('\n\n')}catch{return '此版本暂不可读取'}}
+function resultText(record:ExecutionRecord){if(record.result?.kind!=='minutes')return record.result?.text;try{const m=JSON.parse(record.result.text);return [m.title,m.overview,'主要结论',...m.decisions.map((x:any)=>'• '+x.text),'行动项',...m.actions.map((x:any)=>'• '+x.text+'｜'+(x.owner||'负责人待确认')+'｜'+(x.deadline||'期限待确认')),'待确认',...m.unknown.map((x:any)=>'• '+x.text)].join('\n\n')}catch{return '此结果暂不可读取'}}
 export function ExecutionProcessCard({run,showInput=false}:{run:ExecutionRecord;showInput?:boolean}) {
   const key='execution-open-'+run.taskId+'-'+run.id
   const [open,setOpen]=useState(()=>{try{return sessionStorage.getItem(key)==='true'}catch{return false}}),[clock,setClock]=useState(Date.now())
@@ -48,7 +48,7 @@ export function ExecutionProcessCard({run,showInput=false}:{run:ExecutionRecord;
     </details>
     {run.summary&&<p className={s.outcome} role={['failed','review','interrupted'].includes(run.status)?'status':undefined}>{run.summary}</p>}
     {run.warning&&<p role="alert">{run.warning}</p>}
-    {run.result&&<details className={s.result}><summary>查看本轮保存的{run.result.kind==='minutes'?'纪要版本':run.result.kind==='transcript'?'转写':run.result.kind==='check'?'验证输出':'结果'}</summary><pre>{resultText(run)}</pre><MessageTime value={run.finishedAt}/></details>}
+    {run.result&&<details className={s.result}><summary>查看本轮保存的{run.result.kind==='minutes'?'纪要':run.result.kind==='transcript'?'转写':run.result.kind==='check'?'验证输出':'结果'}</summary><pre>{resultText(run)}</pre><MessageTime value={run.finishedAt}/></details>}
   </section>
 }
 export function ExecutionHistory({kind,id,active=false}:{kind:string;id?:string|null;active?:boolean}){const history=useExecutionHistory(kind,id,active);if(!id)return null;return <div aria-label="执行过程记录">{history.error&&<p role="status">{history.error}；已显示内容保留。</p>}{history.hasMore&&<button onClick={history.more}>查看更早的执行过程</button>}{!history.runs.length&&!history.error&&!active&&<p className={s.meta}>此历史任务未记录完整执行过程，原结果保留。</p>}{history.runs.map(run=><ExecutionProcessCard key={run.id} run={run} showInput/>)}</div>}

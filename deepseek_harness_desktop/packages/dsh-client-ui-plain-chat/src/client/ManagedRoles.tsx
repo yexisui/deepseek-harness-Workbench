@@ -146,15 +146,15 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
 export function PresetRepairNotice({ issues }: { issues: string[] }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState('')
   const repair = async () => {
-    if (busy || !window.confirm('修复会先备份外部修改的预设文件，再按已发布岗位恢复。岗位、能力与会话数据保留。是否继续？')) return
+    if (busy || !window.confirm('将根据已保存的岗位设置修复关联配置。是否继续？')) return
     setBusy(true); setError(''); setMessage('')
-    try { await capabilityClient.repairPresets(); setMessage('岗位预设已修复；被替换的原文件已备份。') }
+    try { await capabilityClient.repairPresets(); setMessage('岗位配置已修复。') }
     catch (error) { setError(error instanceof Error ? error.message : String(error)) }
     finally { setBusy(false) }
   }
   if (!issues.length && !error && !message) return null
   return <div className={s.notice}>
-    {!!issues.length && <><p>部分历史岗位预设需要修复；其他配置仍可正常保存。</p><details><summary>查看 {issues.length} 项问题</summary><ul className={s.presetIssues}>{issues.map(issue => <li key={issue}>{issue}</li>)}</ul></details><button className={s.button} disabled={busy} onClick={() => void repair()}>{busy ? '正在备份并修复…' : '备份并修复岗位预设'}</button></>}
+    {!!issues.length && <><p>部分岗位配置需要修复；其他配置仍可正常保存。</p><details><summary>查看 {issues.length} 项问题</summary><ul className={s.presetIssues}>{issues.map(issue => <li key={issue}>{issue}</li>)}</ul></details><button className={s.button} disabled={busy} onClick={() => void repair()}>{busy ? '正在修复…' : '修复岗位配置'}</button></>}
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
   </div>
 }

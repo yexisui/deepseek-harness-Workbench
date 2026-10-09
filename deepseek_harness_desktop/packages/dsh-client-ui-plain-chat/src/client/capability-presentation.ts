@@ -2,8 +2,8 @@ import { latest, type Capability, type Definition, type Snapshot, type Version }
 import { issues } from '../../../dsh-capabilities/src/core/validation.ts'
 export type Availability = { ready?: boolean; state?: string; message?: string; error?: string } | null | undefined
 export type CapabilityStatusGroup = 'ready' | 'pending' | 'draft' | 'disabled' | 'unknown' | 'context'
-export function capabilityManagement(data: Snapshot, capability: Capability) {
-  const parts = (latest(capability.versions) ?? capability.draft).components
+export function capabilityManagement(data: Snapshot, capability: Capability, editing?: Definition) {
+  const parts = (editing ?? latest(capability.versions) ?? capability.draft).components
   const kinds = parts.map(part => data.components.find(c => c.id === part.componentId)?.management)
   return kinds.length && kinds.every(kind => kind && kind === kinds[0]) ? kinds[0] : undefined
 }
@@ -23,7 +23,7 @@ export function capabilityPresentation(data: Snapshot, capability: Capability, v
   const packageStatus = data.packages?.find(h=>h.capabilityId===capability.id)
   if (capability.packageOrigin && packageStatus && !packageStatus.ready) return status(packageStatus.needsModel?'待配置':'组件待就绪',packageStatus.message,'pending')
   if (!capability.enabled) return status('已停用','能力已停用，请在能力中心启用。','disabled')
-  if (!version) return status('草稿','能力尚未发布。','draft')
+  if (!version) return status('待保存','进入编辑后保存即可使用。','draft')
   if (!parts.length || descriptors.some(value => !value)) return status('组件待适配','部分组件尚未适配，请在组件中心检查。','pending')
   if (parts.some(part => data.state.componentRestrictions?.[part.componentId]?.enabled === false)) return status('组件已停用','关联组件已全局停用，请在组件中心检查。','pending')
   const problems = issues(version,capability.id,data.components)
