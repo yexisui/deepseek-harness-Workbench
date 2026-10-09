@@ -2,14 +2,17 @@
 
 // Preload for the local splash/error pages and for the GUI.
 //
-// The GUI itself talks to the dsh host over HTTP, so the only thing it needs
-// here is one narrow attention channel (issue #1498): `notify(kind)` reports
+// The GUI itself talks to the dsh host over HTTP. The bridge adds native
+// project selection and one narrow attention channel (issue #1498): `notify(kind)` reports
 // that a run is waiting for the user or has settled, and the main process
 // decides whether to flash the taskbar and play the system alert. The kind is
 // re-validated in the main process; this bridge is a transport, not a policy.
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('desktop', {
+  selectProjectDirectory: () => ipcRenderer.invoke('desktop:select-project-directory'),
+  getPathForFile: (file) => webUtils.getPathForFile(file),
+  resolveProjectPaths: (paths) => ipcRenderer.invoke('desktop:resolve-project-paths', paths),
   /**
    * Report one attention signal to the main process.
    * @param {'approval' | 'completed' | 'interrupted'} kind

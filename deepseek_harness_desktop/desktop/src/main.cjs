@@ -17,6 +17,7 @@ const { spawn, execFile } = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { assertProjectSender, resolveProjectPaths } = require('./project-picker.cjs');
 const {
   resolveRuntimePaths,
   resolveDevelopmentRuntime,
@@ -385,6 +386,27 @@ ipcMain.on('desktop:attention', (event, payload) => {
   const kind = parseAttentionSignal(payload);
   if (kind === undefined) return;
   raiseAttention(kind);
+});
+
+ipcMain.handle('desktop:select-project-directory', async (event) => {
+  assertProjectSender(event, mainWindow, tokenUrl);
+  let result;
+  try {
+    result = await dialog.showOpenDialog(mainWindow, {
+      title: '选择项目根目录', buttonLabel: '选择此文件夹', properties: ['openDirectory'],
+    });
+  } catch {
+    throw new Error('无法打开文件夹选择窗口，请重试。');
+  }
+  assertProjectSender(event, mainWindow, tokenUrl);
+  return result.canceled ? null : (result.filePaths[0] || null);
+});
+
+ipcMain.handle('desktop:resolve-project-paths', async (event, paths) => {
+  assertProjectSender(event, mainWindow, tokenUrl);
+  const result = await resolveProjectPaths(paths);
+  assertProjectSender(event, mainWindow, tokenUrl);
+  return result;
 });
 
 ipcMain.on('desktop:retry', () => {
