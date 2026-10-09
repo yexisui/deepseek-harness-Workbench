@@ -265,7 +265,7 @@ export class CapabilityStore {
         if (value.icon?.kind === 'png') await this.icons.read(value.icon.assetId)
         let role = next.roles.find(r => r.id === target)
         if (command.id && !role) throw new InputError('岗位不存在', 404)
-        if (role?.archivedAt) throw new InputError('岗位已归档，请先恢复后编辑')
+        if (role?.archivedAt) throw new InputError('岗位已移除，请先恢复后编辑')
         const existingBindings = [...(role?.draft.capabilities ?? []), ...(role ? latest(role.versions)?.capabilities ?? [] : [])]
         for (const binding of value.capabilities) {
           if (existingBindings.some(old => old.capabilityId === binding.capabilityId && old.version === binding.version)) continue
@@ -289,7 +289,7 @@ export class CapabilityStore {
       } else if (command.type === 'role.copy') {
         const original = next.roles.find(role => role.id === target)
         if (!original) throw new InputError('岗位不存在', 404)
-        if (original.archivedAt) throw new InputError('岗位已归档，请先恢复后复制')
+        if (original.archivedAt) throw new InputError('岗位已移除，请先恢复后复制')
         const definition = structuredClone(latest(original.versions) ?? original.draft)
         target = 'local-' + randomUUID()
         next.roles.push({ id: target, enabled: true, draft: { ...definition, name: (definition.name + ' 副本').slice(0, 80) }, versions: [] })
@@ -297,17 +297,17 @@ export class CapabilityStore {
         const role = next.roles.find(role => role.id === target)
         if (!role) throw new InputError('岗位不存在', 404)
         if (command.type === 'role.archive') {
-          if (role.archivedAt) throw new InputError('岗位已归档')
+          if (role.archivedAt) throw new InputError('岗位已移除')
           role.archivedAt = now; role.enabled = false
           ;(next.revokedAt ??= {})['role:' + target] = Date.parse(now)
         } else {
-          if (!role.archivedAt) throw new InputError('岗位未归档')
+          if (!role.archivedAt) throw new InputError('岗位未移除')
           delete role.archivedAt; role.enabled = false
         }
       } else if (command.type === 'role.toggle') {
         const role = next.roles.find(r => r.id === target)
         if (!role) throw new InputError('岗位不存在', 404)
-        if (role.archivedAt) throw new InputError('岗位已归档，请先恢复后启用')
+        if (role.archivedAt) throw new InputError('岗位已移除，请先恢复后启用')
         role.enabled = bool(command.enabled)
         if (!role.enabled) (next.revokedAt ??= {})[`role:${target}`] = Date.parse(now)
       } else throw new InputError('未知操作')

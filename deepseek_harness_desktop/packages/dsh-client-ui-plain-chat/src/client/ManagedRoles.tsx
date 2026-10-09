@@ -111,7 +111,7 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
     {(error || message) && <p role={message === '已保存' && !error ? 'status' : 'alert'} className={message === '已保存' && !error ? s.muted : s.error}>{error || message}</p>}
     <PresetRepairNotice issues={data?.presetIssues ?? []}/>
     <div className={r.selectionStatus}><span role="status">{selected === 'chat' ? `已选定：${freeChat.name}` : selectedRole ? `已选定：${rolePresentation(selectedRole).name}` : data ? '当前岗位暂不可用' : '正在读取选定岗位…'}</span>{selected !== 'chat' && <button className={r.textButton} onClick={() => onSelect('chat')}>返回自由聊天</button>}</div>
-    <button className={r.textButton} aria-pressed={archived} onClick={() => setArchived(value => !value)}>{archived ? '返回可用岗位' : `已归档（${data?.state.roles.filter(role => role.archivedAt).length ?? 0}）`}</button>
+    <button className={r.textButton} aria-pressed={archived} onClick={() => setArchived(value => !value)}>{archived ? '返回可用岗位' : `回收站（${data?.state.roles.filter(role => role.archivedAt).length ?? 0}）`}</button>
     <div className={r.cards}>
       {/* 基础聊天沿用 chat / workbench-chat，不创建可发布、停用的岗位记录。 */}
       {!archived && <article data-role-id="chat" aria-label={freeChat.name} className={`${r.roleCard} ${selected === 'chat' ? r.selectedCard : ''}`} style={appearanceStyle(freeChat.color)}>
@@ -129,14 +129,14 @@ export function ManagedRolesSection({ selected, onSelect }: { selected: string; 
         <div className={r.cardBody}>
           {/* 正文选择与管理操作分开，编辑/停用不会触发卡片选择。 */}
           <button type="button" className={r.cardSelect} aria-label={`选定助手：${displayed.name}`} aria-pressed={chosen} disabled={!selectable} onClick={() => onSelect(role.id)}/>
-          <div className={r.cardTop}><RoleAppearanceIcon roleId={role.id} icon={displayed.icon} color={displayed.color}/><span className={`${r.exampleBadge} ${chosen ? r.selectedBadge : ''}`}>{chosen ? '✓ 已选定' : role.archivedAt ? '已归档' : !role.enabled ? '已停用' : published ? '岗位助手' : '待保存'}</span></div>
+          <div className={r.cardTop}><RoleAppearanceIcon roleId={role.id} icon={displayed.icon} color={displayed.color}/><span className={`${r.exampleBadge} ${chosen ? r.selectedBadge : ''}`}>{chosen ? '✓ 已选定' : role.archivedAt ? '已移除' : !role.enabled ? '已停用' : published ? '岗位助手' : '待保存'}</span></div>
           <h3>{displayed.name}</h3><p className={r.cardSummary} title={displayed.duties}>{displayed.duties || '点击编辑岗位，填写职责与工作要求。'}</p>
           <div className={r.tags}>{roleHasUnpublishedChanges(role) && <span>有待保存修改</span>}{published?.capabilities.some(b=>b.enabled&&b.capabilityId===MEETING_CAPABILITY_ID) ? <><span>快速生成 · 引导整理</span><span title={meetingStatus?.message}>{meetingStatus?.ready === true ? '录音转写已配置' : meetingStatus?.state === 'disabled' ? '录音转写不可用' : meetingStatus?.ready === false ? '录音转写待配置' : '正在检测录音转写'}</span></> : usesRequirements(data?.state, published) ? <><span>快速整理 · 引导分析</span><span>需求工作区</span></> : role.id === 'builtin-analyst' ? <><span>{displayed.capabilities.length} 个能力</span><span>可编辑岗位，选择需求分析能力</span></> : <><span>{displayed.capabilities.length} 个能力</span></>}<span>{roleActivities(data!, role.id).length} 个活动任务</span></div>
         </div>
-        <div className={r.cardControls}><button className={r.cardAction} disabled={!!role.archivedAt} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} disabled={!!role.archivedAt} title="复制当前岗位配置" onClick={() => void copyRole(role.id)}>复制岗位</button><button className={r.textButton} onClick={() => role.archivedAt ? void restoreRole(role.id) : role.enabled ? setPendingAction({id:role.id,action:'disable'}) : void toggleRole(role.id, true)}>{role.archivedAt ? '恢复岗位' : role.enabled ? '停用' : '启用'}</button>{!role.archivedAt && <button className={r.textButton} onClick={() => setPendingAction({id:role.id,action:'archive'})}>归档</button>}</div>
+        <div className={r.cardControls}>{!role.archivedAt && <><button className={r.cardAction} disabled={!!role.archivedAt} onClick={() => setEditor({ id: role.id })}>编辑岗位<span aria-hidden="true">↗</span></button><button className={r.textButton} disabled={!!role.archivedAt} title="复制当前岗位配置" onClick={() => void copyRole(role.id)}>复制岗位</button></>}<button className={r.textButton} onClick={() => role.archivedAt ? void restoreRole(role.id) : role.enabled ? setPendingAction({id:role.id,action:'disable'}) : void toggleRole(role.id, true)}>{role.archivedAt ? '恢复岗位' : role.enabled ? '停用' : '启用'}</button>{!role.archivedAt && <button className={r.textButton} onClick={() => setPendingAction({id:role.id,action:'archive'})}>移除</button>}</div>
       </article>
     })}</div>
-    {data && !data.state.roles.length && <p className={s.empty}>还没有保存的岗位助手。创建后即可装配能力。</p>}
+    {data && !displayedRoles.length && <p className={s.empty}>{archived ? '回收站为空。移除的岗位可在这里恢复。' : '还没有保存的岗位助手。创建后即可装配能力。'}</p>}
     <p className={r.sectionNote}>点击卡片选定助手；选择会用于下一次新对话，当前对话保持不变。</p>
 
     {data && pendingAction && <RoleImpactDialog data={data} roleId={pendingAction.id} action={pendingAction.action} onClose={() => setPendingAction(null)} onDone={() => { if (selected === pendingAction.id) onSelect('chat'); setPendingAction(null) }}/> }
