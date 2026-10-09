@@ -27,7 +27,7 @@ function CapabilityExport({data,onClose}:{data:Snapshot;onClose:()=>void}){
  const [selected,setSelected]=useState(abilities[0]?.id??''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[file,setFile]=useState<{id:string;url:string;name:string}|null>(null)
  const fileRef=useRef<string|null>(null);useEffect(()=>()=>{if(fileRef.current)void discardDownload(fileRef.current)},[])
  const save=async()=>{setBusy(true);setError('');try{const next=await download({id:selected});if(fileRef.current)await discardDownload(fileRef.current);fileRef.current=next.id;setFile(next)}catch(e){setError(e instanceof Error?e.message:String(e))}finally{setBusy(false)}}
- return <Modal title="导出能力" closeLabel="关闭能力导出" onClose={()=>{if(!busy)onClose()}}><div className={s.page}>
+ return <Modal title="导出能力" closeLabel="关闭能力导出" onClose={()=>{if(!busy)onClose()}}><div className={s.page+' '+s.dialogBody}>
   <label className={s.field}>选择能力<select aria-label="选择能力" value={selected} disabled={busy} onChange={e=>{setSelected(e.target.value);setFile(null)}}>{abilities.map(c=><option key={c.id} value={c.id}>{c.versions.at(-1)?.name??c.draft.name}</option>)}</select></label>
   {!abilities.length&&<p>暂无可导出的能力。</p>}
   {error&&<p role="alert" className={s.error}>{error}</p>}
