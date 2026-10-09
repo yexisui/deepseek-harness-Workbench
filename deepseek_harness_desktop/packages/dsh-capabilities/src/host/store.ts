@@ -53,7 +53,7 @@ export class CapabilityStore {
           if (cap.removedAt !== undefined && (typeof cap.removedAt !== 'string' || !Number.isFinite(Date.parse(cap.removedAt)) || cap.enabled || cap.pinned)) throw new Error('Invalid removed capability data')
           for (const version of cap.versions) { integer(version.version); definition(version, catalogFor(this.state)); if (version.packageHash && !this.state.packageReleases?.[version.packageHash]) throw new Error('Missing package release') }
         }
-        for (const role of this.state.roles) { if (role.archivedAt !== undefined && (typeof role.archivedAt !== 'string' || !Number.isFinite(Date.parse(role.archivedAt)) || role.enabled)) throw new Error('Invalid archived role data'); id(role.id); bool(role.enabled); roleDefinition(role.draft, this.state); for (const version of role.versions) { integer(version.version); roleDefinition(version, this.state) } }
+        for (const role of this.state.roles) { if (role.archivedAt !== undefined && (typeof role.archivedAt !== 'string' || !Number.isFinite(Date.parse(role.archivedAt)) || role.enabled)) throw new Error('Invalid archived role data'); id(role.id); bool(role.enabled); roleDefinition(role.draft, this.state); for (const version of role.versions) { integer(version.version); if (version.directSave !== undefined) bool(version.directSave); roleDefinition(version, this.state) } }
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
         this.state = initialState(); await this.persist(this.state)
@@ -259,7 +259,8 @@ export class CapabilityStore {
         for(const role of next.roles.filter(r=>!r.archivedAt)){const bindings=role.draft.skills??[],old=bindings.find(b=>b.id===row.id);if(selected.has(role.id)){role.draft.skills=old?bindings.map(b=>b.id===row.id?{...b,enabled:true}:b):[...bindings,{id:row.id,name:row.name,hash:row.hash,enabled:true}]}else if(old){role.draft.skills=bindings.map(b=>b.id===row.id?{...b,enabled:false}:b)}}
         target=row.id;
       } else if (command.type === 'role.save') {
-        const value = roleDefinition(command.definition, next), publish = bool(command.publish)
+        const directSave = command.directSave === undefined ? false : bool(command.directSave)
+        const value = roleDefinition(command.definition, next), publish = directSave || bool(command.publish)
         if (publish && roleCompositionIssues(value).length) throw new InputError(roleCompositionIssues(value).join('；'))
         if (value.icon?.kind === 'png') await this.icons.read(value.icon.assetId)
         let role = next.roles.find(r => r.id === target)
@@ -273,12 +274,18 @@ export class CapabilityStore {
           if (reason) throw new InputError(reason)
         }
         const newComponents = value.capabilities.filter(binding => !existingBindings.some(old => old.capabilityId === binding.capabilityId && old.version === binding.version)).flatMap(binding => next.capabilities.find(c => c.id === binding.capabilityId)?.versions.find(v => v.version === binding.version)?.components.map(p => p.componentId) ?? [])
-        const registryProblems = this.publishIssues(newComponents)
+        const registryProblems = directSave ? [] : this.publishIssues(newComponents)
         if (registryProblems.length) throw new InputError(registryProblems.join('；'))
         if (value.capabilities.some(binding => next.capabilities.find(c => c.id === binding.capabilityId)?.removedAt && !existingBindings.some(existing => existing.capabilityId === binding.capabilityId && existing.version === binding.version))) throw new InputError('不能添加已移除的能力，请先在能力中心恢复')
         if (!role) { role = { id: target, enabled: true, draft: value, versions: [] }; next.roles.push(role) }
         role.draft = value
-        if (publish) this.publishRole(role, value, now)
+        if (publish) {
+          const current = latest(role.versions)
+          if (!directSave || !current || JSON.stringify(roleDefinition(current,next)) !== JSON.stringify(value)) {
+            this.publishRole(role, value, now)
+            if (directSave) latest(role.versions)!.directSave = true
+          }
+        }
       } else if (command.type === 'role.copy') {
         const original = next.roles.find(role => role.id === target)
         if (!original) throw new InputError('岗位不存在', 404)

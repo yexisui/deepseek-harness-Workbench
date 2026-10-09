@@ -11,7 +11,7 @@ export type Capability = { id: string; packageOrigin?: import('./distribution.ts
 export type Binding = { capabilityId: string; version: number; enabled: boolean; actions?: Action[] }
 export type SkillBinding = { id: string; name: string; hash: string; enabled: boolean }
 export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec; duties: string; requirements: string; format: string; capabilities: Binding[]; skills?: SkillBinding[] }
-export type RoleVersion = RoleDefinition & { version: number; preset: string; createdAt: string }
+export type RoleVersion = RoleDefinition & { directSave?: boolean; version: number; preset: string; createdAt: string }
 export type Role = { archivedAt?: string; id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
 export type State = { packageModels?: Record<string,string>; packageReleases?: Record<string, import('./distribution.ts').PackageRelease>; componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
 export type Component = {
@@ -57,7 +57,7 @@ export type Command =
   | { type: 'capability.restoreMany'; ids: string[] }
   | { type: 'capability.purge'; ids: string[] }
   | { type: 'role.skills'; skillId:string; roleIds:string[] }
-  | { type: 'role.save'; id?: string; definition: RoleDefinition; publish: boolean }
+  | { type: 'role.save'; id?: string; definition: RoleDefinition; publish: boolean; directSave?: boolean }
   | { type: 'role.archive' | 'role.restore'; id: string }
   | { type: 'role.copy'; id: string }
   | { type: 'role.toggle'; id: string; enabled: boolean }

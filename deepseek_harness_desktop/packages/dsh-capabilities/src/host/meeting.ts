@@ -111,7 +111,7 @@ export class MeetingService {
     const requested = typeof roleId === 'string' && roleId ? roleId : undefined
     const role = requested ? this.currentState?.().roles.find(r => r.id === requested) : this.currentRole?.() ?? this.currentState?.().roles.find(r => r.id === MEETING_ROLE_ID)
     if (!role?.enabled) throw new InputError('此岗位已停用，请在岗位助手中启用后重试', 409)
-    const binding = latest(role.versions)?.capabilities.find(item => item.capabilityId === MEETING_CAPABILITY_ID)
+    const binding = (version === undefined ? latest(role.versions) : role.versions.find(item => item.version === version))?.capabilities.find(item => item.capabilityId === MEETING_CAPABILITY_ID)
     if (this.currentState && (!binding?.enabled || (binding.actions && !binding.actions.includes('transcribe')))) throw new InputError('此岗位未启用录音转写能力，请在岗位中检查关联', 409)
     const published = version === undefined ? latest(role.versions) : role.versions.find(item => item.version === version)
     if (!published) throw new InputError('会议纪要岗位版本不存在，请重新选择岗位', 409)

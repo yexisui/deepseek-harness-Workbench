@@ -60,5 +60,9 @@ it.skipIf(!process.env.DSH_SEGMENT_TEST_ROOT)('runs real FFmpeg and an imported 
     signal.throwIfAborted();return []
   })
   await expect(pending).rejects.toThrow();expect(segmenter.components(cancelled.id)).toEqual([])
+  const savedRole=store.snapshot().roles.find(r=>r.id===role.id)!
+  await store.command(store.snapshot().revision,{type:'role.save',id:role.id,definition:{...savedRole.draft,capabilities:[]},publish:true,directSave:true})
+  await meeting.generate(guided.id);expect((await wait(guided.id,'ready')).role?.id).toBe(role.id)
+  await expect(meeting.create({fileName:'new.mp3',mode:'quick',roleId:role.id})).rejects.toThrow('未启用')
  }finally{globalThis.fetch=originalFetch;await runner.close();await packs.close();await store.close();await rm(root,{recursive:true,force:true,maxRetries:5,retryDelay:100})}
 },60000)
