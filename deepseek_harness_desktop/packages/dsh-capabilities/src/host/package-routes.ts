@@ -13,7 +13,7 @@ export async function packageRoutes(packages:CapabilityPackages,runner:PackageRu
   if(route.startsWith('download/')){
     const id=route.slice(9)
     if(req.method==='DELETE'){await packages.discardDownload(id);return json(res,200,{ok:true})}
-    if(req.method==='GET'){const result=await packages.download(id);res.writeHead(200,{'content-type':'application/zip','content-disposition':`attachment; filename="${result.name}"`,'content-length':result.bytes.length,'cache-control':'no-store','x-content-type-options':'nosniff'});res.end(result.bytes);return}
+    if(req.method==='GET'){const result=await packages.download(id);res.writeHead(200,{'content-type':'application/zip','content-disposition':`attachment; filename="capability.zip"; filename*=UTF-8''${encodeURIComponent(result.name)}`,'content-length':result.bytes.length,'cache-control':'no-store','x-content-type-options':'nosniff'});res.end(result.bytes);return}
   }
   if(req.method==='GET'&&route.startsWith('processing/'))return json(res,200,packages.processStatus(route.slice(11)))
   if(req.method==='GET'&&route==='config')return json(res,200,{model:packages.store.snapshot().packageModels?.[url.searchParams.get('id')??'']??''})
@@ -32,7 +32,7 @@ export async function packageRoutes(packages:CapabilityPackages,runner:PackageRu
   if(route==='stop')return json(res,200,await runner.stop(text(body.id,'任务标识',40,true)))
   if(route==='export'){
     const result=body.token?await packages.exportPrepared(text(body.token,'上传标识',40,true),body.hash):await packages.exportInstalled(text(body.id,'能力标识',90,true),body.version)
-    res.writeHead(200,{'content-type':'application/zip','content-disposition':`attachment; filename="${result.name}"`,'content-length':result.bytes.length,'cache-control':'no-store','x-content-type-options':'nosniff'});res.end(result.bytes);return
+    res.writeHead(200,{'content-type':'application/zip','content-disposition':`attachment; filename="capability.zip"; filename*=UTF-8''${encodeURIComponent(result.name)}`,'content-length':result.bytes.length,'cache-control':'no-store','x-content-type-options':'nosniff'});res.end(result.bytes);return
   }
   throw new InputError('未知的能力包操作',404)
 }

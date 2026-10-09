@@ -64,12 +64,12 @@ it('shows only import/export main actions and imports a complete executable vers
   await click('组件');expect(document.body.textContent).toContain('外部文字组件');await click('编辑组件组合')
   expect(document.body.textContent).toContain('整理文字');expect(document.querySelector('[data-composition-editor]')??document.querySelector('dialog')).toBeTruthy()
 })
-it('exports a developer folder directly while leaving installed capabilities untouched',async()=>{
-  const before=store.snapshot();await click('导出能力')
-  const source=document.querySelector<HTMLSelectElement>('select')!;await act(async()=>{source.value='folder';source.dispatchEvent(new Event('change',{bubbles:true}))})
-  const files=[...delivery()].map(([path,bytes])=>{const file=new NodeFile([new Uint8Array(bytes)],path.split('/').at(-1)!);Object.defineProperty(file,'webkitRelativePath',{value:'delivery/'+path});return file})
-  await selectFile(files);await click('导出能力包');await waitFor(()=>!!downloaded)
-  expect(downloaded!.readUInt32LE(0)).toBe(0x04034b50);expect(store.snapshot()).toEqual(before);expect(document.querySelector('a[download]')).toBeTruthy()
+it('lists every current ability and exports directly without technical fields',async()=>{
+ const before=store.snapshot();await click('导出能力')
+ const select=document.querySelector<HTMLSelectElement>('select[aria-label="选择能力"]')!
+ expect(Array.from(select.options).map(o=>o.value)).toEqual(before.capabilities.filter(c=>!c.removedAt&&!c.purgedAt).map(c=>c.id))
+ expect(document.body.textContent).not.toContain('导出来源');expect(document.body.textContent).not.toContain('来源与交付清单')
+ await click('导出');await waitFor(()=>!!downloaded);expect(downloaded!.readUInt32LE(0)).toBe(0x04034b50);expect(store.snapshot()).toEqual(before)
 })
 it('opens the existing identity on a repeated import instead of creating another capability',async()=>{
   const zip=packageZip(delivery()),session=await packs.start('zip');await packs.put(session.token,'ability.zip',(async function*(){yield zip})());const preview=await packs.inspect(session.token);await packs.install(preview.token,preview.hash,preview.revision,{trusted:true});await capabilityClient.refresh()

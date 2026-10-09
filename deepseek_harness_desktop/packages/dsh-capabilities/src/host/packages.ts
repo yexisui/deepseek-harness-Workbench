@@ -1,3 +1,4 @@
+import { exportWorkbench, exportName, readWorkbench, workbenchHash, type WorkbenchPackage } from './workbench-package.ts'
 import { adaptExternal, type ImportModel } from './external-package.ts'
 import { applyCapabilitySettings } from '../core/current-settings.ts'
 import { loadPackageProvider } from './package-provider.ts'
@@ -11,7 +12,7 @@ import { CapabilityStore } from './store.ts'
 import { canonical, checkPackage, extractLocalZip, FilePaths, packageLimit, packageZip, plainMkdir, safeLocalPath, sha256, writePackage, type CheckedPackage } from './package-archive.ts'
 
 export type ImportProgress = { status:'running'|'done'|'error'; message:string; preview?:PackagePreview }
-type Upload = { processing?:Promise<void>; controller?:AbortController; progress?:ImportProgress; root?:string; preparedAI?:boolean; directory: string; kind: 'folder' | 'zip'; paths: FilePaths; bytes: number; count: number; expires: number; busy: boolean; checked?: CheckedPackage }
+type Upload = { workbench?:WorkbenchPackage; processing?:Promise<void>; controller?:AbortController; progress?:ImportProgress; root?:string; preparedAI?:boolean; directory: string; kind: 'folder' | 'zip'; paths: FilePaths; bytes: number; count: number; expires: number; busy: boolean; checked?: CheckedPackage }
 export class CapabilityPackages {
   private uploads = new Map<string,Upload>()
   private downloads = new Map<string,{name:string;expires:number}>()
@@ -82,6 +83,7 @@ export class CapabilityPackages {
   async cancelProcessing(token:string){const u=this.uploads.get(token);u?.controller?.abort(new Error('已停止处理，原包已保留'));await u?.processing;return this.processStatus(token)}
   async processImport(token:string,useAI:boolean,label:string):Promise<ImportProgress>{
     const u=this.upload(token)
+    if(u.workbench){u.progress={status:'done',message:'已准备',preview:this.workbenchPreview(token,u.workbench)};return u.progress}
     if(u.checked&&u.preparedAI===useAI){u.progress={status:'done',message:'已准备',preview:this.preview(token,u.checked)};return u.progress}
     u.controller=new AbortController();u.busy=true;u.expires=Date.now()+30*60_000
     u.progress={status:'running',message:'正在整理本地包…'}
@@ -89,6 +91,7 @@ export class CapabilityPackages {
       try{
         if(!u.root){let root=u.directory;if(u.kind==='zip'){root=join(u.directory,'unpacked');await rm(root,{recursive:true,force:true});plainMkdir(root);extractLocalZip(join(u.directory,'ability.zip'),root)}
           for(;;){const entries=await readdir(root,{withFileTypes:true});if(entries.length!==1||!entries[0]!.isDirectory())break;root=join(root,entries[0]!.name)}u.root=root}
+        u.workbench=await readWorkbench(u.root,this.store.snapshot());if(u.workbench){u.progress={status:'done',message:'已准备',preview:this.workbenchPreview(token,u.workbench)};return}
         // Existing standard packages remain unchanged; external formats are handled by the adapter.
         try{u.checked=await checkPackage(u.root,true)}catch{u.checked=await adaptExternal(u.root,label,useAI,this.importModel,u.controller!.signal,message=>{u.progress={status:'running',message}})}
         u.controller!.signal.throwIfAborted();u.preparedAI=useAI;u.progress={status:'done',message:'整理完成',preview:this.preview(token,u.checked)}
@@ -116,6 +119,23 @@ export class CapabilityPackages {
       }
       return this.preview(token, u.checked)
     } finally { u.busy = false }
+  }
+  private workbenchPreview(token:string,pack:WorkbenchPackage):PackagePreview {
+    const state=this.store.snapshot(),existing=state.capabilities.find(c=>c.id===pack.id),v=latest(existing?.versions??[]),value=pack.definition
+    return {token,hash:workbenchHash(pack),revision:state.revision,bytes:Buffer.byteLength(canonical(pack)),fileCount:1,needsModel:false,trust:'导入能力配置，复用工作台已有服务。',manifest:{schema:1,protocol:pack.protocol,id:pack.id,version:'1.0.0',...value,author:'工作台',license:'随工作台',permissions:[],components:[],files:{}},...(existing?{existing:{id:existing.id,name:existing.draft.name,duplicate:!!v&&!definitionChanged(value,v),removed:!!existing.removedAt,draftChanged:false,version:'',changes:[]}}:{})}
+  }
+  private async installWorkbench(pack:WorkbenchPackage,hash:unknown,revision:unknown){
+    if(hash!==workbenchHash(pack))throw new InputError('导入内容已更新，请重试')
+    return this.store.transaction(revision,next=>{
+      const value=pack.definition;let cap=next.capabilities.find(c=>c.id===pack.id)
+      if(cap?.packageOrigin)throw new InputError('同名标识属于另一能力，请勿覆盖')
+      if(cap?.removedAt||cap?.purgedAt)throw new InputError('能力已移除，请先恢复或使用新标识')
+      if(cap&&latest(cap.versions)&&!definitionChanged(value,latest(cap.versions)))return{id:cap.id,duplicate:true,needsModel:false}
+      if(!cap){cap={id:pack.id,source:'local',enabled:true,pinned:false,draft:value,versions:[]};next.capabilities.push(cap)}
+      const now=new Date().toISOString(),version=(latest(cap.versions)?.version??0)+1
+      cap.draft=structuredClone(value);cap.versions.push({...structuredClone(value),version,createdAt:now,directSave:true});applyCapabilitySettings(next,cap.id,version,now)
+      return{id:cap.id,duplicate:false,needsModel:false}
+    })
   }
   private preview(token: string, pack: CheckedPackage): PackagePreview {
     const state = this.store.snapshot(), m = pack.manifest, existing = state.capabilities.find(c => c.packageOrigin?.id === m.id), previous = existing && latest(existing.versions), release = previous?.packageHash && state.packageReleases?.[previous.packageHash]
@@ -145,7 +165,7 @@ export class CapabilityPackages {
     })
   }
   async install(token: string, expectedHash: unknown, revision: unknown, options: { trusted?: unknown; draft?: unknown; applyToRoles?: unknown } = {}) {
-    const u = this.upload(token), pack = u.checked
+    const u = this.upload(token);if(u.workbench)return this.installWorkbench(u.workbench,expectedHash,revision);const pack = u.checked
     if (!pack || expectedHash !== pack.hash) throw new InputError('请先完整预览能力包',409)
     if (options.trusted !== true) throw new InputError('请确认信任此能力的本机代码')
     const preview = this.preview(token,pack)
@@ -206,7 +226,8 @@ export class CapabilityPackages {
   }
   async exportInstalled(id: string, number: unknown) {
     const state = this.store.snapshot(), cap = state.capabilities.find(c=>c.id===id), version = number === undefined ? cap?.versions.at(-1) : cap?.versions.find(v=>v.version===integer(number))
-    if (!cap || !version?.packageHash) throw new InputError('此版本由工作台内置服务提供，没有可独立分发的执行包；请选择已导入的完整能力版本')
+    if (!cap || cap.removedAt || cap.purgedAt) throw new InputError('能力不存在或已移除')
+    if(!version?.packageHash)return exportWorkbench(cap.id,version??cap.draft)
     const pack = await checkPackage(this.directory(version.packageHash))
     if (pack.hash !== version.packageHash) throw new InputError('已安装文件改变，不能导出')
     if (definitionChanged(version,packageDefinition(pack.manifest))) {
@@ -215,8 +236,8 @@ export class CapabilityPackages {
       m.name=version.name; m.description=version.description; m.instructions=version.instructions; m.author=`${m.author}（本地派生修改）`.slice(0,120)
       m.components=m.components.flatMap(c=>{const part=version.components.find(p=>p.componentId===`pkg:${original.id}:${c.id}`); return part ? [{...c,actions:c.actions.filter(a=>part.actions.includes(`pack:${original.id}:${c.id}:${a.id}`))}] : []})
       pack.files.set('capability.json',Buffer.from(canonical(m)))
-      return {bytes:packageZip(pack.files),name:`${m.id}-${m.version}.zip`}
+      return {bytes:packageZip(pack.files),name:exportName(m.name)}
     }
-    return {bytes:packageZip(pack.files),name:`${pack.manifest.id}-${pack.manifest.version}.zip`}
+    return {bytes:packageZip(pack.files),name:exportName(pack.manifest.name)}
   }
 }
