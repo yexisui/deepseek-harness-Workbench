@@ -8,10 +8,10 @@ export type WorkbenchItem = { id: string; name: string; subtitle: string; disabl
 export function CapabilityGlyph({ kind = 'browser' }: { kind?: 'browser' | 'audio' | 'document' | 'support' }) { return <span className={s.icon} style={{ '--cap-color': kind === 'audio' ? '#6683bd' : '#4F73E8' } as React.CSSProperties} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">{kind === 'document' ? <><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/></> : kind === 'audio' ? <><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4m-4 0h8"/></> : kind === 'support' ? <><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9"/></> : <><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></>}</svg></span> }
 
 /** Reuses the tested resize/drag hooks and the established compact row design. */
-export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd, onRemove, form, inspector, title, libraryTitle, onManage, manageLabel = '管理能力', onReorder, removeIcon, attachedTitle = '已添加的配件', compositionNotice, libraryNote = '仅列出已适配的组件和已发布的能力' }: {
+export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd, onRemove, form, inspector, title, libraryTitle, onManage, manageLabel = '管理能力', onReorder, removeIcon, attachedTitle = '已添加的配件', compositionNotice, banner = '编辑完成后保存，关联岗位的新对话将使用当前设置。', libraryNote = '选择需要的组件或能力' }: {
   library: WorkbenchItem[]; attached: WorkbenchItem[]; selected: string | null; onSelect: (id: string) => void; onAdd: (id: string) => void; onRemove: (id: string) => void;
   form: ReactNode; inspector: ReactNode; title: string; libraryTitle: string; onManage?: () => void; manageLabel?: string;
-  onReorder?: (id: string, target: string) => void; removeIcon?: ReactNode; attachedTitle?: string; compositionNotice?: ReactNode; libraryNote?: string;
+  onReorder?: (id: string, target: string) => void; removeIcon?: ReactNode; attachedTitle?: string; compositionNotice?: ReactNode; libraryNote?: string; banner?: string;
 }) {
   const panels = useCapabilityPanels(attached.length > 0), prefix = useId()
   const [query, setQuery] = useState(''), [feedback, setFeedback] = useState<{ id: string; sequence: number; duplicate: boolean } | null>(null)
@@ -36,7 +36,7 @@ export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd,
       className={`${s.rail} ${side === 'left' ? s.leftRail : s.rightRail} ${open ? '' : s.railCollapsed} ${panels.resizing === side && panels.willCollapse ? s.collapseReady : ''}`} {...panels.railEvents(side)}><span className={s.railHandle} aria-hidden="true"><span>▥</span><span className={s.railArrow}>{(side === 'left') === open ? '‹' : '›'}</span><span className={s.railGrip}/></span></div>
   }
   return <>
-    <div className={s.banner}><span className={s.bannerDot}/>保存草稿可继续编辑；发布版本后可由岗位使用。移除配件不会卸载共享插件。</div>
+    <div className={s.banner}><span className={s.bannerDot}/>{banner}</div>
     <div ref={panels.root} style={panels.style} className={`${s.workbench} ${panels.compact ? s.compact : ''} ${panels.resizing ? s.resizing : ''}`}>
       <section id={`${prefix}-left`} hidden={!panels.leftOpen} className={s.library} aria-label={libraryTitle}>
         <div className={s.columnHeading}><div><h3>{libraryTitle}</h3>{onManage && <button type="button" className={s.manageLink} onClick={onManage}>{manageLabel} ↗</button>}</div><button type="button" className={s.collapseButton} onClick={() => panels.close('left')} aria-label="收起左栏">‹</button></div>

@@ -4,13 +4,13 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CapabilityPackages } from '../../dsh-capabilities/src/host/packages.ts'
 import { readFile } from 'node:fs/promises'
-import { mkdtemp } from 'node:fs/promises'
+import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { CapabilityStore } from '../../dsh-capabilities/src/host/store.ts'
 import { components, emptyRole, latest, type Command, type Snapshot, type Task } from '../../dsh-capabilities/src/core/model.ts'
 import { ManagedCenter } from '../src/client/ManagedCenter.tsx'
-import { ManagedRoleEditor } from '../src/client/ManagedRoles.tsx'
+import { ManagedRoleEditor, ManagedRolesSection } from '../src/client/ManagedRoles.tsx'
 import { capabilityClient, editorDrafts } from '../src/client/capability-client.ts'
 
 describe('managed capability card actions', () => {
@@ -50,7 +50,7 @@ describe('managed capability card actions', () => {
   })
   afterEach(async () => {
     await act(async () => root.unmount())
-    container.remove(); await store.close(); editorDrafts.clear(); sessionStorage.clear()
+    container.remove(); await store.close(); await rm(store.directory,{recursive:true,force:true}); editorDrafts.clear(); sessionStorage.clear()
     vi.restoreAllMocks(); vi.unstubAllGlobals()
   })
 
@@ -94,14 +94,14 @@ describe('managed capability card actions', () => {
       expect(library.textContent).toContain('未发布，请先在能力中心发布')
       expect(library.textContent).toContain('Skills 技能 1 项')
       if(id==='builtin-manager') {
-        expect(button('添加 会议录音转写',library)!.disabled).toBe(true)
-        expect(library.textContent).toContain('仅供会议纪要助手使用')
+        expect(button('添加 会议录音转写',library)!.disabled).toBe(false)
+        expect(library.textContent).not.toContain('仅供会议纪要助手使用')
         await act(async()=>library.querySelector<HTMLButtonElement>('button[title="会议录音转写"]')!.click())
         expect(button('管理录音转写能力 ↗')).toBeTruthy()
       }
     }
   })
-  it('adds, removes, saves, reopens and republishes a real imported meeting segment capability',async()=>{
+  it('adds, removes, saves, reopens and directly saves a real imported meeting segment capability',async()=>{
     const packs=new CapabilityPackages(store);await packs.init()
     try {
       const zip=await readFile(join(process.env.DSH_SEGMENT_TEST_ROOT!,'capability-packages/audio-segment-location/dist/audio-segment-location-latest.zip'))
@@ -110,16 +110,53 @@ describe('managed capability card actions', () => {
       const published=structuredClone(getRole().versions)
       await capabilityClient.refresh();await act(async()=>root.render(<ManagedRoleEditor id={id} onClose={()=>{}}/>))
       expect(button('添加 录音分段定位')!.disabled).toBe(false)
-      expect(button('添加 浏览器操作')!.disabled).toBe(true)
+      expect(button('添加 浏览器操作')!.disabled).toBe(false)
       await click('添加 录音分段定位');expect(button('添加 录音分段定位')!.disabled).toBe(true)
-      await click('保存草稿');expect(getRole().draft.capabilities.some(b=>b.capabilityId===installed.id)).toBe(true);expect(getRole().versions).toEqual(published)
+      await click('保存');expect(getRole().draft.capabilities.some(b=>b.capabilityId===installed.id)).toBe(true);expect(getRole().versions.slice(0,-1)).toEqual(published)
       await act(async()=>root.render(<></>));editorDrafts.clear();await act(async()=>root.render(<ManagedRoleEditor id={id} onClose={()=>{}}/>))
-      await click('移除 录音分段定位');await click('保存草稿')
+      await click('移除 录音分段定位');await click('保存')
       expect(getRole().draft.capabilities.some(b=>b.capabilityId===installed.id)).toBe(false)
       await act(async()=>root.render(<></>));editorDrafts.clear();await act(async()=>root.render(<ManagedRoleEditor id={id} onClose={()=>{}}/>))
-      await click('添加 录音分段定位');await click('保存并发布');await click('确认发布')
+      await click('添加 录音分段定位');await click('保存')
       expect(latest(getRole().versions)!.capabilities.filter(b=>b.capabilityId===installed.id)).toHaveLength(1)
-      expect(getRole().versions.slice(0,-1)).toEqual(published)
+      expect(getRole().versions.slice(0,published.length)).toEqual(published)
     }finally{await packs.close()}
   })
+  it('offers one save, keeps edits on continue, and discards only after confirmation',async()=>{
+    const id='builtin-manager',before=structuredClone(store.snapshot()),close=vi.fn()
+    await act(async()=>root.render(<ManagedRoleEditor id={id} onClose={close}/>))
+    expect(button('保存')).toBeTruthy();expect(button('取消')).toBeTruthy()
+    expect(button('保存草稿')).toBeUndefined();expect(button('保存并发布')).toBeUndefined()
+    expect(document.body.textContent).not.toContain('从历史版本恢复')
+    expect(document.body.textContent).not.toContain('能力版本：')
+    await click('添加 会议录音转写');await click('取消')
+    expect(button('放弃修改')).toBeTruthy();expect(close).not.toHaveBeenCalled()
+    await click('继续编辑');expect(button('添加 会议录音转写')!.disabled).toBe(true)
+    expect(store.snapshot()).toEqual(before)
+    await click('取消');await click('放弃修改')
+    expect(close).toHaveBeenCalledTimes(1);expect(editorDrafts.has('role:'+id)).toBe(false)
+    expect(store.snapshot()).toEqual(before)
+    await act(async()=>root.render(<></>));await act(async()=>root.render(<ManagedRoleEditor id={id} onClose={close}/>))
+    expect(button('添加 会议录音转写')!.disabled).toBe(false)
+    await click('添加 会议录音转写');await click('保存')
+    expect(commands.at(-1)).toMatchObject({type:'role.save',directSave:true,publish:true})
+    expect(latest(store.snapshot().roles.find(r=>r.id===id)!.versions)!.capabilities.some(b=>b.capabilityId==='meeting-transcription')).toBe(true)
+    expect(button('确认发布')).toBeUndefined()
+  })
+
+  it('does not create a copied role until save and removes a cancelled copy',async()=>{
+    const before=store.snapshot()
+    await act(async()=>root.render(<ManagedRolesSection selected="chat" onSelect={()=>{}}/>))
+    const card=container.querySelector('[data-role-id="builtin-manager"]')!
+    await click('复制岗位',card)
+    expect(store.snapshot()).toEqual(before)
+    await click('取消');await click('放弃修改')
+    expect(store.snapshot()).toEqual(before);expect(editorDrafts.has('role:new')).toBe(false)
+    await click('复制岗位',card);await click('保存')
+    expect(store.snapshot().roles).toHaveLength(before.roles.length+1)
+    const copied=store.snapshot().roles.find(r=>!before.roles.some(old=>old.id===r.id))!
+    expect(latest(copied.versions)!.name).toContain('副本')
+    expect(container.textContent).toContain('已保存')
+  })
+
 })

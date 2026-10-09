@@ -1462,8 +1462,8 @@ function safeLocalPath(value) {
 	if (parts.some((p) => [
 		".git",
 		".svn",
-		"node_modules"
-	].includes(p.toLowerCase()))) fail("unsupported-files", "Export the resource package without repository metadata or node_modules.");
+		".pnpm"
+	].includes(p.toLowerCase()))) fail("unsupported-files", "Remove repository metadata and package-manager stores; ship plain dependency files.");
 	return value;
 }
 function pathKey(rel) {
@@ -1626,6 +1626,7 @@ function readResourceManifest(root, files, expectedKind, wrapper) {
 	if (!candidates.length && names.has("package.json")) candidates.push("plugin");
 	if (candidates.length !== 1 || expectedKind && candidates[0] !== expectedKind) fail("wrong-kind", "Resource manifest is missing, ambiguous or belongs to a different category.");
 	const kind = candidates[0];
+	if (kind !== "plugin" && files.some((file) => file.rel.split("/").includes("node_modules"))) fail("unsupported-files", "Dependency directories are only supported in plugin packages.");
 	const requireFile = (value) => {
 		const rel = safeLocalPath(typeof value === "string" ? value.replace(/^\.\//, "") : value);
 		if (!names.has(rel)) fail("missing-file", `Resource is missing the referenced file: ${rel}`);
@@ -2127,10 +2128,6 @@ var LocalWorkshopService = class {
 		if (kind === "pet" && readSmallJson(path.join(this.home, "pet.json")).petId === id) fail("active-resource", "Select another pet before replacing it.", 409);
 		if (kind === "plugin") {
 			if (readSmallJson(path.join(this.home, "workshop", "plugin-jobs", createHash("sha256").update(id).digest("hex") + ".json")).state === "running") fail("active-resource", "Wait for the plugin installation to finish before replacing it.", 409);
-			for (const profile of readDirectories(path.join(this.home, "profiles"))) {
-				const dependencies = readSmallJson(path.join(this.home, "profiles", profile, "package.json")).dependencies;
-				if (dependencies && typeof dependencies === "object" && Object.hasOwn(dependencies, id)) fail("active-resource", "Uninstall this plugin before replacing its local package.", 409);
-			}
 		}
 		if (existsSync(destination) && !lstatSync(destination).isDirectory()) fail("conflict", "The resource destination is occupied by a file.", 409);
 		return plainExists(destination);
@@ -2182,6 +2179,11 @@ var LocalWorkshopService = class {
 			totalBytes: files.reduce((sum, file) => sum + file.bytes, 0),
 			conflict
 		};
+	}
+	/** Server-only access to a validated staging directory, never returned over HTTP. */
+	inspectedRoot(id) {
+		this.inspect(id);
+		return this.getUpload(id).inspected.root;
 	}
 	async commit(id, replace = false) {
 		this.inspect(id);
@@ -2726,7 +2728,7 @@ function makeLocalActionRoutes(deps = {}) {
 				const installed = (await installedPlugins(service, req, home)).find((row) => row.id === id);
 				if (action === "install") {
 					if (installed) throw new ActionError("already-installed", "This plugin is already installed. Manage it in Settings / Plugins.");
-					if (body.confirmCode !== true) throw new ActionError("confirmation-required", "Installing this plugin executes package scripts and may download dependencies. Confirm before installing.");
+					if (body.confirmCode !== true) throw new ActionError("confirmation-required", "This plugin will execute code after restart. Confirm this local version before installing.");
 					trustLocalResource(home, dir, record);
 					const snapshots = join(home, "workshop", "install-snapshots");
 					assertTreeLocation(home, snapshots);
@@ -2753,7 +2755,7 @@ function makeLocalActionRoutes(deps = {}) {
 						ok: true,
 						jobId: result.jobId,
 						requiresRestart: true,
-						message: "Installation queued. Dependencies may require network access; restart the workbench after the job succeeds."
+						message: "Offline installation queued. Restart the workbench after the job succeeds; missing dependencies are rejected without downloads."
 					};
 				}
 				if (action === "enable" || action === "disable") {

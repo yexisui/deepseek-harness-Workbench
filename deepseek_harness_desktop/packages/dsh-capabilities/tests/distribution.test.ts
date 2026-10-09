@@ -58,15 +58,17 @@ describe('portable capability distribution',()=>{
   })
   it('registers a real managed-agent tool without BrowserSkill and denies forged or revoked role calls',async()=>{
     const env=await environment(),installed=await install(env)
-    const saved=await env.store.command(env.store.snapshot().revision,{type:'role.save',definition:{...emptyRole(),name:'外部能力岗位',capabilities:[{capabilityId:installed.id,version:1,enabled:true}]},publish:true})
+    const saved=await env.store.command(env.store.snapshot().revision,{type:'role.save',definition:{...emptyRole(),name:'外部能力岗位',capabilities:[{capabilityId:installed.id,version:1,enabled:true},{capabilityId:'browser',version:1,enabled:true}]},publish:true})
     const role=env.store.snapshot().roles.find(r=>r.id===saved.id)!,version=role.versions[0]!,registered=new Map<string,any>()
     const agent={id:'external-agent',ctx:{tools:{guard:()=>()=>{},register:(tool:any)=>{registered.set(tool.name,tool);return()=>registered.delete(tool.name)}},get:()=>undefined},session:{header:{createdAt:Date.now()-1000,agentPreset:version.preset},snapshotEvents:()=>[]}}
     const ctx={tools:{guard:()=>()=>{}},on:()=>()=>{},agents:{list:()=>[agent]},agentPresets:{composedPreset:()=>version.preset}}
     const runtime=new CapabilityRuntime(ctx as never,env.store,{bskPath:'',bskHome:'',port:0});runtime.packageRunner=env.runner;await runtime.init();cleanups.push(()=>runtime.dispose())
     expect(runtime.health.loaded).toBe(false);expect(registered.has('capability_action')).toBe(true)
     const args={capabilityId:installed.id,action,input:JSON.stringify('from role')},exec={name:'capability_action',arguments:args,callId:'call-one',signal:new AbortController().signal,agent}
+    await env.store.command(env.store.snapshot().revision,{type:'capability.toggle',id:'browser',enabled:false})
+    expect(runtime.tasks()[0]!.status).not.toBe('stopped')
     expect(await registered.get('capability_action').execute(args,exec)).toBe(JSON.stringify('V1:FROM ROLE'))
-    expect(runtime.authorize({...exec,arguments:{...args,capabilityId:'browser'}} as never)).toContain('未授权')
+    expect(runtime.authorize({...exec,arguments:{...args,capabilityId:'browser'}} as never)).toBeTruthy()
     await env.store.command(env.store.snapshot().revision,{type:'role.save',id:role.id,definition:{...role.draft,capabilities:[{capabilityId:installed.id,version:1,enabled:true,actions:[]}]},publish:true})
     expect(runtime.authorize(exec as never)).toBeTruthy()
     await expect(registered.get('capability_action').execute(args,exec)).rejects.toThrow()
@@ -92,7 +94,7 @@ describe('portable capability distribution',()=>{
     expect(await (await runner.start(cap.id,1,action,'restart')).done).toBe('V1:RESTART')
     expect(runner.get(task.job.id).status).toBe('done')
   })
-  it('pins role execution to old code, preserves drafts, and rolls back without rebinding roles',async()=>{
+  it('updates current role configuration on import while existing tasks keep their code',async()=>{
     const env=await environment(),first=await install(env)
     const saved=await env.store.command(env.store.snapshot().revision,{type:'role.save',definition:{...emptyRole(),name:'文字岗位',capabilities:[{capabilityId:first.id,version:1,enabled:true}]},publish:true})
     const role=env.store.snapshot().roles.find(r=>r.id===saved.id)!,roleVersion=latest(role.versions)!
@@ -100,15 +102,12 @@ describe('portable capability distribution',()=>{
     await env.store.command(env.store.snapshot().revision,{type:'capability.save',id:cap.id,definition:{...cap.draft,name:'本地未发布名称'},publish:false})
     const next=await install(env,'2.0.0',"exports.execute=async({input})=>'V2:'+input")
     const current=env.store.snapshot().capabilities.find(c=>c.id===first.id)!
-    expect(current.draft.name).toBe('本地未发布名称');expect(current.packageOrigin!.draftBackups).toHaveLength(1)
-    expect(env.store.snapshot().roles.find(r=>r.id===role.id)!.versions).toHaveLength(1)
+    expect(current.draft.name).toBe('外部文字工具');expect(current.packageOrigin!.draftBackups).toHaveLength(0)
+    expect(env.store.snapshot().roles.find(r=>r.id===role.id)!.versions.at(-1)!.capabilities[0].version).toBe(2)
     expect(await(await env.runner.start(first.id,1,action,'old',{role:{roleId:role.id,version:roleVersion,sessionCreatedAt:Date.now()-1000}})).done).toBe('V1:OLD')
     expect(await(await env.runner.start(first.id,2,action,'new')).done).toBe('V2:new')
-    await env.packs.rollback(first.id,1,env.store.snapshot().revision)
-    expect(env.store.snapshot().capabilities.find(c=>c.id===first.id)!.enabled).toBe(false)
-    await env.store.command(env.store.snapshot().revision,{type:'capability.toggle',id:first.id,enabled:true})
-    await new Promise(resolve=>setTimeout(resolve,3))
-    expect(await(await env.runner.start(first.id,3,action,'back')).done).toBe('V1:BACK')
+    const adopted=env.store.snapshot().roles.find(r=>r.id===role.id)!.versions.at(-1)!
+    expect(await(await env.runner.start(first.id,2,action,'role',{role:{roleId:role.id,version:adopted,sessionCreatedAt:Date.now()}})).done).toBe('V2:role')
     expect(next.id).toBe(first.id)
   })
   it('requires configuration, does not export it, and brokers the existing model with real worker RPC',async()=>{
@@ -168,7 +167,7 @@ describe('portable capability distribution',()=>{
     await expect(env.store.command(env.store.snapshot().revision,{type:'capability.save',id:cap.id,definition:{...cap.draft,components:[]},publish:true})).rejects.toThrow('尚未添加组件')
     const role=await env.store.command(env.store.snapshot().revision,{type:'role.save',definition:{...emptyRole(),name:'历史岗位',capabilities:[{capabilityId:cap.id,version:1,enabled:true}]},publish:true})
     await env.store.command(env.store.snapshot().revision,{type:'capability.remove',id:cap.id})
-    await expect(env.store.command(env.store.snapshot().revision,{type:'capability.purge',ids:[cap.id]})).rejects.toThrow('历史版本引用')
+    await expect(env.store.command(env.store.snapshot().revision,{type:'capability.purge',ids:[cap.id]})).rejects.toThrow('当前岗位')
     const r=env.store.snapshot().roles.find(r=>r.id===role.id)!
     expect(allowedActions(env.store.snapshot(),r.id,r.versions[0]!)).toEqual([])
   })

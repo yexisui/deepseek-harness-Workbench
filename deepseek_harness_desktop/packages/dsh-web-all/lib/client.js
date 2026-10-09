@@ -3011,54 +3011,6 @@ window.__ModuleLoader__.load({
 			if (job?.phase !== "done") throw Error(job?.error ?? "插件尚未安装完成，请刷新查看。");
 			window.dispatchEvent(new Event("dsh-local-plugins-changed"));
 		}
-		function OfflineRollback({ id, version, onChange }) {
-			const [confirm, setConfirm] = (0, react$1.useState)(false), [busy, setBusy] = (0, react$1.useState)(false), [error, setError] = (0, react$1.useState)("");
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: !confirm ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-				onClick: () => setConfirm(true),
-				children: ["回退到 ", version]
-			}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-				role: "dialog",
-				"aria-label": "确认回退插件",
-				children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-						"将 ",
-						id,
-						" 回退到 ",
-						version,
-						"，重启后生效。插件自己的数据保留。"
-					] }),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						disabled: busy,
-						onClick: async () => {
-							setBusy(true);
-							setError("");
-							try {
-								await finishJob((await localPluginRequest("rollback", {
-									id,
-									confirm: true
-								})).jobId);
-								await onChange();
-								setConfirm(false);
-							} catch (e) {
-								setError(String(e));
-							} finally {
-								setBusy(false);
-							}
-						},
-						children: "确认回退"
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						disabled: busy,
-						onClick: () => setConfirm(false),
-						children: "取消"
-					}),
-					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-						role: "alert",
-						children: error
-					})
-				]
-			}) });
-		}
 		function LocalPluginImport({ onChange, disabled = false, compact = false, onImported }) {
 			const zip = (0, react$1.useRef)(null), folder = (0, react$1.useRef)(null), active = (0, react$1.useRef)(false);
 			const [uploadId, setUploadId] = (0, react$1.useState)(""), [preview, setPreview] = (0, react$1.useState)(), [busy, setBusy] = (0, react$1.useState)(false), [progress, setProgress] = (0, react$1.useState)(""), [error, setError] = (0, react$1.useState)(""), [done, setDone] = (0, react$1.useState)("");
@@ -3158,7 +3110,7 @@ window.__ModuleLoader__.load({
 					await onChange();
 					onImported?.(preview);
 					if (compact) setOpen(false);
-					setDone(preview.disposition === "identical" ? "这个版本已经安装，无需重复导入。" : "本地安装完成。新增条目进入未定义区，重启工作台后加载。");
+					setDone(preview.disposition === "identical" ? "内容相同，无需重复导入。" : "本地安装完成。新增条目进入未定义区，重启工作台后加载。");
 					setPreview(void 0);
 					setUploadId("");
 				} catch (e) {
@@ -3251,14 +3203,14 @@ window.__ModuleLoader__.load({
 								preview.scriptsSkipped.join("、"),
 								"。发布包必须已包含所需构建产物。"
 							] }),
-							preview.disposition === "replace" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "版本号相同，但文件内容不同。确认后将替换当前受管副本，并保留上一版供回退。" }),
+							preview.disposition === "replace" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "内容已有变化，确认后更新当前插件。" }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "插件代码将在重启后运行。确认安装表示允许加载这个本地插件。" }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 								className: inventory_tree_module_css_default.toolbar,
 								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									disabled: busy || disabled,
 									onClick: () => void install(),
-									children: busy ? "正在安装…" : preview.disposition === "identical" ? "确认，无需重复安装" : preview.disposition === "new" ? "确认安装" : "确认替换版本"
+									children: busy ? "正在安装…" : preview.disposition === "identical" ? "确认，无需重复安装" : preview.disposition === "new" ? "确认安装" : "更新插件"
 								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									disabled: busy,
 									onClick: () => void (compact ? close() : discard()),
@@ -3479,7 +3431,6 @@ window.__ModuleLoader__.load({
 				compositionVersion: 2
 			}
 		];
-		const latest = (versions) => versions.at(-1);
 		function resolveBinding(state, binding) {
 			return state.capabilities.find((c) => c.id === binding.capabilityId)?.versions.find((v) => v.version === binding.version);
 		}
@@ -3490,19 +3441,6 @@ window.__ModuleLoader__.load({
 				tasks: tasks.filter((t) => !["stopped"].includes(t.status) && state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.some((b) => b.enabled && resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)))
 			};
 		}
-		function roleHasUnpublishedChanges(role) {
-			const published = latest(role.versions);
-			return !!published && [
-				"name",
-				"color",
-				"icon",
-				"duties",
-				"requirements",
-				"format",
-				"capabilities",
-				"skills"
-			].some((key) => JSON.stringify(role.draft[key]) !== JSON.stringify(published[key]));
-		}
 		//#endregion
 		//#region ../dsh-capabilities/src/core/distribution.ts
 		const packageComponentId = (id, part) => `pkg:${id}:${part}`;
@@ -3511,6 +3449,7 @@ window.__ModuleLoader__.load({
 			const extra = /* @__PURE__ */ new Map();
 			for (const release of Object.values(state.packageReleases ?? {})) {
 				const m = release.manifest, scope = state.capabilities.filter((c) => c.packageOrigin?.id === m.id).map((c) => c.id);
+				if (!scope.length) continue;
 				for (const part of m.components) {
 					const id = packageComponentId(m.id, part.id), old = extra.get(id);
 					extra.set(id, {
@@ -4966,7 +4905,7 @@ window.__ModuleLoader__.load({
 		};
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css.mjs
-		const css$24 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:54px;height:32px;display:inline-flex;position:relative}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}.eqpZFq_compositionFieldset{border:0;min-width:0;margin:0;padding:0}.eqpZFq_compositionInfo{border:1px solid var(--role-border);border-radius:9px;margin-bottom:18px;padding:12px}.eqpZFq_compositionInfo summary{color:var(--role-muted);cursor:pointer;font-size:12px}.eqpZFq_compositionInfo[open] summary{margin-bottom:16px}.eqpZFq_associationRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;padding:14px 16px;display:flex}.eqpZFq_associationIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_associationIdentity>div{min-width:0}.eqpZFq_associationIdentity strong{margin-right:8px}.eqpZFq_associationIdentity small{color:var(--role-muted);overflow-wrap:anywhere;margin-top:5px;font-size:11px;display:block}.eqpZFq_associationSymbol{width:34px;height:34px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 10%,transparent);border-radius:8px;flex-shrink:0;place-items:center;font-size:22px;display:grid}.eqpZFq_associationActions{flex-shrink:0;align-items:center;gap:6px;display:flex}.eqpZFq_compositionFeedback,.eqpZFq_compositionToolbar{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;padding:12px;font-size:12px;display:flex}.eqpZFq_compositionToolbar{z-index:1;position:sticky;bottom:0;box-shadow:0 -5px 12px #00000008}.eqpZFq_missingAssociations{border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border));background:color-mix(in srgb,#be8432 8%,var(--role-bg));border-radius:9px;margin:10px 0;padding:12px;font-size:12px}.eqpZFq_missingRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;display:flex}.eqpZFq_missingRow small{color:var(--role-muted)}@media (width<=650px){.eqpZFq_associationRow{flex-wrap:wrap;align-items:flex-start;padding:12px}.eqpZFq_associationActions{margin-left:auto}}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}.eqpZFq_versionValue{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px}.eqpZFq_presetIssues{overflow-wrap:anywhere;padding-left:20px}.eqpZFq_listToolbar{justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px;display:flex}.eqpZFq_listToolbar .eqpZFq_tabs{flex:1;margin:0}.eqpZFq_capabilityList{flex-direction:column;gap:8px;display:flex}.eqpZFq_capabilityRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;align-items:center;gap:8px;min-width:0;padding:0 12px 0 0;display:flex}.eqpZFq_capabilityRow:hover{border-color:var(--role-accent)}.eqpZFq_capabilityOpen{text-align:left;min-width:0;min-height:80px;color:inherit;font:inherit;cursor:pointer;background:0 0;border:0;border-radius:10px;flex:1;align-items:center;gap:12px;padding:12px 8px 12px 14px;display:flex}.eqpZFq_capabilityOpen>:first-child{flex-shrink:0}.eqpZFq_capabilityIdentity{flex:1;min-width:0}.eqpZFq_capabilityIdentity strong,.eqpZFq_capabilityIdentity small{text-overflow:ellipsis;white-space:nowrap;display:block;overflow:hidden}.eqpZFq_capabilityIdentity strong{font-size:14px}.eqpZFq_capabilityIdentity small{color:var(--role-muted);margin-top:5px;font-size:12px}.eqpZFq_capabilityIdentity .eqpZFq_draftHint{color:var(--role-accent)}.eqpZFq_capabilityStatus{color:var(--role-muted);flex-shrink:0;font-size:12px}.eqpZFq_filterPanel{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;flex-wrap:wrap;align-items:flex-start;gap:18px;margin-bottom:14px;padding:16px;display:flex}.eqpZFq_filterPanel fieldset{border:0;flex:1;min-width:170px;padding:0}.eqpZFq_filterPanel legend{font-size:13px;font-weight:600}.eqpZFq_filterSummary{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px;font-size:12px;display:flex}.eqpZFq_moreMenu{position:relative}.eqpZFq_morePanel{z-index:3;border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;min-width:120px;padding:6px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 4px 16px #0002}.eqpZFq_morePanel .eqpZFq_button{text-align:left;border:0;width:100%}.eqpZFq_detailBack{margin-bottom:18px}.eqpZFq_detailIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_detailIdentity h3{overflow-wrap:anywhere}.eqpZFq_detailDescription{color:var(--role-muted);overflow-wrap:anywhere;font-size:13px}.eqpZFq_detailDisclosure{border-top:1px solid var(--role-border);overflow-wrap:anywhere;margin-top:12px;padding:14px 0;font-size:13px}.eqpZFq_detailDisclosure summary{cursor:pointer;color:var(--role-muted)}.eqpZFq_detailDisclosure[open] summary{color:var(--role-text);margin-bottom:12px}@media (width<=600px){.eqpZFq_capabilityOpen{grid-template-columns:32px minmax(0,1fr) 10px;column-gap:10px;display:grid}.eqpZFq_capabilityOpen>:first-child{grid-row:1/3}.eqpZFq_capabilityIdentity{grid-column:2}.eqpZFq_capabilityStatus{grid-column:2;margin-top:5px}.eqpZFq_capabilityOpen>:last-child{grid-area:1/3/3}.eqpZFq_capabilityRow{padding-right:8px}.eqpZFq_detailIdentity{max-width:100%}}";
+		const css$24 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:54px;height:32px;display:inline-flex;position:relative}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}.eqpZFq_compositionFieldset{border:0;min-width:0;margin:0;padding:0}.eqpZFq_compositionInfo{border:1px solid var(--role-border);border-radius:9px;margin-bottom:18px;padding:12px}.eqpZFq_compositionInfo summary{color:var(--role-muted);cursor:pointer;font-size:12px}.eqpZFq_compositionInfo[open] summary{margin-bottom:16px}.eqpZFq_associationRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;padding:14px 16px;display:flex}.eqpZFq_associationIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_associationIdentity>div{min-width:0}.eqpZFq_associationIdentity strong{margin-right:8px}.eqpZFq_associationIdentity small{color:var(--role-muted);overflow-wrap:anywhere;margin-top:5px;font-size:11px;display:block}.eqpZFq_associationSymbol{width:34px;height:34px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 10%,transparent);border-radius:8px;flex-shrink:0;place-items:center;font-size:22px;display:grid}.eqpZFq_associationActions{flex-shrink:0;align-items:center;gap:6px;display:flex}.eqpZFq_compositionFeedback,.eqpZFq_compositionToolbar{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;padding:12px;font-size:12px;display:flex}.eqpZFq_compositionToolbar{z-index:1;position:sticky;bottom:0;box-shadow:0 -5px 12px #00000008}.eqpZFq_missingAssociations{border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border));background:color-mix(in srgb,#be8432 8%,var(--role-bg));border-radius:9px;margin:10px 0;padding:12px;font-size:12px}.eqpZFq_missingRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;display:flex}.eqpZFq_missingRow small{color:var(--role-muted)}@media (width<=650px){.eqpZFq_associationRow{flex-wrap:wrap;align-items:flex-start;padding:12px}.eqpZFq_associationActions{margin-left:auto}}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}.eqpZFq_versionValue{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px}.eqpZFq_presetIssues{overflow-wrap:anywhere;padding-left:20px}.eqpZFq_listToolbar{justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px;display:flex}.eqpZFq_listToolbar .eqpZFq_tabs{flex:1;margin:0}.eqpZFq_capabilityList{flex-direction:column;gap:8px;display:flex}.eqpZFq_capabilityRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;align-items:center;gap:8px;min-width:0;padding:0 12px 0 0;display:flex}.eqpZFq_capabilityRow:hover{border-color:var(--role-accent)}.eqpZFq_capabilityOpen{text-align:left;min-width:0;min-height:80px;color:inherit;font:inherit;cursor:pointer;background:0 0;border:0;border-radius:10px;flex:1;align-items:center;gap:12px;padding:12px 8px 12px 14px;display:flex}.eqpZFq_capabilityOpen>:first-child{flex-shrink:0}.eqpZFq_capabilityIdentity{flex:1;min-width:0}.eqpZFq_capabilityIdentity strong,.eqpZFq_capabilityIdentity small{text-overflow:ellipsis;white-space:nowrap;display:block;overflow:hidden}.eqpZFq_capabilityIdentity strong{font-size:14px}.eqpZFq_capabilityIdentity small{color:var(--role-muted);margin-top:5px;font-size:12px}.eqpZFq_capabilityIdentity .eqpZFq_draftHint{color:var(--role-accent)}.eqpZFq_capabilityStatus{color:var(--role-muted);flex-shrink:0;font-size:12px}.eqpZFq_filterPanel{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;flex-wrap:wrap;align-items:flex-start;gap:18px;margin-bottom:14px;padding:16px;display:flex}.eqpZFq_filterPanel fieldset{border:0;flex:1;min-width:170px;padding:0}.eqpZFq_filterPanel legend{font-size:13px;font-weight:600}.eqpZFq_filterSummary{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px;font-size:12px;display:flex}.eqpZFq_moreMenu{position:relative}.eqpZFq_morePanel{z-index:3;border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;min-width:120px;padding:6px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 4px 16px #0002}.eqpZFq_morePanel .eqpZFq_button{text-align:left;border:0;width:100%}.eqpZFq_detailBack{margin-bottom:18px}.eqpZFq_detailIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_detailIdentity h3{overflow-wrap:anywhere}.eqpZFq_detailDescription{color:var(--role-muted);overflow-wrap:anywhere;font-size:13px}.eqpZFq_detailDisclosure{border-top:1px solid var(--role-border);overflow-wrap:anywhere;margin-top:12px;padding:14px 0;font-size:13px}.eqpZFq_detailDisclosure summary{cursor:pointer;color:var(--role-muted)}.eqpZFq_detailDisclosure[open] summary{color:var(--role-text);margin-bottom:12px}@media (width<=600px){.eqpZFq_capabilityOpen{grid-template-columns:32px minmax(0,1fr) 10px;column-gap:10px;display:grid}.eqpZFq_capabilityOpen>:first-child{grid-row:1/3}.eqpZFq_capabilityIdentity{grid-column:2}.eqpZFq_capabilityStatus{grid-column:2;margin-top:5px}.eqpZFq_capabilityOpen>:last-child{grid-area:1/3/3}.eqpZFq_capabilityRow{padding-right:8px}.eqpZFq_detailIdentity{max-width:100%}}.eqpZFq_importDrop{border:1px dashed var(--role-border);border-radius:12px;min-width:0;padding:20px}.eqpZFq_importDrop[data-dragging]{border-color:var(--role-accent,#5863b0);background:var(--role-selected,#5863b015)}.eqpZFq_importFile{overflow-wrap:anywhere;margin:0 0 16px}.eqpZFq_importButtons{flex-wrap:wrap;gap:8px;display:flex}";
 		const tagId$24 = "@linxin666/dsh-web-all/packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$24) + "]") === null) {
 			const tag = document.createElement("style");
@@ -5019,6 +4958,9 @@ window.__ModuleLoader__.load({
 			"grid": "eqpZFq_grid",
 			"heading": "eqpZFq_heading",
 			"iconButton": "eqpZFq_iconButton",
+			"importButtons": "eqpZFq_importButtons",
+			"importDrop": "eqpZFq_importDrop",
+			"importFile": "eqpZFq_importFile",
 			"inlineAction": "eqpZFq_inlineAction",
 			"list": "eqpZFq_list",
 			"listToolbar": "eqpZFq_listToolbar",
@@ -5232,7 +5174,7 @@ window.__ModuleLoader__.load({
 						})
 					});
 					const v = await r.json();
-					if (!r.ok) throw Error(v.error ?? "岗位草稿保存失败");
+					if (!r.ok) throw Error(v.error ?? "岗位设置保存失败");
 					await load();
 				} catch (e) {
 					setError(e instanceof Error ? e.message : String(e));
@@ -5285,7 +5227,7 @@ window.__ModuleLoader__.load({
 				}),
 				row.usage === "all" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 					className: ManagedCapabilities_module_css_default.muted,
-					children: "包含普通对话和岗位对话，新建对话或任务生效。岗位已发布的显式停用优先，已绑定版本保持。"
+					children: "用于新建的普通对话和岗位对话；在岗位中单独停用的技能不会使用。"
 				}),
 				row.scope !== "global" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
 					className: ManagedCapabilities_module_css_default.muted,
@@ -5305,43 +5247,36 @@ window.__ModuleLoader__.load({
 					}),
 					state?.roles.filter((r) => !r.archivedAt && r.draft.name.toLowerCase().includes(query.toLowerCase())).map((role) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: ManagedCapabilities_module_css_default.row,
-						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-								className: ManagedCapabilities_module_css_default.check,
-								children: [role.draft.name, /* @__PURE__ */ (0, react_jsx_runtime.jsx)(EnableSwitch, {
-									label: "指定岗位 " + role.draft.name,
-									checked: chosen.includes(role.id),
-									busy: saving,
-									onChange: (v) => setChosen((old) => v ? [...old, role.id] : old.filter((id) => id !== role.id))
-								})]
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-								className: ManagedCapabilities_module_css_default.muted,
-								children: !role.versions.length ? "尚未发布" : roleHasUnpublishedChanges(role) ? "草稿待发布" : "与发布版本一致"
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								className: ManagedCapabilities_module_css_default.button,
-								onClick: () => openWorkbenchLink({
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+							className: ManagedCapabilities_module_css_default.check,
+							children: [role.draft.name, /* @__PURE__ */ (0, react_jsx_runtime.jsx)(EnableSwitch, {
+								label: "指定岗位 " + role.draft.name,
+								checked: chosen.includes(role.id),
+								busy: saving,
+								onChange: (v) => setChosen((old) => v ? [...old, role.id] : old.filter((id) => id !== role.id))
+							})]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							className: ManagedCapabilities_module_css_default.button,
+							onClick: () => openWorkbenchLink({
+								section: "agent-presets",
+								origin: captureNavigation(),
+								restore: {
 									section: "agent-presets",
-									origin: captureNavigation(),
-									restore: {
+									label: "岗位编辑",
+									frames: [{
+										kind: "role-editor",
 										section: "agent-presets",
 										label: "岗位编辑",
-										frames: [{
-											kind: "role-editor",
-											section: "agent-presets",
-											label: "岗位编辑",
-											view: { id: role.id }
-										}]
-									}
-								}),
-								children: "编辑并发布 ↗"
-							})
-						]
+										view: { id: role.id }
+									}]
+								}
+							}),
+							children: "编辑岗位 ↗"
+						})]
 					}, role.id)),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 						className: ManagedCapabilities_module_css_default.muted,
-						children: "先保存岗位选择，再进入岗位编辑器发布。取消选择会在草稿中停用，不改正在使用的发布版本。"
+						children: "保存后用于所选岗位的新对话，无需再到岗位页面操作。"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						className: ManagedCapabilities_module_css_default.button,
@@ -5411,7 +5346,7 @@ window.__ModuleLoader__.load({
 					className: ManagedCapabilities_module_css_default.detailDisclosure,
 					children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "高级设置 · 调用方式" }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "按任务需要选用不代表后台自动运行，也不代表每次强制调用。关闭自动选用后保留原有手动调用限制；专用岗位流程仍按已发布的技能绑定执行。" }),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "按任务需要选用不代表后台自动运行，也不代表每次强制调用。关闭自动选用后保留原有手动调用限制；专用岗位流程按保存的岗位设置执行。" }),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 							className: ManagedCapabilities_module_css_default.check,
 							children: ["允许按任务需要自动选用", /* @__PURE__ */ (0, react_jsx_runtime.jsx)(EnableSwitch, {
@@ -5512,7 +5447,7 @@ window.__ModuleLoader__.load({
 				children: ["岗位引用读取失败：", error]
 			});
 			if (!roles) return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "正在读取岗位引用…" });
-			const rows = roles.filter((r) => r.draft.skills?.some((b) => b.id === id) || r.versions.some((v) => v.skills?.some((b) => b.id === id)));
+			const rows = roles.filter((r) => !r.removedAt && (r.draft.skills?.some((b) => b.id === id) || r.versions.at(-1)?.skills?.some((b) => b.id === id)));
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [!rows.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 				className: ManagedCapabilities_module_css_default.empty,
 				children: "暂无岗位引用。可在岗位编辑器中添加此技能。"
@@ -5520,19 +5455,7 @@ window.__ModuleLoader__.load({
 				className: ManagedCapabilities_module_css_default.row,
 				children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: [role.draft.name, role.archivedAt ? " · 已归档" : ""] }),
-					role.draft.skills?.filter((b) => b.id === id).map((b) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-						"编辑草稿 · ",
-						b.hash.slice(0, 12),
-						" · ",
-						b.enabled ? "岗位中启用" : "岗位中停用"
-					] }, "draft")),
-					role.versions.filter((v) => v.skills?.some((b) => b.id === id)).map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: [
-						"已发布 v",
-						v.version,
-						v.version === role.versions.at(-1)?.version ? "（当前）" : "（历史）",
-						" · ",
-						v.skills.find((b) => b.id === id).hash.slice(0, 12)
-					] }, v.version)),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: (role.versions.at(-1)?.skills ?? role.draft.skills)?.find((b) => b.id === id)?.enabled ? "岗位中启用" : "岗位中停用" }),
 					!role.archivedAt && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 						className: ManagedCapabilities_module_css_default.button,
 						onClick: () => openWorkbenchLink({
@@ -5595,46 +5518,20 @@ window.__ModuleLoader__.load({
 						children: label
 					}, key))
 				}),
-				tab === "contents" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Contents, { row }) : tab === "references" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(References, { id: row.id }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-					row.removed ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "此技能已移入回收站。恢复后保持停用。" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-						className: ManagedCapabilities_module_css_default.button,
-						disabled: busy,
-						onClick: () => change(row, "restore"),
-						children: "恢复技能"
-					})] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(SkillSettings, {
-						row,
-						busy,
-						tags,
-						change
-					}) }),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-						className: ManagedCapabilities_module_css_default.muted,
-						children: ["来源：本地导入 · ", row.removed ? "已移除" : row.enabled ? "已启用" : "已停用"]
-					}),
-					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
-						className: ManagedCapabilities_module_css_default.detailDisclosure,
-						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("summary", { children: "技术信息与版本" }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["版本摘要：", row.hash.slice(0, 12)] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", { children: ["更新时间：", new Date(row.updatedAt).toLocaleString()] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-								className: managed_panel_module_css_default.path,
-								children: ["目录：", row.root]
-							}),
-							row.warnings.map((w) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: w }, w)),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-								className: ManagedCapabilities_module_css_default.muted,
-								children: "更新技能不会自动更换岗位已发布的绑定版本。"
-							}),
-							!row.removed && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								className: ManagedCapabilities_module_css_default.button,
-								disabled: busy || !row.previous,
-								onClick: () => onConfirm("rollback"),
-								children: "回退上一版本"
-							})
-						]
-					})
-				] })
+				tab === "contents" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Contents, { row }) : tab === "references" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(References, { id: row.id }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [row.removed ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "此技能已移入回收站。恢复后保持停用。" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					className: ManagedCapabilities_module_css_default.button,
+					disabled: busy,
+					onClick: () => change(row, "restore"),
+					children: "恢复技能"
+				})] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(SkillSettings, {
+					row,
+					busy,
+					tags,
+					change
+				}) }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+					className: ManagedCapabilities_module_css_default.muted,
+					children: ["来源：本地导入 · ", row.removed ? "已移除" : row.enabled ? "已启用" : "已停用"]
+				})] })
 			] });
 		}
 		//#endregion
@@ -6195,7 +6092,7 @@ window.__ModuleLoader__.load({
 						})
 					}),
 					confirm && row && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$4, {
-						title: confirm === "remove" ? "移除技能" : "回退技能版本",
+						title: "移除技能",
 						closeLabel: "取消操作",
 						onClose: () => {
 							if (!busy) setConfirm(void 0);
@@ -6203,7 +6100,7 @@ window.__ModuleLoader__.load({
 						children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.dialogBody}`,
 							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: confirm === "remove" ? "新的技能调用将停止。岗位绑定和历史版本保留，可从回收站恢复。" : "恢复上一份技能内容并停用。岗位已发布版本继续保留原绑定，不自动换版。" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "新的技能调用将停止，可从回收站恢复。" }),
 								error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 									role: "alert",
 									className: ManagedCapabilities_module_css_default.error,
@@ -6223,7 +6120,7 @@ window.__ModuleLoader__.load({
 											change(row, confirm);
 											setConfirm(void 0);
 										},
-										children: ["确认", confirm === "remove" ? "移除" : "回退"]
+										children: ["确认", "移除"]
 									})]
 								})
 							]
@@ -6364,7 +6261,7 @@ window.__ModuleLoader__.load({
 									onChange: (e) => upload(e.target.files)
 								})
 							] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "选择要导入的技能；更新会保留旧版本，已有技能开关保持。" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "选择要导入的技能；更新后用于新对话，已有启停设置保持。" }),
 								preview.candidates.map((c) => {
 									const selected = choices.find((x) => x.key === c.key);
 									return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -6443,7 +6340,7 @@ window.__ModuleLoader__.load({
 										setPreview(void 0);
 										setImporting(false);
 										await reload();
-										setNotice("已导入 " + r.count + " 个技能" + (r.unchanged ? "，" + r.unchanged + " 个相同版本已跳过" : ""));
+										setNotice("已导入 " + r.count + " 个技能" + (r.unchanged ? "，" + r.unchanged + " 个相同内容已跳过" : ""));
 									}),
 									children: busy ? "处理中…" : "确认导入"
 								})]
@@ -7613,14 +7510,6 @@ window.__ModuleLoader__.load({
 													]
 												}),
 												plugin.requiresRestart && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "待重启加载" }),
-												plugin.previousVersion && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(OfflineRollback, {
-													id: plugin.id,
-													version: plugin.previousVersion,
-													onChange: async () => {
-														setDirty(true);
-														await reload();
-													}
-												}),
 												failure !== void 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 													className: plugin_manager_module_css_default.failure,
 													"data-plugin-failure": plugin.id,
@@ -9939,8 +9828,8 @@ window.__ModuleLoader__.load({
 			"local.files": "文件",
 			"local.fileSummary": "{count} 个，共 {size}",
 			"local.importOnly": "导入只保存资源，不会自动安装插件、执行脚本或切换当前配置。",
-			"local.replaceHint": "已存在同名资源。继续将先备份旧版本，再替换为本次导入的文件。",
-			"local.replaceImport": "备份并替换",
+			"local.replaceHint": "已存在同名资源，继续将更新为本次导入的内容。",
+			"local.replaceImport": "更新资源",
 			"local.imported": "已导入「{name}」。",
 			"local.petImported": "已导入「{name}」。请重启工作台，再到左侧「宠物」中选择并启用。",
 			"local.confirmAction": "确认{action}「{name}」？",
@@ -9952,7 +9841,7 @@ window.__ModuleLoader__.load({
 			"local.working": "处理中…",
 			"local.actionDone": "操作已完成。",
 			"local.trustDone": "已信任此版本的皮肤脚本，请在「皮肤」中重新应用。",
-			"local.removed": "资源已移除，备份保留在工作台数据目录。",
+			"local.removed": "资源已移除。",
 			"local.actionFailed": "操作失败，请重试。",
 			"local.jobTimeout": "安装仍在处理中，请稍后刷新或在插件管理中查看进度。",
 			"local.restart": "操作已完成，需要重新启动工作台后生效。",
@@ -10090,8 +9979,8 @@ window.__ModuleLoader__.load({
 			"local.files": "Files",
 			"local.fileSummary": "{count} files, {size}",
 			"local.importOnly": "Import only saves files. It does not install plugins, execute scripts or switch your current configuration.",
-			"local.replaceHint": "A resource with this name already exists. Continuing backs up its current version and replaces it with the imported files.",
-			"local.replaceImport": "Back up and replace",
+			"local.replaceHint": "A resource with this name already exists. Continue to update it with the imported files.",
+			"local.replaceImport": "Update resource",
 			"local.imported": "Imported “{name}”.",
 			"local.petImported": "Imported “{name}”. Restart the workbench, then choose and enable it under Pets in the left menu.",
 			"local.confirmAction": "{action} “{name}”?",
@@ -10103,7 +9992,7 @@ window.__ModuleLoader__.load({
 			"local.working": "Working…",
 			"local.actionDone": "Operation completed.",
 			"local.trustDone": "Scripts are trusted for this skin version. Reapply it under Skins.",
-			"local.removed": "Resource removed. A backup is kept in the workbench data directory.",
+			"local.removed": "Resource removed.",
 			"local.actionFailed": "Operation failed. Please retry.",
 			"local.jobTimeout": "Installation is still running. Refresh later or check progress in Plugin management.",
 			"local.restart": "Operation completed. Restart the workbench to apply the changes.",
@@ -17692,7 +17581,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region ../../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/clsx@2.1.1/node_modules/clsx/dist/clsx.mjs
+		//#region ../../node_modules/.pnpm/clsx@2.1.1/node_modules/clsx/dist/clsx.mjs
 		function r(e) {
 			var t, f, n = "";
 			if ("string" == typeof e || "number" == typeof e) n += e;
@@ -17707,7 +17596,7 @@ window.__ModuleLoader__.load({
 			return n;
 		}
 		//#endregion
-		//#region ../../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/qrcode.react@4.2.0_react@18.3.1/node_modules/qrcode.react/lib/esm/index.js
+		//#region ../../node_modules/.pnpm/qrcode.react@4.2.0_react@18.3.1/node_modules/qrcode.react/lib/esm/index.js
 		var __defProp = Object.defineProperty;
 		var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 		var __hasOwnProp = Object.prototype.hasOwnProperty;
@@ -28344,7 +28233,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region ../../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/@xterm+xterm@6.0.0/node_modules/@xterm/xterm/lib/xterm.js
+		//#region ../../node_modules/.pnpm/@xterm+xterm@6.0.0/node_modules/@xterm/xterm/lib/xterm.js
 		var require_xterm = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			(function(e, t) {
 				if ("object" == typeof exports && "object" == typeof module) module.exports = t();
@@ -41342,7 +41231,7 @@ window.__ModuleLoader__.load({
 			})()));
 		}));
 		//#endregion
-		//#region ../../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/@xterm+addon-fit@0.11.0/node_modules/@xterm/addon-fit/lib/addon-fit.js
+		//#region ../../node_modules/.pnpm/@xterm+addon-fit@0.11.0/node_modules/@xterm/addon-fit/lib/addon-fit.js
 		var require_addon_fit = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			(function(e, t) {
 				"object" == typeof exports && "object" == typeof module ? module.exports = t() : "function" == typeof define && define.amd ? define([], t) : "object" == typeof exports ? exports.FitAddon = t() : e.FitAddon = t();
@@ -49297,11 +49186,11 @@ window.__ModuleLoader__.load({
 		*/
 		/** Simplified Chinese copy (the key-set source of truth). */
 		const STATIC_ZH = {
-			"settings.title": "Doctor 恢复控制台",
+			"settings.title": "故障诊断",
 			"settings.subtitle": "监控受保护档案、重建信号与浏览器故障，并运行诊断与修复动作。",
-			"settings.description": "故障检测、隔离修复与事务式回滚的救助模式。",
+			"settings.description": "检测运行故障并协助修复。",
 			"settings.enabled": "启用救助模式",
-			"settings.enabledHint": "开启后自动核对并部署 Supervisor 与救援胶囊；关闭时暂停自动干预但不卸载。",
+			"settings.enabledHint": "开启后自动检测并修复运行故障；关闭后暂停自动修复。",
 			"settings.fullProtection": "完整保护",
 			"settings.fullProtectionHint": "托管模式发送心跳、记录故障并执行熔断；关闭后保留只观察、不自动干预。",
 			"settings.autoMigrate": "自动迁移旧聚合包",
@@ -49333,7 +49222,7 @@ window.__ModuleLoader__.load({
 			"status.neverChecked": "尚未检查",
 			"host.unavailableHint": "未检测到 /api/doctor 宿主端点：宿主半区未启用、未挂载，或返回了非 JSON 响应。",
 			"host.disabledHint": "Doctor 已停用：打开上方开关后，宿主半区才会挂载诊断端点。",
-			"snapshot.version": "快照版本 {version}",
+			"snapshot.version": "运行状态",
 			"snapshot.updated": "更新于 {time}",
 			"profiles.title": "受保护档案",
 			"profiles.empty": "无受保护档案。",
@@ -49355,7 +49244,7 @@ window.__ModuleLoader__.load({
 			"actions.clearProbe": "清除探针",
 			"actions.running": "执行中…",
 			"actions.reported": "已上报浏览器侧事件。",
-			"actions.completed": "动作已完成，快照已更新。",
+			"actions.completed": "操作已完成，状态已更新。",
 			"actions.reportEmpty": "没有可上报的探针事件。",
 			"actions.sendToHarness": "发送给 Harness",
 			"actions.sent": "已发送到当前 DSH 会话。",
@@ -49384,20 +49273,20 @@ window.__ModuleLoader__.load({
 			"lifecycle.repair": "修复并重启服务",
 			"lifecycle.upgrade": "重启并升级服务",
 			"lifecycle.uninstall": "卸载救助服务",
-			"lifecycle.uninstallHint": "移除本机用户级 Supervisor 服务；安装状态数据保留，可随时重新安装。",
+			"lifecycle.uninstallHint": "移除本机用户级 诊断服务；安装状态数据保留，可随时重新安装。",
 			"lifecycle.running": "安装/修复中…",
-			"lifecycle.neverInstalled": "Supervisor 服务尚未安装：一键安装将注册用户级服务、启动守护进程并配置救援胶囊。",
-			"lifecycle.serviceDown": "Supervisor 服务已安装但未应答：一键修复会重新部署服务并刷新救援胶囊。",
-			"lifecycle.version": "Supervisor {supervisor} / Web {web}",
-			"lifecycle.versionMismatch": "Supervisor {supervisor} 与 Web 端 {web} 版本不一致：升级重启后生效。",
+			"lifecycle.neverInstalled": "诊断服务尚未安装：一键安装将注册用户级服务、启动守护进程并配置救援胶囊。",
+			"lifecycle.serviceDown": "诊断服务已安装但未应答：一键修复会重新部署服务并刷新救援胶囊。",
+			"lifecycle.version": "运行状态",
+			"lifecycle.versionMismatch": "诊断服务需要更新，请重启工作台。",
 			"api.network": "网络错误：{reason}",
 			"api.loopback": "仅限本机浏览器访问。",
 			"api.notAvailable": "宿主端点不可用（未启用或未挂载宿主半区）。",
 			"api.malformed": "宿主响应格式异常。",
 			"api.http": "宿主错误：{reason}",
-			"api.supervisor": "Supervisor 错误：{reason}",
-			"api.unprovisioned": "Supervisor 服务未安装。",
-			"api.supervisorDown": "Supervisor 服务未应答。",
+			"api.supervisor": "诊断服务错误：{reason}",
+			"api.unprovisioned": "诊断服务未安装。",
+			"api.supervisorDown": "诊断服务未应答。",
 			"enable.label": "启用 Doctor",
 			"enable.on": "已启用：宿主半区挂载诊断端点并发送心跳。",
 			"enable.off": "已停用：控制台只读显示，宿主端点处于离线。",
@@ -49414,7 +49303,7 @@ window.__ModuleLoader__.load({
 			"phase.armed": "已就绪",
 			"phase.degraded": "部分异常",
 			"phase.updating": "更新中",
-			"phase.rolling-back": "回滚中",
+			"phase.rolling-back": "正在恢复运行",
 			"phase.uninstalling": "卸载中",
 			"phase.broken": "已损坏",
 			"phase.idle": "空闲",

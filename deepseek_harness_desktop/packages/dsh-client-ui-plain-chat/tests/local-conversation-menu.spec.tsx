@@ -105,3 +105,35 @@ it('places saved records at the top of the native flex history tree and restores
   expect(placeholder.hidden).toBe(false)
   expect(placeholder.style.display).toBe('flex')
 })
+
+it('renames from a shared dialog, trims the name, and keeps failures editable', async () => {
+  HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+  HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
+  const rename = vi.fn().mockRejectedValueOnce(new Error('保存失败')).mockResolvedValueOnce(undefined)
+  await act(async () => root.render(<LocalConversationRows host={host} label="聊天中新建会话" rows={[{ id:'draft-1', role:'chat', kind:'draft', title:'原名称', draft:'', updatedAt:1 }]} activeId="draft-1" onOpen={onOpen} onRemove={onRemove} onRename={rename}/>))
+  await act(async () => document.querySelector<HTMLButtonElement>('button[aria-label="会话操作：原名称"]')!.click())
+  const menu = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'))
+  expect(menu.map(b => b.textContent?.trim())).toEqual(['重命名','移除对话'])
+  await act(async () => menu[0]!.click())
+  const input = document.querySelector<HTMLInputElement>('dialog input')!
+  expect(input.value).toBe('原名称'); expect(document.activeElement).toBe(input)
+  const change = async (value:string) => act(async () => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,value); input.dispatchEvent(new Event('input',{bubbles:true})) })
+  await change('   ')
+  expect(document.querySelector<HTMLButtonElement>('dialog button[type="submit"]')!.disabled).toBe(true)
+  await change('  新名称  ')
+  await act(async () => document.querySelector('dialog form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})))
+  expect(document.querySelector('[role="alert"]')?.textContent).toBe('保存失败')
+  expect(input.value).toBe('  新名称  ')
+  await act(async () => document.querySelector('dialog form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})))
+  expect(rename).toHaveBeenLastCalledWith('draft-1','新名称'); expect(document.querySelector('dialog')).toBeNull()
+  expect(onOpen).not.toHaveBeenCalled(); expect(onRemove).not.toHaveBeenCalled()
+})
+
+it('cancels renaming with Escape without saving', async () => {
+  const rename = vi.fn()
+  await act(async () => root.render(<LocalConversationRows host={host} label="聊天中新建会话" rows={[{id:'a',role:'chat',kind:'draft',title:'保留名称',draft:'',updatedAt:1}]} activeId="a" onOpen={onOpen} onRemove={onRemove} onRename={rename}/>))
+  await act(async () => document.querySelector<HTMLButtonElement>('button[aria-label="会话操作：保留名称"]')!.click())
+  await act(async () => document.querySelector<HTMLButtonElement>('[role="menuitem"]')!.click())
+  await act(async () => document.querySelector('dialog input')!.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})))
+  expect(document.querySelector('dialog')).toBeNull(); expect(rename).not.toHaveBeenCalled()
+})

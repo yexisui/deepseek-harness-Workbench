@@ -1,3 +1,4 @@
+import { applyCapabilitySettings, saveRoleSettings } from '../core/current-settings.ts'
 import {ManagedSkills} from '../../../dsh-skill-explorer/src/managed.ts'
 import {dirname} from 'node:path'
 import { catalogFor, manifest, digestPattern, packageDefinition } from '../core/distribution.ts'
@@ -53,7 +54,7 @@ export class CapabilityStore {
           if (cap.removedAt !== undefined && (typeof cap.removedAt !== 'string' || !Number.isFinite(Date.parse(cap.removedAt)) || cap.enabled || cap.pinned)) throw new Error('Invalid removed capability data')
           for (const version of cap.versions) { integer(version.version); definition(version, catalogFor(this.state)); if (version.packageHash && !this.state.packageReleases?.[version.packageHash]) throw new Error('Missing package release') }
         }
-        for (const role of this.state.roles) { if (role.archivedAt !== undefined && (typeof role.archivedAt !== 'string' || !Number.isFinite(Date.parse(role.archivedAt)) || role.enabled)) throw new Error('Invalid archived role data'); id(role.id); bool(role.enabled); roleDefinition(role.draft, this.state); for (const version of role.versions) { integer(version.version); roleDefinition(version, this.state) } }
+        for (const role of this.state.roles) { if (role.removedAt !== undefined && (typeof role.removedAt !== 'string' || !Number.isFinite(Date.parse(role.removedAt)) || !role.archivedAt || role.enabled)) throw new Error('Invalid removed role data'); if (role.archivedAt !== undefined && (typeof role.archivedAt !== 'string' || !Number.isFinite(Date.parse(role.archivedAt)) || role.enabled)) throw new Error('Invalid archived role data'); id(role.id); bool(role.enabled); roleDefinition(role.draft, this.state); for (const version of role.versions) { integer(version.version); if (version.directSave !== undefined) bool(version.directSave); roleDefinition(version, this.state) } }
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
         this.state = initialState(); await this.persist(this.state)
@@ -122,7 +123,7 @@ export class CapabilityStore {
   enableIssues: (id: string) => string[] = () => []
   publishIssues: (ids: string[]) => string[] = () => []
   private mutableSnapshot(): State { return structuredClone(this.state) }
-  snapshot(): State { return { ...this.mutableSnapshot(), componentRestrictions: this.componentRestrictions() } }
+  snapshot(): State { const state = this.mutableSnapshot(); state.capabilities = state.capabilities.filter(c => !c.purgedAt); return { ...state, componentRestrictions: this.componentRestrictions() } }
   notify() { this.listeners.forEach(fn => fn()) }
   exclusive<T>(run: () => Promise<T>): Promise<T> { const attempt = this.tail.then(run); this.tail = attempt.then(() => {}, () => {}); return attempt }
 
@@ -170,12 +171,14 @@ export class CapabilityStore {
       if (integer(expectedRevision) !== this.state.revision) throw new InputError('配置已被其他页面更新，请刷新后重试；当前草稿仍保留。', 409)
       const command = object(raw) as unknown as Command, next = this.mutableSnapshot(), now = new Date().toISOString()
       let target = 'id' in command && command.id !== undefined ? id(command.id) : `local-${randomUUID()}`
+      if (command.type.startsWith('capability.') && next.capabilities.some(c => c.id === target && c.purgedAt)) throw new InputError('能力已移除', 404)
       if (command.type === 'capability.save') {
-        const value = definition(command.definition, catalogFor(next)), publish = bool(command.publish)
+        const directSave = command.directSave === undefined ? false : bool(command.directSave)
+        const value = definition(command.definition, catalogFor(next)), publish = directSave || bool(command.publish)
         // Incomplete drafts are editable; unsupported execution combinations are never accepted.
         const previous = next.capabilities.find(c => c.id === target)?.draft
         const newlyAdded = value.components.filter(p => !previous?.components.some(old => old.componentId === p.componentId)).map(p => p.componentId)
-        const problems = [...(publish ? issues(value, target, catalogFor(next)) : compatibilityIssues(value, target, catalogFor(next))), ...this.publishIssues(publish ? value.components.map(p => p.componentId) : newlyAdded)]
+        const problems = [...(publish && !directSave ? issues(value, target, catalogFor(next)) : compatibilityIssues(value, target, catalogFor(next))), ...(directSave ? [] : this.publishIssues(publish ? value.components.map(p => p.componentId) : newlyAdded))]
         const currentHash = next.capabilities.find(c => c.id === target)?.versions.at(-1)?.packageHash
         if (publish && currentHash) {
           const original = packageDefinition(next.packageReleases![currentHash]!.manifest)
@@ -187,10 +190,11 @@ export class CapabilityStore {
         if (cap?.removedAt) throw new InputError('此能力已移除，请先恢复后再编辑')
         if (!cap) { cap = { id: target, source: 'local', enabled: true, pinned: false, draft: value, versions: [] }; next.capabilities.push(cap) }
         cap.draft = value
-        if (publish) {
+        if (publish && (!directSave || !latest(cap.versions) || JSON.stringify(definition(latest(cap.versions), catalogFor(next))) !== JSON.stringify(value))) {
           const version = (latest(cap.versions)?.version ?? 0) + 1
-          cap.versions.push({ ...structuredClone(value), version, createdAt: now, ...(latest(cap.versions)?.packageHash ? { packageHash: latest(cap.versions)!.packageHash } : {}) })
-          const selectedRoles = list(command.applyToRoles ?? []).map(id)
+          cap.versions.push({ ...structuredClone(value), ...(directSave ? { directSave: true } : {}), version, createdAt: now, ...(latest(cap.versions)?.packageHash ? { packageHash: latest(cap.versions)!.packageHash } : {}) })
+          if (directSave) applyCapabilitySettings(next, cap.id, version, now)
+          const selectedRoles = directSave ? [] : list(command.applyToRoles ?? []).map(id)
           for (const roleId of selectedRoles) {
             const role = next.roles.find(r => r.id === roleId), current = role && latest(role.versions)
             if (!role || !current || !current.capabilities.some(b => b.capabilityId === target)) throw new InputError('应用范围包含没有引用此能力的岗位')
@@ -236,9 +240,9 @@ export class CapabilityStore {
         // 先校验整批范围，任何一项失效均不写入，避免部分恢复或部分永久删除。
         const capabilities = ids.map(capabilityId => {
           const cap = next.capabilities.find(candidate => candidate.id === capabilityId)
-          if (!cap) throw new InputError('能力不存在，请刷新后重试', 404)
+          if (!cap || cap.purgedAt) throw new InputError('能力不存在，请刷新后重试', 404)
           if (!cap.removedAt) throw new InputError('只能操作回收站中的能力')
-          if (command.type === 'capability.purge' && capabilityDeletionReferences(next, capabilityId).length) throw new InputError(`“${cap.draft.name}”仍被岗位草稿或历史版本引用，无法永久删除`)
+          if (command.type === 'capability.purge' && capabilityDeletionReferences(next, capabilityId).length) throw new InputError(`“${cap.draft.name}”仍被当前岗位使用，请先从岗位移除`)
           return cap
         })
         target = ids[0]!
@@ -250,23 +254,35 @@ export class CapabilityStore {
           }
         } else {
           const selected = new Set(ids)
-          next.capabilities = next.capabilities.filter(cap => !selected.has(cap.id))
+          // Historical tasks can still read their saved configuration, without keeping a recoverable management entry.
+          next.capabilities = next.capabilities.filter(cap => {
+            if (!selected.has(cap.id)) return true
+            if (next.roles.some(role => role.versions.some(v => v.capabilities.some(b => b.capabilityId === cap.id)) || role.draft.capabilities.some(b => b.capabilityId === cap.id))) { cap.purgedAt = now; return true }
+            return false
+          })
         }
        } else if(command.type==='role.skills'){
         const row=new ManagedSkills(dirname(this.directory),()=>[]).read().skills.find(s=>s.id===command.skillId&&!s.removed);if(!row)throw new InputError('技能不存在或已移除');
         if(!Array.isArray(command.roleIds)||command.roleIds.some(id=>typeof id!=='string'||!next.roles.some(r=>r.id===id&&!r.archivedAt)))throw new InputError('岗位已改变，请刷新后重试');
         const selected=new Set(command.roleIds);
-        for(const role of next.roles.filter(r=>!r.archivedAt)){const bindings=role.draft.skills??[],old=bindings.find(b=>b.id===row.id);if(selected.has(role.id)){role.draft.skills=old?bindings.map(b=>b.id===row.id?{...b,enabled:true}:b):[...bindings,{id:row.id,name:row.name,hash:row.hash,enabled:true}]}else if(old){role.draft.skills=bindings.map(b=>b.id===row.id?{...b,enabled:false}:b)}}
+        for (const role of next.roles.filter(r => !r.archivedAt)) {
+          const update = (bindings: NonNullable<RoleDefinition['skills']>) => {
+            const old = bindings.find(b => b.id === row.id)
+            return selected.has(role.id) ? old ? bindings.map(b => b.id === row.id ? { ...b, hash: row.hash, enabled: true } : b) : [...bindings, { id: row.id, name: row.name, hash: row.hash, enabled: true }] : old ? bindings.map(b => b.id === row.id ? { ...b, enabled: false } : b) : bindings
+          }
+          const current = latest(role.versions)
+          role.draft.skills = update(role.draft.skills ?? [])
+          saveRoleSettings(role, current ? { ...current, skills: update(current.skills ?? []) } : role.draft, now)
+        }
         target=row.id;
       } else if (command.type === 'role.save') {
-        const value = roleDefinition(command.definition, next), publish = bool(command.publish)
+        const directSave = command.directSave === undefined ? false : bool(command.directSave)
+        const value = roleDefinition(command.definition, next), publish = directSave || bool(command.publish)
         if (publish && roleCompositionIssues(value).length) throw new InputError(roleCompositionIssues(value).join('；'))
-        const meetingBinding = value.capabilities.find(binding => binding.capabilityId === MEETING_CAPABILITY_ID)
-        if (target === MEETING_ROLE_ID && !meetingBinding) throw new InputError('会议纪要助手必须保留录音转写能力关联')
-        if (target !== MEETING_ROLE_ID && meetingBinding) { const capability = next.capabilities.find(c => c.id === MEETING_CAPABILITY_ID)!; throw new InputError(roleCapabilityReason(target, capability, capability.versions.find(v => v.version === meetingBinding.version))!) }
         if (value.icon?.kind === 'png') await this.icons.read(value.icon.assetId)
         let role = next.roles.find(r => r.id === target)
         if (command.id && !role) throw new InputError('岗位不存在', 404)
+        if (role?.removedAt) throw new InputError('岗位已永久移除', 404)
         if (role?.archivedAt) throw new InputError('岗位已归档，请先恢复后编辑')
         const existingBindings = [...(role?.draft.capabilities ?? []), ...(role ? latest(role.versions)?.capabilities ?? [] : [])]
         for (const binding of value.capabilities) {
@@ -276,24 +292,36 @@ export class CapabilityStore {
           if (reason) throw new InputError(reason)
         }
         const newComponents = value.capabilities.filter(binding => !existingBindings.some(old => old.capabilityId === binding.capabilityId && old.version === binding.version)).flatMap(binding => next.capabilities.find(c => c.id === binding.capabilityId)?.versions.find(v => v.version === binding.version)?.components.map(p => p.componentId) ?? [])
-        const registryProblems = this.publishIssues(newComponents)
+        const registryProblems = directSave ? [] : this.publishIssues(newComponents)
         if (registryProblems.length) throw new InputError(registryProblems.join('；'))
         if (value.capabilities.some(binding => next.capabilities.find(c => c.id === binding.capabilityId)?.removedAt && !existingBindings.some(existing => existing.capabilityId === binding.capabilityId && existing.version === binding.version))) throw new InputError('不能添加已移除的能力，请先在能力中心恢复')
         if (!role) { role = { id: target, enabled: true, draft: value, versions: [] }; next.roles.push(role) }
         role.draft = value
-        if (publish) this.publishRole(role, value, now)
+        if (publish) {
+          const current = latest(role.versions)
+          if (!directSave || !current || JSON.stringify(roleDefinition(current,next)) !== JSON.stringify(value)) {
+            this.publishRole(role, value, now)
+            if (directSave) latest(role.versions)!.directSave = true
+          }
+        }
       } else if (command.type === 'role.copy') {
         const original = next.roles.find(role => role.id === target)
         if (!original) throw new InputError('岗位不存在', 404)
+        if (original.removedAt) throw new InputError('岗位已永久移除', 404)
         if (original.archivedAt) throw new InputError('岗位已归档，请先恢复后复制')
-        if (target === MEETING_ROLE_ID) throw new InputError('会议纪要使用专用流程，暂不支持复制岗位；可在原岗位中编辑并发布新版本')
         const definition = structuredClone(latest(original.versions) ?? original.draft)
         target = 'local-' + randomUUID()
         next.roles.push({ id: target, enabled: true, draft: { ...definition, name: (definition.name + ' 副本').slice(0, 80) }, versions: [] })
-      } else if (command.type === 'role.archive' || command.type === 'role.restore') {
+      } else if (command.type === 'role.archive' || command.type === 'role.restore' || command.type === 'role.remove') {
         const role = next.roles.find(role => role.id === target)
         if (!role) throw new InputError('岗位不存在', 404)
-        if (command.type === 'role.archive') {
+        if (role.removedAt) throw new InputError('岗位已永久移除', 404)
+        if (command.type === 'role.remove') {
+          if (!role.archivedAt) throw new InputError('请先归档岗位，再移除')
+          // Retain only the existing identity/configuration record for historical task references.
+          role.removedAt = now; role.enabled = false
+          ;(next.revokedAt ??= {})['role:' + target] = Date.parse(now)
+        } else if (command.type === 'role.archive') {
           if (role.archivedAt) throw new InputError('岗位已归档')
           role.archivedAt = now; role.enabled = false
           ;(next.revokedAt ??= {})['role:' + target] = Date.parse(now)

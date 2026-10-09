@@ -30,7 +30,7 @@ export class PackageMeetingSegmenter implements MeetingSegmenter {
   components(id: string) { const active = this.active.get(id); return active ? [active.componentId] : [] }
   stopComponents(ids: string[]) { for (const active of this.active.values()) if (ids.includes(active.componentId)) active.controller.abort() }
   async transcribe(job: MeetingJob, audio: string, signal: AbortSignal, recognize: SegmentRecognition, repair = false) {
-    const store = this.runner.packages.store, state = store.snapshot(), role = state.roles.find(r => r.id === MEETING_ROLE_ID)
+    const store = this.runner.packages.store, state = store.snapshot(), role = state.roles.find(r => r.id === (job.role?.id ?? MEETING_ROLE_ID))
     const version = repair ? latest(role?.versions ?? []) : role?.versions.find(v => v.version === job.role?.version)
     if (!version || !role?.enabled) return undefined
     const createdAt = repair ? Date.now() : Date.parse(job.createdAt)

@@ -34,12 +34,12 @@ export class RoleSkills {
   ordinaryViolation(name:unknown,createdAt:number){
     const row=this.managed.read().skills.find(r=>r.name===name&&r.scope==='global');if(!row?.usage)return;
     if(row.removed||!row.enabled)return '技能加载失败：此技能已停用或移除。';
-    if(!this.managed.globalBindings(createdAt).some(b=>b.id===row.id))return '技能加载失败：此技能不在当前对话的使用范围内，请使用已发布的指定岗位或新建对话。';
+    if(!this.managed.globalBindings(createdAt).some(b=>b.id===row.id))return '技能加载失败：此技能不在当前对话的使用范围内，请使用指定岗位或新建对话。';
   }
   bindings(state:State,roleId:string,version:RoleVersion,at:number){
     const role=state.roles.find(r=>r.id===roleId);if(!role?.enabled||role.archivedAt)return [];
-    const explicit=allowedRoleSkills(state,roleId,version),global=this.managed.globalBindings(at).filter(b=>!(version.skills??[]).some(s=>s.id===b.id)&&!role.versions.filter(v=>v.version>=version.version).some(v=>v.skills?.some(s=>s.id===b.id&&!s.enabled)));
-    return [...explicit,...global];
+    const explicit=allowedRoleSkills(state,roleId,version),global=this.managed.globalBindings(at).filter(b=>!(version.skills??[]).some(s=>s.id===b.id)&&!role.versions.filter(v=>v.version>=version.version&&!v.directSave).some(v=>v.skills?.some(s=>s.id===b.id&&!s.enabled)));
+    return [...explicit,...global].map(binding=>this.managed.bindingAt(binding,at));
   }
   /** Specialized workflows receive the same pinned guidance during their actual model request. */
   guidance(state:State,roleId:string,version:RoleVersion,cwd?:string,createdAt:number=0){
@@ -47,8 +47,8 @@ export class RoleSkills {
     const allowed=this.bindings(state,roleId,version,createdAt);const result:unknown[]=[];let total=0
     for(const binding of original){
       if(!allowed.some(b=>b.id===binding.id))throw Error('技能加载失败（'+binding.name+'）：岗位已移除或停用此技能，请新建任务')
-      const loaded=JSON.parse(this.load(binding,cwd));const resources:Record<string,string>={}
-      for(const name of loaded.resources as string[])if(/\.(md|txt|json|ya?ml|csv)$/i.test(name)){const text=this.resource(binding,name,cwd);total+=text.length;if(total>256*1024)throw Error('技能资源读取失败：绑定资料过大，请精简技能');resources[name]=text}
+      const effective=allowed.find(b=>b.id===binding.id)!;const loaded=JSON.parse(this.load(effective,cwd));const resources:Record<string,string>={}
+      for(const name of loaded.resources as string[])if(/\.(md|txt|json|ya?ml|csv)$/i.test(name)){const text=this.resource(effective,name,cwd);total+=text.length;if(total>256*1024)throw Error('技能资源读取失败：绑定资料过大，请精简技能');resources[name]=text}
       total+=loaded.content.length;if(total>256*1024)throw Error('技能加载失败：绑定资料过大，请精简技能')
       result.push({name:binding.name,content:loaded.content,resources})
     }

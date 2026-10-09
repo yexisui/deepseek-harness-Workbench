@@ -1,4 +1,4 @@
-import { LocalPluginImport, OfflineRollback } from './LocalPluginImport.tsx'
+import { LocalPluginImport } from './LocalPluginImport.tsx'
 /**
  * The plugin-manager tab: an install box, one row per installed user plugin
  * (next-start enablement switch, source badge, 
@@ -511,7 +511,6 @@ export function PluginManagerTab(props: PluginManagerTabProps) {
                         <span className={css.specText} title={plugin.source.spec}>{plugin.source.spec}</span>
                       </span>
                       {plugin.requiresRestart && <p>待重启加载</p>}
-                      {plugin.previousVersion && <OfflineRollback id={plugin.id} version={plugin.previousVersion} onChange={async () => { setDirty(true); await reload() }} />}
                       {failure !== undefined && (
                         <div className={css.failure} data-plugin-failure={plugin.id}>
                           <span className={css.badge}>{t('failureBadge')}</span>

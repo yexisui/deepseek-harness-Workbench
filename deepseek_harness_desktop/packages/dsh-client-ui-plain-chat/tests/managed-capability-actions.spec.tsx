@@ -2,7 +2,7 @@
 import React, { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mkdtemp } from 'node:fs/promises'
+import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { CapabilityStore } from '../../dsh-capabilities/src/host/store.ts'
@@ -48,7 +48,7 @@ describe('managed capability card actions', () => {
   })
   afterEach(async () => {
     await act(async () => root.unmount())
-    container.remove(); await store.close(); editorDrafts.clear(); sessionStorage.clear()
+    container.remove(); await store.close(); await rm(store.directory,{recursive:true,force:true,maxRetries:5}); editorDrafts.clear(); sessionStorage.clear()
     vi.restoreAllMocks(); vi.unstubAllGlobals()
   })
 
@@ -86,7 +86,7 @@ describe('managed capability card actions', () => {
     expect(container.querySelector('[data-meeting-capability-detail]')).not.toBeNull()
     expect(container.textContent).toContain('请配置语音识别接口')
     await click('设置')
-    expect(container.textContent).toContain('纪要生成模型仍在会议对话中选择')
+    expect(container.textContent).toContain('纪要模型仍在会议对话中选择')
     await click('← 全部能力')
     await click('收藏能力：会议录音转写')
     await click('收藏')
@@ -213,10 +213,10 @@ describe('managed capability card actions', () => {
     expect(dialog.textContent).toContain('此能力已移除，当前不可执行')
     await click('移除 浏览器操作', dialog)
     expect(dialog.querySelector('[data-attached-capability="browser"]')).toBeNull()
-    await click('保存草稿', dialog)
+    await click('保存', dialog)
     const role = store.snapshot().roles.find(r => r.id === saved.id)!
     expect(role.draft.capabilities).toEqual([])
-    expect(latest(role.versions)!.capabilities).toHaveLength(1)
+    expect(latest(role.versions)!.capabilities).toHaveLength(0)
     expect(store.snapshot().capabilities[0]!.removedAt).toBeTruthy()
   })
 
@@ -229,14 +229,14 @@ describe('managed capability card actions', () => {
       const dialog = document.querySelector('dialog')!, toggle = button('在此岗位中启用 '+name,dialog)!
       expect(toggle.getAttribute('role')).toBe('switch')
       expect(toggle.getAttribute('aria-checked')).toBe('true')
-      expect(dialog.textContent).toContain('能力版本：v1')
+      expect(dialog.textContent).not.toContain('能力版本：')
       await click('在此岗位中启用 '+name,dialog)
       expect(toggle.getAttribute('aria-checked')).toBe('false')
       expect(store.snapshot().roles.find(r=>r.id===id)!.draft.capabilities[0]!.enabled).toBe(true)
-      await click('保存草稿',dialog)
+      await click('保存',dialog)
       const role=store.snapshot().roles.find(r=>r.id===id)!
       expect(role.draft.capabilities[0]!.enabled).toBe(false)
-      expect(latest(role.versions)!.capabilities[0]!.enabled).toBe(true)
+      expect(latest(role.versions)!.capabilities[0]!.enabled).toBe(false)
       expect(store.snapshot().capabilities.find(c=>c.id===role.draft.capabilities[0]!.capabilityId)!.enabled).toBe(true)
     }
   })
@@ -248,16 +248,16 @@ describe('managed capability card actions', () => {
     const dialog = document.querySelector('dialog')!
     await click('添加 requirement-review', dialog)
     expect(button('添加 requirement-review', dialog)?.disabled).toBe(true)
-    await click('保存草稿', dialog)
+    await click('保存', dialog)
     let role = store.snapshot().roles.find(r => r.id === saved.id)!
     expect(role.draft.skills).toEqual([{id:'e5163661-906f-4075-976d-159db1281ad4',name:'requirement-review',hash:'a'.repeat(64),enabled:true}])
-    expect(latest(role.versions)!.skills).toBeUndefined()
+    expect(latest(role.versions)!.skills).toEqual(role.draft.skills)
     await act(async () => root.render(<></>))
     editorDrafts.clear()
     await act(async () => root.render(<ManagedRoleEditor id={saved.id} onClose={() => {}}/>))
     expect(button('移除 requirement-review')).toBeTruthy()
     await click('移除 requirement-review')
-    await click('保存草稿')
+    await click('保存')
     role = store.snapshot().roles.find(r => r.id === saved.id)!
     expect(role.draft.skills).toEqual([])
     expect(latest(role.versions)!.capabilities).toHaveLength(1)

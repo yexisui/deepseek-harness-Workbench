@@ -13,10 +13,6 @@ async function finishJob(jobId:string):Promise<void>{
  if(job?.phase!=='done')throw Error(job?.error??'插件尚未安装完成，请刷新查看。')
  window.dispatchEvent(new Event('dsh-local-plugins-changed'))
 }
-export function OfflineRollback({id,version,onChange}:{id:string;version:string;onChange:()=>Promise<void>}){
- const [confirm,setConfirm]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('')
- return <div>{!confirm?<button onClick={()=>setConfirm(true)}>回退到 {version}</button>:<div role="dialog" aria-label="确认回退插件"><p>将 {id} 回退到 {version}，重启后生效。插件自己的数据保留。</p><button disabled={busy} onClick={async()=>{setBusy(true);setError('');try{const r=await localPluginRequest('rollback',{id,confirm:true});await finishJob(r.jobId);await onChange();setConfirm(false)}catch(e){setError(String(e))}finally{setBusy(false)}}}>确认回退</button><button disabled={busy} onClick={()=>setConfirm(false)}>取消</button>{error&&<p role="alert">{error}</p>}</div>}</div>
-}
 export function LocalPluginImport({onChange,disabled=false,compact=false,onImported}:{onChange:()=>Promise<void>;disabled?:boolean;compact?:boolean;onImported?:(preview:OfflinePreview)=>void}){
  const zip=useRef<HTMLInputElement>(null),folder=useRef<HTMLInputElement>(null),active=useRef(false)
  const [uploadId,setUploadId]=useState(''),[preview,setPreview]=useState<OfflinePreview>(),[busy,setBusy]=useState(false),[progress,setProgress]=useState(''),[error,setError]=useState(''),[done,setDone]=useState('')
@@ -46,7 +42,7 @@ export function LocalPluginImport({onChange,disabled=false,compact=false,onImpor
   if(!preview||active.current)return;active.current=true;setBusy(true);setError('')
   try{
    const result=await localPluginRequest('import/commit',{uploadId,hash:preview.hash,currentHash:preview.currentHash??'',replace:preview.disposition!=='new',confirm:true})
-   await finishJob(result.jobId);await onChange();onImported?.(preview);if(compact)setOpen(false);setDone(preview.disposition==='identical'?'这个版本已经安装，无需重复导入。':'本地安装完成。新增条目进入未定义区，重启工作台后加载。');setPreview(undefined);setUploadId('')
+   await finishJob(result.jobId);await onChange();onImported?.(preview);if(compact)setOpen(false);setDone(preview.disposition==='identical'?'内容相同，无需重复导入。':'本地安装完成。新增条目进入未定义区，重启工作台后加载。');setPreview(undefined);setUploadId('')
   }catch(e){setError(String(e))}finally{setBusy(false);active.current=false}
  }
  const content=<div className={`${css.root} ${css.importBox}`}>
@@ -56,9 +52,9 @@ export function LocalPluginImport({onChange,disabled=false,compact=false,onImpor
   {preview&&<div className={css.preview} role={compact?undefined:'dialog'} aria-label="确认本地插件导入"><strong>{preview.name}</strong><p>{preview.id}</p><dl><dt>版本</dt><dd>{preview.currentVersion?`${preview.currentVersion} → `:''}{preview.version}</dd><dt>安装内容</dt><dd>{preview.entries.length} 个插件条目 · {preview.fileCount} 个文件 · {(preview.totalBytes/1024/1024).toFixed(2)} MiB</dd><dt>分类</dt><dd>{preview.disposition==='new'?'未定义区，导入后可自行归类':'保留已有条目的分类；新增条目进入未定义区'}</dd><dt>依赖检查</dt><dd>包内 {preview.bundled.length} 项 · 底座共享 {preview.shared.length} 项 · {preview.platform}</dd></dl>
    <details><summary>查看条目和依赖</summary><p>{preview.entries.map(e=>e.id).join('、')}</p><p>{[...preview.bundled,...preview.shared.map(s=>s.name+'@'+s.version)].join('、')||'无额外依赖'}</p></details>
    {preview.scriptsSkipped.length>0&&<p>已跳过安装脚本：{preview.scriptsSkipped.join('、')}。发布包必须已包含所需构建产物。</p>}
-   {preview.disposition==='replace'&&<p>版本号相同，但文件内容不同。确认后将替换当前受管副本，并保留上一版供回退。</p>}
+   {preview.disposition==='replace'&&<p>内容已有变化，确认后更新当前插件。</p>}
    <p>插件代码将在重启后运行。确认安装表示允许加载这个本地插件。</p>
-   <div className={css.toolbar}><button disabled={busy||disabled} onClick={()=>void install()}>{busy?'正在安装…':preview.disposition==='identical'?'确认，无需重复安装':preview.disposition==='new'?'确认安装':'确认替换版本'}</button><button disabled={busy} onClick={()=>void (compact?close():discard())}>取消</button></div>
+   <div className={css.toolbar}><button disabled={busy||disabled} onClick={()=>void install()}>{busy?'正在安装…':preview.disposition==='identical'?'确认，无需重复安装':preview.disposition==='new'?'确认安装':'更新插件'}</button><button disabled={busy} onClick={()=>void (compact?close():discard())}>取消</button></div>
   </div>}
  </div>
  return <><input ref={zip} hidden type="file" accept=".zip,application/zip" onChange={e=>void select(e.target.files,'zip')}/><input ref={folder} hidden type="file" multiple {...{webkitdirectory:''}} onChange={e=>void select(e.target.files,'folder')}/>{compact?<div className={css.importControl} ref={anchor} onKeyDown={e=>{if(e.key==='Escape'&&!open){e.stopPropagation();setMenu(false);trigger.current?.focus()}}}>

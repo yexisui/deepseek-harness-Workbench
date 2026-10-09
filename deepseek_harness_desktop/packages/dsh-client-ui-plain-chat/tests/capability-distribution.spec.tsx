@@ -35,6 +35,9 @@ beforeEach(async()=>{
       else if(route.endsWith('/requirements/config'))value={ready:false,message:'待配置',defaults:{depth:'standard',questionStyle:'short',model:''}}
       else if(route.endsWith('/packages/start'))value=await packs.start(body.kind)
       else if(route.includes('/packages/upload/')){const token=route.split('/').at(-1)!;if(options?.method==='DELETE')await packs.discard(token);else{const bytes=Buffer.from(await (options!.body as unknown as NodeFile).arrayBuffer());value=await packs.put(token,url.searchParams.get('path')!,(async function*(){yield bytes})())}}
+      else if(route.endsWith('/packages/process'))value=await packs.processImport(body.token,body.ai,body.name)
+      else if(route.includes('/packages/processing/'))value=packs.processStatus(route.split('/').at(-1)!)
+      else if(route.endsWith('/packages/cancel-process'))value=await packs.cancelProcessing(body.token)
       else if(route.endsWith('/packages/inspect'))value=await packs.inspect(body.token)
       else if(route.endsWith('/packages/install'))value=await packs.install(body.token,body.hash,body.revision,body)
       else if(route.endsWith('/packages/configure'))value=await packs.configure(body.id,body.model,body.revision,body.enable)
@@ -54,35 +57,40 @@ afterEach(async()=>{await act(async()=>root.unmount());host.remove();await packs
 it('shows only import/export main actions and imports a complete executable version without a draft publishing flow',async()=>{
   expect(button('＋ 创建能力')).toBeUndefined();expect(button('更多')).toBeUndefined();expect(button('组件库').closest('nav')).toBeTruthy()
   await click('导入能力');await selectFile([new NodeFile([new Uint8Array(packageZip(delivery()))],'ability.zip')])
-  expect(button('导入并启用').disabled).toBe(false);expect(document.body.textContent).toContain('ability.zip');expect(document.querySelector('[aria-label="能力包预览"]')).toBeNull()
-  await click('导入并启用');await waitFor(()=>!!button('运行动作'))
+  expect(button('导入').disabled).toBe(false);expect(document.body.textContent).toContain('ability.zip');expect(document.querySelector('[aria-label="能力包预览"]')).toBeNull()
+  await click('导入');await waitFor(()=>!!button('运行动作'))
   const cap=store.snapshot().capabilities.find(c=>c.packageOrigin)!
   expect(cap.enabled).toBe(true);expect(cap.versions).toHaveLength(1);expect(document.querySelector('dialog')).toBeNull()
   await click('组件');expect(document.body.textContent).toContain('外部文字组件');await click('编辑组件组合')
   expect(document.body.textContent).toContain('整理文字');expect(document.querySelector('[data-composition-editor]')??document.querySelector('dialog')).toBeTruthy()
 })
-it('exports a developer folder directly while leaving installed capabilities untouched',async()=>{
-  const before=store.snapshot();await click('导出能力')
-  const files=[...delivery()].map(([path,bytes])=>{const file=new NodeFile([new Uint8Array(bytes)],path.split('/').at(-1)!);Object.defineProperty(file,'webkitRelativePath',{value:'delivery/'+path});return file})
-  await selectFile(files);await click('导出能力包');await waitFor(()=>!!downloaded)
-  expect(downloaded!.readUInt32LE(0)).toBe(0x04034b50);expect(store.snapshot()).toEqual(before);expect(document.querySelector('a[download]')).toBeTruthy()
+it('lists every current ability and exports directly without technical fields',async()=>{
+ const before=store.snapshot();await click('导出能力')
+ const select=document.querySelector<HTMLSelectElement>('select[aria-label="选择能力"]')!
+ expect(Array.from(select.options).map(o=>o.value)).toEqual(before.capabilities.filter(c=>!c.removedAt&&!c.purgedAt).map(c=>c.id))
+ expect(document.body.textContent).not.toContain('导出来源');expect(document.body.textContent).not.toContain('来源与交付清单')
+ await click('导出');await waitFor(()=>!!downloaded);expect(downloaded!.readUInt32LE(0)).toBe(0x04034b50);expect(store.snapshot()).toEqual(before)
 })
 it('opens the existing identity on a repeated import instead of creating another capability',async()=>{
   const zip=packageZip(delivery()),session=await packs.start('zip');await packs.put(session.token,'ability.zip',(async function*(){yield zip})());const preview=await packs.inspect(session.token);await packs.install(preview.token,preview.hash,preview.revision,{trusted:true});await capabilityClient.refresh()
-  await click('导入能力');await selectFile([new NodeFile([new Uint8Array(zip)],'ability.zip')]);expect(button('打开已有能力')).toBeTruthy();await click('打开已有能力');await waitFor(()=>!!button('运行动作'));expect(store.snapshot().capabilities.filter(c=>c.packageOrigin)).toHaveLength(1)
+  await click('导入能力');await selectFile([new NodeFile([new Uint8Array(zip)],'ability.zip')]);expect(button('导入')).toBeTruthy();await click('导入');await waitFor(()=>!!button('运行动作'));expect(store.snapshot().capabilities.filter(c=>c.packageOrigin)).toHaveLength(1)
 })
 it('takes missing model configuration directly to the shared capability settings and enables after saving',async()=>{
-  await click('导入能力');await selectFile([new NodeFile([new Uint8Array(packageZip(delivery(true)))],'ability.zip')]);await click('导入并配置');await waitFor(()=>!!button('保存并启用'))
+  await click('导入能力');await selectFile([new NodeFile([new Uint8Array(packageZip(delivery(true)))],'ability.zip')]);await click('导入');await waitFor(()=>!!button('保存并启用'))
   expect(store.snapshot().capabilities.find(c=>c.packageOrigin)!.enabled).toBe(false)
   const input=Array.from(document.querySelectorAll<HTMLInputElement>('input')).find(n=>n.placeholder==='留空使用工作台默认模型')!
   await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,'local/model');input.dispatchEvent(new Event('input',{bubbles:true}))})
   await click('保存并启用');await waitFor(()=>store.snapshot().capabilities.find(c=>c.packageOrigin)!.enabled)
   expect(store.snapshot().packageModels).toEqual({[store.snapshot().capabilities.find(c=>c.packageOrigin)!.id]:'local/model'})
 })
-it('keeps a damaged package from writing any capability or enabling the install button',async()=>{
-  const before=store.snapshot(),files=delivery();files.set('runtime/main.cjs',Buffer.from('changed'))
-  await click('导入能力');await selectFile([new NodeFile([new Uint8Array(packageZip(files))],'ability.zip')])
-  expect(document.querySelector('[role=alert]')?.textContent).toContain('文件校验失败');await waitFor(()=>!!button('导入并启用'));expect(button('导入并启用').disabled).toBe(true);expect(store.snapshot()).toEqual(before)
+it('accepts an external package before processing and preserves it when AI is unavailable',async()=>{
+  const before=store.snapshot(),files=new Map([['README.md',Buffer.from('An external tool')]])
+  await click('导入能力');await selectFile([new NodeFile([new Uint8Array(packageZip(files))],'external.zip')])
+  expect(document.querySelector('[role=alert]')).toBeNull();expect(button('导入').disabled).toBe(false)
+  expect(button('使用 AI 处理').getAttribute('aria-checked')).toBe('true')
+  await click('导入');await waitFor(()=>!!document.querySelector('[role=alert]'))
+  expect(document.querySelector('[role=alert]')?.textContent).toContain('原包已保留')
+  expect(button('导入').disabled).toBe(false);expect(document.body.textContent).toContain('external.zip');expect(store.snapshot()).toEqual(before)
 })
 
 it('drops a ZIP, displays only its filename, then removes and permanently deletes the imported capability',async()=>{
@@ -91,10 +99,10 @@ it('drops a ZIP, displays only its filename, then removes and permanently delete
   const zone=document.querySelector('[aria-label="选择或拖入能力包"]')!
   const event=new Event('drop',{bubbles:true,cancelable:true})
   Object.defineProperty(event,'dataTransfer',{value:{files:[file],items:[]}})
-  await act(async()=>zone.dispatchEvent(event));await waitFor(()=>!!button('导入并启用')&&!button('导入并启用').disabled)
+  await act(async()=>zone.dispatchEvent(event));await waitFor(()=>!!button('导入')&&!button('导入').disabled)
   expect(event.defaultPrevented).toBe(true);expect(document.body.textContent).toContain('dropped-tool.zip')
   expect(document.querySelector('[aria-label="能力包预览"]')).toBeNull()
-  await click('导入并启用');await waitFor(()=>!!button('运行动作'))
+  await click('导入');await waitFor(()=>!!button('运行动作'))
   const cap=store.snapshot().capabilities.find(c=>c.packageOrigin)!
   await store.command(store.snapshot().revision,{type:'capability.remove',id:cap.id})
   await store.command(store.snapshot().revision,{type:'capability.purge',ids:[cap.id]})

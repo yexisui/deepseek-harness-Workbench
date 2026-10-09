@@ -47,6 +47,5 @@ export function makeLocalManagementRoutes(installer:OfflineInstaller,gateway:Cli
    return result
   })}),
   route('import/discard',['POST'],async req=>{const b=await body(req);library.discard(b.uploadId);formats.delete(String(b.uploadId));return {ok:true}}),
-  route('rollback',['POST'],async req=>{const b=await body(req);if(b.confirm!==true||typeof b.id!=='string')throw Error('请确认回退版本');return gateway.withMutationLock(async()=>{await beforeCapabilityChange?.(b.id as string);return installer.job('update',b.id as string,()=>installer.rollback(b.id as string))})}),
  ]
 }

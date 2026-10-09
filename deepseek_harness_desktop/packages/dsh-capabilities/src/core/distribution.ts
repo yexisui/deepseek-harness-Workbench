@@ -14,7 +14,7 @@ export type PackageRelease = { manifest: CapabilityManifest; hash: string; insta
 export type PackageOrigin = { id: string; draftBackups: { savedAt: string; definition: Definition }[] }
 export type PackageHealth = { capabilityId: string; installed: boolean; loaded: boolean; ready: boolean; message: string; needsModel: boolean }
 export type PackagePreview = {
-  token: string; hash: string; manifest: CapabilityManifest; bytes: number; fileCount: number; revision: number
+  token: string; hash: string; manifest: Omit<CapabilityManifest,'protocol'> & {protocol:'dsh-worker-v1'|'dsh-workbench-capability-v1'}; bytes: number; fileCount: number; revision: number
   existing?: { id: string; name: string; duplicate: boolean; removed: boolean; draftChanged: boolean; version: string; changes: string[] }
   needsModel: boolean; trust: string
 }

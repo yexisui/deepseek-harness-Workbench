@@ -15,3 +15,12 @@
 .menu button svg { flex:none; color:var(--dsw-alias-label-secondary,#65769a); }
 .menu button:hover,.menu button:focus-visible { outline:none; background:var(--dsw-alias-interactive-bg-hover,#e9eff9); }
 @media(hover:none) { .menuTrigger { opacity:1; } }
+
+.renameForm { padding:20px; display:grid; gap:16px; }
+.renameForm label { display:grid; gap:8px; }
+.renameForm input { width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--dsw-alias-border-default,#d7deeb); border-radius:8px; color:inherit; background:var(--dsw-alias-bg-surface,#fff); font:inherit; }
+.renameForm > div { display:flex; gap:8px; justify-content:flex-end; }
+.renameForm button { padding:8px 18px; border:1px solid var(--dsw-alias-border-default,#d7deeb); border-radius:8px; background:var(--dsw-alias-bg-surface,#fff); color:inherit; cursor:pointer; font:inherit; }
+.renameForm button[type=submit] { background:var(--dsw-alias-state-business-primary,#4e6bb3); color:white; }
+.renameForm button:disabled { opacity:.5; cursor:default; }
+.renameForm p { margin:0; color:var(--dsw-alias-state-error-primary,#b54747); }

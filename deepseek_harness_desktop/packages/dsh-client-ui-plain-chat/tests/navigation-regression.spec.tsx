@@ -104,7 +104,7 @@ it('NR09 preserves capability definition draft across an ordinary close and reop
  await render(<ManagedCenter initialId="developer-workspace"/>);await click('编辑能力');await fill(field('能力名称'),'保留能力草稿');await click('关闭编辑器');await click('编辑能力');expect(field('能力名称').value).toBe('保留能力草稿')
 })
 it('NR10 preserves role draft across an embedded center and explicit return',async()=>{
- await render(<ManagedRoleEditor id="builtin-developer" onClose={()=>{}}/>);await fill(field('助手名称'),'保留岗位草稿');await click('查看能力及关联组件 ↗');await click('← 返回岗位，保留草稿');expect(field('助手名称').value).toBe('保留岗位草稿')
+ await render(<ManagedRoleEditor id="builtin-developer" onClose={()=>{}}/>);await fill(field('助手名称'),'保留岗位草稿');await click('查看能力及关联组件 ↗');await click('← 返回岗位，保留修改');expect(field('助手名称').value).toBe('保留岗位草稿')
 })
 it('NR11 restores the requirement document workspace after remount',async()=>{
  const view=<RequirementsAssistant taskId={taskId} roleId="builtin-analyst" roleVersion={1} onCommit={()=>{}}/>;await render(view);await click('需求结果');await click('需求文档');await remount(view)

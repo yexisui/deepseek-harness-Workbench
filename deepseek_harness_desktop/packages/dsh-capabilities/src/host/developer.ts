@@ -43,7 +43,7 @@ export class DeveloperService {
   }
   private authorize(task: Pick<DeveloperTask, 'roleId' | 'roleVersion' | 'authorityAt'>, action: Action = 'develop') {
     const state = this.state(), role = state.roles.find(r => r.id === task.roleId), version = role?.versions.find(v => v.version === task.roleVersion)
-    if (!version || !allowedActions(state, task.roleId, version).includes(action) || wasRevoked(state, task.roleId, version, task.authorityAt)) throw new InputError('此任务的开发能力授权已撤销或未发布，请在能力中心检查', 403)
+    if (!version || !allowedActions(state, task.roleId, version).includes(action) || wasRevoked(state, task.roleId, { ...version, capabilities: version.capabilities.filter(b => b.capabilityId === 'developer-workspace') }, task.authorityAt)) throw new InputError('此任务的开发能力授权已撤销或未发布，请在能力中心检查', 403)
     return version
   }
   private idle(cwd: string) { if ([...this.running.values()].some(value => value.cwd === cwd)) throw new InputError('此目录有开发或验证正在执行，请先停止或等待完成', 409) }

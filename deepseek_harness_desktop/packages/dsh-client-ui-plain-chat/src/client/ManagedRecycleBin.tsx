@@ -25,8 +25,8 @@ function DeleteCapabilitiesDialog({ data, ids, emptying, onClose, onDeleted }: {
   }
   return <Modal title={emptying ? '清空回收站' : '永久删除能力'} closeLabel="取消永久删除" onClose={() => { if (!busy) onClose() }}><div className={`${s.page} ${s.dialogBody}`}>
     <p className={s.notice}>{emptying ? '清空范围为打开此窗口时回收站中的全部能力，包含搜索结果之外的项目。' : '仅处理本次选中的能力。'}可永久删除 <strong>{eligible.length}</strong> 项，保留 <strong>{protectedItems.length}</strong> 项。</p>
-    {eligible.length > 0 && <><p>以下能力的配置和历史版本将永久删除，<strong>无法通过回收站恢复</strong>：</p><ul className={`${s.list} ${s.deleteList}`}>{eligible.map(c => <li key={c.id}>{c.draft.name}</li>)}</ul></>}
-    {protectedItems.length > 0 && <div className={s.removalImpact}><strong>以下能力有引用，将继续保留</strong><ul className={`${s.list} ${s.deleteList}`}>{protectedItems.map(({ cap, roles }) => <li key={cap.id}><strong>{cap.draft.name}</strong><br/><span className={s.muted}>岗位配置或历史版本：{roles.map(r => r.draft.name).join('、')}</span></li>)}</ul><p className={s.muted}>为保留岗位和历史会话配置，不会自动解除这些引用。仅从当前岗位拆下也不会删除历史版本中的引用。</p></div>}
+    {eligible.length > 0 && <><p>以下能力的设置将永久删除，<strong>无法通过回收站恢复</strong>：</p><ul className={`${s.list} ${s.deleteList}`}>{eligible.map(c => <li key={c.id}>{c.draft.name}</li>)}</ul></>}
+    {protectedItems.length > 0 && <div className={s.removalImpact}><strong>以下能力有引用，将继续保留</strong><ul className={`${s.list} ${s.deleteList}`}>{protectedItems.map(({ cap, roles }) => <li key={cap.id}><strong>{cap.draft.name}</strong><br/><span className={s.muted}>当前使用岗位：{roles.map(r => r.draft.name).join('、')}</span></li>)}</ul><p className={s.muted}>先从以上岗位移除该能力，即可删除。</p></div>}
     {!candidates.length && <p>这些能力已不在回收站中，请关闭后刷新列表。</p>}
     {error && <p role="alert" className={s.error}>{error}</p>}
     {changed && <p role="status" className={s.notice}>配置已有更新，请重新核对以上范围。<button className={s.button} disabled={busy} onClick={() => { setRevision(data.state.revision); setError('') }}>已核对，更新操作基准</button></p>}
@@ -58,6 +58,6 @@ export function ManagedRecycleBin({ data, query, onInspect, onNotice }: { data: 
     {error && <p role="alert" className={s.error}>{error}</p>}
     <div className={s.grid}>{visible.map(c => <ManagedCapabilityCard key={c.id} capability={c} data={data} busy={busy} onManage={() => onInspect(c.id)} onPin={() => {}} onRemove={() => {}} onRestore={() => void restore([c.id])} onPurge={() => setDeleting({ ids: [c.id], emptying: false })} selection={{ checked: selected.includes(c.id), onChange: () => toggle(c.id) }}/>)}</div>
     {!visible.length && <div className={s.empty}><CapabilityActionIcon kind="remove"/><p>{removed.length ? '回收站中没有匹配的能力。' : '回收站为空'}</p><span className={s.muted}>{removed.length ? '试试其他名称或清除搜索条件。' : '移除的能力会显示在这里。'}</span></div>}
-    {deleting && <DeleteCapabilitiesDialog data={data} ids={deleting.ids} emptying={deleting.emptying} onClose={() => setDeleting(null)} onDeleted={(ids, protectedCount) => { setDeleting(null); setChecked(current => current.filter(id => !ids.includes(id))); onNotice(`已永久删除 ${ids.length} 项能力${protectedCount ? `，${protectedCount} 项因岗位或历史版本引用而保留` : ''}。`) }}/>}
+    {deleting && <DeleteCapabilitiesDialog data={data} ids={deleting.ids} emptying={deleting.emptying} onClose={() => setDeleting(null)} onDeleted={(ids, protectedCount) => { setDeleting(null); setChecked(current => current.filter(id => !ids.includes(id))); onNotice(`已永久删除 ${ids.length} 项能力${protectedCount ? `，${protectedCount} 项因当前岗位使用而保留` : ''}。`) }}/>}
   </div>
 }

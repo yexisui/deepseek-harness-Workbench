@@ -114,7 +114,7 @@ export function CurrentAssistant({ t, selected, onOpen }: { t: Translate; select
 export function AgentPresetDisclosure({ t, children }: { t: Translate; children: ReactNode }) {
   return <details className={s.presetDisclosure}>
     <summary>{t('rolesExisting')}<svg className={s.disclosureChevron} aria-hidden="true" viewBox="0 0 16 16" fill="none"><path d="m6 3 5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></summary>
-    <div className={s.disclosureContent}><p className={s.sectionNote}>这里管理原生预设。原生默认预设仅在创建会话时没有指定岗位或预设才会采用；上方选定的岗位用于工作台下一次新对话，当前会话继续使用创建时的版本。岗位历史版本集中在岗位卡片的“版本”中查看。</p>{children}</div>
+    <div className={s.disclosureContent}><p className={s.sectionNote}>这里管理原生预设。原生默认预设仅在创建会话时没有指定岗位或预设才会采用；上方选定的岗位用于工作台下一次新对话，当前会话继续使用创建时的设置。</p>{children}</div>
   </details>
 }
 

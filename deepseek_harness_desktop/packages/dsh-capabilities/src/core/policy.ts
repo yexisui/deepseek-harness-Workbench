@@ -18,11 +18,11 @@ export function allowedActions(state: State, roleId: string, snapshot: RoleVersi
   for (const old of snapshot.capabilities) {
     const now = current.capabilities.find(b => b.capabilityId === old.capabilityId)
     const cap = state.capabilities.find(c => c.id === old.capabilityId)
-    if (!old.enabled || !now?.enabled || !cap?.enabled || cap.removedAt) continue
+    if (!old.enabled || (!current.directSave && !now?.enabled) || !cap?.enabled || cap.removedAt) continue
     const original = cap.versions.find(v => v.version === old.version)
-    const ceilings = cap.versions.filter(v => v.version >= old.version).map(activeActions)
+    const ceilings = cap.versions.filter(v => v.version >= old.version && !v.directSave).map(activeActions)
     // A revoke followed by a later re-grant must not resurrect permissions in an old session.
-    const roleCeilings = role.versions.filter(v => v.version >= snapshot.version).map(v => {
+    const roleCeilings = role.versions.filter(v => v.version >= snapshot.version && !v.directSave).map(v => {
       const binding = v.capabilities.find(b => b.capabilityId === old.capabilityId)
       return binding?.enabled ? binding.actions ?? activeActions(cap.versions.find(c => c.version === binding.version)) : []
     })
@@ -35,7 +35,7 @@ export function browserActions(actions: readonly Action[]): Action[] { return ac
 export function allowedRoleSkills(state:State,roleId:string,snapshot:RoleVersion){
   const role=state.roles.find(r=>r.id===roleId)
   if(!role?.enabled||role.archivedAt)return []
-  return (snapshot.skills??[]).filter(old=>old.enabled&&role.versions.filter(v=>v.version>=snapshot.version).every(v=>(v.skills??[]).some(now=>now.id===old.id&&now.name===old.name&&now.enabled)))
+  return (snapshot.skills??[]).filter(old=>old.enabled&&role.versions.filter(v=>v.version>=snapshot.version&&!v.directSave).every(v=>(v.skills??[]).some(now=>now.id===old.id&&now.name===old.name&&now.enabled)))
 }
 export function requiredAction(tool: string, args: Record<string, unknown>): Action | 'session' | undefined {
   if (tool === 'browser_session' && ['start', 'stop', 'list'].includes(String(args.action))) return args.url === undefined ? 'session' : 'navigate'

@@ -20,7 +20,7 @@ type Action = Item & { owner: string; deadline: string }
 type Minutes = { title: string; overview: string; decisions: Item[]; actions: Action[]; unknown: Item[] }
 type Job = { createdAt: string; updatedAt: string; transcribedAt?: string; minutesGeneratedAt?: string; id: string; fileName: string; size: number; status: 'uploading' | 'transcribing' | 'transcribed' | 'generating' | 'ready' | 'error'; error?: string; segments: Segment[]; minutes?: Minutes; timingStatus?: 'processing' | 'ready' | 'error'; timingError?: string; timing?: { segments: Segment[]; links: Record<string, string[]> } }
 type Availability = { ready: boolean; message: string; maxBytes: number; provider: string }
-export type MeetingDemoState = { mode: Mode; phase: Phase; audience: string; focus: string; summaryModel: string; messages: Message[]; trace: string[]; draft: string; jobId: string | null; showTranscript: boolean; roleVersion?: number; tab?: 'chat'|'trace' }
+export type MeetingDemoState = { mode: Mode; phase: Phase; audience: string; focus: string; summaryModel: string; messages: Message[]; trace: string[]; draft: string; jobId: string | null; showTranscript: boolean; roleId?: string; roleVersion?: number; tab?: 'chat'|'trace' }
 
 const endpoint = '/api/capabilities/meeting'
 const formatTime = (ms: number) => `${Math.floor(ms / 60000).toString().padStart(2, '0')}:${Math.floor(ms % 60000 / 1000).toString().padStart(2, '0')}`
@@ -46,7 +46,7 @@ function minutesText(minutes: Minutes): string {
   return lines.join('\n')
 }
 
-export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, onReset, assistant, roleVersion }: { initialState?: unknown; loadModels?: () => Promise<Array<{ id: string; name: string }>>; onSnapshot?: (state: MeetingDemoState) => void; onCommit?: (title: string) => void; onReset?: () => void; assistant?: Pick<RoleDefinition, 'name' | 'color' | 'icon'>; roleVersion?: number } = {}) {
+export function MeetingDemo({ conversationTitle, initialState, loadModels, onSnapshot, onCommit, onReset, assistant, roleVersion, roleId }: { conversationTitle?: string; initialState?: unknown; loadModels?: () => Promise<Array<{ id: string; name: string }>>; onSnapshot?: (state: MeetingDemoState) => void; onCommit?: (title: string) => void; onReset?: () => void; assistant?: Pick<RoleDefinition, 'name' | 'color' | 'icon'>; roleVersion?: number; roleId?: string } = {}) {
   const initial = useRef(restore(initialState))
   const assistantName = assistant?.name ?? '会议纪要助手'
   const assistantColor = assistant?.color ?? '#6683bd'
@@ -79,7 +79,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
   const snapshotCallback = useRef(onSnapshot)
   snapshotCallback.current = onSnapshot
 
-  useEffect(() => { snapshotCallback.current?.({ mode, phase, audience, focus, summaryModel, messages, trace, draft, jobId, showTranscript, roleVersion, tab }) }, [mode, phase, audience, focus, summaryModel, messages, trace, draft, jobId, showTranscript, roleVersion, tab])
+  useEffect(() => { snapshotCallback.current?.({ mode, phase, audience, focus, summaryModel, messages, trace, draft, jobId, showTranscript, roleId, roleVersion, tab }) }, [mode, phase, audience, focus, summaryModel, messages, trace, draft, jobId, showTranscript, roleId, roleVersion, tab])
   useEffect(() => { void api<Availability>('/config').then(setAvailability).catch(error => setAvailability({ ready: false, message: String(error), maxBytes: 0, provider: '自定义语音识别接口' })) }, [])
   useEffect(() => { if (loadModels) void loadModels().then(setModels).catch(() => setModels([])) }, [loadModels])
   useEffect(() => {
@@ -126,7 +126,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
     if (!availability?.ready) { setNotice(availability?.message || '转写服务尚未配置'); return }
     setBusy(true); setPhase('processing'); add({ kind: 'upload', file: file.name }); log(`上传录音：${file.name}`)
     try {
-      const created = await post<Job>('/create', { fileName: file.name, mode, audience, focus, summaryModel, roleVersion })
+      const created = await post<Job>('/create', { title: conversationTitle, fileName: file.name, mode, audience, focus, summaryModel, roleId, roleVersion })
       setJobId(created.id)
       const uploaded = await api<Job>(`/upload/${created.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/octet-stream' }, body: file })
       setJob(uploaded); log('录音上传完成，开始语音转写')
@@ -212,7 +212,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
     {timingConfirm && <div className={s.cardFooter} role="group" aria-label="确认补全时间定位"><p>将使用当前识别模型重新处理已保存录音，并用纪要模型关联来源，可能产生调用费用。原纪要与人工校对内容保留；已关联分段定位能力时按录音切片获取时间，否则使用识别服务返回的时间戳。</p><button disabled={busy} onClick={() => void repairTiming()}>开始补全</button><button onClick={() => setTimingConfirm(false)}>取消</button></div>}
     {showTranscript && transcriptCard(false)}
   </div>
-  const assistantMessage = (children: React.ReactNode, key: number, time?: React.ReactNode) => <article className={s.message} key={key}><RoleAppearanceIcon roleId={MEETING_DEMO_ROLE_ID} icon={assistantIcon} color={assistantColor}/><div className={s.messageBody}><div className={s.byline}>{assistantName}</div>{children}{time}</div></article>
+  const assistantMessage = (children: React.ReactNode, key: number, time?: React.ReactNode) => <article className={s.message} key={key}><RoleAppearanceIcon roleId={roleId ?? MEETING_DEMO_ROLE_ID} icon={assistantIcon} color={assistantColor}/><div className={s.messageBody}><div className={s.byline}>{assistantName}</div>{children}{time}</div></article>
   const renderMessage = (message: Message) => {
     const value = message.kind === 'minutes' ? job?.minutesGeneratedAt ?? message.createdAt : message.kind === 'transcript' ? job?.transcribedAt ?? message.createdAt : message.createdAt ?? (message.kind === 'intro' || message.kind === 'upload' ? job?.createdAt : undefined)
     const stamp = <MessageTime value={value ?? (message.kind === 'minutes' ? job?.updatedAt : undefined)} label={!value && message.kind === 'minutes' ? '任务最后更新：' : ''}/>
@@ -226,7 +226,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
   }
   const status = job?.status
   return <div className={s.root} data-meeting-demo="true">
-    <div className={s.heading}><div><span>你好</span><strong>{assistantName}</strong></div><div><span className={s.demoBadge}>{availability?.ready ? '录音转纪要' : '待配置'}</span><button onClick={() => onReset?.()}>重新开始</button></div></div>
+    <div className={s.heading}><div>{!conversationTitle && <span>你好</span>}<strong>{conversationTitle || assistantName}</strong></div><div><span className={s.demoBadge}>{availability?.ready ? '录音转纪要' : '待配置'}</span><button onClick={() => onReset?.()}>重新开始</button></div></div>
     <div className={s.tabs} role="tablist" aria-label="会话视图"><button role="tab" aria-selected={tab === 'chat'} onClick={() => setTab('chat')}>对话</button><button role="tab" aria-selected={tab === 'trace'} onClick={() => setTab('trace')}>轨迹</button></div>
     <div className={s.scroll} ref={scroll} onScroll={()=>{const el=scroll.current;if(el)pinned.current=el.scrollHeight-el.scrollTop-el.clientHeight<80}} role="tabpanel">{tab === 'chat' ? <div className={s.messages}>{messages.filter(m=>m.kind!=='minutes').map(renderMessage)}<ExecutionHistory kind="meeting" id={jobId} active={Boolean(job&&(['uploading','transcribing','generating'].includes(job.status)||job.timingStatus==='processing'))}/>{messages.filter(m=>m.kind==='minutes').map(renderMessage)}{job?.minutes&&!messages.some(m=>m.kind==='minutes')&&assistantMessage(<><p>上一次保存的纪要</p>{minutesCard()}<MessageTime value={job.minutesGeneratedAt}/></>,-4)}{phase === 'processing' && status !== 'error' && assistantMessage(<div className={s.progress}><span>◌</span><div><strong>{status === 'generating' || status === 'transcribed' ? '正在生成纪要…' : status === 'uploading' ? '正在上传录音…' : '正在转写录音…'}</strong><small>可以切换会话，处理完成后回来查看</small><div className={s.progressTrack}><i/></div></div></div>, -1)}{status === 'error' && assistantMessage(<div className={s.resultCard}><div className={s.cardHead}><div><small>本轮未完成</small><h3>{job?.error}</h3></div></div><div className={s.cardFooter}><button disabled={busy} onClick={() => void retry()}>重试</button></div></div>, -2)}</div> : <div className={s.trace}><h2>会话轨迹</h2><p>记录本次会议处理步骤。</p><ol>{trace.map((entry, index) => <li key={index}><span>{String(index + 1).padStart(2, '0')}</span>{entry}</li>)}</ol></div>}</div>
     {newProgress&&<button className={s.progressAction} onClick={()=>{pinned.current=true;setNewProgress(false);scroll.current?.scrollTo({top:scroll.current.scrollHeight,behavior:'smooth'})}}>有新进展 · 回到底部</button>}
@@ -235,3 +235,4 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
     <input ref={input} type="file" accept=".mp3,.m4a,.wav,.aac,.flac,.ogg,.opus,.webm,.mp4" hidden onChange={event => void onFile(event.target.files?.[0])}/>
   </div>
 }
+

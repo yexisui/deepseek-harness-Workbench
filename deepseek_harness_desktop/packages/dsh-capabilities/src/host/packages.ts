@@ -1,3 +1,6 @@
+import { exportWorkbench, exportName, readWorkbench, workbenchHash, type WorkbenchPackage } from './workbench-package.ts'
+import { adaptExternal, type ImportModel } from './external-package.ts'
+import { applyCapabilitySettings } from '../core/current-settings.ts'
 import { loadPackageProvider } from './package-provider.ts'
 import { randomUUID } from 'node:crypto'
 import { mkdir, readdir, open, readFile, rename, rm, stat } from 'node:fs/promises'
@@ -8,14 +11,15 @@ import { InputError, integer, list, text } from '../core/validation.ts'
 import { CapabilityStore } from './store.ts'
 import { canonical, checkPackage, extractLocalZip, FilePaths, packageLimit, packageZip, plainMkdir, safeLocalPath, sha256, writePackage, type CheckedPackage } from './package-archive.ts'
 
-type Upload = { directory: string; kind: 'folder' | 'zip'; paths: FilePaths; bytes: number; count: number; expires: number; busy: boolean; checked?: CheckedPackage }
+export type ImportProgress = { status:'running'|'done'|'error'; message:string; preview?:PackagePreview }
+type Upload = { workbench?:WorkbenchPackage; processing?:Promise<void>; controller?:AbortController; progress?:ImportProgress; root?:string; preparedAI?:boolean; directory: string; kind: 'folder' | 'zip'; paths: FilePaths; bytes: number; count: number; expires: number; busy: boolean; checked?: CheckedPackage }
 export class CapabilityPackages {
   private uploads = new Map<string,Upload>()
   private downloads = new Map<string,{name:string;expires:number}>()
   private pendingDownloads = 0
   private verified = new Map<string,string | null>()
   private timer?: ReturnType<typeof setInterval>
-  constructor(readonly store: CapabilityStore, private resolveModel: (route: string) => string = route => route) {}
+  constructor(readonly store: CapabilityStore, private resolveModel: (route: string) => string = route => route, private importModel?:ImportModel) {}
   get root() { return join(this.store.directory, 'packages') }
   async init() {
     plainMkdir(this.root); plainMkdir(join(this.root, 'uploads')); plainMkdir(join(this.root, 'releases')); plainMkdir(join(this.root,'exports'))
@@ -27,7 +31,7 @@ export class CapabilityPackages {
     this.store.enableIssues = id => { const health = this.health().find(h => h.capabilityId === id); return health && !health.ready ? [health.message] : [] }
     this.timer = setInterval(() => { void this.expire() }, 60_000); this.timer.unref()
   }
-  async close() { clearInterval(this.timer); for (const token of [...this.uploads.keys()]) await this.discard(token); for(const id of [...this.downloads.keys()])await this.discardDownload(id) }
+  async close() { clearInterval(this.timer); for(const u of this.uploads.values())u.controller?.abort();await Promise.all([...this.uploads.values()].map(u=>u.processing)); for (const token of [...this.uploads.keys()]) await this.discard(token); for(const id of [...this.downloads.keys()])await this.discardDownload(id) }
   private async expire() { for (const [token,u] of this.uploads) if (u.expires < Date.now() && !u.busy) await this.discard(token); for(const [id,d] of this.downloads)if(d.expires<Date.now())await this.discardDownload(id) }
   async prepareDownload(body:Record<string,unknown>) {
     await this.expire()
@@ -64,7 +68,7 @@ export class CapabilityPackages {
     const u = this.upload(token)
     if (u.checked) throw new InputError('已完成预览，不能继续改写文件', 409)
     safeLocalPath(path)
-    if (u.kind === 'zip' ? path !== 'ability.zip' || u.count > 0 : path !== 'capability.json' && !/^(runtime|resources|docs)\//.test(path)) throw new InputError('不是能力包交付文件')
+    if (u.kind === 'zip' && (path !== 'ability.zip' || u.count > 0)) throw new InputError('不是能力包交付文件')
     if (u.count >= 501) throw new InputError('能力包文件数量超过限制', 413)
     u.paths.add(path); u.busy = true
     try {
@@ -75,6 +79,27 @@ export class CapabilityPackages {
     finally { u.busy = false }
   }
   async discard(token: string) { const u = this.uploads.get(token); if (!u || u.busy) return; this.uploads.delete(token); await rm(u.directory,{recursive:true,force:true}) }
+  processStatus(token:string):ImportProgress { const u=this.uploads.get(token);if(!u)throw new InputError('导入文件已释放，请重新选择',410);return u.progress??{status:'error',message:'尚未开始处理'} }
+  async cancelProcessing(token:string){const u=this.uploads.get(token);u?.controller?.abort(new Error('已停止处理，原包已保留'));await u?.processing;return this.processStatus(token)}
+  async processImport(token:string,useAI:boolean,label:string):Promise<ImportProgress>{
+    const u=this.upload(token)
+    if(u.workbench){u.progress={status:'done',message:'已准备',preview:this.workbenchPreview(token,u.workbench)};return u.progress}
+    if(u.checked&&u.preparedAI===useAI){u.progress={status:'done',message:'已准备',preview:this.preview(token,u.checked)};return u.progress}
+    u.controller=new AbortController();u.busy=true;u.expires=Date.now()+30*60_000
+    u.progress={status:'running',message:'正在整理本地包…'}
+    u.processing=(async()=>{
+      try{
+        if(!u.root){let root=u.directory;if(u.kind==='zip'){root=join(u.directory,'unpacked');await rm(root,{recursive:true,force:true});plainMkdir(root);extractLocalZip(join(u.directory,'ability.zip'),root)}
+          for(;;){const entries=await readdir(root,{withFileTypes:true});if(entries.length!==1||!entries[0]!.isDirectory())break;root=join(root,entries[0]!.name)}u.root=root}
+        u.workbench=await readWorkbench(u.root,this.store.snapshot());if(u.workbench){u.progress={status:'done',message:'已准备',preview:this.workbenchPreview(token,u.workbench)};return}
+        // Existing standard packages remain unchanged; external formats are handled by the adapter.
+        try{u.checked=await checkPackage(u.root,true)}catch{u.checked=await adaptExternal(u.root,label,useAI,this.importModel,u.controller!.signal,message=>{u.progress={status:'running',message}})}
+        u.controller!.signal.throwIfAborted();u.preparedAI=useAI;u.progress={status:'done',message:'整理完成',preview:this.preview(token,u.checked)}
+      }catch(error){u.progress={status:'error',message:error instanceof Error?error.message:String(error)}}
+      finally{u.busy=false;u.expires=Date.now()+30*60_000}
+    })()
+    return u.progress
+  }
   async inspect(token: string): Promise<PackagePreview> {
     const u = this.upload(token); u.busy = true
     try {
@@ -94,6 +119,23 @@ export class CapabilityPackages {
       }
       return this.preview(token, u.checked)
     } finally { u.busy = false }
+  }
+  private workbenchPreview(token:string,pack:WorkbenchPackage):PackagePreview {
+    const state=this.store.snapshot(),existing=state.capabilities.find(c=>c.id===pack.id),v=latest(existing?.versions??[]),value=pack.definition
+    return {token,hash:workbenchHash(pack),revision:state.revision,bytes:Buffer.byteLength(canonical(pack)),fileCount:1,needsModel:false,trust:'导入能力配置，复用工作台已有服务。',manifest:{schema:1,protocol:pack.protocol,id:pack.id,version:'1.0.0',...value,author:'工作台',license:'随工作台',permissions:[],components:[],files:{}},...(existing?{existing:{id:existing.id,name:existing.draft.name,duplicate:!!v&&!definitionChanged(value,v),removed:!!existing.removedAt,draftChanged:false,version:'',changes:[]}}:{})}
+  }
+  private async installWorkbench(pack:WorkbenchPackage,hash:unknown,revision:unknown){
+    if(hash!==workbenchHash(pack))throw new InputError('导入内容已更新，请重试')
+    return this.store.transaction(revision,next=>{
+      const value=pack.definition;let cap=next.capabilities.find(c=>c.id===pack.id)
+      if(cap?.packageOrigin)throw new InputError('同名标识属于另一能力，请勿覆盖')
+      if(cap?.removedAt||cap?.purgedAt)throw new InputError('能力已移除，请先恢复或使用新标识')
+      if(cap&&latest(cap.versions)&&!definitionChanged(value,latest(cap.versions)))return{id:cap.id,duplicate:true,needsModel:false}
+      if(!cap){cap={id:pack.id,source:'local',enabled:true,pinned:false,draft:value,versions:[]};next.capabilities.push(cap)}
+      const now=new Date().toISOString(),version=(latest(cap.versions)?.version??0)+1
+      cap.draft=structuredClone(value);cap.versions.push({...structuredClone(value),version,createdAt:now,directSave:true});applyCapabilitySettings(next,cap.id,version,now)
+      return{id:cap.id,duplicate:false,needsModel:false}
+    })
   }
   private preview(token: string, pack: CheckedPackage): PackagePreview {
     const state = this.store.snapshot(), m = pack.manifest, existing = state.capabilities.find(c => c.packageOrigin?.id === m.id), previous = existing && latest(existing.versions), release = previous?.packageHash && state.packageReleases?.[previous.packageHash]
@@ -123,13 +165,13 @@ export class CapabilityPackages {
     })
   }
   async install(token: string, expectedHash: unknown, revision: unknown, options: { trusted?: unknown; draft?: unknown; applyToRoles?: unknown } = {}) {
-    const u = this.upload(token), pack = u.checked
+    const u = this.upload(token);if(u.workbench)return this.installWorkbench(u.workbench,expectedHash,revision);const pack = u.checked
     if (!pack || expectedHash !== pack.hash) throw new InputError('请先完整预览能力包',409)
     if (options.trusted !== true) throw new InputError('请确认信任此能力的本机代码')
     const preview = this.preview(token,pack)
     if (preview.existing?.duplicate) return { id:preview.existing.id, duplicate:true, needsModel:preview.needsModel }
     if (preview.existing?.removed) throw new InputError('此能力在回收站中，请先恢复，再导入更新')
-    if (preview.existing?.draftChanged && options.draft !== 'keep' && options.draft !== 'replace') throw new InputError('请明确选择保留或替换本地草稿')
+    // Imported content becomes the current configuration in one operation.
     const roles = list(options.applyToRoles ?? []).map(r=>text(r,'岗位标识',90,true))
     if (new Set(roles).size !== roles.length) throw new InputError('岗位范围重复')
     u.busy = true; let created = false
@@ -148,26 +190,20 @@ export class CapabilityPackages {
         let cap = next.capabilities.find(c=>c.packageOrigin?.id===pack.manifest.id)
         const keepEnabled = cap ? cap.enabled : true
         if (!cap) { cap = {id:`local-${randomUUID()}`,source:'local',enabled:false,pinned:false,draft:value,versions:[],packageOrigin:{id:pack.manifest.id,draftBackups:[]}}; next.capabilities.push(cap) }
-        if (definitionChanged(cap.draft,latest(cap.versions)) && cap.versions.length) cap.packageOrigin!.draftBackups.push({savedAt:now,definition:structuredClone(cap.draft)})
-        if (!cap.versions.length || options.draft === 'replace' || !definitionChanged(cap.draft,latest(cap.versions))) cap.draft = structuredClone(value)
+        cap.draft = structuredClone(value)
         ;(next.packageReleases ??= {})[pack.hash] = { hash:pack.hash, manifest:pack.manifest, installedAt:now }
         const version = (latest(cap.versions)?.version ?? 0)+1
-        cap.versions.push({...structuredClone(value),version,createdAt:now,packageHash:pack.hash})
+        cap.versions.push({...structuredClone(value),version,createdAt:now,packageHash:pack.hash,directSave:true})
         cap.enabled = keepEnabled && this.health(next).find(h=>h.capabilityId===cap!.id)!.ready
-        for (const id of roles) {
-          const role = next.roles.find(r=>r.id===id), current = role && latest(role.versions)
-          if (!role || !current?.capabilities.some(b=>b.capabilityId===cap!.id)) throw new InputError('所选岗位未引用此能力')
-          const v = current.version+1, updated = structuredClone(current)
-          updated.capabilities = updated.capabilities.map(b=>b.capabilityId===cap!.id ? {...b,version,...(b.actions ? {actions:b.actions.filter(a=>value.components.some(p=>p.actions.includes(a)))} : {})} : b)
-          role.versions.push({...updated,version:v,createdAt:now,preset:`workbench-role-${role.id}-v${v}`})
-        }
+        applyCapabilitySettings(next, cap.id, version, now)
         return {id:cap.id,duplicate:false,needsModel:preview.needsModel}
       }, async()=>{
         // Roll back before releasing the writer queue; a concurrent installer cannot lose its assets.
         if(created&&!this.store.snapshot().packageReleases?.[pack.hash]){await rm(this.directory(pack.hash),{recursive:true,force:true});this.verified.delete(pack.hash)}
       })
       return result
-    } finally { u.busy = false }
+    } catch(error) { u.preparedAI=undefined; throw error }
+    finally { u.busy = false }
   }
   async configure(id: string, model: unknown, revision: unknown, enable: unknown) {
     const route = text(model,'工作台模型',240).trim()
@@ -183,35 +219,15 @@ export class CapabilityPackages {
       return health
     })
   }
-  async rollback(id: string, version: unknown, revision: unknown) {
-    return this.store.transaction(revision,async next=>{
-      const cap = next.capabilities.find(c=>c.id===id), old = cap?.versions.find(v=>v.version===integer(version))
-      if (!cap?.packageOrigin || cap.removedAt || !old?.packageHash) throw new InputError('没有可回退的能力版本')
-      if (!await this.verify(old.packageHash)) throw new InputError('旧版本构建文件缺失或改变，无法回退')
-      // Rollback creates a new version; neither old bindings nor local drafts are overwritten.
-      cap.versions.push({...structuredClone(old),version:latest(cap.versions)!.version+1,createdAt:new Date().toISOString()})
-      cap.enabled = false; (next.revokedAt ??= {})[`capability:${id}`]=Date.now()
-      return {id}
-    })
-  }
-  async restoreDraft(id: string, index: unknown, revision: unknown) {
-    return this.store.transaction(revision,next=>{
-      const cap=next.capabilities.find(c=>c.id===id),backup=cap?.packageOrigin?.draftBackups[integer(index)]
-      if(!cap?.packageOrigin||cap.removedAt||!backup)throw new InputError('草稿备份不存在或能力已移除')
-      const value=structuredClone(backup.definition)
-      cap.packageOrigin.draftBackups.push({savedAt:new Date().toISOString(),definition:structuredClone(cap.draft)})
-      cap.draft=value
-      return {id}
-    })
-  }
   async exportPrepared(token: string, hash: unknown) {
     const u = this.upload(token)
     if (!u.checked || hash !== u.checked.hash) throw new InputError('请重新预览后导出',409)
     return { bytes:packageZip(u.checked.files), name:`${u.checked.manifest.id}-${u.checked.manifest.version}.zip` }
   }
   async exportInstalled(id: string, number: unknown) {
-    const state = this.store.snapshot(), cap = state.capabilities.find(c=>c.id===id), version = cap?.versions.find(v=>v.version===integer(number))
-    if (!cap || !version?.packageHash) throw new InputError('此版本由工作台内置服务提供，没有可独立分发的执行包；请选择已导入的完整能力版本')
+    const state = this.store.snapshot(), cap = state.capabilities.find(c=>c.id===id), version = number === undefined ? cap?.versions.at(-1) : cap?.versions.find(v=>v.version===integer(number))
+    if (!cap || cap.removedAt || cap.purgedAt) throw new InputError('能力不存在或已移除')
+    if(!version?.packageHash)return exportWorkbench(cap.id,version??cap.draft)
     const pack = await checkPackage(this.directory(version.packageHash))
     if (pack.hash !== version.packageHash) throw new InputError('已安装文件改变，不能导出')
     if (definitionChanged(version,packageDefinition(pack.manifest))) {
@@ -220,8 +236,8 @@ export class CapabilityPackages {
       m.name=version.name; m.description=version.description; m.instructions=version.instructions; m.author=`${m.author}（本地派生修改）`.slice(0,120)
       m.components=m.components.flatMap(c=>{const part=version.components.find(p=>p.componentId===`pkg:${original.id}:${c.id}`); return part ? [{...c,actions:c.actions.filter(a=>part.actions.includes(`pack:${original.id}:${c.id}:${a.id}`))}] : []})
       pack.files.set('capability.json',Buffer.from(canonical(m)))
-      return {bytes:packageZip(pack.files),name:`${m.id}-${m.version}.zip`}
+      return {bytes:packageZip(pack.files),name:exportName(m.name)}
     }
-    return {bytes:packageZip(pack.files),name:`${pack.manifest.id}-${pack.manifest.version}.zip`}
+    return {bytes:packageZip(pack.files),name:exportName(pack.manifest.name)}
   }
 }

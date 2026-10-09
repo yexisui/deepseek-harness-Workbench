@@ -6,13 +6,13 @@ import { DEVELOPER_CAPABILITY_ID, developerParts } from './developer-model.ts'
 export type Action = `pack:${string}` | 'navigate' | 'read' | 'screenshot' | 'transcribe' | 'analyze-requirements' | 'develop' | 'inspect-git' | 'verify-code'
 export type Part = { componentId: string; actions: Action[] }
 export type Definition = { name: string; description: string; instructions: string; components: Part[]; excludedDependencies?: string[]; componentOrder?: string[] }
-export type Version = Definition & { version: number; createdAt: string; packageHash?: string }
-export type Capability = { id: string; packageOrigin?: import('./distribution.ts').PackageOrigin; source: 'builtin' | 'local'; enabled: boolean; pinned: boolean; removedAt?: string; draft: Definition; versions: Version[] }
+export type Version = Definition & { directSave?: boolean; version: number; createdAt: string; packageHash?: string }
+export type Capability = { id: string; packageOrigin?: import('./distribution.ts').PackageOrigin; source: 'builtin' | 'local'; enabled: boolean; pinned: boolean; removedAt?: string; purgedAt?: string; draft: Definition; versions: Version[] }
 export type Binding = { capabilityId: string; version: number; enabled: boolean; actions?: Action[] }
 export type SkillBinding = { id: string; name: string; hash: string; enabled: boolean }
 export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec; duties: string; requirements: string; format: string; capabilities: Binding[]; skills?: SkillBinding[] }
-export type RoleVersion = RoleDefinition & { version: number; preset: string; createdAt: string }
-export type Role = { archivedAt?: string; id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
+export type RoleVersion = RoleDefinition & { directSave?: boolean; version: number; preset: string; createdAt: string }
+export type Role = { removedAt?: string; archivedAt?: string; id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
 export type State = { packageModels?: Record<string,string>; packageReleases?: Record<string, import('./distribution.ts').PackageRelease>; componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
 export type Component = {
   id: string; name: string; provider: string; version: string; actions: readonly Action[]; dependencies: readonly string[]
@@ -48,7 +48,7 @@ export function requirementsCapability(now: string): Capability {
   return { id: REQUIREMENTS_CAPABILITY_ID, source: 'builtin', enabled: true, pinned: false, draft: definition, versions: [{ ...structuredClone(definition), version: 1, createdAt: now }] }
 }
 export type Command =
-  | { type: 'capability.save'; id?: string; definition: Definition; publish: boolean; applyToRoles?: string[] }
+  | { type: 'capability.save'; id?: string; definition: Definition; publish: boolean; directSave?: boolean; applyToRoles?: string[] }
   | { type: 'capability.copy'; id: string }
   | { type: 'capability.toggle'; id: string; enabled: boolean }
   | { type: 'capability.pin'; id: string; pinned: boolean }
@@ -57,8 +57,8 @@ export type Command =
   | { type: 'capability.restoreMany'; ids: string[] }
   | { type: 'capability.purge'; ids: string[] }
   | { type: 'role.skills'; skillId:string; roleIds:string[] }
-  | { type: 'role.save'; id?: string; definition: RoleDefinition; publish: boolean }
-  | { type: 'role.archive' | 'role.restore'; id: string }
+  | { type: 'role.save'; id?: string; definition: RoleDefinition; publish: boolean; directSave?: boolean }
+  | { type: 'role.archive' | 'role.restore' | 'role.remove'; id: string }
   | { type: 'role.copy'; id: string }
   | { type: 'role.toggle'; id: string; enabled: boolean }
 export type Health = { checkedAt: string | null; installed: boolean; loaded: boolean; state: 'unknown' | 'missing' | 'disconnected' | 'ready' | 'degraded'; message: string; cliVersion?: string; browsers: { id: string; name: string }[] }
@@ -78,8 +78,8 @@ export function actionsOf(definition?: Definition, catalog: readonly Component[]
 }
 /** 永久删除必须保护所有历史岗位版本，不能只检查当前列表或活动会话。 */
 export function capabilityDeletionReferences(state: State, capabilityId: string): Role[] {
-  return state.roles.filter(role => role.draft.capabilities.some(binding => binding.capabilityId === capabilityId)
-    || role.versions.some(version => version.capabilities.some(binding => binding.capabilityId === capabilityId)))
+  return state.roles.filter(role => !role.removedAt && (role.draft.capabilities.some(binding => binding.capabilityId === capabilityId)
+    || latest(role.versions)?.capabilities.some(binding => binding.capabilityId === capabilityId)))
 }
 export function references(state: State, componentId: string, tasks: Task[] = []) {
   const capabilities = state.capabilities.filter(c => c.draft.components.some(p => p.componentId === componentId) || c.versions.some(v => v.components.some(p => p.componentId === componentId)))

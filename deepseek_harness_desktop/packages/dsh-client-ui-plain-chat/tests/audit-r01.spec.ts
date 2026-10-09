@@ -65,3 +65,11 @@ it('R01 preserves entries and exposes a retryable history error', async () => {
   const history = createMeetingHistory(local, async () => { throw new Error('连接失败') })
   await history.load(); expect(history.getSnapshot().error).toBe('连接失败'); expect(local.getSnapshot().items[0].draft).toBe('keep')
 })
+
+it('keeps a manual name while typing, changing modes, leaving and reloading', () => {
+  const local = createLocalConversations(); const row = local.start('meeting-minutes-demo')
+  local.rename(row.id, '自定会议名称'); local.leave()
+  expect(createLocalConversations().getSnapshot().items.find(x => x.id === row.id)?.title).toBe('自定会议名称')
+  local.open(row.id); local.setDraft(row.id, '输入新的资料'); local.commitDemo(row.id, '自动生成名称')
+  expect(createLocalConversations().getSnapshot().items.find(x => x.id === row.id)?.title).toBe('自定会议名称')
+})

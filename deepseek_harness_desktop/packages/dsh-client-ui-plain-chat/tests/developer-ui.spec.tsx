@@ -39,7 +39,8 @@ it('browses without creating a task and preserves unsent input across all main t
   await render(); await chooseProject()
   const input = host.querySelector<HTMLTextAreaElement>('[aria-label="开发消息"]')!
   await act(async () => { Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(input, '保留这份草稿'); input.dispatchEvent(new Event('input', { bubbles: true })) })
-  for (const label of ['变更', '版本', '运行', '开发']) await click(label)
+  for (const label of ['变更', '运行', '开发']) await click(label)
+  expect(Array.from(host.querySelectorAll('[role="tab"]')).some(tab => tab.textContent === '版本')).toBe(false)
   expect(host.querySelector<HTMLTextAreaElement>('[aria-label="开发消息"]')!.value).toBe('保留这份草稿')
   expect(writes).toEqual([])
 })

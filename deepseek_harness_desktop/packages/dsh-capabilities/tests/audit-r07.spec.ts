@@ -17,7 +17,7 @@ it('copies a published developer role into an independent draft and publishes an
  expect(roleForPreset(published.state,version.preset)?.role.id).toBe(copy.id)
  expect(allowedActions(published.state,copy.id,version)).toContain('develop')
  expect(published.state.roles.find(r=>r.id===original.id)!.versions).toEqual(original.versions)
- await expect(store.command(3,{type:'role.copy',id:MEETING_ROLE_ID})).rejects.toThrow('专用流程')
+ await expect(store.command(3,{type:'role.copy',id:MEETING_ROLE_ID})).resolves.toBeDefined()
  } finally {await store.close()}
 })
 it('refuses orphaned native copies and reserved target ids while forwarding ordinary native copies',async()=>{
