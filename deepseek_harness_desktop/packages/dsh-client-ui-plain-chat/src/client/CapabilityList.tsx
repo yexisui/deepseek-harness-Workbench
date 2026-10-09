@@ -1,3 +1,4 @@
+import { capabilityCatalog } from '../../../dsh-capabilities/src/core/role-capability-catalog.ts'
 import { ManagementRow } from '../../../../shared/client/ManagementRow.tsx'
 import { PillCheckbox } from '../../../../shared/client/PillCheckbox.tsx'
 import React, { useState } from 'react'
@@ -19,7 +20,7 @@ export function CapabilityList({data,query,onQuery,filter,onFilter,filters,onFil
  data:Snapshot;query:string;onQuery:(value:string)=>void;filter:string;onFilter:(value:string)=>void;filters:ListFilters;onFilters:(value:ListFilters)=>void;busy:boolean;meetingStatus:MeetingAvailability|null;requirementsStatus:Availability;onOpen:(id:string)=>void;onPin:(id:string,pinned:boolean)=>void
 }) {
  const [filtering,setFiltering]=useState(false)
- const visible=data.state.capabilities.filter(c=>{
+ const visible=capabilityCatalog(data.state.capabilities).filter(c=>{
   const definition=capabilityDisplayDefinition(c), status=capabilityPresentation(data,c,latest(c.versions),meetingStatus,requirementsStatus)
   return !c.removedAt&&(filter!=='pinned'||c.pinned)&&(!filters.states.length||filters.states.includes(status.group))&&(!filters.unused||!capabilityImpact(data,c.id).roles.length)&&`${definition.name} ${definition.description} ${c.draft.name} ${c.draft.description}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase())
  }).sort((a,b)=>Number(b.pinned)-Number(a.pinned))

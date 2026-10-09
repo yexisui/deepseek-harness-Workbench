@@ -4,7 +4,7 @@ import { useCapabilityDrag } from './useCapabilityDrag.ts'
 import { useCompositionSort } from './useCompositionSort.ts'
 import s from './Capabilities.module.css'
 
-export type WorkbenchItem = { id: string; name: string; subtitle: string; disabled?: boolean; removable?: boolean; group?: string; icon?: 'browser' | 'audio' | 'document' | 'support' }
+export type WorkbenchItem = { id: string; name: string; subtitle: string; disabled?: boolean; disabledReason?: string; removable?: boolean; group?: string; icon?: 'browser' | 'audio' | 'document' | 'support' }
 export function CapabilityGlyph({ kind = 'browser' }: { kind?: 'browser' | 'audio' | 'document' | 'support' }) { return <span className={s.icon} style={{ '--cap-color': kind === 'audio' ? '#6683bd' : '#4F73E8' } as React.CSSProperties} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">{kind === 'document' ? <><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/></> : kind === 'audio' ? <><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4m-4 0h8"/></> : kind === 'support' ? <><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9"/></> : <><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></>}</svg></span> }
 
 /** Reuses the tested resize/drag hooks and the established compact row design. */
@@ -16,7 +16,7 @@ export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd,
   const panels = useCapabilityPanels(attached.length > 0), prefix = useId()
   const [query, setQuery] = useState(''), [feedback, setFeedback] = useState<{ id: string; sequence: number; duplicate: boolean } | null>(null)
   const cards = useRef(new Map<string, HTMLDivElement>())
-  const add = (id: string) => { const duplicate = attached.some(a => a.id === id); onAdd(id); setFeedback(old => ({ id, duplicate, sequence: (old?.sequence ?? 0) + 1 })) }
+  const add = (id: string) => { if (!library.some(item => item.id === id && !item.disabled)) return; const duplicate = attached.some(a => a.id === id); onAdd(id); setFeedback(old => ({ id, duplicate, sequence: (old?.sequence ?? 0) + 1 })) }
   const drag = useCapabilityDrag<string>(add)
   const sort = useCompositionSort(onReorder, attached.map(item => item.id))
   const sortNotice = sort.sorting ? `已拾起 ${attached.find(item => item.id === sort.sorting!.id)?.name}，当前位置 ${attached.findIndex(item => item.id === sort.sorting!.target) + 1}。空格放下，Esc 取消。` : ''
@@ -42,7 +42,7 @@ export function ManagedWorkbench({ library, attached, selected, onSelect, onAdd,
         <div className={s.columnHeading}><div><h3>{libraryTitle}</h3>{onManage && <button type="button" className={s.manageLink} onClick={onManage}>{manageLabel} ↗</button>}</div><button type="button" className={s.collapseButton} onClick={() => panels.close('left')} aria-label="收起左栏">‹</button></div>
         <label className={s.search}><input placeholder="搜索名称或组件" aria-label="搜索配件" value={query} onChange={e => setQuery(e.target.value)}/></label>
         <div className={s.catalog}>{library.filter(i => `${i.name} ${i.subtitle}`.toLowerCase().includes(query.toLowerCase())).map((item, index, items) => <React.Fragment key={item.id}>{item.group && items[index - 1]?.group !== item.group && <h4 className={s.catalogGroup}>{item.group}</h4>}<article className={`${s.catalogCard} ${selected === item.id ? s.catalogSelected : ''}`} onPointerDown={e => !item.disabled && drag.start(item.id, e)} onClickCapture={drag.click}>
-          <button type="button" className={s.catalogInspect} title={item.name} onClick={() => configure(item.id)}><CapabilityGlyph kind={item.icon ?? (item.id === 'meeting-transcription' ? 'audio' : item.id.startsWith('@') ? 'support' : 'browser')}/><span><strong>{item.name}</strong><small>{item.subtitle}</small></span></button><button data-capability-add type="button" className={s.quickAdd} disabled={item.disabled || attached.some(a => a.id === item.id)} aria-label={`添加 ${item.name}`} onClick={() => add(item.id)}>{attached.some(a => a.id === item.id) ? '✓' : '＋'}</button><span className={s.grip} aria-hidden="true">⠿</span>
+          <button type="button" className={s.catalogInspect} title={item.name} onClick={() => configure(item.id)}><CapabilityGlyph kind={item.icon ?? (item.id === 'meeting-transcription' ? 'audio' : item.id.startsWith('@') ? 'support' : 'browser')}/><span><strong>{item.name}</strong><small title={item.subtitle}>{item.subtitle}</small></span></button><button data-capability-add type="button" className={s.quickAdd} title={item.disabledReason} disabled={item.disabled || attached.some(a => a.id === item.id)} aria-label={`添加 ${item.name}`} onClick={() => add(item.id)}>{attached.some(a => a.id === item.id) ? '✓' : '＋'}</button><span className={s.grip} aria-hidden="true">⠿</span>
         </article></React.Fragment>)}</div><p className={s.libraryNote}>{libraryNote}</p>
       </section>{rail('left')}
       <section className={s.canvas} aria-label={title}><div className={s.columnHeading}><h3>{title}</h3><span className={s.step}>01</span></div>{form}

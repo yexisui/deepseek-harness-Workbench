@@ -8,6 +8,7 @@ import { capabilityDeletionReferences, initialState, latest, meetingCapability, 
 import { REQUIREMENTS_CAPABILITY_ID, REQUIREMENTS_ROLE_ID } from '../core/requirements-model.ts'
 import { DEVELOPER_CAPABILITY_ID, DEVELOPER_ROLE_ID } from '../core/developer-model.ts'
 import { developerCapability } from '../core/model.ts'
+import { roleCapabilityReason } from '../core/role-capability-catalog.ts'
 import { defaultRoles, MEETING_CAPABILITY_ID, MEETING_ROLE_ID } from '../core/default-roles.ts'
 import { bool, definition, id, InputError, integer, issues, list, object, roleDefinition, roleCompositionIssues, text } from '../core/validation.ts'
 import { RoleIconStore } from './icons.ts'
@@ -262,12 +263,18 @@ export class CapabilityStore {
         if (publish && roleCompositionIssues(value).length) throw new InputError(roleCompositionIssues(value).join('；'))
         const meetingBinding = value.capabilities.find(binding => binding.capabilityId === MEETING_CAPABILITY_ID)
         if (target === MEETING_ROLE_ID && !meetingBinding) throw new InputError('会议纪要助手必须保留录音转写能力关联')
-        if (target !== MEETING_ROLE_ID && meetingBinding) throw new InputError('会议录音转写仅供会议纪要助手使用')
+        if (target !== MEETING_ROLE_ID && meetingBinding) { const capability = next.capabilities.find(c => c.id === MEETING_CAPABILITY_ID)!; throw new InputError(roleCapabilityReason(target, capability, capability.versions.find(v => v.version === meetingBinding.version))!) }
         if (value.icon?.kind === 'png') await this.icons.read(value.icon.assetId)
         let role = next.roles.find(r => r.id === target)
         if (command.id && !role) throw new InputError('岗位不存在', 404)
         if (role?.archivedAt) throw new InputError('岗位已归档，请先恢复后编辑')
         const existingBindings = [...(role?.draft.capabilities ?? []), ...(role ? latest(role.versions)?.capabilities ?? [] : [])]
+        for (const binding of value.capabilities) {
+          if (existingBindings.some(old => old.capabilityId === binding.capabilityId && old.version === binding.version)) continue
+          const capability = next.capabilities.find(c => c.id === binding.capabilityId)!
+          const reason = roleCapabilityReason(target, capability, capability.versions.find(v => v.version === binding.version))
+          if (reason) throw new InputError(reason)
+        }
         const newComponents = value.capabilities.filter(binding => !existingBindings.some(old => old.capabilityId === binding.capabilityId && old.version === binding.version)).flatMap(binding => next.capabilities.find(c => c.id === binding.capabilityId)?.versions.find(v => v.version === binding.version)?.components.map(p => p.componentId) ?? [])
         const registryProblems = this.publishIssues(newComponents)
         if (registryProblems.length) throw new InputError(registryProblems.join('；'))

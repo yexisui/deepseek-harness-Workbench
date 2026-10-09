@@ -27,7 +27,13 @@ it.skipIf(!process.env.DSH_SEGMENT_TEST_ROOT)('runs real FFmpeg and an imported 
   const zip=await readFile(join(formal,'capability-packages/audio-segment-location/dist/audio-segment-location-latest.zip'))
   const {token}=await packs.start('zip');await packs.put(token,'ability.zip',(async function*(){yield zip})());const preview=await packs.inspect(token);const installed=await packs.install(token,preview.hash,preview.revision,{trusted:true})
   await store.command(store.snapshot().revision,{type:'role.save',id:role.id,definition:{...role.draft,capabilities:[...role.draft.capabilities,{capabilityId:installed.id,version:1,enabled:true}]},publish:true})
-  const audio=await readFile(join(formal,'..','meeting-test-3min.mp3'))
+  const current=store.snapshot().roles.find(r=>r.id===role.id)!,published=structuredClone(current.versions)
+  await store.command(store.snapshot().revision,{type:'role.save',id:role.id,definition:{...current.draft,capabilities:current.draft.capabilities.filter(b=>b.capabilityId!==installed.id)},publish:false})
+  expect(store.snapshot().roles.find(r=>r.id===role.id)!.versions).toEqual(published)
+  const without=store.snapshot().roles.find(r=>r.id===role.id)!
+  await store.command(store.snapshot().revision,{type:'role.save',id:role.id,definition:{...without.draft,capabilities:[...without.draft.capabilities,{capabilityId:installed.id,version:1,enabled:true}]},publish:true})
+  await expect(store.command(store.snapshot().revision,{type:'role.save',id:role.id,definition:{...without.draft,capabilities:[...without.draft.capabilities,{capabilityId:'browser',version:1,enabled:true}]},publish:false})).rejects.toThrow('尚未接入会议流程')
+  const audio=await readFile((process.env.DSH_SEGMENT_TEST_AUDIO ?? join(formal,'..','meeting-test-3min.mp3')))
   const wait=async(id:string,status:string)=>{for(let i=0;i<600;i++){const j=await meeting.get(id);if(j.status==='error')throw Error(j.error);if(j.status===status)return j;await new Promise(r=>setTimeout(r,20))}throw Error('timeout')}
   const upload=async(mode:string,roleVersion?:number)=>{const j=await meeting.create({fileName:'test.mp3',mode,roleVersion});const req=Readable.from([audio]);Object.defineProperty(req,'complete',{value:true});await meeting.upload(j.id,req as any);return j.id}
   const quick=await wait(await upload('quick'),'ready')
@@ -46,7 +52,7 @@ it.skipIf(!process.env.DSH_SEGMENT_TEST_ROOT)('runs real FFmpeg and an imported 
   await store.command(store.snapshot().revision,{type:'capability.toggle',id:installed.id,enabled:true})
   await new Promise(r=>setTimeout(r,5))
   const cancelled=await meeting.create({fileName:'cancel.mp3',mode:'guided'})
-  const pending=segmenter.transcribe(cancelled,join(formal,'..','meeting-test-3min.mp3'),new AbortController().signal,async(_path,_name,signal)=>{
+  const pending=segmenter.transcribe(cancelled,(process.env.DSH_SEGMENT_TEST_AUDIO ?? join(formal,'..','meeting-test-3min.mp3')),new AbortController().signal,async(_path,_name,signal)=>{
     await store.command(store.snapshot().revision,{type:'capability.toggle',id:installed.id,enabled:false})
     signal.throwIfAborted();return []
   })
