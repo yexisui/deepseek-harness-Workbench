@@ -21,7 +21,7 @@ export function RequirementsFileDrop({busy,onFiles}:{busy:boolean;onFiles:(files
     onDragOver={e=>{e.preventDefault();e.stopPropagation();if(!busy)setDragging(true)}}
     onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDragging(false)}}
     onDrop={e=>{e.preventDefault();e.stopPropagation();setDragging(false);if(!busy)void onFiles(Array.from(e.dataTransfer.files))}}>
-    <span>拖入文件作为参考资料，或</span> <button disabled={busy} onClick={()=>picker.current?.click()}>选择文件（可多选）</button>
+    <strong>参考资料（可选）</strong><br/><span>拖入文件补充资料，或</span> <button disabled={busy} onClick={()=>picker.current?.click()}>添加参考文件（可多选）</button>
     <small>支持文本和代码文件，不限制文件数量；单份最多 60,000 字符，总正文最多 180,000 字符。</small>
     <input ref={picker} type="file" aria-label="选择参考资料文件" hidden multiple accept={REQUIREMENT_FILE_ACCEPT} onChange={e=>{if(!busy)void onFiles(Array.from(e.target.files??[]));e.target.value=''}}/>
   </div>

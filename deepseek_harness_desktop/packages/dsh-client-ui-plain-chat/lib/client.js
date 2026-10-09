@@ -16510,12 +16510,14 @@ window.__ModuleLoader__.load({
 					if (!busy) onFiles(Array.from(e.dataTransfer.files));
 				},
 				children: [
-					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "拖入文件作为参考资料，或" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "参考资料（可选）" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("br", {}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: "拖入文件补充资料，或" }),
 					" ",
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 						disabled: busy,
 						onClick: () => picker.current?.click(),
-						children: "选择文件（可多选）"
+						children: "添加参考文件（可多选）"
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "支持文本和代码文件，不限制文件数量；单份最多 60,000 字符，总正文最多 180,000 字符。" }),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
@@ -16540,7 +16542,7 @@ window.__ModuleLoader__.load({
 			const [pending, setPending] = (0, react.useState)(false), [dragging, setDragging] = (0, react.useState)(false);
 			const [error, setError] = (0, react.useState)(""), [notice, setNotice] = (0, react.useState)("");
 			const active = (0, react.useRef)(true), working = (0, react.useRef)(false), id = (0, react.useId)();
-			const unavailable = "请在新版桌面端选择文件夹或拖入项目文件；也可以在这里粘贴项目根目录的完整路径。";
+			const unavailable = "请在新版桌面端选择项目根目录或拖入项目文件；也可以在这里粘贴项目根目录的完整路径。";
 			(0, react.useEffect)(() => {
 				active.current = true;
 				return () => {
@@ -16562,7 +16564,7 @@ window.__ModuleLoader__.load({
 						setNotice(result.message);
 					}
 				} catch (cause) {
-					if (active.current) setError(cause instanceof Error ? cause.message : "无法识别项目路径，请重新选择文件夹。");
+					if (active.current) setError(cause instanceof Error ? cause.message : "无法识别项目路径，请重新选择项目根目录。");
 				} finally {
 					working.current = false;
 					if (active.current) {
@@ -16583,7 +16585,7 @@ window.__ModuleLoader__.load({
 				if (!bridge?.getPathForFile || !bridge.resolveProjectPaths) throw Error(unavailable);
 				if (!files.length) throw Error("请拖入本机项目文件夹或项目中的文件。");
 				const paths = files.map((file) => bridge.getPathForFile(file));
-				if (paths.some((path) => !path)) throw Error("无法获取文件的本机路径，请使用“选择文件夹”。");
+				if (paths.some((path) => !path)) throw Error("无法获取文件的本机路径，请使用“选择项目根目录”。");
 				const result = await bridge.resolveProjectPaths(paths);
 				return {
 					path: result.path,
@@ -16624,7 +16626,7 @@ window.__ModuleLoader__.load({
 							"aria-label": "项目文件夹路径",
 							"aria-describedby": `${id}-hint`,
 							value,
-							placeholder: "选择文件夹，或粘贴项目根目录路径",
+							placeholder: "选择项目根目录，或粘贴项目根目录路径",
 							disabled: disabled || pending,
 							onChange: (event) => {
 								onChange(event.target.value);
@@ -16635,13 +16637,13 @@ window.__ModuleLoader__.load({
 							type: "button",
 							disabled: disabled || pending,
 							onClick: () => void choose(),
-							children: pending ? "正在识别…" : "选择文件夹"
+							children: pending ? "正在识别…" : "选择项目根目录"
 						})]
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 						id: `${id}-hint`,
 						className: RequirementsAssistant_module_css_default.projectPickerHint,
-						children: bridge?.selectProjectDirectory ? "也可将项目文件夹或项目内的文件拖到此处，自动识别根目录。" : unavailable
+						children: bridge?.selectProjectDirectory ? "选中项目文件夹后，点击“确认根目录”即可；也可将文件夹或项目内文件拖到此处。" : unavailable
 					}),
 					notice && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 						className: RequirementsAssistant_module_css_default.projectPickerHint,
@@ -16659,7 +16661,7 @@ window.__ModuleLoader__.load({
 		//#endregion
 		//#region src/client/RequirementsNotebook.tsx
 		function RequirementsNotebook({ task, busy, mode, view, onCommand, onGuide, onFiles }) {
-			const [editing, setEditing] = (0, react.useState)(false), [rows, setRows] = (0, react.useState)([]), [projectPath, setProjectPath] = (0, react.useState)(""), [ledger, setLedger] = (0, react.useState)(true), [step, setStep] = (0, react.useState)(0), [projectOpen, setProjectOpen] = (0, react.useState)(false), [projectSelecting, setProjectSelecting] = (0, react.useState)(false);
+			const [editing, setEditing] = (0, react.useState)(false), [rows, setRows] = (0, react.useState)([]), [projectPath, setProjectPath] = (0, react.useState)(""), [ledger, setLedger] = (0, react.useState)(true), [step, setStep] = (0, react.useState)(0), [projectOpen, setProjectOpen] = (0, react.useState)(!task?.project), [projectSelecting, setProjectSelecting] = (0, react.useState)(false);
 			const baseRevision = (0, react.useRef)(void 0), dialog = (0, react.useRef)(null);
 			(0, react.useEffect)(() => {
 				if (!editing) return;
@@ -16700,7 +16702,7 @@ window.__ModuleLoader__.load({
 							children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 									onClick: () => setProjectOpen(!projectOpen),
-									children: task?.project ? "项目：" + task.project.path.split(/[\\/]/).pop() : "关联本地项目（可选）"
+									children: projectOpen ? "收起项目设置" : task?.project ? "项目：" + task.project.path.split(/[\\/]/).pop() : "选择项目根目录（可选）"
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 									onClick: edit,
@@ -16719,7 +16721,7 @@ window.__ModuleLoader__.load({
 						projectOpen && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: RequirementsAssistant_module_css_default.card,
 							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "关联项目文件夹" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "项目根目录（可选）" }),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)(ProjectFolderPicker, {
 									value: projectPath,
 									onChange: setProjectPath,

@@ -92,6 +92,8 @@ test('main directory IPC preserves explicit selection, handles cancellation and 
     dialog: { showOpenDialog: async (owner, options) => {
       assert.equal(owner, window);
       assert.deepEqual(Array.from(options.properties), ['openDirectory']);
+      assert.equal(options.buttonLabel, '确认根目录');
+      assert.equal(options.filters, undefined);
       opened++;
       if (navigate) frame.url = 'http://127.0.0.1:9999/';
       return response;

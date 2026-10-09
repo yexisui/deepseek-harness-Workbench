@@ -393,7 +393,7 @@ ipcMain.handle('desktop:select-project-directory', async (event) => {
   let result;
   try {
     result = await dialog.showOpenDialog(mainWindow, {
-      title: '选择项目根目录', buttonLabel: '选择此文件夹', properties: ['openDirectory'],
+      title: '选择项目根目录', buttonLabel: '确认根目录', properties: ['openDirectory'],
     });
   } catch {
     throw new Error('无法打开文件夹选择窗口，请重试。');

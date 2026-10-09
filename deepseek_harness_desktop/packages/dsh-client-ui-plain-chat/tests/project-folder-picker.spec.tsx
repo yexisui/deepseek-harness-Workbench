@@ -26,7 +26,7 @@ const input = () => host.querySelector<HTMLInputElement>('[aria-label="项目文
 async function click(name: string) { await act(async () => button(name).click()) }
 async function render(busy = false) {
   await act(async () => root.render(<RequirementsNotebook task={null} busy={busy} mode="quick" view="setup" onCommand={command} onGuide={() => {}}/>))
-  await click('关联本地项目（可选）')
+  expect(host.querySelector('[aria-label="项目根目录选择框"]')).not.toBeNull()
 }
 async function fill(value: string) {
   await act(async () => {
@@ -42,19 +42,33 @@ async function drop(files = [new File(['content'], 'main.ts')]) {
 }
 
 it('chooses a native directory without attaching until the user saves', async () => {
-  await render(); await click('选择文件夹')
+  await render(); await click('选择项目根目录')
   expect(input().value).toBe('C:\\项目\\语音助手')
   expect(command).not.toHaveBeenCalled()
   await click('关联项目')
   expect(command).toHaveBeenCalledWith({ type: 'project.attach', path: 'C:\\项目\\语音助手', ledger: true })
 })
 
+it('shows the root picker immediately and keeps it separate from the reference file dialog', async () => {
+  await act(async () => root.render(<RequirementsNotebook task={null} busy={false} mode="quick" view="setup" onCommand={command} onGuide={() => {}} onFiles={vi.fn(async () => {})}/>))
+  const referenceInput = host.querySelector<HTMLInputElement>('input[type="file"]')!
+  const openFiles = vi.spyOn(referenceInput, 'click').mockImplementation(() => {})
+  expect(host.querySelector('[aria-label="项目根目录选择框"]')).not.toBeNull()
+  await click('选择项目根目录')
+  expect(bridge.selectProjectDirectory).toHaveBeenCalledTimes(1)
+  expect(openFiles).not.toHaveBeenCalled()
+  await click('添加参考文件（可多选）')
+  expect(openFiles).toHaveBeenCalledTimes(1)
+  expect(bridge.selectProjectDirectory).toHaveBeenCalledTimes(1)
+  expect(command).not.toHaveBeenCalled()
+})
+
 it('retains the typed directory when the native dialog is cancelled or fails', async () => {
   await render(); await fill('C:\\原项目')
   vi.mocked(bridge.selectProjectDirectory).mockResolvedValueOnce(null)
-  await click('选择文件夹'); expect(input().value).toBe('C:\\原项目')
+  await click('选择项目根目录'); expect(input().value).toBe('C:\\原项目')
   vi.mocked(bridge.selectProjectDirectory).mockRejectedValueOnce(new Error('目录不可用'))
-  await click('选择文件夹'); expect(host.querySelector('[role="alert"]')?.textContent).toContain('目录不可用')
+  await click('选择项目根目录'); expect(host.querySelector('[role="alert"]')?.textContent).toContain('目录不可用')
   expect(input().value).toBe('C:\\原项目'); expect(command).not.toHaveBeenCalled()
 })
 
@@ -79,7 +93,7 @@ it('shows the containing-folder fallback and preserves the existing value on mix
 
 it('blocks selecting, editing and dropping while the task is busy', async () => {
   await render(true)
-  expect(button('选择文件夹').disabled).toBe(true); expect(input().disabled).toBe(true)
+  expect(button('选择项目根目录').disabled).toBe(true); expect(input().disabled).toBe(true)
   await drop(); expect(bridge.resolveProjectPaths).not.toHaveBeenCalled()
 })
 
@@ -87,7 +101,7 @@ it('disables attach until asynchronous selection finishes', async () => {
   await render(); await fill('C:\\原项目')
   let finish!: (value: string | null) => void
   vi.mocked(bridge.selectProjectDirectory).mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
-  await click('选择文件夹')
+  await click('选择项目根目录')
   expect(button('关联项目').disabled).toBe(true); expect(input().disabled).toBe(true)
   await drop(); expect(bridge.resolveProjectPaths).not.toHaveBeenCalled()
   await act(async () => finish('C:\\新项目'))
@@ -97,7 +111,7 @@ it('disables attach until asynchronous selection finishes', async () => {
 it('allows manual paths in browsers and reports unavailable native path access without guessing', async () => {
   delete desktopWindow.desktop
   await render(); await fill('C:\\项目')
-  await click('选择文件夹'); expect(host.querySelector('[role="alert"]')?.textContent).toContain('桌面端')
+  await click('选择项目根目录'); expect(host.querySelector('[role="alert"]')?.textContent).toContain('桌面端')
   await drop(); expect(input().value).toBe('C:\\项目')
   await click('关联项目'); expect(command).toHaveBeenCalledWith({ type: 'project.attach', path: 'C:\\项目', ledger: true })
 })
@@ -107,7 +121,7 @@ it('does not update the project after the picker is closed while resolving', asy
   let finish!: (value: string | null) => void
   vi.mocked(bridge.selectProjectDirectory).mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
   await act(async () => root.render(<ProjectFolderPicker value="" onChange={onChange} disabled={false} onBusyChange={onBusyChange}/>))
-  await click('选择文件夹')
+  await click('选择项目根目录')
   await act(async () => root.render(<div>另一个对话</div>))
   await act(async () => finish('C:\\旧对话的项目'))
   expect(onChange).not.toHaveBeenCalled(); expect(onBusyChange).toHaveBeenLastCalledWith(false)
