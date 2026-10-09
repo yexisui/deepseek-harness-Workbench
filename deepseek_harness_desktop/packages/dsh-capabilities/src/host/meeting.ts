@@ -333,7 +333,7 @@ export class MeetingService {
     const jev=this.jev?.begin('meeting:'+job.id)
     try {
       const text = this.transcriptText(job.segments)
-      await jev?.check('begin',{transcript:text,instruction,audience:job.audience,focus:job.focus},controller.signal)
+      await jev?.check('begin',{task:'整理会议纪要，核对转写忠实性，不执行上线审批或采购',transcript:text,instruction,audience:job.audience,focus:job.focus},controller.signal)
       const chunks = text.match(/[\s\S]{1,16000}/g) ?? []
       let source = text
       if (chunks.length > 1) {
@@ -345,7 +345,7 @@ export class MeetingService {
       const roleGuidance = job.role ? `岗位：${job.role.name}。职责：${job.role.duties}。工作要求：${job.role.requirements}。输出偏好：${job.role.format}。\n` : ''
       const prompt = `${roleGuidance}${job.role?this.skillGuidance?.(MEETING_ROLE_ID,job.role.version,undefined,Date.parse(job.createdAt))??'':''}用途：${job.audience || '通用会议纪要'}；重点：${job.focus || '结论与待办'}。${instruction ? `用户修改要求：${string(instruction, 1000)}。` : ''}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`
       const minutes = parseMinutes(await this.ask(prompt+(jev?.guidance()??''), job.summaryModel, controller.signal), job.segments)
-      const reviewed=await jev?.check('review',{transcript:text,minutes},controller.signal)
+      const reviewed=await jev?.check('review',{task:'核对纪要是否忠于转写。业务待确认项已如实标明时允许保留，不要求其实际完成。不得遗漏转写中已明确的负责人。',transcript:text,minutes},controller.signal)
       if(reviewed?.decision==='clarify')throw new InputError('JEV 纪要复核需要确认，未覆盖已有纪要：'+reviewed.summary,409)
       controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt)
       step('sources','纪要结构与来源ID检查','done','只核对结构和来源ID有效性，不代表逐条事实已人工确认')
