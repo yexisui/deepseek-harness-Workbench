@@ -149,7 +149,7 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
       await post('/generate', { id: jobId, summaryModel, ...(instruction ? { instruction } : mode === 'guided' ? { segments } : {}) })
       setJob(current => current ? { ...current, status: 'generating' } : current)
       log(instruction ? `修改纪要：${instruction}` : '核对转写并生成纪要')
-    } catch (error) { setNotice(error instanceof Error ? error.message : String(error)); setPhase(instruction ? 'ready' : 'transcript') }
+    } catch (error) { setNotice(error instanceof Error ? error.message : String(error)); if(instruction)setDraft(current=>current||instruction);setPhase(instruction ? 'ready' : 'transcript') }
     finally { setBusy(false) }
   }
   const revise = (value: string) => { if (phase !== 'ready' || !value.trim()) return; if (job?.timingStatus === 'processing') { setNotice('正在补全时间定位，请完成后再修改纪要'); return };  void generate(value) }
@@ -235,4 +235,3 @@ export function MeetingDemo({ initialState, loadModels, onSnapshot, onCommit, on
     <input ref={input} type="file" accept=".mp3,.m4a,.wav,.aac,.flac,.ogg,.opus,.webm,.mp4" hidden onChange={event => void onFile(event.target.files?.[0])}/>
   </div>
 }
-

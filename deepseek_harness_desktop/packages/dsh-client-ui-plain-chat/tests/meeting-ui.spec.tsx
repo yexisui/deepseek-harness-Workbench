@@ -58,3 +58,13 @@ it('uses the saved meeting role appearance and records its published version', a
   expect(host.querySelector('[data-role-appearance-icon="manager"]')).not.toBeNull()
   expect(onSnapshot).toHaveBeenCalledWith(expect.objectContaining({ roleVersion: 2 }))
 })
+
+it('keeps a rejected revision request in the composer instead of losing its text',async()=>{
+ (globalThis as any).IS_REACT_ACT_ENVIRONMENT=true
+ const id='11111111-1111-4111-8111-111111111111',minutes={title:'旧纪要',overview:'保留',decisions:[],actions:[],unknown:[]}
+ vi.stubGlobal('fetch',vi.fn(async(input:string)=>{const url=String(input);return new Response(JSON.stringify(url.endsWith('/generate')?{error:'当前任务忙碌'}:url.includes('/executions?')?{items:[],total:0}:url.includes('/job/')?{id,status:'ready',segments:[],minutes}:{ready:true,maxBytes:25000000}),{status:url.endsWith('/generate')?409:200})}))
+ host=document.createElement('div');document.body.append(host);root=createRoot(host)
+ await act(async()=>root!.render(<MeetingDemo initialState={{phase:'ready',mode:'quick',audience:'',focus:'',summaryModel:'',messages:[],trace:[],draft:'请突出负责人',jobId:id,showTranscript:false}}/>))
+ await act(async()=>host!.querySelector<HTMLButtonElement>('button[aria-label="发送消息"]')!.click())
+ expect(host.querySelector('textarea')?.value).toBe('请突出负责人');expect(host.textContent).toContain('当前任务忙碌');expect(host.textContent).toContain('旧纪要')
+})
