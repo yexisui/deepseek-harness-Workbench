@@ -18,8 +18,10 @@ import { AgentPresetDisclosure } from './RoleAssistants.tsx'
 
 import { BrowserTaskStatus, ManagedCurrentAssistant, ManagedRolePicker, ManagedRolesSection, MEETING_DEMO_ROLE_ID } from './ManagedRoles.tsx'
 import { DeveloperAssistant } from './DeveloperAssistant.tsx'
-import { createDeveloperHistory, usesDeveloper } from './developer-client.ts'
+import { developerApi, createDeveloperHistory, usesDeveloper } from './developer-client.ts'
 import { RequirementsAssistant } from './RequirementsAssistant.tsx'
+import { getRequirementTask, commandRequirementTask, summarizeRequirementTask } from './requirements-client.ts'
+import type { DeveloperTask } from '../../../dsh-capabilities/src/core/developer-model.ts'
 import { createRequirementHistory } from './requirement-history.ts'
 import { usesRequirements } from './requirements-routing.ts'
 import { MeetingDemo } from './MeetingDemo.tsx'
@@ -162,6 +164,31 @@ export function apply(ctx: Context): void {
     sessions.clear()
     layout.selectPanel(null)
   }
+  const renameLocalConversation = async (id: string, title: string) => {
+    if (requirementHistory.getSnapshot().items.some(row => row.id === id)) {
+      const current = await getRequirementTask(id)
+      const task = await commandRequirementTask(id, current.revision, { type: 'save', title })
+      requirementHistory.upsert(summarizeRequirementTask(task))
+      window.dispatchEvent(new CustomEvent('workbench-requirement-updated', { detail: task }))
+      return
+    }
+    if (developerHistory.getSnapshot().items.some(row => row.id === id)) {
+      const current = await developerApi<DeveloperTask>('task', { id })
+      const task = await developerApi<DeveloperTask>('settings', {}, { id, revision: current.revision, settings: { title } })
+      developerHistory.upsert(task, false)
+      window.dispatchEvent(new CustomEvent('workbench-developer-updated', { detail: task }))
+      return
+    }
+    const row = localConversations.getSnapshot().items.find(row => row.id === id)
+    if (!row) throw new Error('此会话已不存在')
+    const jobId = (row.meeting as { jobId?: string } | undefined)?.jobId
+    if (jobId) {
+      const response = await fetch('/api/capabilities/meeting/rename', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: jobId, title }) })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || '重命名失败，请重试')
+    }
+    localConversations.rename(id, title)
+  }
   const removeLocalConversation = (id: string) => {
     const developer = developerHistory.getSnapshot().items.find(item => item.id === id)
     if (developer) {
@@ -298,7 +325,7 @@ export function apply(ctx: Context): void {
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
         <div className={styles.conversationContent}>{noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
-          ? <DeveloperAssistant key={developerKey} taskId={developer?.id} draftKey={local?.id ?? developerKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={developerVersion?.version} loadModels={loadMeetingModels} onDraftChange={value => {
+          ? <DeveloperAssistant initialTitle={local?.customTitle ? local.title : undefined} key={developerKey} taskId={developer?.id} draftKey={local?.id ?? developerKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={developerVersion?.version} loadModels={loadMeetingModels} onDraftChange={value => {
             if (developerKey !== developerViewKey || sessions.list.getSnapshot().current !== undefined || developerHistory.getSnapshot().activeId) return
             const row = localConversations.active()
             if (row?.kind === 'draft' && row.role === effectiveRole && row.draft !== value) localConversations.setDraft(row.id, value)
@@ -309,7 +336,7 @@ export function apply(ctx: Context): void {
             developerHistory.upsert(task, current)
           }}/>
           : noSession && requirementSnapshot.activeId && !requirement ? <p role="status">{requirementSnapshot.error || '正在恢复需求分析…'}<button onClick={() => { void requirementHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showRequirements
-          ? <RequirementsAssistant key={analysisViewKey} taskId={requirement?.id} draftKey={local?.id ?? analysisViewKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={analysisVersion?.version} assistant={analysisVersion} loadModels={loadMeetingModels} onDraftChange={value => {
+          ? <RequirementsAssistant initialTitle={local?.customTitle ? local.title : undefined} key={analysisViewKey} taskId={requirement?.id} draftKey={local?.id ?? analysisViewKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={analysisVersion?.version} assistant={analysisVersion} loadModels={loadMeetingModels} onDraftChange={value => {
             if (analysisViewKey !== requirementViewKey || sessions.list.getSnapshot().current !== undefined || requirementHistory.getSnapshot().activeId) return
             const row = localConversations.active()
             if (row?.kind === 'draft' && row.role === effectiveRole && row.draft !== value) localConversations.setDraft(row.id, value)
@@ -322,7 +349,7 @@ export function apply(ctx: Context): void {
             requirementHistory.upsert(task, current)
           }}/>
           : noSession && (local?.kind === 'demo' || effectiveRole === MEETING_DEMO_ROLE_ID)
-          ? <MeetingDemo key={draftKey} initialState={local?.meeting} assistant={meetingVersion} roleVersion={meetingVersion?.version} loadModels={loadMeetingModels} onSnapshot={state => {
+          ? <MeetingDemo conversationTitle={local?.customTitle ? local.title : undefined} key={draftKey} initialState={local?.meeting} assistant={meetingVersion} roleVersion={meetingVersion?.version} loadModels={loadMeetingModels} onSnapshot={state => {
             const row = localConversations.active() ?? localConversations.start(MEETING_DEMO_ROLE_ID)
             localConversations.setMeeting(row.id, state, state.draft)
           }} onCommit={title => {
@@ -365,7 +392,7 @@ export function apply(ctx: Context): void {
     const open = (id: string) => { start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
     return <div ref={setHost} style={{ display: 'contents' }} onClickCapture={onClickCapture}>
       <Original {...props} t={translate} open={open} />
-      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
+      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} onRename={renameLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
         {meetings.loading && <p role="status">正在读取会议记录…</p>}{meetings.error && <p role="alert">{meetings.error}</p>}
         {meetings.unreadableCount > 0 && <p role="status">{meetings.unreadableCount} 条会议记录暂不可读，原文件已保留。</p>}
         {(meetings.hasMore || meetings.error) && <button type="button" className={historyStyles.open} disabled={meetings.loading} onClick={() => { void meetingHistory.load(!meetings.error) }}>{meetings.error ? '重试读取会议记录' : '加载更多会议记录'}</button>}
@@ -375,3 +402,5 @@ export function apply(ctx: Context): void {
   }), 'plain-chat: history label')
   ctx.effect(() => () => { start.reset(); listeners.clear() }, 'plain-chat: cleanup')
 }
+
+

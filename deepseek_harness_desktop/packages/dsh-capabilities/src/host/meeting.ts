@@ -18,6 +18,7 @@ export type MeetingAction = MeetingItem & { owner: string; deadline: string }
 export type MeetingMinutes = { title: string; overview: string; decisions: MeetingItem[]; actions: MeetingAction[]; unknown: MeetingItem[] }
 type MeetingRole = { version: number; name: string; duties: string; requirements: string; format: string }
 export type MeetingJob = {
+  title?: string;
   transcribedAt?: string; minutesGeneratedAt?: string;
   id: string; fileName: string; extension: string; size: number; createdAt: string; updatedAt: string
   mode: 'quick' | 'guided'; audience: string; focus: string; summaryModel: string
@@ -26,7 +27,7 @@ export type MeetingJob = {
   timingStatus?: 'processing' | 'ready' | 'error'; timingError?: string; timing?: { segments: MeetingSegment[]; links: Record<string, string[]> };
   error?: string; segments: MeetingSegment[]; minutes?: MeetingMinutes
 }
-export type MeetingSummary = Pick<MeetingJob, 'id' | 'mode' | 'audience' | 'focus' | 'summaryModel' | 'status' | 'updatedAt' | 'createdAt'> & { title: string; roleVersion?: number }
+export type MeetingSummary = Pick<MeetingJob, 'id' | 'mode' | 'audience' | 'focus' | 'summaryModel' | 'status' | 'updatedAt' | 'createdAt'> & { title: string; customTitle?: boolean; roleVersion?: number }
 
 const MAX_MB = 100
 const ALLOWED = new Set(['.mp3', '.m4a', '.wav', '.aac', '.flac', '.ogg', '.opus', '.webm', '.mp4'])
@@ -174,7 +175,7 @@ export class MeetingService {
       try {
         const job = await this.get(file.slice(0, -5))
         if (job.id !== file.slice(0, -5) || !Number.isFinite(Date.parse(job.updatedAt)) || !Number.isFinite(Date.parse(job.createdAt)) || !['quick','guided'].includes(job.mode) || typeof job.fileName !== 'string') throw new Error('会议记录格式无效')
-        items.push({ id: job.id, title: job.minutes?.title || job.fileName, mode: job.mode, audience: job.audience, focus: job.focus, summaryModel: job.summaryModel, status: job.status, updatedAt: job.updatedAt, createdAt: job.createdAt, roleVersion: job.role?.version })
+        items.push({ id: job.id, title: job.title || job.minutes?.title || job.fileName, customTitle: Boolean(job.title), mode: job.mode, audience: job.audience, focus: job.focus, summaryModel: job.summaryModel, status: job.status, updatedAt: job.updatedAt, createdAt: job.createdAt, roleVersion: job.role?.version })
       } catch { unreadableCount++ }
     }
     // Immutable creation time keeps paging stable while existing jobs finish or are removed.
@@ -183,6 +184,16 @@ export class MeetingService {
     const page = remaining.slice(0, limit), last = page.at(-1)
     const nextCursor = remaining.length > page.length && last ? Buffer.from(JSON.stringify({ time: Date.parse(last.createdAt), id: last.id })).toString('base64url') : undefined
     return { items: page, total: items.length, unreadableCount, nextCursor }
+  }
+  async rename(id: string, title: string) {
+    return this.track(id, async () => {
+      if (!title.trim() || title.length > 120) throw new InputError('请输入不超过120字的会话名称')
+      if (this.running.has(id) || this.timingRunning.has(id) || this.uploads.has(id)) throw new InputError('会议正在处理，请完成后再重命名', 409)
+      const job = await this.get(id)
+      job.title = title.trim()
+      await this.save(job)
+      return job
+    })
   }
   async remove(id: string) {
     if (this.removing.has(id)) throw new InputError('会议正在移除，请稍后重试', 409)
@@ -214,7 +225,7 @@ export class MeetingService {
     const extension = /\.[a-z0-9]+$/i.exec(fileName)?.[0].toLowerCase() ?? ''
     if (!ALLOWED.has(extension)) throw new InputError('不支持此录音格式；请使用 MP3、M4A、WAV 等常见格式')
     const now = new Date().toISOString()
-    const job: MeetingJob = { id: randomUUID(), fileName, extension, size: 0, createdAt: now, updatedAt: now, mode: data.mode === 'guided' ? 'guided' : 'quick', audience: string(data.audience, 100), focus: string(data.focus, 100), summaryModel: string(data.summaryModel, 200), role, status: 'uploading', segments: [] }
+    const job: MeetingJob = { title: string(data.title, 120) || undefined, id: randomUUID(), fileName, extension, size: 0, createdAt: now, updatedAt: now, mode: data.mode === 'guided' ? 'guided' : 'quick', audience: string(data.audience, 100), focus: string(data.focus, 100), summaryModel: string(data.summaryModel, 200), role, status: 'uploading', segments: [] }
     await this.save(job)
     return job
   }
