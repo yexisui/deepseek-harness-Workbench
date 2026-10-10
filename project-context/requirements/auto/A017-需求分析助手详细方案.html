@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>需求分析助手：详细方案与入口改进</title>
+  <style>
+    :root {
+      --accent: #3498db;
+      --accent-dark: #2b7db4;
+      --accent-soft: #f1f8ff;
+      --page-bg: #f8f9fa;
+      --text: #333;
+      --muted: #666;
+      --line: #d8dee3;
+      --line-strong: #b8c7d1;
+      --panel: #fff;
+      --warning-bg: #fffbe6;
+      --warning-line: #f1c40f;
+      --warning-text: #7f6000;
+      --header-height: 70px;
+      --anchor-offset: 95px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background: var(--page-bg);
+      font: 14px/1.7 "Microsoft YaHei", "SimHei", Arial, sans-serif;
+    }
+    [hidden] { display: none !important; }
+
+    .report-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(255, 255, 255, .97);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+    }
+    .header-inner {
+      width: min(100%, 1400px);
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin: 0 auto;
+      padding: 10px 20px;
+    }
+    .report-identity { min-width: 0; }
+    .header-title {
+      overflow: hidden;
+      margin: 0;
+      color: #2c3e50;
+      font-size: 17px;
+      font-weight: 750;
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .header-subtitle {
+      overflow: hidden;
+      margin-top: 2px;
+      color: #777;
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .search-box {
+      position: relative;
+      width: min(360px, 42vw);
+      margin-left: auto;
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 7px;
+      color: #777;
+      font-size: 19px;
+      pointer-events: none;
+    }
+    .search-box input {
+      width: 100%;
+      height: 40px;
+      padding: 0 40px 0 43px;
+      color: #333;
+      background: #f8f9fa;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      outline: 0;
+    }
+    .search-box input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, .15);
+    }
+    .search-shortcut {
+      position: absolute;
+      right: 10px;
+      top: 7px;
+      padding: 2px 6px;
+      color: #777;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 10px;
+      pointer-events: none;
+    }
+
+    .report-layout {
+      width: min(100%, 1400px);
+      display: grid;
+      grid-template-columns: minmax(0, 1100px) 250px;
+      align-items: start;
+      gap: 24px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+    .report-card {
+      min-width: 0;
+      padding: 40px;
+      background: var(--panel);
+      box-shadow: 0 0 10px rgba(0, 0, 0, .05);
+      overflow-wrap: anywhere;
+    }
+    .report-card > :first-child { margin-top: 0 !important; }
+    .report-card h1,
+    .report-card h2,
+    .report-card h3,
+    .report-card h4 {
+      scroll-margin-top: var(--anchor-offset);
+      line-height: 1.3;
+    }
+    .report-card h1 {
+      margin: 0 0 20px;
+      padding-bottom: 10px;
+      color: #2c3e50;
+      border-bottom: 3px solid var(--accent);
+      font-size: 30px;
+    }
+    .report-card h2 {
+      margin: 35px 0 15px;
+      color: var(--accent-dark);
+      font-size: 22px;
+    }
+    .report-card h3 {
+      margin: 28px 0 12px;
+      color: #2c3e50;
+      font-size: 18px;
+    }
+    .report-card h4 {
+      margin: 22px 0 10px;
+      color: #555;
+      font-size: 15px;
+    }
+    .report-card p { margin: 12px 0; }
+    .report-card ul, .report-card ol { margin: 12px 0; padding-left: 1.7em; }
+    .report-card li { margin: 5px 0; }
+    .report-card blockquote {
+      margin: 15px 0;
+      padding: 12px 15px;
+      color: var(--warning-text);
+      background: var(--warning-bg);
+      border-left: 5px solid var(--warning-line);
+    }
+    .report-card blockquote > :first-child { margin-top: 0; }
+    .report-card blockquote > :last-child { margin-bottom: 0; }
+    .report-card code {
+      padding: .14em .35em;
+      color: #c0392b;
+      background: #f5f5f5;
+      border: 1px solid #e5e5e5;
+      border-radius: 3px;
+      font: 13px/1.55 Consolas, "Courier New", monospace;
+    }
+    .report-card pre {
+      margin: 16px 0;
+      padding: 16px;
+      overflow: auto;
+      color: #263238;
+      background: #f5f7f9;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+    .report-card pre code { padding: 0; color: inherit; background: transparent; border: 0; }
+    .table-wrap { width: 100%; margin: 15px 0; overflow-x: auto; }
+    .report-card table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .report-card th, .report-card td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .report-card th { color: #fff; background: var(--accent); font-weight: 700; }
+    .report-card tr:nth-child(even) td { background: #f9f9f9; }
+    .report-card th:first-child, .report-card td:first-child { text-align: left; }
+    .report-card a { color: var(--accent-dark); }
+    .report-card img { display: block; max-width: 100%; height: auto; margin: 18px auto; }
+    .report-card hr { margin: 30px 0; border: 0; border-top: 1px solid var(--line); }
+    mark { padding: 0 .08em; color: inherit; background: #fff09a; border-radius: 2px; }
+
+    .metric-grid { display: flex; flex-wrap: wrap; gap: 16px; margin: 18px 0; }
+    .metric-card {
+      min-width: 190px;
+      flex: 1 1 190px;
+      padding: 15px;
+      background: var(--accent-soft);
+      border-left: 5px solid var(--accent);
+      border-radius: 6px;
+    }
+    .metric-label { color: #555; font-size: 13px; }
+    .metric-value { margin-top: 4px; color: #2c3e50; font-size: 27px; font-weight: 750; }
+    .metric-note { margin-top: 3px; color: #777; font-size: 12px; }
+
+    .nav-panel {
+      position: sticky;
+      top: calc(var(--header-height) + 20px);
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+    }
+    .nav-title {
+      padding: 12px 16px;
+      color: #2c3e50;
+      background: var(--accent-soft);
+      border-bottom: 1px solid var(--line-strong);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .section-nav {
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100dvh - var(--header-height) - 100px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .section-nav a {
+      min-height: 44px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      padding: 11px 15px;
+      color: #555;
+      border-bottom: 1px solid #e1e6ea;
+      border-left: 4px solid transparent;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.45;
+      text-decoration: none;
+    }
+    .section-nav a:last-child { border-bottom: 0; }
+    .section-nav a:hover { color: var(--accent-dark); background: #f8fafc; }
+    .section-nav a.active {
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+      border-left-color: var(--accent);
+    }
+    .section-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+    .nav-empty { padding: 16px; color: #777; font-size: 12px; }
+    .search-status {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 40;
+      padding: 8px 12px;
+      color: #fff;
+      background: rgba(44, 62, 80, .9);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1180px) {
+      .report-layout { grid-template-columns: minmax(0, 1fr) 220px; gap: 16px; }
+    }
+    @media (max-width: 700px) {
+      .header-inner { min-height: 0; flex-wrap: wrap; padding: 10px 14px; }
+      .report-identity { width: 100%; }
+      .header-title { white-space: normal; }
+      .search-box { width: 100%; margin: 0; }
+      .report-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-areas: "nav" "content";
+        gap: 12px;
+        padding: 14px 10px 45px;
+      }
+      .report-card { grid-area: content; padding: 24px 16px 40px; font-size: 13px; }
+      .report-card h1 { font-size: 24px; }
+      .report-card h2 { font-size: 20px; }
+      .report-card h3 { font-size: 17px; }
+      .nav-panel { position: static; grid-area: nav; }
+      .section-nav { max-height: 35vh; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+    @media print {
+      .report-header, .nav-panel, .search-status { display: none !important; }
+      body { background: #fff; }
+      .report-layout { display: block; width: auto; margin: 0; padding: 0; }
+      .report-card { margin: 0; padding: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="report-header">
+    <div class="header-inner">
+      <div class="report-identity">
+        <div class="header-title">需求分析助手：详细方案与入口改进</div>
+        <div class="header-subtitle">原会话内选择分析方式 · 2026-09-29实施记录</div>
+      </div>
+      <label class="search-box">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="reportSearch" type="search" placeholder="搜索报告内容" autocomplete="off" aria-label="搜索报告内容">
+        <span class="search-shortcut" aria-hidden="true">/</span>
+      </label>
+    </div>
+  </header>
+
+  <div class="report-layout">
+    <main class="report-card" id="reportContent"><h1>A017 需求分析助手详细交互与实施方案</h1>
+<blockquote><p>原方案与第一版实施记录保留。用户已确认会话内方式选择方案；本轮已部署 local.11，等待正常重启体验。第 20 节为第一版记录，第 21 节保留讨论时方案，第 22 节记录本轮已实现行为、验证及回退信息。</p></blockquote>
+<ul><li>编号：A017；记录来源：助手自动记录，响应用户“参考会议纪要助手，提供包含功能选项卡的详细方案”的要求。</li><li>创建/更新时间：2026-09-29。</li><li>建议定位：帮助业务人员把想法和资料整理为可评审、可交给开发与测试的需求说明。</li><li>范围假设：先服务企业办公业务，使用现有工作台模型与本机数据存储；具体业务模板可调整。</li><li>返回：<a href="../../PEFR_PLAN.MD">事项台账</a>；阅读版：<a href="A017-需求分析助手详细方案.html">离线 HTML 详细方案</a>。</li></ul>
+<h2>1. 推荐方案总览</h2>
+<p>采用“对话引导 + 结构化需求工作区 + 操作轨迹”的结构。保留现有岗位入口、历史会话栏、角色外观和底部输入方式；给需求分析增加能够持续编辑和保存的业务结果。</p>
+<div class="table-wrap"><table><thead><tr><th>层级</th><th>建议设置</th><th>作用</th></tr></thead><tbody><tr><td>开始方式</td><td>快速整理、引导分析</td><td>分别适合已有资料、只有初步想法的情况</td></tr><tr><td>主选项卡</td><td>对话、需求工作区、轨迹</td><td>讨论、管理结果、查看实际操作记录</td></tr><tr><td>工作区子选项卡</td><td>概览、资料、需求清单、流程与规则、待确认、需求文档</td><td>六个入口围绕同一份分析数据工作</td></tr><tr><td>版本入口</td><td>放在需求文档中：当前草稿、已确认版本、版本记录</td><td>避免额外增加一排主选项卡</td></tr><tr><td>能力管理</td><td>沿用能力中心的五个选项卡及三栏组件编辑器</td><td>统一功能配置、组件关联和岗位引用</td></tr><tr><td>第一版成果</td><td>可编辑的需求条目、待确认清单、需求说明、确认快照</td><td>保存后重开可接着处理，并能交付讨论稿或确认版本</td></tr></tbody></table></div>
+<p>推荐第一版完成六个子页的基础行为。流程与规则先用步骤表和规则表，文档先提供 Markdown、复制和系统打印；文件解析、图形编辑及跨助手交接随后接入。</p>
+<h2>2. 会议纪要助手已经具备什么</h2>
+<p>本节依据正式源码静态核对和 A014/A016 实施记录，未在本轮重新运行会议任务或验证正式语音接口。</p>
+<div class="table-wrap"><table><thead><tr><th>已核对的会议助手行为</th><th>需求分析可借鉴的方式</th><th>本次新增设计</th></tr></thead><tbody><tr><td>外层岗位入口、侧栏会话和原有内容容器</td><td>共用工作台布局和岗位外观</td><td>需求会话挂载专用分析视图</td></tr><tr><td>主选项卡为“对话 / 轨迹”</td><td>对话内出现阶段卡片，轨迹记录步骤</td><td>增加“需求工作区”管理长期结果</td></tr><tr><td>快速生成：选择方式 → 上传录音 → 自动转写并生成纪要</td><td>已有资料先产生可讨论的草稿</td><td>资料提取后列出需求与缺项</td></tr><tr><td>引导整理：用途 → 重点 → 上传 → 核对转写 → 生成</td><td>分步提问、选项加自由输入</td><td>目标 → 角色与流程 → 规则 → 验收的可回访问题</td></tr><tr><td>纪要内容包含概览、结论、行动项、待确认</td><td>用稳定结构承载结果</td><td>需求编号、来源、确认状态、验收条件和关联问题</td></tr><tr><td>纪要引用转写片段，可跳转回听</td><td>每条结论能回到资料依据</td><td>来源定位到聊天消息、资料段落或会议条目</td></tr><tr><td>结果可复制、打印/保存 PDF、继续对话修改、换模型生成</td><td>共用导出和模型选择的交互方式</td><td>重新生成先形成修改建议，采用后更新需求草稿</td></tr><tr><td>后台任务保存 jobId，重开会话再读取结果</td><td>服务端保存结果与处理状态</td><td>需求数据、确认快照和恢复索引由服务端保存</td></tr><tr><td>会议能力有概览与连接、使用说明、默认配置、关联组件、使用岗位</td><td>复用统一管理导航和组件编辑</td><td>新增真实需求分析组件及其执行适配器</td></tr></tbody></table></div>
+<h3>当前实现中的边界</h3>
+<ul><li>会议结果已由服务端存储；客户端会话包装仍使用本地存储和历史 demo 命名。需求分析应新增清楚的数据类型，不能把需求数据塞进 meeting 字段。</li><li>当前本地行存储有 40 条截取逻辑。需求任务列表应有独立的服务端索引与分页，不能因会话列表限制丢失已保存的需求。</li><li>会议源码的轨迹主要是前端步骤文本。需求轨迹涉及确认、版本和恢复，应记录服务端实际完成的事件。</li><li>源码中“换模型重新生成”针对当前结果操作。需求修改应保留前后差异和人工修改，不能简单覆盖已确认内容。</li><li>语音服务和浏览器接管各有待验收项；需求文本分析可以独立完成，不把这些服务当作已经验证的前置条件。</li></ul>
+<h2>3. 页面布局与导航</h2>
+<h3>页面骨架</h3>
+<div class="table-wrap"><table><thead><tr><th>区域</th><th>显示内容</th><th>操作</th></tr></thead><tbody><tr><td>工作台左侧</td><td>原历史会话栏，需求分析记录使用岗位图标</td><td>新建、重开、重命名、通过省略号菜单移除</td></tr><tr><td>岗位入口</td><td>需求分析助手名称、现有图标与颜色</td><td>进入岗位配置，行为沿用当前工作台</td></tr><tr><td>分析标题栏</td><td>分析名称、保存状态、已确认数量、待确认数量</td><td>修改名称、选择模型、打开本次分析设置、更多</td></tr><tr><td>主导航</td><td>对话 / 需求工作区 / 轨迹</td><td>切换视图，保持输入、筛选和编辑草稿</td></tr><tr><td>主内容</td><td>对话消息流，或六个工作区子页，或事件列表</td><td>根据当前页面执行操作</td></tr><tr><td>底部输入框</td><td>文字输入、添加资料、模型入口、当前讨论对象</td><td>对当前需求、流程、问题或全文提出要求</td></tr></tbody></table></div>
+<p>桌面宽屏下，对话页右侧可打开紧凑结果预览；默认收起，用户点击“查看本轮结果”或某条需求时展开。需要完整编辑时进入需求工作区。这样既能边聊边核对，也有足够空间处理需求表格。</p>
+<p>窄屏时使用全宽单栏：主导航保持可用，六个子页可横向滚动，需求详情改为全宽抽屉或独立详情区。键盘能切换页签、打开条目及返回；焦点不因后台结果刷新跳走。</p>
+<h3>输入框的上下文</h3>
+<ul><li>对话页默认显示“讨论整个需求”。</li><li>在需求详情点击“围绕此项讨论”后，输入框显示“当前讨论：REQ-003 报销审批”的可移除标记。</li><li>在待确认页点击问题，输入框改为“回答 Q-004”。</li><li>用户可以移除标记恢复全局讨论。页面切换不自动把文字发送给模型。</li><li>在轨迹页显示“返回对话继续讨论”入口；轨迹筛选和业务输入分开，避免误发。</li><li>分析期间可以继续编辑输入草稿；发送按钮说明当前任务是否需要先结束，不吞掉已输入文字。</li></ul>
+<h2>4. 首次进入和两条处理路线</h2>
+<h3>欢迎页</h3>
+<p>建议文案：“描述你想解决的问题，或提供已有资料。我会帮你梳理流程、功能和待确认事项，逐步形成需求说明。”</p>
+<div class="table-wrap"><table><thead><tr><th>入口</th><th>卡片说明</th><th>点击后</th></tr></thead><tbody><tr><td>快速整理</td><td>已有描述、纪要或初稿，先整理出需求清单</td><td>显示粘贴资料、添加文本文件和分析选项</td></tr><tr><td>引导分析</td><td>从一个想法开始，分步把需求讲清楚</td><td>先询问业务目标与当前问题</td></tr></tbody></table></div>
+<p>在未选择路线时直接输入文字，可以提交为首次业务描述，默认按引导分析接续，显示当前方式并允许切换。此行为为需求助手建议，会议助手目前要求先选方式。</p>
+<h3>快速整理</h3>
+<ol><li>输入分析名称，可先留空并由首段描述生成可编辑标题。</li><li>粘贴描述或添加文本资料，给资料命名。</li><li>选择输出用途、整理深度、重点；均有默认值。</li><li>点击“开始整理”，显示实际处理阶段：读取资料、提取需求、整理问题、形成草稿。</li><li>完成后消息卡显示数量，例如“发现 8 条候选需求、3 个待确认问题”；数量来自实际数据。</li><li>用户查看本轮结果，选择需要采用的条目；采用进入工作草稿，确认业务需求是另一步。</li><li>可以立即导出标明待确认的讨论稿，也可转入引导澄清。</li></ol>
+<h3>引导分析</h3>
+<div class="table-wrap"><table><thead><tr><th>阶段</th><th>主要问题</th><th>输出</th></tr></thead><tbody><tr><td>目标与现状</td><td>想解决什么问题，当前怎么做，最影响工作的是什么</td><td>目标、问题、预期效果</td></tr><tr><td>角色与范围</td><td>谁使用、谁审核、哪些环节本次要做</td><td>角色与职责、本次包含/暂不包含</td></tr><tr><td>业务过程</td><td>从什么情况开始，先后步骤是什么</td><td>正常流程和初步功能</td></tr><tr><td>规则与异常</td><td>退回、撤销、权限、条件、限制如何处理</td><td>业务规则、分支和待确认点</td></tr><tr><td>数据与验收</td><td>输入什么、得到什么，什么结果算完成</td><td>字段要点、输出、验收标准</td></tr><tr><td>汇总核对</td><td>理解是否准确，还有哪些遗漏</td><td>可确认的需求清单和文档草稿</td></tr></tbody></table></div>
+<p>每轮建议 2—3 个问题，不用固定长问卷。答案能从已提供资料确定时先给依据并请核对；缺少信息时提问。阶段只是整理顺序，用户可以回到任意阶段修改，跳过不会自动当作否定答案。</p>
+<h3>两条路线共用的设置</h3>
+<div class="table-wrap"><table><thead><tr><th>设置</th><th>选项</th><th>建议默认值</th></tr></thead><tbody><tr><td>输出用途</td><td>业务讨论、需求评审、开发交接</td><td>业务讨论</td></tr><tr><td>整理深度</td><td>简要清单、标准需求说明、详细规格</td><td>标准需求说明</td></tr><tr><td>关注重点</td><td>流程、权限、数据、异常、对接、性能与使用体验</td><td>流程、权限、异常</td></tr><tr><td>模型</td><td>工作台默认模型、已有模型列表</td><td>跟随工作台默认；每次任务保存实际使用的模型</td></tr><tr><td>提问节奏</td><td>少量关键问题、逐项详细核对</td><td>少量关键问题</td></tr><tr><td>输出语言</td><td>中文或用户指定语言</td><td>中文</td></tr></tbody></table></div>
+<p>详细规格只增加梳理字段和问题，不会让模型凭空补齐业务规则。模型切换影响后续运行，已有结果保持到用户主动采用新建议。</p>
+<h2>5. 主选项卡：对话</h2>
+<p>对话页承担访谈、解释、讨论和修改建议，结果在工作区中有对应条目。</p>
+<div class="table-wrap"><table><thead><tr><th>消息卡片</th><th>内容</th><th>按钮与行为</th></tr></thead><tbody><tr><td>路线选择卡</td><td>快速整理、引导分析及简短说明</td><td>选择后进入对应流程</td></tr><tr><td>澄清问题卡</td><td>为什么问、已有依据、建议选项和自由回答</td><td>提交回答、暂时跳过、标记待确认</td></tr><tr><td>本轮结果卡</td><td>新增/修改的需求数、流程数、问题数</td><td>查看结果、逐项采用、继续澄清</td></tr><tr><td>修改建议卡</td><td>修改前后对照、涉及条目和可能影响</td><td>采用选中、不采用、补充要求</td></tr><tr><td>来源卡</td><td>引用资料名称、片段和定位信息</td><td>查看原文、回到对应问题</td></tr><tr><td>检查结果卡</td><td>冲突、遗漏、含糊或无法核实的内容</td><td>查看问题、标记不适用、补充依据</td></tr><tr><td>文档卡</td><td>文档名称、采用的数据版本、草稿或确认版本</td><td>查看、复制、导出、按要求修改</td></tr><tr><td>处理状态卡</td><td>实际阶段、错误原因、恢复入口</td><td>停止生成、重试失败步骤</td></tr></tbody></table></div>
+<p>建议快捷操作：整理需求清单、补充异常流程、检查权限遗漏、把本轮整理成文档。每个操作都展示作用范围；用户选中 REQ-003 后“补充异常流程”只针对该需求及相关流程。</p>
+<p>“停止生成”停止本次后台任务或拒绝继续采用其返回内容；已经保存的草稿和上一版成果保留。模型无法中止网络请求时，显示“已停止接收本次结果”，不能虚报远端调用已取消。</p>
+<h2>6. 工作区选项卡：概览</h2>
+<p>概览让用户快速知道这次分析的目标、进展和下一步。</p>
+<div class="table-wrap"><table><thead><tr><th>区块</th><th>字段</th><th>操作</th></tr></thead><tbody><tr><td>基本信息</td><td>名称、业务背景、问题、目标、适用人员</td><td>编辑、围绕此项讨论</td></tr><tr><td>范围</td><td>本次包含、暂不包含、外部依赖</td><td>添加条目、调整归属、记录理由</td></tr><tr><td>进展</td><td>已整理需求、已确认需求、待确认问题、待复核需求数量</td><td>点击数量进入带筛选的列表</td></tr><tr><td>待办提示</td><td>关键问题未回答、需求缺少验收条件、文档需要更新</td><td>直接跳转到对应条目</td></tr><tr><td>最近变化</td><td>最近采用的修改、最近确认版本</td><td>查看差异、打开版本</td></tr></tbody></table></div>
+<p>不显示缺少依据的“需求成熟度 93%”。若显示比例，明确是“已确认 6 / 10 条需求”等可计算数据。</p>
+<p>修改目标或范围时，展示可能受影响的需求，用户决定调整哪些条目；助手不能直接删除不再符合新目标的需求。</p>
+<h2>7. 工作区选项卡：资料</h2>
+<h3>页面组织</h3>
+<p>左侧或上方为资料列表，主区为原文预览与定位。资料行显示名称、类型、来源、添加时间、处理状态和引用数量。</p>
+<div class="table-wrap"><table><thead><tr><th>输入方式</th><th>第一版</th><th>后续扩展</th></tr></thead><tbody><tr><td>手工输入、粘贴文本</td><td>支持，可命名和分段</td><td>—</td></tr><tr><td>TXT、Markdown</td><td>支持，检查编码和大小，解析后预览</td><td>增加批量导入与资料分组</td></tr><tr><td>会议纪要</td><td>可粘贴已有纪要并注明来源</td><td>从已保存会议任务中选取纪要/转写</td></tr><tr><td>Word、文本 PDF、表格</td><td>第二阶段实现真实解析后开放</td><td>表格选页、列映射、页码定位</td></tr><tr><td>扫描件、图片</td><td>需 OCR 或视觉适配支持后开放</td><td>显示识别状态并允许核对</td></tr><tr><td>网页和知识库</td><td>需真实浏览器或检索路由后开放</td><td>保存取得时间、引用位置和快照</td></tr></tbody></table></div>
+<h3>按钮与规则</h3>
+<ul><li>“添加资料”：选择已支持的输入方式；未接入的方式在规划中列出，正式界面不显示可用假入口。</li><li>“查看原文”：定位到需求引用的段落；来源同时保留原文快照及段落标识。</li><li>“重新整理此资料”：列出可能新增、修改、重复或冲突的需求，采用前不覆盖工作草稿。</li><li>“编辑资料”：保存新的资料修订。既有需求仍指向旧修订，并标记来源有更新，供用户核对。</li><li>“从本次分析移除”：取消其参与后续分析；已有引用保留当时片段和移除标记。彻底清除被引用原文需说明影响，并将相关需求改为来源缺失/待复核。</li><li>“重复资料”：根据内容标识提示已添加，不重复产生同一批条目；用户可作为新版本保存。</li></ul>
+<p>解析状态分别显示待处理、处理中、可用、部分可用、失败。超出处理范围时说明哪些页或段落尚未处理，不把截断内容当作整份资料分析完成。</p>
+<h2>8. 工作区选项卡：需求清单</h2>
+<p>这是整个功能的核心页面。默认列表按模块分组，支持搜索、状态、优先级、类型、来源筛选。</p>
+<h3>默认列表列项</h3>
+<div class="table-wrap"><table><thead><tr><th>列</th><th>示例</th><th>说明</th></tr></thead><tbody><tr><td>编号</td><td>REQ-001</td><td>稳定编号，删除后不重排其他编号</td></tr><tr><td>标题</td><td>员工提交报销申请</td><td>用具体行为命名</td></tr><tr><td>模块</td><td>报销管理</td><td>可手工调整分组</td></tr><tr><td>类型</td><td>功能 / 非功能 / 约束</td><td>分类可以编辑</td></tr><tr><td>优先级</td><td>必须 / 应该 / 可以 / 暂缓</td><td>助手可建议，用户确定</td></tr><tr><td>确认状态</td><td>待确认 / 已确认 / 待复核 / 暂缓</td><td>不与开发进度混用</td></tr><tr><td>来源</td><td>资料 2·第 4 段</td><td>点击定位，助手建议单独标识</td></tr><tr><td>待处理</td><td>2 个关联问题</td><td>点击打开相关问题</td></tr></tbody></table></div>
+<h3>需求详情抽屉</h3>
+<p>默认展开标题、描述、角色、优先级、验收标准、来源、状态。其余字段分组折叠：</p>
+<ol><li>业务信息：目标、触发条件、前置条件、正常步骤、结果。</li><li>业务规则：判断条件、权限、异常、限制、关联规则编号。</li><li>数据信息：输入字段、输出内容、校验要点、需要对接的对象。</li><li>验收标准：场景、操作、预期结果；一条需求可包含多项。</li><li>关联信息：来源、关联流程、依赖需求、相关问题、修改历史。</li></ol>
+<h3>操作按钮</h3>
+<div class="table-wrap"><table><thead><tr><th>操作</th><th>行为</th></tr></thead><tbody><tr><td>新增需求</td><td>手工填写最少字段，先保存待确认草稿</td></tr><tr><td>编辑</td><td>保留未保存草稿；采用前查看已确认内容的变化</td></tr><tr><td>围绕此项讨论</td><td>将稳定编号放入对话上下文</td></tr><tr><td>拆分</td><td>先预览新条目，采用后保留原条目的替代关系和来源</td></tr><tr><td>合并</td><td>先选择条目并预览；保留原编号到新条目的引用关系</td></tr><tr><td>确认需求</td><td>展示待确认内容与关联关键问题；通过业务校验后确认</td></tr><tr><td>暂缓</td><td>填写可选原因，移入暂缓筛选，不丢弃原文</td></tr><tr><td>移除</td><td>软移除，提供撤销或已移除筛选，显示相关文档/流程影响</td></tr><tr><td>批量操作</td><td>对明确勾选的集合调整模块、优先级或确认；提交前核对范围</td></tr></tbody></table></div>
+<p>筛选后的全选只选择当前结果。若所选条目在后台改变，确认操作要求重新核对，防止确认不是刚刚看到的内容。</p>
+<h3>一条需求的示例</h3>
+<div class="table-wrap"><table><thead><tr><th>字段</th><th>示例</th></tr></thead><tbody><tr><td>编号 / 标题</td><td>REQ-002：审批人退回报销申请</td></tr><tr><td>描述</td><td>审批人可以将申请退回给提交人，并填写退回原因</td></tr><tr><td>前置条件</td><td>当前申请处于该审批人可处理的审批环节</td></tr><tr><td>验收 1</td><td>审批人填写原因并点击退回，状态变为“待修改”，提交人可查看原因</td></tr><tr><td>验收 2</td><td>无审批权限的用户不能执行退回操作</td></tr><tr><td>待确认</td><td>原因是否必填；重新提交后从哪一级开始审批</td></tr><tr><td>来源 / 状态</td><td>访谈描述第 3 段；待确认</td></tr></tbody></table></div>
+<p>以上只演示字段和交互，示例规则不能直接写入用户实际业务。</p>
+<h2>9. 工作区选项卡：流程与规则</h2>
+<p>在一个子页内提供“业务流程 / 业务规则”两个视图切换，避免把所有业务对象挤进主导航。</p>
+<h3>业务流程</h3>
+<p>第一版采用步骤表：步骤编号、执行角色、动作、输入、输出、进入条件、下一步、异常分支、关联需求。</p>
+<p>可用操作：新增步骤、插入步骤、调整顺序、添加分支、关联需求、检查断点、围绕流程讨论。这里的排序代表业务过程次序，不表示工作台已经实现自动执行这些步骤。</p>
+<p>检查项：是否缺少开始/结束、分支是否没有出口、退回后如何继续、执行人是否不明确、步骤是否没有对应需求。检查结果进入待确认列表。</p>
+<p>第二阶段可由同一份步骤和分支数据生成流程图。先支持查看和定位，复杂拖拽绘图单列后续范围。</p>
+<h3>业务规则</h3>
+<div class="table-wrap"><table><thead><tr><th>字段</th><th>示例</th></tr></thead><tbody><tr><td>编号</td><td>RULE-001</td></tr><tr><td>名称</td><td>报销金额对应审批层级</td></tr><tr><td>适用条件</td><td>申请金额属于指定区间</td></tr><tr><td>处理规则</td><td>采用对应审批路径</td></tr><tr><td>例外</td><td>特殊费用或代理审批是否适用，待确认</td></tr><tr><td>关联需求</td><td>REQ-001、REQ-003</td></tr><tr><td>来源与状态</td><td>用户描述，待补充金额区间</td></tr></tbody></table></div>
+<p>金额阈值、审批层级、保存期限、性能指标等缺失时显示未确定，不自动填入常见行业值。权限矩阵、字段表可以作为本页的折叠区，基础版先做简单表格，详细规格逐步丰富。</p>
+<h2>10. 工作区选项卡：待确认</h2>
+<p>集中处理问题，避免答案散落在长对话里。</p>
+<div class="table-wrap"><table><thead><tr><th>分类</th><th>示例</th></tr></thead><tbody><tr><td>缺失信息</td><td>谁拥有最终审批权？</td></tr><tr><td>来源冲突</td><td>会议纪要说两级审批，现行说明说三级</td></tr><tr><td>表述含糊</td><td>“尽快处理”具体指多长时间？</td></tr><tr><td>决策选项</td><td>退回后从第一步审批，还是回到原审批人？</td></tr><tr><td>影响复核</td><td>审批层级变更后，通知和权限是否也要调整？</td></tr></tbody></table></div>
+<p>每项包括编号、问题、为什么需要确认、已知依据、建议选项、影响的需求、是否阻止确认、状态及答复记录。</p>
+<p>按钮：回答、查看依据、暂缓、标记不适用、重新打开。回答可选按钮或自由输入；“不确定”保留待确认，不当作已解决。是否阻止确认由具体业务依赖判断，并可由用户说明理由调整。</p>
+<p>用户回答后，助手给出受影响条目的修改建议。只有采用建议或人工完成对应编辑，问题才进入已解决；若答案只是背景说明则保留问题。已经回答过的问题保留原答案，再次出现冲突时建立关联提示，不重复盲问。</p>
+<p>页签徽标统计待回答/待处理问题；“全部已解决”只依据记录状态，不代表业务需求已获外部审批。</p>
+<h2>11. 工作区选项卡：需求文档</h2>
+<h3>文档结构</h3>
+<p>默认“标准需求说明”包含：</p>
+<ol><li>文档名称、分析范围、版本和状态。</li><li>业务背景、问题和目标。</li><li>本次范围、暂缓范围、约束与外部依赖。</li><li>使用角色及职责。</li><li>业务流程。</li><li>功能需求清单及详细条目。</li><li>业务规则、权限和数据要点。</li><li>非功能需求与约束。</li><li>验收标准。</li><li>待确认事项与资料来源。</li><li>修订记录。</li></ol>
+<p>“简要清单”只呈现目标、范围、需求和问题；“详细规格”展开字段、条件、异常与对接要求。不存在的数据明确留空或列为待确认。</p>
+<h3>顶部控制和操作</h3>
+<div class="table-wrap"><table><thead><tr><th>控件</th><th>行为</th></tr></thead><tbody><tr><td>模板选择</td><td>简要清单 / 标准需求说明 / 详细规格</td></tr><tr><td>内容范围</td><td>全部当前需求 / 已确认需求 / 勾选条目</td></tr><tr><td>版本选择</td><td>当前草稿 / 某个已确认版本</td></tr><tr><td>生成或更新预览</td><td>依据指定数据修订生成；内容过期时提示待更新</td></tr><tr><td>调整表达</td><td>只修改选定章节的叙述，业务语义变化仍转为需求修改建议</td></tr><tr><td>复制 / 导出 Markdown</td><td>导出当前所选版本，文件名包含标题和版本</td></tr><tr><td>打印 / 保存 PDF</td><td>复用系统打印方式，显示打印预览；不是后台直接生成 PDF</td></tr><tr><td>保存确认版本</td><td>检查所选范围、关键问题和验收条件，用户核对后生成不可变快照</td></tr><tr><td>版本记录</td><td>查看创建时间、范围、差异说明；旧版本可读、可导出、可恢复到新草稿</td></tr></tbody></table></div>
+<h3>草稿与确认版本</h3>
+<ul><li>讨论稿允许包含待确认和暂缓内容，并清楚标记；用户可以随时导出。</li><li>确认版本针对明确选择的范围。该范围内的需求必须已确认，关键问题已解决且验收条件齐全；其他范围的问题不阻塞本次有限范围确认。</li><li>保存确认版本记录本工作台中的确认事实，不等同于组织审批或相关部门签字。</li><li>修改已确认需求时，旧快照保留；工作草稿中的相关需求变为待复核，只有重新确认才能进入下一份确认版本。</li><li>恢复历史版本创建新的工作草稿，先显示将被替换的未保存内容；不会覆盖现有版本历史。</li><li>结构化需求是业务事实来源。第一版不开放与条目无关联的整篇自由编辑器；章节补充说明单独保存，重新生成时保留，避免文档和清单出现两套规则。</li></ul>
+<h2>12. 主选项卡：轨迹</h2>
+<p>轨迹记录已经发生的操作与结果，便于解释需求如何形成。</p>
+<div class="table-wrap"><table><thead><tr><th>事件</th><th>显示内容</th></tr></thead><tbody><tr><td>添加/更新资料</td><td>名称、资料修订、时间、处理结果</td></tr><tr><td>发起分析</td><td>本次操作、输入范围、选定模型、开始时间</td></tr><tr><td>分析完成或失败</td><td>候选条目数量、失败阶段、是否已采用</td></tr><tr><td>回答问题</td><td>问题编号、回答来源、相关变更</td></tr><tr><td>采用修改</td><td>涉及条目、前后差异、发生时间</td></tr><tr><td>确认需求</td><td>所确认的需求与修订、操作时间</td></tr><tr><td>保存确认版本</td><td>版本、范围、需求数量、说明</td></tr><tr><td>导出</td><td>导出格式、所选版本、完成状态</td></tr><tr><td>停止/重试/恢复</td><td>对应任务和恢复结果</td></tr></tbody></table></div>
+<p>支持按全部、资料、分析、修改、确认、导出筛选。点击事件可回到相关条目或版本。模型内部推理不作为轨迹内容；错误与诊断信息只展示处理问题所需的简明说明。</p>
+<h2>13. 与会议纪要助手的联动</h2>
+<p>建议作为第二阶段优先项，先完成“从会议导入需求”，再考虑从会议侧新增跳转按钮。</p>
+<h3>需求助手侧入口</h3>
+<p>资料页 → 添加资料 → 从会议纪要导入 → 选择会议 → 选择内容 → 预览 → 导入。</p>
+<p>可以选择会议概览、主要结论、行动项、待确认事项、完整转写。默认选择主要结论和待确认事项；用户可以调整。行动项先识别为任务或跟进事项，不自动视为软件功能需求。</p>
+<h3>导入后的关系</h3>
+<ul><li>保存会议任务 ID、导入时间、内容指纹和所选内容快照；当前会议数据没有独立版本号时使用快照标识，不能伪造会议版本。</li><li>引用到转写片段时保留片段 ID 和实际时间信息。来源仍存在且有权限时，可跳转查看或回听；只有全文时不显示虚假时间戳。</li><li>分析结果修改仅作用于需求任务。原纪要更新后提示有新内容，用户选择是否导入差异。</li><li>原会议被删除后，已导入文本快照仍可解释需求来源，显示原任务已不可用；不能再回听已删除录音。</li><li>一个会议可以为多个分析任务提供资料。每次导入范围明确，不能默认把全部会议记录送给模型。</li></ul>
+<p>直接在需求助手内录音会牵涉音频上传、转写配置和任务归属，建议后续通过真实转写适配器复用，不在第一版另造一套语音设置。</p>
+<h2>14. 能力中心与岗位配置</h2>
+<h3>新增能力的组织方式</h3>
+<p>建议能力名“需求分析”，先登记一个真实“需求分析服务”业务组件，提供资料整理、澄清问题、需求整理、检查、文档生成等明确动作。六个工作区页签是产品视图，不强行拆成六个可以任意拔除的假插件。</p>
+<p>工作台模型与存储属于共享运行依赖。文件解析、会议导入等在具备真实执行适配后登记为相应组件或动作；首版可用动作和依赖以实现后的描述为准。</p>
+<div class="table-wrap"><table><thead><tr><th>沿用的管理选项卡</th><th>需求分析能力中显示什么</th></tr></thead><tbody><tr><td>概览与连接</td><td>组件是否完整、能力是否启用、模型是否选择、最近实际运行结果；保留共享页签名，具体状态用模型与服务描述</td></tr><tr><td>使用说明</td><td>适合的任务、支持的资料、提问方式、确认和输出规则</td></tr><tr><td>默认配置</td><td>默认模板、分析深度、提问节奏、默认模型来源；通过统一配置入口保存</td></tr><tr><td>关联组件</td><td>已登记的真实组件、动作、必需性、配置/详情入口、共享三栏编辑器</td></tr><tr><td>使用岗位</td><td>引用岗位、已发布版本、查看/编辑岗位入口</td></tr></tbody></table></div>
+<p>能力中心继续使用全部、收藏、待就绪、未使用、回收站分类。组件缺失草稿可以保存；发布时前后端都检查必需动作和兼容性。移除组件影响能力草稿，正在使用的发布版本继续按既有权限判定。</p>
+<p>模型账户/密钥只在原工作台服务配置中管理。能力保存默认选择和策略，任务记录实际采用的模型与设置快照。展示“已选择模型”和“最近运行成功”两类状态，不把配置存在写成模型连通。</p>
+<h3>岗位接入和兼容</h3>
+<ul><li>现有 builtin-analyst 保持身份、名称、颜色、图标、职责及用户编辑；能力绑定通过可追溯的新发布版本接入，旧发布版本及草稿保留。</li><li>已有普通需求岗位聊天仍按原历史会话打开，不强行转换为结构化任务。可由用户在新分析中粘贴内容，后续再提供明确的聊天导入。</li><li>新分析任务记录岗位及能力的实际发布版本，打开历史分析使用其绑定信息；任务执行同时检查当前启用/撤权规则。</li><li>执行页面按已登记的工作流适配器匹配真实能力，避免在公共渲染器中散落“只有这个固定角色 ID 才能执行”的分支。</li><li>自定义岗位装配该能力后，只有已验证的工作流组合才开放专用页面。跨岗位执行、复制和混合组合必须经过真实路由与授权验证。</li></ul>
+<h2>15. 保存、确认、异常和恢复</h2>
+<h3>三组状态分别显示</h3>
+<div class="table-wrap"><table><thead><tr><th>对象</th><th>状态示例</th><th>说明</th></tr></thead><tbody><tr><td>分析任务的业务阶段</td><td>草稿、待澄清、待确认、有确认版本</td><td>帮用户理解工作进展，允许回访</td></tr><tr><td>后台操作</td><td>排队、运行、成功、失败、已停止、中断待重试</td><td>表示一次模型/解析任务是否完成</td></tr><tr><td>需求条目</td><td>待确认、已确认、待复核、暂缓、已移除</td><td>表示业务确认，不表示开发完成</td></tr></tbody></table></div>
+<p>输入和工作草稿自动保存时显示保存中、已保存、保存失败。确认需求、保存确认版本、移除任务属于独立操作；自动保存不代表已确认。</p>
+<h3>会话生命周期</h3>
+<ol><li>使用现有新建入口时沿用“默认自由聊天”的已确认行为；用户选择需求助手后进入开始页。</li><li>只打开页面或切换页签，不创建正式需求数据；选择路线后可以先保持临时行。</li><li>用户输入非空业务草稿、保存资料或发送首条描述时，建立可恢复的需求记录，侧栏显示草稿或实际标题。</li><li>切走空白临时会话按原规则清理；非空草稿保存，处理任务可以在后台继续。</li><li>页面刷新和工作台重启后从服务端索引找回任务；输入未完成的内容尽量有本地缓存，服务端保存失败时明确提示。</li><li>主标题栏“新建分析”创建另一个任务，旧任务保留；不使用含糊的按钮清空当前结果。</li><li>通过“··· → 移除对话”显示需求任务的删除范围，用户确认后处理。后台确认成功后才移除侧栏行，失败保留入口并显示原因。共享资料原件与原会议记录不删除。</li></ol>
+<h3>并发和故障</h3>
+<div class="table-wrap"><table><thead><tr><th>情况</th><th>应有行为</th></tr></thead><tbody><tr><td>模型超时或格式错误</td><td>保留输入和旧结果，显示失败阶段；重试生成候选结果</td></tr><tr><td>返回结果缺少来源</td><td>保留为助手建议或无依据条目，不能标记为资料事实</td></tr><tr><td>运行时用户改了需求</td><td>返回结果带所依据的修订号；检测冲突并展示差异，不覆盖新编辑</td></tr><tr><td>同一按钮重复点击</td><td>后端按操作标识去重，避免重复条目与确认版本</td></tr><tr><td>工作台重启中断分析</td><td>标记中断，可从已保存输入重试；只读结果仍可打开</td></tr><tr><td>保存失败</td><td>显示未保存状态，保留本地编辑草稿；不能显示“已保存”</td></tr><tr><td>能力被停用/移除</td><td>新模型处理被阻止；历史结果按既有策略可读，人工查看与本地导出保留</td></tr><tr><td>文档依据已经变化</td><td>显示“文档需更新”，导出前可更新或选择原确认版本</td></tr><tr><td>资料太大或只解析部分</td><td>列明已处理范围及剩余部分，用户选择分批继续</td></tr></tbody></table></div>
+<h2>16. 技术实现的建议拆分</h2>
+<p>本节是开发设计建议，命名与接口在实施时结合现有结构确定。</p>
+<h3>前端</h3>
+<div class="table-wrap"><table><thead><tr><th>模块</th><th>职责</th><th>复用点</th></tr></thead><tbody><tr><td>需求会话容器</td><td>对话、需求工作区、轨迹及上下文输入</td><td>会议外层布局、岗位图标、状态卡、模型列表</td></tr><tr><td>六个工作区页面</td><td>概览、资料、需求、流程规则、问题、文档</td><td>工作台列表、弹窗、按钮、页签和主题变量</td></tr><tr><td>差异与确认面板</td><td>候选结果、采用修改、业务确认、版本恢复</td><td>共用弹窗、焦点、键盘与草稿保护方式</td></tr><tr><td>专用工作流登记</td><td>岗位/能力路由到实际视图</td><td>统一描述与适配器；共享修改回归会议路径</td></tr><tr><td>侧栏任务适配</td><td>把服务端需求记录映射为历史行</td><td>原会话布局和省略号菜单</td></tr></tbody></table></div>
+<p>避免整份复制 MeetingDemo 再修改名称。可以提取确有复用价值的消息卡、模型选择和任务状态组件，需求表格与确认逻辑独立实现；每次共享提取都回归会议助手。</p>
+<h3>服务端数据</h3>
+<div class="table-wrap"><table><thead><tr><th>对象</th><th>必要信息</th></tr></thead><tbody><tr><td>分析任务</td><td>ID、标题、模式、业务阶段、修订、时间、角色/能力发布版本、配置快照</td></tr><tr><td>资料及片段</td><td>ID、类型、来源、资料修订、内容标识、段落/页码/会议片段位置、解析状态</td></tr><tr><td>需求</td><td>稳定 ID、编号、业务字段、来源引用、确认状态、当前修订、关联问题</td></tr><tr><td>流程和规则</td><td>节点、分支、规则、需求引用、确认信息</td></tr><tr><td>问题</td><td>编号、分类、依据、影响范围、答复、状态、是否阻断确认</td></tr><tr><td>修改建议</td><td>依据的数据修订、拟修改对象、前后差异、采用或拒绝结果</td></tr><tr><td>文档与确认版本</td><td>模板、生成依据、范围、正文、不可变业务快照、修改说明</td></tr><tr><td>运行和事件</td><td>操作 ID、真实状态、模型、错误、时间、用户可读事件</td></tr></tbody></table></div>
+<p>建议由独立 RequirementsService 负责校验、保存、模型调用和版本操作，复用工作台 llm 与认证。数据存放到现有 dsh-data/capabilities 下的独立 requirements 目录或等价存储，维持运行环境、源码和用户数据分离。</p>
+<p>任务保存使用原子写入；确认和采用修改使用修订检查；索引可由持久任务恢复。文档快照和被引用来源保留一致性，不让模型直接覆写磁盘上的正式版本。</p>
+<h3>执行步骤</h3>
+<ol><li>接收明确的任务范围、操作、输入版本和角色/能力授权。</li><li>收集相关需求、资料和回答，给来源稳定引用；不默认发送整个任务库。</li><li>调用选定模型输出结构化候选结果。</li><li>服务端校验字段、编号关系、来源存在性与引用范围。</li><li>保存候选建议，用户采用时再更新工作草稿并记录差异。</li><li>业务确认与确认版本由确定性校验处理，模型不能自行将状态改为已确认。</li></ol>
+<p>资料中的文字只作为待分析内容，不能借资料内容修改工具权限或触发外部操作。长资料分段处理并保留覆盖范围，处理量限制和分批入口在实施时按已有模型能力确定。</p>
+<h2>17. 推荐实施批次与验收</h2>
+<div class="table-wrap"><table><thead><tr><th>批次</th><th>交付范围</th><th>完成标准</th></tr></thead><tbody><tr><td>第一批：界面与任务基础</td><td>三个主选项卡、六个子页、两条路线、文本资料、手工需求、保存重开</td><td>用户能够手工建立完整需求说明，真实保存与恢复</td></tr><tr><td>第二批：模型处理</td><td>真实模型澄清、提取、检查、修改建议、来源定位</td><td>能根据输入生成可核对结果，采用前不覆盖人工编辑</td></tr><tr><td>第三批：确认和输出</td><td>确认校验、版本快照、简要差异、Markdown、打印、统一能力管理</td><td>能交付指定范围的确认版本并保留历史</td></tr><tr><td>第四批：资料与协作扩展</td><td>文档解析、会议选择导入、流程图、Word 导出</td><td>来源与格式可核验，跨模块关系和失败路径可用</td></tr></tbody></table></div>
+<p>前三批合起来作为第一版正式可用范围。阶段性界面可以用于讨论，但模拟数据不得被标记为真实分析完成；每批验收如实说明后端和模型是否接通。</p>
+<h3>核心验收场景</h3>
+<ol><li>只有一句业务想法时，引导提出关键问题；回答后已有信息不被反复询问。</li><li>粘贴完整描述后，生成需求与问题，来源能定位到具体片段。</li><li>拆分或合并需求后，原引用及替代关系仍可追溯。</li><li>人工编辑过的内容遇到重新生成时，以差异建议呈现。</li><li>未解决关键问题的需求不能被直接确认；讨论稿仍可导出。</li><li>确认版本保存后继续修改，旧版本与旧导出内容保持可读。</li><li>刷新、切换会话、重启后，资料、条目、问题、草稿、版本可恢复。</li><li>模型失败、任务停止、重试和并发修订不会产生假成功或重复需求。</li><li>移除会话、移除资料、移除组件分别显示真实范围，不影响其他任务或原会议。</li><li>能力组件缺失草稿保存重开、发布阻断、补回、重复添加、发布版本执行隔离通过验证。</li><li>岗位卡片选择、顶部入口、新建默认自由聊天、历史岗位恢复继续符合已确认行为。</li><li>会议快速/引导流程、模型选择、资料核对、历史结果、浏览器共享管理回归通过；覆盖窄屏、深浅主题与键盘操作。</li></ol>
+<h2>18. 需要讨论的产品取舍</h2>
+<div class="table-wrap"><table><thead><tr><th>取舍</th><th>本方案推荐</th><th>理由</th></tr></thead><tbody><tr><td>界面组织</td><td>三个主选项卡 + 工作区六个子页</td><td>对话保持简洁，完整结果有固定位置</td></tr><tr><td>第一版主要输入</td><td>粘贴文字、TXT、Markdown</td><td>先验证需求梳理与确认流程，再扩展复杂解析</td></tr><tr><td>第一版流程呈现</td><td>步骤表和规则表</td><td>可直接编辑，足够验证正常和异常逻辑</td></tr><tr><td>会议联动优先级</td><td>第二阶段优先</td><td>需要来源快照与任务关系，复用现有会议成果</td></tr><tr><td>输出深度</td><td>标准需求说明，包含验收标准</td><td>业务人员能理解，开发和测试可继续讨论</td></tr><tr><td>AI 修改方式</td><td>生成建议 → 查看差异 → 采用</td><td>支持人工修正、确认和后续追溯</td></tr><tr><td>文档确认</td><td>允许先确认一个明确范围</td><td>未决扩展项不阻断已讲清的基础需求</td></tr><tr><td>跨助手交接</td><td>后续通过用户触发，携带指定确认版本</td><td>先确保岗位具备实际接收、权限与版本支持</td></tr></tbody></table></div>
+<p>以上为推荐默认方案，尚未获得实施授权。用户下一轮可围绕页签名称、首版文件输入、会议联动优先级和输出深度逐项调整。</p>
+<h2>19. 本轮依据与记录</h2>
+<p>已核对的正式文件位于 <WORKBENCH_ROOT>：</p>
+<ul><li>AGENTS.MD 第 8、9 节：交互保留与统一模块要求。</li><li>PEFR_PLAN.MD：T020、T021、T023、T024 的实际状态。</li><li>A014、A016：会议布局、侧栏生命周期、真实任务与配置、统一组件管理的实施记录。</li><li>deepseek_harness_desktop/packages/dsh-client-ui-plain-chat/src/client/MeetingDemo.tsx：两条路线、对话/轨迹、转写核对、结果卡片、模型选择、导出与修改。</li><li>同目录 apply.tsx、local-conversations.ts：专用视图挂载、角色恢复、会话状态和删除路径。</li><li>同目录 ManagedCenter.tsx：能力中心五个管理页签、关联组件、默认配置与岗位引用。</li><li>deepseek_harness_desktop/packages/dsh-capabilities/src/host/meeting.ts：真实会议任务、状态、持久化和服务边界。</li><li>同包 src/core/default-roles.ts：需求分析默认职责、输出和岗位标识。</li></ul>
+<h3>版本说明</h3>
+<p>V0.1 提出收集、澄清、需求条目、检查、确认与文档输出的基础方向。V0.2 在此基础上补充会议现状对照、完整导航、六个工作区页面、输入和状态行为、能力中心接入、数据结构与分批验收；增加第一版 TXT/Markdown 输入、系统打印和步骤表的具体建议。上述新增点仍待讨论。</p>
+<p>本轮只读分析应用源码，并更新方案、离线阅读版和事项台账；没有修改应用功能、运行配置、岗位数据，没有调用用户模型或转写服务。报告浏览器检查只验证方案文档显示，不等同于需求助手功能测试。</p>
+<h2>20. 第一版实施与验证（2026-09-29）</h2>
+<h3>20.1 授权与实际范围</h3>
+<p>用户在详细方案后明确要求先修改，完成后查看效果，再逐渐完善。按此授权实施六个工作区子页的基础闭环。</p>
+<div class="table-wrap"><table><thead><tr><th>入口</th><th>已实现行为</th></tr></thead><tbody><tr><td>对话</td><td>快速整理、引导分析、继续澄清、检查遗漏、围绕具体对象讨论；复用工作台模型选择；运行、停止、失败与重试状态</td></tr><tr><td>概览</td><td>分析名称、业务背景、目标、范围、排除项、角色、数量与最近操作</td></tr><tr><td>资料</td><td>粘贴文字、导入 TXT/Markdown、修订原文、软移除与恢复、原文引用查看</td></tr><tr><td>需求清单</td><td>稳定 REQ 编号、筛选与搜索、完整业务字段、原文引用、人工编辑、批量确认、暂缓、拆分/合并、移除/恢复</td></tr><tr><td>流程与规则</td><td>流程步骤排序、进入条件/结果/异常、业务规则及关联需求</td></tr><tr><td>待确认</td><td>关键问题、答案选项、人工答复、基于答复提出建议、已解决/暂缓/不适用、阻断确认</td></tr><tr><td>需求文档</td><td>简要/标准/详细模板、全部/已确认/勾选范围、固定确认版本、恢复到工作草稿、Markdown/复制/系统打印入口</td></tr><tr><td>轨迹和历史</td><td>服务端操作记录、对象跳转、服务端分页历史、重开、删除确认、刷新及重启恢复</td></tr><tr><td>统一管理</td><td>能力中心五页、统一组件列表和三栏编辑器、唯一默认配置入口、岗位引用、草稿与发布隔离</td></tr></tbody></table></div>
+<p>模型建议先显示为候选，采用后进入草稿；只有用户确认动作能改为已确认。缺少描述/验收标准或存在相关阻断问题时拒绝确认。已确认内容被修改后转为待复核；旧确认版本保持固定。并发编辑使用版本检查，停止或删除后的迟到结果不恢复任务。</p>
+<h3>20.2 兼容、迁移与存储</h3>
+<ul><li>新能力标识 requirements-analysis，新组件 requirements-service，动作 analyze-requirements。内置 analyst 按原已发布版本生成带能力绑定的新发布版本；不把用户未发布职责/外观草稿发布出去。保留原启停、颜色、图标和历史版本。</li><li>启动迁移前备份 capabilities/state-before-requirements-capability-v1.json；已有不兼容浏览器组合不会被自动替换，需在岗位编辑器明确切换。</li><li>自定义岗位可绑定需求分析能力。第一版不支持复制这项内置业务能力或与浏览器执行动作混用，前后端均明确阻止不受支持的发布。</li><li>正式需求数据目录为 dsh-data/capabilities/requirements；业务任务和默认选项存储在服务端，模型凭据仍由已有工作台服务管理。</li><li>已建立任务的对话输入自动保存到服务端；尚未提交的编辑表单和问题答复保存在当前浏览器 sessionStorage，可在同一浏览器会话切换或刷新时恢复。关闭编辑框的取消/×仍表示丢弃该表单修改。</li><li>初始空会话树也能展示需求历史；原生聊天分组出现后自动归入原组，保留原分组折叠行为。</li></ul>
+<h3>20.3 验证证据</h3>
+<div class="table-wrap"><table><thead><tr><th>项目</th><th>已观察结果</th></tr></thead><tbody><tr><td>类型与构建</td><td>两个受影响包类型检查、tsdown 构建、既有 runtime-deps-check 的包级检查通过</td></tr><tr><td>自动测试</td><td>后端全量 71 项通过；前端全量 125 项通过，之后追加 1 项真实空树结构用例；最终需求服务 12 项、UI/侧栏 15 项定向回归通过</td></tr><tr><td>真实宿主</td><td>使用已安装 DSH CLI + 独立 DSH_HOME，通过真实认证和 __DSH_BOOT__ 加载；最终端口 8565，能力 local.10，界面 local.1</td></tr><tr><td>模型与资料</td><td>使用合成“会议室预约”资料，真实 DeepSeek-V4-Flash 返回 4 条有引用的候选；采用、详情编辑、原文追溯与批量确认均在 GUI 完成</td></tr><tr><td>问题与版本</td><td>GUI 验证阻断问题拒绝确认、答复/明确解决、范围变化后待复核、确认版本 V1/V2 保留、服务重启后恢复</td></tr><tr><td>导出</td><td>GUI 触发 Markdown 下载；实际下载文件与服务器固定版本内容逐字相同</td></tr><tr><td>统一组件管理</td><td>GUI 验证必需组件移除说明、缺失草稿保存重开、发布禁用、补回和重复添加阻止；后端发布阻断有行为测试</td></tr><tr><td>既有模块</td><td>会议助手原入口/模式/待配置提示 GUI 回归；浏览器/会议的共享组件、发布、权限与岗位联动自动测试通过</td></tr><tr><td>界面</td><td>桌面 1280×720、窄屏 390×844 与浅/深主题检查；修复壁纸透出、暗色强调文字对比和空历史位置；浏览器无 error/warn 日志</td></tr><tr><td>安装/回退</td><td>独立 profile 安装 local.10 后回退实际 local.9 均通过；正式部署后的状态与 profile patch hash 未改变</td></tr></tbody></table></div>
+<p>真实模型首轮发现文本字段可能返回数组，现已在建议解析层兼容字符串数组/null，且保留 ID、引用与人工输入严格校验。另有一轮模型返回空文本，界面正确保留失败原因，后续切换模型并重试成功；不据此声称任意模型、任意资料都已验证。</p>
+<p>复制行为有前端测试覆盖；系统剪贴板实际写入与原生打印/PDF保存仍需在用户桌面完成最终验收。未进行真实录音转写或浏览器外部任务重跑。</p>
+<p><a href="A017-需求分析助手第一版.png">查看本版真实界面截图</a>。截图内容为独立 QA 合成资料。</p>
+<h3>20.4 正式交付与回退</h3>
+<ul><li>已将 37 项源码、测试及构建文件同步至正式 deepseek_harness_desktop，安装能力包 0.1.0-local.10；UI 包沿用既有 0.1.0-local.1 版本号。</li><li>本地分支：codex/requirements-assistant-v1；提交：959c22c4edde900ae13f8ccfe6bc4fcbc5563fe2。未推送远端。</li><li>代码基线：b20b9c3；基线标签：baseline/requirements-assistant-20260929。</li><li>正式备份：runtime-dev/backups/requirements-assistant-20260929，含实际 local.9 可重装包、旧文件及部署哈希清单。</li><li>构建/部署/回退脚本和验证证据在二次开发工作区 requirements-implementation，正常步骤见 QA-RUNBOOK.md。回退前需正常退出工作台；脚本检查源码没有后续变化再恢复旧文件。</li><li>遵守项目运行规则，没有停止或重启正式宿主。用户正常退出并重新启动工作台后，从岗位助手选择“需求分析助手”即可查看新版。正式数据迁移将在该次启动时执行。</li></ul>
+<h3>20.5 后续完善范围</h3>
+<p>第一版不含 Word/PDF 自动解析、直接导入会议任务、可视化流程图、原型图、Word 导出、跨助手自动交接及多人协作。下一步先收集用户对选项卡布局、字段、提示语和分析质量的反馈；该表不代表已授权继续实施全部后续功能。</p>
+<h2>21. 会话内返回分析方式选择页：讨论方案（2026-09-29）</h2>
+<blockquote><p>状态更新：用户随后明确回复“好，就这么修改吧”，已授权按本节方案实施。以下保留讨论当时的文字，实际完成范围见第 22 节。</p></blockquote>
+<h3>21.1 用户反馈与核实</h3>
+<p>用户提供第一版实际界面的两张截图，明确要求：点击右上角现有“新建分析”后，应在原来的对话里回到第二张图的方式选择状态，不直接新增对话；按钮命名也需要重新设计。本轮先给方案讨论，尚未授权实施本轮修订。</p>
+<p>源码核实：RequirementsAssistant 的该按钮调用 onReset，apply.tsx 将其连接到 startFreshChat(effectiveRole)，因此会切换至新临时会话。两张方式卡只在没有 task 时显示，卡片点击 begin 又立即调用 ensureTask，导致只选方式也会创建正式需求记录。需要分开管理页面所处视图、所选分析方式和业务记录。</p>
+<h3>21.2 推荐入口与页面</h3>
+<div class="table-wrap"><table><thead><tr><th>所在位置/状态</th><th>建议显示</th><th>建议行为</th></tr></thead><tbody><tr><td>工作状态右上角</td><td>分析设置、切换分析方式</td><td>后者在当前会话的对话页展示两张方式卡；左侧选中行、当前记录和标题保持</td></tr><tr><td>首次方式选择页</td><td>选择分析方式</td><td>无重复的“新建分析”按钮；显示快速整理与引导分析两卡</td></tr><tr><td>已有内容时返回选择页</td><td>选择接下来如何分析</td><td>顶部保留原名称；增加资料/需求/待确认数量摘要及“返回对话”入口</td></tr><tr><td>左侧新会话及分组 +</td><td>沿用既有入口</td><td>创建独立会话，继续遵守目前默认自由聊天的约定</td></tr><tr><td>对话中的方式状态</td><td>当前方式：引导分析/快速整理</td><td>移除重复的直接切换按钮，统一通过顶部选择入口操作</td></tr></tbody></table></div>
+<p>推荐按钮名“切换分析方式”；“返回入口”可作为用户偏好的更短备选。避免“重新分析/重新开始/重置”，它们容易让人理解成重跑或清空。两个处理方式本身先保留现有名称。</p>
+<h3>21.3 两张卡片与已有内容</h3>
+<ul><li>快速整理：已有业务描述、会议纪要或需求初稿，优先整理需求清单和待确认问题。选择后显示资料入口与整理操作；有资料时可以直接使用或补充，不强制重新上传。</li><li>引导分析：从目标和当前问题出发，通过问答逐步明确流程、范围与验收。选择后进入当前会话的对话区；已有内容作为后续提问的依据。</li><li>卡片点击只选择接下来的工作方式，不发送消息、不自动调用模型、不生成新任务、不覆盖已确认内容。</li><li>已选方式标记“当前使用”。再次选同一方式直接回到工作视图；选择另一方式后提示“已切换为……，当前内容已保留”。</li><li>输入框沿用现有内容。未选择方式直接发送时按原方案默认引导分析；已选方式时使用当前方式。添加资料会先进入资料编辑，确认保存后再持久化内容。</li><li>已有内容的选择页显示“继续处理当前需求，已有资料和结果已保留”，并提供返回对话。需求工作区和轨迹仍可打开；进入工作区后返回对话，保留本会话最近的对话视图。</li></ul>
+<h3>21.4 数据与会话规则（建议，待确认）</h3>
+<ol><li>回到选择页保留对话、资料、需求、问题、流程规则、文档版本和输入草稿；仅切换页面显示，不清空、不新增侧栏条目，也不改变确认状态。</li><li>切换分析方式只影响后续模型请求。旧结果继续保存，新建议仍按原有采用/确认流程处理。</li><li>新会话只打开入口或选择方式时保留原临时行；输入非空业务草稿时自动保存为草稿，或在首次发送、保存资料/需求时持久化。整个过程复用同一侧栏条目。</li><li>页面状态不再由“有没有任务”推断；分别保存当前会话、入口/工作视图和分析方式，避免通过清除任务来显示入口。</li><li>仅浏览入口不更新业务修改时间、不把历史会话顶到最新。刷新或切回当前会话时恢复最近视图；已有任务在缺少视图记录时默认进入工作状态。</li><li>历史已有空白记录保留，避免自动删除；新规则防止继续制造空白记录。</li><li>模型运行期间允许查看选择页，显示运行状态和返回入口；切换方式暂时禁用并说明等待本轮结束或先停止。翻页不会自动中止任务。</li><li>保存未完成时显示保存中；失败保留本地草稿并提供重试，不能显示已保存。弹窗内未提交内容沿用草稿保护规则。</li><li>在整份分析与某条需求/问题之间讨论时保留现有对象标记。返回选择页不吞掉输入与对象；后续发送前明确显示当前讨论范围。</li></ol>
+<h3>21.5 具体体验与验收</h3>
+<p>以“会议室预约”为例：打开已有会话 → 点击切换分析方式 → 当前页面出现两张方式卡及现有内容摘要 → 选择快速整理 → 原会话显示资料与整理入口 → 用户再主动点击整理操作。整个往返左侧始终选中“会议室预约”，已有资料/需求/版本不变。</p>
+<ul><li>从用户 P1 的空白工作状态返回 P2，不新增临时行或正式记录。</li><li>往返选择两个方式多次，侧栏仍为同一条，输入保留；没有模型请求。</li><li>有资料、已确认需求、未采用建议和确认版本时，切换方式不改变这些内容或确认状态。</li><li>只选方式后离开不生成空白历史；已有空白任务仍能重开或通过原菜单移除。</li><li>直接发送、保存资料、非空草稿自动保存均只建立一次记录；失败重试不产生重复条目。</li><li>模型运行中、保存失败、刷新及跨会话返回时状态清楚、数据保留。</li><li>左侧新会话、岗位选择、会议助手的既有入口和草稿联动按受影响范围回归。</li></ul>
+<h3>21.6 待讨论与本轮状态</h3>
+<p>用户已明确的是“原会话返回 P2，不新增对话”以及“先给方案”。“切换分析方式”的命名、已有内容全部保留后继续、创建时机与选择页摘要等细节属于本方案建议，等待讨论。</p>
+<p>优先讨论：已有资料和分析结果时，回到 P2 是否也按此方案保留全部内容并继续当前需求？建议采用保留后继续的规则。若用户希望从头重新分析，需要另行明确清除/保留范围，不能从当前反馈推断为删除授权。</p>
+<p>本轮只核实源码并更新 A017、HTML 阅读版和台账，没有修改源码、部署包、正式任务或配置。HTML 静态构建检查通过后同步；沿用原模板，本次未重做浏览器视觉验收。</p>
+<h2>22. 会话内方式选择实施与验证（2026-09-29）</h2>
+<h3>22.1 授权与交付</h3>
+<p>用户确认第 21 节方案后实施。右上角入口改为“切换分析方式”，在当前需求会话内返回两张方式卡。正式工作台已安装能力包 0.1.0-local.11，UI 沿用 0.1.0-local.1，需用户正常退出并重新启动后加载新版。</p>
+<div class="table-wrap"><table><thead><tr><th>场景</th><th>本轮实现</th></tr></thead><tbody><tr><td>工作页返回方式选择</td><td>保持当前会话、侧栏选中项和分析名称；切回对话页显示快速整理、引导分析</td></tr><tr><td>已有内容</td><td>选择页显示资料、需求、待确认数量以及“返回对话”；原资料、需求、问题、消息、文档和确认版本保留</td></tr><tr><td>选择方式</td><td>仅更新处理方式；不发送输入、不调用模型、不创建空白需求记录</td></tr><tr><td>首次保存</td><td>非空输入草稿自动保存、首次发送、保存有效资料或人工需求时建立记录；打开资料编辑器、选文件、取消均不建立记录</td></tr><tr><td>草稿与返回</td><td>未发送输入随会话保留；同一浏览器会话内刷新或离开再回来，恢复选择/工作视图和草稿</td></tr><tr><td>运行期间</td><td>可以查看方式选择页，显示运行进度及停止入口；运行结束或停止后才能选择另一方式</td></tr><tr><td>空状态</td><td>隐藏无意义的 0/0 确认数量；首次选择页不再重复显示新建按钮；空工作区提供资料与人工需求入口</td></tr><tr><td>页面排版</td><td>压缩方式卡与说明间距，1280×720 可见两张方式卡；390×844 单列展示，保留浅深主题及岗位外观</td></tr></tbody></table></div>
+<h3>22.2 数据与保存约束</h3>
+<ul><li>页面视图、处理方式、业务记录分别管理。切换方式不会提升业务数据修订，不会让原候选建议或文档仅因方式变化而过期；切换操作写入轨迹。</li><li>新会话首次建立任务使用稳定请求 ID。并发点击、保存失败后重试或刷新重试只对应同一任务，服务端重试返回当前内容，不用旧请求覆盖新草稿。</li><li>首次非空草稿随任务原子保存；本地视图和请求 ID 迁移到真实任务 ID。保存失败保留本地内容，显示失败与重试入口。</li><li>切换到另一会话时，较迟完成的保存只更新原会话对应行，不抢占当前选择。临时需求草稿重开也使用独立视图标识。</li><li>业务内容持久化到服务端；方式选择页、滚动与尚未提交表单等浏览器会话状态保存在 sessionStorage。后者保证同一浏览器会话内恢复，不承诺跨设备或关闭全部浏览器会话后保留。</li><li>左侧“新会话”仍创建独立会话并默认自由聊天；岗位选择、分析设置、会议助手与共享管理沿用现有流程。</li></ul>
+<h3>22.3 验证证据</h3>
+<div class="table-wrap"><table><thead><tr><th>验证项</th><th>实际结果</th></tr></thead><tbody><tr><td>自动测试</td><td>后端全量 74 项、前端全量 136 项通过；末次卡片布局调整后需求界面 18 项定向复验通过（不重复计入总数）</td></tr><tr><td>核心覆盖</td><td>零创建的方式选择、草稿原子保存与幂等重试、原数据保留、运行中禁切、临时会话重开、迟到保存不抢当前会话均有行为测试</td></tr><tr><td>类型与构建</td><td>两包类型检查、最终构建和运行导入依赖检查通过；保留构建工具既有弃用/ESM 提示</td></tr><tr><td>真实宿主 GUI</td><td>独立 DSH_HOME、真实认证及已安装 DSH CLI，端口 4762；同会话返回选择、刷新恢复、输入保留、空选择零创建与非空草稿保存均通过</td></tr><tr><td>数据核对</td><td>合成“会议室预约”任务的 1 份资料、4 条已确认需求、2 个确认版本、文档及数据修订保持；仅操作选择页与方式时服务端记录总数保持 1</td></tr><tr><td>运行状态</td><td>真实模型调用期间进入选择页，观察到进度和禁用卡片；失败后恢复可选择状态。停止行为由自动测试覆盖</td></tr><tr><td>界面与兼容</td><td>桌面 1280×720、窄屏 390×844、浅深主题、岗位外观、全局新会话默认自由聊天、会议原入口和配置提示已检查</td></tr><tr><td>日志</td><td>浏览器无 error；重载时出现 git-graph 的 workspaces 服务兼容警告，记录为既有独立问题，未宣称无警告</td></tr><tr><td>安装与回退</td><td>在独立 profile 从实际 local.10 安装 local.11，并回退实际 local.10 及原源码；运行包、UI 和配置哈希核对通过</td></tr><tr><td>正式部署</td><td>12 项冻结增量同步成功；能力状态与 profile patch 哈希保持，未写正式需求任务目录，未停止或重启正式宿主</td></tr></tbody></table></div>
+<p>本轮真实模型试跑有一次返回结构化枚举校验错误“选项值无效”。界面保留失败原因并可重试；本轮不据此声称模型成功产出新的分析结果。第一版成功生成并确认的合成数据仍保留。模型输出兼容性可继续单独完善。</p>
+<p>未重跑真实录音转写或浏览器外部任务；系统剪贴板和原生打印的最终桌面验收仍沿用第 20 节限制。离线 HTML 使用既有模板重新构建并静态核验，本次未另做报告页面视觉验收。</p>
+<p><a href="A017-需求分析助手方式选择.png">查看本轮方式选择界面截图</a>。截图来自独立 QA 合成资料，不是正式用户任务。</p>
+<h3>22.4 发布、备份与后续</h3>
+<ul><li>本地分支：codex/requirements-assistant-v1；提交：07d1fd3c3a0c274a00a8c0f21f0cbd2210c20e5b；未推送远端。</li><li>代码基线：959c22c4edde900ae13f8ccfe6bc4fcbc5563fe2；基线标签：baseline/requirements-entry-20260929。</li><li>正式备份：runtime-dev/backups/requirements-entry-20260929，包含实际 local.10 可重装包、变更前文件与部署哈希。</li><li>二次开发证据：requirements-implementation/entry-revision，含 release、deployment.json、commit.json、RELEASE-RUNBOOK.md 与 evidence 截图/检查记录。</li><li>回退前正常退出工作台；脚本验证无后续代码或包变化后恢复实际 local.10 和原文件。禁止复用上一轮发布脚本覆盖本轮版本。</li><li>已停止本轮独立 QA 服务并释放其写锁。正式服务保持运行，用户正常重启后体验；T024 保持“待验证”，等待用户反馈本版交互。</li></ul></main>
+    <aside class="nav-panel" aria-label="报告章节导航">
+      <div class="nav-title">章节导航</div>
+      <nav class="section-nav" id="sectionNav"></nav>
+      <div class="nav-empty" id="navEmpty" hidden>正文中没有二级章节。</div>
+    </aside>
+  </div>
+  <div class="search-status" id="searchStatus" hidden aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const content = document.getElementById("reportContent");
+      const nav = document.getElementById("sectionNav");
+      const navEmpty = document.getElementById("navEmpty");
+      const search = document.getElementById("reportSearch");
+      const searchStatus = document.getElementById("searchStatus");
+      const header = document.querySelector(".report-header");
+      const scrollBehavior = () => matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth";
+
+      const slugify = (value, index) => {
+        const slug = String(value || "").trim().toLocaleLowerCase()
+          .replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
+        return slug || `section-${index + 1}`;
+      };
+
+      const headings = [...content.querySelectorAll("h2")];
+      const seen = new Set();
+      headings.forEach((heading, index) => {
+        const label = heading.textContent.trim();
+        let id = heading.id || slugify(label, index);
+        const base = id;
+        let suffix = 2;
+        while (seen.has(id) || (document.getElementById(id) && document.getElementById(id) !== heading)) id = `${base}-${suffix++}`;
+        seen.add(id);
+        heading.id = id;
+
+        const link = document.createElement("a");
+        link.href = `#${encodeURIComponent(id)}`;
+        link.textContent = label.replace(/^[一二三四五六七八九十]+、/, "");
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          heading.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+          history.replaceState(null, "", link.getAttribute("href"));
+          scheduleUpdate();
+        });
+        nav.appendChild(link);
+      });
+      navEmpty.hidden = headings.length !== 0;
+
+      const navLinks = [...nav.querySelectorAll("a")];
+      let activeIndex = -1;
+      let framePending = false;
+      let anchorOffset = 95;
+      const updateCurrentSection = () => {
+        framePending = false;
+        if (!headings.length) return;
+        // Reading stays in this section until the next H2 crosses the header offset.
+        let index = 0;
+        for (let i = 0; i < headings.length; i += 1) {
+          if (headings[i].getBoundingClientRect().top <= anchorOffset + 1) index = i;
+          else break;
+        }
+        const page = document.scrollingElement;
+        if (page.scrollHeight > page.clientHeight + 2 &&
+            page.scrollTop + page.clientHeight >= page.scrollHeight - 2) index = headings.length - 1;
+        if (index === activeIndex) return;
+        if (navLinks[activeIndex]) {
+          navLinks[activeIndex].classList.remove("active");
+          navLinks[activeIndex].removeAttribute("aria-current");
+        }
+        const link = navLinks[index];
+        link.classList.add("active");
+        link.setAttribute("aria-current", "location");
+        activeIndex = index;
+        // Scroll only the desktop navigation pane, never the report itself.
+        if (matchMedia("(min-width: 701px)").matches) {
+          const pane = nav.getBoundingClientRect();
+          const item = link.getBoundingClientRect();
+          if (item.top < pane.top) nav.scrollTop += item.top - pane.top;
+          else if (item.bottom > pane.bottom) nav.scrollTop += item.bottom - pane.bottom;
+        }
+      };
+      function scheduleUpdate() {
+        if (framePending) return;
+        framePending = true;
+        requestAnimationFrame(updateCurrentSection);
+      }
+      const updateLayout = () => {
+        const height = Math.ceil(header.getBoundingClientRect().height);
+        anchorOffset = height + 25;
+        document.documentElement.style.setProperty("--header-height", `${height}px`);
+        document.documentElement.style.setProperty("--anchor-offset", `${anchorOffset}px`);
+        scheduleUpdate();
+      };
+      window.addEventListener("scroll", scheduleUpdate, { passive: true });
+      window.addEventListener("resize", updateLayout);
+      window.addEventListener("hashchange", scheduleUpdate);
+      window.addEventListener("pageshow", updateLayout);
+      window.addEventListener("load", updateLayout);
+      content.addEventListener("load", scheduleUpdate, true);
+      if ("ResizeObserver" in window) {
+        const layoutObserver = new ResizeObserver(updateLayout);
+        layoutObserver.observe(header);
+        layoutObserver.observe(content);
+      }
+      updateLayout();
+
+      const clearMarks = () => {
+        content.querySelectorAll("mark[data-search-mark]").forEach((mark) => {
+          mark.replaceWith(document.createTextNode(mark.textContent || ""));
+        });
+        content.normalize();
+        scheduleUpdate();
+      };
+
+      const highlight = (query) => {
+        clearMarks();
+        const needle = query.trim().toLocaleLowerCase();
+        if (!needle) {
+          searchStatus.hidden = true;
+          return;
+        }
+        const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            if (!node.nodeValue.trim() || node.parentElement.closest("script, style, pre, code, mark")) return NodeFilter.FILTER_REJECT;
+            return node.nodeValue.toLocaleLowerCase().includes(needle) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+          }
+        });
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        let count = 0;
+        nodes.forEach((node) => {
+          const text = node.nodeValue;
+          const folded = text.toLocaleLowerCase();
+          const fragment = document.createDocumentFragment();
+          let cursor = 0;
+          let found;
+          while ((found = folded.indexOf(needle, cursor)) !== -1) {
+            fragment.append(text.slice(cursor, found));
+            const mark = document.createElement("mark");
+            mark.dataset.searchMark = "1";
+            mark.textContent = text.slice(found, found + needle.length);
+            fragment.append(mark);
+            cursor = found + needle.length;
+            count += 1;
+          }
+          fragment.append(text.slice(cursor));
+          node.replaceWith(fragment);
+        });
+        searchStatus.textContent = count ? `找到 ${count} 处` : "未找到匹配内容";
+        searchStatus.hidden = false;
+        const first = content.querySelector("mark[data-search-mark]");
+        if (first) {
+          const match = first.getBoundingClientRect();
+          let top = scrollY + match.top - (innerHeight - match.height) / 2;
+          const section = headings.filter((heading) => heading.contains(first) ||
+            (heading.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING)).pop();
+          // A match near a section's start must also bring its H2 past the reading line.
+          if (section) top = Math.max(top, scrollY + section.getBoundingClientRect().top - anchorOffset);
+          window.scrollTo({ top, behavior: scrollBehavior() });
+        }
+      };
+
+      let timer;
+      search.addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => highlight(search.value), 120);
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "/" && document.activeElement !== search) {
+          event.preventDefault();
+          search.focus();
+        }
+        if (event.key === "Escape") {
+          search.value = "";
+          clearMarks();
+          searchStatus.hidden = true;
+          search.blur();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

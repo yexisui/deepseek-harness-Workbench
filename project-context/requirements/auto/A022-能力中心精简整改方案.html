@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>能力中心精简与能力包分发</title>
+  <style>
+    :root {
+      --accent: #3498db;
+      --accent-dark: #2b7db4;
+      --accent-soft: #f1f8ff;
+      --page-bg: #f8f9fa;
+      --text: #333;
+      --muted: #666;
+      --line: #d8dee3;
+      --line-strong: #b8c7d1;
+      --panel: #fff;
+      --warning-bg: #fffbe6;
+      --warning-line: #f1c40f;
+      --warning-text: #7f6000;
+      --header-height: 70px;
+      --anchor-offset: 95px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background: var(--page-bg);
+      font: 14px/1.7 "Microsoft YaHei", "SimHei", Arial, sans-serif;
+    }
+    [hidden] { display: none !important; }
+
+    .report-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(255, 255, 255, .97);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+    }
+    .header-inner {
+      width: min(100%, 1400px);
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin: 0 auto;
+      padding: 10px 20px;
+    }
+    .report-identity { min-width: 0; }
+    .header-title {
+      overflow: hidden;
+      margin: 0;
+      color: #2c3e50;
+      font-size: 17px;
+      font-weight: 750;
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .header-subtitle {
+      overflow: hidden;
+      margin-top: 2px;
+      color: #777;
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .search-box {
+      position: relative;
+      width: min(360px, 42vw);
+      margin-left: auto;
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 7px;
+      color: #777;
+      font-size: 19px;
+      pointer-events: none;
+    }
+    .search-box input {
+      width: 100%;
+      height: 40px;
+      padding: 0 40px 0 43px;
+      color: #333;
+      background: #f8f9fa;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      outline: 0;
+    }
+    .search-box input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, .15);
+    }
+    .search-shortcut {
+      position: absolute;
+      right: 10px;
+      top: 7px;
+      padding: 2px 6px;
+      color: #777;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 10px;
+      pointer-events: none;
+    }
+
+    .report-layout {
+      width: min(100%, 1400px);
+      display: grid;
+      grid-template-columns: minmax(0, 1100px) 250px;
+      align-items: start;
+      gap: 24px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+    .report-card {
+      min-width: 0;
+      padding: 40px;
+      background: var(--panel);
+      box-shadow: 0 0 10px rgba(0, 0, 0, .05);
+      overflow-wrap: anywhere;
+    }
+    .report-card > :first-child { margin-top: 0 !important; }
+    .report-card h1,
+    .report-card h2,
+    .report-card h3,
+    .report-card h4 {
+      scroll-margin-top: var(--anchor-offset);
+      line-height: 1.3;
+    }
+    .report-card h1 {
+      margin: 0 0 20px;
+      padding-bottom: 10px;
+      color: #2c3e50;
+      border-bottom: 3px solid var(--accent);
+      font-size: 30px;
+    }
+    .report-card h2 {
+      margin: 35px 0 15px;
+      color: var(--accent-dark);
+      font-size: 22px;
+    }
+    .report-card h3 {
+      margin: 28px 0 12px;
+      color: #2c3e50;
+      font-size: 18px;
+    }
+    .report-card h4 {
+      margin: 22px 0 10px;
+      color: #555;
+      font-size: 15px;
+    }
+    .report-card p { margin: 12px 0; }
+    .report-card ul, .report-card ol { margin: 12px 0; padding-left: 1.7em; }
+    .report-card li { margin: 5px 0; }
+    .report-card blockquote {
+      margin: 15px 0;
+      padding: 12px 15px;
+      color: var(--warning-text);
+      background: var(--warning-bg);
+      border-left: 5px solid var(--warning-line);
+    }
+    .report-card blockquote > :first-child { margin-top: 0; }
+    .report-card blockquote > :last-child { margin-bottom: 0; }
+    .report-card code {
+      padding: .14em .35em;
+      color: #c0392b;
+      background: #f5f5f5;
+      border: 1px solid #e5e5e5;
+      border-radius: 3px;
+      font: 13px/1.55 Consolas, "Courier New", monospace;
+    }
+    .report-card pre {
+      margin: 16px 0;
+      padding: 16px;
+      overflow: auto;
+      color: #263238;
+      background: #f5f7f9;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+    .report-card pre code { padding: 0; color: inherit; background: transparent; border: 0; }
+    .table-wrap { width: 100%; margin: 15px 0; overflow-x: auto; }
+    .report-card table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .report-card th, .report-card td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .report-card th { color: #fff; background: var(--accent); font-weight: 700; }
+    .report-card tr:nth-child(even) td { background: #f9f9f9; }
+    .report-card th:first-child, .report-card td:first-child { text-align: left; }
+    .report-card a { color: var(--accent-dark); }
+    .report-card img { display: block; max-width: 100%; height: auto; margin: 18px auto; }
+    .report-card hr { margin: 30px 0; border: 0; border-top: 1px solid var(--line); }
+    mark { padding: 0 .08em; color: inherit; background: #fff09a; border-radius: 2px; }
+
+    .metric-grid { display: flex; flex-wrap: wrap; gap: 16px; margin: 18px 0; }
+    .metric-card {
+      min-width: 190px;
+      flex: 1 1 190px;
+      padding: 15px;
+      background: var(--accent-soft);
+      border-left: 5px solid var(--accent);
+      border-radius: 6px;
+    }
+    .metric-label { color: #555; font-size: 13px; }
+    .metric-value { margin-top: 4px; color: #2c3e50; font-size: 27px; font-weight: 750; }
+    .metric-note { margin-top: 3px; color: #777; font-size: 12px; }
+
+    .nav-panel {
+      position: sticky;
+      top: calc(var(--header-height) + 20px);
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+    }
+    .nav-title {
+      padding: 12px 16px;
+      color: #2c3e50;
+      background: var(--accent-soft);
+      border-bottom: 1px solid var(--line-strong);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .section-nav {
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100dvh - var(--header-height) - 100px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .section-nav a {
+      min-height: 44px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      padding: 11px 15px;
+      color: #555;
+      border-bottom: 1px solid #e1e6ea;
+      border-left: 4px solid transparent;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.45;
+      text-decoration: none;
+    }
+    .section-nav a:last-child { border-bottom: 0; }
+    .section-nav a:hover { color: var(--accent-dark); background: #f8fafc; }
+    .section-nav a.active {
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+      border-left-color: var(--accent);
+    }
+    .section-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+    .nav-empty { padding: 16px; color: #777; font-size: 12px; }
+    .search-status {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 40;
+      padding: 8px 12px;
+      color: #fff;
+      background: rgba(44, 62, 80, .9);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1180px) {
+      .report-layout { grid-template-columns: minmax(0, 1fr) 220px; gap: 16px; }
+    }
+    @media (max-width: 700px) {
+      .header-inner { min-height: 0; flex-wrap: wrap; padding: 10px 14px; }
+      .report-identity { width: 100%; }
+      .header-title { white-space: normal; }
+      .search-box { width: 100%; margin: 0; }
+      .report-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-areas: "nav" "content";
+        gap: 12px;
+        padding: 14px 10px 45px;
+      }
+      .report-card { grid-area: content; padding: 24px 16px 40px; font-size: 13px; }
+      .report-card h1 { font-size: 24px; }
+      .report-card h2 { font-size: 20px; }
+      .report-card h3 { font-size: 17px; }
+      .nav-panel { position: static; grid-area: nav; }
+      .section-nav { max-height: 35vh; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+    @media print {
+      .report-header, .nav-panel, .search-status { display: none !important; }
+      body { background: #fff; }
+      .report-layout { display: block; width: auto; margin: 0; padding: 0; }
+      .report-card { margin: 0; padding: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="report-header">
+    <div class="header-inner">
+      <div class="report-identity">
+        <div class="header-title">能力中心精简与能力包分发</div>
+        <div class="header-subtitle">A022 · 导入与导出已交付 · 2026-10-06</div>
+      </div>
+      <label class="search-box">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="reportSearch" type="search" placeholder="搜索报告内容" autocomplete="off" aria-label="搜索报告内容">
+        <span class="search-shortcut" aria-hidden="true">/</span>
+      </label>
+    </div>
+  </header>
+
+  <div class="report-layout">
+    <main class="report-card" id="reportContent"><h1>能力中心精简整改方案</h1>
+<blockquote><p>2026-10-06 修订需求：用户自行开发能力并导出分发，接收方导入使用。首页取消创建，主要操作只保留导入能力和导出能力；完整包分发与简化流程见第十四节。用户已确认实施；完整分发功能已同步正式工作台，正常重启后生效。实施、验证、开发示例和回退说明见第十五节。</p></blockquote>
+<blockquote><p>2026-10-05 后续要求：只取消组件中心的独立入口，插件管理保留独立入口，能力中心承接组件管理并提供完整插件页面。用户于 2026-10-06 明确同意正式同步，现已完成 18 项代码和运行文件同步及校验；11 项配置与数据保护路径保持一致。工作台未自动重启，正常重启后加载新界面。详见第十三节。</p></blockquote>
+<p>建议把能力中心改为紧凑的能力列表，将详情的五个栏目合并为三个：设置、组件、使用情况。首页帮助用户找到能力、看懂状态、进入配置；低频管理和技术细节在需要时展开。能力、组件和插件继续使用现有数据与执行关系。</p>
+<blockquote><p>前轮用户已授权“先备份，然后修改，记得要保证能回退”。前轮已完成整改、199 项 UI 回归、类型检查、构建及隔离回退演练，并同步正式工作台。应用未自动重启；正常重启后的实际体验待验收。初始分析保留于前十节，实际交付及边界见第十一节。</p></blockquote>
+<ul><li>编号：A022。</li><li>记录来源：用户要求分析能力中心过于复杂的问题，并提供完善的优化整改方案；由助手自动归档。</li><li>创建时间：2026-10-05；更新时间：2026-10-06。</li><li>状态：入口精简及能力导入/导出均已同步正式工作台；351 项本轮测试和回退演练通过，正常重启后的实际体验待验收。</li><li>返回：<a href="../../PEFR_PLAN.MD">工作台事项台账</a>。</li></ul>
+<h2>一 复杂的原因与整改目标</h2>
+<p>从截图和当前代码看，复杂主要来自信息层级与重复展示。四项能力已占据两排大卡片，每张卡片都重复显示来源、长介绍、岗位数量、收藏文字和底部管理区；首页又把状态、使用关系和回收站并列成五个栏目。进入详情后仍有五个栏目，修改说明、修改动作和修改组合又会进入同一编辑器。</p>
+<p>这让用户在完成“找到某项能力并配置”之前，需要先理解许多管理概念。整改应优先减少常驻信息和入口，而不是先增加更多分组、更多视图或新的中心。</p>
+<div class="table-wrap"><table><thead><tr><th>已核实的问题</th><th>对用户的影响</th><th>建议的处理</th></tr></thead><tbody><tr><td>全部、收藏、待就绪、未使用、回收站五项并列</td><td>收藏、状态、使用关系和生命周期被当成同类选项</td><td>常驻全部与收藏，状态和使用关系进入筛选，回收站独立进入</td></tr><tr><td>图钉、卡片描边与已收藏文字重复表达收藏</td><td>每张卡片有多处视觉强调</td><td>保留已确认的深色图钉；移除已收藏文字和额外收藏描边</td></tr><tr><td>所有卡片反复展示内置能力及岗位数量</td><td>次要信息比名称和状态更抢眼</td><td>来源进入详情；岗位关系在使用情况中集中查看</td></tr><tr><td>管理能力按钮为每张卡片单独占一整行</td><td>列表变成大块展示区，浏览成本高</td><td>名称和主体成为详情入口，保留箭头提示；移除独立按钮底栏</td></tr><tr><td>能力中心顶部与设置侧栏同时提供组件中心</td><td>相同目的地重复占据主要位置</td><td>移除首页顶部重复按钮；保留设置侧栏和组件编辑时的上下文入口</td></tr><tr><td>概览、说明、默认配置相互跳转</td><td>调一次配置需要理解多个栏目</td><td>合并为设置，并复用原有配置表单</td></tr><tr><td>浏览器默认配置显示动作，其他能力默认配置显示服务表单</td><td>相同栏目名字含义不同</td><td>服务配置归设置；动作和组件归组件</td></tr><tr><td>首页末尾长期显示会议录音专属说明</td><td>全局列表夹杂某个能力的业务提示</td><td>移至会议设置及录音上传前，相关信息在真正需要时出现</td></tr></tbody></table></div>
+<p>整改目标是让用户扫一眼知道“有哪些能力、目前是什么状态”，打开后知道“下一步在哪里操作”。不在本轮引入新的工作流编排、能力市场、批量操作中心或卡片与列表双视图。</p>
+<h2>二 首页采用紧凑能力列表</h2>
+<p>建议采用单列紧凑行。当前设置弹窗的内容区不宽，单列更适合横向放置名称和状态，也能为后续增加能力预留空间。</p>
+<pre><code class="language-text">能力中心                                  ＋ 创建能力   更多
+
+搜索能力名称或用途…
+全部    收藏                                  筛选
+
+图标  浏览器操作                  待连接        图钉   ›
+      打开网页、读取内容与截图
+
+图标  会议录音转写                待配置        图钉   ›
+      上传录音并转写为文字
+
+图标  需求分析                    可使用        图钉   ›
+      澄清目标并整理需求
+
+图标  开发工作区                  项目内检测    图钉   ›
+      查看项目、Git 变更与检查结果</code></pre>
+<p>这是首页结构示意。每行约 76–88 像素作为实施起点，名称一行、说明最多一行；具体尺寸以设置内容区和缩放实测为准。状态保持真实语义，开发工作区不能因为没有浏览器连接而被标成待连接。</p>
+<div class="table-wrap"><table><thead><tr><th>每行保留</th><th>调整方式</th></tr></thead><tbody><tr><td>原图标与能力名称</td><td>保留已有图标和配色；长名称可在详情查看完整内容</td></tr><tr><td>一句用途说明</td><td>首页使用简短摘要；完整介绍保留并参与搜索，不直接截断存储数据</td></tr><tr><td>一个主要状态</td><td>状态由共享描述与适配器提供；详情展示具体原因和检查依据</td></tr><tr><td>收藏图钉</td><td>沿用深色实底白图标及收藏名称；失败时回滚显示</td></tr><tr><td>详情入口</td><td>点击名称或主体进入设置；图钉独立操作，不触发跳转</td></tr></tbody></table></div>
+<p>移除能力的垃圾桶移到详情标题右侧，带提示和可访问名称。用户从首页进入详情后即可找到；不把移除伪装成普通开关，也不删除现有影响确认。与之不同，组合编辑器内的组件移除仍保留每行右侧垃圾桶。</p>
+<p>首页没有用户自定义顺序的新增需求，继续沿用现有收藏优先的稳定顺序。若以后增加排序，必须遵守整框拖动规范，不出现上下箭头或只允许拖动小手柄。</p>
+<p>创建能力保留为标题区的次级按钮，不再与正常使用争夺大面积主按钮。更多菜单首版只放回收站，不为了填满菜单加入导入、批量管理等新功能。回收站非空时可在菜单项显示数量。</p>
+<h2>三 把五个列表栏目整理为两个栏目和筛选</h2>
+<div class="table-wrap"><table><thead><tr><th>现在</th><th>调整后</th><th>具体行为</th></tr></thead><tbody><tr><td>全部</td><td>保留</td><td>默认展示所有未移除能力，保留搜索和收藏优先</td></tr><tr><td>收藏</td><td>保留</td><td>仅查看收藏能力，使用现有收藏数据</td></tr><tr><td>待就绪</td><td>放入筛选</td><td>状态筛选：需要配置或连接、草稿、已停用；检查中和未知单独说明</td></tr><tr><td>未使用</td><td>放入筛选</td><td>改名为未关联岗位，明确与执行历史不同</td></tr><tr><td>回收站</td><td>更多菜单内进入</td><td>打开独立回收站视图，沿用恢复、批量选择和永久删除保护</td></tr></tbody></table></div>
+<p>筛选弹层只保留两组：状态、岗位关联。不同组之间取交集；同组允许多选时取并集。搜索、全部或收藏和筛选共同生效。存在筛选时显示已选条件与清除入口，避免用户误以为能力丢失。</p>
+<p>未关联岗位的基础口径沿用现有草稿或最新岗位版本引用。它不表示历史上从未使用，也不能作为永久删除依据。回收站的删除保护继续检查更完整的历史引用，不能因为列表显示零关联就允许删除。</p>
+<p>返回能力列表时恢复查询、栏目、筛选和滚动位置。回收站使用单独的查询状态，离开后恢复原列表条件。旧页面定位请求通过兼容映射进入新位置，不反复重放。</p>
+<h2>四 能力详情五个栏目合并为三个</h2>
+<p>推荐设置、组件、使用情况三个栏目。全部合成一张长表会让服务设置、组合草稿与岗位引用难以区分，三个栏目可以在精简后保留清楚的操作边界。</p>
+<div class="table-wrap"><table><thead><tr><th>原栏目或内容</th><th>新位置</th><th>合并后的行为</th></tr></thead><tbody><tr><td>概览与连接</td><td>设置顶部</td><td>状态、原因、启用状态和当前必要的下一步放在一起</td></tr><tr><td>默认配置中的服务表单</td><td>设置主体</td><td>复用已有语音识别、需求、项目配置表单及唯一数据源</td></tr><tr><td>使用说明</td><td>设置下的折叠区</td><td>默认显示一句用途，展开阅读完整说明；编辑进入现有能力编辑器</td></tr><tr><td>浏览器默认配置中的动作</td><td>组件</td><td>与所选组件和动作放在同处，避免两处展示与编辑同一内容</td></tr><tr><td>关联组件</td><td>组件</td><td>紧凑组合摘要，点击编辑组合打开现有三栏编辑器</td></tr><tr><td>使用岗位</td><td>使用情况</td><td>当前关联岗位列表，标明草稿或具体发布版本，支持回到原岗位编辑</td></tr><tr><td>版本、稳定 ID、来源与依赖细节</td><td>相应栏目内的折叠区</td><td>初始全部收起；不增加常驻版本页签</td></tr></tbody></table></div>
+<h3>设置的默认展开内容</h3>
+<p>上方显示能力名称、简短介绍和真实状态，右侧保留编辑能力与移除图标。下面显示最相关的设置项；使用说明和技术信息默认折叠。</p>
+<ul><li>浏览器：保留启动本地连接、检测连接的真实操作。未连接时突出启动连接；已有结果时突出检测连接，其他操作降为次级入口。没有实现的填写、提交或白名单功能继续说明限制。</li><li>会议录音转写：复用语音识别设置；已填写配置只能显示已配置，不能宣称连接验证或转写成功。录音发送目的地说明放在此处，并在上传前可见。</li><li>需求分析：复用现有模型与默认配置，显示当前配置状态；任务成功与配置状态分别展示。</li><li>开发工作区：复用项目相关设置；明确实际检查在绑定项目的任务中完成，保持默认只读及现有权限。</li></ul>
+<h3>组件与编辑器</h3>
+<p>保留左侧组件库、中间当前组合、右侧信息与配置的共享编辑器。普通用户在详情只看到当前组件摘要；需要改组件时才进入完整编辑界面。组件缺失时显示明确原因和补回入口，不折叠掉阻断信息。</p>
+<p>使用说明编辑和组合编辑继续复用同一能力草稿。打开时定位相应区域；保存草稿与检查并发布保持两个含义明确的操作。服务配置有自身的保存、取消和作用范围提示，不被能力草稿的保存按钮顺带提交。</p>
+<h3>使用情况</h3>
+<p>默认展示当前关联岗位。历史版本引用如需展示，按需展开并使用既有可靠查询；不能为精简界面新造一个不完整的引用计数。详情没有岗位时显示暂无关联岗位，并提供已有岗位管理入口，不新增自动分配或批量采用行为。</p>
+<h2>五 可以合并的入口与应保留的业务边界</h2>
+<div class="table-wrap"><table><thead><tr><th>对象</th><th>本轮推荐</th><th>原因</th></tr></thead><tbody><tr><td>能力中心首页与管理能力按钮</td><td>合并为点击能力行打开详情</td><td>每项能力只保留一个主要查看入口</td></tr><tr><td>概览、说明、默认配置</td><td>合并为设置</td><td>都在回答如何配置及如何使用此能力</td></tr><tr><td>浏览器动作设置与关联组件</td><td>合并到组件</td><td>动作属于具体组件组合，不需要独立重复入口</td></tr><tr><td>能力中心顶部组件中心按钮</td><td>移除重复入口</td><td>设置侧栏已经有组件中心，组合编辑器保留上下文入口</td></tr><tr><td>能力中心与组件中心</td><td>本轮保留各自页面</td><td>能力是供岗位使用的组合，组件中心管理共享组件及来源，两者修改范围不同</td></tr><tr><td>组件中心与插件</td><td>继续分别管理，复用真实关系跳转</td><td>组件不等于安装包，同一插件可能提供多个组件或仅作为运行支持</td></tr><tr><td>能力草稿保存与服务配置保存</td><td>各自明确保存</td><td>一个生成能力定义，一个影响共享服务配置，不能因为同页就绑定提交</td></tr><tr><td>保存草稿与发布</td><td>保留两个操作</td><td>未完成的草稿应能保存，发布仍须通过后端校验</td></tr><tr><td>停用、移入回收站、永久删除</td><td>保留不同语义</td><td>涉及不同的引用、历史记录及执行影响</td></tr></tbody></table></div>
+<p>如果完成本轮后仍认为整个设置侧栏过长，可另行评估把组件中心放进能力中心的高级管理入口。这会改变此前确认的一级导航，需要单独审阅。现在先收掉重复入口，不同时重排插件、Agent 预设、岗位助手与其他设置。</p>
+<h2>六 状态展示统一且保留真实性</h2>
+<p>当前卡片已有共享状态函数，但待就绪筛选仍在页面内单独判断，还按特定能力 ID 分支。整改应让列表、筛选、详情和岗位编辑器共同读取相同的状态结果，避免卡片说一种状态，筛选却按另一套逻辑归类。</p>
+<div class="table-wrap"><table><thead><tr><th>状态维度</th><th>首页如何表现</th><th>详情如何说明</th></tr></thead><tbody><tr><td>生命周期</td><td>草稿、已停用；已移除只在回收站出现</td><td>当前发布版本、恢复与启用规则</td></tr><tr><td>组件完整性</td><td>组件缺失或组件已停用</td><td>具体组件、受影响动作和补回入口</td></tr><tr><td>服务配置</td><td>待配置或已配置</td><td>缺失项及真实配置入口，明确影响范围</td></tr><tr><td>连接检查</td><td>待连接、连接异常或当前检测结果</td><td>检查时间、结果和可执行的检测操作</td></tr><tr><td>运行环境</td><td>项目内检测</td><td>需进入哪个任务或项目才能确认</td></tr><tr><td>数据读取</td><td>检测中、状态未知</td><td>读取失败原因及重试入口，不能当作零引用或可用</td></tr><tr><td>任务结果</td><td>首页不汇总成健康状态</td><td>在对应任务中查看是否执行成功</td></tr></tbody></table></div>
+<p>首页一个主要状态应按明确规则选择：先体现移除或停用，其次未发布，再体现组件阻断，最后是配置、连接或项目检查结果。被覆盖的其他事实在详情保留。若有关状态读取失败，展示未知和原因，不能把暂时没有数据直接判定为待配置。</p>
+<p>已发布版本的就绪结果与未发布草稿分别处理。若草稿名称、说明或组合与发布版本不同，界面必须能识别有未发布修改；不能用草稿展示内容搭配发布版状态却不作区分。此项作为实施回归重点，不在本轮只读分析中宣称全部路径已存在缺陷。</p>
+<h2>七 统一实现与配置保护</h2>
+<h3>复用已有实现</h3>
+<p>正式设置入口目前注册的是 ManagedCenter。仓库中仍有旧 CapabilityCenter 预览实现，不能只修改这个名字相似的旧页面，造成方案已写但正式界面没有变化。</p>
+<div class="table-wrap"><table><thead><tr><th>实施位置</th><th>预期改动</th></tr></thead><tbody><tr><td>ManagedCenter.tsx</td><td>首页布局、栏目映射、详情共享外壳和导航恢复；减少按能力名称写死的页面分支</td></tr><tr><td>ManagedCapabilityCards.tsx 及共享样式</td><td>抽出紧凑能力行；回收站保持自己的选择与操作能力，避免误受首页样式影响</td></tr><tr><td>capability-presentation.ts 及状态适配层</td><td>提供统一展示状态与筛选分类；保留配置、连接和执行的区别</td></tr><tr><td>ComponentComposition.tsx 与 ManagedWorkbench.tsx</td><td>复用现有组合编辑，不复制新的轻量编辑器；保护缺失草稿、补回和整框拖动行为</td></tr><tr><td>服务设置组件</td><td>原表单与保存接口复用，只调整承载位置；不增加第二份凭据或默认配置</td></tr><tr><td>workbench-navigation.ts 及相关入口</td><td>映射旧栏目、保留来源快照、草稿和滚动，复用已修复的返回保护</td></tr></tbody></table></div>
+<h3>旧入口与兼容</h3>
+<p>旧 overview、instructions、defaults 定位到设置中的相应区块；浏览器动作类 defaults 定位到组件动作摘要。旧 components 定位到组件，旧 roles 定位到使用情况。兼容映射必须依据能力适配描述，而不是全局把所有 defaults 链接机械替换成同一位置。</p>
+<p>旧栏目记忆通过读取兼容转换，不批量改写能力数据。未识别的栏目安全回到设置并保留当前对象。组件、插件和岗位往返恢复原来源；关闭最上层编辑界面时不得同时关闭底层岗位草稿。</p>
+<h3>数据与权限</h3>
+<p>本轮优先做展示、入口和共享状态整理，不要求迁移业务记录。保持能力与组件 ID、收藏值、启停状态、草稿、发布版本、岗位绑定、历史会话和服务凭据。</p>
+<p>必需组件可以从草稿移除并恢复；缺失草稿可保存但不能发布。发布与执行继续由后端校验。会议、需求和开发的专用路由边界不变，组件能被展示或拖入不等于已经支持跨流程执行。</p>
+<p>正式实施前记录代码基线，必要时备份实际运行包和受保护配置摘要。分阶段独立提交，保留可回退路径；不得因界面整理覆盖其他正在进行的工作。</p>
+<h2>八 分阶段实施和交付</h2>
+<div class="table-wrap"><table><thead><tr><th>阶段</th><th>内容</th><th>交付门槛</th></tr></thead><tbody><tr><td>第一阶段 首页精简</td><td>紧凑列表、两个常驻栏目、筛选、回收站入口、去除重复来源及收藏文案、移除顶部重复组件按钮</td><td>四项能力在同等内容区中明显更易扫读；查找、收藏、打开详情和移除路径可用；功能数据保持</td></tr><tr><td>第二阶段 详情合并</td><td>三个栏目、配置表单复用、说明折叠、组件动作归位、旧栏目映射</td><td>四类能力都可设置、查看组件和岗位；所有适用的往返与取消保留草稿</td></tr><tr><td>第三阶段 一致性收尾</td><td>共享状态与筛选、未发布标记、显示矩阵、回收站及跨模块回归</td><td>状态不误导；发布、恢复、引用保护和现有岗位联动通过适用验证</td></tr></tbody></table></div>
+<p>三个阶段共同构成推荐整改范围。阶段之间先核对结果再继续，具体工时在实施前结合当前代码变化估算，不用未经测量的节省比例作为承诺。</p>
+<p>不在这一轮重写后端架构、合并服务凭据、调整模型优先级或重设计岗位配色。上述边界是为保证本次能力中心整改可以独立验证和回退。</p>
+<h2>九 验收标准</h2>
+<div class="table-wrap"><table><thead><tr><th>验收场景</th><th>合格条件</th></tr></thead><tbody><tr><td>默认首页</td><td>常驻栏目仅全部和收藏；不再重复显示内置能力、已收藏和整行管理按钮</td></tr><tr><td>查找能力</td><td>名称和用途仍可搜索；收藏、搜索和筛选交集正确；无结果时可清除条件</td></tr><tr><td>收藏</td><td>图钉外观和名称符合既有约定；操作不打开详情；失败不会保留虚假选中态</td></tr><tr><td>配置路径</td><td>从能力行一次进入设置；原来已有的服务表单直接可见或定位，无重复保存入口</td></tr><tr><td>状态</td><td>四类能力及混合或未适配描述均按真实条件呈现；已配置不等于连接成功；读取失败不算未使用</td></tr><tr><td>草稿与发布</td><td>缺失组件后能保存重开；发布被阻断；补回恢复；已发布执行不被草稿改变</td></tr><tr><td>组件交互</td><td>添加、拖入、去重、移除确认、补回及适用排序可用；整框拖动不误触开关</td></tr><tr><td>配置往返</td><td>能力到组件、插件、服务配置及岗位的往返保留对象、栏目、滚动与未保存输入</td></tr><tr><td>岗位联动</td><td>岗位卡片选择、左上角名称图标、新对话和取消选定保持原关系</td></tr><tr><td>回收站</td><td>单项及批量恢复、引用保护和永久删除按原规则执行；恢复后仍保持停用</td></tr><tr><td>显示与可访问性</td><td>当前设置宽度、窄屏、150%缩放及深浅主题无横向溢出；键盘能打开详情和操作图钉，状态不只靠颜色</td></tr><tr><td>数据和回退</td><td>业务配置与历史记录保持；源码与运行资产一致；针对本轮的回退方案可执行</td></tr></tbody></table></div>
+<p>行主体采用可聚焦的详情入口，图钉与移除等操作是独立按钮，避免嵌套按钮。窄屏允许把状态移至第二行，不因固定高度挤掉名称或缩小点击区域；长说明完整内容可通过详情读取，不能只依赖悬停。</p>
+<p>交付验证应包含必要类型检查、构建、共享模块行为测试及实际界面检查。没有测到的组合明确列为待验收，不能把单元测试通过写成全部真实服务已连通。</p>
+<h2>十 核查依据与建议采用的范围</h2>
+<p>本轮基于用户提供的截图以及 2026-10-05 只读检查的正式源码。检查时正式仓库最新提交为 b597a07。该信息仅标记本次代码检查背景，不表示用户当前运行进程已加载全部最新修改。</p>
+<div class="table-wrap"><table><thead><tr><th>依据</th><th>核查内容</th></tr></thead><tbody><tr><td>AGENTS.MD 第8和第9节</td><td>已确认配置与岗位联动、统一组件编辑、真实状态、草稿发布隔离、整框拖动规范</td></tr><tr><td>PEFR_PLAN.MD 的 T019、T020、T023、T026、T028</td><td>能力中心、共享组件管理及后续修复的执行和待验收状态</td></tr><tr><td>M006 能力中心与配件紧凑列表整合方案</td><td>原能力中心职责及紧凑配件的设计背景；其中早期示例说明不代表当前正式实现</td></tr><tr><td>A019 第27至32节</td><td>组件中心已实施、布局与导航修复；本方案不把修复前记录重新当作当前缺陷</td></tr><tr><td>A021 后续执行记录</td><td>状态、草稿发布、历史与预设相关修复；需作为回归基线保护</td></tr><tr><td>apply.tsx 第204行</td><td>正式能力中心注册 ManagedCenter</td></tr><tr><td>ManagedCenter.tsx 第93、101、113、117、125及132行附近</td><td>状态筛选、详情五栏目、重复组件入口、首页栏目与会议专属页脚</td></tr><tr><td>ManagedCapabilityCards.tsx</td><td>卡片来源、说明、状态、岗位计数、收藏文字和底部管理操作</td></tr><tr><td>capability-presentation.ts 与 capability-settings.tsx</td><td>共享状态入口，以及能力中心和组件中心的独立设置注册</td></tr></tbody></table></div>
+<p>推荐采用首页精简、详情合并、统一状态与完整回归三个阶段；能力中心、组件中心、插件三者的业务边界保留。最值得先落地的是紧凑列表和五合三栏目，它们能直接减少用户日常面对的内容，同时保持已有功能可找到、可操作。</p>
+<p>初始方案阶段只做源码核查和方案整理。后续用户已确认实施，本轮执行结果记录如下；原截图状态与隔离界面的合成状态均不代表真实服务连接结果。</p>
+<h2>十一 2026-10-05 实施与验证</h2>
+<p>用户本轮明确授权先备份再修改，并要求能回退。修改前正式 main 基线为 <code>b597a072e4f81e575301eb6a1fe100ed76a3f24e</code>；在独立分支 <code>codex/capability-center-simplification</code> 完成开发与验证后，本地快进同步到正式工作台 <code>fd811000a7a6e8b21d4f1804b84eabb9e930d856</code>。未推送远程，也未强制重启用户工作台。</p>
+<div class="table-wrap"><table><thead><tr><th>交付项</th><th>实际结果</th></tr></thead><tbody><tr><td>首页</td><td>四项能力改为紧凑单行列表；常驻全部与收藏，状态和未关联岗位按需筛选；回收站移入更多；名称/说明、真实状态、深色图钉保留</td></tr><tr><td>详情</td><td>统一为设置、组件、使用情况；原服务表单复用，说明与技术版本默认折叠；岗位真实引用版本可见</td></tr><tr><td>旧入口</td><td>兼容 overview、instructions、defaults、components、roles；浏览器 defaults 进入组件，其余服务进入设置；保留来源、筛选和滚动恢复</td></tr><tr><td>状态与草稿</td><td>生命周期、组件阻断、服务状态统一筛选；失败显示未知；会议已配置不表示验证成功；已发布定义与未发布修改分别提示</td></tr><tr><td>组件编辑</td><td>保留三栏编辑器、缺失草稿保存重开及发布阻断；整行拖动含文字/序号/开关区域，移动阈值避免误触，支持键盘取消</td></tr><tr><td>数据</td><td>没有迁移字段或改写业务数据；交付前后 11 项受保护路径哈希一致（其中不存在的可选文件保持不存在）</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>验证</th><th>结果及边界</th></tr></thead><tbody><tr><td>修改前 UI 基线</td><td>189 项通过</td></tr><tr><td>修改后 UI 完整回归</td><td>199 项通过、0 失败；包含共享组件、导航、回收站、岗位选择和既有草稿/发布保护</td></tr><tr><td>新增针对性验证</td><td>8 项简化行为与 2 项整框排序测试；验证开关单击、拖动不误触、文本输入保护和 Esc 取消</td></tr><tr><td>类型与构建</td><td>UI 类型检查和 tsdown 构建通过；仅更新本轮 UI 包指纹；构建保留工具自身的弃用提示</td></tr><tr><td>实际浏览器</td><td>使用真实改动组件和合成接口的隔离页面；桌面、390/520px、深色、详情三栏、筛选、文字区拖动、键盘排序均检查；新页面控制台无错误或警告</td></tr><tr><td>缩放</td><td>150% CSS 缩放与可用宽度模拟通过；不等同于原生桌面 DPI 的完整验收</td></tr><tr><td>回退</td><td>在独立副本撤销本次两个提交，Git 树与基线一致；20 项改动路径按旧文件字节恢复/删除新增文件，校验通过</td></tr><tr><td>正式同步</td><td>20 项源码/测试/构建文件逐项校验一致；运行 profile 的 UI 包仍指向正式源码目录；11 项配置/状态路径保持</td></tr></tbody></table></div>
+<p>实际发现并修复了编辑器关闭后重复详情节点的问题。旧审查断言也按本方案更新：开发组件的未支持复制身份保留图标与适配描述，但显示“组件待完善”和实际执行路由限制；真正的开发工作区保持“项目内检测”。</p>
+<p>真实 BrowserSkill 接管、ASR 转写和模型任务成功不属于本次合成接口验收结论。正式运行进程尚未重启；用户下次正常重启后检查最终外观和日常路径。既有应用真实服务验收事项继续保留。</p>
+<h2>十二 备份、提交与回退</h2>
+<ul><li>备份目录：<code><SECONDARY_WORKSPACE>\capability-center-simplification\backup</code>，含修改前源码 ZIP、Git 历史 bundle、旧 UI 运行包和必要快照。</li><li>交付目录：<code><SECONDARY_WORKSPACE>\capability-center-simplification\release</code>，含逐文件备份、manifest.json、rollback-check.json、installed.json。</li><li>界面与测试提交：<code>6208b65</code>；运行包提交：<code>fd81100</code>。</li><li>基线标签：<code>baseline/capability-center-simplification-20261005</code>；交付标签：<code>release/capability-center-simplification-20261005</code>。</li><li><a href="../../archive/INDEX.md" title="原链接为本机历史附件，详见归档说明">回退说明</a>；同目录 <code>回退能力中心.cmd</code> 可在正常退出工作台后执行。</li></ul>
+<pre><code class="language-powershell">&amp; &#x27;C:\Program Files\nodejs\node.exe&#x27; &#x27;<SECONDARY_WORKSPACE>\capability-center-simplification\release.mjs&#x27; --rollback</code></pre>
+<p>两个带引号路径分别指定 Node 和本轮脚本，<code>--rollback</code> 撤销这两个提交并恢复旧源码/运行包字节，保留回退时最新的业务和模型配置。若存在后续提交或文件修改，脚本会停止，不能强制覆盖。</p>
+<p>相关证据保存在 <code><SECONDARY_WORKSPACE>\capability-center-simplification\checks</code>：<code>final-ui.json</code>、<code>validation.json</code>、<code>visual.json</code> 和四张界面截图。源码 ZIP 与 Git bundle 已核对，回退演练未触碰正式目录。</p>
+<h2>十三 统一能力入口：已正式同步，待重启验收</h2>
+<p>更新时间：2026-10-06。用户提出不要独立组件中心，并明确选择“只取消组件中心，插件管理保留独立入口”。本轮在 <code>codex/capability-center-unification</code> 隔离分支实现。用户明确同意同步后，正式 main 已从 <code>fd811000a7a6e8b21d4f1804b84eabb9e930d856</code> 快进到 <code>64f408f79f9c22332971e7c9e7299f04ba98f83d</code>。</p>
+<div class="table-wrap"><table><thead><tr><th>范围</th><th>本轮结果</th></tr></thead><tbody><tr><td>一级入口</td><td>取消组件中心的独立注册；能力中心和原插件入口保留</td></tr><tr><td>组件管理</td><td>能力中心“更多 → 组件库”承接搜索、分类、收藏、候选登记、生命周期、依赖和使用关系；能力编辑中的组件管理继续复用同一实现</td></tr><tr><td>插件管理</td><td>能力中心“更多 → 插件管理”通过设置壳原有渲染入口承载原插件页面，保留全部已注册栏目、注入服务、权限、导入、启停、卸载和回退流程；侧栏独立插件入口保留</td></tr><tr><td>旧链接与返回</td><td>旧 component-center 定位进入能力中心内部；内部插件链接保留来源，独立插件入口仍独立打开；组件、能力、插件及嵌套编辑器按原对象和栏目返回</td></tr><tr><td>配置与数据</td><td>不迁移或改写配置、组件登记、能力草稿、发布版本、岗位绑定、凭据、分类及历史；正式同步前后11条保护路径哈希一致；原本不存在的可选文件保持不存在</td></tr><tr><td>交付范围</td><td>14项受版本控制文件与4项插件构建/安装资产，共18条目标路径；不改后端业务逻辑</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>验证</th><th>结果与边界</th></tr></thead><tbody><tr><td>UI完整回归</td><td>209项通过、0失败，含10项新增统一入口测试及原导航、草稿、岗位和发布检查</td></tr><tr><td>插件相关回归</td><td>8项通过，核对组件插件清单、关系与兼容</td></tr><tr><td>类型与构建</td><td>UI和插件管理两个包通过；构建工具原有弃用提示保留</td></tr><tr><td>界面</td><td>隔离浏览器中查看统一入口、插件清单与安装管理、本地ZIP/文件夹导入入口、组件→能力→组件返回；520px容器、深色和150% CSS缩放检查通过</td></tr><tr><td>测试边界</td><td>浏览器使用真实页面组件和合成接口，原插件页壳在预览中用两栏模拟；设置壳复用由接口测试和源码核查覆盖。未执行真实插件安装、卸载、模型或ASR调用，未验证正式宿主的新界面</td></tr><tr><td>回退</td><td>隔离副本撤销两个提交后Git树等于基线；18条文件路径的新旧字节恢复全部核对通过</td></tr><tr><td>正式同步</td><td>2026-10-06 10:28（北京时间）完成；18项目标文件与冻结交付逐一匹配，11项保护路径保持，正式受版本控制文件无未提交变更。独立复核通过，未重启或推送</td></tr></tbody></table></div>
+<p>代码提交：<code>9f79d9760930e57cf69ca2851f6a4aa2136a6d82</code>（入口与导航）及 <code>64f408f79f9c22332971e7c9e7299f04ba98f83d</code>（UI构建与指纹）。未推送远程，未重启正式应用。</p>
+<p>交付与备份位于 <code><SECONDARY_WORKSPACE>\capability-center-unification</code>：<code>backup</code> 保存源码基线和历史，<code>release</code> 保存冻结新文件、逐文件旧备份、保护摘要与回退演练结果，<code>checks</code> 保存测试和隔离界面截图。2026-10-05 的同步请求曾被自动审批拒绝，当时未改写正式源码或运行资产；2026-10-06 用户明确回复“好的，执行吧”后执行本次同步。<code>release/installed.json</code> 保存同步结果；基线标签为 <code>baseline/capability-center-unification-20261005</code>，交付标签为 <code>release/capability-center-unification-20261005</code>。</p>
+<pre><code class="language-powershell">&amp; &#x27;C:\Program Files\nodejs\node.exe&#x27; &#x27;<SECONDARY_WORKSPACE>\capability-center-unification\release.mjs&#x27; --verify</code></pre>
+<p>此命令复核已安装的18项目标文件、正式提交及11项保护路径，不修改工作台。正式同步已经完成，无需再次执行部署；后续正常配置修改可能使保护摘要不同，应核实来源，不覆盖新数据。</p>
+<pre><code class="language-powershell">&amp; &#x27;C:\Program Files\nodejs\node.exe&#x27; &#x27;<SECONDARY_WORKSPACE>\capability-center-unification\release.mjs&#x27; --rollback</code></pre>
+<p>此命令仅在本轮已同步且工作台正常退出后使用；要求正式HEAD和目标文件仍匹配本轮交付，撤销两个提交并恢复旧运行资产，保留回退时最新的业务配置。存在后续代码时停止。本轮回退已在隔离副本演练；正式环境保持交付版本，未执行回退。</p>
+<h2>十四 能力分发：只保留导入与导出（修订方案）</h2>
+<p>更新时间：2026-10-06。用户明确调整方向：能力由自己在外部开发，完成后导出给别人导入使用；能力中心取消“创建能力”，主要操作仅“导入能力”和“导出能力”，减少接收方的操作。本节保留用户已确认的修订方案；2026-10-06 已完成实施，实际协议、支持范围与验证见第十五节。</p>
+<p>变更说明：上一版提出“创建 + 导入”和接收方“草稿 → 发布 → 启用”，现按用户反馈改为完整能力包分发及一次确认导入。内部仍维护版本、依赖、权限和回退；普通接收方无需重复制作流程。原方案和此前正式交付记录已保留备份；第十三节已部署功能不受本轮文档调整影响。</p>
+<h3>14.1 两端流程</h3>
+<p>制作者流程：外部开发 → 在开发环境完成构建与验证 → 导出能力 → 选择开发目录 → 自动检查并生成能力包 → 交给使用者。</p>
+<p>使用者流程：导入能力 → 选择能力包 → 查看用途、所需操作与检查结果 → 导入并启用 → 在支持的岗位或能力入口中使用。</p>
+<p>“导入并启用”只完成本机能力注册、有效版本落库及启用，不运行示例任务、不自动修改岗位授权。无需绑定岗位的能力应由已适配的自身使用入口启动；现有岗位型能力沿用岗位选择。不能因为导入而把所有岗位自动绑定到新能力。</p>
+<h3>14.2 首页和详情 UI</h3>
+<div class="table-wrap"><table><thead><tr><th>位置</th><th>修订后的设计</th></tr></thead><tbody><tr><td>首页标题区</td><td>仅保留两个主要按钮：“导入能力”“导出能力”；移除“创建能力”</td></tr><tr><td>能力列表</td><td>继续紧凑列表；名称、用途、状态、收藏和详情入口保持；不增加制作工作区或导入专区</td></tr><tr><td>既有管理入口</td><td>组件库、插件管理、回收站保留在列表下方的低频管理区，避免占用顶部；插件管理原独立入口保留</td></tr><tr><td>能力详情</td><td>默认展示用途、启用状态、必要配置和移除；组件、来源、版本、引用与高级编辑按需展开，复用原管理实现</td></tr><tr><td>导入窗口</td><td>选择文件后直接在同一窗口预览结果；正常情况主按钮为“导入并启用”，成功关闭并选中列表中的能力</td></tr><tr><td>导出窗口</td><td>一个来源选择：本地开发目录或已安装能力；显示名称、版本和包内容摘要，主按钮“导出能力包”</td></tr></tbody></table></div>
+<p>取消创建仅移除面向用户的新建入口；既有能力、草稿、发布版本及历史编辑记录保留。开发者通过外部模板和项目完成制作，接收方的常用界面不显示模板下载、打包参数或草稿发布工具。</p>
+<h3>14.3 导出应生成能分发的完整包</h3>
+<p>推荐一个 ZIP 对应一个能力，使用者只需接收这一个文件。开发者从本地目录导出时，无需先在普通界面创建能力；导出器直接读取开发工程的交付目录。它检查已有构建产物，不擅自执行目录中的安装/构建脚本。对已安装能力，则导出选定的完整版本及其允许分发的运行组件。</p>
+<div class="table-wrap"><table><thead><tr><th>随包交付</th><th>留在接收方本机</th></tr></thead><tbody><tr><td>名称、用途、使用说明、包标识、版本和兼容要求</td><td>API Key、账号令牌和私人服务配置</td></tr><tr><td>组件组合、动作声明、工作台适配描述</td><td>岗位授权、岗位绑定、聊天与任务历史</td></tr><tr><td>开发者提供的必要组件/插件构建产物、依赖清单及文件摘要</td><td>本机路径、项目内容、浏览器个人资料</td></tr><tr><td>使用说明、可分发资源与适用许可信息</td><td>外部服务账号、系统驱动及浏览器扩展等环境安装</td></tr></tbody></table></div>
+<p>工作台内置且目标版本明确提供的依赖只记录兼容要求。允许分发的私有运行组件随包带上；无法随包交付的依赖必须在导出摘要中标明，不能声称包可离线直接使用。外部包版本与工作台内部发布版本分开保存，包不能指定内置能力 ID 或覆盖其他来源对象。</p>
+<h3>14.4 接收方只处理必要情况</h3>
+<div class="table-wrap"><table><thead><tr><th>自动检查结果</th><th>操作与结果</th></tr></thead><tbody><tr><td>包完整、工作台兼容、必要依赖和配置齐全</td><td>“导入并启用”；一次确认后写入有效版本并启用，显示“已启用”。连接和任务结果仍按真实检测展示</td></tr><tr><td>缺少可填写的模型/服务配置</td><td>“导入并配置”；保存为未启用的完整导入版本，进入已有配置入口，完成后一次检查并启用，不要求另存草稿或手工发布</td></tr><tr><td>必要插件已随包提供但尚未加载</td><td>预览列出将安装的组件和影响，用户一次确认后复用插件安装流程；需要重启时显示“待重启”，正常重启加载并复核成功后才启用，不强制重启</td></tr><tr><td>缺少不能随包安装的外部环境</td><td>显示明确的“待配置/待安装”项目及真实操作入口，按可恢复状态保存；不能把仅保存元数据标为能运行</td></tr><tr><td>工作台不兼容、未知执行协议、包损坏或组件冲突</td><td>阻止安装/启用，说明应更换版本或由制作者重新导出；不生成空壳可用能力</td></tr></tbody></table></div>
+<p>依赖检查、内容校验、版本登记和内部发布由系统处理。导入确认展示实际将增加的组件、动作和必要变更；包内文档不产生执行授权。先校验整包，再提交受管资产和能力记录；失败可撤销本次新写入内容，保留原能力与共享组件。安装、加载、连接和执行成功分别记录。</p>
+<h3>14.5 更新、导出来源和移除</h3>
+<ul><li>同一标识、版本和内容已存在时提示“已安装”，直接打开现有能力；同名不同标识不相互覆盖。</li><li>导入新版时展示简短差异，主按钮“更新能力”，保留旧版回退点；已有岗位固定版本默认保持，只有在明确选择岗位范围时才更新绑定。发现本地未发布修改时保留快照，并明确选择保留或替换，不静默覆盖。</li><li>若同一个包对应多个本地副本，导入时明确选择更新目标；导出当前版本时保留正确的作品标识和本地修改说明，避免把别人修改的内容伪装成作者原版。</li><li>移除沿用垃圾桶确认和回收站，显示引用/活动任务影响；保留历史、原始开发文件和其他能力共用的插件。恢复保持停用；岗位草稿或历史版本仍引用时阻止永久删除。</li><li>内部制作草稿与已发布执行版本继续隔离。普通用户接收作者完整交付包时可走简化导入流程；这不改变现有手工编辑、保存和发布的含义。</li></ul>
+<h3>14.6 必须同步补齐的实现基础</h3>
+<p>目前可执行组件目录仍由代码定义，会议、需求、开发能力也有固定路由限制。要实现用户期望的“自己开发新能力，再导出给别人用”，需要把包格式、组件注册及执行适配纳入同一交付范围。仅增加两个按钮或只导入名称/提示词，不能完成这个目标。</p>
+<p>实施顺序建议：先确定能力包及组件提供者协议、支持版本和可分发依赖规则；再实现开发目录导出和受管安装；然后接入两个按钮、异常处理、更新回退和既有管理入口。开发可以分步，但完整分发链路通过验收后才作为此需求的交付。</p>
+<p>后端复用现有认证、组件权限与能力事务；新增导入操作以 revision、包摘要和幂等标识防止并发覆盖/重复安装。处理插件与能力跨存储变更时记录可恢复事务：先准备与校验，后安装/登记，最后在所需组件已加载后启用；失败回滚本次内容，不能回滚用户后来写入的配置。包文件限制大小和路径，并按受信任的运行协议加载组件；普通文档不作为脚本执行。</p>
+<h3>14.7 验收与当前状态</h3>
+<p>主要验收应使用制作者的开发目录和一个干净、兼容的接收端：导出一个含新组件的能力包，导入后真实执行其声明动作，检查结果与停止/撤权行为。另验无开发源码仍可用、离线依赖完整、缺配置提示、重启续接、重复包、新版更新、旧版回退、并发冲突与共享组件移除保护。</p>
+<p>界面验证首页仅两个主要按钮、导入导出正常路径、窄屏/主题/键盘及原能力/组件/插件/岗位往返。既有配置、草稿、发布版本和岗位历史应保持。交付前仍需独立代码提交、备份和可执行回退演练。</p>
+<p>用户随后明确同意执行本方案。两个主要按钮、打包与导入器、动态组件执行协议现已落地；交付结果见下一节。此处保留方案阶段的完整范围，技术支持边界以实施记录和开发说明为准。</p>
+<h2>十五 能力导入与导出：已实施并同步</h2>
+<p>更新时间：2026-10-06。用户明确回复“行，可以执行这个方案了”。正式 main 从 <code>64f408f79f9c22332971e7c9e7299f04ba98f83d</code> 快进至 <code>5b0eae5b393187d19957763aaa64a75d09dbdc32</code>，代码与测试提交为 <code>b450a60281cf4f33bbb2fba37e1d3fb2ea95d381</code>，构建与指纹提交为 <code>5b0eae5b393187d19957763aaa64a75d09dbdc32</code>。未推送远程，未重启正式应用；当前进程需要正常重启才能加载本次功能。</p>
+<h3>15.1 已交付的用户流程</h3>
+<div class="table-wrap"><table><thead><tr><th>项目</th><th>实际行为</th></tr></thead><tbody><tr><td>首页</td><td>顶部主要操作只有“导入能力”和“导出能力”，创建入口已移除；组件库、插件管理、回收站位于列表下方，独立插件入口保留</td></tr><tr><td>制作者导出</td><td>外部完成构建后选择交付文件夹，清单核对后生成含执行代码、资源与说明的 ZIP；无需先在界面创建能力。也可导出已安装的完整发布版本</td></tr><tr><td>接收方导入</td><td>ZIP 或交付文件夹先校验、预览，再由用户确认信任；适配器可加载且配置完整时一次导入并启用，成功后进入能力；缺模型则进入配置并保持停用</td></tr><tr><td>使用</td><td>设置页提供动作选择、文本输入、可选 JSON 输入、运行/停止和历史结果；可在岗位里添加该能力，发布岗位后从新会话使用</td></tr><tr><td>更新</td><td>稳定作品标识与本机能力 ID 分离；相同版本/内容直接打开已有能力，同版本不同内容拒绝。新版保留旧代码和版本，默认不改变岗位固定版本</td></tr><tr><td>本地草稿</td><td>更新时明确保留或先备份后替换，本地草稿快照可恢复；恢复草稿不改已发布版本。已修改发布版本导出时生成派生作品标识和原版来源</td></tr><tr><td>移除/恢复</td><td>移到回收站会停止相关 Worker 和受代理模型调用；恢复仍为停用；任务历史保留，岗位草稿或历史版本仍引用时禁止永久删除</td></tr><tr><td>共用管理</td><td>动态组件进入共享目录、三栏编辑器、真实适配器关系与配置入口；缺组件草稿可保存，发布及实际执行继续由后端校验</td></tr></tbody></table></div>
+<h3>15.2 制作规范与真实支持范围</h3>
+<p>本轮实现 <code>dsh-worker-v1</code> 协议：一个能力包内含明确声明的 CommonJS 执行组件，每个组件导出 <code>execute</code>；依赖由制作者在外部打包，资源和说明必须列入清单。工作台不会执行开发目录的构建或依赖安装脚本。包限制为 500 个交付文件、64 MiB，校验 SHA-256、相对路径、唯一文件名和已支持协议。</p>
+<ul><li><a href="../../../deepseek_harness_desktop/packages/dsh-capabilities/DISTRIBUTION.md">能力制作与分发说明</a></li><li><a href="../../../deepseek_harness_desktop/packages/dsh-capabilities/examples/text-tool/capability.json">可复制的示例清单</a></li><li><a href="../../archive/INDEX.md" title="原链接为本机历史附件，详见归档说明">已实际导出并导入验证的文字工具包</a></li></ul>
+<p>这是受信任的本机 Node.js 代码协议，Worker <strong>不构成安全沙箱</strong>。导入确认展示本机文件/网络访问能力；确认后检查模块可加载且提供 execute，此时会运行模块顶层初始化代码，但不调用业务动作。声明动作和岗位授权约束工作台调用路由，不能隔离恶意本机代码。停止/超时终止 Worker 及工作台代理模型调用，无法撤销已发生的外部副作用；开发者不得启动脱离调用生命周期的进程。</p>
+<p>新能力可随包提供全新的执行组件，导入后不需要重启即可按调用加载。完整 Cordis 插件、浏览器扩展、驱动等由原真实管理入口处理，不能当作本协议包直接装入；未知协议会明确拒绝。内置会议、需求、开发等专属工作区随应用交付，不提供虚假的独立导出；导出列表只展示有完整代码包的版本。导入组件不建立虚构插件项，组件关系指向真实的能力运行适配器。</p>
+<p>模型调用复用工作台既有账户，包里只声明是否需要模型，本机模型选择与密钥不进入导出。导入就绪表示文件、适配器和所需配置可用；连接及任务成功以实际调用为准。一次调用最多 180 秒，全局最多并行 4 个；停止、停用、岗位撤权、回收站移除均校验真实授权。既有岗位固定版本继续调用对应旧代码，导入本身不会修改岗位授权或自动执行任务。</p>
+<h3>15.3 数据与事务保护</h3>
+<p>新增 <code>packageReleases</code>、<code>packageModels</code>、能力 <code>packageOrigin</code> 和版本 <code>packageHash</code> 可选字段，仍使用现有状态格式；未导入前不改写正式状态文件。代码资产按摘要存储于能力数据目录，旧发布版本和草稿快照保留，执行记录独立落盘；重启保留结果，不自动重跑中断任务。</p>
+<p>导入采用 revision 和包摘要校验，并在现有串行写入事务中准备代码资产、验证提供者、发布定义与提交预设。失败回滚在同一写入队列中执行，避免第一次失败删除另一安装已提交的文件。上传与下载临时文件有数量和过期限制，二进制上传/下载、执行及安装沿用既有来源限制和登录认证。</p>
+<p>正式同步保持能力状态、岗位/草稿/历史、插件分类、profile、模型和凭据设置等 <strong>11 项保护路径</strong> 的原字节或原本不存在状态。同步只替换已验证源码与运行资产；运行包安装元数据、依赖和 local.14 标识保留，本次更新以 Git 提交与文件摘要标识。</p>
+<h3>15.4 验证结果及边界</h3>
+<div class="table-wrap"><table><thead><tr><th>验证</th><th>结果</th></tr></thead><tbody><tr><td>自动测试</td><td>能力后端 129 项、UI 214 项、插件关联与导航 8 项，共 351 项通过，0 失败</td></tr><tr><td>类型及构建</td><td>能力、UI、插件管理三个包全部通过；源码指纹更新，冻结产物供正式同步</td></tr><tr><td>新分发闭环</td><td>开发目录导出 → 干净接收端导入 → 删除开发源码后仍执行 → 重启保留；岗位真实工具路由、旧版本执行、撤权、无限任务停止均通过</td></tr><tr><td>更新与异常</td><td>草稿备份、回退停用、同版本冲突、损坏文件、未知协议、路径非法、并发与提交失败清理、提供者加载失败均覆盖</td></tr><tr><td>实际浏览器</td><td>真实目录选择和 HTTP 文件下载；用实际下载 ZIP 再导入，执行“整理空格”和“统计文字”得到正确结果；移除再恢复停用，两个结果保留</td></tr><tr><td>共享界面</td><td>组件详情/配置/返回；明暗主题、520px、150% CSS 缩放、Enter 与 Esc 检查通过。既有草稿、发布、组件去重及岗位导航由全包回归覆盖</td></tr><tr><td>回退演练</td><td>独立副本撤销两个提交，Git 树等于基线；49 项交付路径的旧字节恢复或新增文件删除全部核对通过，演练未改正式目录</td></tr><tr><td>正式同步</td><td>2026-10-06 11:38（北京时间）完成；49 项目标文件与冻结产物逐一校验一致，11 项保护路径保持，受版本控制文件无未提交修改</td></tr></tbody></table></div>
+<p>曾遇到旧 JEV 开发拒绝测试的一次间歇失败；随后单项与完整回归通过，并补充断言要求失败必须来自 JEV 拒绝，未修改 JEV 生产逻辑。导出下载使用实际 HTTP 附件，已通过真实浏览器保存验证。</p>
+<p>隔离页面使用真实能力状态、包服务与执行器；没有连接正式账号或调用真实模型/ASR，模型代理通过测试模型验证。未验证全部操作系统与原生 DPI。正式进程未重启，用户正常重启后的最终宿主体验仍待验收。</p>
+<h3>15.5 备份与可执行回退</h3>
+<p>本轮目录：<code><SECONDARY_WORKSPACE>\capability-distribution-implementation</code>。<code>backup</code> 保存源码 ZIP、Git bundle 和必要旧包；<code>release</code> 保存逐文件旧备份、冻结新资产、manifest、回退演练和安装结果；<code>checks/validation.json</code> 汇总验证，界面截图也在 checks 中。</p>
+<pre><code class="language-powershell">&amp; &#x27;C:\Program Files\nodejs\node.exe&#x27; &#x27;<SECONDARY_WORKSPACE>\capability-distribution-implementation\release.mjs&#x27; --verify</code></pre>
+<p>两个带引号路径分别指定 Node 与本轮脚本；<code>--verify</code> 只读核对正式提交、49 项资产和交付时配置摘要。日后正常修改配置会使摘要变化，应核实新数据，不能据此恢复旧配置。</p>
+<pre><code class="language-powershell">&amp; &#x27;C:\Program Files\nodejs\node.exe&#x27; &#x27;<SECONDARY_WORKSPACE>\capability-distribution-implementation\release.mjs&#x27; --rollback</code></pre>
+<p>正常退出工作台后才能执行回退。脚本要求提交与文件仍匹配本轮交付；若存在后续代码或已导入能力的新数据，会拒绝降级以保护数据。尚无新包数据时撤销本轮两个提交并恢复旧运行资产，保留当前配置。已有新包数据应先做受控迁移或前向修复，不能直接换回无法识别新组件的宿主；切勿覆盖状态文件来绕过检查。</p>
+<p>基线标签：<code>baseline/capability-distribution-20261006</code>；交付标签：<code>release/capability-distribution-20261006</code>。开发说明与示例已随源码交付，正式重启后可直接按其目录格式开发、导出与导入。</p></main>
+    <aside class="nav-panel" aria-label="报告章节导航">
+      <div class="nav-title">章节导航</div>
+      <nav class="section-nav" id="sectionNav"></nav>
+      <div class="nav-empty" id="navEmpty" hidden>正文中没有二级章节。</div>
+    </aside>
+  </div>
+  <div class="search-status" id="searchStatus" hidden aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const content = document.getElementById("reportContent");
+      const nav = document.getElementById("sectionNav");
+      const navEmpty = document.getElementById("navEmpty");
+      const search = document.getElementById("reportSearch");
+      const searchStatus = document.getElementById("searchStatus");
+      const header = document.querySelector(".report-header");
+      const scrollBehavior = () => matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth";
+
+      const slugify = (value, index) => {
+        const slug = String(value || "").trim().toLocaleLowerCase()
+          .replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
+        return slug || `section-${index + 1}`;
+      };
+
+      const headings = [...content.querySelectorAll("h2")];
+      const seen = new Set();
+      headings.forEach((heading, index) => {
+        const label = heading.textContent.trim();
+        let id = heading.id || slugify(label, index);
+        const base = id;
+        let suffix = 2;
+        while (seen.has(id) || (document.getElementById(id) && document.getElementById(id) !== heading)) id = `${base}-${suffix++}`;
+        seen.add(id);
+        heading.id = id;
+
+        const link = document.createElement("a");
+        link.href = `#${encodeURIComponent(id)}`;
+        link.textContent = label.replace(/^[一二三四五六七八九十]+、/, "");
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          heading.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+          history.replaceState(null, "", link.getAttribute("href"));
+          scheduleUpdate();
+        });
+        nav.appendChild(link);
+      });
+      navEmpty.hidden = headings.length !== 0;
+
+      const navLinks = [...nav.querySelectorAll("a")];
+      let activeIndex = -1;
+      let framePending = false;
+      let anchorOffset = 95;
+      const updateCurrentSection = () => {
+        framePending = false;
+        if (!headings.length) return;
+        // Reading stays in this section until the next H2 crosses the header offset.
+        let index = 0;
+        for (let i = 0; i < headings.length; i += 1) {
+          if (headings[i].getBoundingClientRect().top <= anchorOffset + 1) index = i;
+          else break;
+        }
+        const page = document.scrollingElement;
+        if (page.scrollHeight > page.clientHeight + 2 &&
+            page.scrollTop + page.clientHeight >= page.scrollHeight - 2) index = headings.length - 1;
+        if (index === activeIndex) return;
+        if (navLinks[activeIndex]) {
+          navLinks[activeIndex].classList.remove("active");
+          navLinks[activeIndex].removeAttribute("aria-current");
+        }
+        const link = navLinks[index];
+        link.classList.add("active");
+        link.setAttribute("aria-current", "location");
+        activeIndex = index;
+        // Scroll only the desktop navigation pane, never the report itself.
+        if (matchMedia("(min-width: 701px)").matches) {
+          const pane = nav.getBoundingClientRect();
+          const item = link.getBoundingClientRect();
+          if (item.top < pane.top) nav.scrollTop += item.top - pane.top;
+          else if (item.bottom > pane.bottom) nav.scrollTop += item.bottom - pane.bottom;
+        }
+      };
+      function scheduleUpdate() {
+        if (framePending) return;
+        framePending = true;
+        requestAnimationFrame(updateCurrentSection);
+      }
+      const updateLayout = () => {
+        const height = Math.ceil(header.getBoundingClientRect().height);
+        anchorOffset = height + 25;
+        document.documentElement.style.setProperty("--header-height", `${height}px`);
+        document.documentElement.style.setProperty("--anchor-offset", `${anchorOffset}px`);
+        scheduleUpdate();
+      };
+      window.addEventListener("scroll", scheduleUpdate, { passive: true });
+      window.addEventListener("resize", updateLayout);
+      window.addEventListener("hashchange", scheduleUpdate);
+      window.addEventListener("pageshow", updateLayout);
+      window.addEventListener("load", updateLayout);
+      content.addEventListener("load", scheduleUpdate, true);
+      if ("ResizeObserver" in window) {
+        const layoutObserver = new ResizeObserver(updateLayout);
+        layoutObserver.observe(header);
+        layoutObserver.observe(content);
+      }
+      updateLayout();
+
+      const clearMarks = () => {
+        content.querySelectorAll("mark[data-search-mark]").forEach((mark) => {
+          mark.replaceWith(document.createTextNode(mark.textContent || ""));
+        });
+        content.normalize();
+        scheduleUpdate();
+      };
+
+      const highlight = (query) => {
+        clearMarks();
+        const needle = query.trim().toLocaleLowerCase();
+        if (!needle) {
+          searchStatus.hidden = true;
+          return;
+        }
+        const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, {
+          acceptNode(node) {
+            if (!node.nodeValue.trim() || node.parentElement.closest("script, style, pre, code, mark")) return NodeFilter.FILTER_REJECT;
+            return node.nodeValue.toLocaleLowerCase().includes(needle) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+          }
+        });
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        let count = 0;
+        nodes.forEach((node) => {
+          const text = node.nodeValue;
+          const folded = text.toLocaleLowerCase();
+          const fragment = document.createDocumentFragment();
+          let cursor = 0;
+          let found;
+          while ((found = folded.indexOf(needle, cursor)) !== -1) {
+            fragment.append(text.slice(cursor, found));
+            const mark = document.createElement("mark");
+            mark.dataset.searchMark = "1";
+            mark.textContent = text.slice(found, found + needle.length);
+            fragment.append(mark);
+            cursor = found + needle.length;
+            count += 1;
+          }
+          fragment.append(text.slice(cursor));
+          node.replaceWith(fragment);
+        });
+        searchStatus.textContent = count ? `找到 ${count} 处` : "未找到匹配内容";
+        searchStatus.hidden = false;
+        const first = content.querySelector("mark[data-search-mark]");
+        if (first) {
+          const match = first.getBoundingClientRect();
+          let top = scrollY + match.top - (innerHeight - match.height) / 2;
+          const section = headings.filter((heading) => heading.contains(first) ||
+            (heading.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING)).pop();
+          // A match near a section's start must also bring its H2 past the reading line.
+          if (section) top = Math.max(top, scrollY + section.getBoundingClientRect().top - anchorOffset);
+          window.scrollTo({ top, behavior: scrollBehavior() });
+        }
+      };
+
+      let timer;
+      search.addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => highlight(search.value), 120);
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "/" && document.activeElement !== search) {
+          event.preventDefault();
+          search.focus();
+        }
+        if (event.key === "Escape") {
+          search.value = "";
+          clearMarks();
+          searchStatus.hidden = true;
+          search.blur();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

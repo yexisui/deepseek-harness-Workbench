@@ -358,6 +358,7 @@ function Write-Launchers {
     Write-Text (Join-Path $script:Root 'start-desktop.ps1') "& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path `$PSScriptRoot 'deploy.ps1') -Mode Desktop`r`nexit `$LASTEXITCODE`r`n" -Bom
 }
 function Check-Installation {
+    & (Join-Path $script:Root 'external-tools\install.ps1') -Check
     foreach ($file in @($script:Node, $script:Npm, $script:Pnpm, $script:Dsh, $script:Electron, (Join-Path $script:Profile 'package.json'))) { Require-File $file }
     $version = & $script:Node --version
     if ($LASTEXITCODE -ne 0 -or $version -ne ('v' + $script:Versions.Node)) { throw 'Local Node.js version check failed.' }

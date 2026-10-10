@@ -1,0 +1,1920 @@
+[
+  {
+    "source": "需求文档/手动/M001-Windows独立运行环境搭建流程.md",
+    "target": "project-context/requirements/manual/M001-Windows独立运行环境搭建流程.md",
+    "purpose": "M001-Windows独立运行环境搭建流程",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "6ba9188f6daef8985d8b2f5e60822f736fd3615eb4d48834eecdb2a5a1d559c2"
+  },
+  {
+    "source": "需求文档/手动/M002-Electron桌面开发环境搭建与启动流程.md",
+    "target": "project-context/requirements/manual/M002-Electron桌面开发环境搭建与启动流程.md",
+    "purpose": "M002-Electron桌面开发环境搭建与启动流程",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "a4ac7fb7d1454dc1701d2621c882610e649863f36c27de3bae00a2db4321bd8c"
+  },
+  {
+    "source": "需求文档/手动/M003-一键部署脚本设计与关键代码说明.md",
+    "target": "project-context/requirements/manual/M003-一键部署脚本设计与关键代码说明.md",
+    "purpose": "M003-一键部署脚本设计与关键代码说明",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "8e9fdcc351c04cba92834ba4a943f016ec995a7fd79505247f71e17297317067"
+  },
+  {
+    "source": "需求文档/手动/M004-原作者外联与插件更新清理分析及执行记录.md",
+    "target": "project-context/requirements/manual/M004-原作者外联与插件更新清理分析及执行记录.md",
+    "purpose": "M004-原作者外联与插件更新清理分析及执行记录",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "0788a0691093277c93de2554befd7c23690b7e25a2cc1a9b1b11926bee167597"
+  },
+  {
+    "source": "需求文档/手动/M005-原项目开发资料完整归档执行记录.md",
+    "target": "project-context/requirements/manual/M005-原项目开发资料完整归档执行记录.md",
+    "purpose": "M005-原项目开发资料完整归档执行记录",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "5cc6bc4ee55e26664a67a4fd4925d4797cee60dc9c04c74f708822369f62e168"
+  },
+  {
+    "source": "需求文档/手动/M006-能力中心与配件紧凑列表整合方案.md",
+    "target": "project-context/requirements/manual/M006-能力中心与配件紧凑列表整合方案.md",
+    "purpose": "M006-能力中心与配件紧凑列表整合方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "3850881d798cb9eb493ddca2a058a786114a23fd4232731f40462fdfa441f897"
+  },
+  {
+    "source": "需求文档/自动/A001-项目结构与环境现状.md",
+    "target": "project-context/requirements/auto/A001-项目结构与环境现状.md",
+    "purpose": "A001-项目结构与环境现状",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "c3b29a73ebcfdc031d3ddf38d340f0b350cf784108d51b9cffb7ca8a1c92dd19"
+  },
+  {
+    "source": "需求文档/自动/A002-桌面端启动条件与开发方案分析.md",
+    "target": "project-context/requirements/auto/A002-桌面端启动条件与开发方案分析.md",
+    "purpose": "A002-桌面端启动条件与开发方案分析",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "746577333c50dab03cb3529584afc60703da6e011d0998a9ff6b9382d7c20530"
+  },
+  {
+    "source": "需求文档/自动/A003-桌面开发启动实施与验证.md",
+    "target": "project-context/requirements/auto/A003-桌面开发启动实施与验证.md",
+    "purpose": "A003-桌面开发启动实施与验证",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "3296826e95bf344921a6154c98f57b202125de9e2611b3ccdb7d8c0dbf702b66"
+  },
+  {
+    "source": "需求文档/自动/A004-默认直接对话改造与验证.md",
+    "target": "project-context/requirements/auto/A004-默认直接对话改造与验证.md",
+    "purpose": "A004-默认直接对话改造与验证",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "d3c3cb96df4e8d66efd4329bf67400d5957b9471f7edddcb66b6d6e206541fe3"
+  },
+  {
+    "source": "需求文档/自动/A005-二次开发可行性核查.md",
+    "target": "project-context/requirements/auto/A005-二次开发可行性核查.md",
+    "purpose": "A005-二次开发可行性核查",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "8947f7dd86bb44505b31ebf0922ba8d16932a21ecb20f6420b08061dece0c192"
+  },
+  {
+    "source": "需求文档/自动/A006-Git忽略规则与入库范围.md",
+    "target": "project-context/requirements/auto/A006-Git忽略规则与入库范围.md",
+    "purpose": "A006-Git忽略规则与入库范围",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "aafe65b6f74ab124c57683b4e8d5634643b335a48011a9ddc07120e99721f6c3"
+  },
+  {
+    "source": "需求文档/自动/A007-创意工坊定制化精简方案.md",
+    "target": "project-context/requirements/auto/A007-创意工坊定制化精简方案.md",
+    "purpose": "A007-创意工坊定制化精简方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "df690da58110f3ce543bdbdd9f7579af241067daeeb981bf5cd85a5503f387f7"
+  },
+  {
+    "source": "需求文档/自动/A008-岗位助手界面第一版.md",
+    "target": "project-context/requirements/auto/A008-岗位助手界面第一版.md",
+    "purpose": "A008-岗位助手界面第一版",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "a63a68c02b087bbda34b256740609f4290006843fac880b537b23cb5f9857e62"
+  },
+  {
+    "source": "需求文档/自动/A009-设置导航外观分组.md",
+    "target": "project-context/requirements/auto/A009-设置导航外观分组.md",
+    "purpose": "A009-设置导航外观分组",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "a1cea7d18a7be1a37d2efb378aff787d7854d2b88e89ab6f19c8a0ae01774131"
+  },
+  {
+    "source": "需求文档/自动/A010-岗位助手能力配件UI与Git回退.md",
+    "target": "project-context/requirements/auto/A010-岗位助手能力配件UI与Git回退.md",
+    "purpose": "A010-岗位助手能力配件UI与Git回退",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "cf3a4890e82d0239bd7acb1217aab5a8c961e638d9d491cb3d2cde41da728575"
+  },
+  {
+    "source": "需求文档/自动/A011-配件落位动效与侧栏收起恢复.md",
+    "target": "project-context/requirements/auto/A011-配件落位动效与侧栏收起恢复.md",
+    "purpose": "A011-配件落位动效与侧栏收起恢复",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "dcddebeac73de2343c78bd803ce68119b2efc04832d9a94fa671d33caf2d4398"
+  },
+  {
+    "source": "需求文档/自动/A012-插件分层分类与离线管理.md",
+    "target": "project-context/requirements/auto/A012-插件分层分类与离线管理.md",
+    "purpose": "A012-插件分层分类与离线管理",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "d8b14b2cafb49c5f0fe814f516bd40b5c6458cb303f0c7f375892957d81f8576"
+  },
+  {
+    "source": "需求文档/自动/A013-BrowserSkill实际接入执行方案.md",
+    "target": "project-context/requirements/auto/A013-BrowserSkill实际接入执行方案.md",
+    "purpose": "A013-BrowserSkill实际接入执行方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "e196321496fe3252f7cd049df8198beec0a122f0a46c01d80b77f01abe98a495"
+  },
+  {
+    "source": "需求文档/自动/A014-会议纪要助手界面嵌入.md",
+    "target": "project-context/requirements/auto/A014-会议纪要助手界面嵌入.md",
+    "purpose": "A014-会议纪要助手界面嵌入",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "5880c6dde522b9b583d736458b1cd5549c7c9f14f487ecbfdc8fe8e114fae535"
+  },
+  {
+    "source": "需求文档/自动/A015-桌面启动过期能力锁修复.md",
+    "target": "project-context/requirements/auto/A015-桌面启动过期能力锁修复.md",
+    "purpose": "A015-桌面启动过期能力锁修复",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "816677396e75d8e4c53f32bf31f0c337d3f450368b495a685e9f36475203783c"
+  },
+  {
+    "source": "需求文档/自动/A016-会议纪要助手真实录音接入.md",
+    "target": "project-context/requirements/auto/A016-会议纪要助手真实录音接入.md",
+    "purpose": "A016-会议纪要助手真实录音接入",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "7cdb3f3ac6ac7c3fbe4d66da033605ad093f9e413e933d6aa90b067d5330615e"
+  },
+  {
+    "source": "需求文档/自动/A017-需求分析助手拓展基础方案.md",
+    "target": "project-context/requirements/auto/A017-需求分析助手拓展基础方案.md",
+    "purpose": "A017-需求分析助手拓展基础方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "6f8f7c0a3ffea557b636e8cf539251b4dd09f4564e7992975d69481f35617cb8"
+  },
+  {
+    "source": "需求文档/自动/A017-需求分析助手方式选择.png",
+    "target": "project-context/requirements/auto/A017-需求分析助手方式选择.png",
+    "purpose": "关联文档的历史展示或验证附件：A017-需求分析助手方式选择",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "981e7d8ec7f4b6be3a3e93619d6de5d25195e89221755510a55a3b4ecdfc2a38"
+  },
+  {
+    "source": "需求文档/自动/A017-需求分析助手第一版.png",
+    "target": "project-context/requirements/auto/A017-需求分析助手第一版.png",
+    "purpose": "关联文档的历史展示或验证附件：A017-需求分析助手第一版",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "d395b6132d9451a512237820c286105b2ae9753f6900881c6dfc8f1b3f4aaa16"
+  },
+  {
+    "source": "需求文档/自动/A017-需求分析助手详细方案.html",
+    "target": "project-context/requirements/auto/A017-需求分析助手详细方案.html",
+    "purpose": "关联文档的历史展示或验证附件：A017-需求分析助手详细方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "e97369c740baa1abc51e241184858196f1cca2e90278f67c1b1e244b453a8b61"
+  },
+  {
+    "source": "需求文档/自动/A018-开发助手交互草图.html",
+    "target": "project-context/requirements/auto/A018-开发助手交互草图.html",
+    "purpose": "关联文档的历史展示或验证附件：A018-开发助手交互草图",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "d70dcb7c9ebc9c494e42c524eb165296fcac7ff7e1d58c04887a51358f2da640"
+  },
+  {
+    "source": "需求文档/自动/A018-开发助手后台实测.png",
+    "target": "project-context/requirements/auto/A018-开发助手后台实测.png",
+    "purpose": "关联文档的历史展示或验证附件：A018-开发助手后台实测",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "dc93b6a58a51e7ad81301c395b7403f7b4d002728b202ae7de784d09ca8dc915"
+  },
+  {
+    "source": "需求文档/自动/A018-开发助手实装界面.png",
+    "target": "project-context/requirements/auto/A018-开发助手实装界面.png",
+    "purpose": "关联文档的历史展示或验证附件：A018-开发助手实装界面",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "bb47436ad641fc0843bc072eba6d7cc62b6b4ef3fe5b07f7940eb35a06a166f9"
+  },
+  {
+    "source": "需求文档/自动/A018-开发助手拓展基础方案.md",
+    "target": "project-context/requirements/auto/A018-开发助手拓展基础方案.md",
+    "purpose": "A018-开发助手拓展基础方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "e5f964df5d245ed8b51a402c3745abede64f6b2b352e9bd54146516db1b4e1cb"
+  },
+  {
+    "source": "需求文档/自动/A018-开发助手深色实装界面.png",
+    "target": "project-context/requirements/auto/A018-开发助手深色实装界面.png",
+    "purpose": "关联文档的历史展示或验证附件：A018-开发助手深色实装界面",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "92b8d9bfa6763368f6ddb86586d46b24f916ca224c0f07d006ab114841df1f75"
+  },
+  {
+    "source": "需求文档/自动/A018-开发助手界面示意.png",
+    "target": "project-context/requirements/auto/A018-开发助手界面示意.png",
+    "purpose": "关联文档的历史展示或验证附件：A018-开发助手界面示意",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "39fc880ba8dd11953fc5d700b836078780de392a70a5b894e2e45a954aa19733"
+  },
+  {
+    "source": "需求文档/自动/A018-开发助手窄屏实装界面.png",
+    "target": "project-context/requirements/auto/A018-开发助手窄屏实装界面.png",
+    "purpose": "关联文档的历史展示或验证附件：A018-开发助手窄屏实装界面",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "28db2d0e047c9145622866953c4f0af4787f91e43df9cd1e7ef962f520f27ff5"
+  },
+  {
+    "source": "需求文档/自动/A018-开发助手窄屏示意.png",
+    "target": "project-context/requirements/auto/A018-开发助手窄屏示意.png",
+    "purpose": "关联文档的历史展示或验证附件：A018-开发助手窄屏示意",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "098abd6b8c9eb23e545aaab27ad4fb6896194f98acf9c286eedb6e41e6842405"
+  },
+  {
+    "source": "需求文档/自动/A018-开发助手详细方案.html",
+    "target": "project-context/requirements/auto/A018-开发助手详细方案.html",
+    "purpose": "关联文档的历史展示或验证附件：A018-开发助手详细方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "ac50b9de07e0b680127fda2576dd9d1bef9bdb1377d8880d0c41f4ba54a21b2e"
+  },
+  {
+    "source": "需求文档/自动/A019-分类卡片预览.jpg",
+    "target": "project-context/requirements/auto/A019-分类卡片预览.jpg",
+    "purpose": "关联文档的历史展示或验证附件：A019-分类卡片预览",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "88a34c069abf6a1147e1284e89be93a89c9f875ad94a8d1681fd29cc5f0ae468"
+  },
+  {
+    "source": "需求文档/自动/A019-多能力关系预览.jpg",
+    "target": "project-context/requirements/auto/A019-多能力关系预览.jpg",
+    "purpose": "关联文档的历史展示或验证附件：A019-多能力关系预览",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "6efaccd7a5f928d762a737abbe761d1a31fcc64ed74929271b50986d93cd776a"
+  },
+  {
+    "source": "需求文档/自动/A019-布局实装-组件列表-20261004.jpg",
+    "target": "project-context/requirements/auto/A019-布局实装-组件列表-20261004.jpg",
+    "purpose": "关联文档的历史展示或验证附件：A019-布局实装-组件列表-20261004",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "c48a417ecb36f511aae1eacee8a38110d38923cb948b7d70fa71c51fdda26f8f"
+  },
+  {
+    "source": "需求文档/自动/A019-布局实装-组件详情-20261004.jpg",
+    "target": "project-context/requirements/auto/A019-布局实装-组件详情-20261004.jpg",
+    "purpose": "关联文档的历史展示或验证附件：A019-布局实装-组件详情-20261004",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "c846b29856c8008f9a156086b6befba2b31558e47895a1050741629414cd8dc7"
+  },
+  {
+    "source": "需求文档/自动/A019-用户反馈-布局拥挤-20261004.png",
+    "target": "project-context/requirements/auto/A019-用户反馈-布局拥挤-20261004.png",
+    "purpose": "关联文档的历史展示或验证附件：A019-用户反馈-布局拥挤-20261004",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "3be002e11f24c1653442e5d4c085b3449d136c79a773487f6fe2e82e52a9285b"
+  },
+  {
+    "source": "需求文档/自动/A019-用户标注-分类卡片.png",
+    "target": "project-context/requirements/auto/A019-用户标注-分类卡片.png",
+    "purpose": "关联文档的历史展示或验证附件：A019-用户标注-分类卡片",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "70dbcae7e2f055f459fb446f0109d56684a680939fd48f0f9598799460ba81b5"
+  },
+  {
+    "source": "需求文档/自动/A019-用户标注-插件关系.png",
+    "target": "project-context/requirements/auto/A019-用户标注-插件关系.png",
+    "purpose": "关联文档的历史展示或验证附件：A019-用户标注-插件关系",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "d4923387ed2f89e97e0fb8c4c490abfba5383fd3c726ba5b15a615407cdc12a3"
+  },
+  {
+    "source": "需求文档/自动/A019-用户标注-能力标签.png",
+    "target": "project-context/requirements/auto/A019-用户标注-能力标签.png",
+    "purpose": "关联文档的历史展示或验证附件：A019-用户标注-能力标签",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "f2190d9663a12d369c8177a974d221f91ff6ff5eca0dec1563688b4577f7a37e"
+  },
+  {
+    "source": "需求文档/自动/A019-组件中心交互草图.html",
+    "target": "project-context/requirements/auto/A019-组件中心交互草图.html",
+    "purpose": "关联文档的历史展示或验证附件：A019-组件中心交互草图",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "c39ee95b3e826a24add437343921f995749285ea33d81bf12819782f1abc2d80"
+  },
+  {
+    "source": "需求文档/自动/A019-组件中心预览.jpg",
+    "target": "project-context/requirements/auto/A019-组件中心预览.jpg",
+    "purpose": "关联文档的历史展示或验证附件：A019-组件中心预览",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "4f1e95d986899ebdd87b9d5ac1b4fccb8fe106215a69be40bccd614169f8a5cd"
+  },
+  {
+    "source": "需求文档/自动/A019-组件内模块预览.jpg",
+    "target": "project-context/requirements/auto/A019-组件内模块预览.jpg",
+    "purpose": "关联文档的历史展示或验证附件：A019-组件内模块预览",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "d486bba6b7b6a2fd3167e90e74c2068a6753136fd4ea7350947388d6562f4be9"
+  },
+  {
+    "source": "需求文档/自动/A019-统一组件中心与能力增强方案.html",
+    "target": "project-context/requirements/auto/A019-统一组件中心与能力增强方案.html",
+    "purpose": "关联文档的历史展示或验证附件：A019-统一组件中心与能力增强方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "73c8ac134150c95f15cd97ab8167a12fdbb51226052fda8289cd4290253d3665"
+  },
+  {
+    "source": "需求文档/自动/A019-统一组件中心与能力增强方案.md",
+    "target": "project-context/requirements/auto/A019-统一组件中心与能力增强方案.md",
+    "purpose": "A019-统一组件中心与能力增强方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "960bab2171bb94d4b0c78eeb5a41fe8e689aa4df23c420ac95f837339bc05262"
+  },
+  {
+    "source": "需求文档/自动/A020-JEV全局增强实施与验证.md",
+    "target": "project-context/requirements/auto/A020-JEV全局增强实施与验证.md",
+    "purpose": "A020-JEV全局增强实施与验证",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "8ca442ea2d894417c535ab9fd42d9484b6467200683b00e74ee6ace90b6a2df4"
+  },
+  {
+    "source": "需求文档/自动/A021-项目现状与跨模块问题审查.md",
+    "target": "project-context/requirements/auto/A021-项目现状与跨模块问题审查.md",
+    "purpose": "A021-项目现状与跨模块问题审查",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "404d9dcbbb1cfaa7721faa57040474fdc07f27fc2da8fbc051987a6ccf52911b"
+  },
+  {
+    "source": "需求文档/自动/A022-能力中心精简整改方案.html",
+    "target": "project-context/requirements/auto/A022-能力中心精简整改方案.html",
+    "purpose": "关联文档的历史展示或验证附件：A022-能力中心精简整改方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "0905940bb39a0d23f1f183a691f5ecfab768f26a3a8d555c017e47d44831f438"
+  },
+  {
+    "source": "需求文档/自动/A022-能力中心精简整改方案.md",
+    "target": "project-context/requirements/auto/A022-能力中心精简整改方案.md",
+    "purpose": "A022-能力中心精简整改方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "2e9ede3f328a8bc4990a9b37e49a17c284866888ea204c22c79bcfbe68948780"
+  },
+  {
+    "source": "需求文档/自动/A023-Skills导入与插件开关.md",
+    "target": "project-context/requirements/auto/A023-Skills导入与插件开关.md",
+    "purpose": "A023-Skills导入与插件开关",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "3764e848e831b7b90878754577a6ba26574abd3137ab326c3efb9a9c2cb6de66"
+  },
+  {
+    "source": "需求文档/自动/A024-岗位对话执行过程统一展示方案.md",
+    "target": "project-context/requirements/auto/A024-岗位对话执行过程统一展示方案.md",
+    "purpose": "A024-岗位对话执行过程统一展示方案",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "11efbfa3d6734fbb6031ed728f557654914aff73602f9ad77fb8d2ee5825be0e"
+  },
+  {
+    "source": "需求文档/手动/附件/M002/启动入口/start-desktop.ps1",
+    "target": "project-context/requirements/manual/附件/M002/启动入口/start-desktop.ps1",
+    "purpose": "关联文档的历史展示或验证附件：start-desktop",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "a0a3b986b8a4b6684a4127d8714896a73a6462513c8188e5643030c64cfe26dd"
+  },
+  {
+    "source": "需求文档/手动/附件/M002/启动入口/启动桌面端.cmd",
+    "target": "project-context/requirements/manual/附件/M002/启动入口/启动桌面端.cmd",
+    "purpose": "关联文档的历史展示或验证附件：启动桌面端",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "2d7e89f038930242bccc4eec4d9ddbf967e2204e0a6153f5db8ffea405422130"
+  },
+  {
+    "source": "需求文档/手动/附件/M002/适配快照/desktop/src/main.cjs",
+    "target": "project-context/requirements/manual/附件/M002/适配快照/desktop/src/main.cjs",
+    "purpose": "关联文档的历史展示或验证附件：main",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "38668d82055e6586dd31ef958b24c3aec41df8a4f07d4c1172506c3ca56dfc00"
+  },
+  {
+    "source": "需求文档/手动/附件/M002/适配快照/desktop/src/runtime.cjs",
+    "target": "project-context/requirements/manual/附件/M002/适配快照/desktop/src/runtime.cjs",
+    "purpose": "关联文档的历史展示或验证附件：runtime",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "47f81ba925759bb01d7ee191cb6fae93485d318629c03d3e64ee1cb08e636fcb"
+  },
+  {
+    "source": "需求文档/手动/附件/M002/适配快照/desktop/tests/runtime.test.mjs",
+    "target": "project-context/requirements/manual/附件/M002/适配快照/desktop/tests/runtime.test.mjs",
+    "purpose": "关联文档的历史展示或验证附件：runtime.test",
+    "status": "事项现状见台账；原有历史记录保留",
+    "source_sha256": "079a61fa89aeb5d196128854eb9dfe0ad7501a03c286cf9c43253390cb8fb800"
+  },
+  {
+    "source": "PEFR_PLAN.MD",
+    "target": "project-context/PEFR_PLAN.MD",
+    "purpose": "唯一事项状态、索引与下一步",
+    "status": "当前台账",
+    "source_sha256": "e96fb5786747688f974ea0959c197b4ea2ff29d3d007c192b6e443f9ecb9caa2"
+  },
+  {
+    "source": "AGENTS.MD",
+    "target": "project-context/AGENTS.MD",
+    "purpose": "唯一现行协作规则与文件导航",
+    "status": "当前规则",
+    "source_sha256": "d27b1dceed8a7df5db385e4933bd043042dd8ab717937b9dcfd5360d35982981"
+  },
+  {
+    "source": "secondary-workspace/dsh-web-0.3.23-项目分析与二次开发指南.md",
+    "target": "project-context/archive/project-analysis-20260917.md",
+    "purpose": "早期源码分析与二次开发背景",
+    "status": "历史参考，不代表当前结构",
+    "source_sha256": "b09533db28d5a27a1ae378f63c896516cc0e7b34214ed250ddd662fa2cf3c358"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/AGENTS.md",
+    "target": "project-context/archive/upstream/AGENTS.md.txt",
+    "purpose": "原项目历史参考：AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "10dfd540f361e262480c08794cfa75b6575a1098848cef4830b175f8a953a214"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/CONTRIBUTING.md",
+    "target": "project-context/archive/upstream/CONTRIBUTING.md",
+    "purpose": "原项目历史参考：CONTRIBUTING.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "04a082a981e723c0d4413197ef220e4e54c775b42e380cb05796f14397966081"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/ISSUE_TRIAGE.md",
+    "target": "project-context/archive/upstream/ISSUE_TRIAGE.md",
+    "purpose": "原项目历史参考：ISSUE_TRIAGE.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "05df8c68694f2e865547f24202af0d6d3ba2d67e0122f2b0a2462a77f664829e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/PR_TRIAGE.md",
+    "target": "project-context/archive/upstream/PR_TRIAGE.md",
+    "purpose": "原项目历史参考：PR_TRIAGE.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "b63e3fa85b2013c31871ac38b7cbcfc2351da26e82e065c27ec46278247ea229"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/README.en.md",
+    "target": "project-context/archive/upstream/README.en.md",
+    "purpose": "原项目历史参考：README.en.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "880687602966668d1fd51828164f0740529956ab8af214abc8103a25e5bf52c7"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/README.md",
+    "target": "project-context/archive/upstream/README.md",
+    "purpose": "原项目历史参考：README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "4e0a66df357ef686943c08165ca14e7ecf89bdfb1600945a4f9b9a3a1cb2b834"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/desktop/README.md",
+    "target": "project-context/archive/upstream/desktop/README.md",
+    "purpose": "原项目历史参考：desktop/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "69c92ebcacba538b58a1ae493b818d9dd822e69902aac4a90a50e4b42fb9d58e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/desktop/README.zh.md",
+    "target": "project-context/archive/upstream/desktop/README.zh.md",
+    "purpose": "原项目历史参考：desktop/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "42e46048f0bdd59aaa89138537301ed742758c9c5b4431010cf99c2718058ba9"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/AGENTS.md",
+    "target": "project-context/archive/upstream/docs/AGENTS.md.txt",
+    "purpose": "原项目历史参考：docs/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6143d630a92274e1afa378af61e21ba3fec91cdff81089983c00c490acd945f8"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/architecture.md",
+    "target": "project-context/archive/upstream/docs/architecture.md",
+    "purpose": "原项目历史参考：docs/architecture.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "174e0474373a1f4ef3c3c251025890bd29f9ce4962a5bc1b2ccbff07c2be6bec"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/development.md",
+    "target": "project-context/archive/upstream/docs/development.md",
+    "purpose": "原项目历史参考：docs/development.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "1bbe7bde7c516710d2d8b454f6c6528fb07eb04d9ba28faa30c4fe93c19270ee"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/dsh-sleeping-tabs-research.md",
+    "target": "project-context/archive/upstream/docs/dsh-sleeping-tabs-research.md",
+    "purpose": "原项目历史参考：docs/dsh-sleeping-tabs-research.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "8bddd6c98457f665f834a9e1ff05982357df3e5c8717ea3329147a971cb56f63"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/i18n.md",
+    "target": "project-context/archive/upstream/docs/i18n.md",
+    "purpose": "原项目历史参考：docs/i18n.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "82e2c67f2eca7eeaef35585a790082d84e50f0e2bfed13b8b4efb0147466d5d1"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/multi-agent-resources.md",
+    "target": "project-context/archive/upstream/docs/multi-agent-resources.md",
+    "purpose": "原项目历史参考：docs/multi-agent-resources.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "1ea264e747d677c029a96e12dc8b4c1fd4158fb8fa37411ff8f7845d27df884a"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/plugins.md",
+    "target": "project-context/archive/upstream/docs/plugins.md",
+    "purpose": "原项目历史参考：docs/plugins.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "d585aa12b3cb9fa5217283d930b43220cdf2cfb1a15979c1521457add5cf62ab"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/publish-prep.md",
+    "target": "project-context/archive/upstream/docs/publish-prep.md",
+    "purpose": "原项目历史参考：docs/publish-prep.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "9c52a32d4229a39332cf91563103dc99d5feebb2e595dad28ee8d610f95b6c03"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/telemetry.md",
+    "target": "project-context/archive/upstream/docs/telemetry.md",
+    "purpose": "原项目历史参考：docs/telemetry.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "cd1c92d5b6784c022ee33ac0d20e85b00bffafdfd134f79facb69e80419d4b5c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "5969389cdd482dd7154f225b82126b37e75ccd9b19478552b77b983f82cb467f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-18-semantic-attrs-survey.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-18-semantic-attrs-survey.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-18-semantic-attrs-survey.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "0ead6c9e8e1f7e632c01c11714010538023d1426737761a8a45b351992b98312"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-18-skin-token-coverage-audit.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-18-skin-token-coverage-audit.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-18-skin-token-coverage-audit.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "dac098f077603dee9e44c5858393e9b791fe53406056583fd8e1ddd066f55a6c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-18-upstream-discussion-draft.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-18-upstream-discussion-draft.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-18-upstream-discussion-draft.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c1cd9430dfdc119367af22d5ab69949a2bb14ade46b17a65872607727e8a4ffa"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-18-upstream-theme-seam-recon.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-18-upstream-theme-seam-recon.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-18-upstream-theme-seam-recon.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "a820ba05d8820cebe5c19aa69129447b305ff41847b3e4e0fa2a17d3ce8f590f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-19-sdk-rc8-upgrade-validation.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-19-sdk-rc8-upgrade-validation.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-19-sdk-rc8-upgrade-validation.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "9acedb1060b3e757df4ea4b168bcb007499a0f254516875f79aa408d29c5dfbe"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-20-v4pro-public-endpoint-text-only.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-20-v4pro-public-endpoint-text-only.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-20-v4pro-public-endpoint-text-only.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "3bbd1d946552e5e0f4414963f310e38303ff598a56cfe8fae04adcd801f2847b"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-20-wallpaper-exclusive-dev.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-20-wallpaper-exclusive-dev.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-20-wallpaper-exclusive-dev.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6d31c22d67d3044ec7d41276d34595a149b97187cc9b62d84b9516085a69070c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-21-wallpaper-exclusive-round2.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-21-wallpaper-exclusive-round2.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-21-wallpaper-exclusive-round2.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6aa3deb0b559187546b2ca03dfc869a878cad7153a6172943b00936ff9484ebb"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-21-wallpaper-exclusive-round3.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-21-wallpaper-exclusive-round3.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-21-wallpaper-exclusive-round3.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "51dd26b2557c5c472b414b2b7397b8ae4ccc61f8d33704ec737b46e808d62fa5"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-23-paired-device-full-api-memo.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-23-paired-device-full-api-memo.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-23-paired-device-full-api-memo.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6716fd6b7aa12566865d8d54298001ff194bf67c66aafe481ac0b0359e8ce41b"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-08-31-session-archive-e2e-validation.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-08-31-session-archive-e2e-validation.md",
+    "purpose": "原项目历史参考：docs/archive/2026-08-31-session-archive-e2e-validation.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "d502ed32a26afe32f7565941297516dc233e5cadf4a41f3d95c9d859a95113b1"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/2026-09-remote-web-ui-sdk-0.1.2-review-notes.md",
+    "target": "project-context/archive/upstream/docs/archive/2026-09-remote-web-ui-sdk-0.1.2-review-notes.md",
+    "purpose": "原项目历史参考：docs/archive/2026-09-remote-web-ui-sdk-0.1.2-review-notes.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "26cd4dd82ae10cbb80368329c70022d5aea8373c3829bc9a3578ee86e70b2f56"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/20260827-phase1-performance-round-snapshot.md",
+    "target": "project-context/archive/upstream/docs/archive/20260827-phase1-performance-round-snapshot.md",
+    "purpose": "原项目历史参考：docs/archive/20260827-phase1-performance-round-snapshot.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "a5f9cde307e93678c14dbc63f8dcc175cea5a5a88c9a7593bc5624fdb368707d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/code-opt-round-2026-08-17.md",
+    "target": "project-context/archive/upstream/docs/archive/code-opt-round-2026-08-17.md",
+    "purpose": "原项目历史参考：docs/archive/code-opt-round-2026-08-17.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "477e6c914d113c8d24c17bd690fd9677da734935f6301bb69ab4e01e74c0025d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/dev-flow-changeover-2026-08-20.md",
+    "target": "project-context/archive/upstream/docs/archive/dev-flow-changeover-2026-08-20.md",
+    "purpose": "原项目历史参考：docs/archive/dev-flow-changeover-2026-08-20.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "810f3444bc29bf2209e0ed025e86ce736ee19309f5ab694dd91fedcae6c80425"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/dsh-pet-issue-341-validation.md",
+    "target": "project-context/archive/upstream/docs/archive/dsh-pet-issue-341-validation.md",
+    "purpose": "原项目历史参考：docs/archive/dsh-pet-issue-341-validation.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "4ac0260ee6ce17dc64aaa754379dbdac22ff6bd558ea17dd13a4b3a283c467af"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/issue-451-mermaid-gui-2026-08-18.md",
+    "target": "project-context/archive/upstream/docs/archive/issue-451-mermaid-gui-2026-08-18.md",
+    "purpose": "原项目历史参考：docs/archive/issue-451-mermaid-gui-2026-08-18.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2bd467ac81b30f372770890a4abb0bb16075ac9d5085cddc6b027fa01e4770e3"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/issue-689-accept-desktop-launcher-2026-08-19.md",
+    "target": "project-context/archive/upstream/docs/archive/issue-689-accept-desktop-launcher-2026-08-19.md",
+    "purpose": "原项目历史参考：docs/archive/issue-689-accept-desktop-launcher-2026-08-19.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "8599b396a56880b127b4cbfe39553d3f55d2b6cd6d72a77949f69ef90b4a7709"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/perf-measurement-multi-agent-gui-lag-20260823.md",
+    "target": "project-context/archive/upstream/docs/archive/perf-measurement-multi-agent-gui-lag-20260823.md",
+    "purpose": "原项目历史参考：docs/archive/perf-measurement-multi-agent-gui-lag-20260823.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c3d31dcd289cd030d4946f6ef0faa5a63f8d83a4e71be2d896a56ccafd54ddc6"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/pr-issue-maintenance-2026-08-19.md",
+    "target": "project-context/archive/upstream/docs/archive/pr-issue-maintenance-2026-08-19.md",
+    "purpose": "原项目历史参考：docs/archive/pr-issue-maintenance-2026-08-19.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "9ffd19755b22e56ac9634018f4a134de87b7e3632603661fcd8b637180b28ae1"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/pr-task-board-execution-targets.md",
+    "target": "project-context/archive/upstream/docs/archive/pr-task-board-execution-targets.md",
+    "purpose": "原项目历史参考：docs/archive/pr-task-board-execution-targets.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "ff9c55d4da47bca5bfa8aba57c0a89545d103caeb9f9147b351eaf999a3038fe"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/sdk-0.1.1-rc.2-upgrade.md",
+    "target": "project-context/archive/upstream/docs/archive/sdk-0.1.1-rc.2-upgrade.md",
+    "purpose": "原项目历史参考：docs/archive/sdk-0.1.1-rc.2-upgrade.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6b518cdb676089e1acf510f687ab238c9a2e5fd4aaed81a275ffd07982f31efc"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-aggregate-id-namespace-2026-08-17.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-aggregate-id-namespace-2026-08-17.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-aggregate-id-namespace-2026-08-17.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "dbb22a6e35ddd885e7cbe353524bf5f284de3691d673637e17f7673372cda2bd"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-feature-round-2026-08-16d.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-feature-round-2026-08-16d.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-feature-round-2026-08-16d.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "90fd1e7951bed0f293fc9f0b17275c583d809779445c3d32377573adcd70a42e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-feature-round-2026-08-16e.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-feature-round-2026-08-16e.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-feature-round-2026-08-16e.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "b1085ce9880ec33a5e0784d36e994804deda0e61f638dbc63e3dbc542a844bc6"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-feature-round-2026-08-17b.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-feature-round-2026-08-17b.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-feature-round-2026-08-17b.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "019734e98d442326494305bbabaa47063d7c39260a98019766157533916f310f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-gui-skin-center.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-gui-skin-center.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-gui-skin-center.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2653893ce363626c3690aaeee707c2c7801cbd27af569cd255f391ced6a8bc8f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-issue-316-edit-retry-2026-08-17.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-issue-316-edit-retry-2026-08-17.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-issue-316-edit-retry-2026-08-17.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "8ca2d8c71a98cffd50b98b34fb8aa4e52ed16757278236ec401f8e6c13f3480c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-plugin-card-extraction-2026-08-16.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-plugin-card-extraction-2026-08-16.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-plugin-card-extraction-2026-08-16.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6b8c5a997134df24d9efe93fa02472b57df3d30de775e8c2e8583527ecc6501d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-pr-round-2026-08-15.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-pr-round-2026-08-15.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-pr-round-2026-08-15.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2ca8e5729ae9fc4814e0ecdd18bcbd4ffe402e8563fb41877298d9737b4b85f5"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-pr-round-2026-08-15b.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-pr-round-2026-08-15b.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-pr-round-2026-08-15b.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "bfd8981d6986f4712c540b490b704e7a7c1f6c3af471c1451014363c60e7389e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-pr-round-2026-08-16.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-pr-round-2026-08-16.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-pr-round-2026-08-16.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "bc1ee7b4c17f792fbf4d68ba2c5112a8ff205b483aade21081ba0b64477aef3e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-pr-round-2026-08-16b.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-pr-round-2026-08-16b.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-pr-round-2026-08-16b.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "9c9ef2255fcec10d3b17ca4ec5629d42ea1c9d5771ae43d8b99628ba36d84ed3"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-pr-round-2026-08-16c.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-pr-round-2026-08-16c.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-pr-round-2026-08-16c.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "1949f44e7c1add44e366d55d2c7cb8b875ea9bb5b46141bd9f02facc23994f61"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-pr-round-2026-08-16d.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-pr-round-2026-08-16d.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-pr-round-2026-08-16d.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "dcb91d91d12247c675ac73ee332810daaa9f0ccd258a54d0d69e761f0e09a63e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-pr-round-2026-08-16e.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-pr-round-2026-08-16e.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-pr-round-2026-08-16e.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "f38e189c7c73c7066fdf85f68cd22eabbc23ac073959e42a23c20f9ea1814fac"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-pr-round-2026-08-16f.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-pr-round-2026-08-16f.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-pr-round-2026-08-16f.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "e15574b25a992685633334272525eb863dedc4af4a01c8f5a19fb344618f40ee"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-pr-round-2026-08-17.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-pr-round-2026-08-17.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-pr-round-2026-08-17.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "f9f4b52ce8718cd8f403b9660a34c9944d019c5c54d2128275a07c3321d2a466"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-pr-skins-2026-08-17.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-pr-skins-2026-08-17.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-pr-skins-2026-08-17.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "893ea3ab1b2ad5ff679e67e6fe5baa4893def2ed67ad116ad68245fa679b7b7f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-review-deferred.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-review-deferred.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-review-deferred.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "e12d06590a7e41d1332e282feb0440fd388948485804cd89500ba746352f772d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-settings-direct-expand-community-2026-08-16.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-settings-direct-expand-community-2026-08-16.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-settings-direct-expand-community-2026-08-16.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "eb407b96569e06e2dea7f90d051959a8fde810ca922896498620c3a2e20a43b4"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-settings-first-level-sections-2026-08-16.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-settings-first-level-sections-2026-08-16.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-settings-first-level-sections-2026-08-16.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "732530e3640c5cf094dd7fcbedf47f7cbcd8e7dd5ef408e2292ee491cbd555db"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/task-handoff-settings-reorg-session-review-2026-08-16.md",
+    "target": "project-context/archive/upstream/docs/archive/task-handoff-settings-reorg-session-review-2026-08-16.md",
+    "purpose": "原项目历史参考：docs/archive/task-handoff-settings-reorg-session-review-2026-08-16.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "0c50ef7ac5cf8a8858306d0dae70f3b489f8074e54e0851fac87050b57d2cc5f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.2.1.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.2.1.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.2.1.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "f506d7e8495e0329f14be12c9d5e8391c315cf81899af907a9161675cc98ebf1"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.2.2.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.2.2.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.2.2.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "b1708d654c56ff36d6034bf45703aa6fbb03c7d3a55f6c6450fc7b64d55a41e8"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.2.3.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.2.3.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.2.3.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "86e97472763ffabefc0922ce003e5c02eae6dd2829e59f72165b946002a5cc3d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.2.4.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.2.4.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.2.4.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "fd2d8992a1e13256c79ade795b4ea66c3a64916130645b86b5fb79efba730eab"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.2.5.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.2.5.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.2.5.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "5c9a9cf448edee6b5119a1112269ae7bdc3476de7ee72e509e4ca1d3c17b853d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.2.6.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.2.6.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.2.6.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c8a1261dfac97e7f96ad15e80da534c9e0a5cf04cc7f4b7f71f79a6baa86f4ae"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.2.7.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.2.7.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.2.7.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "9be7bab4ed319cf79a20ae5f4d18bac3f3c52f8ca43eb7c454f07ac401ad2e69"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.2.8.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.2.8.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.2.8.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6275f5c560f2e06552efea52ebe6a913aa6c19da6e0d75c18bc2456b9c966c14"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.2.9.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.2.9.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.2.9.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "139c93159309aa01b1a7d7ed2c0201b13830ec5cf0e2af7b85dbdcb83eb838dd"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.0.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.0.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.0.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "72a5e31ecd261e863d761e6948aaa33831351dfe98871cd66a73f72d8907d145"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.10.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.10.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.10.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "8f829ce817e3c6472b53bdcf5fbde469d4b8ed58d2c6410db74650a1670adc83"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.11.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.11.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.11.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "88bb1a06eed06304a70ce06849c5d1579d419af7a58af159b518b2ee775f116b"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.12.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.12.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.12.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6012463f9d02b82c86437be18f65201ab5593a8b824d1df23433acdbef8b8905"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.13.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.13.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.13.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "958c4c7c1841a37a3b70b7acf1203d795ed0d7f22a413c953d2f4dbeda97308e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.14.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.14.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.14.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "3dee97c0fcb517b882c43b7adb82f2b994e280391645ebe34a2432df4ae9f621"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.15.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.15.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.15.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "3e71ac1931ed14a07ee9bc9157ce12621676470bd11f89f740c935f602911767"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.16.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.16.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.16.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "470b4a4159193a8f3bd16b8d889f804af432f55ffebbe29b4d41b5c1fbfd189d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.17.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.17.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.17.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "5c5e3467668441b22ba9f82deb3abd346183a768be6d4e1a7eed9939221a51b1"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.18.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.18.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.18.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "48ae58f0cbc672a906353cc4cfdd4fcb0f986ef73631dcb038f4f92538054ecc"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.19.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.19.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.19.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "93d6af988e457a40a82b778d79aff47a740f72f9c7385b5060947c344a716e38"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.2.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.2.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.2.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "174b26709db1154fe4c2c6e03acf7fe24930c56125f8aef5c5df74a95eb1f74f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.20.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.20.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.20.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "822a5ee0cc736092e9e3b9b4ec1ebb0b16f6d775779d7412185c749c8dc04ad6"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.21.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.21.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.21.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "e821b57915f2cb0809776a28eb2dc8165b15cbb02e0cfcd46f827886dc58061b"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.22.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.22.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.22.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "670b85794076e922e1b5c5eeaee2e16df3161ac57eb1b944b0525421aff523e2"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.23.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.23.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.23.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c5eb9facfe3a1d324ca42473202f96a9589b2fafcc71a1a72ab2a72e4cae8f80"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.3.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.3.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.3.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "9b17ab078f76e3df3bb8c0113eca8be00ee281fd68d2bece5b83a9bb8eaea7a6"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.4.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.4.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.4.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "70b618de6ce128fecfcda0d209e7761657bc589ba085ff6f5aa3a97a4a631042"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.5.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.5.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.5.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2815ca1f25b77cdf11ad5c129c149458e37b5463b406309e16aabe5ab9efef1e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.6.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.6.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.6.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6129de2d75df408c4e51b471b03dc5bba74fa579da5484263072f3770aeda348"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.7.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.7.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.7.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "cbdcb11fcdd80f2d9e6ca481c3c131edbcdb91f7b58678adcf41623fd331b559"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.8.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.8.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.8.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2bfb9aa43931b460aa59d7fe278e85ba71578f37fa02cf160b3d0ffa3c4891e2"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/release-notes/v0.3.9.md",
+    "target": "project-context/archive/upstream/docs/release-notes/v0.3.9.md",
+    "purpose": "原项目历史参考：docs/release-notes/v0.3.9.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "771f0917575953845f7b38b72a5c8c1aa1251c67e5e0c4a3418daab731310417"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/blue-throated-bee-eater-pet/validation.md",
+    "target": "project-context/archive/upstream/docs/archive/blue-throated-bee-eater-pet/validation.md",
+    "purpose": "原项目历史参考：docs/archive/blue-throated-bee-eater-pet/validation.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "8e2d3946f1e052b3c6cadd6720c3723bb37dd9d78875dfdaa8663eb4d46e122a"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/future-window-pr-1087/validation.md",
+    "target": "project-context/archive/upstream/docs/archive/future-window-pr-1087/validation.md",
+    "purpose": "原项目历史参考：docs/archive/future-window-pr-1087/validation.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "f08c00102f0e6af61ae70917551354a162bded81824897f415e2f92bde9deb7c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/liangshen-maxtokens-ab-20260815/liangshen-facts.md",
+    "target": "project-context/archive/upstream/docs/archive/liangshen-maxtokens-ab-20260815/liangshen-facts.md",
+    "purpose": "原项目历史参考：docs/archive/liangshen-maxtokens-ab-20260815/liangshen-facts.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "4cbdef0819b728d1696408185e775f052e91f8fec81da1bd3edd2d2e62ba61ad"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/liangshen-maxtokens-ab-20260815/README.md",
+    "target": "project-context/archive/upstream/docs/archive/liangshen-maxtokens-ab-20260815/README.md",
+    "purpose": "原项目历史参考：docs/archive/liangshen-maxtokens-ab-20260815/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "a669048ca358855a709595aceb8eecfd8aacb3d346560c51f264f11e466a0e82"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/liangshen-v41-flash-eval-protocol-20260913/README.md",
+    "target": "project-context/archive/upstream/docs/archive/liangshen-v41-flash-eval-protocol-20260913/README.md",
+    "purpose": "原项目历史参考：docs/archive/liangshen-v41-flash-eval-protocol-20260913/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "1a6d6f927e5d968bafe4be19c0dffa26bb8e890ccb3a0a800b961508e2df0093"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/market-hub-qa-20260823/note.md",
+    "target": "project-context/archive/upstream/docs/archive/market-hub-qa-20260823/note.md",
+    "purpose": "原项目历史参考：docs/archive/market-hub-qa-20260823/note.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "42f8d58ece06693d80ae33b0ba2d0dc88249adb7047133d6d7f503ea350d7b1f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/miku-pet-pr-1031/validation.md",
+    "target": "project-context/archive/upstream/docs/archive/miku-pet-pr-1031/validation.md",
+    "purpose": "原项目历史参考：docs/archive/miku-pet-pr-1031/validation.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "304fdaadecc92d0c31f7cfcd65b33fffd4b0c64042fcc7527fca1bbfdf3972ec"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/docs/archive/ouo-neko-pr-1118/validation.md",
+    "target": "project-context/archive/upstream/docs/archive/ouo-neko-pr-1118/validation.md",
+    "purpose": "原项目历史参考：docs/archive/ouo-neko-pr-1118/validation.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "91c097a30df642d9e383e4efbf643efbfb65da06c5293d190395d982faf62157"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-client-ui-plain-chat/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-client-ui-plain-chat/README.md",
+    "purpose": "原项目历史参考：packages/dsh-client-ui-plain-chat/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "f69df9db4cf020cc42b88c2d8d2f107168504ad796b3c4a5cfde4884a1f5e3e2"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-client-ui-plain-chat/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-client-ui-plain-chat/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-client-ui-plain-chat/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "ae651dc8314d55b2a1194c53d892267f29398257e201afed4699b513cca9dba5"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-community-plugins/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-community-plugins/README.md",
+    "purpose": "原项目历史参考：packages/dsh-community-plugins/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2885f9af242b657154aa54cdf507a212069fc428321ba3850881a83545daacaf"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-community-plugins/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-community-plugins/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-community-plugins/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "296ecaac4eb3cbf9b032a22db35c0b2ec8d8f6f2445c234457ca8761b7315f67"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-doctor/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-doctor/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-doctor/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "70e4fc4f1590589f96549c8be9971c086d1314f06836fcb739f804cdfd70496d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-doctor/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-doctor/README.md",
+    "purpose": "原项目历史参考：packages/dsh-doctor/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "595bca655d261568b2c8e1a7f7d5c25d715efd21f2cd5508101478153437c1c9"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-doctor/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-doctor/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-doctor/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2a6eb888b5de1c628336c7b78fe4ff722e494891060e138737eaf8eac65a4bc0"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-git-graph/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-git-graph/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-git-graph/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "7fc5b490fed0794d9891ab532f1ce92e0cdf4d75a5920e2beb28067d391b458f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-git-graph/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-git-graph/README.md",
+    "purpose": "原项目历史参考：packages/dsh-git-graph/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "cdbe322dcec1d1350b23c7463238ecebfc1b498445d246888689e66d11132e47"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-git-graph/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-git-graph/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-git-graph/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "3f1f8ea78f80e845217ae2bbb4d26070cf59a292861ae1fa17b271413de45851"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-i18n/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-i18n/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-i18n/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "d71870a418c67136caee1a0190dc63f5ed4d1816391701b368ab5f65b756b54f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-i18n/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-i18n/README.md",
+    "purpose": "原项目历史参考：packages/dsh-i18n/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "f92e9b80668d3286cb48a9bb9dd9d48188760d7c9ed39e8feef004b45d6bbbec"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-i18n/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-i18n/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-i18n/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "43ad64f2bab74520fa875946fe50696b6bf11b0913cd7af6897d9b9bdb700175"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-liangshen/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-liangshen/README.md",
+    "purpose": "原项目历史参考：packages/dsh-liangshen/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "a0777c7665ccb43a7e50e625368a51359ef100055ea66ddb7048869bbb4fbfd3"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-liangshen/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-liangshen/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-liangshen/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "1696512e179f7747d85c2753ee8ab71414069e6fb53bc57b42ae121b46c6047b"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-market/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-market/README.md",
+    "purpose": "原项目历史参考：packages/dsh-market/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "e354e9fc7bf79d6161a0da4ab7535b0899083dcc49a6c0d2b0a59d8abeda7969"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-market/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-market/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-market/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c7063b4b7fced542559a6d6bc8cf05ed1fcb672698429199afb19de59c33b4e2"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-model-capabilities/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-model-capabilities/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-model-capabilities/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "afd7a91bc7d19819f5b72c09022f4b6b1ec240295c054526c4bf4c48ee32f2db"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-model-capabilities/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-model-capabilities/README.md",
+    "purpose": "原项目历史参考：packages/dsh-model-capabilities/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "5f6fe171231f0e7cad34cdc30dbc536f3fd5c5c9bb7e12c8119b07d67ace28d1"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-model-capabilities/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-model-capabilities/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-model-capabilities/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "14dc5d0d8b599436df2d4921741c2146687b966000be87365f9d1f20f16e8455"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-pet/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-pet/README.md",
+    "purpose": "原项目历史参考：packages/dsh-pet/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "bb54328a2a03c30e2bdf6925775557376c4f672fec4a0af7b32355b32e305481"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-pet/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-pet/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-pet/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "790fb48148509e43daf4c94dbf7bae57b0883e38303b763740f4fd9da1997975"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-plugin-manager/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-plugin-manager/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-plugin-manager/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "19e88480a2e81e2b3aa7683eadc1c64625f6272dc905e27b0858847ec40d8e26"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-plugin-manager/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-plugin-manager/README.md",
+    "purpose": "原项目历史参考：packages/dsh-plugin-manager/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "a975e007aebd5fca71e712d0526de1b1c378c9df0345f35a044a62529916872a"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-plugin-manager/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-plugin-manager/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-plugin-manager/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "77a4c93b17e27ff3a232a9cdc319e002f3a143023475881b1d4af098e66b8191"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-preset-center/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-preset-center/README.md",
+    "purpose": "原项目历史参考：packages/dsh-preset-center/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "b6123ef0f627bb514eb083a9d87cac56bc4525dd43f1c70aed544b420c9ccafc"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-preset-center/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-preset-center/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-preset-center/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "4977fe4b653a7a6544a287cf8dabd09544399be902e3263d6d07a975ec37d0e2"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-remote-web-ui/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-remote-web-ui/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-remote-web-ui/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "caf4e31e84abbac3eb1cffd0d1d4d0c60b9f25269b90d512b62cfba7390d6e31"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-remote-web-ui/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-remote-web-ui/README.md",
+    "purpose": "原项目历史参考：packages/dsh-remote-web-ui/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "110e849073e08dadd56c956b18c0a49f06d4cf43dfed94ce8cf13bb0333cfa76"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-remote-web-ui/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-remote-web-ui/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-remote-web-ui/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "dfd9fec7e51818d7758c6e2decf458d92f425cff66ed79eca184f11c98d838c9"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-session-archive/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-session-archive/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-session-archive/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "5ef1844564544bc6ced5b4b4bea1f611149c31f209a36b9191917093f8e0fb8f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-session-archive/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-session-archive/README.md",
+    "purpose": "原项目历史参考：packages/dsh-session-archive/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "8834d9d99a1b52d9efbc4ba734dda497200dd705711ef34d009369b62cd8d1b7"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-session-archive/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-session-archive/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-session-archive/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "14228f61e61ae675b7c2cba9f3478be07d3a0d10e91343fc997b8806fccc2462"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-session-id/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-session-id/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-session-id/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c240900946e315b2631a31f218f16d8a8837c38c2f4fabf2ca2c3cd6447dd98a"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-session-id/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-session-id/README.md",
+    "purpose": "原项目历史参考：packages/dsh-session-id/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "bd5eeb29703577ada448a1fbf5f41bf95fa9b959d982de65eac3ce5b55ad0a33"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-session-id/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-session-id/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-session-id/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "d7a12582f5817baad9e170f150ef3e0f974ccc07a038847e0bbc6119cb28cc8c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-skill-explorer/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-skill-explorer/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-skill-explorer/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "ab2cee32865693ec0ad300f5057e9d411b332be215fc34a893e580510d642211"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-skill-explorer/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-skill-explorer/README.md",
+    "purpose": "原项目历史参考：packages/dsh-skill-explorer/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "7f6adbcd7444e6114d8476df375de6279516654ccf019c989f1a4b6d801b52a3"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-skill-explorer/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-skill-explorer/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-skill-explorer/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "bba2e159a29d869779d42682dfad1bb1069fbe1d70cbc168d7b071f84be5d1ec"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-ssh/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-ssh/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-ssh/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "d7c35e0b311714b749498a8f48b69011bf55315f39444af3bce8f86a7c6fde4f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-ssh/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-ssh/README.md",
+    "purpose": "原项目历史参考：packages/dsh-ssh/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "52c03e6f7ed8245f10aa832af78a3815e0763f91e6a34562d94ed6ed51509ce9"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-ssh/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-ssh/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-ssh/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "43b463de7f34a73021a85a2cbc52189b5b23fcf40820fff7c62a0dcfcda793d8"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-task-board/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-task-board/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-task-board/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2d9e544911c35fcf9712f7696ee656f7714c7a9632d805b40bb8c559896e3a8e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-task-board/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-task-board/README.md",
+    "purpose": "原项目历史参考：packages/dsh-task-board/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c1ecd2fae4628294617577dd30c745dec41930c3605020fba9c30d20658e1735"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-task-board/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-task-board/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-task-board/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "4674d2739542427556c42065a0378545346b8c2907875ffd32e0edf478cd74a4"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-tool-describe-image/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-tool-describe-image/README.md",
+    "purpose": "原项目历史参考：packages/dsh-tool-describe-image/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "e8299a6d64f774580b10b37d59485f432324909e39cedc7d45a92e127b6402e9"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-tool-describe-image/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-tool-describe-image/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-tool-describe-image/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "d0db2bc44bdd292e5485331da71c2218d0b1f2278004919d117dcb441e31ef62"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-usage/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-usage/README.md",
+    "purpose": "原项目历史参考：packages/dsh-usage/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "4b2681fd1b41e2998a99ecd92f517aa1ce62e5cb0be43ca2c10ae199901b3e22"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-usage/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-usage/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-usage/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "14133e6f80dc2f90cd36e2db75863ca846ee2ec83df8ec07ed57c86801d6bbf1"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-web-all/AGENTS.md",
+    "target": "project-context/archive/upstream/packages/dsh-web-all/AGENTS.md.txt",
+    "purpose": "原项目历史参考：packages/dsh-web-all/AGENTS.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c8b95c3d26d5d0f633325902b7aa16e3860eb835fc3f1a7613a48c1f9db932a5"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-web-all/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-web-all/README.md",
+    "purpose": "原项目历史参考：packages/dsh-web-all/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "23f88f1c4ea40a36195fc18d0c91b1424e1f30b323b1fd2b379089a29ead47ad"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-web-all/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-web-all/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-web-all/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "a65274c966bccc4c167222f3da0a38e849f8a03288fb534ac5f7e2474d1faeba"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-web-settings/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-web-settings/README.md",
+    "purpose": "原项目历史参考：packages/dsh-web-settings/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "e10a95400119dd14557abb87c4a818506d1919cfd21d892a83b751eb393ce77b"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-web-settings/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-web-settings/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-web-settings/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "1269ccf5690cd47fcae546892b216caf43e1bc532d74aa1aea52d24d1e65a5e3"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-git-graph/docs/ADR-001-plugin-boundary.md",
+    "target": "project-context/archive/upstream/packages/dsh-git-graph/docs/ADR-001-plugin-boundary.md",
+    "purpose": "原项目历史参考：packages/dsh-git-graph/docs/ADR-001-plugin-boundary.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "3430c29f992aa4201bdbae2b6701b23238a9ca709a1a99e4488eefe270dd154a"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-preset-center/presets/README.md",
+    "target": "project-context/archive/upstream/packages/dsh-preset-center/presets/README.md",
+    "purpose": "原项目历史参考：packages/dsh-preset-center/presets/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2d88cd441b2faebaef038442ea99b01e797a5cbab3d52fc1fa07b01452957aa3"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/dsh-preset-center/presets/README.zh.md",
+    "target": "project-context/archive/upstream/packages/dsh-preset-center/presets/README.zh.md",
+    "purpose": "原项目历史参考：packages/dsh-preset-center/presets/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "dc64a049ba3d4786e9ac426d8a9d5ba6ecddefe2e7392450c15100625e0a0bf1"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "dd5f1f97289b1d6317b28908d60a499eb99e34a489f9d55ec566dfc19dbdb576"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "579e0abf653e350df4e1b270f698781a7f2de65454a82ad65b1e7490c30dca48"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/contracts/performance-guidelines-v1.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/contracts/performance-guidelines-v1.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/contracts/performance-guidelines-v1.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "9b161b58aab4c546d1998abfa3febad29b3ea46f31573f813c41883113a5b88b"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/contracts/primary-action-tokens-v1.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/contracts/primary-action-tokens-v1.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/contracts/primary-action-tokens-v1.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "638603277d0a63a4631857e7e893a3baa8b47833df518e1cd9fd72ece8d7d8da"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/contracts/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/contracts/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/contracts/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "239c73b1a61cf74adaa625152020baa89575071cae4e4aa003cf8ee12fdb1e19"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/contracts/semantic-attrs-v1.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/contracts/semantic-attrs-v1.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/contracts/semantic-attrs-v1.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "fcb01fefb8abce6778bc90de4eefc209270ea43d714b40024864caf7daf969be"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/abyssal-serenade/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/abyssal-serenade/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/abyssal-serenade/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "e3c1e3f1a4d3f8ac515ebf2a259d344565a3140447fc6e05d2da734bc437cc7a"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/abyssal-serenade/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/abyssal-serenade/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/abyssal-serenade/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2e10a057e4072c6946dda66642f9c57f827052d21a9683ae131047acb79bfe92"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/astral-choir/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/astral-choir/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/astral-choir/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c0fdaf459be4fdafde1b4e097ed0846c9e6e19876023b246d055d7dd39eeda77"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/astral-choir/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/astral-choir/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/astral-choir/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "e2ba9bd843eeb75352f5eecf049f6e35266c052454ab71def9384b068147e34d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/black-gold/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/black-gold/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/black-gold/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c920d4d9a5eeed6bd6cb27f91a9c02a32c04ac6852b1f3ef6f8847445252c219"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/black-gold/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/black-gold/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/black-gold/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "115ad01f36f5a83df6812e3cd9957bab04b4550dc4fcdcbcd5c776a70ac48fab"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/blue-throated-bee-eater/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/blue-throated-bee-eater/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/blue-throated-bee-eater/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "ffce86b2fd6ff5d2a8bd936fc51a397508ea7b6c9962066d37fd7fe9d8f185f2"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/blue-throated-bee-eater/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/blue-throated-bee-eater/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/blue-throated-bee-eater/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "bf0afd72f5c24dd3c1c15a62c72cac17258dc30f512d17a39b6055e0a4a34d70"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/catppuccin/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/catppuccin/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/catppuccin/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "62fd055baa9db868233ee98518675c76ea8e235b2ed8c3ba780cd973fd0c6dc3"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/catppuccin/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/catppuccin/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/catppuccin/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "871c1218d85f2d5bfb8c78d59a1d1a2c8dc14b39f0309533a6699ebe4a03c6f4"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/cyber-night/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/cyber-night/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/cyber-night/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "78b93516b97fdc3cc22c5316b850f7531dea9d16ac28a54c4279117ece8055d0"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/cyber-night/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/cyber-night/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/cyber-night/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "7ebd5dc1dfb65fbee615f442e4665f6b0ababb72618c2293a5d9e5a441458896"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/deep-current/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/deep-current/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/deep-current/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "7c468e15136ba24d15eb45e7b32e6234fdc8e99fb986ced1f26d3e82b0356005"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/deep-current/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/deep-current/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/deep-current/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "f96499dd13d99978f55946af6b7ad3f51f36ff299825ea1c3cc310a12cb33415"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/ember-fall/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/ember-fall/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/ember-fall/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "afd024f6a09a1146331bf779634067430978ede2786c5f76c50705e085fc373c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/ember-fall/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/ember-fall/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/ember-fall/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "0f67e402255f598982cdb11e4739f009dc389979e1dc36ba4c559a4e3fafcae6"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/furina/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/furina/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/furina/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "60376bdc0515165b7d1cabfa4d69ccb1c4c5875ba0b7341e31f472568d86665a"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/furina/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/furina/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/furina/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "d8684438b84119d42f6235b382adcd594a4028e27b59b964417bd136022a5fc6"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/future-window/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/future-window/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/future-window/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "8df99e61266614941be78927fcee6db53e40bae70eac43f4b2be5ba1ea8fd0e1"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/future-window/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/future-window/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/future-window/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "8e8c6eb02420a98db84c8abdb1654f685952b8000f3e668ffce9054a0d36c81c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/hive-maw/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/hive-maw/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/hive-maw/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "2dd620f34cc71acc41c808a1e0762550ae0e333fe692c7b7a97602e588ff924c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/hive-maw/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/hive-maw/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/hive-maw/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "e8f9e663b0af2acca37cf1ecd744f53a28e5fa7fd62edcb37aca19213acf60f7"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/hologram-sanctum/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/hologram-sanctum/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/hologram-sanctum/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "d6f958040f1f85ceae18ce6540c36185cdde7dc3fa19b9a712e1395b7d71e1b8"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/hologram-sanctum/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/hologram-sanctum/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/hologram-sanctum/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "239f9bb436f89fff497e7c41346e05ffe15939def191e6c866545a0beef0409c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/ice-princess/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/ice-princess/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/ice-princess/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "bf1cb0cb94ce6ba538486b37c15eedd66141578e65d4766c22ff5b7079bfa865"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/ice-princess/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/ice-princess/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/ice-princess/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "cac54dc9a0a0e05916a35733e6688cf9407dc6b1b702f6080bde3d3142df4603"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/observatory/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/observatory/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/observatory/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "bb5308663b5c7bbfbf284f1c2ffbd27feecac27ffe58ad172629e9c04de9f89c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/observatory/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/observatory/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/observatory/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "c7215d7f07995b490ae5b8d0a1997416c4e2e68662dbf0fdd9d35f607c09336b"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/orca-link/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/orca-link/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/orca-link/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "b74bc93995b91175941112a565495491967874f7ba654fb51297fb52f4f72a0a"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/orca-link/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/orca-link/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/orca-link/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "04b0173809878a0bb62995332a1521f94311146e6837e26f422046b697150baf"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/pink-sakura/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/pink-sakura/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/pink-sakura/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6973ff7829b0d269217480ddb5f8650052de64b1f4cdeacea059c4a09a18f60f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/pink-sakura/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/pink-sakura/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/pink-sakura/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "ad272d53317eb4b7a1c3c0a764ba35769c50a97cc81684152d733ac03714ef4e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/starry-nocturne/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/starry-nocturne/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/starry-nocturne/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "bd690fc5846c65c4e5f49b43e1cf163dbae1c4c6006ffd975e074f72ad720864"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/starry-nocturne/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/starry-nocturne/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/starry-nocturne/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "4e41476f6aefad16cafa6f044b342796e7fa9f665be3235790575fe12d23445d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/stellar-diva/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/stellar-diva/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/stellar-diva/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "fdda95c8ad05baf0d0aa4053c1e9117e8fc54765207b0f4cc5936342fd39815d"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/stellar-diva/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/stellar-diva/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/stellar-diva/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "cf2862a5b53d18d3eb8e33d270cb2ade2d44a3bc07f177e5e5082cf61bbadb4c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/summer-liquid-glass/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/summer-liquid-glass/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/summer-liquid-glass/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "6a331788aff26c8c7952b6e14a61bf151d7069835373af0adb935e58eeffc597"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/summer-liquid-glass/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/summer-liquid-glass/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/summer-liquid-glass/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "dd885a691b10a926ed8f8dbbf11891fafb15163753d35b72407426c9e0ca0b89"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/tokyo-night/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/tokyo-night/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/tokyo-night/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "f0142704a20e53fb1e6aeb77c62653c4774117ddf246d155dc5bdcf698e1033f"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/tokyo-night/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/tokyo-night/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/tokyo-night/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "d489d5d164e6bdb4bde596a4cb20601a5ba3bc86f0426df18a0c5f188cc2cbe4"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/wallpaper-exclusive/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/wallpaper-exclusive/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/wallpaper-exclusive/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "b38a09be7d05e4df31f3ff77e20b686b4d55dd63572d6a7b25c91b12628e0f96"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/wallpaper-exclusive/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/wallpaper-exclusive/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/wallpaper-exclusive/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "a6258a1d4537e6f71fbaf55f3071bdc5d5f06ed6046131d1ecbccd191f98921c"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/war-thunder/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/war-thunder/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/war-thunder/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "ee853b1373d63dc07b330be6431d85002be2b2ed542465d82da6f0689413004e"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/war-thunder/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/war-thunder/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/war-thunder/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "441776a1b0f35d77384a007dc64d881144d930d44698805fa3a6929a9dff70eb"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/whalechan-harness/README.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/whalechan-harness/README.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/whalechan-harness/README.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "b6718f2382fb9b21785e455db81667f058b5bcef5d3c274d52d0fef42f3f9c7b"
+  },
+  {
+    "source": "原项目资料归档/20260917-开发资料/source/packages/skins/skin-center/skins/whalechan-harness/README.zh.md",
+    "target": "project-context/archive/upstream/packages/skins/skin-center/skins/whalechan-harness/README.zh.md",
+    "purpose": "原项目历史参考：packages/skins/skin-center/skins/whalechan-harness/README.zh.md",
+    "status": "只读历史资料；原文中的路径和指令不作为当前依据",
+    "source_sha256": "855a59041aa1d5ab8f915f08497a29d7196a0741cbec61d307f53d3279e68c6f"
+  },
+  {
+    "source": "secondary-workspace/capability-center-simplification/回退说明.md",
+    "target": "project-context/archive/capability-center-rollback-20261005.md",
+    "purpose": "A022 历史回退依据",
+    "status": "历史参考；不可直接执行",
+    "source_sha256": "3ec0c1606475ddc20ac6143eb9d447a172879ede548397fc02122575c72b1603"
+  },
+  {
+    "source": "deepseek_harness_desktop/packages/dsh-jev-mode/README.md",
+    "target": "project-context/archive/jev-module-original.md",
+    "purpose": "JEV 早期模块设计说明，关联 A020",
+    "status": "历史参考；以 A020 最新记录为准",
+    "source_sha256": "07b53d0a1c962dc5f5ea248127cc930176eb2cc05588e2d26ed538b197eaa020"
+  }
+]

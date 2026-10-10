@@ -88,3 +88,14 @@ Desktop.ini
 
 # 原项目开发资料的本地归档，不进入 Git 或发布包
 /原项目资料归档/
+
+# Local credential file: never include in source control.
+/ai_key.txt
+
+# BEGIN PROJECT CONTEXT (remove this block when retiring collaboration docs)
+!/AGENTS.MD
+!/CLAUDE.md
+!/project-context/AGENTS.MD
+!/project-context/PEFR_PLAN.MD
+/project-context/archive/local-only/
+# END PROJECT CONTEXT

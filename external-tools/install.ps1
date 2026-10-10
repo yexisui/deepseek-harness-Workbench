@@ -1,6 +1,6 @@
 #requires -Version 5.1
 [CmdletBinding()]
-param()
+param([switch]$Check)
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 if ([Environment]::OSVersion.Platform -ne 'Win32NT' -or -not [Environment]::Is64BitOperatingSystem) { throw 'External tools require Windows x64.' }
@@ -13,6 +13,7 @@ foreach ($tool in $manifest.tools) {
         if (-not (Test-Path -LiteralPath (Join-Path $release $exe.Value) -PathType Leaf)) { $ready = $false }
     }
     if (-not $ready) {
+        if ($Check) { throw "Missing external tool: $($tool.id). Run deploy.ps1 -Mode Tools." }
         $cache = Join-Path $root 'downloads'
         New-Item -ItemType Directory -Force -Path $cache | Out-Null
         $zip = Join-Path $cache $tool.archive
@@ -44,6 +45,15 @@ foreach ($tool in $manifest.tools) {
     $current = [ordered]@{ version=$tool.version; platform='win64'; source=$tool.url; sha256=$tool.sha256 }
     foreach ($exe in $tool.executables.PSObject.Properties) { $current[$exe.Name] = 'releases/' + $tool.directory + '/' + $exe.Value.Replace('\','/') }
     $pointer = Join-Path $toolRoot 'current.json'
+    if ($Check) {
+        if (-not (Test-Path -LiteralPath $pointer -PathType Leaf)) { throw "Missing tool pointer: $($tool.id). Run deploy.ps1 -Mode Tools." }
+        $installed = Get-Content -LiteralPath $pointer -Raw -Encoding UTF8 | ConvertFrom-Json
+        foreach ($key in $current.Keys) {
+            if ($installed.$key -ne $current[$key]) { throw "Tool pointer differs for $($tool.id): $key. Run deploy.ps1 -Mode Tools." }
+        }
+        Write-Host "$($tool.id) $($tool.version) checked (no download or configuration changes)."
+        continue
+    }
     $temporary = $pointer + '.tmp'
     $current | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $temporary -Encoding UTF8
     Move-Item -LiteralPath $temporary -Destination $pointer -Force

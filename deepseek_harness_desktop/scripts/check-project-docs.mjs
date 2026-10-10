@@ -5,6 +5,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 const root = fileURLToPath(new URL('..', import.meta.url))
 const errors = []
+// This is user-facing documentation shipped inside the runnable capability example.
+const runtimeGuides = new Set(['packages/dsh-capabilities/examples/text-tool/docs/README.txt'])
 for (const name of ['.agents', '.github', 'docs', 'market']) {
   if (fs.existsSync(path.join(root, name))) errors.push('Archived directory remains: ' + name)
 }
@@ -15,7 +17,7 @@ function inspect(dir) {
     const file = path.join(dir, entry.name)
     if (entry.isDirectory()) { inspect(file); continue }
     const relative = path.relative(root, file)
-    if (/^(?:README(?:\..*)?|AGENTS(?:\..*)?|CONTRIBUTING\.md|ISSUE_TRIAGE\.md|PR_TRIAGE\.md)$/i.test(entry.name)) errors.push('Upstream development document remains: ' + relative)
+    if (!runtimeGuides.has(relative.split(path.sep).join('/')) && /^(?:README(?:\..*)?|AGENTS(?:\..*)?|CONTRIBUTING\.md|ISSUE_TRIAGE\.md|PR_TRIAGE\.md)$/i.test(entry.name)) errors.push('Upstream development document remains: ' + relative)
     if (entry.name !== 'package.json') continue
     const manifest = JSON.parse(fs.readFileSync(file, 'utf8'))
     for (const item of manifest.files ?? []) {
