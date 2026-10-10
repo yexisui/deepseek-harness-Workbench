@@ -27,6 +27,7 @@ GEMINI.[mM][dD]
 
 # 一键部署可重建的独立环境（仅匹配工作台根目录）
 /runtime-node/
+/runtime-node-stage-*/
 /runtime/
 /runtime-desktop/
 /runtime-dev/

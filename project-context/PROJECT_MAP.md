@@ -9,7 +9,9 @@
 | ../deepseek_harness_desktop/packages/dsh-client-ui-plain-chat/ | 对话、岗位入口与管理界面 |
 | ../deepseek_harness_desktop/packages/dsh-plugin-manager/ | 插件管理 |
 | ../deepseek_harness_desktop/shared/ | 跨模块共用实现；修改需关联回归 |
-| ../deploy.ps1 | Deploy 安装部署、Tools 工具补装、Check 安装检查 |
+| ../deploy.ps1 | Deploy 全量部署、Bootstrap 补齐便携基础环境、Tools 工具补装、Check 安装检查 |
+| ../DEPLOYMENT.txt | 现有环境补齐与新环境安装的操作说明 |
+| ../test-deploy.ps1 | Bootstrap、启动入口、Node 安装与配置保护回归 |
 | ../external-tools/ | 必需外部程序清单与安装器；目前 FFmpeg/ffprobe |
 | ../capability-packages/ | 外置能力源码与打包脚本；目前音频分段定位 |
 | runtime*、dsh-data、chat-data、desktop-state | 本机环境、配置和业务数据，不入库 |

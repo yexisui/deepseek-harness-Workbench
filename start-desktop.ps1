@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 try {
     $root = $PSScriptRoot
     $electronExe = Join-Path $root 'runtime-desktop\node_modules\electron\dist\electron.exe'
@@ -41,8 +41,14 @@ try {
         }
     }
     $env:DSH_DESKTOP_DEV_ROOT = $root
-    $nodeCommand = Get-Command node.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1
-    $env:DSH_DESKTOP_NODE = $nodeCommand.Source
+    $localNode = Join-Path $root 'runtime-node\node.exe'
+    if (Test-Path -LiteralPath $localNode -PathType Leaf) {
+        $env:DSH_DESKTOP_NODE = $localNode
+        $env:PATH = (Split-Path -Parent $localNode) + ';' + $env:PATH
+    } else {
+        $nodeCommand = Get-Command node.exe -CommandType Application -ErrorAction Stop | Select-Object -First 1
+        $env:DSH_DESKTOP_NODE = $nodeCommand.Source
+    }
     $env:DSH_HOME = Join-Path $root 'dsh-data'
     $env:PATH = (Join-Path $root 'runtime\node_modules\.bin') + ';' + $env:PATH
     Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue

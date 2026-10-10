@@ -279,7 +279,7 @@
 | [requirements/manual/M004-原作者外联与插件更新清理分析及执行记录.md](<requirements/manual/M004-原作者外联与插件更新清理分析及执行记录.md>) | M004-原作者外联与插件更新清理分析及执行记录 | 事项现状见台账；原有历史记录保留 |
 | [requirements/manual/M005-原项目开发资料完整归档执行记录.md](<requirements/manual/M005-原项目开发资料完整归档执行记录.md>) | M005-原项目开发资料完整归档执行记录 | 事项现状见台账；原有历史记录保留 |
 | [requirements/manual/M006-能力中心与配件紧凑列表整合方案.md](<requirements/manual/M006-能力中心与配件紧凑列表整合方案.md>) | M006-能力中心与配件紧凑列表整合方案 | 事项现状见台账；原有历史记录保留 |
-| [requirements/manual/M007-跨AI协作资料集中管理与工具部署验证.md](<requirements/manual/M007-跨AI协作资料集中管理与工具部署验证.md>) | 本次协作整理与工具部署的决定、实施和验证结果 | 当前协作管理文件 |
+| [requirements/manual/M007-跨AI协作资料集中管理与工具部署验证.md](<requirements/manual/M007-跨AI协作资料集中管理与工具部署验证.md>) | T033协作整理与T034便携环境补齐的决定、实施和验证结果 | 当前协作管理文件 |
 | [requirements/manual/附件/M002/启动入口/start-desktop.ps1](<requirements/manual/附件/M002/启动入口/start-desktop.ps1>) | 关联文档的历史展示或验证附件：start-desktop | 事项现状见台账；原有历史记录保留 |
 | [requirements/manual/附件/M002/启动入口/启动桌面端.cmd](<requirements/manual/附件/M002/启动入口/启动桌面端.cmd>) | 关联文档的历史展示或验证附件：启动桌面端 | 事项现状见台账；原有历史记录保留 |
 | [requirements/manual/附件/M002/适配快照/desktop/src/main.cjs](<requirements/manual/附件/M002/适配快照/desktop/src/main.cjs>) | 关联文档的历史展示或验证附件：main | 事项现状见台账；原有历史记录保留 |

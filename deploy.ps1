@@ -1,7 +1,7 @@
 ﻿#requires -Version 5.1
 [CmdletBinding()]
 param(
-    [ValidateSet('Deploy', 'Build', 'Check', 'Inspect', 'Desktop', 'Web', 'Tools')]
+    [ValidateSet('Deploy', 'Build', 'Check', 'Inspect', 'Desktop', 'Web', 'Tools', 'Bootstrap')]
     [string]$Mode = 'Deploy',
     [string]$SourceName,
     [switch]$Repair
@@ -172,7 +172,8 @@ function Install-Node {
     $expected = ($entry[0] -split '\s+')[0]
     if (-not (Test-Path -LiteralPath $archive) -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $expected) { Get-Download ($url + $archiveName) $archive }
     if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $expected) { throw 'Node.js ZIP SHA256 mismatch; archive was not extracted.' }
-    $stage = Join-Path $cache ('extract-' + [guid]::NewGuid().ToString('N'))
+    # Keep npm's nested paths below the Windows PowerShell archive path limit.
+    $stage = Join-Path $script:Root ('runtime-node-stage-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
     Expand-Archive -LiteralPath $archive -DestinationPath $stage
     $extracted = Join-Path $stage ('node-v' + $script:Versions.Node + '-win-x64')
     Require-File (Join-Path $extracted 'node.exe')
@@ -349,16 +350,20 @@ function Build-Workshop {
     Invoke-Tool $script:Node @((Join-Path $script:Source 'scripts\install-workbench.mjs'), $script:Root)
     Register-Bundles
 }
-function Write-Launchers {
+function Write-Launchers([switch]$MissingOnly) {
     foreach ($entry in @(@('启动桌面端.cmd', 'Desktop'), @('启动网页版.cmd', 'Web'), @('重新构建.cmd', 'Build'))) {
+        if ($MissingOnly -and (Test-Path -LiteralPath (Join-Path $script:Root $entry[0]))) { continue }
         $content = "@echo off`r`nsetlocal`r`npowershell.exe -NoProfile -ExecutionPolicy Bypass -File `"%~dp0deploy.ps1`" -Mode " + $entry[1] + "`r`nset `"result=%errorlevel%`"`r`nif not `"%result%`"==`"0`" pause`r`nexit /b %result%`r`n"
         Write-Text (Join-Path $script:Root $entry[0]) $content
     }
+    # Preserve existing launcher behavior (including stale-lock handling) when filling gaps.
+    if ($MissingOnly -and (Test-Path -LiteralPath (Join-Path $script:Root 'start-desktop.ps1'))) { return }
     # Compatibility entry for existing shortcuts; all path discovery now lives in this script.
     Write-Text (Join-Path $script:Root 'start-desktop.ps1') "& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path `$PSScriptRoot 'deploy.ps1') -Mode Desktop`r`nexit `$LASTEXITCODE`r`n" -Bom
 }
 function Check-Installation {
     & (Join-Path $script:Root 'external-tools\install.ps1') -Check
+    if (-not (Test-Path -LiteralPath $script:Node) -or -not (Test-Path -LiteralPath $script:Npm)) { throw 'Portable Node.js is missing. For an existing workbench run deploy.ps1 -Mode Bootstrap; for a new installation run Deploy.' }
     foreach ($file in @($script:Node, $script:Npm, $script:Pnpm, $script:Dsh, $script:Electron, (Join-Path $script:Profile 'package.json'))) { Require-File $file }
     $version = & $script:Node --version
     if ($LASTEXITCODE -ne 0 -or $version -ne ('v' + $script:Versions.Node)) { throw 'Local Node.js version check failed.' }
@@ -435,6 +440,14 @@ function Main {
         $selectionFile = Join-Path $dev 'deployment-selection.json'
         $script:Moved = $false
         if (Test-Path -LiteralPath $selectionFile) { $script:Moved = (Read-Json $selectionFile).lastRoot -ne $script:Root }
+        if ($Mode -eq 'Bootstrap') {
+            # Fill portable runtime gaps without reinstalling dependencies or touching the profile.
+            $script:Step = 'Node.js'; Install-Node
+            $script:Step = 'Missing launchers'; Write-Launchers -MissingOnly
+            $script:Step = 'Validation'; Check-Installation
+            Write-Log 'Portable Node and missing launchers prepared; existing dependencies and profile retained.'
+            return
+        }
         if ($Mode -eq 'Deploy') {
             $script:Step = 'External tools'; Install-ExternalTools
             $script:Step = 'Node.js'; Install-Node

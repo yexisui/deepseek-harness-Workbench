@@ -1,0 +1,28 @@
+工作台部署与基础环境补齐
+
+适用：Windows x64。所有命令从仓库根目录执行。运行依赖在源码外，配置与业务数据位于既有 dsh-data 等目录。
+
+已有工作台能启动，但 Check 提示缺少 runtime-node/node.exe：
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\deploy.ps1 -Mode Bootstrap
+Bootstrap 使用官方 ZIP 与官方 SHA-256 清单安装固定版本的便携 Node/npm，只补缺失的启动入口，随后检查现有安装；不运行 npm/pnpm 安装，不替换 profile，不构建或重新注册插件。已有入口保持内容。
+
+只读安装检查：
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\deploy.ps1 -Mode Check
+Check 检查外部工具、Node、DSH、pnpm、Electron、插件本地链接、注册及入口，不下载或重装。模型连接与真实业务结果另行验收。
+
+新环境完整安装：
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\deploy.ps1 -Mode Deploy
+Deploy 执行全部依赖安装、构建和登记；不要为现有环境仅缺便携 Node 的问题反复重装全部依赖。首次完整联网安装范围与本机补齐不同。
+
+仅安装外部工具：
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\deploy.ps1 -Mode Tools
+Tools 使用 external-tools 中的清单安装或复用公共工具；相关测试和维护步骤见 external-tools/README.txt。
+
+既有桌面启动脚本优先使用 runtime-node/node.exe；尚未补齐的旧环境仍可沿用系统 Node。进程环境变量不写系统 PATH。Bootstrap 不主动启动或关闭桌面。
+runtime-node、下载缓存及日志均为本机生成物，不提交 Git。移除 project-context 后本说明及部署脚本仍可独立使用。
+
+部署回归测试：
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test-deploy.ps1
+默认在独立临时目录验证补齐流程、配置保护和启动选择，拦截窗口启动，不安装正式环境。
+加 -DownloadNode 验证官方 Node 下载与首次安装；可加 -ArchivePath <官方ZIP路径> 复用归档，仍通过官方校验清单验证。
+安装解压使用工作台根的短暂存目录，避免额外嵌套路径导致 Windows PowerShell 归档解压失败；暂存目录按 .gitignore 保留本机。
