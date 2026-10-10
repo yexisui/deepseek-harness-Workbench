@@ -30,7 +30,7 @@ it('imports to shared catalog, creates a real Worker image and local edit preser
  const first=await e.run({mode:'create',style:'snake',content:'十二步流程'}),out:any=await first.done;expect(out.svg).toContain('领取任务')
  e.setResponse({operations:[{op:'text',id:'n2',text:'核对并整合升版记录'}]});const edited=await e.run({mode:'edit',instruction:'修改第三步',documentId:first.job.id}),result:any=await edited.done
  expect(result.document.nodes[2].text).toBe('核对并整合升版记录');expect(result.document.edges).toEqual(out.document.edges);expect(e.runner.get(first.job.id).output).toEqual(out)
- const summary:any=packageResult(edited.job.id,result);expect(summary.previewUrl).toContain(edited.job.id);expect(summary.svg).toBeUndefined()
+ const summary:any=packageResult(edited.job.id,result,3082);expect(summary.previewUrl).toContain(edited.job.id);expect(summary.svg).toBeUndefined()
 })
 it('denies previous document access from another session and preserves old result after failed edit',async()=>{
  const e=await environment(),first=await e.run({mode:'create',style:'snake',content:'流程'});await first.done
@@ -53,9 +53,9 @@ it('routes authenticated image/download/view with restrictive image policy',asyn
 })
 it('real managed-agent tool returns image references and stops after capability removal',async()=>{
  const e=await environment(),registered=new Map<string,any>(),agent={id:'agent-flow',ctx:{tools:{guard:()=>()=>{},register:(t:any)=>{registered.set(t.name,t);return()=>registered.delete(t.name)}},get:()=>undefined},session:{header:{createdAt:Date.now()+1,agentPreset:e.authority.version.preset},snapshotEvents:()=>[]}}
- const ctx={tools:{guard:()=>()=>{}},on:()=>()=>{},agents:{list:()=>[agent]},agentPresets:{composedPreset:()=>e.authority.version.preset}}
+ const ctx={webServer:{port:3082},tools:{guard:()=>()=>{}},on:()=>()=>{},agents:{list:()=>[agent]},agentPresets:{composedPreset:()=>e.authority.version.preset}}
  const runtime=new CapabilityRuntime(ctx as any,e.store,{bskPath:'',bskHome:'',port:0});runtime.packageRunner=e.runner;await runtime.init();cleanups.push(()=>runtime.dispose())
  const args={capabilityId:e.id,action:e.action,input:JSON.stringify({mode:'create',style:'snake',content:'步骤'})},exec={name:'capability_action',arguments:args,callId:'flow-create',signal:new AbortController().signal,agent}
- const result=JSON.parse(await registered.get('capability_action').execute(args,exec));expect(result.previewUrl).toMatch(/image.svg$/);expect(e.runner.get(result.documentId).sessionId).toBe(agent.id)
+ const result=JSON.parse(await registered.get('capability_action').execute(args,exec));expect(result.previewUrl).toBe('http://127.0.0.1:3082/api/capabilities/packages/artifact/'+result.documentId+'/image.svg');expect(e.runner.get(result.documentId).sessionId).toBe(agent.id)
  await e.store.command(e.store.snapshot().revision,{type:'capability.toggle',id:e.id,enabled:false});await expect(registered.get('capability_action').execute(args,exec)).rejects.toThrow()
 })

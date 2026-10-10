@@ -17,6 +17,7 @@ const { spawn, execFile } = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { openPackageArtifact } = require('./package-artifact-window.cjs');
 const { assertProjectSender, resolveProjectPaths } = require('./project-picker.cjs');
 const {
   resolveRuntimePaths,
@@ -203,6 +204,7 @@ function createWindow() {
     },
   });
   window.webContents.setWindowOpenHandler(({ url }) => {
+    if (openPackageArtifact(window, url, BrowserWindow)) return { action: 'deny' };
     if (/^https?:\/\//.test(url) && !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//.test(url)) {
       void shell.openExternal(url);
     }

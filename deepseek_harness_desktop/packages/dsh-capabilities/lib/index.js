@@ -11054,9 +11054,10 @@ function diagram(output) {
 	return v.kind === "flowchart" && typeof v.svg === "string" && v.svg.startsWith("<svg ") && !!v.document && typeof v.document === "object";
 }
 /** Keep large SVG bytes out of the model context; immutable job IDs preserve earlier chat images. */
-function packageResult(id, output) {
+function packageResult(id, output, port) {
 	if (!diagram(output)) return output;
-	const root = "/api/capabilities/packages/artifact/" + encodeURIComponent(id);
+	if (!Number.isInteger(port) || port < 1 || port > 65535) throw new InputError("流程图查看地址不可用");
+	const root = `http://127.0.0.1:${port}/api/capabilities/packages/artifact/` + encodeURIComponent(id);
 	return {
 		documentId: id,
 		document: output.document,
@@ -14756,7 +14757,7 @@ var CapabilityRuntime = class {
 							sessionId: live.agent.id
 						}
 					});
-					return JSON.stringify(packageResult(run.job.id, await run.done));
+					return JSON.stringify(packageResult(run.job.id, await run.done, this.ctx.webServer.port));
 				}
 			});
 			live.disposers.push(agent.ctx.tools.register({

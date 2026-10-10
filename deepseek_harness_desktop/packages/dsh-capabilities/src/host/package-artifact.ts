@@ -9,9 +9,12 @@ function diagram(output: unknown): output is {kind:'flowchart';svg:string;docume
   return v.kind==='flowchart'&&typeof v.svg==='string'&&v.svg.startsWith('<svg ')&&!!v.document&&typeof v.document==='object'
 }
 /** Keep large SVG bytes out of the model context; immutable job IDs preserve earlier chat images. */
-export function packageResult(id:string,output:unknown):unknown {
+export function packageResult(id:string,output:unknown,port:number):unknown {
   if(!diagram(output))return output
-  const root='/api/capabilities/packages/artifact/'+encodeURIComponent(id)
+  // Chat treats slash-prefixed Markdown destinations as workspace files.
+  // Use the actual local listener; never place authentication tokens in URLs.
+  if(!Number.isInteger(port)||port<1||port>65535)throw new InputError('流程图查看地址不可用')
+  const root=`http://127.0.0.1:${port}/api/capabilities/packages/artifact/`+encodeURIComponent(id)
   return {documentId:id,document:output.document,previewUrl:root+'/image.svg',viewUrl:root+'/view',downloadUrl:root+'/download.svg',message:'生成成功。请在回复中用 Markdown 图片展示 previewUrl，并提供 viewUrl（查看大图、下载 PNG）和 downloadUrl（下载 SVG）。后续修改传 documentId；不要让用户编辑代码。'}
 }
 /** The parent router performs the same authentication and origin checks as every capability request. */

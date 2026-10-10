@@ -46,7 +46,7 @@ function render(document){
     const e=d.edges[i],a=cells.get(e.from),b=cells.get(e.to);let p,labelX,labelY;
     if(snake){if(a.rank===b.rank){const sign=b.x>a.x?1:-1;p=`M ${a.x+sign*a.w/2} ${a.y} H ${b.x-sign*b.w/2}`}else{const side=a.rank%2?-1:1,gutter=a.x+side*(a.w/2+55);p=`M ${a.x+side*a.w/2} ${a.y} H ${gutter} Q ${gutter+side*25} ${a.y} ${gutter+side*25} ${a.y+25} V ${b.y-25} Q ${gutter+side*25} ${b.y} ${gutter} ${b.y} H ${b.x+side*b.w/2}`}edges.push(`<path d="${p}" stroke="${palette[a.rank%palette.length]}" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#wide)"/>`);continue}
     if(b.rank>a.rank&&b.rank===a.rank+1){const ay=a.y+a.h/2,by=b.y-b.h/2,mid=(ay+by)/2;p=`M ${a.x} ${ay} V ${mid} H ${b.x} V ${by}`;labelX=(a.x+b.x)/2;labelY=mid-15}
-    else{const right=i%2===0,sign=right?1:-1,lane=right?width-55-(i%4)*12:55+(i%4)*12; p=`M ${a.x+sign*a.w/2} ${a.y} H ${lane} V ${b.y} H ${b.x+sign*b.w/2}`;labelX=right?width-100:100;labelY=(a.y+b.y)/2}
+    else{const right=a.x>width/2,sign=right?1:-1,lane=right?width-55-(i%4)*12:55+(i%4)*12; p=`M ${a.x+sign*a.w/2} ${a.y} H ${lane} V ${b.y} H ${b.x+sign*b.w/2}`;labelX=right?width-100:100;labelY=(a.y+b.y)/2}
     edges.push(`<path d="${p}" stroke="#5e7287" stroke-width="2.5" fill="none" stroke-linejoin="round" marker-end="url(#arrow)"/>`);
     if(e.label)edges.push(`<rect x="${labelX-70}" y="${labelY-17}" width="140" height="${lines(e.label,8).length*21+8}" rx="5" fill="white"/>${textBlock(e.label,labelX,labelY,{size:14,limit:8})}`);
   }
@@ -77,7 +77,7 @@ function patch(previous,operations){
 exports.execute=async({action,input,api})=>{
   if(action!=='diagram')fail('不支持的动作');if(!input||typeof input!=='object')fail('请输入流程内容');
   const mode=input.mode??'create',previous=api.previous?.output?.document;let document;
-  if(mode==='read'){if(!previous)fail('当前会话尚无流程图');return{documentId:api.previous.id,document:previous}}
+  if(mode==='read'){if(!previous)fail('当前会话尚无流程图');return{kind:'flowchart',document:previous,svg:render(previous)}}
   if(mode==='restyle'){if(!previous)fail('当前会话尚无流程图');document=validate({...previous,style:input.style??previous.style})}
   else if(mode==='create'||mode==='edit'){
     if(mode==='edit'&&!previous)fail('当前会话尚无流程图，请先生成');

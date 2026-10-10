@@ -2,13 +2,34 @@
   "schema": 1,
   "protocol": "dsh-worker-v1",
   "id": "org.workbench.flowchart",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "流程图生成",
   "description": "根据对话内容生成固定样式的标准流程图或蛇形流程图，支持通过对话修改、查看大图和下载图片。",
   "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"或\"snake\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"snake\"或\"standard\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。",
   "author": "工作台",
   "license": "Apache-2.0",
-  "permissions": ["node", "model"],
-  "components": [{"id":"renderer","name":"固定模板流程图","entry":"runtime/main.cjs","actions":[{"id":"diagram","name":"生成与修改流程图","description":"根据前文生成标准或蛇形流程图，通过对话局部修改、读取、切换样式。"}]}],
-  "files": {"runtime/main.cjs":"auto","resources/create.txt":"auto","resources/edit.txt":"auto","docs/README.txt":"auto"}
+  "permissions": [
+    "node",
+    "model"
+  ],
+  "components": [
+    {
+      "id": "renderer",
+      "name": "固定模板流程图",
+      "entry": "runtime/main.cjs",
+      "actions": [
+        {
+          "id": "diagram",
+          "name": "生成与修改流程图",
+          "description": "根据前文生成标准或蛇形流程图，通过对话局部修改、读取、切换样式。"
+        }
+      ]
+    }
+  ],
+  "files": {
+    "runtime/main.cjs": "auto",
+    "resources/create.txt": "auto",
+    "resources/edit.txt": "auto",
+    "docs/README.txt": "auto"
+  }
 }
