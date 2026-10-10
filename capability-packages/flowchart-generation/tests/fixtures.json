@@ -1,0 +1,170 @@
+{
+  "standard": {
+    "title": "资料审核与办理流程",
+    "style": "standard",
+    "nodes": [
+      {
+        "id": "n1",
+        "text": "提交申请材料",
+        "type": "start"
+      },
+      {
+        "id": "n2",
+        "text": "资料是否齐全？",
+        "type": "decision"
+      },
+      {
+        "id": "n3",
+        "text": "补充缺失材料",
+        "type": "step"
+      },
+      {
+        "id": "n4",
+        "text": "登记并安排审核",
+        "type": "step"
+      },
+      {
+        "id": "n5",
+        "text": "完成办理",
+        "type": "end"
+      }
+    ],
+    "edges": [
+      {
+        "from": "n1",
+        "to": "n2"
+      },
+      {
+        "from": "n2",
+        "to": "n3",
+        "label": "否"
+      },
+      {
+        "from": "n2",
+        "to": "n4",
+        "label": "是"
+      },
+      {
+        "from": "n3",
+        "to": "n2",
+        "label": "补齐后重新检查"
+      },
+      {
+        "from": "n4",
+        "to": "n5"
+      }
+    ]
+  },
+  "snake": {
+    "title": "程序导入 · 十二步操作流程",
+    "style": "snake",
+    "nodes": [
+      {
+        "id": "n0",
+        "text": "领取任务",
+        "type": "start"
+      },
+      {
+        "id": "n1",
+        "text": "下载最新版程序",
+        "type": "step"
+      },
+      {
+        "id": "n2",
+        "text": "整合升版记录",
+        "type": "step"
+      },
+      {
+        "id": "n3",
+        "text": "整理工序文档",
+        "type": "step"
+      },
+      {
+        "id": "n4",
+        "text": "登录工作空间",
+        "type": "step"
+      },
+      {
+        "id": "n5",
+        "text": "选择处理能力",
+        "type": "step"
+      },
+      {
+        "id": "n6",
+        "text": "上传工序文档",
+        "type": "step"
+      },
+      {
+        "id": "n7",
+        "text": "核对转换结果",
+        "type": "step"
+      },
+      {
+        "id": "n8",
+        "text": "下载工序表",
+        "type": "step"
+      },
+      {
+        "id": "n9",
+        "text": "导入程序管理系统",
+        "type": "step"
+      },
+      {
+        "id": "n10",
+        "text": "检查页面展示",
+        "type": "step"
+      },
+      {
+        "id": "n11",
+        "text": "完成归档",
+        "type": "end"
+      }
+    ],
+    "edges": [
+      {
+        "from": "n0",
+        "to": "n1"
+      },
+      {
+        "from": "n1",
+        "to": "n2"
+      },
+      {
+        "from": "n2",
+        "to": "n3"
+      },
+      {
+        "from": "n3",
+        "to": "n4"
+      },
+      {
+        "from": "n4",
+        "to": "n5"
+      },
+      {
+        "from": "n5",
+        "to": "n6"
+      },
+      {
+        "from": "n6",
+        "to": "n7"
+      },
+      {
+        "from": "n7",
+        "to": "n8"
+      },
+      {
+        "from": "n8",
+        "to": "n9"
+      },
+      {
+        "from": "n9",
+        "to": "n10"
+      },
+      {
+        "from": "n10",
+        "to": "n11"
+      }
+    ]
+  }
+}

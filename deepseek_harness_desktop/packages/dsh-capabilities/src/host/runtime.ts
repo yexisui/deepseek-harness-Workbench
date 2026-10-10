@@ -1,4 +1,5 @@
 import type { PackageRunner } from './package-runner.ts'
+import { packageResult } from './package-artifact.ts'
 import { catalogFor } from '../core/distribution.ts'
 import { spawn, type ChildProcess } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
@@ -124,7 +125,7 @@ export class CapabilityRuntime {
       const tool = defineTool({ name:'capability_action', description:'调用当前岗位已装配的外部能力。input 填 JSON；只有用户请求相关任务时才执行。可用动作：'+JSON.stringify(packaged.map(p=>({...p,label:catalog.flatMap(c=>Object.entries(c.actionLabels??{})).find(([id])=>id===p.action)?.[1]}))),
         parameters:{ capabilityId:{type:'string',required:true,enum:[...new Set(packaged.map(p=>p.capabilityId))]},action:{type:'string',required:true,enum:[...new Set(packaged.map(p=>p.action))]},input:{type:'string',required:true,description:'传给动作的 JSON 输入；按能力使用说明填写'} },
         output:{schema:{type:'string'},render:(_args,value)=>[{type:'text',text:String(value)}]},
-        execute:async(args,exec)=>{const binding=live.version.capabilities.find(b=>b.capabilityId===args.capabilityId)!;let input:unknown;try{input=JSON.parse(args.input)}catch{throw new Error('能力输入必须是有效 JSON')};const run=await this.packageRunner!.start(args.capabilityId,binding.version,args.action as import('../core/model.ts').Action,input,{signal:exec.signal,role:{roleId:live.roleId,version:live.version,sessionCreatedAt:live.agent.session.header.createdAt}});return JSON.stringify(await run.done)}
+        execute:async(args,exec)=>{const binding=live.version.capabilities.find(b=>b.capabilityId===args.capabilityId)!;let input:unknown;try{input=JSON.parse(args.input)}catch{throw new Error('能力输入必须是有效 JSON')};const run=await this.packageRunner!.start(args.capabilityId,binding.version,args.action as import('../core/model.ts').Action,input,{signal:exec.signal,role:{roleId:live.roleId,version:live.version,sessionCreatedAt:live.agent.session.header.createdAt,sessionId:live.agent.id}});return JSON.stringify(packageResult(run.job.id,await run.done))}
       })
       live.disposers.push(agent.ctx.tools.register({...tool,execute:(args,exec)=>this.execute(live,tool,args,exec)}))
     }

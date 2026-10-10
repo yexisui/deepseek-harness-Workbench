@@ -4,6 +4,7 @@ import type { Action } from '../core/model.ts'
 import { json, readBody } from './http.ts'
 import type { CapabilityPackages } from './packages.ts'
 import type { PackageRunner } from './package-runner.ts'
+import { servePackageArtifact } from './package-artifact.ts'
 
 /** Called only after the shared loopback/origin and Connection authentication checks. */
 export async function packageRoutes(packages:CapabilityPackages,runner:PackageRunner,req:IncomingMessage,res:ServerResponse){
@@ -17,6 +18,7 @@ export async function packageRoutes(packages:CapabilityPackages,runner:PackageRu
   }
   if(req.method==='GET'&&route.startsWith('processing/'))return json(res,200,packages.processStatus(route.slice(11)))
   if(req.method==='GET'&&route==='config')return json(res,200,{model:packages.store.snapshot().packageModels?.[url.searchParams.get('id')??'']??''})
+  if(req.method==='GET'&&route.startsWith('artifact/'))return servePackageArtifact(runner,route.slice(9),res)
   if(req.method==='GET'&&route==='tasks')return json(res,200,runner.list(url.searchParams.get('id')??undefined))
   if(req.method==='GET'&&route.startsWith('task/'))return json(res,200,runner.get(route.slice(5)))
   if(req.method!=='POST')throw new InputError('不支持此操作',405)

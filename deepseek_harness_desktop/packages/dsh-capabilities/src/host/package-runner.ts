@@ -9,13 +9,13 @@ import { InputError, text } from '../core/validation.ts'
 import { plainMkdir } from './package-archive.ts'
 import type { CapabilityPackages } from './packages.ts'
 
-export type PackageJob = { id:string; capabilityId:string; version:number; action:Action; createdAt:number; finishedAt?:number; status:'running'|'stopping'|'stopped'|'done'|'error'; output?:unknown; error?:string; roleId?:string; roleVersion?:number }
-export type PackageAuthority = { roleId:string; version:RoleVersion; sessionCreatedAt:number }
+export type PackageJob = { id:string; capabilityId:string; version:number; action:Action; createdAt:number; finishedAt?:number; status:'running'|'stopping'|'stopped'|'done'|'error'; output?:unknown; error?:string; roleId?:string; roleVersion?:number; sessionId?:string }
+export type PackageAuthority = { roleId:string; version:RoleVersion; sessionCreatedAt:number; sessionId?:string }
 const workerSource = String.raw`
 const {parentPort,workerData}=require('node:worker_threads');
 let sequence=0; const waiting=new Map();
 parentPort.on('message',m=>{const p=waiting.get(m.id);if(p){waiting.delete(m.id);m.error?p.reject(new Error(m.error)):p.resolve(m.value)}});
-const api={resourceRoot:workerData.resourceRoot,model:(prompt)=>new Promise((resolve,reject)=>{const id=++sequence;waiting.set(id,{resolve,reject});parentPort.postMessage({type:'model',id,prompt})})};
+const api={previous:workerData.previous,resourceRoot:workerData.resourceRoot,model:(prompt)=>new Promise((resolve,reject)=>{const id=++sequence;waiting.set(id,{resolve,reject});parentPort.postMessage({type:'model',id,prompt})})};
 (async()=>{const mod=require(workerData.entry);if(typeof mod.execute!=='function')throw new Error('组件需要导出 execute({action,input,api})');const result=await mod.execute({action:workerData.action,input:workerData.input,api});const json=JSON.stringify(result===undefined?null:result);if(json.length>512000)throw new Error('能力结果超过 512 KiB');parentPort.postMessage({type:'result',value:JSON.parse(json)});})().catch(e=>parentPort.postMessage({type:'error',error:String(e&&e.message||e).slice(0,2000)}));
 `
 
@@ -61,7 +61,7 @@ export class PackageRunner {
     if(!release||!part||!declared)throw new InputError('此版本未声明该执行动作',403)
     if(release.manifest.permissions.includes('model')&&!this.packages.model(capabilityId))throw new InputError('请先配置工作台模型')
     const controller=new AbortController(),signal=options.signal?AbortSignal.any([options.signal,controller.signal]):controller.signal
-    const job:PackageJob={id:randomUUID(),capabilityId,version,action,createdAt,status:'running',...(options.role?{roleId:options.role.roleId,roleVersion:options.role.version.version}:{})}
+    const job:PackageJob={id:randomUUID(),capabilityId,version,action,createdAt,status:'running',...(options.role?{roleId:options.role.roleId,roleVersion:options.role.version.version,...(options.role.sessionId?{sessionId:options.role.sessionId}:{})}:{})}
     this.jobs.set(job.id,job)
     // Reserve capacity before any asynchronous verification, and recheck authority after every await.
     let settle!:()=>void; const pending=new Promise<void>(resolve=>{settle=resolve})
@@ -72,7 +72,13 @@ export class PackageRunner {
         if(!await this.packages.verify(v.packageHash!))throw new Error('能力文件缺失或校验失败，请重新导入正确版本')
         if(signal.aborted||!allowed())throw new Error('任务已停止或权限已撤销')
         const root=this.packages.directory(v.packageHash!)
-        job.output=await this.executeWorker({entry:join(root,part.entry),resourceRoot:join(root,'resources'),action:declared.id,input},signal,release.manifest.permissions.includes('model'),this.packages.model(capabilityId),allowed)
+        const sourceId=input&&typeof input==='object'?(input as Record<string,unknown>).documentId:undefined
+        const sameScope=(j:PackageJob)=>j.id!==job.id&&j.capabilityId===capabilityId&&j.status==='done'&&j.sessionId===job.sessionId&&j.roleId===job.roleId
+        const prior=sourceId?this.jobs.get(String(sourceId)):[...this.jobs.values()].filter(sameScope).sort((a,b)=>(b.finishedAt??0)-(a.finishedAt??0))[0]
+        if(sourceId&&(!prior||!sameScope(prior)))throw new Error('此流程图不属于当前会话，或尚未生成成功')
+        // Only pass previous structured content, never rendered image bytes or another conversation's result.
+        const previous=prior?{id:prior.id,output:prior.output&&typeof prior.output==='object'?{...prior.output as Record<string,unknown>,svg:undefined}:prior.output}:undefined
+        job.output=await this.executeWorker({entry:join(root,part.entry),resourceRoot:join(root,'resources'),action:declared.id,input,previous},signal,release.manifest.permissions.includes('model'),this.packages.model(capabilityId),allowed)
         if(signal.aborted||!allowed())throw new Error('任务已停止或权限已撤销')
         job.status='done'
       }catch(e){job.status=signal.aborted||!allowed()?'stopped':'error';job.error=e instanceof Error?e.message:String(e);delete job.output}
@@ -84,7 +90,7 @@ export class PackageRunner {
     void done.catch(()=>{})
     return {job:structuredClone(job),done}
   }
-  private executeWorker(data:{entry:string;resourceRoot:string;action:string;input:unknown},signal:AbortSignal,allowModel:boolean,model:string,allowed:()=>boolean):Promise<unknown>{
+  private executeWorker(data:{entry:string;resourceRoot:string;action:string;input:unknown;previous?:unknown},signal:AbortSignal,allowModel:boolean,model:string,allowed:()=>boolean):Promise<unknown>{
     return new Promise((resolve,reject)=>{
       const worker=new Worker(workerSource,{eval:true,workerData:data,env:{},stdout:true,stderr:true,resourceLimits:{maxOldGenerationSizeMb:128,maxYoungGenerationSizeMb:32,stackSizeMb:4}})
       let finished=false,calls=0,inflight=false,logBytes=0

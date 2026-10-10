@@ -13,7 +13,7 @@
 | ../DEPLOYMENT.txt | 现有环境补齐与新环境安装的操作说明 |
 | ../test-deploy.ps1 | Bootstrap、启动入口、Node 安装与配置保护回归 |
 | ../external-tools/ | 必需外部程序清单与安装器；目前 FFmpeg/ffprobe |
-| ../capability-packages/ | 外置能力源码与打包脚本；目前音频分段定位 |
+| ../capability-packages/ | 外置能力源码与打包脚本；目前音频分段定位、固定模板流程图 |
 | runtime*、dsh-data、chat-data、desktop-state | 本机环境、配置和业务数据，不入库 |
 
 新协作者克隆仓库后先阅读 external-tools/README.txt 和部署脚本参数说明；Windows x64 默认一键部署由根“一键部署.cmd”调用。首次完整安装需要联网下载依赖；本轮工具检查不等同于全新电脑完整部署验收。模型凭据由使用者自行配置，绝不从项目文档取得。

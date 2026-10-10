@@ -286,3 +286,5 @@
 | [requirements/manual/附件/M002/适配快照/desktop/src/runtime.cjs](<requirements/manual/附件/M002/适配快照/desktop/src/runtime.cjs>) | 关联文档的历史展示或验证附件：runtime | 事项现状见台账；原有历史记录保留 |
 | [requirements/manual/附件/M002/适配快照/desktop/tests/runtime.test.mjs](<requirements/manual/附件/M002/适配快照/desktop/tests/runtime.test.mjs>) | 关联文档的历史展示或验证附件：runtime.test | 事项现状见台账；原有历史记录保留 |
 | FILE_INDEX.md | 本索引自身 | 新增、移动、删除共享文件时同步维护 |
+
+| [requirements/auto/A025-对话式固定模板流程图能力.md](requirements/auto/A025-对话式固定模板流程图能力.md) | T035用户确认需求、固定模板能力实现、隔离验证与正式导入阻断 | 当前实施记录，正式启用待完成 |
