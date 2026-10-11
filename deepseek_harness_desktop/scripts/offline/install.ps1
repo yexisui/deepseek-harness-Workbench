@@ -1,8 +1,9 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 [CmdletBinding()]
-param([ValidateSet('Deploy','Repair','Check','Inspect','Desktop','Tools','Bootstrap','Build')][string]$Mode='Deploy',[switch]$Repair)
+param([ValidateSet('Deploy','Repair','Check','Inspect','Desktop','Tools','Bootstrap','Build')][string]$Mode='Deploy',[switch]$Repair, [string]$WorkbenchRoot, [string]$PackageDirectory, [switch]$PreserveLaunchers)
 $ErrorActionPreference='Stop'
-$root=[IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
+$root=if($WorkbenchRoot){[IO.Path]::GetFullPath($WorkbenchRoot)}else{[IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))}
+$packageRoot=if($PackageDirectory){[IO.Path]::GetFullPath($PackageDirectory)}else{$PSScriptRoot}
 $lock=$null; $zip=$null
 $checkedParents=@{}
 function Long-Path([string]$path) { if($path.StartsWith('\\?\')){return $path}; if($path.StartsWith('\\')){return '\\?\UNC\'+$path.Substring(2)}; return '\\?\'+$path }
@@ -39,7 +40,7 @@ try {
     if ($Mode -eq 'Desktop') { & (Join-Path $root 'start-desktop.ps1'); exit $LASTEXITCODE }
     if ($Mode -eq 'Build') { throw 'This offline release is prebuilt. Use Deploy or Check; source builds require the development project.' }
     if (-not [Environment]::Is64BitOperatingSystem -or $env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { throw 'This release requires Windows x64.' }
-    $manifest=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    $manifest=Get-Content -LiteralPath (Join-Path $packageRoot 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($Mode -eq 'Inspect') { Write-Host ('Offline release: '+$manifest.release+'; files: '+$manifest.files.Count); exit 0 }
     $readOnly=$Mode -eq 'Check'
     if (-not $readOnly) {
@@ -48,7 +49,7 @@ try {
         [IO.Directory]::CreateDirectory((Join-Path $root 'offline-state')) | Out-Null
         $lock=[IO.File]::Open((Join-Path $root 'offline-state/install.lock'),'OpenOrCreate','ReadWrite','None')
     }
-    $archive=Join-Path $PSScriptRoot 'payload.zip'
+    $archive=Join-Path $packageRoot 'payload.zip'
     Write-Host 'Checking local offline package (no downloads)...'
     if ((File-Hash $archive) -ne $manifest.payloadSha256) { throw 'Offline package checksum failed. Replace the damaged offline package.' }
     Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -57,6 +58,8 @@ try {
     $todo=New-Object 'System.Collections.Generic.List[object]'; $reused=0; $scanned=0
     foreach ($file in $manifest.files) {
         $target=Safe-Path $file.path
+        # A Git checkout owns its launchers; a runtime payload must not downgrade them.
+        if($PreserveLaunchers -and $file.path -in @('start-desktop.ps1','deploy.ps1','启动桌面端.cmd','一键部署.cmd') -and [IO.File]::Exists($target)){$reused++;continue}
         if (-not $entries.ContainsKey($file.path)) { throw ('Missing payload entry: '+$file.path) }
         $longTarget=Long-Path $target
         $good=[IO.File]::Exists($longTarget) -and ((New-Object IO.FileInfo($longTarget)).Length -eq $file.size)
@@ -82,7 +85,7 @@ try {
         $done++; if($done % 2000 -eq 0){Write-Host ("Installed/repaired $done / "+$todo.Count)}
     }
     $node=Join-Path $root 'runtime-node/node.exe'
-    & $node (Join-Path $PSScriptRoot 'configure.cjs') $root (Join-Path $PSScriptRoot 'profile-template.json') $Mode
+    & $node (Join-Path $packageRoot 'configure.cjs') $root (Join-Path $packageRoot 'profile-template.json') $Mode
     if($LASTEXITCODE -ne 0){throw 'Profile verification failed'}
     & $node --version
     if($LASTEXITCODE -ne 0){throw 'Node runtime failed'}

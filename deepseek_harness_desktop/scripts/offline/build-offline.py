@@ -82,8 +82,8 @@ manifest={'schema':1,'release':release,'payloadSha256':digest(archive),'unpacked
 for name in ['deploy.ps1','一键部署.cmd','启动桌面端.cmd']:shutil.copy2(source/name,out/name)
 readme='''Windows x64 离线安装包
 
-首次安装：解压整个文件夹，双击“一键部署.cmd”，完成后双击“启动桌面端.cmd”。
-已有安装：先关闭客户端，把本包的 offline 文件夹、deploy.ps1 和两个 cmd 入口复制到原项目根目录，运行一键部署。
+首次或已有安装：拉取最新Git，将安装ZIP原样放入项目根目录offline-delivery，关闭客户端后双击“一键部署.cmd”。
+脚本自动准备offline文件并安装/修复；不需要手工解压，也不要覆盖Git里的启动及部署脚本。
 不要删除原来的 dsh-data、chat-data、desktop-state。
 
 默认安装会校验所有受管理的程序文件，只修复缺失或内容不同的文件；完整文件直接复用。
@@ -102,7 +102,10 @@ readme='''Windows x64 离线安装包
 '''
 (offline/'使用说明.txt').write_text(readme,encoding='utf-8-sig')
 print(json.dumps({'release':release,'files':len(files),'payloadBytes':archive.stat().st_size,'unpackedBytes':manifest['unpackedBytes']},ensure_ascii=False),flush=True)
-delivery=out.parent/('DeepSeek-Workbench-Offline-'+release+'.zip')
+delivery_dir=source/'offline-delivery'
+delivery_dir.mkdir(parents=True,exist_ok=True)
+delivery=delivery_dir/('DeepSeek-Workbench-Offline-'+release+'.zip')
+if delivery.exists():raise SystemExit('Release already exists; increment release before publishing a changed package')
 with zipfile.ZipFile(delivery,'w',allowZip64=True) as z:
     for name in ['deploy.ps1','一键部署.cmd','启动桌面端.cmd']:
         z.write(out/name,name,compress_type=zipfile.ZIP_DEFLATED)

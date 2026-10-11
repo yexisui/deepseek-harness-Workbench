@@ -34,3 +34,5 @@
 
 ### 设置共享（2026-10-11）
 shared-settings存可共享设置快照，scripts/settings-sync.cjs负责导出/导入；部署及启动自动应用变化。dsh-data仍为本机运行数据。安装包只复制offline子目录，保留Git最新根脚本；使用步骤见shared-settings/README.txt，状态见M007。
+
+2026-10-11入口更新：安装ZIP统一置于项目根offline-delivery，无需手工解压；一键部署调用scripts/offline/prepare-offline.ps1自动准备。新布局优先，旧offline布局仍兼容；交付文件不进Git。

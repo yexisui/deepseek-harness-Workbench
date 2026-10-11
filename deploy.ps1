@@ -7,10 +7,22 @@ param(
     [switch]$Repair
 )
 
+# Prepare a ZIP supplied beside the project, without overwriting Git-managed launchers.
+if ($MyInvocation.InvocationName -ne '.' -and $Mode -ne 'Desktop' -and (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'offline-delivery'))) {
+    try {
+        if ($Mode -eq 'Build') { throw 'Offline deliveries are prebuilt. Use Deploy or Check.' }
+        $prepare = Join-Path $PSScriptRoot 'deepseek_harness_desktop\scripts\offline\prepare-offline.ps1'
+        if (-not (Test-Path -LiteralPath $prepare)) { throw 'Offline preparation script missing. Pull the latest Git source first.' }
+        & $prepare -Root $PSScriptRoot -ReadOnly:($Mode -in @('Check', 'Inspect'))
+    } catch { Write-Host ('Offline package preparation failed: ' + $_.Exception.Message) -ForegroundColor Red; exit 1 }
+}
 # A distributed offline payload takes precedence; never fall back to network installation.
 $offlineInstaller = Join-Path $PSScriptRoot 'offline\install.ps1'
 if ((Test-Path -LiteralPath $offlineInstaller) -and $MyInvocation.InvocationName -ne '.') {
-    & $offlineInstaller -Mode $Mode -Repair:$Repair
+    $sourceInstaller = Join-Path $PSScriptRoot 'deepseek_harness_desktop\scripts\offline\install.ps1'
+    if (Test-Path -LiteralPath $sourceInstaller) {
+        & $sourceInstaller -Mode $Mode -Repair:$Repair -WorkbenchRoot $PSScriptRoot -PackageDirectory (Join-Path $PSScriptRoot 'offline') -PreserveLaunchers
+    } else { & $offlineInstaller -Mode $Mode -Repair:$Repair }
     $offlineResult = $LASTEXITCODE
     if ($offlineResult -ne 0) { exit $offlineResult }
     if ($Mode -in @('Deploy', 'Tools', 'Bootstrap')) {

@@ -108,3 +108,6 @@ Desktop.ini
 
 # Shared configuration is exported to shared-settings; local receipts/backups contain private data.
 /settings-local/
+
+# Local offline distribution ZIPs, preparation receipt and temporary extraction.
+/offline-delivery/
