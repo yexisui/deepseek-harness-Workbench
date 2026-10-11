@@ -300,3 +300,5 @@
 - shared-settings/README.txt、manifest.json、files/：可共享配置快照与说明；生成方式由deepseek_harness_desktop/scripts/settings-sync.cjs管理，settings-sync.test.cjs验证私密数据排除与迁移保护。维护记录见M007。
 
 - deepseek_harness_desktop/scripts/offline/prepare-offline.ps1：识别项目offline-delivery中的ZIP并准备本地安装文件；离线资产本身忽略Git。规则第15节和M007记录维护边界。
+
+- offline-delivery/README.txt：离线包放置说明，同时使Git保留该目录；目录内其他文件与子目录不入库。

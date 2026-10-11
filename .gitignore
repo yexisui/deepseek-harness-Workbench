@@ -110,4 +110,5 @@ Desktop.ini
 /settings-local/
 
 # Local offline distribution ZIPs, preparation receipt and temporary extraction.
-/offline-delivery/
+/offline-delivery/*
+!/offline-delivery/README.txt
