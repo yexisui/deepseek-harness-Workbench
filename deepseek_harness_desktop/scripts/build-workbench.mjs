@@ -15,7 +15,7 @@ const packages = fs.readdirSync(path.join(source, 'packages')).filter(name =>
   name !== 'skins' && name !== 'dsh-client-ui-plain-chat' && name !== 'dsh-web-all'
   && fs.existsSync(path.join(source, 'packages', name, 'tsdown.config.ts'))
   && Object.hasOwn(aggregateDependencies, JSON.parse(fs.readFileSync(path.join(source, 'packages', name, 'package.json'), 'utf8')).name),
-).sort().concat(['skins/skin-center', 'dsh-web-all'])
+).sort().concat(['skins/skin-center', 'dsh-capabilities', 'dsh-client-ui-plain-chat', 'dsh-web-all'])
 const excluded = new Set(['node_modules', '.git', '.agents', 'lib', 'dist', 'tests', 'test'])
 const inputs = []
 function collect(relative) {
@@ -92,6 +92,8 @@ for (const relative of packages) {
   // The build output is trusted here; copy lib once so every entrypoint is staged.
   const runtimeFiles = new Set((manifest.files ?? ['lib', 'cordis.patch.yml'])
     .map(file => file.startsWith('lib/') ? 'lib' : file))
+  // The chat host copies its bundled preset at startup; ship it on fresh installs too.
+  if (fs.existsSync(path.join(directory, 'presets'))) runtimeFiles.add('presets')
   for (const file of runtimeFiles) {
     const input = path.join(directory, file)
     if (fs.existsSync(input)) copyTree(input, path.join(packed, file))

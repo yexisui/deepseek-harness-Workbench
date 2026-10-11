@@ -16,23 +16,19 @@ const workspacePath = path.join(profile, 'pnpm-workspace.yaml')
 const originalManifest = fs.readFileSync(manifestPath, 'utf8')
 const originalWorkspace = fs.existsSync(workspacePath) ? fs.readFileSync(workspacePath, 'utf8') : null
 const manifest = JSON.parse(originalManifest)
-// A renamed source directory can leave the locally linked chat plugin dangling.
-// Preserve working links (including immutable builds); repair only a missing target.
-const chatName = '@linxin666/dsh-client-ui-plain-chat'
-const chatSpec = manifest.dependencies?.[chatName]
-if (typeof chatSpec === 'string' && chatSpec.startsWith('link:')
-  && !fs.existsSync(path.resolve(profile, chatSpec.slice(5), 'package.json'))) {
-  const chatDirectory = fileURLToPath(new URL('../packages/dsh-client-ui-plain-chat/', import.meta.url))
-  const chatManifest = JSON.parse(fs.readFileSync(path.join(chatDirectory, 'package.json'), 'utf8'))
-  if (chatManifest.name !== chatName || !fs.existsSync(path.join(chatDirectory, 'lib/client.js'))) throw new Error('Local chat build is missing')
-  manifest.dependencies[chatName] = 'link:' + path.relative(profile, chatDirectory).split(path.sep).join('/')
+// Install all standalone workbench services from this same complete build.
+// JEV is mounted by capabilities and compiled into its runtime, not registered twice.
+const roots = ['@linxin666/dsh-web-all', '@linxin666/dsh-client-ui-plain-chat', '@linxin666/dsh-capabilities']
+manifest.dependencies ??= {}
+for (const name of roots) {
+  if (!entries.some(entry => entry.name === name)) throw new Error('Build is missing workbench service: ' + name)
 }
 const workspace = parseDocument(originalWorkspace ?? 'packages:\n  - .\nnodeLinker: hoisted\nautoInstallPeers: false\n')
 if (workspace.errors.length) throw new Error('Cannot parse profile pnpm-workspace.yaml')
 for (const entry of entries) {
   const spec = 'file:../../../' + entry.relative
   workspace.setIn(['overrides', entry.name], spec)
-  if (entry.name === '@linxin666/dsh-web-all') manifest.dependencies[entry.name] = spec
+  if (roots.includes(entry.name)) manifest.dependencies[entry.name] = spec
 }
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n')
 fs.writeFileSync(workspacePath, workspace.toString())

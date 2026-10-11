@@ -268,80 +268,12 @@ function Register-Bundles {
     foreach ($bundle in @('@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', '@linxin666/dsh-web-all')) {
         if ($bundles -notcontains $bundle) { $bundles += $bundle }
     }
-    if ($manifest.dependencies.$script:ChatName -and $bundles -notcontains $script:ChatName) { $bundles += $script:ChatName }
+    foreach ($bundle in @($script:ChatName, '@linxin666/dsh-capabilities')) {
+        if ($manifest.dependencies.$bundle -and $bundles -notcontains $bundle) { $bundles += $bundle }
+    }
     Set-Field $profileObject 'bundles' $bundles
     if (-not $profileObject.patchReload) { Set-Field $profileObject 'patchReload' 'live' }
     Write-Json $file $manifest
-}
-function Build-Chat {
-    $builder = Join-Path $script:Root 'runtime-dev\build-chat.mjs'
-    Write-Text $builder @'
-import fs from 'node:fs';
-import path from 'node:path';
-import crypto from 'node:crypto';
-import { spawnSync } from 'node:child_process';
-const [root, source] = process.argv.slice(2);
-const dev = path.join(root, 'runtime-dev');
-const plugin = 'packages/dsh-client-ui-plain-chat';
-const inputs = [];
-function collect(relative) {
-  const absolute = path.join(source, relative);
-  const stat = fs.lstatSync(absolute);
-  if (stat.isSymbolicLink()) throw new Error('Source build inputs must not contain links: ' + relative);
-  if (stat.isDirectory()) {
-    for (const name of fs.readdirSync(absolute).sort()) {
-      if (!['node_modules', 'lib', '.git'].includes(name)) collect(path.join(relative, name));
-    }
-  } else if (stat.isFile()) inputs.push(relative);
-}
-collect('shared'); collect(plugin); collect('packages/dsh-i18n/src/client/ru/plain-chat.ts');
-const hash = crypto.createHash('sha256');
-hash.update(fs.readFileSync(path.join(dev, 'package-lock.json')));
-for (const name of inputs) hash.update(name).update(fs.readFileSync(path.join(source, name)));
-const digest = hash.digest('hex').slice(0, 20);
-const builds = path.join(dev, 'builds');
-let mirror = path.join(builds, digest);
-const outputNames = ['lib/index.js', 'lib/client.js', 'presets/workbench-chat/agent.cordis.yml', 'presets/workbench-chat/preset.yml', 'presets/workbench-chat/no-tools.mjs'];
-function outputHashes(directory) {
-  return Object.fromEntries(outputNames.map(name => [name, crypto.createHash('sha256').update(fs.readFileSync(path.join(directory, plugin, name))).digest('hex')]));
-}
-let reusable = false;
-if (fs.existsSync(builds)) {
-  for (const name of fs.readdirSync(builds).filter(name => name === digest || name.startsWith(digest + '-')).sort().reverse()) {
-    const candidate = path.join(builds, name);
-    try {
-      if (fs.readFileSync(path.join(candidate, '.complete'), 'utf8') === JSON.stringify(outputHashes(candidate))) {
-        mirror = candidate; reusable = true; break;
-      }
-    } catch {}
-  }
-}
-if (!reusable) {
-  // A failed build is retained; a fresh directory prevents stale deleted files leaking into the next build.
-  if (fs.existsSync(mirror)) mirror += '-' + Date.now();
-  for (const name of inputs) {
-    const destination = path.join(mirror, name);
-    fs.mkdirSync(path.dirname(destination), { recursive: true });
-    fs.copyFileSync(path.join(source, name), destination);
-  }
-  const cwd = path.join(mirror, plugin);
-  const tool = path.join(dev, 'node_modules/tsdown/dist/run.mjs');
-  const result = spawnSync(process.execPath, [tool], { cwd, stdio: 'inherit', windowsHide: true });
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error('Plain-chat build failed: ' + result.status);
-  for (const name of ['index.js', 'client.js']) {
-    if (!fs.existsSync(path.join(cwd, 'lib', name))) throw new Error('Build output missing: ' + name);
-  }
-  fs.writeFileSync(path.join(mirror, '.complete'), JSON.stringify(outputHashes(mirror)));
-}
-fs.writeFileSync(path.join(dev, 'chat-build-result.json'), JSON.stringify({ relative: path.relative(root, path.join(mirror, plugin)).split(path.sep).join('/') }));
-'@
-    Invoke-Tool $script:Node @($builder, $script:Root, $script:Source)
-    $result = Read-Json (Join-Path $script:Root 'runtime-dev\chat-build-result.json')
-    $script:ChatRelative = $result.relative
-    Backup-Profile
-    Invoke-Tool $script:Node @($script:Pnpm, 'add', ($script:ChatName + '@link:../../../' + $script:ChatRelative), '--save-exact') $script:Profile
-    Register-Bundles
 }
 function Build-Workshop {
     Invoke-Tool $script:Node @((Join-Path $script:Source 'scripts\build-workbench.mjs'), $script:Root, $script:Source)
@@ -375,13 +307,17 @@ function Check-Installation {
     if (([IO.File]::ReadAllText($electronVersionFile).Trim() -replace '^v', '') -ne $script:Versions.Electron) { throw 'Electron binary version differs from its package version.' }
     Assert-Version $script:Profile '@linxin666/dsh-web-all' $script:Versions.Web
     $manifest = Read-Json (Join-Path $script:Profile 'package.json')
-    $linkSpec = $manifest.dependencies.$script:ChatName
-    if (-not $linkSpec.StartsWith('link:')) { throw 'Plain-chat dependency must use a local link.' }
-    $expectedPlugin = [IO.Path]::GetFullPath((Join-Path $script:Profile $linkSpec.Substring(5)))
-    $linkedPlugin = Join-Path $script:Profile ('node_modules\' + $script:ChatName.Replace('/', '\'))
-    Invoke-Tool $script:Node @('-e', "const fs=require('node:fs');if(fs.realpathSync(process.argv[1])!==fs.realpathSync(process.argv[2]))process.exit(1)", $linkedPlugin, $expectedPlugin)
-    if (-not $manifest.dependencies.'@linxin666/dsh-web-all'.StartsWith('file:')) { throw 'Customized Workshop build is not installed. Run Build.' }
-    foreach ($bundle in @('@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', '@linxin666/dsh-web-all', $script:ChatName)) {
+    foreach ($name in @($script:ChatName, '@linxin666/dsh-capabilities', '@linxin666/dsh-web-all')) {
+        if (-not ([string]$manifest.dependencies.$name).StartsWith('file:')) { throw "Customized package is not installed: $name. Run Build or Deploy." }
+        $installed = Join-Path $script:Profile ('node_modules/' + $name)
+        $snapshot = [IO.Path]::GetFullPath((Join-Path $script:Profile $manifest.dependencies.$name.Substring(5)))
+        foreach ($relative in @('package.json', 'lib/index.js', 'cordis.patch.yml')) {
+            Require-File (Join-Path $installed $relative)
+            Require-File (Join-Path $snapshot $relative)
+            if ((Get-FileHash -LiteralPath (Join-Path $installed $relative)).Hash -ne (Get-FileHash -LiteralPath (Join-Path $snapshot $relative)).Hash) { throw "Installed package differs from build: $name/$relative" }
+        }
+    }
+    foreach ($bundle in @('@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', '@linxin666/dsh-web-all', $script:ChatName, '@linxin666/dsh-capabilities')) {
         if (@($manifest.dsh.profile.bundles) -notcontains $bundle) { throw "Bundle registration missing: $bundle" }
     }
     foreach ($relative in @('lib\index.js', 'lib\client.js', 'presets\workbench-chat\agent.cordis.yml', 'presets\workbench-chat\preset.yml', 'presets\workbench-chat\no-tools.mjs')) {
@@ -455,11 +391,10 @@ function Main {
         } else {
             foreach ($file in @($script:Node, $script:Pnpm, (Join-Path $script:Profile 'package.json'), (Join-Path $dev 'node_modules\tsdown\dist\run.mjs'))) { Require-File $file }
         }
-        $script:Step = 'Plain-chat build and registration'; Build-Chat
         $script:Step = 'Local Workshop build and registration'; Build-Workshop
         $script:Step = 'Launchers'; Write-Launchers
         $script:Step = 'Validation'; Check-Installation
-        Write-Json $selectionFile ([pscustomobject]@{ sourceName = Split-Path -Leaf $script:Source; lastRoot = $script:Root; chatRelative = $script:ChatRelative; completedAt = (Get-Date -Format o) })
+        Write-Json $selectionFile ([pscustomobject]@{ sourceName = Split-Path -Leaf $script:Source; lastRoot = $script:Root; completedAt = (Get-Date -Format o) })
         Write-Log 'Completed. Launch Desktop. Restart an already running host to load the rebuilt plugin.'
         Write-Log "Log: $script:Log"
     } finally { if ($lock) { $lock.Dispose() } }
