@@ -1,7 +1,7 @@
 ﻿#requires -Version 5.1
 [CmdletBinding()]
 param(
-    [ValidateSet('Deploy', 'Build', 'Check', 'Inspect', 'Desktop', 'Web', 'Tools', 'Bootstrap')]
+    [ValidateSet('Deploy', 'Build', 'Check', 'Inspect', 'Desktop', 'Tools', 'Bootstrap')]
     [string]$Mode = 'Deploy',
     [string]$SourceName,
     [switch]$Repair
@@ -351,7 +351,7 @@ function Build-Workshop {
     Register-Bundles
 }
 function Write-Launchers([switch]$MissingOnly) {
-    foreach ($entry in @(@('启动桌面端.cmd', 'Desktop'), @('启动网页版.cmd', 'Web'), @('重新构建.cmd', 'Build'))) {
+    foreach ($entry in @(, @('启动桌面端.cmd', 'Desktop'))) {
         if ($MissingOnly -and (Test-Path -LiteralPath (Join-Path $script:Root $entry[0]))) { continue }
         $content = "@echo off`r`nsetlocal`r`npowershell.exe -NoProfile -ExecutionPolicy Bypass -File `"%~dp0deploy.ps1`" -Mode " + $entry[1] + "`r`nset `"result=%errorlevel%`"`r`nif not `"%result%`"==`"0`" pause`r`nexit /b %result%`r`n"
         Write-Text (Join-Path $script:Root $entry[0]) $content
@@ -387,7 +387,7 @@ function Check-Installation {
     foreach ($relative in @('lib\index.js', 'lib\client.js', 'presets\workbench-chat\agent.cordis.yml', 'presets\workbench-chat\preset.yml', 'presets\workbench-chat\no-tools.mjs')) {
         Require-File (Join-Path $script:Profile ('node_modules\' + $script:ChatName.Replace('/', '\') + '\' + $relative))
     }
-    foreach ($entry in @('启动桌面端.cmd', '启动网页版.cmd', '重新构建.cmd')) { Require-File (Join-Path $script:Root $entry) }
+    foreach ($entry in @('启动桌面端.cmd', '一键部署.cmd')) { Require-File (Join-Path $script:Root $entry) }
     Invoke-Tool $script:Node @($script:Dsh, '--version')
     Invoke-Tool $script:Node @($script:Pnpm, '--version')
     Write-Log 'Installed files, versions, bundle registrations and launchers checked. Model replies require user configuration.'
@@ -415,17 +415,10 @@ function Main {
     Set-LocalEnvironment
     $script:Profile = Join-Path $env:DSH_HOME 'profiles\web'
     if ($Mode -eq 'Check') { Check-Installation; return }
-    if ($Mode -in @('Desktop', 'Web')) {
-        foreach ($file in @($script:Node, $script:Dsh, (Join-Path $script:Profile 'package.json'))) { Require-File $file }
-        if ($Mode -eq 'Desktop') {
-            Require-File $script:Electron
-            $app = Join-Path $script:Source 'desktop'
-            Start-Process -FilePath $script:Electron -ArgumentList ('"' + $app + '"') -WorkingDirectory $script:Root -WindowStyle Normal | Out-Null
-        } else {
-            # Keep the terminal attached; the CLI prints the real URL and Ctrl+C stops it.
-            Push-Location -LiteralPath $script:Root
-            try { & $script:Node $script:Dsh web; if ($LASTEXITCODE -ne 0) { throw "Web host exited: $LASTEXITCODE" } } finally { Pop-Location }
-        }
+    if ($Mode -eq 'Desktop') {
+        foreach ($file in @($script:Node, $script:Dsh, (Join-Path $script:Profile 'package.json'), $script:Electron)) { Require-File $file }
+        $app = Join-Path $script:Source 'desktop'
+        Start-Process -FilePath $script:Electron -ArgumentList ('"' + $app + '"') -WorkingDirectory $script:Root -WindowStyle Normal | Out-Null
         return
     }
     $dev = Join-Path $script:Root 'runtime-dev'
@@ -467,7 +460,7 @@ function Main {
         $script:Step = 'Launchers'; Write-Launchers
         $script:Step = 'Validation'; Check-Installation
         Write-Json $selectionFile ([pscustomobject]@{ sourceName = Split-Path -Leaf $script:Source; lastRoot = $script:Root; chatRelative = $script:ChatRelative; completedAt = (Get-Date -Format o) })
-        Write-Log 'Completed. Launch Desktop or Web. Restart an already running host to load the rebuilt plugin.'
+        Write-Log 'Completed. Launch Desktop. Restart an already running host to load the rebuilt plugin.'
         Write-Log "Log: $script:Log"
     } finally { if ($lock) { $lock.Dispose() } }
 }

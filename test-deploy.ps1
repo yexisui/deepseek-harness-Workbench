@@ -41,7 +41,7 @@ $cmdHash = (Get-FileHash -LiteralPath $cmdEntry).Hash
 Write-Launchers -MissingOnly
 Assert-Test ((Get-FileHash -LiteralPath $desktopEntry).Hash -eq $entryHash -and (Get-FileHash -LiteralPath $cmdEntry).Hash -eq $cmdHash) 'existing launchers preserved byte-for-byte'
 $generated = @(Get-ChildItem -LiteralPath $testRoot -Filter '*.cmd')
-Assert-Test ($generated.Count -eq 3) 'missing Web and Build launchers created'
+Assert-Test ($generated.Count -eq 1) 'only the desktop launcher is generated'
 $hashes = @($generated | ForEach-Object { (Get-FileHash -LiteralPath $_.FullName).Hash }) -join ','
 Write-Launchers -MissingOnly
 Assert-Test ((@((Get-ChildItem -LiteralPath $testRoot -Filter '*.cmd') | ForEach-Object { (Get-FileHash -LiteralPath $_.FullName).Hash }) -join ',') -eq $hashes) 'launcher generation is idempotent'
@@ -99,4 +99,7 @@ foreach ($portable in @($true, $false)) {
     Assert-Test (Test-Path -LiteralPath $lockFile) 'active process lock retained'
     $env:PATH = $originalPath
 }
+Write-Launchers
+Assert-Test (@(Get-ChildItem -LiteralPath $testRoot -Filter '*.cmd').Count -eq 1) 'full launcher generation does not recreate Web or Build entries'
+Assert-Test ((Get-Content -LiteralPath $cmdEntry -Raw) -match '-Mode Desktop') 'generated desktop entry uses Desktop mode'
 Write-Host "All Bootstrap tests passed. Isolated evidence: $testRoot"

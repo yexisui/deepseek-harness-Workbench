@@ -290,3 +290,5 @@
 | [requirements/auto/A025-对话式固定模板流程图能力.md](requirements/auto/A025-对话式固定模板流程图能力.md) | T035用户确认需求、固定模板能力实现、正式岗位对话与保留结果证据 | 当前实施与验证记录，正式启用完成 |
 
 2026-10-11：AGENTS.MD第13节维护仅使用main规则；A006新增main整合、13个分支清理和验证记录，当前状态见PEFR_PLAN.MD。
+
+2026-10-11：根DEPLOYMENT.txt说明归入M007；根目录只保留启动桌面端.cmd和一键部署.cmd，部署入口以PROJECT_MAP.md为准，不新增.md入口。
