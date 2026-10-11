@@ -3,7 +3,7 @@
 使用已通过实际启动验证、不含个人数据的 Windows x64 部署目录作为 donor：
 python deepseek_harness_desktop/scripts/offline/build-offline.py --donor <干净部署目录> --source <仓库根目录> --output <新的空输出目录>
 该命令只读取白名单内的运行文件，输出离线安装目录，并把ZIP和SHA256保存至源项目根offline-delivery；不会联网下载。
-离线包含两个原有cmd入口，双击一键部署自动校验并只修复缺失/不同的文件。-Repair作用相同；-Mode Check只检查。
+交付ZIP外层只含offline目录，不附带根部署/启动入口。使用Git项目根的一键部署自动校验并只修复缺失/不同的文件。-Repair作用相同；-Mode Check只检查。
 部署到新电脑前，在隔离输出目录运行verify-offline.py并验证实际宿主和界面；不要对正式业务目录执行该验证脚本。
 verify-offline.py会故意损坏隔离环境的程序文件并验证修复；只能传入专用验证目录。
 目标系统为Windows x64，PowerShell 5.1及.NET Framework为系统前置条件；不自动安装全局工具或系统运行库。
@@ -14,3 +14,5 @@ prepare-offline.ps1只提取ZIP内offline/内容，兼容2026.10.11旧交付包�
 
 准备入口回归：powershell.exe -NoProfile -ExecutionPolicy Bypass -File deepseek_harness_desktop/scripts/offline/test-prepare-offline.ps1
 在临时目录验证ZIP选择、自动提取/复用/修复、只读模式和路径保护；不会修改正式业务数据。Git入口优先使用源仓库install.ps1读取离线资源，保留现有根启动脚本。
+
+制作输出目录中的根入口仅用于隔离验证，不能打入交付ZIP。发布前核对外层条目全部以offline/开头；封装调整也应更新版本与SHA256。

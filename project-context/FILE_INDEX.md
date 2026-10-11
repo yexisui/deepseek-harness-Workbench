@@ -302,3 +302,5 @@
 - deepseek_harness_desktop/scripts/offline/prepare-offline.ps1：识别项目offline-delivery中的ZIP并准备本地安装文件；离线资产本身忽略Git。规则第15节和M007记录维护边界。
 
 - offline-delivery/README.txt：离线包放置说明，同时使Git保留该目录；目录内其他文件与子目录不入库。
+
+- 2026-10-11：离线制包逻辑调整为交付ZIP仅含offline；外层重复入口禁入规则见AGENTS第15节，r2本地交付与校验记录见M007。

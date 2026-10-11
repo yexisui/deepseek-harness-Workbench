@@ -11,7 +11,7 @@ a=p.parse_args();donor=Path(a.donor).resolve();source=Path(a.source).resolve();o
 out.mkdir(parents=True,exist_ok=True)
 if any(out.iterdir()): raise SystemExit('Output must be empty; refusing to overwrite a release')
 offline=out/'offline';offline.mkdir()
-release='2026.10.11-win-x64'
+release='2026.10.11-r2-win-x64'
 files=[]; seen=set()
 def digest(f):
     h=hashlib.sha256()
@@ -89,7 +89,7 @@ readme='''Windows x64 离线安装包
 默认安装会校验所有受管理的程序文件，只修复缺失或内容不同的文件；完整文件直接复用。
 修复：一键部署.cmd -Repair
 只检查：一键部署.cmd -Mode Check
-上述命令在包所在目录的终端执行；检查不安装，修复和默认安装均不下载。
+上述命令在Git项目根目录的终端执行；检查不安装，修复和默认安装均不下载。
 新版本替换程序文件时保留个人设置；必要的插件注册配置修改前保存到 offline-state/backups。
 本包只修复包含的程序及依赖，不安装系统级 C++ 运行库或修改系统设置。
 
@@ -98,7 +98,7 @@ readme='''Windows x64 离线安装包
 浏览器插件不自动安装。可选包为offline/capability-packages/BrowserSkill-0.3.0-offline.zip。
 需要时关闭工作台，将该ZIP解压到工作台根目录；再在Chrome/Edge扩展管理中启用开发者模式，加载runtime/browserskill/0.3.0/extension。它不是能力导入ZIP。
 额外的流程图、音频片段定位能力ZIP位于offline/capability-packages，可在能力管理中本地导入。
-请保留 offline 文件夹以便后续修复。开发工具、测试环境、下载缓存、Git 历史均不包含。
+安装ZIP内只提供offline目录，不附带根部署或启动入口。请保留offline-delivery中的原始ZIP，以便修复提取文件。开发工具、测试环境、下载缓存、Git 历史均不包含。
 '''
 (offline/'使用说明.txt').write_text(readme,encoding='utf-8-sig')
 print(json.dumps({'release':release,'files':len(files),'payloadBytes':archive.stat().st_size,'unpackedBytes':manifest['unpackedBytes']},ensure_ascii=False),flush=True)
@@ -107,8 +107,7 @@ delivery_dir.mkdir(parents=True,exist_ok=True)
 delivery=delivery_dir/('DeepSeek-Workbench-Offline-'+release+'.zip')
 if delivery.exists():raise SystemExit('Release already exists; increment release before publishing a changed package')
 with zipfile.ZipFile(delivery,'w',allowZip64=True) as z:
-    for name in ['deploy.ps1','一键部署.cmd','启动桌面端.cmd']:
-        z.write(out/name,name,compress_type=zipfile.ZIP_DEFLATED)
+    # The delivery ZIP is data for the Git deployment entry, never a second launcher set.
     for f in sorted(offline.rglob('*')):
         if f.is_file():z.write(f,'offline/'+f.relative_to(offline).as_posix(),compress_type=zipfile.ZIP_STORED if f.suffix=='.zip' else zipfile.ZIP_DEFLATED)
 delivery.with_suffix('.zip.sha256').write_text(digest(delivery)+'  '+delivery.name+'\n',encoding='ascii')
