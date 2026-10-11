@@ -1,3 +1,4 @@
+import { recordingCommand } from '../../../../shared/client/recording-client.ts'
 import { ExecutionProcessCard, useExecutionHistory } from './ExecutionProcess.tsx'
 import { RequirementsFileDrop, readRequirementFiles, REQUIREMENT_FILE_ACCEPT } from './RequirementsFileDrop.tsx'
 import { RequirementsNotebook } from './RequirementsNotebook.tsx'
@@ -211,6 +212,7 @@ export function RequirementsAssistant({ initialTitle, taskId, draftKey, initialD
   function showChooser() { focusChatView.current = true; setChatView('chooser'); setTab('chat'); localDraft.current = { ...localDraft.current, chatView: 'chooser' }; rememberCurrent() }
   function showWork() { focusChatView.current = true; setChatView('work'); setTab('chat'); localDraft.current = { ...localDraft.current, chatView: 'work' }; rememberCurrent() }
   async function run(operation: NonNullable<RequirementTask['run']>['operation'], instruction = draft, scope = context) {
+    if(recordingCommand(instruction)){updateDraft('');return}
     if (!instruction.trim() || running || busyRef.current) return
     const current = await ensureTask(); if (!current) return
     const saved = await command({ type: 'run', operation, instruction: instruction.trim(), context: scope || undefined, model: current.settings.model || undefined, requestId: id() })

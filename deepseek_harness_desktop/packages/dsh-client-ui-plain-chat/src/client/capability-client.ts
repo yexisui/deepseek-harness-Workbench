@@ -4,7 +4,7 @@ export type ClientView = { data: Snapshot | null; error: string; revision: numbe
 let view: ClientView = { data: null, error: '', revision: 0 }
 const listeners = new Set<() => void>()
 let pending: Promise<void> | undefined
-function emit(patch: Partial<ClientView>) { view = { ...view, ...patch, revision: view.revision + 1 }; listeners.forEach(fn => fn()) }
+function emit(patch: Partial<ClientView>) { view = { ...view, ...patch, revision: view.revision + 1 }; listeners.forEach(fn => fn()); if(patch.data)window.dispatchEvent(new Event('workbench-recording-config-changed')) }
 async function request<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(`/api/capabilities/${path}`, { credentials: 'same-origin', ...(body === undefined ? {} : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) })
   const value = await response.json().catch(() => ({ error: '能力服务尚未加载，请检查工作台运行配置。' }))

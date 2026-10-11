@@ -292,52 +292,6 @@
   color: transparent;
 }
 
-/* 面板数值的专属配色：称号浅品牌蓝、小鱼干清蓝、亲密度暖金 ——
-   与 DeepSeek 蓝同族，仅留一枚金色点缀，两行数据扫一眼就能分辨。 */
-.statRank {
-  color: #9db4ff;
-  font-weight: 600;
-}
-
-.statTreats {
-  color: #7dd3fc;
-  font-weight: 600;
-}
-
-.statPoints {
-  color: #fcd34d;
-  font-weight: 600;
-}
-
-.renameRow {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.nameInput {
-  flex: 1;
-  min-width: 0;
-  border: 1px solid rgba(126, 152, 255, 0.5);
-  border-radius: 6px;
-  background: rgba(19, 28, 54, 0.9);
-  color: #e6ebf8;
-  font-size: 12px;
-  padding: 3px 6px;
-  outline: none;
-}
-
-.nameInput:focus {
-  border-color: #4d6bfe;
-  /* 2px DeepSeek-blue ring (theme-agnostic) replacing the removed default outline. */
-  box-shadow: 0 0 0 2px rgba(77, 107, 254, 0.45);
-}
-
-.actions {
-  display: flex;
-  gap: 6px;
-}
-
 .action {
   flex: 1;
   border: none;

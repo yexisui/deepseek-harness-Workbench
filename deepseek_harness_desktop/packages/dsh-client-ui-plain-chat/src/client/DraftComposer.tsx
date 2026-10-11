@@ -1,3 +1,4 @@
+import { recordingCommand } from '../../../../shared/client/recording-client.ts'
 import React, { useEffect, useRef, useState } from 'react'
 import type { ChatStart } from '../core/start.ts'
 import type { ChatKey } from './locales.ts'
@@ -15,6 +16,7 @@ export function DraftComposer({ start, t, available, previewOnly = false, onRetu
     onDraftChange?.(value)
   }
   const send = async () => {
+    if(recordingCommand(draft)){update('');return}
     if (busy || previewOnly || !available || !draft.trim()) return
     setBusy(true); setError(false)
     try {

@@ -1,3 +1,4 @@
+import { recordingCommand } from '../../../../shared/client/recording-client.ts'
 import { ExecutionProcessCard, useExecutionHistory } from './ExecutionProcess.tsx'
 import { MessageTime } from './MessageTime.tsx'
 import React, { useEffect, useRef, useState } from 'react'
@@ -132,6 +133,7 @@ export function DeveloperAssistant(props: Props) {
     set({ contexts: [...view.contexts.filter(c => !(c.path === context.path && c.start === context.start && c.side === context.side)), context].slice(-12), draft: instruction ? `${instruction} ${view.path}:${start}-${end}\n${view.draft}` : view.draft, chat: true, versionTab: 'commits', runTab: 'checks' })
   }
   const send = () => void run(async () => {
+    if(recordingCommand(view.draft)){set({draft:''});return}
     if (!view.draft.trim()) return
     const sent = view.draft, contexts = view.contexts, current = await ensure()
     sending.current ??= crypto.randomUUID()

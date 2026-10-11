@@ -1,8 +1,11 @@
+import { recordingClient } from '../../../../shared/client/recording-client.ts'
+import { useSyncExternalStore } from 'react'
+import { RecordingControls } from '../../../../shared/client/RecordingControls.tsx'
 /**
  * Pet sprite companion component — the browser half's centerpiece. Renders a
  * fixed-position floating sprite (React portal onto document.body), plays
  * the track matching the host animation snapshot, and exposes the
- * interaction surface: click to pet, hover panel with feed/rename/hide, drag
+ * interaction surface: click to pet, name/recording hover panel, drag
  * to reposition (persisted via setConfig). Everything visual comes from the
  * pet definition the host serves ('/api/pet/pets' + the state snapshot's
  * pet id), so one component renders every registry entry.
@@ -38,16 +41,10 @@ export interface PetSpriteProps {
   feedback: PetFeedback | null
   /** Pet the sprite (click). */
   onPet: () => void
-  /** Feed the sprite (panel button). */
-  onFeed: () => void
-  /** Hide the sprite (panel button). */
-  onHide: () => void
   /** Persist a drag position. */
   onDragEnd: (right: number, bottom: number) => void
   /** Drag gesture notifications for renderers with a drag track (frames2d). */
   onDraggingChange?: (dragging: boolean) => void
-  /** Rename the selected pet (persisted by the host). */
-  onRename: (name: string) => void
   /** Navigate to the session one status bubble reports on. */
   onOpenSession: (sessionId: string) => void
   /** Clear the reaction bubble (after its CSS animation). */
@@ -70,13 +67,6 @@ export interface PetSpriteProps {
    * affinity pet; the HUD decides zones/no-ops.
    */
   onGameplayTap?: (fractionX: number, fractionY: number) => void
-  /**
-   * Gameplay entry (miku-pet generalization): when present the hover panel
-   * renders a 玩法 action that opens/closes the gameplay card. The chrome
-   * wires it to the HUD through the per-pet bus (openCard), mirroring the
-   * onGameplayTap sink. Absent for pets without a gameplay block.
-   */
-  onGameplayMenu?: () => void
   /** Disable the drag gesture (gameplay work mode blocks dragging). */
   dragDisabled?: boolean
   /**
@@ -258,7 +248,6 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
   // it, so the pointer target cannot flicker.
   const [stackPeek, setStackPeek] = useState(false)
   const [stackPinned, setStackPinned] = useState(false)
-  const [renaming, setRenaming] = useState(false)
   const [panelAbove, setPanelAbove] = useState(false)
   // Extra margin-bottom for the above-panel so it stacks clear of the
   // bubbles instead of overlapping them (both anchor at the sprite's top).
@@ -282,34 +271,6 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
   const rows = definition.rows
   const tracks = definition.tracks
   const sequences = definition.sequences
-  // Hover-panel chrome from the pet's voice pack (pet-center M4, issue
-  // #677): every slot falls back to the i18n dictionary when unset. Stat
-  // formats carry {rank}/{n}/{points} placeholders the host validated.
-  const panel = definition.panel
-  const panelLabel = (slot: 'feed' | 'rename' | 'hide' | 'confirm', i18n: string): string =>
-    panel?.labels?.[slot] ?? i18n
-  const panelStat = (
-    slot: 'rank' | 'treats' | 'points',
-    i18nKey: 'pet.rank' | 'pet.treats' | 'pet.points',
-    values: Record<string, string | number>,
-  ): string => {
-    const format = panel?.stats?.[slot] ?? props.t(i18nKey, values)
-    if (panel?.stats?.[slot] === undefined) return format
-    // The host whitelists {rank}/{n}/{points} in every stat slot, so a pack
-    // format may reference any of them; substitute all three live values
-    // (the slot's own value plus the siblings) instead of only the slot's.
-    const all: Record<string, string | number> = {
-      rank: snapshot?.affinity.rank ?? '?',
-      n: snapshot?.treats.stocked ?? 0,
-      points: snapshot?.affinity.points ?? 0,
-    }
-    let text = format
-    for (const [name, value] of Object.entries(all)) text = text.replaceAll('{' + name + '}', String(value))
-    return text
-  }
-  const panelShows = (action: 'feed' | 'rename' | 'hide'): boolean =>
-    panel?.actions === undefined || panel.actions.includes(action)
-
   // Load the atlas once; the definition carries the authoritative per-row
   // frame counts and per-track durations, so nothing else is fetched. A
   // custom visual (pet-center M3) replaces the atlas entirely.
@@ -481,7 +442,7 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
   useEffect(() => () => clearHideTimer(), [])
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>): void => {
-    if (props.dragDisabled === true) return
+    if (e.button !== 0 || props.dragDisabled === true) return
     e.preventDefault()
     ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
     const current = dragPos ?? { right: display.right, bottom: display.bottom }
@@ -574,10 +535,17 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
     updatePanelPlacement()
     window.addEventListener('resize', updatePanelPlacement)
     return () => window.removeEventListener('resize', updatePanelPlacement)
-  }, [hovered, renaming, pos.right, pos.bottom, display.size, bubblePresent, sessionBubbles.length, stackOpen, feedback])
+  }, [hovered, pos.right, pos.bottom, display.size, bubblePresent, sessionBubbles.length, stackOpen, feedback])
 
+  const recordingStore=recordingClient(), recordingState=useSyncExternalStore(recordingStore.subscribe,recordingStore.getSnapshot)
+  useEffect(()=>{
+    const refresh=()=>void recordingStore.refreshConfig()
+    refresh();window.addEventListener('focus',refresh);window.addEventListener('workbench-recording-config-changed',refresh)
+    return()=>{window.removeEventListener('focus',refresh);window.removeEventListener('workbench-recording-config-changed',refresh)}
+  },[recordingStore])
   const float = (
     <div
+      onContextMenu={e=>{e.preventDefault();e.stopPropagation();clearHideTimer();setHovered(true);void recordingStore.refreshConfig()}}
       ref={floatRef}
       className={styles.float}
       style={{
@@ -602,11 +570,6 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
         // remaining sliver.
         const next = e.relatedTarget
         if (next instanceof Node && floatRef.current?.contains(next)) return
-        // Never auto-hide while the rename box is open: moving the pointer
-        // onto an IME candidate window (an OS-level window outside the
-        // webview) fires pointerleave, and unmounting the input mid-IME-
-        // composition crashes some input methods / the renderer (#303).
-        if (renaming) return
         clearHideTimer()
         hideTimerRef.current = window.setTimeout(() => setHovered(false), 300)
       }}
@@ -747,102 +710,8 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
             clearHideTimer()
           }}
         >
-          {renaming ? (
-            <div className={styles.renameRow}>
-              <input
-                className={styles.nameInput}
-                value={nameDraft}
-                maxLength={20}
-                placeholder={props.t('pet.namePlaceholder')}
-                autoFocus
-                onChange={(e) => setNameDraft(e.target.value)}
-                onCompositionStart={() => { composingRef.current = true }}
-                onCompositionEnd={() => { composingRef.current = false }}
-                onKeyDown={(e) => {
-                  // While an IME composition is active (e.g. selecting a
-                  // Chinese candidate), Enter/Escape keydowns belong to the
-                  // input method: ignore them so candidate selection can
-                  // neither submit the draft nor close the rename box. The
-                  // explicit ref and the 'Process' key cover IMEs that mark
-                  // composition keydowns with isComposing === false (#303).
-                  if (composingRef.current || e.nativeEvent.isComposing || e.key === 'Process') return
-                  if (e.key === 'Enter') {
-                    const trimmed = nameDraft.trim()
-                    if (trimmed !== '') {
-                      props.onRename(trimmed)
-                      setRenaming(false)
-                    }
-                  } else if (e.key === 'Escape') {
-                    setRenaming(false)
-                  }
-                }}
-              />
-              <button
-                type="button"
-                className={styles.action}
-                onClick={() => {
-                  const trimmed = nameDraft.trim()
-                  if (trimmed !== '') {
-                    props.onRename(trimmed)
-                    setRenaming(false)
-                  }
-                }}
-              >
-                {panelLabel('confirm', props.t('pet.confirm'))}
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className={styles.rankRow}>
-                <span className={styles.nameCell}>{displayName}</span>
-                <span className={styles.statRank}>
-                  {(() => {
-                    const rawRank = snapshot?.affinity.rank ?? '?'
-                    const rankKey = `pet.rank.name.${rawRank}`
-                    const localized = props.t(rankKey as any)
-                    const rankName = localized !== rankKey ? localized : rawRank
-                    return panelStat('rank', 'pet.rank', { rank: rankName })
-                  })()}
-                </span>
-              </div>
-              <div className={styles.rankRow}>
-                <span className={styles.statTreats}>{panelStat('treats', 'pet.treats', { n: snapshot?.treats.stocked ?? 0 })}</span>
-                <span className={styles.statPoints}>{panelStat('points', 'pet.points', { points: snapshot?.affinity.points ?? 0 })}</span>
-              </div>
-              <div className={styles.actions}>
-                {panelShows('feed') && (
-                  <button type="button" className={styles.action} onClick={props.onFeed}>
-                    {panelLabel('feed', props.t('pet.feed'))}
-                  </button>
-                )}
-                {panelShows('rename') && (
-                  <button
-                    type="button"
-                    className={styles.action}
-                    onClick={() => {
-                      // Cancel any pending hide so the rename box cannot
-                      // unmount right as the user starts typing (#303).
-                      clearHideTimer()
-                      setNameDraft(displayName)
-                      setRenaming(true)
-                    }}
-                  >
-                    {panelLabel('rename', props.t('pet.rename'))}
-                  </button>
-                )}
-                {panelShows('hide') && (
-                  <button type="button" className={styles.action} onClick={props.onHide}>
-                    {panelLabel('hide', props.t('pet.hide'))}
-                  </button>
-                )}
-                {props.onGameplayMenu !== undefined && (
-                  <button type="button" className={styles.action} onClick={props.onGameplayMenu}>
-                    {props.t('pet.gameplay.menu')}
-                  </button>
-                )}
-              </div>
-            </>
-          )}
+          <div className={styles.rankRow}><span className={styles.nameCell}>{displayName}</span></div>
+          {(!!recordingState.config?.roles.length || !!recordingState.activeId) && <div role="toolbar" aria-label="宠物录音工具"><RecordingControls tone="pet"/></div>}
         </div>
       )}
     </div>

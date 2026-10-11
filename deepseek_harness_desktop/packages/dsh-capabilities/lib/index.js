@@ -1,11 +1,11 @@
 import { createRequire } from "node:module";
-import { AsyncLocalStorage } from "node:async_hooks";
-import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { link, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, stat, unlink, writeFile } from "node:fs/promises";
+import fs, { createReadStream, existsSync, lstatSync, mkdirSync, openAsBlob, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path, { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { execFile, spawn } from "node:child_process";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { homedir, tmpdir } from "node:os";
-import fs, { createReadStream, existsSync, lstatSync, mkdirSync, openAsBlob, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { inflateRawSync, inflateSync } from "node:zlib";
 import { Worker } from "node:worker_threads";
 import z from "@deepseek-ai/schemastery";
@@ -15,221 +15,6 @@ import { isDeepStrictEqual } from "node:util";
 //#region \0rolldown/runtime.js
 var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
 var __require = /* #__PURE__ */ (() => createRequire(import.meta.url))();
-//#endregion
-//#region ../../shared/host/execution.ts
-const UUID$2 = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
-const context = new AsyncLocalStorage();
-const now$2 = () => (/* @__PURE__ */ new Date()).toISOString();
-const clean = (s) => s.replace(/Bearer\s+\S+/gi, "Bearer [隐藏]").replace(/((?:api[_-]?key|authorization|token)\s*[:=]\s*)[^\s,;]+/gi, "$1[隐藏]");
-function execution() {
-	return context.getStore();
-}
-function step(key, title, status = "done", detail, extra = {}) {
-	execution()?.step(key, title, status, detail, extra);
-}
-var ExecutionRun = class {
-	record;
-	store;
-	tail = Promise.resolve();
-	constructor(record, store) {
-		this.record = record;
-		this.store = store;
-	}
-	persist() {
-		this.tail = this.tail.then(() => this.store.save(this.record)).catch(() => {
-			this.record.warning = "部分执行记录保存失败，请保留当前结果后检查磁盘";
-			this.store.live.set(this.record.id, this.record);
-		});
-	}
-	step(key, title, status, detail, extra = {}) {
-		const existing = this.record.events.find((e) => e.key === key), at = now$2();
-		this.record.seq++;
-		if (existing) Object.assign(existing, extra, {
-			seq: this.record.seq,
-			title,
-			status,
-			updatedAt: at,
-			...detail !== void 0 ? { detail: clean(detail).slice(0, 16e3) } : {}
-		});
-		else this.record.events.push({
-			id: randomUUID(),
-			key,
-			title,
-			status,
-			startedAt: at,
-			updatedAt: at,
-			...extra,
-			...detail !== void 0 ? { detail: clean(detail).slice(0, 16e3) } : {},
-			seq: this.record.seq
-		});
-		this.persist();
-	}
-	jev(value) {
-		this.record.jev = value;
-		this.persist();
-	}
-	async finish(value) {
-		for (const event of this.record.events) if (event.status === "running") {
-			event.status = value.status === "done" ? "done" : value.status;
-			event.updatedAt = now$2();
-			event.seq = ++this.record.seq;
-		}
-		Object.assign(this.record, value, {
-			summary: value.summary ? clean(value.summary) : void 0,
-			finishedAt: now$2()
-		});
-		this.persist();
-		await this.tail;
-	}
-};
-var ExecutionStore = class {
-	root;
-	live = /* @__PURE__ */ new Map();
-	pending = /* @__PURE__ */ new Set();
-	writes = /* @__PURE__ */ new Set();
-	deleted = /* @__PURE__ */ new Set();
-	constructor(root) {
-		this.root = root;
-	}
-	id(id) {
-		if (!UUID$2.test(id)) throw new Error("执行记录标识无效");
-		return id;
-	}
-	file(taskId, id) {
-		return join(this.root, this.id(taskId), this.id(id) + ".json");
-	}
-	save(record) {
-		if (this.deleted.has(record.taskId)) return Promise.resolve();
-		const write = this.write(record);
-		this.writes.add(write);
-		write.finally(() => this.writes.delete(write)).catch(() => {});
-		return write;
-	}
-	async write(record) {
-		const file = this.file(record.taskId, record.id);
-		await mkdir(join(this.root, record.taskId), { recursive: true });
-		const tmp = file + "." + randomUUID() + ".tmp";
-		try {
-			await writeFile(tmp, JSON.stringify(record), { mode: 384 });
-			await rename(tmp, file);
-		} finally {
-			await rm(tmp, { force: true }).catch(() => {});
-		}
-	}
-	async init() {
-		await mkdir(this.root, { recursive: true });
-		for (const dir of await readdir(this.root)) {
-			if (!UUID$2.test(dir)) continue;
-			for (const file of await readdir(join(this.root, dir))) {
-				if (!UUID$2.test(file.slice(0, -5)) || !file.endsWith(".json")) continue;
-				const record = JSON.parse(await readFile(join(this.root, dir, file), "utf8"));
-				if (record.status === "running") {
-					record.status = "interrupted";
-					record.finishedAt = now$2();
-					record.summary = "工作台重启中断了本轮；已保存的结果保留，不自动重放";
-					for (const e of record.events) if (e.status === "running") {
-						e.status = "interrupted";
-						e.updatedAt = record.finishedAt;
-						e.seq = ++record.seq;
-					}
-					await this.save(record);
-				}
-			}
-		}
-	}
-	async list(taskId, offset = 0, limit = 10) {
-		this.id(taskId);
-		if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 1 || limit > 50) throw new Error("执行记录分页无效");
-		let names;
-		try {
-			names = await readdir(join(this.root, taskId));
-		} catch (e) {
-			if (e.code === "ENOENT") names = [];
-			else throw e;
-		}
-		const records = [];
-		for (const name of names) {
-			if (!name.endsWith(".json") || !UUID$2.test(name.slice(0, -5))) continue;
-			records.push(JSON.parse(await readFile(join(this.root, taskId, name), "utf8")));
-		}
-		for (const value of this.live.values()) if (value.taskId === taskId) {
-			const i = records.findIndex((r) => r.id === value.id);
-			if (i < 0) records.push(structuredClone(value));
-			else records[i] = structuredClone(value);
-		}
-		records.sort((a, b) => b.startedAt.localeCompare(a.startedAt) || b.id.localeCompare(a.id));
-		return {
-			items: records.slice(offset, offset + limit),
-			total: records.length,
-			...offset + limit < records.length ? { nextOffset: offset + limit } : {}
-		};
-	}
-	async get(taskId, id, afterSeq = 0) {
-		if (!Number.isSafeInteger(afterSeq) || afterSeq < 0) throw new Error("执行序号无效");
-		const record = this.live.get(id)?.taskId === taskId ? structuredClone(this.live.get(id)) : JSON.parse(await readFile(this.file(taskId, id), "utf8"));
-		return {
-			...record,
-			events: record.events.filter((e) => e.seq > afterSeq)
-		};
-	}
-	async remove(taskId) {
-		this.id(taskId);
-		this.deleted.add(taskId);
-		await Promise.allSettled([...this.writes]);
-		await rm(join(this.root, taskId), {
-			recursive: true,
-			force: true
-		});
-		for (const [id, r] of this.live) if (r.taskId === taskId) this.live.delete(id);
-	}
-	async drain() {
-		await Promise.allSettled([...this.pending]);
-	}
-	run(taskId, meta, work, finish) {
-		const pending = this.execute(taskId, meta, work, finish);
-		this.pending.add(pending);
-		pending.finally(() => this.pending.delete(pending)).catch(() => {});
-		return pending;
-	}
-	async execute(taskId, meta, work, finish) {
-		const record = {
-			schema: 1,
-			id: meta.id ?? randomUUID(),
-			taskId: this.id(taskId),
-			operation: meta.operation,
-			input: clean(meta.input),
-			inputKind: meta.inputKind ?? "operation",
-			startedAt: now$2(),
-			status: "running",
-			events: [],
-			seq: 0,
-			model: meta.model,
-			roleVersion: meta.roleVersion,
-			mode: meta.mode
-		};
-		this.id(record.id);
-		try {
-			await this.save(record);
-		} catch {
-			record.warning = "执行过程保存失败，请保留当前结果后检查磁盘";
-			this.live.set(record.id, record);
-		}
-		const run = new ExecutionRun(record, this);
-		return context.run(run, async () => {
-			try {
-				const value = await work();
-				await run.finish(finish(value));
-				return value;
-			} catch (e) {
-				await run.finish({
-					status: "failed",
-					summary: e instanceof Error ? e.message : String(e)
-				});
-				throw e;
-			}
-		});
-	}
-};
 //#endregion
 //#region src/core/requirements-model.ts
 /** Persisted requirements contracts. Pure data and rendering, shared by host and UI. */
@@ -521,6 +306,20 @@ function defaultRoles(now) {
 /** JSON-only contract shared by the host and UI; never imports a host service. */
 const browserPackage = "@wxg-prc-cpg/browser-skill-dsh-plugin";
 const components = [
+	{
+		id: "audio-recorder",
+		name: "录音与保存",
+		provider: "@linxin666/dsh-capabilities",
+		version: "1.0.0",
+		actions: ["record-audio"],
+		dependencies: [],
+		icon: "audio",
+		sourceLabel: "内置录音服务",
+		management: "recording",
+		capabilityIds: ["audio-recording"],
+		required: true,
+		compositionVersion: 2
+	},
 	...developerParts.map((part, i) => ({
 		id: part.componentId,
 		name: [
@@ -722,6 +521,29 @@ function references(state, componentId, tasks = []) {
 		capabilities: state.capabilities.filter((c) => c.draft.components.some((p) => p.componentId === componentId) || c.versions.some((v) => v.components.some((p) => p.componentId === componentId))),
 		roles: state.roles.filter((r) => r.draft.capabilities.some((b) => resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)) || r.versions.some((v) => v.capabilities.some((b) => resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)))),
 		tasks: tasks.filter((t) => !["stopped"].includes(t.status) && state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.some((b) => b.enabled && resolveBinding(state, b)?.components.some((p) => p.componentId === componentId)))
+	};
+}
+function recordingCapability(now) {
+	const definition = {
+		name: "录音与保存",
+		description: "通过宠物或对话开始麦克风录音，支持暂停、继续、完成和取消，录音分批保存。",
+		instructions: "选择已绑定的录音归属岗位。输入开始录音、暂停录音、继续录音、完成录音或取消录音。暂停和切换页面保持同一录音会话。",
+		components: [{
+			componentId: "audio-recorder",
+			actions: ["record-audio"]
+		}]
+	};
+	return {
+		id: "audio-recording",
+		source: "builtin",
+		enabled: true,
+		pinned: false,
+		draft: definition,
+		versions: [{
+			...structuredClone(definition),
+			version: 1,
+			createdAt: now
+		}]
 	};
 }
 //#endregion
@@ -1178,6 +1000,572 @@ function callViolation(tool, args, allowed, owned) {
 		return "网页地址无效。";
 	}
 }
+//#endregion
+//#region src/host/http.ts
+function fence$1(req, binaryUpload = false) {
+	let host;
+	try {
+		host = new URL(`http://${req.headers.host}`);
+	} catch {
+		throw new InputError("无效 Host", 403);
+	}
+	if (![
+		"localhost",
+		"127.0.0.1",
+		"[::1]"
+	].includes(host.hostname)) throw new InputError("仅允许本机访问", 403);
+	const origin = req.headers.origin;
+	if (origin) {
+		let parsed;
+		try {
+			parsed = new URL(origin);
+		} catch {
+			throw new InputError("无效 Origin", 403);
+		}
+		if (parsed.origin !== host.origin) throw new InputError("不允许跨站访问", 403);
+	}
+	if (req.headers["sec-fetch-site"] === "cross-site") throw new InputError("不允许跨站访问", 403);
+	if (binaryUpload) {
+		if (req.method !== "PUT" || !/^application\/octet-stream(?:\s*;|$)/i.test(req.headers["content-type"] ?? "")) throw new InputError("需要录音文件", 415);
+	} else if (req.method === "POST" && !/^application\/json(?:\s*;|$)/i.test(req.headers["content-type"] ?? "")) throw new InputError("需要 JSON 请求", 415);
+}
+async function readBody$1(req) {
+	const chunks = [];
+	let bytes = 0;
+	for await (const chunk of req) {
+		const value = Buffer.from(chunk);
+		bytes += value.length;
+		if (bytes > 512 * 1024) throw new InputError("请求过大", 413);
+		chunks.push(value);
+	}
+	try {
+		return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+	} catch {
+		throw new InputError("JSON 格式无效");
+	}
+}
+function json$1(res, status, body) {
+	res.writeHead(status, {
+		"content-type": "application/json; charset=utf-8",
+		"cache-control": "no-store"
+	});
+	res.end(JSON.stringify(body));
+}
+//#endregion
+//#region src/host/recording.ts
+const live = (r) => r.status === "recording" || r.status === "paused";
+var RecordingService = class {
+	root;
+	state;
+	toolsRoot;
+	rows = /* @__PURE__ */ new Map();
+	tail = Promise.resolve();
+	roleId = "";
+	beats = /* @__PURE__ */ new Map();
+	constructor(root, state, toolsRoot) {
+		this.root = root;
+		this.state = state;
+		this.toolsRoot = toolsRoot;
+	}
+	serial(run) {
+		const next = this.tail.then(run);
+		this.tail = next.catch(() => {});
+		return next;
+	}
+	directory(id) {
+		if (!/^[a-f0-9-]{36}$/.test(id)) throw new InputError("录音标识无效");
+		return join(this.root, id);
+	}
+	async save(row) {
+		const directory = this.directory(row.id);
+		await mkdir(directory, { recursive: true });
+		const f = await open(join(directory, "record.json.tmp"), "w");
+		try {
+			await f.writeFile(JSON.stringify(row));
+			await f.sync();
+		} finally {
+			await f.close();
+		}
+		await rename(join(directory, "record.json.tmp"), join(directory, "record.json"));
+		this.rows.set(row.id, row);
+	}
+	async init() {
+		await mkdir(this.root, { recursive: true });
+		try {
+			this.roleId = JSON.parse(await readFile(join(this.root, "settings.json"), "utf8")).roleId || "";
+		} catch (e) {
+			if (e.code !== "ENOENT") throw e;
+		}
+		for (const entry of await readdir(this.root, { withFileTypes: true })) {
+			if (!entry.isDirectory() || !/^[a-f0-9-]{36}$/.test(entry.name)) continue;
+			const row = JSON.parse(await readFile(join(this.directory(entry.name), "record.json"), "utf8"));
+			this.rows.set(row.id, row);
+			if (live(row)) {
+				while (await stat(join(this.directory(row.id), `chunk-${row.nextChunk}`)).then(() => true, () => false)) row.nextChunk++;
+				row.status = "interrupted";
+				row.warning = "录音意外中断，已保留成功保存的部分。";
+				await this.finalize(row);
+			}
+		}
+	}
+	config() {
+		const state = this.state();
+		const roles = state.roles.filter((r) => r.enabled && !r.removedAt && !r.archivedAt && latest(r.versions) && allowedActions(state, r.id, latest(r.versions)).includes("record-audio")).map((r) => ({
+			id: r.id,
+			name: latest(r.versions).name
+		}));
+		const roleId = this.roleId || (roles.length === 1 ? roles[0].id : "");
+		return {
+			roleId,
+			roles,
+			ready: roles.some((r) => r.id === roleId)
+		};
+	}
+	activities() {
+		return [...this.rows.values()].filter(live).map((r) => ({
+			id: r.id,
+			roleId: r.roleId,
+			roleVersion: r.roleVersion,
+			name: r.title,
+			status: r.status,
+			kind: "recording",
+			componentIds: ["audio-recorder"]
+		}));
+	}
+	list() {
+		return [...this.rows.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+	}
+	get(id) {
+		this.directory(id);
+		const row = this.rows.get(id);
+		if (!row) throw new InputError("录音不存在", 404);
+		return row;
+	}
+	async configure(roleId) {
+		return this.serial(async () => {
+			if (!this.config().roles.some((r) => r.id === roleId)) throw new InputError("请选择已绑定录音能力的启用岗位");
+			await writeFile(join(this.root, "settings.json.tmp"), JSON.stringify({ roleId }));
+			await rename(join(this.root, "settings.json.tmp"), join(this.root, "settings.json"));
+			this.roleId = roleId;
+			return this.config();
+		});
+	}
+	async start(id, mime) {
+		return this.serial(async () => {
+			this.directory(id);
+			const previous = this.rows.get(id);
+			if (previous) return previous;
+			for (const r of this.rows.values()) if (live(r) && Date.now() - (this.beats.get(r.id) ?? 0) > 3e4) {
+				r.status = "interrupted";
+				r.warning = "录音连接中断，已保留成功保存的部分。";
+				await this.finalize(r);
+			}
+			if ([...this.rows.values()].some(live)) throw new InputError("已有录音进行中，请先完成或取消", 409);
+			const config = this.config();
+			if (!config.ready) throw new InputError("请在录音能力设置中选择录音归属岗位");
+			if (![
+				"audio/webm;codecs=opus",
+				"audio/webm",
+				"audio/mp4"
+			].includes(mime)) throw new InputError("当前录音格式不受支持");
+			if (!this.roleId) {
+				await writeFile(join(this.root, "settings.json.tmp"), JSON.stringify({ roleId: config.roleId }));
+				await rename(join(this.root, "settings.json.tmp"), join(this.root, "settings.json"));
+				this.roleId = config.roleId;
+			}
+			const role = this.state().roles.find((r) => r.id === config.roleId), version = latest(role.versions), now = (/* @__PURE__ */ new Date()).toISOString();
+			const row = {
+				id,
+				roleId: role.id,
+				roleVersion: version.version,
+				roleName: version.name,
+				title: "录音 · " + (/* @__PURE__ */ new Date()).toLocaleString("zh-CN", { hour12: false }),
+				createdAt: now,
+				updatedAt: now,
+				status: "recording",
+				durationMs: 0,
+				nextChunk: 0,
+				mime,
+				notes: []
+			};
+			await this.save(row);
+			this.beats.set(id, Date.now());
+			return row;
+		});
+	}
+	async chunk(id, seq, req) {
+		return this.serial(async () => {
+			const row = this.get(id);
+			if (!live(row)) throw new InputError("录音已结束", 409);
+			if (!Number.isSafeInteger(seq) || seq < 0 || seq > row.nextChunk) throw new InputError("录音片段顺序不正确", 409);
+			const buffers = [];
+			let size = 0;
+			for await (const piece of req) {
+				size += piece.length;
+				if (size > 32 * 1024 * 1024) throw new InputError("录音片段过大", 413);
+				buffers.push(Buffer.from(piece));
+			}
+			if (seq < row.nextChunk) return row;
+			const path = join(this.directory(id), `chunk-${seq}`), handle = await open(path + ".tmp", "w");
+			try {
+				await handle.writeFile(Buffer.concat(buffers));
+				await handle.sync();
+			} finally {
+				await handle.close();
+			}
+			await rename(path + ".tmp", path);
+			row.nextChunk++;
+			this.beats.set(id, Date.now());
+			await this.save(row);
+			return row;
+		});
+	}
+	async command(id, body) {
+		return this.serial(async () => {
+			const row = this.get(id), action = body.action;
+			if (action === "rename") {
+				if (typeof body.title !== "string" || !body.title.trim()) throw new InputError("请输入名称");
+				row.title = body.title.trim().slice(0, 120);
+			} else if (action === "note") {
+				if (typeof body.text !== "string" || !body.text.trim()) throw new InputError("请输入内容");
+				row.notes.push({
+					text: body.text.trim().slice(0, 2e4),
+					at: (/* @__PURE__ */ new Date()).toISOString()
+				});
+			} else if (action === "delete") {
+				if (live(row)) throw new InputError("请先完成或取消录音");
+				await rm(this.directory(id), {
+					recursive: true,
+					force: true
+				});
+				this.rows.delete(id);
+				return { deleted: id };
+			} else if (action === "cancel") {
+				row.status = "cancelled";
+				await rm(this.directory(id), {
+					recursive: true,
+					force: true
+				});
+				this.rows.delete(id);
+				if (!row.notes.length) return { deleted: id };
+				row.nextChunk = 0;
+				row.audio = void 0;
+				row.warning = void 0;
+			} else if (action === "recover") {
+				if (live(row) && Date.now() - (this.beats.get(id) ?? 0) < 3e4) throw new InputError("录音仍在其他窗口进行中");
+				row.status = "interrupted";
+				await this.finalize(row);
+				return row;
+			} else {
+				if (!live(row)) {
+					if (action === "finish") return row;
+					throw new InputError("录音已结束", 409);
+				}
+				if (typeof body.durationMs === "number" && Number.isFinite(body.durationMs)) row.durationMs = Math.max(row.durationMs, body.durationMs);
+				this.beats.set(id, Date.now());
+				if (action === "pause") row.status = "paused";
+				else if (action === "resume") row.status = "recording";
+				else if (action === "finish" || action === "interrupt") {
+					row.status = action === "finish" ? "finished" : "interrupted";
+					await this.finalize(row);
+					return row;
+				} else if (action !== "heartbeat") throw new InputError("未知录音操作");
+			}
+			row.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+			await this.save(row);
+			return row;
+		});
+	}
+	async finalize(row) {
+		const dir = this.directory(row.id), raw = row.mime.startsWith("audio/mp4") ? "capture.mp4" : "capture.webm";
+		if (row.nextChunk) {
+			const out = await open(join(dir, raw), "w");
+			try {
+				for (let i = 0; i < row.nextChunk; i++) await out.writeFile(await readFile(join(dir, `chunk-${i}`)));
+				await out.sync();
+			} finally {
+				await out.close();
+			}
+			row.audio = raw;
+			try {
+				const root = join(this.toolsRoot, "ffmpeg"), ffmpeg = resolve(root, JSON.parse((await readFile(join(root, "current.json"), "utf8")).replace(/^\uFEFF/, "")).ffmpeg), rel = relative(root, ffmpeg);
+				if (!rel || rel.startsWith("..") || isAbsolute(rel)) throw Error("工具路径无效");
+				await new Promise((ok, no) => execFile(ffmpeg, [
+					"-y",
+					"-nostdin",
+					"-v",
+					"error",
+					"-i",
+					join(dir, raw),
+					"-vn",
+					"-c:a",
+					"aac",
+					"-movflags",
+					"+faststart",
+					join(dir, "recording.m4a")
+				], {
+					windowsHide: true,
+					timeout: 12e4
+				}, (e) => e ? no(e) : ok()));
+				row.audio = "recording.m4a";
+			} catch {
+				row.warning = "原始录音已保存；音频整理未完成，回听定位可能受限。";
+			}
+		}
+		row.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+		await this.save(row);
+	}
+	async audio(id, req, res) {
+		const row = this.get(id);
+		if (!row.audio) throw new InputError("尚无已完成的录音文件", 404);
+		const file = join(this.directory(id), row.audio), { size } = await stat(file), range = req.headers.range?.match(/^bytes=(\d+)-(\d*)$/);
+		const start = range ? Number(range[1]) : 0, end = range && range[2] ? Math.min(Number(range[2]), size - 1) : size - 1;
+		if (start > end || start >= size) {
+			res.writeHead(416, { "content-range": `bytes */${size}` });
+			res.end();
+			return;
+		}
+		res.writeHead(range ? 206 : 200, {
+			"content-type": row.audio.endsWith(".webm") ? "audio/webm" : "audio/mp4",
+			"content-length": end - start + 1,
+			"accept-ranges": "bytes",
+			"cache-control": "no-store",
+			...range ? { "content-range": `bytes ${start}-${end}/${size}` } : {}
+		});
+		createReadStream(file, {
+			start,
+			end
+		}).pipe(res);
+	}
+};
+async function recordingRoutes(service, req, res) {
+	const url = new URL(req.url, "http://localhost"), path = url.pathname.replace("/api/capabilities/recording/", ""), id = url.searchParams.get("id") ?? "";
+	if (req.method === "GET" && path === "config") return json$1(res, 200, service.config());
+	if (req.method === "GET" && path === "list") return json$1(res, 200, service.list());
+	if (req.method === "GET" && path === "audio") return service.audio(id, req, res);
+	if (req.method === "PUT" && path === "chunk") return json$1(res, 200, await service.chunk(id, Number(url.searchParams.get("seq")), req));
+	if (req.method !== "POST") throw new InputError("接口不存在", 404);
+	const body = await readBody$1(req);
+	if (path === "config") return json$1(res, 200, await service.configure(body.roleId));
+	if (path === "start") return json$1(res, 201, await service.start(body.id, body.mime));
+	if (path === "command") return json$1(res, 200, await service.command(body.id, body));
+	throw new InputError("接口不存在", 404);
+}
+//#endregion
+//#region ../../shared/host/execution.ts
+const UUID$2 = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+const context = new AsyncLocalStorage();
+const now$2 = () => (/* @__PURE__ */ new Date()).toISOString();
+const clean = (s) => s.replace(/Bearer\s+\S+/gi, "Bearer [隐藏]").replace(/((?:api[_-]?key|authorization|token)\s*[:=]\s*)[^\s,;]+/gi, "$1[隐藏]");
+function execution() {
+	return context.getStore();
+}
+function step(key, title, status = "done", detail, extra = {}) {
+	execution()?.step(key, title, status, detail, extra);
+}
+var ExecutionRun = class {
+	record;
+	store;
+	tail = Promise.resolve();
+	constructor(record, store) {
+		this.record = record;
+		this.store = store;
+	}
+	persist() {
+		this.tail = this.tail.then(() => this.store.save(this.record)).catch(() => {
+			this.record.warning = "部分执行记录保存失败，请保留当前结果后检查磁盘";
+			this.store.live.set(this.record.id, this.record);
+		});
+	}
+	step(key, title, status, detail, extra = {}) {
+		const existing = this.record.events.find((e) => e.key === key), at = now$2();
+		this.record.seq++;
+		if (existing) Object.assign(existing, extra, {
+			seq: this.record.seq,
+			title,
+			status,
+			updatedAt: at,
+			...detail !== void 0 ? { detail: clean(detail).slice(0, 16e3) } : {}
+		});
+		else this.record.events.push({
+			id: randomUUID(),
+			key,
+			title,
+			status,
+			startedAt: at,
+			updatedAt: at,
+			...extra,
+			...detail !== void 0 ? { detail: clean(detail).slice(0, 16e3) } : {},
+			seq: this.record.seq
+		});
+		this.persist();
+	}
+	jev(value) {
+		this.record.jev = value;
+		this.persist();
+	}
+	async finish(value) {
+		for (const event of this.record.events) if (event.status === "running") {
+			event.status = value.status === "done" ? "done" : value.status;
+			event.updatedAt = now$2();
+			event.seq = ++this.record.seq;
+		}
+		Object.assign(this.record, value, {
+			summary: value.summary ? clean(value.summary) : void 0,
+			finishedAt: now$2()
+		});
+		this.persist();
+		await this.tail;
+	}
+};
+var ExecutionStore = class {
+	root;
+	live = /* @__PURE__ */ new Map();
+	pending = /* @__PURE__ */ new Set();
+	writes = /* @__PURE__ */ new Set();
+	deleted = /* @__PURE__ */ new Set();
+	constructor(root) {
+		this.root = root;
+	}
+	id(id) {
+		if (!UUID$2.test(id)) throw new Error("执行记录标识无效");
+		return id;
+	}
+	file(taskId, id) {
+		return join(this.root, this.id(taskId), this.id(id) + ".json");
+	}
+	save(record) {
+		if (this.deleted.has(record.taskId)) return Promise.resolve();
+		const write = this.write(record);
+		this.writes.add(write);
+		write.finally(() => this.writes.delete(write)).catch(() => {});
+		return write;
+	}
+	async write(record) {
+		const file = this.file(record.taskId, record.id);
+		await mkdir(join(this.root, record.taskId), { recursive: true });
+		const tmp = file + "." + randomUUID() + ".tmp";
+		try {
+			await writeFile(tmp, JSON.stringify(record), { mode: 384 });
+			await rename(tmp, file);
+		} finally {
+			await rm(tmp, { force: true }).catch(() => {});
+		}
+	}
+	async init() {
+		await mkdir(this.root, { recursive: true });
+		for (const dir of await readdir(this.root)) {
+			if (!UUID$2.test(dir)) continue;
+			for (const file of await readdir(join(this.root, dir))) {
+				if (!UUID$2.test(file.slice(0, -5)) || !file.endsWith(".json")) continue;
+				const record = JSON.parse(await readFile(join(this.root, dir, file), "utf8"));
+				if (record.status === "running") {
+					record.status = "interrupted";
+					record.finishedAt = now$2();
+					record.summary = "工作台重启中断了本轮；已保存的结果保留，不自动重放";
+					for (const e of record.events) if (e.status === "running") {
+						e.status = "interrupted";
+						e.updatedAt = record.finishedAt;
+						e.seq = ++record.seq;
+					}
+					await this.save(record);
+				}
+			}
+		}
+	}
+	async list(taskId, offset = 0, limit = 10) {
+		this.id(taskId);
+		if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 1 || limit > 50) throw new Error("执行记录分页无效");
+		let names;
+		try {
+			names = await readdir(join(this.root, taskId));
+		} catch (e) {
+			if (e.code === "ENOENT") names = [];
+			else throw e;
+		}
+		const records = [];
+		for (const name of names) {
+			if (!name.endsWith(".json") || !UUID$2.test(name.slice(0, -5))) continue;
+			records.push(JSON.parse(await readFile(join(this.root, taskId, name), "utf8")));
+		}
+		for (const value of this.live.values()) if (value.taskId === taskId) {
+			const i = records.findIndex((r) => r.id === value.id);
+			if (i < 0) records.push(structuredClone(value));
+			else records[i] = structuredClone(value);
+		}
+		records.sort((a, b) => b.startedAt.localeCompare(a.startedAt) || b.id.localeCompare(a.id));
+		return {
+			items: records.slice(offset, offset + limit),
+			total: records.length,
+			...offset + limit < records.length ? { nextOffset: offset + limit } : {}
+		};
+	}
+	async get(taskId, id, afterSeq = 0) {
+		if (!Number.isSafeInteger(afterSeq) || afterSeq < 0) throw new Error("执行序号无效");
+		const record = this.live.get(id)?.taskId === taskId ? structuredClone(this.live.get(id)) : JSON.parse(await readFile(this.file(taskId, id), "utf8"));
+		return {
+			...record,
+			events: record.events.filter((e) => e.seq > afterSeq)
+		};
+	}
+	async remove(taskId) {
+		this.id(taskId);
+		this.deleted.add(taskId);
+		await Promise.allSettled([...this.writes]);
+		await rm(join(this.root, taskId), {
+			recursive: true,
+			force: true
+		});
+		for (const [id, r] of this.live) if (r.taskId === taskId) this.live.delete(id);
+	}
+	async drain() {
+		await Promise.allSettled([...this.pending]);
+	}
+	run(taskId, meta, work, finish) {
+		const pending = this.execute(taskId, meta, work, finish);
+		this.pending.add(pending);
+		pending.finally(() => this.pending.delete(pending)).catch(() => {});
+		return pending;
+	}
+	async execute(taskId, meta, work, finish) {
+		const record = {
+			schema: 1,
+			id: meta.id ?? randomUUID(),
+			taskId: this.id(taskId),
+			operation: meta.operation,
+			input: clean(meta.input),
+			inputKind: meta.inputKind ?? "operation",
+			startedAt: now$2(),
+			status: "running",
+			events: [],
+			seq: 0,
+			model: meta.model,
+			roleVersion: meta.roleVersion,
+			mode: meta.mode
+		};
+		this.id(record.id);
+		try {
+			await this.save(record);
+		} catch {
+			record.warning = "执行过程保存失败，请保留当前结果后检查磁盘";
+			this.live.set(record.id, record);
+		}
+		const run = new ExecutionRun(record, this);
+		return context.run(run, async () => {
+			try {
+				const value = await work();
+				await run.finish(finish(value));
+				return value;
+			} catch (e) {
+				await run.finish({
+					status: "failed",
+					summary: e instanceof Error ? e.message : String(e)
+				});
+				throw e;
+			}
+		});
+	}
+};
 //#endregion
 //#region src/host/meeting-segments.ts
 function execute(file, args, signal) {
@@ -2327,7 +2715,7 @@ var ModelAccess = class {
 	}
 };
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/nodes/identity.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js
 var require_identity = /* @__PURE__ */ __commonJSMin(((exports) => {
 	const ALIAS = Symbol.for("yaml.alias");
 	const DOC = Symbol.for("yaml.document");
@@ -2377,7 +2765,7 @@ var require_identity = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.isSeq = isSeq;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/visit.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js
 var require_visit = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	const BREAK = Symbol("break visit");
@@ -2567,7 +2955,7 @@ var require_visit = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.visitAsync = visitAsync;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/doc/directives.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js
 var require_directives = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var visit = require_visit();
@@ -2732,7 +3120,7 @@ var require_directives = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Directives = Directives;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/doc/anchors.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js
 var require_anchors = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var visit = require_visit();
@@ -2799,7 +3187,7 @@ var require_anchors = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.findNewAnchor = findNewAnchor;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/doc/applyReviver.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js
 var require_applyReviver = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/**
 	* Applies the JSON.parse reviver algorithm as defined in the ECMA-262 spec,
@@ -2839,7 +3227,7 @@ var require_applyReviver = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.applyReviver = applyReviver;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/nodes/toJS.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js
 var require_toJS = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	/**
@@ -2876,7 +3264,7 @@ var require_toJS = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.toJS = toJS;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/nodes/Node.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js
 var require_Node = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var applyReviver = require_applyReviver();
 	var identity = require_identity();
@@ -2910,7 +3298,7 @@ var require_Node = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.NodeBase = NodeBase;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/nodes/Alias.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
 var require_Alias = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var anchors = require_anchors();
 	var visit = require_visit();
@@ -2945,31 +3333,29 @@ var require_Alias = /* @__PURE__ */ __commonJSMin(((exports) => {
 				if (node === this) break;
 				if (node.anchor === this.source) found = node;
 			}
-			if (found && ctx) {
-				const { anchors, doc, maxAliasCount } = ctx;
-				let data = anchors.get(found);
-				if (!data) {
-					toJS.toJS(found, null, ctx);
-					data = anchors.get(found);
-				}
-				/* istanbul ignore if */
-				if (data?.res === void 0) throw new ReferenceError("This should not happen: Alias anchor was not resolved?");
-				if (maxAliasCount >= 0) {
-					data.count += 1;
-					if (data.aliasCount === 0) data.aliasCount = getAliasCount(doc, found, anchors);
-					if (data.count * data.aliasCount > maxAliasCount) throw new ReferenceError("Excessive alias count indicates a resource exhaustion attack");
-				}
-			}
 			return found;
 		}
 		toJSON(_arg, ctx) {
 			if (!ctx) return { source: this.source };
-			const source = this.resolve(ctx.doc, ctx);
+			const { anchors, doc, maxAliasCount } = ctx;
+			const source = this.resolve(doc, ctx);
 			if (!source) {
 				const msg = `Unresolved alias (the anchor must be set before the alias): ${this.source}`;
 				throw new ReferenceError(msg);
 			}
-			return ctx.anchors.get(source).res;
+			let data = anchors.get(source);
+			if (!data) {
+				toJS.toJS(source, null, ctx);
+				data = anchors.get(source);
+			}
+			/* istanbul ignore if */
+			if (data?.res === void 0) throw new ReferenceError("This should not happen: Alias anchor was not resolved?");
+			if (maxAliasCount >= 0) {
+				data.count += 1;
+				if (data.aliasCount === 0) data.aliasCount = getAliasCount(doc, source, anchors);
+				if (data.count * data.aliasCount > maxAliasCount) throw new ReferenceError("Excessive alias count indicates a resource exhaustion attack");
+			}
+			return data.res;
 		}
 		toString(ctx, _onComment, _onChompKeep) {
 			const src = `*${this.source}`;
@@ -3006,7 +3392,7 @@ var require_Alias = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Alias = Alias;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/nodes/Scalar.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js
 var require_Scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Node = require_Node();
@@ -3033,7 +3419,7 @@ var require_Scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.isScalarValue = isScalarValue;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/doc/createNode.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js
 var require_createNode = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Alias = require_Alias();
 	var identity = require_identity();
@@ -3096,7 +3482,7 @@ var require_createNode = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.createNode = createNode;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/nodes/Collection.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js
 var require_Collection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var createNode = require_createNode();
 	var identity = require_identity();
@@ -3217,7 +3603,7 @@ var require_Collection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.isEmptyPath = isEmptyPath;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/stringify/stringifyComment.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js
 var require_stringifyComment = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/**
 	* Stringifies a comment.
@@ -3237,7 +3623,7 @@ var require_stringifyComment = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyComment = stringifyComment;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/stringify/foldFlowLines.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js
 var require_foldFlowLines = /* @__PURE__ */ __commonJSMin(((exports) => {
 	const FOLD_FLOW = "flow";
 	const FOLD_BLOCK = "block";
@@ -3353,7 +3739,7 @@ var require_foldFlowLines = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.foldFlowLines = foldFlowLines;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/stringify/stringifyString.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js
 var require_stringifyString = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var foldFlowLines = require_foldFlowLines();
@@ -3577,7 +3963,7 @@ var require_stringifyString = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyString = stringifyString;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/stringify/stringify.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js
 var require_stringify = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var anchors = require_anchors();
 	var identity = require_identity();
@@ -3685,7 +4071,7 @@ var require_stringify = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringify = stringify;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/stringify/stringifyPair.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js
 var require_stringifyPair = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Scalar = require_Scalar();
@@ -3782,7 +4168,7 @@ var require_stringifyPair = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyPair = stringifyPair;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/log.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js
 var require_log = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var node_process$2 = __require("process");
 	function debug(logLevel, ...messages) {
@@ -3796,7 +4182,7 @@ var require_log = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.warn = warn;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/yaml-1.1/merge.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js
 var require_merge = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Scalar = require_Scalar();
@@ -3839,7 +4225,7 @@ var require_merge = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.merge = merge;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/nodes/addPairToJSMap.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js
 var require_addPairToJSMap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var log = require_log();
 	var merge = require_merge();
@@ -3890,7 +4276,7 @@ var require_addPairToJSMap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.addPairToJSMap = addPairToJSMap;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/nodes/Pair.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js
 var require_Pair = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var createNode = require_createNode();
 	var stringifyPair = require_stringifyPair();
@@ -3923,7 +4309,7 @@ var require_Pair = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.createPair = createPair;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/stringify/stringifyCollection.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js
 var require_stringifyCollection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var stringify = require_stringify();
@@ -4041,7 +4427,7 @@ var require_stringifyCollection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyCollection = stringifyCollection;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/nodes/YAMLMap.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js
 var require_YAMLMap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var stringifyCollection = require_stringifyCollection();
 	var addPairToJSMap = require_addPairToJSMap();
@@ -4150,7 +4536,7 @@ var require_YAMLMap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.findPair = findPair;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/common/map.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js
 var require_map = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var YAMLMap = require_YAMLMap();
@@ -4167,7 +4553,7 @@ var require_map = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/nodes/YAMLSeq.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js
 var require_YAMLSeq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var createNode = require_createNode();
 	var stringifyCollection = require_stringifyCollection();
@@ -4273,7 +4659,7 @@ var require_YAMLSeq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.YAMLSeq = YAMLSeq;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/common/seq.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js
 var require_seq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var YAMLSeq = require_YAMLSeq();
@@ -4290,7 +4676,7 @@ var require_seq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/common/string.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js
 var require_string = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var stringifyString = require_stringifyString();
 	exports.string = {
@@ -4305,7 +4691,7 @@ var require_string = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/common/null.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js
 var require_null = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	const nullTag = {
@@ -4320,7 +4706,7 @@ var require_null = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.nullTag = nullTag;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/core/bool.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js
 var require_bool$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	const boolTag = {
@@ -4339,7 +4725,7 @@ var require_bool$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.boolTag = boolTag;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/stringify/stringifyNumber.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js
 var require_stringifyNumber = /* @__PURE__ */ __commonJSMin(((exports) => {
 	function stringifyNumber({ format, minFractionDigits, tag, value }) {
 		if (typeof value === "bigint") return String(value);
@@ -4360,7 +4746,7 @@ var require_stringifyNumber = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyNumber = stringifyNumber;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/core/float.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js
 var require_float$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var stringifyNumber = require_stringifyNumber();
@@ -4401,7 +4787,7 @@ var require_float$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.floatNaN = floatNaN;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/core/int.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js
 var require_int$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var stringifyNumber = require_stringifyNumber();
 	const intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
@@ -4442,7 +4828,7 @@ var require_int$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.intOct = intOct;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/core/schema.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js
 var require_schema$2 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var map = require_map();
 	var _null = require_null();
@@ -4466,7 +4852,7 @@ var require_schema$2 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	];
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/json/schema.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js
 var require_schema$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var map = require_map();
@@ -4528,7 +4914,7 @@ var require_schema$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	});
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/yaml-1.1/binary.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js
 var require_binary = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var node_buffer = __require("buffer");
 	var Scalar = require_Scalar();
@@ -4584,7 +4970,7 @@ var require_binary = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
 var require_pairs = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Pair = require_Pair();
@@ -4644,7 +5030,7 @@ var require_pairs = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolvePairs = resolvePairs;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/yaml-1.1/omap.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js
 var require_omap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var toJS = require_toJS();
@@ -4707,7 +5093,7 @@ var require_omap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.omap = omap;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/yaml-1.1/bool.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js
 var require_bool = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	function boolStringify({ value, source }, ctx) {
@@ -4734,7 +5120,7 @@ var require_bool = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.trueTag = trueTag;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/yaml-1.1/float.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js
 var require_float = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var stringifyNumber = require_stringifyNumber();
@@ -4778,7 +5164,7 @@ var require_float = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.floatNaN = floatNaN;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/yaml-1.1/int.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js
 var require_int = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var stringifyNumber = require_stringifyNumber();
 	const intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
@@ -4853,7 +5239,7 @@ var require_int = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.intOct = intOct;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/yaml-1.1/set.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js
 var require_set = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Pair = require_Pair();
@@ -4921,7 +5307,7 @@ var require_set = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.set = set;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
 var require_timestamp = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var stringifyNumber = require_stringifyNumber();
 	/** Internal types handle bigint as number, because TS can't figure it out. */
@@ -5004,7 +5390,7 @@ var require_timestamp = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.timestamp = timestamp;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/yaml-1.1/schema.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js
 var require_schema = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var map = require_map();
 	var _null = require_null();
@@ -5044,7 +5430,7 @@ var require_schema = /* @__PURE__ */ __commonJSMin(((exports) => {
 	];
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/tags.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js
 var require_tags = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var map = require_map();
 	var _null = require_null();
@@ -5128,7 +5514,7 @@ var require_tags = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.getTags = getTags;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/schema/Schema.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js
 var require_Schema = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var map = require_map();
@@ -5156,7 +5542,7 @@ var require_Schema = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/stringify/stringifyDocument.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js
 var require_stringifyDocument = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var stringify = require_stringify();
@@ -5217,7 +5603,7 @@ var require_stringifyDocument = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyDocument = stringifyDocument;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/doc/Document.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js
 var require_Document = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Alias = require_Alias();
 	var Collection = require_Collection();
@@ -5498,7 +5884,7 @@ var require_Document = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Document = Document;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/errors.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js
 var require_errors = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var YAMLError = class extends Error {
 		constructor(name, pos, code, message) {
@@ -5551,7 +5937,7 @@ var require_errors = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.prettifyError = prettifyError;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/resolve-props.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js
 var require_resolve_props = /* @__PURE__ */ __commonJSMin(((exports) => {
 	function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
 		let spaceBefore = false;
@@ -5658,7 +6044,7 @@ var require_resolve_props = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveProps = resolveProps;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/util-contains-newline.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js
 var require_util_contains_newline = /* @__PURE__ */ __commonJSMin(((exports) => {
 	function containsNewline(key) {
 		if (!key) return null;
@@ -5687,7 +6073,7 @@ var require_util_contains_newline = /* @__PURE__ */ __commonJSMin(((exports) => 
 	exports.containsNewline = containsNewline;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/util-flow-indent-check.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js
 var require_util_flow_indent_check = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var utilContainsNewline = require_util_contains_newline();
 	function flowIndentCheck(indent, fc, onError) {
@@ -5699,7 +6085,7 @@ var require_util_flow_indent_check = /* @__PURE__ */ __commonJSMin(((exports) =>
 	exports.flowIndentCheck = flowIndentCheck;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/util-map-includes.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js
 var require_util_map_includes = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	function mapIncludes(ctx, items, search) {
@@ -5711,7 +6097,7 @@ var require_util_map_includes = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.mapIncludes = mapIncludes;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/resolve-block-map.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js
 var require_resolve_block_map = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Pair = require_Pair();
 	var YAMLMap = require_YAMLMap();
@@ -5795,7 +6181,7 @@ var require_resolve_block_map = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveBlockMap = resolveBlockMap;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/resolve-block-seq.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js
 var require_resolve_block_seq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var YAMLSeq = require_YAMLSeq();
 	var resolveProps = require_resolve_props();
@@ -5837,7 +6223,7 @@ var require_resolve_block_seq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveBlockSeq = resolveBlockSeq;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/resolve-end.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js
 var require_resolve_end = /* @__PURE__ */ __commonJSMin(((exports) => {
 	function resolveEnd(end, offset, reqSpace, onError) {
 		let comment = "";
@@ -5875,7 +6261,7 @@ var require_resolve_end = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveEnd = resolveEnd;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/resolve-flow-collection.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js
 var require_resolve_flow_collection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Pair = require_Pair();
@@ -6030,7 +6416,7 @@ var require_resolve_flow_collection = /* @__PURE__ */ __commonJSMin(((exports) =
 	exports.resolveFlowCollection = resolveFlowCollection;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/compose-collection.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js
 var require_compose_collection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Scalar = require_Scalar();
@@ -6082,7 +6468,7 @@ var require_compose_collection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.composeCollection = composeCollection;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/resolve-block-scalar.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js
 var require_resolve_block_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	function resolveBlockScalar(ctx, scalar, onError) {
@@ -6258,7 +6644,7 @@ var require_resolve_block_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveBlockScalar = resolveBlockScalar;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/resolve-flow-scalar.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
 var require_resolve_flow_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var resolveEnd = require_resolve_end();
@@ -6330,40 +6716,39 @@ var require_resolve_flow_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 				break;
 		}
 		if (badChar) onError(0, "BAD_SCALAR_START", `Plain value cannot start with ${badChar}`);
-		return unfoldLines(source);
+		return foldLines(source);
 	}
 	function singleQuotedValue(source, onError) {
 		if (source[source.length - 1] !== "'" || source.length === 1) onError(source.length, "MISSING_CHAR", "Missing closing 'quote");
-		return unfoldLines(source.slice(1, -1)).replace(/''/g, "'");
+		return foldLines(source.slice(1, -1)).replace(/''/g, "'");
 	}
-	function unfoldLines(source) {
-		const line = /(.*?)\r?\n/sy;
-		let match = line.exec(source);
-		if (!match) return source;
+	function foldLines(source) {
 		/**
-		* The negative lookbehinds in these RegExps are to
+		* The negative lookbehind here and in the `re` RegExp is to
 		* prevent causing a polynomial search time in certain cases.
 		*
-		* The try-catch is for Safari < 16.4 and other old browsers:
+		* The try-catch is for Safari, which doesn't support this yet:
 		* https://caniuse.com/js-regexp-lookbehind
 		*/
-		let trimEnd, trimBoth;
+		let first, line;
 		try {
-			trimEnd = /* @__PURE__ */ new RegExp("(?<![ 	])[ 	]+$");
-			trimBoth = /* @__PURE__ */ new RegExp("^[ 	]+|(?<![ 	])[ 	]+$", "g");
+			first = /* @__PURE__ */ new RegExp("(.*?)(?<![ 	])[ 	]*\r?\n", "sy");
+			line = /* @__PURE__ */ new RegExp("[ 	]*(.*?)(?:(?<![ 	])[ 	]*)?\r?\n", "sy");
 		} catch {
-			trimEnd = /[ \t]+$/;
-			trimBoth = /^[ \t]+|[ \t]+$/g;
+			first = /(.*?)[ \t]*\r?\n/sy;
+			line = /[ \t]*(.*?)[ \t]*\r?\n/sy;
 		}
-		let res = match[1].replace(trimEnd, "");
+		let match = first.exec(source);
+		if (!match) return source;
+		let res = match[1];
 		let sep = " ";
-		let pos = line.lastIndex;
+		let pos = first.lastIndex;
+		line.lastIndex = pos;
 		while (match = line.exec(source)) {
-			const lm = match[1].replace(trimBoth, "");
-			if (lm === "") if (sep === "\n") res += sep;
+			if (match[1] === "") if (sep === "\n") res += sep;
 			else sep = "\n";
 			else {
-				res += sep + lm;
+				res += sep + match[1];
 				sep = " ";
 			}
 			pos = line.lastIndex;
@@ -6464,7 +6849,7 @@ var require_resolve_flow_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveFlowScalar = resolveFlowScalar;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/compose-scalar.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js
 var require_compose_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Scalar = require_Scalar();
@@ -6523,7 +6908,7 @@ var require_compose_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.composeScalar = composeScalar;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/util-empty-scalar-position.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js
 var require_util_empty_scalar_position = /* @__PURE__ */ __commonJSMin(((exports) => {
 	function emptyScalarPosition(offset, before, pos) {
 		if (before) {
@@ -6550,7 +6935,7 @@ var require_util_empty_scalar_position = /* @__PURE__ */ __commonJSMin(((exports
 	exports.emptyScalarPosition = emptyScalarPosition;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/compose-node.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js
 var require_compose_node = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Alias = require_Alias();
 	var identity = require_identity();
@@ -6639,7 +7024,7 @@ var require_compose_node = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.composeNode = composeNode;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/compose-doc.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js
 var require_compose_doc = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Document = require_Document();
 	var composeNode = require_compose_node();
@@ -6681,7 +7066,7 @@ var require_compose_doc = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.composeDoc = composeDoc;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/compose/composer.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js
 var require_composer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var node_process$1 = __require("process");
 	var directives = require_directives();
@@ -6879,7 +7264,7 @@ var require_composer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Composer = Composer;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/parse/cst-scalar.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js
 var require_cst_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var resolveBlockScalar = require_resolve_block_scalar();
 	var resolveFlowScalar = require_resolve_flow_scalar();
@@ -7146,7 +7531,7 @@ var require_cst_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.setScalarValue = setScalarValue;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/parse/cst-stringify.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js
 var require_cst_stringify = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/**
 	* Stringify a CST document, token, or collection item
@@ -7197,7 +7582,7 @@ var require_cst_stringify = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringify = stringify;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/parse/cst-visit.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js
 var require_cst_visit = /* @__PURE__ */ __commonJSMin(((exports) => {
 	const BREAK = Symbol("break visit");
 	const SKIP = Symbol("skip children");
@@ -7288,7 +7673,7 @@ var require_cst_visit = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.visit = visit;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/parse/cst.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js
 var require_cst = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var cstScalar = require_cst_scalar();
 	var cstStringify = require_cst_stringify();
@@ -7367,7 +7752,7 @@ var require_cst = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.tokenType = tokenType;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/parse/lexer.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js
 var require_lexer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var cst = require_cst();
 	function isEmpty(ch) {
@@ -7898,7 +8283,7 @@ var require_lexer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Lexer = Lexer;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/parse/line-counter.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js
 var require_line_counter = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/**
 	* Tracks newlines during parsing in order to provide an efficient API for
@@ -7945,7 +8330,7 @@ var require_line_counter = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.LineCounter = LineCounter;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/parse/parser.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js
 var require_parser = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var node_process = __require("process");
 	var cst = require_cst();
@@ -8808,7 +9193,7 @@ var require_parser = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Parser = Parser;
 }));
 //#endregion
-//#region ../../../../../../../Desktop/deepseek harness 工作台/runtime/node_modules/yaml/dist/public-api.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js
 var require_public_api = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var composer = require_composer();
 	var Document = require_Document();
@@ -10995,57 +11380,6 @@ var PackageRunner = class {
 		await Promise.all([...this.active.keys()].map((id) => this.stop(id)));
 	}
 };
-//#endregion
-//#region src/host/http.ts
-function fence$1(req, binaryUpload = false) {
-	let host;
-	try {
-		host = new URL(`http://${req.headers.host}`);
-	} catch {
-		throw new InputError("无效 Host", 403);
-	}
-	if (![
-		"localhost",
-		"127.0.0.1",
-		"[::1]"
-	].includes(host.hostname)) throw new InputError("仅允许本机访问", 403);
-	const origin = req.headers.origin;
-	if (origin) {
-		let parsed;
-		try {
-			parsed = new URL(origin);
-		} catch {
-			throw new InputError("无效 Origin", 403);
-		}
-		if (parsed.origin !== host.origin) throw new InputError("不允许跨站访问", 403);
-	}
-	if (req.headers["sec-fetch-site"] === "cross-site") throw new InputError("不允许跨站访问", 403);
-	if (binaryUpload) {
-		if (req.method !== "PUT" || !/^application\/octet-stream(?:\s*;|$)/i.test(req.headers["content-type"] ?? "")) throw new InputError("需要录音文件", 415);
-	} else if (req.method === "POST" && !/^application\/json(?:\s*;|$)/i.test(req.headers["content-type"] ?? "")) throw new InputError("需要 JSON 请求", 415);
-}
-async function readBody$1(req) {
-	const chunks = [];
-	let bytes = 0;
-	for await (const chunk of req) {
-		const value = Buffer.from(chunk);
-		bytes += value.length;
-		if (bytes > 512 * 1024) throw new InputError("请求过大", 413);
-		chunks.push(value);
-	}
-	try {
-		return JSON.parse(Buffer.concat(chunks).toString("utf8"));
-	} catch {
-		throw new InputError("JSON 格式无效");
-	}
-}
-function json$1(res, status, body) {
-	res.writeHead(status, {
-		"content-type": "application/json; charset=utf-8",
-		"cache-control": "no-store"
-	});
-	res.end(JSON.stringify(body));
-}
 //#endregion
 //#region src/host/package-artifact.ts
 function diagram(output) {
@@ -14101,6 +14435,27 @@ var CapabilityStore = class {
 				await this.persist(next);
 				this.state = next;
 			}
+			if (this.state.recordingCapabilityVersion !== 1) {
+				const next = this.mutableSnapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
+				if (!next.capabilities.some((c) => c.id === "audio-recording")) next.capabilities.push(recordingCapability(now));
+				const role = next.roles.find((r) => r.id === MEETING_ROLE_ID), current = role && latest(role.versions), binding = {
+					capabilityId: "audio-recording",
+					version: 1,
+					enabled: true
+				};
+				if (role && current && !current.capabilities.some((b) => b.capabilityId === binding.capabilityId)) {
+					if (!role.draft.capabilities.some((b) => b.capabilityId === binding.capabilityId)) role.draft.capabilities.push(structuredClone(binding));
+					this.publishRole(role, {
+						...structuredClone(current),
+						capabilities: [...current.capabilities, binding]
+					}, now);
+				}
+				next.recordingCapabilityVersion = 1;
+				next.revision++;
+				next.updatedAt = now;
+				await this.persist(next);
+				this.state = next;
+			}
 		} catch (error) {
 			await this.close();
 			throw error;
@@ -16357,6 +16712,13 @@ const inject = [
 async function apply(ctx, config = {}) {
 	const home = dshHome(), store = new CapabilityStore(join(home, "capabilities"));
 	await store.init();
+	const recording = new RecordingService(join(home, "capabilities", "recordings"), () => store.snapshot(), join(home, "..", "external-tools"));
+	let recordingError = "";
+	try {
+		await recording.init();
+	} catch (error) {
+		recordingError = error instanceof Error ? error.message : "录音存储不可用";
+	}
 	const skillAssets = new RoleSkills(home);
 	const skillGuidance = (roleId, version, cwd, createdAt) => {
 		const state = store.snapshot(), role = state.roles.find((r) => r.id === roleId)?.versions.find((v) => v.version === version);
@@ -16511,6 +16873,7 @@ async function apply(ctx, config = {}) {
 				kind: "browser",
 				componentIds: [...new Set(state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.filter((b) => b.enabled).flatMap((b) => resolveBinding(state, b)?.components.map((p) => p.componentId) ?? []) ?? [])]
 			})),
+			...recording.activities(),
 			...packageRunner.activities(),
 			...await requirements.componentActivities(),
 			...await meeting.componentActivities(),
@@ -16554,9 +16917,13 @@ async function apply(ctx, config = {}) {
 		handler: async (req, res) => {
 			try {
 				const route = new URL(req.url ?? "/", "http://localhost").pathname;
-				fence$1(req, req.method === "PUT" && (route.startsWith("/api/capabilities/meeting/upload/") || route.startsWith("/api/capabilities/packages/upload/")));
+				fence$1(req, req.method === "PUT" && (route.startsWith("/api/capabilities/meeting/upload/") || route.startsWith("/api/capabilities/packages/upload/") || route === "/api/capabilities/recording/chunk"));
 				const rejection = ctx.connection.requestRejection(req);
 				if (rejection !== void 0) return json$1(res, rejection, { error: rejection === 401 ? "请从工作台入口重新连接后重试" : "不允许访问此接口" });
+				if (route.startsWith("/api/capabilities/recording/")) {
+					if (recordingError) throw new InputError("录音存储不可用：" + recordingError, 503);
+					return await recordingRoutes(recording, req, res);
+				}
 				if (route.startsWith("/api/capabilities/packages/")) return await packageRoutes(packages, packageRunner, req, res);
 				if (route.startsWith("/api/capabilities/developer/")) return await developerRoutes(developerContext ?? ctx, developer, req, res);
 				if (req.method === "GET" && route === "/api/capabilities/requirements/config") return json$1(res, 200, requirements.availability(new URL(req.url ?? "/", "http://localhost").searchParams.get("roleId") ?? void 0));

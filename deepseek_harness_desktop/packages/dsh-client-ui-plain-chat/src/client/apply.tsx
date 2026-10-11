@@ -1,3 +1,5 @@
+import { recordingClient, recordingCommand } from '../../../../shared/client/recording-client.ts'
+import { RecordingView } from './RecordingView.tsx'
 import { roleCapabilityModes, defaultCapabilityMode, type CapabilityMode } from './role-capability-modes.ts'
 import React, { useMemo, useState, useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
@@ -70,6 +72,10 @@ export function apply(ctx: Context): void {
   const clearSavedDraft = () => { try { sessionStorage.removeItem('workbench-chat-draft') } catch { /* Optional storage. */ } }
   const roleSelection = createRoleSelection<string>()
   const localConversations = createLocalConversations()
+  const recordings = recordingClient()
+  let activeRecording: string | null = sessionStorage.getItem('workbench-recording-active')
+  const leaveRecording = () => {activeRecording=null;sessionStorage.removeItem('workbench-recording-active')}
+  void recordings.refresh()
   const meetingHistory = createMeetingHistory(localConversations)
   ctx.effect(() => { void meetingHistory.load(); const refresh = () => { void meetingHistory.load() }; window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, 'plain-chat: meeting history')
   const requirementHistory = createRequirementHistory()
@@ -111,6 +117,7 @@ export function apply(ctx: Context): void {
   })
   // 切换岗位需要重新创建会话；重复选中则保留失败重试的会话身份。
   const selectRole = (id: string) => {
+    leaveRecording()
     if (id === roleSelection.getSnapshot()) return
     start.reset()
     requirementHistory.leave()
@@ -126,6 +133,7 @@ export function apply(ctx: Context): void {
   // Both the main New button and the ungrouped chat-row + open a fresh draft.
   // A new draft always begins in free chat; published sessions keep their own preset.
   const startFreshChat = (role = 'chat', mode?: CapabilityMode) => {
+    leaveRecording()
     requirementViewKey = `requirements-new-${role}-${++requirementNavigation}`
     requirementHistory.leave()
     developerHistory.leave(); developerViewKey = `developer-new-${++developerNavigation}`
@@ -139,6 +147,9 @@ export function apply(ctx: Context): void {
     layout.selectPanel(null)
   }
   const openLocalConversation = (id: string) => {
+    const recording=recordings.getSnapshot().rows.find(row=>row.id===id)
+    if(recording){activeRecording=id;sessionStorage.setItem('workbench-recording-active',id);start.reset();localConversations.leave();requirementHistory.leave();developerHistory.leave();roleSelection.select(recording.roleId);clearSavedDraft();revision++;listeners.forEach(fn=>fn());sessions.clear();layout.selectPanel(null);return}
+    leaveRecording()
     const developer = developerHistory.getSnapshot().items.find(item => item.id === id)
     if (developer) {
       developerViewKey = `developer-${id}-${++developerNavigation}`
@@ -166,6 +177,7 @@ export function apply(ctx: Context): void {
     layout.selectPanel(null)
   }
   const renameLocalConversation = async (id: string, title: string) => {
+    if(recordings.getSnapshot().rows.some(r=>r.id===id)){await recordings.command(id,'rename',{title});return}
     if (requirementHistory.getSnapshot().items.some(row => row.id === id)) {
       const current = await getRequirementTask(id)
       const task = await commandRequirementTask(id, current.revision, { type: 'save', title })
@@ -191,6 +203,7 @@ export function apply(ctx: Context): void {
     localConversations.rename(id, title)
   }
   const removeLocalConversation = (id: string) => {
+    if(recordings.getSnapshot().rows.some(r=>r.id===id)){if(!window.confirm('移除此录音会话及其录音文件？'))return;void recordings.command(id,'delete').then(()=>{if(activeRecording===id)startFreshChat()}).catch(e=>window.alert(e.message));return}
     const developer = developerHistory.getSnapshot().items.find(item => item.id === id)
     if (developer) {
       if (!window.confirm(`移除“${developer.title}”的开发记录？代码、提交和工作目录保留；此对话和运行记录将被删除。`)) return
@@ -222,12 +235,23 @@ export function apply(ctx: Context): void {
   }
   ctx.effect(() => {
     const unsubscribe = sessions.list.subscribe(() => {
-      if (sessions.list.getSnapshot().current !== undefined) { if (localConversations.active()) localConversations.leave(); if (requirementHistory.getSnapshot().activeId) requirementHistory.leave(); if (developerHistory.getSnapshot().activeId) developerHistory.leave() }
+      if (sessions.list.getSnapshot().current !== undefined) { leaveRecording(); if (localConversations.active()) localConversations.leave(); if (requirementHistory.getSnapshot().activeId) requirementHistory.leave(); if (developerHistory.getSnapshot().activeId) developerHistory.leave() }
     })
     return unsubscribe
   }, 'plain-chat: local draft lifecycle')
+  ctx.effect(()=>{
+    const open=(e:Event)=>openLocalConversation((e as CustomEvent<string>).detail)
+    const removed=(e:Event)=>{if(activeRecording===(e as CustomEvent<string>).detail)startFreshChat()}
+    const refresh=()=>void recordings.refresh()
+    window.addEventListener('workbench-recording-open',open);window.addEventListener('workbench-recording-removed',removed);window.addEventListener('focus',refresh)
+    return()=>{window.removeEventListener('workbench-recording-open',open);window.removeEventListener('workbench-recording-removed',removed);window.removeEventListener('focus',refresh)}
+  },'plain-chat: recording navigation')
   const registry = ctx.slots as unknown as Registry
   ctx.effect(() => registerComponentInventory(registry), 'plain-chat: shared component inventory compatibility')
+  ctx.effect(()=>decorateSlot(registry,'conversation.composer.bar','InputBar',Original=>function RecordingCommands(props:any){
+    const keyboard=useMemo(()=>props.keyboard?new Proxy(props.keyboard,{get(target,key){if(key==='submit')return(mode:unknown)=>{const binding=props.sessionId?sessions.binding(props.sessionId):undefined;const input=binding?ctx.conversation.input.for(binding.ctx):undefined;if(input&&recordingCommand(input.state.getSnapshot().draft)){input.setDraft('');return}target.submit(mode)};const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value}}):undefined,[props.keyboard,props.sessionId])
+    return <Original {...props} keyboard={keyboard}/>
+  }),'plain-chat: native recording commands')
   const capabilityPreview = createCapabilityPreview()
   registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <UnifiedCenter />)
   ctx.slots.inject('settings.section', () => ctx.slots.register({name:'settings.section',id:'jev-mode',order:23,label:()=> 'JEV 模式',locale:NS}, () => <JevSettings/>))
@@ -270,7 +294,9 @@ export function apply(ctx: Context): void {
       const developerSnapshot = useSyncExternalStore(developerHistory.subscribe, developerHistory.getSnapshot)
       const developer = developerSnapshot.items.find(row => row.id === developerSnapshot.activeId)
       const developerKey = developerViewKey
-      const effectiveRole = developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole
+      const recordingSnapshot=useSyncExternalStore(recordings.subscribe,recordings.getSnapshot)
+      const recording=recordingSnapshot.rows.find(r=>r.id===activeRecording)
+      const effectiveRole = recording?.roleId ?? developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole
       const capabilities = useSyncExternalStore(capabilityClient.subscribe, capabilityClient.getSnapshot)
       const analysisRole = capabilities.data?.state.roles.find(role => role.id === effectiveRole)
       const analysisVersion = requirement ? analysisRole?.versions.find(version => version.version === requirement.roleVersion) : analysisRole && latest(analysisRole.versions)
@@ -326,12 +352,13 @@ export function apply(ctx: Context): void {
         if (binding && local?.kind === 'draft') localConversations.commitChat(local.id)
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /><JevToggle/></div>
+        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /><JevToggle/></div>
         {!noSession&&<JevActivity scope={!noSession?'native:'+props.sessionId:developer?'developer:'+developer.id:requirement?'requirements:'+requirement.id:(local?.meeting as {jobId?:string}|undefined)?.jobId?'meeting:'+(local!.meeting as {jobId:string}).jobId:undefined}/>}
         {displayedRole !== 'chat' && modes.length > 1 && <nav aria-label="岗位能力入口" className={styles.capabilityModes}>{modes.map(item => <button key={item.mode} type="button" aria-pressed={noSession ? workMode === item.mode : item.mode === 'chat'} onClick={() => { if (noSession && workMode === item.mode) return; startFreshChat(displayedRole, item.mode) }}>{item.label}</button>)}</nav>}
+        {!recording && recordingSnapshot.error && <p role="alert" style={{margin:"4px 24px",fontSize:13}}>{recordingSnapshot.error}</p>}
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
-        <div className={styles.conversationContent}>{noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
+        <div className={styles.conversationContent}>{noSession && recording ? <RecordingView key={recording.id} id={recording.id}/> : noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
           ? <DeveloperAssistant initialTitle={local?.customTitle ? local.title : undefined} key={developerKey} taskId={developer?.id} draftKey={local?.id ?? developerKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={developerVersion?.version} loadModels={loadMeetingModels} onDraftChange={value => {
             if (developerKey !== developerViewKey || sessions.list.getSnapshot().current !== undefined || developerHistory.getSnapshot().activeId) return
             const row = localConversations.active()
@@ -381,7 +408,8 @@ export function apply(ctx: Context): void {
     const requirements = useSyncExternalStore(requirementHistory.subscribe, requirementHistory.getSnapshot)
     const developers = useSyncExternalStore(developerHistory.subscribe, developerHistory.getSnapshot)
     const meetings = useSyncExternalStore(meetingHistory.subscribe, meetingHistory.getSnapshot)
-    const historyRows = [...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
+    const recorded=useSyncExternalStore(recordings.subscribe,recordings.getSnapshot)
+    const historyRows = [...recorded.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),recordingId:row.id})),...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
     const [host, setHost] = useState<HTMLDivElement | null>(null)
     const translate = (key: string, ...args: unknown[]) => key === 'group.ungrouped' ? t('history') : props.t(key, ...args)
     // The upstream ungrouped row renders a + button but deliberately gives it
@@ -396,10 +424,10 @@ export function apply(ctx: Context): void {
       const header = button?.closest<HTMLElement>('[role="treeitem"]')
       if (header?.getAttribute('aria-expanded') === 'false') header.click()
     }
-    const open = (id: string) => { start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
+    const open = (id: string) => { leaveRecording(); start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
     return <div ref={setHost} style={{ display: 'contents' }} onClickCapture={onClickCapture}>
       <Original {...props} t={translate} open={open} />
-      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} onRename={renameLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
+      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} onRename={renameLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
         {meetings.loading && <p role="status">正在读取会议记录…</p>}{meetings.error && <p role="alert">{meetings.error}</p>}
         {meetings.unreadableCount > 0 && <p role="status">{meetings.unreadableCount} 条会议记录暂不可读，原文件已保留。</p>}
         {(meetings.hasMore || meetings.error) && <button type="button" className={historyStyles.open} disabled={meetings.loading} onClick={() => { void meetingHistory.load(!meetings.error) }}>{meetings.error ? '重试读取会议记录' : '加载更多会议记录'}</button>}

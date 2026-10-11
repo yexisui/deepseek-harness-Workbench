@@ -329,24 +329,6 @@ export function apply(ctx: ClientContext): void {
             // Ignore transport errors on interactions; the next poll resyncs.
           })
         },
-        feed: () => {
-          petApi.interact('feed').then((result) => {
-            setFeedback({
-              text: result.reaction,
-              kind: 'feed',
-              at: Date.now(),
-            })
-          }, () => {
-            // Ignore transport errors on interactions; the next poll resyncs.
-          })
-        },
-        hide: () => {
-          petApi.setVisible(false).then(() => {
-            pollNow()
-          }, () => {
-            // Ignore; next poll resyncs.
-          })
-        },
         summon: () => {
           petApi.setVisible(true).then(() => {
             pollNow()
@@ -357,13 +339,6 @@ export function apply(ctx: ClientContext): void {
         dragEnd: (right, bottom) => {
           petApi.setConfig({ right, bottom }).then(() => {
             pollNow()
-          }, () => {
-            // Ignore; next poll resyncs.
-          })
-        },
-        rename: (name) => {
-          petApi.setName(name).then((result) => {
-            if (result.ok) pollNow()
           }, () => {
             // Ignore; next poll resyncs.
           })

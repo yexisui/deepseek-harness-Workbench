@@ -1,3 +1,4 @@
+import { RecordingService, recordingRoutes } from './host/recording.ts'
 import { PackageMeetingSegmenter } from './host/meeting-segments.ts'
 import { ModelAccess } from './host/model-access.ts'
 import {RoleSkills} from './host/role-skills.ts'
@@ -44,6 +45,9 @@ declare module '@deepseek-ai/cordis' { interface Context { capabilities: Capabil
 export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: string; port?: number } = {}) {
   const home = dshHome(), store = new CapabilityStore(join(home, 'capabilities'))
   await store.init()
+  const recording = new RecordingService(join(home,'capabilities','recordings'),()=>store.snapshot(),join(home,'..','external-tools'))
+  let recordingError = ''
+  try { await recording.init() } catch (error) { recordingError = error instanceof Error ? error.message : '录音存储不可用' }
   const skillAssets=new RoleSkills(home)
   const skillGuidance=(roleId:string,version:number,cwd?:string,createdAt?:number)=>{const state=store.snapshot(),role=state.roles.find(r=>r.id===roleId)?.versions.find(v=>v.version===version);if(!role)throw Error('岗位技能加载失败：岗位版本不存在');return skillAssets.guidance(state,roleId,role,cwd,createdAt)}
   const jev = await installJev(ctx)
@@ -114,7 +118,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   runtime.packageRunner = packageRunner
   const activities = async (state = store.snapshot()) => {
     const browser = runtime.tasks().filter(t => t.browserSessions.length || ['running', 'stopping'].includes(t.status)).map(t => ({ id: t.sessionId, roleId: t.roleId, roleVersion: t.roleVersion, name: t.name, status: t.status, kind: 'browser', componentIds: [...new Set(state.roles.find(r => r.id === t.roleId)?.versions.find(v => v.version === t.roleVersion)?.capabilities.filter(b => b.enabled).flatMap(b => resolveBinding(state, b)?.components.map(p => p.componentId) ?? []) ?? [])] }))
-    return [...browser, ...packageRunner.activities(), ...await requirements.componentActivities(), ...await meeting.componentActivities(), ...await developer?.componentActivities() ?? []].sort((a,b) => a.id.localeCompare(b.id))
+    return [...browser, ...recording.activities(), ...packageRunner.activities(), ...await requirements.componentActivities(), ...await meeting.componentActivities(), ...await developer?.componentActivities() ?? []].sort((a,b) => a.id.localeCompare(b.id))
   }
   runtime.componentActivities = activities
   const registry = new ComponentRegistryStore(join(home, 'capabilities'), () => store.snapshot(), activities)
@@ -133,10 +137,11 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/api/capabilities', handler: async (req, res) => {
     try {
       const route = new URL(req.url ?? '/', 'http://localhost').pathname
-      fence(req, req.method === 'PUT' && (route.startsWith('/api/capabilities/meeting/upload/') || route.startsWith('/api/capabilities/packages/upload/')))
+      fence(req, req.method === 'PUT' && (route.startsWith('/api/capabilities/meeting/upload/') || route.startsWith('/api/capabilities/packages/upload/') || route === '/api/capabilities/recording/chunk'))
       // A named webServer route bypasses Connection's /api route; reuse its public authentication check explicitly.
       const rejection = ctx.connection.requestRejection(req)
       if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
+      if (route.startsWith('/api/capabilities/recording/')) { if(recordingError)throw new InputError('录音存储不可用：'+recordingError,503);return await recordingRoutes(recording, req, res) }
       if (route.startsWith('/api/capabilities/packages/')) return await packageRoutes(packages, packageRunner, req, res)
       if (route.startsWith('/api/capabilities/developer/')) return await developerRoutes(developerContext ?? ctx, developer, req, res)
       if (req.method === 'GET' && route === '/api/capabilities/requirements/config') return json(res, 200, requirements.availability(new URL(req.url ?? '/', 'http://localhost').searchParams.get('roleId') ?? undefined))

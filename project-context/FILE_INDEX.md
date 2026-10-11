@@ -240,7 +240,7 @@
 | [requirements/auto/A013-BrowserSkill实际接入执行方案.md](<requirements/auto/A013-BrowserSkill实际接入执行方案.md>) | A013-BrowserSkill实际接入执行方案 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A014-会议纪要助手界面嵌入.md](<requirements/auto/A014-会议纪要助手界面嵌入.md>) | A014-会议纪要助手界面嵌入 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A015-桌面启动过期能力锁修复.md](<requirements/auto/A015-桌面启动过期能力锁修复.md>) | A015-桌面启动过期能力锁修复 | 事项现状见台账；原有历史记录保留 |
-| [requirements/auto/A016-会议纪要助手真实录音接入.md](<requirements/auto/A016-会议纪要助手真实录音接入.md>) | A016-会议纪要助手真实录音接入 | 事项现状见台账；原有历史记录保留 |
+| [requirements/auto/A016-会议纪要助手真实录音接入.md](<requirements/auto/A016-会议纪要助手真实录音接入.md>) | A016-会议纪要助手真实录音接入 | 包含录音保存、宠物入口与岗位归属实施验证；事项现状见台账 |
 | [requirements/auto/A017-需求分析助手拓展基础方案.md](<requirements/auto/A017-需求分析助手拓展基础方案.md>) | A017-需求分析助手拓展基础方案 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A017-需求分析助手方式选择.png](<requirements/auto/A017-需求分析助手方式选择.png>) | 关联文档的历史展示或验证附件：A017-需求分析助手方式选择 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A017-需求分析助手第一版.png](<requirements/auto/A017-需求分析助手第一版.png>) | 关联文档的历史展示或验证附件：A017-需求分析助手第一版 | 事项现状见台账；原有历史记录保留 |

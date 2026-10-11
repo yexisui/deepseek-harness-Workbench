@@ -14,7 +14,8 @@ export function decorateSlot(registry: Registry, key: string, expected: string, 
   const changes = new Map<Entry, { original: ComponentType<any>; decorated: ComponentType<any> }>()
   const sync = () => {
     for (const entry of registry.entries(key)) {
-      if (changes.has(entry) || typeof entry.component !== 'function' || entry.component.name !== expected) continue
+      const face=entry.component as {name?:string;type?:{name?:string}}|null
+      if (changes.has(entry) || !face || (face.name !== expected && face.type?.name !== expected)) continue
       const original = entry.component as ComponentType<any>
       const decorated = wrap(original)
       changes.set(entry, { original, decorated })

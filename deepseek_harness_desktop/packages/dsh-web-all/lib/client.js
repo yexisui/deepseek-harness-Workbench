@@ -3359,6 +3359,20 @@ window.__ModuleLoader__.load({
 		/** JSON-only contract shared by the host and UI; never imports a host service. */
 		const browserPackage = "@wxg-prc-cpg/browser-skill-dsh-plugin";
 		const components = [
+			{
+				id: "audio-recorder",
+				name: "录音与保存",
+				provider: "@linxin666/dsh-capabilities",
+				version: "1.0.0",
+				actions: ["record-audio"],
+				dependencies: [],
+				icon: "audio",
+				sourceLabel: "内置录音服务",
+				management: "recording",
+				capabilityIds: ["audio-recording"],
+				required: true,
+				compositionVersion: 2
+			},
 			...developerParts.map((part, i) => ({
 				id: part.componentId,
 				name: [
@@ -22468,6 +22482,346 @@ window.__ModuleLoader__.load({
 				}
 			};
 		}
+		//#endregion
+		//#region ../../shared/client/recording-client.ts
+		async function recordingApi(path, body) {
+			const r = await fetch("/api/capabilities/recording/" + path, {
+				credentials: "same-origin",
+				...body ? {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(body)
+				} : {}
+			});
+			const value = await r.json();
+			if (!r.ok) throw Error(value.error || "录音保存失败");
+			return value;
+		}
+		function createRecorder() {
+			let state = {
+				rows: [],
+				activeId: null,
+				busy: false,
+				error: "",
+				elapsed: 0,
+				pending: 0
+			}, recorder, stream, started = 0, elapsed = 0, queue = [], sequence = 0, upload, stopping = false;
+			const listeners = /* @__PURE__ */ new Set();
+			const emit = (patch) => {
+				state = {
+					...state,
+					...patch
+				};
+				listeners.forEach((fn) => fn());
+			};
+			const upsert = (row) => emit({ rows: [row, ...state.rows.filter((r) => r.id !== row.id)].sort((a, b) => b.createdAt.localeCompare(a.createdAt)) });
+			const current = () => state.rows.find((r) => r.id === state.activeId);
+			const duration = () => elapsed + (recorder?.state === "recording" ? Date.now() - started : 0);
+			const flush = () => {
+				if (upload) return upload;
+				upload = (async () => {
+					while (queue.length) {
+						const item = queue[0], r = await fetch(`/api/capabilities/recording/chunk?id=${state.activeId}&seq=${item.seq}`, {
+							method: "PUT",
+							credentials: "same-origin",
+							headers: { "Content-Type": "application/octet-stream" },
+							body: item.blob
+						});
+						if (!r.ok) {
+							const e = await r.json();
+							throw Error(e.error || "保存失败");
+						}
+						queue.shift();
+						emit({ pending: queue.length });
+					}
+				})().finally(() => {
+					upload = void 0;
+				});
+				return upload;
+			};
+			const release = () => {
+				stream?.getTracks().forEach((t) => t.stop());
+				stream = void 0;
+				recorder = void 0;
+			};
+			const stop = async () => {
+				if (!recorder || recorder.state === "inactive") return;
+				elapsed = duration();
+				stopping = true;
+				await new Promise((ok) => {
+					recorder.addEventListener("stop", () => ok(), { once: true });
+					recorder.stop();
+				});
+				release();
+				stopping = false;
+			};
+			const run = async (action) => {
+				if (state.busy) return;
+				emit({
+					busy: true,
+					error: ""
+				});
+				try {
+					if (action === "start") {
+						if (state.activeId) {
+							window.dispatchEvent(new CustomEvent("workbench-recording-open", { detail: state.activeId }));
+							return;
+						}
+						if (!(await recordingApi("config")).ready) throw Error("请先在能力中心的录音设置中选择归属岗位");
+						if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") throw Error("当前窗口不支持麦克风录音，请使用桌面端或本机浏览器");
+						stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+						const mime = [
+							"audio/webm;codecs=opus",
+							"audio/webm",
+							"audio/mp4"
+						].find((m) => MediaRecorder.isTypeSupported(m));
+						if (!mime) {
+							release();
+							throw Error("当前窗口不支持录音格式");
+						}
+						recorder = new MediaRecorder(stream, { mimeType: mime });
+						const id = crypto.randomUUID();
+						let row;
+						try {
+							row = await recordingApi("start", {
+								id,
+								mime
+							});
+						} catch (e) {
+							release();
+							throw e;
+						}
+						queue = [];
+						sequence = 0;
+						elapsed = 0;
+						started = Date.now();
+						upsert(row);
+						emit({
+							activeId: id,
+							elapsed: 0
+						});
+						recorder.ondataavailable = (e) => {
+							if (!e.data.size) return;
+							queue.push({
+								seq: sequence++,
+								blob: e.data
+							});
+							emit({ pending: queue.length });
+							flush().catch((e) => {
+								if (recorder?.state === "recording") {
+									elapsed = duration();
+									recorder.pause();
+								}
+								emit({ error: "保存暂时失败，录音已暂停。已收到的片段保留在当前窗口，请重试完成或继续录音。" + e.message });
+							});
+						};
+						recorder.onerror = () => {
+							run("interrupt");
+						};
+						stream.getAudioTracks().forEach((track) => track.onended = () => {
+							if (!stopping) run("interrupt");
+						});
+						try {
+							recorder.start(3e3);
+						} catch (e) {
+							release();
+							await recordingApi("command", {
+								id,
+								action: "cancel"
+							});
+							emit({
+								activeId: null,
+								rows: state.rows.filter((r) => r.id !== id)
+							});
+							throw e;
+						}
+						window.dispatchEvent(new CustomEvent("workbench-recording-open", { detail: id }));
+					} else {
+						const row = current();
+						if (!row) throw Error("当前没有正在录制的录音");
+						if (action === "pause") {
+							if (recorder?.state === "recording") {
+								elapsed = duration();
+								recorder.pause();
+								recorder.requestData();
+								emit({ elapsed });
+							}
+							await flush();
+							upsert(await recordingApi("command", {
+								id: row.id,
+								action,
+								durationMs: elapsed
+							}));
+						} else if (action === "resume") {
+							await flush();
+							if (recorder?.state !== "paused") throw Error("录音已停止，请完成保存后重新开始");
+							upsert(await recordingApi("command", {
+								id: row.id,
+								action,
+								durationMs: elapsed
+							}));
+							started = Date.now();
+							recorder.resume();
+						} else if ([
+							"finish",
+							"interrupt",
+							"cancel"
+						].includes(action)) {
+							await stop();
+							if (action !== "cancel") await flush();
+							else if (upload) await upload.catch(() => {});
+							const result = await recordingApi("command", {
+								id: row.id,
+								action,
+								durationMs: elapsed
+							});
+							if ("deleted" in result) {
+								emit({ rows: state.rows.filter((r) => r.id !== result.deleted) });
+								window.dispatchEvent(new CustomEvent("workbench-recording-removed", { detail: result.deleted }));
+							} else upsert(result);
+							emit({
+								activeId: null,
+								pending: 0,
+								elapsed: 0
+							});
+							queue = [];
+						}
+					}
+				} catch (e) {
+					if (action === "start" && !state.activeId) release();
+					emit({ error: e instanceof Error ? e.message : String(e) });
+				} finally {
+					emit({ busy: false });
+				}
+			};
+			setInterval(() => {
+				if (!state.activeId) return;
+				emit({ elapsed: duration() });
+			}, 1e3);
+			setInterval(() => {
+				const row = current();
+				if (row && !state.busy) recordingApi("command", {
+					id: row.id,
+					action: "heartbeat",
+					durationMs: duration()
+				}).then(upsert).catch((e) => emit({ error: e.message }));
+			}, 1e4);
+			window.addEventListener("beforeunload", (e) => {
+				if (state.activeId) {
+					e.preventDefault();
+					e.returnValue = "";
+				}
+			});
+			const refreshConfig = async () => {
+				try {
+					emit({ config: await recordingApi("config") });
+				} catch {
+					emit({ config: {
+						roleId: "",
+						roles: [],
+						ready: false
+					} });
+				}
+			};
+			const refresh = async () => {
+				try {
+					emit({ rows: await recordingApi("list") });
+				} catch (e) {
+					emit({ error: e instanceof Error ? e.message : String(e) });
+				}
+			};
+			return {
+				getSnapshot: () => state,
+				subscribe: (f) => {
+					listeners.add(f);
+					return () => {
+						listeners.delete(f);
+					};
+				},
+				run,
+				refresh,
+				refreshConfig,
+				upsert,
+				async command(id, action, value = {}) {
+					const row = await recordingApi("command", {
+						id,
+						action,
+						...value
+					});
+					if ("deleted" in row) emit({ rows: state.rows.filter((r) => r.id !== id) });
+					else upsert(row);
+				}
+			};
+		}
+		const recordingClient = () => window.workbenchRecorder ??= createRecorder();
+		const recordingTime = (ms) => `${Math.floor(ms / 6e4).toString().padStart(2, "0")}:${Math.floor(ms / 1e3 % 60).toString().padStart(2, "0")}`;
+		//#endregion
+		//#region ../../shared/client/RecordingControls.tsx
+		function RecordingIcon({ kind }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				width: "17",
+				height: "17",
+				viewBox: "0 0 24 24",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.8",
+				strokeLinecap: "round",
+				strokeLinejoin: "round",
+				"aria-hidden": "true",
+				children: kind === "start" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+					x: "9",
+					y: "2",
+					width: "6",
+					height: "12",
+					rx: "3"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" })] }) : kind === "pause" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M8 5v14M16 5v14" }) }) : kind === "resume" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m8 4 12 8-12 8Z" }) : kind === "finish" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m4 12 5 5L20 6" }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m6 6 12 12M6 18 18 6" })
+			});
+		}
+		function RecordingControls({ tone }) {
+			const c = recordingClient(), s = (0, react$1.useSyncExternalStore)(c.subscribe, c.getSnapshot), row = s.rows.find((r) => r.id === s.activeId);
+			const actions = row ? [
+				[row.status === "paused" ? "resume" : "pause", row.status === "paused" ? "继续录音" : "暂停录音"],
+				["finish", "完成录音"],
+				["cancel", "取消录音"]
+			] : [["start", "开始录音"]];
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				style: {
+					display: "flex",
+					gap: 6,
+					alignItems: "center"
+				},
+				children: [row && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+					style: {
+						fontSize: 12,
+						fontVariantNumeric: "tabular-nums",
+						color: row.status === "paused" ? "inherit" : tone === "pet" ? "#ffadbd" : "#b43e50"
+					},
+					children: recordingTime(s.elapsed)
+				}), actions.map(([action, label]) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+					type: "button",
+					title: label,
+					"aria-label": label,
+					disabled: s.busy,
+					onClick: () => {
+						if (action === "cancel" && !window.confirm("取消并丢弃这次录音？")) return;
+						c.run(action);
+					},
+					style: {
+						width: 30,
+						height: 30,
+						padding: 5,
+						borderRadius: 10,
+						border: tone === "pet" ? "1px solid #6782ff" : "1px solid var(--border-color, #aab4d0)",
+						background: tone === "pet" ? "linear-gradient(135deg,#506fff,#344dde)" : "var(--surface-color, #edf0f8)",
+						color: tone === "pet" ? "#fff" : "inherit",
+						display: "grid",
+						placeItems: "center",
+						cursor: "pointer"
+					},
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RecordingIcon, { kind: action })
+				}, action))]
+			});
+		}
 		/**
 		* Bubble typography scale for one display config (issue #1549): the bubble
 		* follows the pet's own size so a shrunk pet does not carry a full-size
@@ -22598,7 +22952,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-pet/src/client/pet.module.css.mjs
-		const css$14 = ".kz2Bea_float{pointer-events:auto;-webkit-user-select:none;user-select:none;will-change:transform;contain:layout style;flex-direction:column;align-items:center;display:flex;position:fixed}.kz2Bea_sprite{image-rendering:auto;touch-action:none;contain:paint}.kz2Bea_spriteWrap{flex:none;position:relative}.kz2Bea_bubble{white-space:nowrap;padding:calc(4px * var(--pet-bubble-scale,1)) calc(10px * var(--pet-bubble-scale,1));font-size:calc(12px * var(--pet-bubble-scale,1));color:#f4f7ff;pointer-events:none;border-radius:999px;margin-bottom:6px;line-height:1.4;animation:2.6s ease-out forwards kz2Bea_pet-bubble-pop;position:absolute;bottom:100%;box-shadow:0 2px 8px #00000040}.kz2Bea_bubblePet{background:#4d6bfef2}.kz2Bea_bubbleFeed{background:#0369a1f2}.kz2Bea_bubbleStatus{max-width:min(calc(280px * var(--pet-bubble-scale,1)), calc(100vw - 24px));text-overflow:ellipsis;padding:calc(5px * var(--pet-bubble-scale,1)) calc(12px * var(--pet-bubble-scale,1));backdrop-filter:blur(8px);letter-spacing:.02em;background:linear-gradient(160deg,#131c36e6,#070b1af0);border:1px solid #7e98ff73;animation:.24s ease-out kz2Bea_pet-bubble-in;overflow:hidden;box-shadow:0 4px 12px #02061759,inset 0 1px #e2e8ff1a,0 0 12px #4d6bfe2e}.kz2Bea_bubbleWhisper{letter-spacing:.03em;animation:.32s cubic-bezier(.22,1,.36,1) kz2Bea_pet-whisper-in}.kz2Bea_bubbleWhisper:before{content:\"「\";opacity:.7;margin-right:2px}.kz2Bea_bubbleWhisper:after{content:\"」\";opacity:.7;margin-left:2px}.kz2Bea_bubbleStack{pointer-events:auto;flex-direction:column-reverse;align-items:center;gap:4px;display:flex;position:absolute;bottom:100%}.kz2Bea_bubbleAnchor{display:inline-flex;position:relative}.kz2Bea_bubbleMore{z-index:1;color:#eef2ff;cursor:pointer;background:linear-gradient(160deg,#4a68f5f2,#2f44b8f2);border:1px solid #7e98ff8c;border-radius:999px;justify-content:center;align-items:center;min-width:18px;height:18px;padding:0 5px;font-size:10px;font-weight:600;line-height:1;transition:filter .12s;display:inline-flex;position:absolute;top:-9px;right:-10px;box-shadow:0 2px 6px #02061766}.kz2Bea_bubbleMore:hover{filter:brightness(1.15)}.kz2Bea_bubbleMore:focus-visible{outline:none;box-shadow:0 0 0 2px #7e98ffe6}.kz2Bea_bubbleStack .kz2Bea_bubble{pointer-events:auto;margin-bottom:0;position:relative;bottom:auto}.kz2Bea_bubbleClickable{cursor:pointer;font:inherit;text-align:center;appearance:none;transition:filter .12s,box-shadow .12s}.kz2Bea_bubbleClickable:hover{filter:brightness(1.12)}.kz2Bea_bubbleClickable:focus-visible{outline:none;box-shadow:0 0 0 2px #7e98ffe6}@keyframes kz2Bea_pet-bubble-in{0%{opacity:0;transform:translateY(6px)scale(.96)}to{opacity:1;transform:translateY(0)scale(1)}}@keyframes kz2Bea_pet-whisper-in{0%{opacity:0;transform:translateY(8px)scale(.9)}60%{transform:translateY(-1px)scale(1.02)}to{opacity:1;transform:translateY(0)scale(1)}}@keyframes kz2Bea_pet-panel-in{0%{opacity:0;transform:translateY(4px)scale(.97)}to{opacity:1;transform:translateY(0)scale(1)}}@keyframes kz2Bea_pet-bubble-pop{0%{opacity:0;transform:translateY(6px)scale(.85)}15%{opacity:1;transform:translateY(0)scale(1.05)}25%{transform:translateY(0)scale(1)}75%{opacity:1}to{opacity:0;transform:translateY(-8px)scale(.95)}}.kz2Bea_panel{color:#e6ebf8;backdrop-filter:blur(10px);transform-origin:50% 0;background:linear-gradient(165deg,#131c36f2,#070b1af7);border:1px solid #7e98ff4d;border-radius:12px;flex-direction:column;gap:7px;min-width:148px;margin-top:8px;padding:10px 12px;font-size:12px;animation:.2s cubic-bezier(.22,1,.36,1) kz2Bea_pet-panel-in;display:flex;position:absolute;top:100%;box-shadow:0 8px 24px #02061773,0 0 0 1px #4d6bfe1a,inset 0 1px #e2e8ff14}.kz2Bea_panel:after{content:\"\";height:14px;position:absolute;bottom:100%;left:0;right:0}.kz2Bea_panelAbove{transform-origin:50% 100%;margin-top:0;margin-bottom:8px;top:auto;bottom:100%}.kz2Bea_panelAbove:after{top:100%;bottom:auto}.kz2Bea_rankRow{white-space:nowrap;justify-content:space-between;gap:10px;display:flex}.kz2Bea_nameCell{letter-spacing:.02em;background:linear-gradient(90deg,#a9c1ff,#6c8bff 60%,#4d6bfe);color:#0000;-webkit-background-clip:text;background-clip:text;font-weight:600}.kz2Bea_statRank{color:#9db4ff;font-weight:600}.kz2Bea_statTreats{color:#7dd3fc;font-weight:600}.kz2Bea_statPoints{color:#fcd34d;font-weight:600}.kz2Bea_renameRow{align-items:center;gap:6px;display:flex}.kz2Bea_nameInput{color:#e6ebf8;background:#131c36e6;border:1px solid #7e98ff80;border-radius:6px;outline:none;flex:1;min-width:0;padding:3px 6px;font-size:12px}.kz2Bea_nameInput:focus{border-color:#4d6bfe;box-shadow:0 0 0 2px #4d6bfe73}.kz2Bea_actions{gap:6px;display:flex}.kz2Bea_action{cursor:pointer;color:#fff;background:linear-gradient(#4a68f5,#3a55e0);border:none;border-radius:6px;flex:1;padding:4px 8px;font-size:12px;font-weight:600;transition:filter .12s,box-shadow .12s,transform .12s;box-shadow:0 2px 6px #4d6bfe4d}.kz2Bea_action:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 4px 10px #4d6bfe66}.kz2Bea_action:active{filter:brightness(.94);transform:translateY(0);box-shadow:0 1px 4px #4d6bfe4d}.kz2Bea_action:focus-visible{outline:none;box-shadow:0 0 0 2px #7e98ffe6}.kz2Bea_summon{color:#8ea6ff;cursor:pointer;background:#070b1abf;border:1px dashed #7e98ff99;border-radius:999px;padding:2px 10px;font-size:11px;transition:border-color .12s,color .12s,background .12s,box-shadow .12s}.kz2Bea_summon:hover{color:#c3d3ff;background:#070b1ae6;border-color:#7e98fff2}.kz2Bea_summon:active{color:#8ea6ff;border-color:#7e98ffcc}.kz2Bea_summon:focus-visible{outline:none;box-shadow:0 0 0 2px #7e98ffe6}@media (prefers-reduced-motion:reduce){.kz2Bea_bubble,.kz2Bea_bubbleStatus,.kz2Bea_bubbleWhisper,.kz2Bea_panel{opacity:1;animation:none}.kz2Bea_action,.kz2Bea_summon,.kz2Bea_bubbleMore{transition:none}}.kz2Bea_gameplayHud{width:0;height:0;position:absolute;bottom:0;left:0}.kz2Bea_gameplayModeChip{color:#cdd7ff;white-space:nowrap;pointer-events:none;background:#7e98ff2e;border-radius:999px;padding:1px 8px;font-size:10px;position:absolute;top:0;left:0;transform:translateY(-100%)translateY(-4px)}.kz2Bea_gameplayCard{color:#dfe6ff;background:#070b1aeb;border:1px solid #7e98ff40;border-radius:10px;min-width:180px;max-height:340px;padding:10px 12px;font-size:12px;position:absolute;bottom:0;left:0;overflow-y:auto;transform:none;box-shadow:0 8px 24px #0006}.kz2Bea_gameplayBars{flex-direction:column;gap:4px;margin-bottom:8px;display:flex}.kz2Bea_gameplayBarRow{align-items:center;gap:6px;display:flex}.kz2Bea_gameplayBarLabel{color:#9aa8d8;flex-shrink:0;width:34px}.kz2Bea_gameplayBarTrack{background:#7e98ff26;border-radius:3px;flex:1;height:6px;overflow:hidden}.kz2Bea_gameplayBarFill{background:linear-gradient(90deg,#7e98ff,#9db4ff);border-radius:3px;height:100%;transition:width .3s;display:block}.kz2Bea_gameplayActions{flex-wrap:wrap;gap:6px;display:flex}.kz2Bea_gameplayShopItems{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px;display:grid}.kz2Bea_gameplayShopItem{color:inherit;cursor:pointer;background:#7e98ff14;border:1px solid #7e98ff40;border-radius:8px;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;display:flex}.kz2Bea_gameplayShopItem:hover{background:#7e98ff29;border-color:#7e98ffb3}.kz2Bea_gameplayShopItemImage{object-fit:contain;width:36px;height:36px;image-rendering:pixelated;pointer-events:none}.kz2Bea_gameplayShopItemLabel{text-align:center;font-size:11px}.kz2Bea_gameplayShopItemPrice{color:#ffd27e;font-size:10px}.kz2Bea_gameplaySkinItems{flex-direction:column;gap:6px;margin-bottom:8px;display:flex}.kz2Bea_gameplaySkinItem{width:100%;color:inherit;cursor:pointer;text-align:left;background:#7e98ff14;border:1px solid #7e98ff40;border-radius:8px;padding:8px 10px;font-size:12px;display:block}.kz2Bea_gameplaySkinItem:hover{background:#7e98ff29;border-color:#7e98ffb3}.kz2Bea_gameplaySkinItemActive{background:#7e98ff47;border-color:#7e98ffe6}.kz2Bea_gameplayClose{color:#9aa8d8;cursor:pointer;background:0 0;border:none;padding:0 2px;font-size:14px;position:absolute;top:4px;right:8px}.kz2Bea_gameplayClose:hover{color:#fff}.kz2Bea_gameplayFloat{color:#3a2a00;white-space:nowrap;pointer-events:none;background:#ffd27eeb;border-radius:999px;padding:2px 10px;font-size:11px;animation:1.1s ease-out forwards kz2Bea_pet-gameplay-float;position:absolute;top:-8px;left:50%;transform:translate(-50%)}@keyframes kz2Bea_pet-gameplay-float{0%{opacity:0;transform:translate(-50%)translateY(6px)}20%{opacity:1}to{opacity:0;transform:translate(-50%)translateY(-18px)}}@media (prefers-reduced-motion:reduce){.kz2Bea_gameplayFloat{opacity:1;animation:none}.kz2Bea_gameplayBarFill{transition:none}}.kz2Bea_bubbleUsage{white-space:nowrap;backdrop-filter:blur(8px);letter-spacing:.02em;background:linear-gradient(160deg,#131c36eb,#070b1af2);border:1px solid #7e98ff73;flex-direction:column;align-items:stretch;gap:3px;min-width:128px;max-width:min(280px,100vw - 24px);padding:6px 12px;animation:.28s cubic-bezier(.22,1,.36,1) kz2Bea_pet-usage-in;display:flex;box-shadow:0 4px 12px #02061759,inset 0 1px #e2e8ff1a,0 0 12px #4d6bfe2e}.kz2Bea_bubbleUsageHead{justify-content:space-between;align-items:baseline;gap:10px;display:flex}.kz2Bea_bubbleUsageTitle{text-overflow:ellipsis;opacity:.85;overflow:hidden}.kz2Bea_bubbleUsageValue{font-variant-numeric:tabular-nums;flex-shrink:0;font-weight:600}.kz2Bea_bubbleUsageNote{text-overflow:ellipsis;opacity:.55;font-size:10px;overflow:hidden}.kz2Bea_bubbleUsageMeter{background:#e2e8ff24;border-radius:999px;height:4px;display:block;overflow:hidden}.kz2Bea_bubbleUsageMeterFill{background:#6ee7b7;border-radius:999px;height:100%;transition:width .3s;display:block}.kz2Bea_bubbleUsageOk{border-color:#7e98ff73}.kz2Bea_bubbleUsageWarn{border-color:#fbbf248c}.kz2Bea_bubbleUsageWarn .kz2Bea_bubbleUsageMeterFill{background:#fbbf24}.kz2Bea_bubbleUsageLow{border-color:#f8717199}.kz2Bea_bubbleUsageLow .kz2Bea_bubbleUsageMeterFill{background:#f87171}@keyframes kz2Bea_pet-usage-in{0%{opacity:0;transform:translateY(6px)scale(.96)}to{opacity:1;transform:translateY(0)scale(1)}}@media (prefers-reduced-motion:reduce){.kz2Bea_bubbleUsage{animation:none}}";
+		const css$14 = ".kz2Bea_float{pointer-events:auto;-webkit-user-select:none;user-select:none;will-change:transform;contain:layout style;flex-direction:column;align-items:center;display:flex;position:fixed}.kz2Bea_sprite{image-rendering:auto;touch-action:none;contain:paint}.kz2Bea_spriteWrap{flex:none;position:relative}.kz2Bea_bubble{white-space:nowrap;padding:calc(4px * var(--pet-bubble-scale,1)) calc(10px * var(--pet-bubble-scale,1));font-size:calc(12px * var(--pet-bubble-scale,1));color:#f4f7ff;pointer-events:none;border-radius:999px;margin-bottom:6px;line-height:1.4;animation:2.6s ease-out forwards kz2Bea_pet-bubble-pop;position:absolute;bottom:100%;box-shadow:0 2px 8px #00000040}.kz2Bea_bubblePet{background:#4d6bfef2}.kz2Bea_bubbleFeed{background:#0369a1f2}.kz2Bea_bubbleStatus{max-width:min(calc(280px * var(--pet-bubble-scale,1)), calc(100vw - 24px));text-overflow:ellipsis;padding:calc(5px * var(--pet-bubble-scale,1)) calc(12px * var(--pet-bubble-scale,1));backdrop-filter:blur(8px);letter-spacing:.02em;background:linear-gradient(160deg,#131c36e6,#070b1af0);border:1px solid #7e98ff73;animation:.24s ease-out kz2Bea_pet-bubble-in;overflow:hidden;box-shadow:0 4px 12px #02061759,inset 0 1px #e2e8ff1a,0 0 12px #4d6bfe2e}.kz2Bea_bubbleWhisper{letter-spacing:.03em;animation:.32s cubic-bezier(.22,1,.36,1) kz2Bea_pet-whisper-in}.kz2Bea_bubbleWhisper:before{content:\"「\";opacity:.7;margin-right:2px}.kz2Bea_bubbleWhisper:after{content:\"」\";opacity:.7;margin-left:2px}.kz2Bea_bubbleStack{pointer-events:auto;flex-direction:column-reverse;align-items:center;gap:4px;display:flex;position:absolute;bottom:100%}.kz2Bea_bubbleAnchor{display:inline-flex;position:relative}.kz2Bea_bubbleMore{z-index:1;color:#eef2ff;cursor:pointer;background:linear-gradient(160deg,#4a68f5f2,#2f44b8f2);border:1px solid #7e98ff8c;border-radius:999px;justify-content:center;align-items:center;min-width:18px;height:18px;padding:0 5px;font-size:10px;font-weight:600;line-height:1;transition:filter .12s;display:inline-flex;position:absolute;top:-9px;right:-10px;box-shadow:0 2px 6px #02061766}.kz2Bea_bubbleMore:hover{filter:brightness(1.15)}.kz2Bea_bubbleMore:focus-visible{outline:none;box-shadow:0 0 0 2px #7e98ffe6}.kz2Bea_bubbleStack .kz2Bea_bubble{pointer-events:auto;margin-bottom:0;position:relative;bottom:auto}.kz2Bea_bubbleClickable{cursor:pointer;font:inherit;text-align:center;appearance:none;transition:filter .12s,box-shadow .12s}.kz2Bea_bubbleClickable:hover{filter:brightness(1.12)}.kz2Bea_bubbleClickable:focus-visible{outline:none;box-shadow:0 0 0 2px #7e98ffe6}@keyframes kz2Bea_pet-bubble-in{0%{opacity:0;transform:translateY(6px)scale(.96)}to{opacity:1;transform:translateY(0)scale(1)}}@keyframes kz2Bea_pet-whisper-in{0%{opacity:0;transform:translateY(8px)scale(.9)}60%{transform:translateY(-1px)scale(1.02)}to{opacity:1;transform:translateY(0)scale(1)}}@keyframes kz2Bea_pet-panel-in{0%{opacity:0;transform:translateY(4px)scale(.97)}to{opacity:1;transform:translateY(0)scale(1)}}@keyframes kz2Bea_pet-bubble-pop{0%{opacity:0;transform:translateY(6px)scale(.85)}15%{opacity:1;transform:translateY(0)scale(1.05)}25%{transform:translateY(0)scale(1)}75%{opacity:1}to{opacity:0;transform:translateY(-8px)scale(.95)}}.kz2Bea_panel{color:#e6ebf8;backdrop-filter:blur(10px);transform-origin:50% 0;background:linear-gradient(165deg,#131c36f2,#070b1af7);border:1px solid #7e98ff4d;border-radius:12px;flex-direction:column;gap:7px;min-width:148px;margin-top:8px;padding:10px 12px;font-size:12px;animation:.2s cubic-bezier(.22,1,.36,1) kz2Bea_pet-panel-in;display:flex;position:absolute;top:100%;box-shadow:0 8px 24px #02061773,0 0 0 1px #4d6bfe1a,inset 0 1px #e2e8ff14}.kz2Bea_panel:after{content:\"\";height:14px;position:absolute;bottom:100%;left:0;right:0}.kz2Bea_panelAbove{transform-origin:50% 100%;margin-top:0;margin-bottom:8px;top:auto;bottom:100%}.kz2Bea_panelAbove:after{top:100%;bottom:auto}.kz2Bea_rankRow{white-space:nowrap;justify-content:space-between;gap:10px;display:flex}.kz2Bea_nameCell{letter-spacing:.02em;background:linear-gradient(90deg,#a9c1ff,#6c8bff 60%,#4d6bfe);color:#0000;-webkit-background-clip:text;background-clip:text;font-weight:600}.kz2Bea_action{cursor:pointer;color:#fff;background:linear-gradient(#4a68f5,#3a55e0);border:none;border-radius:6px;flex:1;padding:4px 8px;font-size:12px;font-weight:600;transition:filter .12s,box-shadow .12s,transform .12s;box-shadow:0 2px 6px #4d6bfe4d}.kz2Bea_action:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 4px 10px #4d6bfe66}.kz2Bea_action:active{filter:brightness(.94);transform:translateY(0);box-shadow:0 1px 4px #4d6bfe4d}.kz2Bea_action:focus-visible{outline:none;box-shadow:0 0 0 2px #7e98ffe6}.kz2Bea_summon{color:#8ea6ff;cursor:pointer;background:#070b1abf;border:1px dashed #7e98ff99;border-radius:999px;padding:2px 10px;font-size:11px;transition:border-color .12s,color .12s,background .12s,box-shadow .12s}.kz2Bea_summon:hover{color:#c3d3ff;background:#070b1ae6;border-color:#7e98fff2}.kz2Bea_summon:active{color:#8ea6ff;border-color:#7e98ffcc}.kz2Bea_summon:focus-visible{outline:none;box-shadow:0 0 0 2px #7e98ffe6}@media (prefers-reduced-motion:reduce){.kz2Bea_bubble,.kz2Bea_bubbleStatus,.kz2Bea_bubbleWhisper,.kz2Bea_panel{opacity:1;animation:none}.kz2Bea_action,.kz2Bea_summon,.kz2Bea_bubbleMore{transition:none}}.kz2Bea_gameplayHud{width:0;height:0;position:absolute;bottom:0;left:0}.kz2Bea_gameplayModeChip{color:#cdd7ff;white-space:nowrap;pointer-events:none;background:#7e98ff2e;border-radius:999px;padding:1px 8px;font-size:10px;position:absolute;top:0;left:0;transform:translateY(-100%)translateY(-4px)}.kz2Bea_gameplayCard{color:#dfe6ff;background:#070b1aeb;border:1px solid #7e98ff40;border-radius:10px;min-width:180px;max-height:340px;padding:10px 12px;font-size:12px;position:absolute;bottom:0;left:0;overflow-y:auto;transform:none;box-shadow:0 8px 24px #0006}.kz2Bea_gameplayBars{flex-direction:column;gap:4px;margin-bottom:8px;display:flex}.kz2Bea_gameplayBarRow{align-items:center;gap:6px;display:flex}.kz2Bea_gameplayBarLabel{color:#9aa8d8;flex-shrink:0;width:34px}.kz2Bea_gameplayBarTrack{background:#7e98ff26;border-radius:3px;flex:1;height:6px;overflow:hidden}.kz2Bea_gameplayBarFill{background:linear-gradient(90deg,#7e98ff,#9db4ff);border-radius:3px;height:100%;transition:width .3s;display:block}.kz2Bea_gameplayActions{flex-wrap:wrap;gap:6px;display:flex}.kz2Bea_gameplayShopItems{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px;display:grid}.kz2Bea_gameplayShopItem{color:inherit;cursor:pointer;background:#7e98ff14;border:1px solid #7e98ff40;border-radius:8px;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;display:flex}.kz2Bea_gameplayShopItem:hover{background:#7e98ff29;border-color:#7e98ffb3}.kz2Bea_gameplayShopItemImage{object-fit:contain;width:36px;height:36px;image-rendering:pixelated;pointer-events:none}.kz2Bea_gameplayShopItemLabel{text-align:center;font-size:11px}.kz2Bea_gameplayShopItemPrice{color:#ffd27e;font-size:10px}.kz2Bea_gameplaySkinItems{flex-direction:column;gap:6px;margin-bottom:8px;display:flex}.kz2Bea_gameplaySkinItem{width:100%;color:inherit;cursor:pointer;text-align:left;background:#7e98ff14;border:1px solid #7e98ff40;border-radius:8px;padding:8px 10px;font-size:12px;display:block}.kz2Bea_gameplaySkinItem:hover{background:#7e98ff29;border-color:#7e98ffb3}.kz2Bea_gameplaySkinItemActive{background:#7e98ff47;border-color:#7e98ffe6}.kz2Bea_gameplayClose{color:#9aa8d8;cursor:pointer;background:0 0;border:none;padding:0 2px;font-size:14px;position:absolute;top:4px;right:8px}.kz2Bea_gameplayClose:hover{color:#fff}.kz2Bea_gameplayFloat{color:#3a2a00;white-space:nowrap;pointer-events:none;background:#ffd27eeb;border-radius:999px;padding:2px 10px;font-size:11px;animation:1.1s ease-out forwards kz2Bea_pet-gameplay-float;position:absolute;top:-8px;left:50%;transform:translate(-50%)}@keyframes kz2Bea_pet-gameplay-float{0%{opacity:0;transform:translate(-50%)translateY(6px)}20%{opacity:1}to{opacity:0;transform:translate(-50%)translateY(-18px)}}@media (prefers-reduced-motion:reduce){.kz2Bea_gameplayFloat{opacity:1;animation:none}.kz2Bea_gameplayBarFill{transition:none}}.kz2Bea_bubbleUsage{white-space:nowrap;backdrop-filter:blur(8px);letter-spacing:.02em;background:linear-gradient(160deg,#131c36eb,#070b1af2);border:1px solid #7e98ff73;flex-direction:column;align-items:stretch;gap:3px;min-width:128px;max-width:min(280px,100vw - 24px);padding:6px 12px;animation:.28s cubic-bezier(.22,1,.36,1) kz2Bea_pet-usage-in;display:flex;box-shadow:0 4px 12px #02061759,inset 0 1px #e2e8ff1a,0 0 12px #4d6bfe2e}.kz2Bea_bubbleUsageHead{justify-content:space-between;align-items:baseline;gap:10px;display:flex}.kz2Bea_bubbleUsageTitle{text-overflow:ellipsis;opacity:.85;overflow:hidden}.kz2Bea_bubbleUsageValue{font-variant-numeric:tabular-nums;flex-shrink:0;font-weight:600}.kz2Bea_bubbleUsageNote{text-overflow:ellipsis;opacity:.55;font-size:10px;overflow:hidden}.kz2Bea_bubbleUsageMeter{background:#e2e8ff24;border-radius:999px;height:4px;display:block;overflow:hidden}.kz2Bea_bubbleUsageMeterFill{background:#6ee7b7;border-radius:999px;height:100%;transition:width .3s;display:block}.kz2Bea_bubbleUsageOk{border-color:#7e98ff73}.kz2Bea_bubbleUsageWarn{border-color:#fbbf248c}.kz2Bea_bubbleUsageWarn .kz2Bea_bubbleUsageMeterFill{background:#fbbf24}.kz2Bea_bubbleUsageLow{border-color:#f8717199}.kz2Bea_bubbleUsageLow .kz2Bea_bubbleUsageMeterFill{background:#f87171}@keyframes kz2Bea_pet-usage-in{0%{opacity:0;transform:translateY(6px)scale(.96)}to{opacity:1;transform:translateY(0)scale(1)}}@media (prefers-reduced-motion:reduce){.kz2Bea_bubbleUsage{animation:none}}";
 		const tagId$14 = "@linxin666/dsh-web-all/packages/dsh-pet/src/client/pet.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$14) + "]") === null) {
 			const tag = document.createElement("style");
@@ -22609,7 +22963,6 @@ window.__ModuleLoader__.load({
 		}
 		var pet_module_css_default = {
 			"action": "kz2Bea_action",
-			"actions": "kz2Bea_actions",
 			"bubble": "kz2Bea_bubble",
 			"bubbleAnchor": "kz2Bea_bubbleAnchor",
 			"bubbleClickable": "kz2Bea_bubbleClickable",
@@ -22650,7 +23003,6 @@ window.__ModuleLoader__.load({
 			"gameplaySkinItemActive": "kz2Bea_gameplaySkinItemActive",
 			"gameplaySkinItems": "kz2Bea_gameplaySkinItems",
 			"nameCell": "kz2Bea_nameCell",
-			"nameInput": "kz2Bea_nameInput",
 			"panel": "kz2Bea_panel",
 			"panelAbove": "kz2Bea_panelAbove",
 			"pet-bubble-in": "kz2Bea_pet-bubble-in",
@@ -22660,12 +23012,8 @@ window.__ModuleLoader__.load({
 			"pet-usage-in": "kz2Bea_pet-usage-in",
 			"pet-whisper-in": "kz2Bea_pet-whisper-in",
 			"rankRow": "kz2Bea_rankRow",
-			"renameRow": "kz2Bea_renameRow",
 			"sprite": "kz2Bea_sprite",
 			"spriteWrap": "kz2Bea_spriteWrap",
-			"statPoints": "kz2Bea_statPoints",
-			"statRank": "kz2Bea_statRank",
-			"statTreats": "kz2Bea_statTreats",
 			"summon": "kz2Bea_summon"
 		};
 		//#endregion
@@ -22674,7 +23022,7 @@ window.__ModuleLoader__.load({
 		* Pet sprite companion component — the browser half's centerpiece. Renders a
 		* fixed-position floating sprite (React portal onto document.body), plays
 		* the track matching the host animation snapshot, and exposes the
-		* interaction surface: click to pet, hover panel with feed/rename/hide, drag
+		* interaction surface: click to pet, name/recording hover panel, drag
 		* to reposition (persisted via setConfig). Everything visual comes from the
 		* pet definition the host serves ('/api/pet/pets' + the state snapshot's
 		* pet id), so one component renders every registry entry.
@@ -22824,11 +23172,10 @@ window.__ModuleLoader__.load({
 			const [hovered, setHovered] = (0, react$1.useState)(false);
 			const [stackPeek, setStackPeek] = (0, react$1.useState)(false);
 			const [stackPinned, setStackPinned] = (0, react$1.useState)(false);
-			const [renaming, setRenaming] = (0, react$1.useState)(false);
 			const [panelAbove, setPanelAbove] = (0, react$1.useState)(false);
 			const [panelLift, setPanelLift] = (0, react$1.useState)(0);
 			const [nameDraft, setNameDraft] = (0, react$1.useState)("");
-			const composingRef = (0, react$1.useRef)(false);
+			(0, react$1.useRef)(false);
 			const [dragPos, setDragPos] = (0, react$1.useState)(null);
 			const dragRef = (0, react$1.useRef)(null);
 			const hideTimerRef = (0, react$1.useRef)(null);
@@ -22842,21 +23189,6 @@ window.__ModuleLoader__.load({
 			const rows = definition.rows;
 			const tracks = definition.tracks;
 			const sequences = definition.sequences;
-			const panel = definition.panel;
-			const panelLabel = (slot, i18n) => panel?.labels?.[slot] ?? i18n;
-			const panelStat = (slot, i18nKey, values) => {
-				const format = panel?.stats?.[slot] ?? props.t(i18nKey, values);
-				if (panel?.stats?.[slot] === void 0) return format;
-				const all = {
-					rank: snapshot?.affinity.rank ?? "?",
-					n: snapshot?.treats.stocked ?? 0,
-					points: snapshot?.affinity.points ?? 0
-				};
-				let text = format;
-				for (const [name, value] of Object.entries(all)) text = text.replaceAll("{" + name + "}", String(value));
-				return text;
-			};
-			const panelShows = (action) => panel?.actions === void 0 || panel.actions.includes(action);
 			(0, react$1.useEffect)(() => {
 				if (props.visual !== void 0) return;
 				setImageReady(false);
@@ -22989,7 +23321,7 @@ window.__ModuleLoader__.load({
 			};
 			(0, react$1.useEffect)(() => () => clearHideTimer(), []);
 			const onPointerDown = (e) => {
-				if (props.dragDisabled === true) return;
+				if (e.button !== 0 || props.dragDisabled === true) return;
 				e.preventDefault();
 				e.target.setPointerCapture?.(e.pointerId);
 				const current = dragPos ?? {
@@ -23065,7 +23397,6 @@ window.__ModuleLoader__.load({
 				return () => window.removeEventListener("resize", updatePanelPlacement);
 			}, [
 				hovered,
-				renaming,
 				pos.right,
 				pos.bottom,
 				display.size,
@@ -23074,7 +23405,25 @@ window.__ModuleLoader__.load({
 				stackOpen,
 				feedback
 			]);
+			const recordingStore = recordingClient(), recordingState = (0, react$1.useSyncExternalStore)(recordingStore.subscribe, recordingStore.getSnapshot);
+			(0, react$1.useEffect)(() => {
+				const refresh = () => void recordingStore.refreshConfig();
+				refresh();
+				window.addEventListener("focus", refresh);
+				window.addEventListener("workbench-recording-config-changed", refresh);
+				return () => {
+					window.removeEventListener("focus", refresh);
+					window.removeEventListener("workbench-recording-config-changed", refresh);
+				};
+			}, [recordingStore]);
 			return (0, react_dom.createPortal)(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				onContextMenu: (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					clearHideTimer();
+					setHovered(true);
+					recordingStore.refreshConfig();
+				},
 				ref: floatRef,
 				className: pet_module_css_default.float,
 				style: {
@@ -23090,7 +23439,6 @@ window.__ModuleLoader__.load({
 				onPointerLeave: (e) => {
 					const next = e.relatedTarget;
 					if (next instanceof Node && floatRef.current?.contains(next)) return;
-					if (renaming) return;
 					clearHideTimer();
 					hideTimerRef.current = window.setTimeout(() => setHovered(false), 300);
 				},
@@ -23186,7 +23534,7 @@ window.__ModuleLoader__.load({
 							usageAnnouncement !== void 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(UsageAnnouncementBubble, { announcement: usageAnnouncement })
 						]
 					}),
-					hovered && dragRef.current === null && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					hovered && dragRef.current === null && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						ref: panelRef,
 						className: clsx(pet_module_css_default.panel, panelAbove && pet_module_css_default.panelAbove),
 						"data-placement": panelAbove ? "above" : "below",
@@ -23194,103 +23542,17 @@ window.__ModuleLoader__.load({
 						onPointerEnter: () => {
 							clearHideTimer();
 						},
-						children: renaming ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							className: pet_module_css_default.renameRow,
-							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-								className: pet_module_css_default.nameInput,
-								value: nameDraft,
-								maxLength: 20,
-								placeholder: props.t("pet.namePlaceholder"),
-								autoFocus: true,
-								onChange: (e) => setNameDraft(e.target.value),
-								onCompositionStart: () => {
-									composingRef.current = true;
-								},
-								onCompositionEnd: () => {
-									composingRef.current = false;
-								},
-								onKeyDown: (e) => {
-									if (composingRef.current || e.nativeEvent.isComposing || e.key === "Process") return;
-									if (e.key === "Enter") {
-										const trimmed = nameDraft.trim();
-										if (trimmed !== "") {
-											props.onRename(trimmed);
-											setRenaming(false);
-										}
-									} else if (e.key === "Escape") setRenaming(false);
-								}
-							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-								type: "button",
-								className: pet_module_css_default.action,
-								onClick: () => {
-									const trimmed = nameDraft.trim();
-									if (trimmed !== "") {
-										props.onRename(trimmed);
-										setRenaming(false);
-									}
-								},
-								children: panelLabel("confirm", props.t("pet.confirm"))
-							})]
-						}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								className: pet_module_css_default.rankRow,
-								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-									className: pet_module_css_default.nameCell,
-									children: displayName
-								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-									className: pet_module_css_default.statRank,
-									children: (() => {
-										const rawRank = snapshot?.affinity.rank ?? "?";
-										const rankKey = `pet.rank.name.${rawRank}`;
-										const localized = props.t(rankKey);
-										return panelStat("rank", "pet.rank", { rank: localized !== rankKey ? localized : rawRank });
-									})()
-								})]
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								className: pet_module_css_default.rankRow,
-								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-									className: pet_module_css_default.statTreats,
-									children: panelStat("treats", "pet.treats", { n: snapshot?.treats.stocked ?? 0 })
-								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-									className: pet_module_css_default.statPoints,
-									children: panelStat("points", "pet.points", { points: snapshot?.affinity.points ?? 0 })
-								})]
-							}),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								className: pet_module_css_default.actions,
-								children: [
-									panelShows("feed") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										type: "button",
-										className: pet_module_css_default.action,
-										onClick: props.onFeed,
-										children: panelLabel("feed", props.t("pet.feed"))
-									}),
-									panelShows("rename") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										type: "button",
-										className: pet_module_css_default.action,
-										onClick: () => {
-											clearHideTimer();
-											setNameDraft(displayName);
-											setRenaming(true);
-										},
-										children: panelLabel("rename", props.t("pet.rename"))
-									}),
-									panelShows("hide") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										type: "button",
-										className: pet_module_css_default.action,
-										onClick: props.onHide,
-										children: panelLabel("hide", props.t("pet.hide"))
-									}),
-									props.onGameplayMenu !== void 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										type: "button",
-										className: pet_module_css_default.action,
-										onClick: props.onGameplayMenu,
-										children: props.t("pet.gameplay.menu")
-									})
-								]
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							className: pet_module_css_default.rankRow,
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: pet_module_css_default.nameCell,
+								children: displayName
 							})
-						] })
+						}), (!!recordingState.config?.roles.length || !!recordingState.activeId) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							role: "toolbar",
+							"aria-label": "宠物录音工具",
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RecordingControls, { tone: "pet" })
+						})]
 					})
 				]
 			}), props.portalTarget ?? document.body);
@@ -24121,17 +24383,13 @@ window.__ModuleLoader__.load({
 						display: snapshot.display,
 						feedback,
 						onPet: props.pet,
-						onFeed: props.feed,
-						onHide: props.hide,
 						onDragEnd: props.dragEnd,
-						onRename: props.rename,
 						onOpenSession: props.openSession,
 						onFeedbackDone: props.feedbackDone,
 						portalTarget: props.portalTarget,
 						dragDisabled: snapshot.gameplay?.mode === "work",
 						...gameplay === void 0 || aux === null ? {} : {
 							onGameplayTap: (fx, fy) => aux.bus.tap?.(fx, fy),
-							onGameplayMenu: () => aux.bus.openCard?.(),
 							hud: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(GameplayHud, {
 								definition,
 								store,
@@ -26319,20 +26577,6 @@ window.__ModuleLoader__.load({
 								});
 							}, () => {});
 						},
-						feed: () => {
-							petApi.interact("feed").then((result) => {
-								setFeedback({
-									text: result.reaction,
-									kind: "feed",
-									at: Date.now()
-								});
-							}, () => {});
-						},
-						hide: () => {
-							petApi.setVisible(false).then(() => {
-								pollNow();
-							}, () => {});
-						},
 						summon: () => {
 							petApi.setVisible(true).then(() => {
 								pollNow();
@@ -26344,11 +26588,6 @@ window.__ModuleLoader__.load({
 								bottom
 							}).then(() => {
 								pollNow();
-							}, () => {});
-						},
-						rename: (name) => {
-							petApi.setName(name).then((result) => {
-								if (result.ok) pollNow();
 							}, () => {});
 						},
 						feedbackDone: () => {

@@ -8,6 +8,7 @@ export type LocalConversation = {
   title: string
   draft: string
   updatedAt: number
+  recordingId?: string
   meeting?: unknown
 }
 

@@ -31,16 +31,10 @@ export interface PetInjected {
   ensure: () => void
   /** Pet the sprite (click). */
   pet: () => void
-  /** Feed the sprite. */
-  feed: () => void
-  /** Hide the sprite. */
-  hide: () => void
   /** Summon the hidden sprite back. */
   summon: () => void
   /** Persist a drag position. */
   dragEnd: (right: number, bottom: number) => void
-  /** Rename the selected pet (persisted by the host). */
-  rename: (name: string) => void
   /** Navigate the GUI to the session a bubble reports on. */
   openSession: (sessionId: string) => void
   /** Clear the reaction bubble. */
@@ -112,10 +106,7 @@ export function PetDockEntry(props: PetDockEntryProps): ReactElement {
                 display={snapshot.display}
                 feedback={feedback}
                 onPet={props.pet}
-                onFeed={props.feed}
-                onHide={props.hide}
                 onDragEnd={props.dragEnd}
-                onRename={props.rename}
                 onOpenSession={props.openSession}
                 onFeedbackDone={props.feedbackDone}
                 portalTarget={props.portalTarget}
@@ -124,7 +115,6 @@ export function PetDockEntry(props: PetDockEntryProps): ReactElement {
                   ? {}
                   : {
                       onGameplayTap: (fx: number, fy: number) => aux.bus.tap?.(fx, fy),
-                      onGameplayMenu: () => aux.bus.openCard?.(),
                       hud: (
                         <GameplayHud
                           definition={definition}

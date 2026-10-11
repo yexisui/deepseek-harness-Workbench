@@ -72,11 +72,8 @@ function injected(): PetInjected {
     store: createPetStore().create(),
     ensure: vi.fn(),
     pet: vi.fn(),
-    feed: vi.fn(),
-    hide: vi.fn(),
     summon: vi.fn(),
     dragEnd: vi.fn(),
-    rename: vi.fn(),
     openSession: vi.fn(),
     feedbackDone: vi.fn(),
     gameplay: {

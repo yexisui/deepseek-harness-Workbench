@@ -30,6 +30,7 @@ export function capabilityPresentation(data: Snapshot, capability: Capability, v
   if (problems.length) return status('组件待完善',problems.join('；'),'pending')
   if (descriptors.some(value => value?.management !== management)) return status('分项检测','此能力包含不同服务，请在组件中心分别检查。','unknown')
   if (management === 'package') return packageStatus?.ready ? status('已启用',packageStatus.message,'ready') : status('待检测','正在读取执行组件状态','unknown')
+  if (management === 'recording') return status('已启用','选择录音归属岗位后，通过宠物按钮或对话开始录音。','context')
   if (management === 'developer') return status('项目内检测','进入开发对话并绑定项目后检测文件、Git 和验证环境；默认只读。','context')
   const service = management === 'requirements' ? requirements : management === 'meeting-asr' ? meeting : undefined
   if (management === 'requirements' || management === 'meeting-asr') {

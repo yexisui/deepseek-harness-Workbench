@@ -1,3 +1,4 @@
+import { recordingCapability } from '../core/model.ts'
 import { applyCapabilitySettings, saveRoleSettings } from '../core/current-settings.ts'
 import {ManagedSkills} from '../../../dsh-skill-explorer/src/managed.ts'
 import {dirname} from 'node:path'
@@ -115,6 +116,16 @@ export class CapabilityStore {
         const backup = await open(join(this.directory, 'state-before-default-roles-v2.json'), 'wx').catch(error => { if (error.code !== 'EEXIST') throw error; return undefined })
         if (backup) { try { await backup.writeFile(JSON.stringify(this.state, null, 2)); await backup.sync() } finally { await backup.close() } }
         await this.persist(next); this.state = next
+      }
+      if (this.state.recordingCapabilityVersion !== 1) {
+        const next=this.mutableSnapshot(),now=new Date().toISOString()
+        if(!next.capabilities.some(c=>c.id==='audio-recording'))next.capabilities.push(recordingCapability(now))
+        const role=next.roles.find(r=>r.id===MEETING_ROLE_ID),current=role&&latest(role.versions),binding={capabilityId:'audio-recording',version:1,enabled:true}
+        if(role&&current&&!current.capabilities.some(b=>b.capabilityId===binding.capabilityId)){
+          if(!role.draft.capabilities.some(b=>b.capabilityId===binding.capabilityId))role.draft.capabilities.push(structuredClone(binding))
+          this.publishRole(role,{...structuredClone(current),capabilities:[...current.capabilities,binding]},now)
+        }
+        next.recordingCapabilityVersion=1;next.revision++;next.updatedAt=now;await this.persist(next);this.state=next
       }
     } catch (error) { await this.close(); throw error }
   }
