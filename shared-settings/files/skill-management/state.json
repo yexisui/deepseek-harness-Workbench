@@ -1,0 +1,21 @@
+{
+  "revision": 8,
+  "skills": [
+    {
+      "id": "e5163661-906f-4075-976d-159db1281ad4",
+      "name": "requirement-review",
+      "description": "检查产品需求中的范围、状态流转和验收条件，列出有证据的冲突与需要确认的问题。适用于需求评审和功能方案核对。",
+      "root": "{{WORKBENCH_ROOT}}\\dsh-data\\skills",
+      "scope": "global",
+      "hash": "18bb214beae06eec1bc8bb5c0d817417ed61f6ca87bc32c08a5b349bff78bb00",
+      "enabled": false,
+      "auto": true,
+      "manual": true,
+      "category": "未分类",
+      "warnings": [],
+      "updatedAt": "2026-10-07T04:25:45.638Z",
+      "tags": [],
+      "usage": "all"
+    }
+  ]
+}

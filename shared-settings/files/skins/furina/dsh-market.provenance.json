@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "source": "https://dsh-market.com",
+  "kind": "skin",
+  "id": "furina",
+  "installedAt": "2026-09-17T06:06:48.041Z",
+  "assetVersion": "0.1.20",
+  "files": {
+    "LICENSE": "02e1e3ebf73df5c1840c842a8e93b40942bf6e53a66acbe6c5643fc8664ff97d",
+    "README.md": "60376bdc0515165b7d1cabfa4d69ccb1c4c5875ba0b7341e31f472568d86665a",
+    "README.zh.md": "d8684438b84119d42f6235b382adcd594a4028e27b59b964417bd136022a5fc6",
+    "assets/furina-art.jpg": "5d73357c5ee028fa67e3615379a89f67d4543dc902f89ee4535bfedcfd77a659",
+    "assets/furina-icon.png": "d1e6058d19b04817a623dc6e3a99405c70defaf412e9296edf7dbe2032ff7cbe",
+    "hooks.mjs": "713668d3a50da8878337feb4553f953eea781734934610af37a58dea37112ec9",
+    "patches.css": "0f4d48904763b1928c36ed109df5bd8f6666824e0313a650ab9a4adbaad9927d",
+    "preview/dark.jpg": "1eb34cc3c45cd5a83f880be4edd3621a5b329c920e1e1bbce40804a08cb661c2",
+    "preview/light.jpg": "efae40e72bf34dcf6564c4a724adbab62dfd3c255b8ba969121fa23f9581f77e",
+    "skin.css": "ddc2ceddfd8aaa362deb543187807cc268a6997c3699adfe56d49d9f480470da",
+    "skin.json": "eaac87525cf305e6a7d78b5257705301fa3818e696c3ccbba205bd72a135f108"
+  }
+}

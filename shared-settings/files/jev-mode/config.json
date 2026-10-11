@@ -1,0 +1,34 @@
+{
+  "schema": 2,
+  "revision": 10,
+  "value": {
+    "enabled": false,
+    "backend": "self-owned",
+    "model": "deepseek-official/deepseek-flash",
+    "reasoningEffort": "",
+    "timeoutMs": 45000,
+    "maxChecks": 16,
+    "maxContextChars": 24000,
+    "connectionMode": "account",
+    "candidates": [
+      {
+        "id": "a0713b32-772b-4ee7-b7a7-921be11299b9",
+        "model": "deepseek-official/deepseek-flash",
+        "enabled": true,
+        "reasoningEffort": ""
+      },
+      {
+        "id": "242b7503-ed30-4aa0-b826-9f53d9537b21",
+        "model": "deepseek-official/deepseek-v4-flash",
+        "enabled": true,
+        "reasoningEffort": ""
+      },
+      {
+        "id": "51d37d52-7b95-4c57-b0f4-b6f1cc557a2b",
+        "model": "deepseek-official/deepseek-v4-pro",
+        "enabled": true,
+        "reasoningEffort": ""
+      }
+    ]
+  }
+}

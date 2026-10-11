@@ -1,0 +1,5 @@
+- id: workbench-capabilities
+  config:
+    bskPath: "{{WORKBENCH_ROOT}}\\runtime\\browserskill\\0.3.0\\cli\\bsk.exe"
+    bskHome: "{{WORKBENCH_ROOT}}\\dsh-data\\browser-runtime"
+    port: 52800

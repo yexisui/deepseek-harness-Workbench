@@ -1,0 +1,986 @@
+{
+  "schema": 1,
+  "revision": 42,
+  "updatedAt": "2026-10-10T06:36:16.997Z",
+  "roles": [
+    {
+      "id": "builtin-analyst",
+      "enabled": true,
+      "draft": {
+        "name": "需求分析助手",
+        "color": "#4F73E8",
+        "duties": "协助梳理核电企业办公业务的软件需求，理解业务目标、使用角色与操作流程，整理功能清单和待确认事项。",
+        "requirements": "区分明确需求与待确认事项，不自行补充业务规则。\n信息不足时先提出澄清问题，使用业务人员易懂的语言。",
+        "format": "一、业务目标\n二、操作步骤\n三、功能清单\n四、待确认事项",
+        "capabilities": [
+          {
+            "capabilityId": "requirements-analysis",
+            "version": 1,
+            "enabled": true
+          },
+          {
+            "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+            "version": 2,
+            "enabled": true
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "需求分析助手",
+          "color": "#4F73E8",
+          "duties": "协助梳理核电企业办公业务的软件需求，理解业务目标、使用角色与操作流程，整理功能清单和待确认事项。",
+          "requirements": "区分明确需求与待确认事项，不自行补充业务规则。\n信息不足时先提出澄清问题，使用业务人员易懂的语言。",
+          "format": "一、业务目标\n二、操作步骤\n三、功能清单\n四、待确认事项",
+          "capabilities": [],
+          "version": 1,
+          "preset": "workbench-role-builtin-analyst-v1",
+          "createdAt": "2026-09-22T06:04:59.989Z"
+        },
+        {
+          "name": "需求分析助手",
+          "color": "#4F73E8",
+          "duties": "协助梳理核电企业办公业务的软件需求，理解业务目标、使用角色与操作流程，整理功能清单和待确认事项。",
+          "requirements": "区分明确需求与待确认事项，不自行补充业务规则。\n信息不足时先提出澄清问题，使用业务人员易懂的语言。",
+          "format": "一、业务目标\n二、操作步骤\n三、功能清单\n四、待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "requirements-analysis",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 2,
+          "preset": "workbench-role-builtin-analyst-v2",
+          "createdAt": "2026-09-29T06:37:32.982Z"
+        },
+        {
+          "name": "需求分析助手",
+          "color": "#4F73E8",
+          "duties": "协助梳理核电企业办公业务的软件需求，理解业务目标、使用角色与操作流程，整理功能清单和待确认事项。",
+          "requirements": "区分明确需求与待确认事项，不自行补充业务规则。\n信息不足时先提出澄清问题，使用业务人员易懂的语言。",
+          "format": "一、业务目标\n二、操作步骤\n三、功能清单\n四、待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "requirements-analysis",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+              "version": 2,
+              "enabled": true
+            }
+          ],
+          "version": 3,
+          "preset": "workbench-role-builtin-analyst-v3",
+          "createdAt": "2026-10-10T02:28:49.602Z",
+          "directSave": true
+        }
+      ]
+    },
+    {
+      "id": "builtin-marketing",
+      "enabled": true,
+      "draft": {
+        "name": "市场部助手",
+        "color": "#E58A32",
+        "duties": "协助整理市场动态、客户需求与竞品信息，构思推广方案和宣传文案，梳理客户沟通要点与商机跟进事项。",
+        "requirements": "区分已知事实、分析判断与待核实信息，不编造市场数据或客户反馈。\n文案贴合目标客户与使用场景，对外承诺须由业务人员确认。",
+        "format": "一、目标与受众\n二、市场与客户洞察\n三、推广建议与内容草案\n四、跟进事项",
+        "capabilities": []
+      },
+      "versions": [
+        {
+          "name": "市场部助手",
+          "color": "#E58A32",
+          "duties": "协助整理市场动态、客户需求与竞品信息，构思推广方案和宣传文案，梳理客户沟通要点与商机跟进事项。",
+          "requirements": "区分已知事实、分析判断与待核实信息，不编造市场数据或客户反馈。\n文案贴合目标客户与使用场景，对外承诺须由业务人员确认。",
+          "format": "一、目标与受众\n二、市场与客户洞察\n三、推广建议与内容草案\n四、跟进事项",
+          "capabilities": [],
+          "version": 1,
+          "preset": "workbench-role-builtin-marketing-v1",
+          "createdAt": "2026-09-22T06:04:59.989Z"
+        }
+      ]
+    },
+    {
+      "id": "builtin-manager",
+      "enabled": true,
+      "draft": {
+        "name": "项目经理助手",
+        "color": "#9A62D8",
+        "duties": "协助明确项目目标与交付范围，拆解任务、依赖和里程碑，整理进度周报、会议纪要及风险清单。",
+        "requirements": "以已确认的范围、时间和资源为依据，不擅自承诺工期或分配责任人。\n明确任务依赖、阻塞事项和待决策问题，缺失信息标注待确认。",
+        "format": "一、项目目标与当前进展\n二、任务计划与里程碑\n三、风险及阻塞事项\n四、下一步行动与待确认事项",
+        "capabilities": []
+      },
+      "versions": [
+        {
+          "name": "项目经理助手",
+          "color": "#9A62D8",
+          "duties": "协助明确项目目标与交付范围，拆解任务、依赖和里程碑，整理进度周报、会议纪要及风险清单。",
+          "requirements": "以已确认的范围、时间和资源为依据，不擅自承诺工期或分配责任人。\n明确任务依赖、阻塞事项和待决策问题，缺失信息标注待确认。",
+          "format": "一、项目目标与当前进展\n二、任务计划与里程碑\n三、风险及阻塞事项\n四、下一步行动与待确认事项",
+          "capabilities": [],
+          "version": 1,
+          "preset": "workbench-role-builtin-manager-v1",
+          "createdAt": "2026-09-22T06:04:59.989Z"
+        }
+      ]
+    },
+    {
+      "id": "builtin-developer",
+      "enabled": true,
+      "draft": {
+        "name": "开发助手",
+        "color": "#22A58B",
+        "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+        "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+        "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+        "capabilities": [
+          {
+            "capabilityId": "developer-workspace",
+            "version": 1,
+            "enabled": true
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "开发助手",
+          "color": "#22A58B",
+          "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+          "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+          "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+          "capabilities": [],
+          "version": 1,
+          "preset": "workbench-role-builtin-developer-v1",
+          "createdAt": "2026-09-22T06:04:59.989Z"
+        },
+        {
+          "name": "开发助手",
+          "color": "#22A58B",
+          "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+          "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+          "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "developer-workspace",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 2,
+          "preset": "workbench-role-builtin-developer-v2",
+          "createdAt": "2026-09-30T01:45:04.906Z"
+        },
+        {
+          "name": "开发助手",
+          "color": "#22A58B",
+          "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+          "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+          "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "developer-workspace",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "requirements-analysis",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 3,
+          "preset": "workbench-role-builtin-developer-v3",
+          "createdAt": "2026-10-09T03:56:27.163Z"
+        },
+        {
+          "name": "开发助手",
+          "color": "#22A58B",
+          "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+          "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+          "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "developer-workspace",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 4,
+          "preset": "workbench-role-builtin-developer-v4",
+          "createdAt": "2026-10-09T03:56:52.921Z"
+        }
+      ]
+    },
+    {
+      "id": "meeting-minutes-demo",
+      "enabled": true,
+      "draft": {
+        "name": "会议纪要助手",
+        "color": "#6683bd",
+        "icon": {
+          "kind": "builtin",
+          "id": "document"
+        },
+        "duties": "在对话中帮助用户上传会议录音、核对转写内容，并生成可继续修改的会议纪要。",
+        "requirements": "只依据录音转写和用户确认的信息整理内容；区分结论、行动项与待确认事项，不编造负责人、期限或决策。",
+        "format": "会议概览、主要结论、行动项、待确认事项；行动项尽量列明负责人、期限与录音依据。",
+        "capabilities": [
+          {
+            "capabilityId": "meeting-transcription",
+            "version": 1,
+            "enabled": true
+          },
+          {
+            "capabilityId": "local-603c79b3-b9a4-44fa-9dfe-ce5d484a1195",
+            "version": 1,
+            "enabled": true
+          },
+          {
+            "capabilityId": "audio-recording",
+            "version": 1,
+            "enabled": true
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "会议纪要助手",
+          "color": "#6683bd",
+          "icon": {
+            "kind": "builtin",
+            "id": "document"
+          },
+          "duties": "在对话中帮助用户上传会议录音、核对转写内容，并生成可继续修改的会议纪要。",
+          "requirements": "只依据录音转写和用户确认的信息整理内容；区分结论、行动项与待确认事项，不编造负责人、期限或决策。",
+          "format": "会议概览、主要结论、行动项、待确认事项；行动项尽量列明负责人、期限与录音依据。",
+          "capabilities": [],
+          "version": 1,
+          "preset": "workbench-role-meeting-minutes-demo-v1",
+          "createdAt": "2026-09-27T14:12:27.411Z"
+        },
+        {
+          "name": "会议纪要助手",
+          "color": "#6683bd",
+          "icon": {
+            "kind": "builtin",
+            "id": "document"
+          },
+          "duties": "在对话中帮助用户上传会议录音、核对转写内容，并生成可继续修改的会议纪要。",
+          "requirements": "只依据录音转写和用户确认的信息整理内容；区分结论、行动项与待确认事项，不编造负责人、期限或决策。",
+          "format": "会议概览、主要结论、行动项、待确认事项；行动项尽量列明负责人、期限与录音依据。",
+          "capabilities": [
+            {
+              "capabilityId": "meeting-transcription",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 2,
+          "preset": "workbench-role-meeting-minutes-demo-v2",
+          "createdAt": "2026-09-27T14:47:34.113Z"
+        },
+        {
+          "name": "会议纪要助手",
+          "color": "#6683bd",
+          "icon": {
+            "kind": "builtin",
+            "id": "document"
+          },
+          "duties": "在对话中帮助用户上传会议录音、核对转写内容，并生成可继续修改的会议纪要。",
+          "requirements": "只依据录音转写和用户确认的信息整理内容；区分结论、行动项与待确认事项，不编造负责人、期限或决策。",
+          "format": "会议概览、主要结论、行动项、待确认事项；行动项尽量列明负责人、期限与录音依据。",
+          "capabilities": [
+            {
+              "capabilityId": "meeting-transcription",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "local-603c79b3-b9a4-44fa-9dfe-ce5d484a1195",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 3,
+          "preset": "workbench-role-meeting-minutes-demo-v3",
+          "createdAt": "2026-10-08T03:15:54.794Z"
+        },
+        {
+          "name": "会议纪要助手",
+          "color": "#6683bd",
+          "icon": {
+            "kind": "builtin",
+            "id": "document"
+          },
+          "duties": "在对话中帮助用户上传会议录音、核对转写内容，并生成可继续修改的会议纪要。",
+          "requirements": "只依据录音转写和用户确认的信息整理内容；区分结论、行动项与待确认事项，不编造负责人、期限或决策。",
+          "format": "会议概览、主要结论、行动项、待确认事项；行动项尽量列明负责人、期限与录音依据。",
+          "capabilities": [
+            {
+              "capabilityId": "meeting-transcription",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "local-603c79b3-b9a4-44fa-9dfe-ce5d484a1195",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "audio-recording",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 4,
+          "preset": "workbench-role-meeting-minutes-demo-v4",
+          "createdAt": "2026-10-10T06:36:16.997Z"
+        }
+      ]
+    },
+    {
+      "id": "local-118bde26-3801-43da-abca-cec490224cdf",
+      "enabled": false,
+      "draft": {
+        "name": "流程验收 · 需求检查",
+        "color": "#4F73E8",
+        "duties": "仅用于 Skills 与插件联动验收。评审用户提供的产品需求，优先使用 requirement-review 技能及随包评审模板。",
+        "requirements": "区分明确冲突与尚未说明；仅使用岗位已授权工具。技能无法加载时如实说明。",
+        "format": "按需求检查模板输出中文评审。",
+        "capabilities": [
+          {
+            "capabilityId": "browser",
+            "version": 1,
+            "enabled": true
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "流程验收 · 需求检查",
+          "color": "#4F73E8",
+          "duties": "仅用于 Skills 与插件联动验收。评审用户提供的产品需求，优先使用 requirement-review 技能及随包评审模板。",
+          "requirements": "区分明确冲突与尚未说明；仅使用岗位已授权工具。技能无法加载时如实说明。",
+          "format": "按需求检查模板输出中文评审。",
+          "capabilities": [
+            {
+              "capabilityId": "browser",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 1,
+          "preset": "workbench-role-local-118bde26-3801-43da-abca-cec490224cdf-v1",
+          "createdAt": "2026-10-07T04:25:45.671Z"
+        }
+      ],
+      "archivedAt": "2026-10-09T05:33:32.677Z"
+    },
+    {
+      "id": "local-95621bed-5637-4a12-b3b8-f181e185cb3d",
+      "enabled": true,
+      "draft": {
+        "name": "流程图演示助手",
+        "color": "#4F73E8",
+        "duties": "面向普通用户，用简明中文整理操作步骤，并使用关联的流程图生成能力，将当前对话内容制作成用户指定的标准或蛇形流程图。支持通过对话修改，展示图片及查看和下载入口。",
+        "requirements": "",
+        "format": "",
+        "capabilities": [
+          {
+            "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+            "version": 2,
+            "enabled": true
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "流程图演示助手",
+          "color": "#4F73E8",
+          "duties": "面向普通用户，用简明中文整理操作步骤，并使用关联的流程图生成能力，将当前对话内容制作成用户指定的标准或蛇形流程图。支持通过对话修改，展示图片及查看和下载入口。",
+          "requirements": "",
+          "format": "",
+          "capabilities": [
+            {
+              "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 1,
+          "preset": "workbench-role-local-95621bed-5637-4a12-b3b8-f181e185cb3d-v1",
+          "createdAt": "2026-10-10T02:03:32.793Z",
+          "directSave": true
+        },
+        {
+          "name": "流程图演示助手",
+          "color": "#4F73E8",
+          "duties": "面向普通用户，用简明中文整理操作步骤，并使用关联的流程图生成能力，将当前对话内容制作成用户指定的标准或蛇形流程图。支持通过对话修改，展示图片及查看和下载入口。",
+          "requirements": "",
+          "format": "",
+          "capabilities": [
+            {
+              "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+              "version": 2,
+              "enabled": true
+            }
+          ],
+          "version": 2,
+          "createdAt": "2026-10-10T02:12:04.038Z",
+          "preset": "workbench-role-local-95621bed-5637-4a12-b3b8-f181e185cb3d-v2",
+          "directSave": true
+        }
+      ]
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "browser",
+      "source": "builtin",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "浏览器操作",
+        "description": "在独立浏览器窗口中打开、读取网页与截图。",
+        "instructions": "先说明目标，再打开网页并读取结果。仅使用已授权的浏览器动作；完成后关闭本会话的浏览器窗口。",
+        "components": [
+          {
+            "componentId": "browserskill",
+            "actions": [
+              "navigate",
+              "read",
+              "screenshot"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "浏览器操作",
+          "description": "在独立浏览器窗口中打开、读取网页与截图。",
+          "instructions": "先说明目标，再打开网页并读取结果。仅使用已授权的浏览器动作；完成后关闭本会话的浏览器窗口。",
+          "components": [
+            {
+              "componentId": "browserskill",
+              "actions": [
+                "navigate",
+                "read",
+                "screenshot"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-09-22T05:53:42.549Z"
+        }
+      ]
+    },
+    {
+      "id": "meeting-transcription",
+      "source": "builtin",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "会议录音转写",
+        "description": "上传会议录音并转写，支持按时间定位和核对原文；纪要由工作台模型生成。",
+        "instructions": "使用已配置的兼容语音识别接口处理录音。录音与转写内容仅在会议对话中使用；生成纪要前核对重要结论。",
+        "components": [
+          {
+            "componentId": "meeting-asr",
+            "actions": [
+              "transcribe"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "会议录音转写",
+          "description": "上传会议录音并转写，支持按时间定位和核对原文；纪要由工作台模型生成。",
+          "instructions": "使用已配置的兼容语音识别接口处理录音。录音与转写内容仅在会议对话中使用；生成纪要前核对重要结论。",
+          "components": [
+            {
+              "componentId": "meeting-asr",
+              "actions": [
+                "transcribe"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-09-27T14:47:34.113Z"
+        }
+      ]
+    },
+    {
+      "id": "requirements-analysis",
+      "source": "builtin",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "需求分析",
+        "description": "通过对话澄清业务目标，将资料整理为有来源、可确认和持续修订的需求清单与文档。",
+        "instructions": "依据用户描述和提供的资料分析需求。区分原文依据、用户确认与助手建议；缺少的信息形成待确认问题。先展示修改建议，采用后更新需求草稿。",
+        "components": [
+          {
+            "componentId": "requirements-service",
+            "actions": [
+              "analyze-requirements"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "需求分析",
+          "description": "通过对话澄清业务目标，将资料整理为有来源、可确认和持续修订的需求清单与文档。",
+          "instructions": "依据用户描述和提供的资料分析需求。区分原文依据、用户确认与助手建议；缺少的信息形成待确认问题。先展示修改建议，采用后更新需求草稿。",
+          "components": [
+            {
+              "componentId": "requirements-service",
+              "actions": [
+                "analyze-requirements"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-09-29T06:37:32.982Z"
+        }
+      ]
+    },
+    {
+      "id": "developer-workspace",
+      "source": "builtin",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "开发工作区",
+        "description": "围绕本地项目开发、查看 Git 变更、管理版本和运行检查。",
+        "instructions": "先绑定项目，默认只读。用户允许编辑后在项目内修改文件；提交由用户预览并主动触发。验证结果绑定代码版本。",
+        "components": [
+          {
+            "componentId": "developer-files",
+            "actions": [
+              "develop"
+            ]
+          },
+          {
+            "componentId": "developer-git",
+            "actions": [
+              "inspect-git"
+            ]
+          },
+          {
+            "componentId": "developer-checks",
+            "actions": [
+              "verify-code"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "开发工作区",
+          "description": "围绕本地项目开发、查看 Git 变更、管理版本和运行检查。",
+          "instructions": "先绑定项目，默认只读。用户允许编辑后在项目内修改文件；提交由用户预览并主动触发。验证结果绑定代码版本。",
+          "components": [
+            {
+              "componentId": "developer-files",
+              "actions": [
+                "develop"
+              ]
+            },
+            {
+              "componentId": "developer-git",
+              "actions": [
+                "inspect-git"
+              ]
+            },
+            {
+              "componentId": "developer-checks",
+              "actions": [
+                "verify-code"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-09-30T01:45:04.906Z"
+        }
+      ]
+    },
+    {
+      "id": "local-603c79b3-b9a4-44fa-9dfe-ce5d484a1195",
+      "source": "local",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "录音分段定位",
+        "description": "优先按停顿分段，提供片段级回听。复用会议转写模型，不需要额外 Key。",
+        "instructions": "添加到会议纪要助手后用于后续录音处理。定位到片段起点，不代表逐句精确时间。独立运行可输入 JSON：{\"duration\":60,\"silences\":[{\"start\":21,\"end\":22}]} 查看分段计划。",
+        "components": [
+          {
+            "componentId": "pkg:workbench.audio-segment-location:segmenter",
+            "actions": [
+              "pack:workbench.audio-segment-location:segmenter:plan-audio-segments"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "录音分段定位",
+          "description": "优先按停顿分段，提供片段级回听。复用会议转写模型，不需要额外 Key。",
+          "instructions": "添加到会议纪要助手后用于后续录音处理。定位到片段起点，不代表逐句精确时间。独立运行可输入 JSON：{\"duration\":60,\"silences\":[{\"start\":21,\"end\":22}]} 查看分段计划。",
+          "components": [
+            {
+              "componentId": "pkg:workbench.audio-segment-location:segmenter",
+              "actions": [
+                "pack:workbench.audio-segment-location:segmenter:plan-audio-segments"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-10-08T03:15:54.765Z",
+          "packageHash": "50af8a6fa79ee0bbb299fb923a8456c64f20473e75fb3a7c328aad4f6e7f4ddc"
+        }
+      ],
+      "packageOrigin": {
+        "id": "workbench.audio-segment-location",
+        "draftBackups": []
+      }
+    },
+    {
+      "id": "local-80a17072-f1ae-499a-8420-8cdf3591eace",
+      "source": "local",
+      "enabled": false,
+      "pinned": false,
+      "draft": {
+        "name": "DSH 计算器",
+        "description": "复用 @deepseek-ai/dsh-tool-calculator 原包内置的零依赖安全数学表达式求值器（lib/evaluate.js 的 evaluate 函数），对表达式求值并返回有限数字；不注册 Cordis 工具，直接调用原包导出函数。",
+        "instructions": "用法：action=evaluate，input 形如 {\"expression\":\"15 + 27 * sqrt(9)\"}，返回 {\"ok\":true,\"expression\":\"...\",\"result\":96}；表达式非法时返回 {\"ok\":false,\"echo\":..,\"error\":\"...\"}，不抛异常也不伪造结果。\n支持：+ - * / % **（右结合）、括号、一元正负；单参函数 abs ceil floor round sqrt log log2 log10 exp sin cos tan；多参函数 pow(x,y) max(...) min(...)；常量 PI E。三角函数用弧度。\n限制：表达式长度 ≤500 字符，不支持科学计数法（1e5 报错），结果为 NaN/Infinity（如除零、负数开方）会报错，不支持大整数。\naction=help 无需 input，返回该能力的运算符、函数白名单与限制说明。\n示例调用：{\"action\":\"evaluate\",\"input\":{\"expression\":\"2 + 3 * 4\"}} → result 14；{\"action\":\"evaluate\",\"input\":{\"expression\":\"pow(2, 3)\"}} → result 8。",
+        "components": [
+          {
+            "componentId": "pkg:local.import.p6f1c04677b06992030e52a28:main",
+            "actions": [
+              "pack:local.import.p6f1c04677b06992030e52a28:main:evaluate",
+              "pack:local.import.p6f1c04677b06992030e52a28:main:help"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "DSH 计算器",
+          "description": "复用 @deepseek-ai/dsh-tool-calculator 原包内置的零依赖安全数学表达式求值器（lib/evaluate.js 的 evaluate 函数），对表达式求值并返回有限数字；不注册 Cordis 工具，直接调用原包导出函数。",
+          "instructions": "用法：action=evaluate，input 形如 {\"expression\":\"15 + 27 * sqrt(9)\"}，返回 {\"ok\":true,\"expression\":\"...\",\"result\":96}；表达式非法时返回 {\"ok\":false,\"echo\":..,\"error\":\"...\"}，不抛异常也不伪造结果。\n支持：+ - * / % **（右结合）、括号、一元正负；单参函数 abs ceil floor round sqrt log log2 log10 exp sin cos tan；多参函数 pow(x,y) max(...) min(...)；常量 PI E。三角函数用弧度。\n限制：表达式长度 ≤500 字符，不支持科学计数法（1e5 报错），结果为 NaN/Infinity（如除零、负数开方）会报错，不支持大整数。\naction=help 无需 input，返回该能力的运算符、函数白名单与限制说明。\n示例调用：{\"action\":\"evaluate\",\"input\":{\"expression\":\"2 + 3 * 4\"}} → result 14；{\"action\":\"evaluate\",\"input\":{\"expression\":\"pow(2, 3)\"}} → result 8。",
+          "components": [
+            {
+              "componentId": "pkg:local.import.p6f1c04677b06992030e52a28:main",
+              "actions": [
+                "pack:local.import.p6f1c04677b06992030e52a28:main:evaluate",
+                "pack:local.import.p6f1c04677b06992030e52a28:main:help"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-10-09T07:34:21.152Z",
+          "packageHash": "850a0da68f4f93285067317e1e4a58fd77abbca451ac3dfdcd708a8dd3df0c4d",
+          "directSave": true
+        }
+      ],
+      "packageOrigin": {
+        "id": "local.import.p6f1c04677b06992030e52a28",
+        "draftBackups": []
+      },
+      "removedAt": "2026-10-09T07:46:39.389Z"
+    },
+    {
+      "id": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+      "source": "local",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "流程图生成",
+        "description": "根据对话内容生成固定样式的标准流程图或蛇形流程图，支持通过对话修改、查看大图和下载图片。",
+        "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"或\"snake\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"snake\"或\"standard\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。",
+        "components": [
+          {
+            "componentId": "pkg:org.workbench.flowchart:renderer",
+            "actions": [
+              "pack:org.workbench.flowchart:renderer:diagram"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "流程图生成",
+          "description": "根据对话内容生成固定样式的标准流程图或蛇形流程图，支持通过对话修改、查看大图和下载图片。",
+          "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"或\"snake\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"snake\"或\"standard\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。",
+          "components": [
+            {
+              "componentId": "pkg:org.workbench.flowchart:renderer",
+              "actions": [
+                "pack:org.workbench.flowchart:renderer:diagram"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-10-10T02:02:41.000Z",
+          "packageHash": "669dbcebc902b5686ef1176a93658a02e18a9b7f8fa29bb4033bd8428270d7cd",
+          "directSave": true
+        },
+        {
+          "name": "流程图生成",
+          "description": "根据对话内容生成固定样式的标准流程图或蛇形流程图，支持通过对话修改、查看大图和下载图片。",
+          "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"或\"snake\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"snake\"或\"standard\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。",
+          "components": [
+            {
+              "componentId": "pkg:org.workbench.flowchart:renderer",
+              "actions": [
+                "pack:org.workbench.flowchart:renderer:diagram"
+              ]
+            }
+          ],
+          "version": 2,
+          "createdAt": "2026-10-10T02:12:04.038Z",
+          "packageHash": "36886bcafd9ea6d5bcb1668eae658e34f74e458399d57f8b804a3b0c2651b68c",
+          "directSave": true
+        }
+      ],
+      "packageOrigin": {
+        "id": "org.workbench.flowchart",
+        "draftBackups": []
+      }
+    },
+    {
+      "id": "audio-recording",
+      "source": "builtin",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "录音与保存",
+        "description": "通过宠物或对话开始麦克风录音，支持暂停、继续、完成和取消，录音分批保存。",
+        "instructions": "选择已绑定的录音归属岗位。输入开始录音、暂停录音、继续录音、完成录音或取消录音。暂停和切换页面保持同一录音会话。",
+        "components": [
+          {
+            "componentId": "audio-recorder",
+            "actions": [
+              "record-audio"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "录音与保存",
+          "description": "通过宠物或对话开始麦克风录音，支持暂停、继续、完成和取消，录音分批保存。",
+          "instructions": "选择已绑定的录音归属岗位。输入开始录音、暂停录音、继续录音、完成录音或取消录音。暂停和切换页面保持同一录音会话。",
+          "components": [
+            {
+              "componentId": "audio-recorder",
+              "actions": [
+                "record-audio"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-10-10T06:36:16.997Z"
+        }
+      ]
+    }
+  ],
+  "defaultRolesVersion": 2,
+  "revokedAt": {
+    "role:builtin-marketing": 1790057133635,
+    "role:builtin-analyst": 1790057149528,
+    "capability:local-ac98522c-69cc-4674-9569-0f7aad3b8176": 1790060061249,
+    "role:local-118bde26-3801-43da-abca-cec490224cdf": 1791524012677,
+    "capability:local-80a17072-f1ae-499a-8420-8cdf3591eace": 1791531999389
+  },
+  "meetingCapabilityVersion": 1,
+  "requirementsCapabilityVersion": 1,
+  "developerCapabilityVersion": 1,
+  "packageReleases": {
+    "50af8a6fa79ee0bbb299fb923a8456c64f20473e75fb3a7c328aad4f6e7f4ddc": {
+      "hash": "50af8a6fa79ee0bbb299fb923a8456c64f20473e75fb3a7c328aad4f6e7f4ddc",
+      "manifest": {
+        "schema": 1,
+        "protocol": "dsh-worker-v1",
+        "id": "workbench.audio-segment-location",
+        "version": "1.0.0",
+        "name": "录音分段定位",
+        "description": "优先按停顿分段，提供片段级回听。复用会议转写模型，不需要额外 Key。",
+        "instructions": "添加到会议纪要助手后用于后续录音处理。定位到片段起点，不代表逐句精确时间。独立运行可输入 JSON：{\"duration\":60,\"silences\":[{\"start\":21,\"end\":22}]} 查看分段计划。",
+        "author": "工作台",
+        "license": "MIT",
+        "permissions": [
+          "node"
+        ],
+        "components": [
+          {
+            "id": "segmenter",
+            "name": "录音分段策略",
+            "entry": "runtime/main.cjs",
+            "actions": [
+              {
+                "id": "plan-audio-segments",
+                "name": "规划录音分段",
+                "description": "接收音频时长和停顿区间，返回连续覆盖录音的分段计划；音频处理和转写由工作台提供。"
+              }
+            ]
+          }
+        ],
+        "files": {
+          "runtime/main.cjs": "9b8051487e39e8c9a1dc4a3995936762d43c8ff6d3a9f9055c582441cf601c0f",
+          "docs/README.txt": "2436da63f13325a504242110e93499c28953bacb7d9cd30b56d0a82c02b4a9b8"
+        }
+      },
+      "installedAt": "2026-10-08T03:15:54.765Z"
+    },
+    "850a0da68f4f93285067317e1e4a58fd77abbca451ac3dfdcd708a8dd3df0c4d": {
+      "hash": "850a0da68f4f93285067317e1e4a58fd77abbca451ac3dfdcd708a8dd3df0c4d",
+      "manifest": {
+        "schema": 1,
+        "protocol": "dsh-worker-v1",
+        "id": "local.import.p6f1c04677b06992030e52a28",
+        "version": "1.0.0",
+        "name": "DSH 计算器",
+        "description": "复用 @deepseek-ai/dsh-tool-calculator 原包内置的零依赖安全数学表达式求值器（lib/evaluate.js 的 evaluate 函数），对表达式求值并返回有限数字；不注册 Cordis 工具，直接调用原包导出函数。",
+        "instructions": "用法：action=evaluate，input 形如 {\"expression\":\"15 + 27 * sqrt(9)\"}，返回 {\"ok\":true,\"expression\":\"...\",\"result\":96}；表达式非法时返回 {\"ok\":false,\"echo\":..,\"error\":\"...\"}，不抛异常也不伪造结果。\n支持：+ - * / % **（右结合）、括号、一元正负；单参函数 abs ceil floor round sqrt log log2 log10 exp sin cos tan；多参函数 pow(x,y) max(...) min(...)；常量 PI E。三角函数用弧度。\n限制：表达式长度 ≤500 字符，不支持科学计数法（1e5 报错），结果为 NaN/Infinity（如除零、负数开方）会报错，不支持大整数。\naction=help 无需 input，返回该能力的运算符、函数白名单与限制说明。\n示例调用：{\"action\":\"evaluate\",\"input\":{\"expression\":\"2 + 3 * 4\"}} → result 14；{\"action\":\"evaluate\",\"input\":{\"expression\":\"pow(2, 3)\"}} → result 8。",
+        "author": "本地导入",
+        "license": "MIT",
+        "permissions": [
+          "node"
+        ],
+        "components": [
+          {
+            "id": "main",
+            "name": "DSH 计算器",
+            "entry": "runtime/adapter.cjs",
+            "actions": [
+              {
+                "id": "evaluate",
+                "name": "表达式求值",
+                "description": "安全求值数学表达式，返回有限数字。JSON 输入示例：{\"expression\":\"15 + 27 * sqrt(9)\"}"
+              },
+              {
+                "id": "help",
+                "name": "支持的运算",
+                "description": "返回支持的运算符、函数、常量与限制，无需输入。JSON 输入示例：{}"
+              }
+            ]
+          }
+        ],
+        "files": {
+          "resources/source/.gitignore": "ce92bbed6e382363371ba4c3ca60ac2297aaa3e113dafd3dd350ed6c3077a45b",
+          "resources/source/LICENSE": "8bda1ee96ffdbd04ee68ecb89ba02c1010398f8d081218d809ecf817d45b18a9",
+          "resources/source/README.en.md": "2c786e62edffa9793138cc069d6d88bfa3a36e0ae2d2d7cb64b2be9c2043a3a2",
+          "resources/source/README.md": "6f2e00379f478359703d834914c563727804e17973a908ef2f0a6d80f7c8af28",
+          "resources/source/cordis.patch.yml": "5834fe61638c9233852a1082ea95791e44fc666c7d179f60433266b5261ad610",
+          "resources/source/lib/evaluate.d.ts": "e471b052257768837b2945960a8f8910390b13d3a6054bea0849771d6f43f546",
+          "resources/source/lib/evaluate.js": "3f0bfded394d92c98c18e187a6508e71b1d303494f847e3f9eebf9c93feb03c8",
+          "resources/source/lib/index.d.ts": "6fb402d1e8d5bfe797cc5e6f0e599c05c5a0a1b98f5307c91a87ba2d335808de",
+          "resources/source/lib/index.js": "0ce87ab34729a9295e019881267bbd4c81d39e670c1cfed01adbf24ac4b3f727",
+          "resources/source/lib/invariant.d.ts": "5f035d353ef35c5274efac2a3d38df6192ba6aeafe30e11bc50bf95dae2155a9",
+          "resources/source/lib/invariant.js": "71ceeaaccbe6f05339d88c84421f927957a34cecd1e7aac99846b29bdf142d5c",
+          "resources/source/lib/types/evaluate.d.ts": "e471b052257768837b2945960a8f8910390b13d3a6054bea0849771d6f43f546",
+          "resources/source/lib/types/index.d.ts": "5f4def8c05f8d47bfdd2a1f83890db7422c456b17a4e7ef513f128005e837cee",
+          "resources/source/lib/types/invariant.d.ts": "5f035d353ef35c5274efac2a3d38df6192ba6aeafe30e11bc50bf95dae2155a9",
+          "resources/source/package-lock.json": "2316ef2ec77f1123427434952ef7d73ab2d3e5ecdabfb1ca1b36c9a334510fcd",
+          "resources/source/package.json": "d139ea27436ead18c9495b24a0fd8ab3e32b3f948f273e0374301bb3f3a9c0bc",
+          "resources/source/src/evaluate.ts": "c54c0e5bfa1a681b2c99621b06fcf3f850277938056036766013fcbc50e98a67",
+          "resources/source/src/index.ts": "f69bb03815f56861e24429943f86050dd16dfef2398c838f783ebbfeb6930afd",
+          "resources/source/src/invariant.ts": "432af494d869d4d43c0ce3733f8f6fde379f87f3be9110f427b82f927d77a53d",
+          "resources/source/tests/evaluate.spec.ts": "860aaf612cdddf0f02034311ab1965e5ad247350f0acacbd976777f4b512e56d",
+          "resources/source/tests/register.spec.ts": "093933220bee9e337e6a35d50f1557e0dc444ffb4a7cef108e7b267732c4c223",
+          "resources/source/tsconfig.json": "d48e5ca9920fbc8b44a08459a59e8f0f4fd2de6168c0c8b0ddffcc7c209716f3",
+          "runtime/adapter.cjs": "5ca4baddc9be61dea499405842b9223f690c954b92831399edb0bb01677958c8"
+        }
+      },
+      "installedAt": "2026-10-09T07:34:21.152Z"
+    },
+    "669dbcebc902b5686ef1176a93658a02e18a9b7f8fa29bb4033bd8428270d7cd": {
+      "hash": "669dbcebc902b5686ef1176a93658a02e18a9b7f8fa29bb4033bd8428270d7cd",
+      "manifest": {
+        "schema": 1,
+        "protocol": "dsh-worker-v1",
+        "id": "org.workbench.flowchart",
+        "version": "1.0.0",
+        "name": "流程图生成",
+        "description": "根据对话内容生成固定样式的标准流程图或蛇形流程图，支持通过对话修改、查看大图和下载图片。",
+        "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"或\"snake\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"snake\"或\"standard\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。",
+        "author": "工作台",
+        "license": "Apache-2.0",
+        "permissions": [
+          "node",
+          "model"
+        ],
+        "components": [
+          {
+            "id": "renderer",
+            "name": "固定模板流程图",
+            "entry": "runtime/main.cjs",
+            "actions": [
+              {
+                "id": "diagram",
+                "name": "生成与修改流程图",
+                "description": "根据前文生成标准或蛇形流程图，通过对话局部修改、读取、切换样式。"
+              }
+            ]
+          }
+        ],
+        "files": {
+          "runtime/main.cjs": "70074eda81ec4f5bc28060172383bbb0198d7a0ee34a46c1a14da03fafb47530",
+          "resources/create.txt": "64d5fc62e422e741babe5a546a209b3f3d26d6d4ac376e5545bbfd709553b99c",
+          "resources/edit.txt": "c3c403ad79bac7bc12f1290f388ffd491ecf123e75cb8fb7eac84dfa117ea6a3",
+          "docs/README.txt": "5086006b9c6ad3df74d890ac3276f05474f8dd1b38b5adb03fceccac11d9842f"
+        }
+      },
+      "installedAt": "2026-10-10T02:02:41.000Z"
+    },
+    "36886bcafd9ea6d5bcb1668eae658e34f74e458399d57f8b804a3b0c2651b68c": {
+      "hash": "36886bcafd9ea6d5bcb1668eae658e34f74e458399d57f8b804a3b0c2651b68c",
+      "manifest": {
+        "schema": 1,
+        "protocol": "dsh-worker-v1",
+        "id": "org.workbench.flowchart",
+        "version": "1.0.1",
+        "name": "流程图生成",
+        "description": "根据对话内容生成固定样式的标准流程图或蛇形流程图，支持通过对话修改、查看大图和下载图片。",
+        "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"或\"snake\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"snake\"或\"standard\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。",
+        "author": "工作台",
+        "license": "Apache-2.0",
+        "permissions": [
+          "node",
+          "model"
+        ],
+        "components": [
+          {
+            "id": "renderer",
+            "name": "固定模板流程图",
+            "entry": "runtime/main.cjs",
+            "actions": [
+              {
+                "id": "diagram",
+                "name": "生成与修改流程图",
+                "description": "根据前文生成标准或蛇形流程图，通过对话局部修改、读取、切换样式。"
+              }
+            ]
+          }
+        ],
+        "files": {
+          "runtime/main.cjs": "233050284d700e02aa382e50a31ed505df5c7c5bd0ab3795e0db54b61ac8ff23",
+          "resources/create.txt": "64d5fc62e422e741babe5a546a209b3f3d26d6d4ac376e5545bbfd709553b99c",
+          "resources/edit.txt": "c3c403ad79bac7bc12f1290f388ffd491ecf123e75cb8fb7eac84dfa117ea6a3",
+          "docs/README.txt": "5086006b9c6ad3df74d890ac3276f05474f8dd1b38b5adb03fceccac11d9842f"
+        }
+      },
+      "installedAt": "2026-10-10T02:12:04.038Z"
+    }
+  },
+  "recordingCapabilityVersion": 1
+}

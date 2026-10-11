@@ -296,3 +296,5 @@
 2026-10-11：M007补充离线包体积估算依据、旧构建和测试残留清理范围；离线安装包尚未制作。
 
 2026-10-11：M007新增离线安装、复用与修复交付记录；PROJECT_MAP补充制作脚本入口，浏览器组件为用户自行安装的可选包。
+
+- shared-settings/README.txt、manifest.json、files/：可共享配置快照与说明；生成方式由deepseek_harness_desktop/scripts/settings-sync.cjs管理，settings-sync.test.cjs验证私密数据排除与迁移保护。维护记录见M007。

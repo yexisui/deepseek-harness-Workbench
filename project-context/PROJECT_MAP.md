@@ -31,3 +31,6 @@
 - 离线运行包包含`offline/install.ps1`、程序payload、校验清单和可导入能力ZIP；根`一键部署.cmd`仍为唯一部署入口。
 - 默认部署及`-Repair`只修复缺失或哈希不同的程序文件；`-Mode Check`只检查。已有配置保留，仅合并必要插件注册。
 - 大型离线包与安装状态不进Git；源仓库保存制作/安装/隔离验证脚本。实际验证与交付位置见M007。
+
+### 设置共享（2026-10-11）
+shared-settings存可共享设置快照，scripts/settings-sync.cjs负责导出/导入；部署及启动自动应用变化。dsh-data仍为本机运行数据。安装包只复制offline子目录，保留Git最新根脚本；使用步骤见shared-settings/README.txt，状态见M007。

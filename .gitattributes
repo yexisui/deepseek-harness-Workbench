@@ -1,0 +1,2 @@
+# Settings hashes must survive Git checkout on Windows unchanged.
+/shared-settings/** -text

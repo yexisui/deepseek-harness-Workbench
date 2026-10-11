@@ -1,0 +1,13 @@
+{
+  "active": "furina",
+  "initialized": true,
+  "background": {
+    "enabled": true,
+    "backgroundOpacity": 100,
+    "backgroundBlurEmpty": 0,
+    "backgroundBlurContent": 0,
+    "inputCardBlur": 10,
+    "bubbleOpacity": 50,
+    "bubbleBlur": 10
+  }
+}

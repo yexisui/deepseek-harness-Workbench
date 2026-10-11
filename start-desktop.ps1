@@ -54,6 +54,11 @@ try {
     $bundledBsk = Join-Path $root 'runtime\browserskill\0.3.0\cli\bsk.exe'
     if (-not $env:DSH_BSK_PATH -and (Test-Path -LiteralPath $bundledBsk -PathType Leaf)) { $env:DSH_BSK_PATH = $bundledBsk }
     $env:PATH = (Join-Path $root 'runtime\node_modules\.bin') + ';' + $env:PATH
+    $settingsScript = Join-Path $root 'deepseek_harness_desktop\scripts\settings-sync.cjs'
+    if ((Test-Path -LiteralPath $settingsScript) -and (Test-Path -LiteralPath (Join-Path $root 'shared-settings\manifest.json'))) {
+        & $env:DSH_DESKTOP_NODE $settingsScript apply $root
+        if ($LASTEXITCODE -ne 0) { throw 'Could not apply shared settings. See the message above.' }
+    }
     Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
     Start-Process -FilePath $electronExe -ArgumentList ('"' + $sourceApp + '"') -WorkingDirectory $root -WindowStyle Normal | Out-Null
     Write-Host 'DSH Desktop launched. Its logs are in desktop-state\logs.'

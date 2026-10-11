@@ -105,3 +105,6 @@ Desktop.ini
 /offline/
 /offline-state/
 /offline-releases/
+
+# Shared configuration is exported to shared-settings; local receipts/backups contain private data.
+/settings-local/

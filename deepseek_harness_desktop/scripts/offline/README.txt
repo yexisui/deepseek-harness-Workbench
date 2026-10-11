@@ -8,3 +8,4 @@ python deepseek_harness_desktop/scripts/offline/build-offline.py --donor <干净
 verify-offline.py会故意损坏隔离环境的程序文件并验证修复；只能传入专用验证目录。
 目标系统为Windows x64，PowerShell 5.1及.NET Framework为系统前置条件；不自动安装全局工具或系统运行库。
 新发布版本调整build-offline.py中的release标识；不要以同一版本标识发布不同内容。
+共享设置：源仓库现在提供shared-settings快照及scripts/settings-sync.cjs。部署根脚本安装完成后自动合并配置；与安装payload分开维护。将交付包offline子目录复制到最新Git项目根目录，保留Git根脚本，不要覆盖为旧版；模型Key仍单独配置。安装ZIP、settings-local应用记录/备份不入Git。

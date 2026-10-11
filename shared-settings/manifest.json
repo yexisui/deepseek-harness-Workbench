@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "path": "capabilities/recordings/settings.json",
+      "format": "structured",
+      "sha256": "308a89ee4d2e68e7e30ae7b7122e7a5f81920ea6845442fd5b9324f76f7042e0"
+    },
+    {
+      "path": "capabilities/state.json",
+      "format": "structured",
+      "sha256": "341b5b5c9bf54b265bf4c9c9f4b1bfc8fad07e01d2aba31fda19601344dc99a9"
+    },
+    {
+      "path": "jev-mode/config.json",
+      "format": "structured",
+      "sha256": "ba7322ae1630aa552636c7aaab4e856300f67cbc473689fe4b2a505d7ce4002f"
+    },
+    {
+      "path": "pet.json",
+      "format": "structured",
+      "sha256": "405595776c83e6c32bdf4f16e3539bac4ff11712af4e8ca202e0948f89536f8d"
+    },
+    {
+      "path": "plugin-management/classification.json",
+      "format": "structured",
+      "sha256": "bb41e9b29819829c0b3855fe48f027ca3abfae7392a210a1b105c6d5711c31c0"
+    },
+    {
+      "path": "profiles/web/cordis.patch.yml",
+      "format": "structured",
+      "sha256": "f8bdc344f1227f84a510441067a9b0ee9ab85a52cc60d1ffba4ab83aed0bcac3"
+    },
+    {
+      "path": "settings.yaml",
+      "format": "structured",
+      "sha256": "2c02ee4e6b754e933409bda5dbe9268a4d3ca40b4f3784e3fde0cba2ebd6292f"
+    },
+    {
+      "path": "skill-management/state.json",
+      "format": "structured",
+      "sha256": "cc9150aca0e56c546e412df699bb02f8852786a2d6995944d555fe59d416f2ef"
+    },
+    {
+      "path": "skill-management/versions/18bb214beae06eec1bc8bb5c0d817417ed61f6ca87bc32c08a5b349bff78bb00/SKILL.md",
+      "format": "text",
+      "sha256": "18562cc37095ebffe8b63ad888bdbef6d970f8f69e95163d91327c5bc5c67641"
+    },
+    {
+      "path": "skill-management/versions/18bb214beae06eec1bc8bb5c0d817417ed61f6ca87bc32c08a5b349bff78bb00/references/review-template.md",
+      "format": "text",
+      "sha256": "e54bd31559025de402a2f01622bc78df3c83159b884af0e1047a1f00e96e351d"
+    },
+    {
+      "path": "skills/requirement-review/SKILL.md",
+      "format": "text",
+      "sha256": "d838a1ca7a698313d182cfc0564cc018ca8daa590e418f5bd359e0f80243af1b"
+    },
+    {
+      "path": "skills/requirement-review/references/review-template.md",
+      "format": "text",
+      "sha256": "e54bd31559025de402a2f01622bc78df3c83159b884af0e1047a1f00e96e351d"
+    },
+    {
+      "path": "skin-center-active.json",
+      "format": "structured",
+      "sha256": "605fd5cb27279580efec56e3cfeb24f8dcf73e4e77e0206db2237c7ee2729922"
+    },
+    {
+      "path": "skins/furina/LICENSE",
+      "format": "text",
+      "sha256": "02e1e3ebf73df5c1840c842a8e93b40942bf6e53a66acbe6c5643fc8664ff97d"
+    },
+    {
+      "path": "skins/furina/README.md",
+      "format": "text",
+      "sha256": "60376bdc0515165b7d1cabfa4d69ccb1c4c5875ba0b7341e31f472568d86665a"
+    },
+    {
+      "path": "skins/furina/README.zh.md",
+      "format": "text",
+      "sha256": "d8684438b84119d42f6235b382adcd594a4028e27b59b964417bd136022a5fc6"
+    },
+    {
+      "path": "skins/furina/assets/furina-art.jpg",
+      "format": "binary",
+      "sha256": "5d73357c5ee028fa67e3615379a89f67d4543dc902f89ee4535bfedcfd77a659"
+    },
+    {
+      "path": "skins/furina/assets/furina-icon.png",
+      "format": "binary",
+      "sha256": "d1e6058d19b04817a623dc6e3a99405c70defaf412e9296edf7dbe2032ff7cbe"
+    },
+    {
+      "path": "skins/furina/dsh-market.provenance.json",
+      "format": "structured",
+      "sha256": "8924a7c7bfb981dc801f41426396e2327e8aa47571d89146bcb925c0a07dc581"
+    },
+    {
+      "path": "skins/furina/hooks.mjs",
+      "format": "text",
+      "sha256": "713668d3a50da8878337feb4553f953eea781734934610af37a58dea37112ec9"
+    },
+    {
+      "path": "skins/furina/patches.css",
+      "format": "text",
+      "sha256": "0f4d48904763b1928c36ed109df5bd8f6666824e0313a650ab9a4adbaad9927d"
+    },
+    {
+      "path": "skins/furina/preview/dark.jpg",
+      "format": "binary",
+      "sha256": "1eb34cc3c45cd5a83f880be4edd3621a5b329c920e1e1bbce40804a08cb661c2"
+    },
+    {
+      "path": "skins/furina/preview/light.jpg",
+      "format": "binary",
+      "sha256": "efae40e72bf34dcf6564c4a724adbab62dfd3c255b8ba969121fa23f9581f77e"
+    },
+    {
+      "path": "skins/furina/skin.css",
+      "format": "text",
+      "sha256": "ddc2ceddfd8aaa362deb543187807cc268a6997c3699adfe56d49d9f480470da"
+    },
+    {
+      "path": "skins/furina/skin.json",
+      "format": "structured",
+      "sha256": "eaac87525cf305e6a7d78b5257705301fa3818e696c3ccbba205bd72a135f108"
+    }
+  ]
+}

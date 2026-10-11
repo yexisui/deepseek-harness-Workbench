@@ -11,7 +11,16 @@ param(
 $offlineInstaller = Join-Path $PSScriptRoot 'offline\install.ps1'
 if ((Test-Path -LiteralPath $offlineInstaller) -and $MyInvocation.InvocationName -ne '.') {
     & $offlineInstaller -Mode $Mode -Repair:$Repair
-    exit $LASTEXITCODE
+    $offlineResult = $LASTEXITCODE
+    if ($offlineResult -ne 0) { exit $offlineResult }
+    if ($Mode -in @('Deploy', 'Tools', 'Bootstrap')) {
+        $settingsScript = Join-Path $PSScriptRoot 'deepseek_harness_desktop\scripts\settings-sync.cjs'
+        if ((Test-Path -LiteralPath $settingsScript) -and (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'shared-settings\manifest.json'))) {
+            & (Join-Path $PSScriptRoot 'runtime-node\node.exe') $settingsScript apply $PSScriptRoot
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        }
+    }
+    exit 0
 }
 $ErrorActionPreference = 'Stop'
 $script:Root = $PSScriptRoot
@@ -281,6 +290,12 @@ function Register-Bundles {
     if (-not $profileObject.patchReload) { Set-Field $profileObject 'patchReload' 'live' }
     Write-Json $file $manifest
 }
+function Apply-SharedSettings {
+    $settingsScript = Join-Path $script:Source 'scripts\settings-sync.cjs'
+    if ((Test-Path -LiteralPath $settingsScript) -and (Test-Path -LiteralPath (Join-Path $script:Root 'shared-settings\manifest.json'))) {
+        Invoke-Tool $script:Node @($settingsScript, 'apply', $script:Root)
+    }
+}
 function Build-Workshop {
     Invoke-Tool $script:Node @((Join-Path $script:Source 'scripts\build-workbench.mjs'), $script:Root, $script:Source)
     Backup-Profile
@@ -359,6 +374,7 @@ function Main {
     if ($Mode -eq 'Check') { Check-Installation; return }
     if ($Mode -eq 'Desktop') {
         foreach ($file in @($script:Node, $script:Dsh, (Join-Path $script:Profile 'package.json'), $script:Electron)) { Require-File $file }
+        Apply-SharedSettings
         $app = Join-Path $script:Source 'desktop'
         Start-Process -FilePath $script:Electron -ArgumentList ('"' + $app + '"') -WorkingDirectory $script:Root -WindowStyle Normal | Out-Null
         return
@@ -398,6 +414,7 @@ function Main {
             foreach ($file in @($script:Node, $script:Pnpm, (Join-Path $script:Profile 'package.json'), (Join-Path $dev 'node_modules\tsdown\dist\run.mjs'))) { Require-File $file }
         }
         $script:Step = 'Local Workshop build and registration'; Build-Workshop
+        $script:Step = 'Shared settings'; Apply-SharedSettings
         $script:Step = 'Launchers'; Write-Launchers
         $script:Step = 'Validation'; Check-Installation
         Write-Json $selectionFile ([pscustomobject]@{ sourceName = Split-Path -Leaf $script:Source; lastRoot = $script:Root; completedAt = (Get-Date -Format o) })
