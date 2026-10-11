@@ -25,3 +25,9 @@
 需求记录中的 `<WORKBENCH_ROOT>` 表示当前克隆目录；`<SECONDARY_WORKSPACE>` 是作者隔离验证目录，不要求协作者重建。旧版本号、旧 UI 和旧发布流程只供追溯；现行交互以规则第 8、9 节及最新已确认需求为准。
 
 资料关系：[规则](AGENTS.MD) → [台账](PEFR_PLAN.MD) → [逐文件索引](FILE_INDEX.md) → 相关 A/M 详情；原项目背景见[归档索引](archive/INDEX.md)。
+
+### Windows 离线交付入口（2026-10-11）
+- 制作脚本：`deepseek_harness_desktop/scripts/offline/build-offline.py`；维护说明在同目录README.txt。
+- 离线运行包包含`offline/install.ps1`、程序payload、校验清单和可导入能力ZIP；根`一键部署.cmd`仍为唯一部署入口。
+- 默认部署及`-Repair`只修复缺失或哈希不同的程序文件；`-Mode Check`只检查。已有配置保留，仅合并必要插件注册。
+- 大型离线包与安装状态不进Git；源仓库保存制作/安装/隔离验证脚本。实际验证与交付位置见M007。

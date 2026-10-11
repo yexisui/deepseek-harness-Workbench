@@ -7,6 +7,12 @@ param(
     [switch]$Repair
 )
 
+# A distributed offline payload takes precedence; never fall back to network installation.
+$offlineInstaller = Join-Path $PSScriptRoot 'offline\install.ps1'
+if ((Test-Path -LiteralPath $offlineInstaller) -and $MyInvocation.InvocationName -ne '.') {
+    & $offlineInstaller -Mode $Mode -Repair:$Repair
+    exit $LASTEXITCODE
+}
 $ErrorActionPreference = 'Stop'
 $script:Root = $PSScriptRoot
 $script:Step = 'preflight'

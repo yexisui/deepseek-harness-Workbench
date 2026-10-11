@@ -50,6 +50,9 @@ try {
         $env:DSH_DESKTOP_NODE = $nodeCommand.Source
     }
     $env:DSH_HOME = Join-Path $root 'dsh-data'
+    # Prefer the supplied portable BrowserSkill when no explicit override is configured.
+    $bundledBsk = Join-Path $root 'runtime\browserskill\0.3.0\cli\bsk.exe'
+    if (-not $env:DSH_BSK_PATH -and (Test-Path -LiteralPath $bundledBsk -PathType Leaf)) { $env:DSH_BSK_PATH = $bundledBsk }
     $env:PATH = (Join-Path $root 'runtime\node_modules\.bin') + ';' + $env:PATH
     Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
     Start-Process -FilePath $electronExe -ArgumentList ('"' + $sourceApp + '"') -WorkingDirectory $root -WindowStyle Normal | Out-Null

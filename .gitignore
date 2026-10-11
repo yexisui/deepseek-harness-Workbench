@@ -100,3 +100,8 @@ Desktop.ini
 !/project-context/PEFR_PLAN.MD
 /project-context/archive/local-only/
 # END PROJECT CONTEXT
+
+# Offline release payload and local repair state (scripts remain tracked).
+/offline/
+/offline-state/
+/offline-releases/

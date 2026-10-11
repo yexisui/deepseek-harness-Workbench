@@ -1,4 +1,4 @@
-External tools / 外部工具维护说明
+﻿External tools / 外部工具维护说明
 
 当前必需工具：tools.json 中的 FFmpeg 与 ffprobe，供会议录音分段、时长探测和音频转换使用。
 能力组合中的音频分段规划由 capability-packages/audio-segment-location 提供，公共可执行程序由宿主调用。
@@ -27,3 +27,11 @@ Git 保留 tools.json、install.ps1、README.txt 和 .gitignore。每种工具�
 
 安装回归：powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\external-tools\test-install.ps1 -ArchivePath <verified-ffmpeg-zip>
 将占位符替换为与 tools.json 校验和一致的本地 FFmpeg ZIP；测试在唯一临时目录内验证安装/复用/错误拒绝及合成音频处理，保留隔离证据，不调用模型。
+
+离线交付（2026-10-11）
+离线包由 deepseek_harness_desktop/scripts/offline/build-offline.py 从已验证的干净部署目录制作。
+FFmpeg releases、许可证和相对路径current.json包含在本地payload中；离线部署不调用联网下载流程。
+一键部署.cmd自动复用完整文件并修复缺失/损坏文件，-Mode Check只检查；原有联网部署保留在源码开发目录。
+BrowserSkill为独立可选插件ZIP，主离线安装不安装或检查其npm插件、CLI和扩展。
+需要时由用户将可选包解压至工作台根目录，再自行加载Chrome/Edge扩展；桌面仅在便携CLI已安装且没有显式DSH_BSK_PATH时选用它。
+浏览器程序和用户浏览器数据不随包分发，额外插件包不代表能力导入格式。
