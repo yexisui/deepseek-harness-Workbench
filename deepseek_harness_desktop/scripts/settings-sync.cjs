@@ -8,6 +8,7 @@ const structuredFiles = [
   'settings.yaml', 'pet.json', 'skin-center-active.json',
   'plugin-management/classification.json', 'skill-management/state.json',
   'capabilities/state.json', 'capabilities/recordings/settings.json',
+  'capabilities/file-search/settings.json',
   'profiles/web/cordis.patch.yml',
 ];
 const trees = ['skills/', 'skill-management/versions/', 'skins/', '.agent-presets/'];

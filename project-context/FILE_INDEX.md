@@ -312,3 +312,5 @@
 - [requirements/auto/A027-JEV模式移除与业务回归.md](requirements/auto/A027-JEV模式移除与业务回归.md)：T038退役范围、业务保护、正式同步、基线对照和r4交付验证；A020改为历史参考。
 
 - [requirements/auto/A028-移除宠物额度悬浮框.md](requirements/auto/A028-移除宠物额度悬浮框.md)：T039额度框移除范围、宠物保留、正式同步和r5离线交付证据。
+
+- [requirements/auto/A029-Everything本地文件搜索嵌入可行性分析.md](requirements/auto/A029-Everything本地文件搜索嵌入可行性分析.md)：T040 的需求演进、正式实现、Everything/ES 工具与索引服务、默认岗位、紧凑互斥 UI、原生目录选择、数据边界、测试/旧测试限制和 r8 离线交付证据；最新实施记录取代早期仅预览状态。

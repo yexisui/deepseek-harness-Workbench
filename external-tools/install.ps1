@@ -1,11 +1,13 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 [CmdletBinding()]
-param([switch]$Check)
+param([switch]$Check, [string[]]$Only, [switch]$SkipService)
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 if ([Environment]::OSVersion.Platform -ne 'Win32NT' -or -not [Environment]::Is64BitOperatingSystem) { throw 'External tools require Windows x64.' }
 $manifest = Get-Content -LiteralPath (Join-Path $root 'tools.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-foreach ($tool in $manifest.tools) {
+foreach ($entry in $manifest.tools) {
+    $tool = $entry
+    if ($PSBoundParameters.ContainsKey('Only') -and $tool.id -notin $PSBoundParameters['Only']) { continue }
     $toolRoot = Join-Path $root $tool.id
     $release = Join-Path $toolRoot ('releases\' + $tool.directory)
     $ready = $true
@@ -27,20 +29,35 @@ foreach ($tool in $manifest.tools) {
         if ((Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -ne $tool.sha256) { throw "Cached archive checksum differs: $zip" }
         $stage = Join-Path $toolRoot ('staging-' + [guid]::NewGuid().ToString('N'))
         Expand-Archive -LiteralPath $zip -DestinationPath $stage
-        $unpacked = Join-Path $stage $tool.directory
+        $unpacked = if ($tool.flatArchive) { $stage } else { Join-Path $stage $tool.directory }
         foreach ($exe in $tool.executables.PSObject.Properties) {
             if (-not (Test-Path -LiteralPath (Join-Path $unpacked $exe.Value))) { throw "Archive is missing $($exe.Name)." }
         }
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $release) | Out-Null
         # Keep an incomplete previous installation instead of deleting it.
+        $resolvedRelease = [IO.Path]::GetFullPath($release)
+        if (-not $resolvedRelease.StartsWith(([IO.Path]::GetFullPath($toolRoot) + [IO.Path]::DirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase)) { throw 'Tool release is outside installation root.' }
         if (Test-Path -LiteralPath $release) {
             Move-Item -LiteralPath $release -Destination ($release + '.previous-' + [guid]::NewGuid().ToString('N'))
         }
+        $resolvedStage = [IO.Path]::GetFullPath($unpacked)
+        if (-not $resolvedStage.StartsWith(([IO.Path]::GetFullPath($toolRoot) + [IO.Path]::DirectorySeparatorChar), [StringComparison]::OrdinalIgnoreCase)) { throw 'Tool stage is outside installation root.' }
         Move-Item -LiteralPath $unpacked -Destination $release
     }
     foreach ($exe in $tool.executables.PSObject.Properties) {
-        $output = & (Join-Path $release $exe.Value) -version
-        if ($LASTEXITCODE -ne 0 -or $output[0] -notmatch ([regex]::Escape($tool.version))) { throw "Cannot start the expected $($exe.Name) version." }
+        if ($tool.fileVersion) {
+            $version = (Get-Item -LiteralPath (Join-Path $release $exe.Value)).VersionInfo.FileVersion
+            if ($version -ne $tool.version) { throw "Unexpected $($exe.Name) file version: $version" }
+        } else {
+            $output = & (Join-Path $release $exe.Value) -version
+            if ($LASTEXITCODE -ne 0 -or ($output -join "`n") -notmatch ([regex]::Escape($tool.version))) { throw "Cannot start the expected $($exe.Name) version." }
+        }
+    }
+    if ($tool.licenseFile) {
+        $licenseSource = Join-Path $root $tool.licenseFile
+        $licenseTarget = Join-Path $release 'LICENSE.txt'
+        if ($Check) { if (-not (Test-Path -LiteralPath $licenseTarget)) { throw "Missing license: $($tool.id)" } }
+        else { Copy-Item -LiteralPath $licenseSource -Destination $licenseTarget -Force }
     }
     $current = [ordered]@{ version=$tool.version; platform='win64'; source=$tool.url; sha256=$tool.sha256 }
     foreach ($exe in $tool.executables.PSObject.Properties) { $current[$exe.Name] = 'releases/' + $tool.directory + '/' + $exe.Value.Replace('\','/') }
@@ -59,3 +76,5 @@ foreach ($tool in $manifest.tools) {
     Move-Item -LiteralPath $temporary -Destination $pointer -Force
     Write-Host "$($tool.id) $($tool.version) ready (local installation reused when present)."
 }
+
+if (-not $SkipService -and (-not $Only -or 'everything' -in $Only)) { & (Join-Path $root 'search-service.ps1') -Check:$Check }

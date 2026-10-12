@@ -1,3 +1,5 @@
+import { fileSearchClient } from '../../../../shared/client/file-search-client.ts'
+import { FileSearchForm, SearchIcon } from '../../../../shared/client/FileSearchForm.tsx'
 import { recordingClient } from '../../../../shared/client/recording-client.ts'
 import { useSyncExternalStore } from 'react'
 import { RecordingControls } from '../../../../shared/client/RecordingControls.tsx'
@@ -194,6 +196,8 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
   const bubbleRef = useRef<HTMLDivElement | null>(null)
   const [imageReady, setImageReady] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const [searchOpen,setSearchOpen]=useState(false)
+  const pickingSearch=useRef(false)
   // Multi-session bubble stack: collapsed by default (only the display
   // session's bubble + a '+N' badge), expanded on stack hover (peek) or by
   // tapping the badge (pinned, for touch). The display session's bubble
@@ -469,6 +473,14 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
       const sprite = spriteRef.current
       const panel = panelRef.current
       if (sprite === null || panel === null) return
+      // Keep the wider search form inside the viewport without moving recording controls.
+      panel.style.transform = searchOpen ? 'none' : ''
+      panel.style.left = ''
+      if (searchOpen && floatRef.current) {
+        const anchor = floatRef.current.getBoundingClientRect()
+        const width = panel.getBoundingClientRect().width
+        panel.style.left = `${Math.max(8, Math.min(anchor.left, window.innerWidth - width - 8)) - anchor.left}px`
+      }
       const availableBelow = window.innerHeight - sprite.getBoundingClientRect().bottom
       const above = availableBelow < panel.getBoundingClientRect().height + 8
       setPanelAbove(above)
@@ -481,7 +493,7 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
     updatePanelPlacement()
     window.addEventListener('resize', updatePanelPlacement)
     return () => window.removeEventListener('resize', updatePanelPlacement)
-  }, [hovered, pos.right, pos.bottom, display.size, bubblePresent, sessionBubbles.length, stackOpen, feedback])
+  }, [hovered, searchOpen, pos.right, pos.bottom, display.size, bubblePresent, sessionBubbles.length, stackOpen, feedback])
 
   const recordingStore=recordingClient(), recordingState=useSyncExternalStore(recordingStore.subscribe,recordingStore.getSnapshot)
   useEffect(()=>{
@@ -489,6 +501,9 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
     refresh();window.addEventListener('focus',refresh);window.addEventListener('workbench-recording-config-changed',refresh)
     return()=>{window.removeEventListener('focus',refresh);window.removeEventListener('workbench-recording-config-changed',refresh)}
   },[recordingStore])
+  const searchStore=fileSearchClient(),searchState=useSyncExternalStore(searchStore.subscribe,searchStore.getSnapshot)
+  useEffect(()=>{void searchStore.refreshConfig();const refresh=()=>void searchStore.refreshConfig();window.addEventListener('workbench-file-search-config-changed',refresh);window.addEventListener('focus',refresh);return()=>{window.removeEventListener('workbench-file-search-config-changed',refresh);window.removeEventListener('focus',refresh)}},[searchStore])
+  useEffect(()=>{if(recordingState.activeId)setSearchOpen(false)},[recordingState.activeId])
   const float = (
     <div
       onContextMenu={e=>{e.preventDefault();e.stopPropagation();clearHideTimer();setHovered(true);void recordingStore.refreshConfig()}}
@@ -517,7 +532,7 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
         const next = e.relatedTarget
         if (next instanceof Node && floatRef.current?.contains(next)) return
         clearHideTimer()
-        hideTimerRef.current = window.setTimeout(() => setHovered(false), 300)
+        hideTimerRef.current = window.setTimeout(() => {if(!pickingSearch.current&&(!searchOpen||!panelRef.current?.contains(document.activeElement)))setHovered(false)}, 300)
       }}
     >
       <div
@@ -643,7 +658,7 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
       {hovered && dragRef.current === null && (
         <div
           ref={panelRef}
-          className={clsx(styles.panel, panelAbove && styles.panelAbove)}
+          className={clsx(styles.panel, panelAbove && styles.panelAbove, searchOpen && !recordingState.activeId && styles.searchPanel)}
           data-placement={panelAbove ? 'above' : 'below'}
           style={panelAbove && panelLift > 0
             ? ({ marginBottom: panelLift } as CSSProperties)
@@ -655,8 +670,11 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
             clearHideTimer()
           }}
         >
-          <div className={styles.rankRow}><span className={styles.nameCell}>{displayName}</span></div>
-          {(!!recordingState.config?.roles.length || !!recordingState.activeId) && <div role="toolbar" aria-label="宠物录音工具"><RecordingControls tone="pet"/></div>}
+          <div className={styles.rankRow}><span className={styles.nameCell}>{displayName}</span>{searchOpen&&!recordingState.activeId&&<button type="button" className={styles.searchBack} aria-label="返回宠物功能" onClick={()=>setSearchOpen(false)}><SearchIcon kind="back"/></button>}</div>
+          {searchOpen&&!recordingState.activeId?<FileSearchForm compact onPickingChange={value=>{pickingSearch.current=value;clearHideTimer();setHovered(true)}}/>:<div className={styles.functionRow}>
+            {(!!recordingState.config?.roles.length || !!recordingState.activeId) && <div role="toolbar" aria-label="宠物录音工具"><RecordingControls tone="pet"/></div>}
+            {!recordingState.activeId&&!!searchState.config?.roles.length&&<button type="button" className={styles.searchButton} aria-label="搜索本地文件" title="搜索本地文件" onClick={()=>{clearHideTimer();setSearchOpen(true)}}><SearchIcon/></button>}
+          </div>}
         </div>
       )}
     </div>

@@ -393,7 +393,23 @@ ipcMain.on('desktop:attention', (event, payload) => {
   raiseAttention(kind);
 });
 
-ipcMain.handle('desktop:select-project-directory', async (event) => {
+ipcMain.handle('desktop:select-search-directory', async (event, previous) => {
+  assertProjectSender(event, mainWindow, tokenUrl);
+  const { searchDirectoryDefault } = require('./search-picker.cjs');
+  const defaultPath = await searchDirectoryDefault(previous);
+  const result = await dialog.showOpenDialog(mainWindow, { title: '选择搜索文件夹', buttonLabel: '确定', properties: ['openDirectory'], ...(defaultPath ? { defaultPath } : {}) });
+  assertProjectSender(event, mainWindow, tokenUrl);
+  return result.canceled ? null : (result.filePaths[0] || null);
+});
+ipcMain.handle('desktop:reveal-search-result', async (event, value) => {
+  assertProjectSender(event, mainWindow, tokenUrl);
+  const { searchResultPath } = require('./search-picker.cjs');
+  const path = await searchResultPath(value);
+  assertProjectSender(event, mainWindow, tokenUrl);
+  shell.showItemInFolder(path);
+});
+
+ipcMain.handle('desktop:select-project-directory' , async (event) => {
   assertProjectSender(event, mainWindow, tokenUrl);
   let result;
   try {

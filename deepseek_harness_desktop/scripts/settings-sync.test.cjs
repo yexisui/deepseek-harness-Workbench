@@ -80,6 +80,9 @@ test('checksum mismatch and path traversal fail before any settings mutation', t
   assert.throws(() => applySettings(root), /checksum mismatch/);
   assert.equal(fs.readFileSync(path.join(root,'dsh-data/settings.yaml'),'utf8'),'pet: {size: 160}\n');
   assert(!allowed('../.credentials.yaml')); assert(!allowed('sessions/private.json')); assert(!allowed('skins/../../keys.json'));
+  assert(allowed('capabilities/file-search/settings.json'));
+  assert(!allowed('capabilities/file-search/11111111-1111-1111-1111-111111111111.json'));
+  assert(!allowed('capabilities/file-search/engine/Everything.db'));
 });
 test('secret embedded in freeform text stops export without publishing a manifest', t => {
   const root = fixture(t), secret='sk-test-secret-value-that-must-never-export';

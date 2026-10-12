@@ -1,0 +1,6 @@
+.form{display:flex;flex-direction:column;gap:8px;width:100%;max-width:720px}
+.field{position:relative;min-width:0}.field input{width:100%;min-width:0;box-sizing:border-box;height:38px;padding:7px 42px 7px 10px;font:inherit;color:var(--dsw-alias-label-primary, #202938);background:var(--dsw-alias-bg-layer-1, #fff);border:1px solid var(--dsw-alias-border-l2, #dbe1eb);border-radius:8px}
+.field button{position:absolute;right:3px;top:3px;display:grid;place-items:center;width:32px;height:32px;padding:4px;border-radius:6px;border:1px solid #6782ff;background:linear-gradient(135deg,#506fff,#344dde);color:#fff;cursor:pointer}
+.field button:disabled{opacity:.5;cursor:default}.field .folder{background:var(--dsw-alias-bg-layer-2, #f5f7fb);border-color:var(--dsw-alias-border-l2, #dbe1eb);color:var(--dsw-alias-label-secondary, #758095)}
+.compact{gap:6px;font-size:12px}.compact input{height:32px;background:#10172a;color:#eef1ff;border-color:#45587e;padding:6px 36px 6px 8px}.compact input::placeholder{color:#92a3c6;opacity:1}.compact button{width:26px;height:26px}.compact .folder{background:#26324b;border-color:#465b83;color:#bfcff3}
+.error{font-size:12px;margin:4px 0 0;overflow-wrap:anywhere}.field input:focus-visible,.field button:focus-visible{outline:2px solid #8ca5ff;outline-offset:2px}

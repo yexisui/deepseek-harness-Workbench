@@ -1,10 +1,10 @@
 import { createRequire } from "node:module";
 import { link, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, stat, unlink, writeFile } from "node:fs/promises";
-import fs, { createReadStream, existsSync, lstatSync, mkdirSync, openAsBlob, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import path, { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
-import { execFile, spawn } from "node:child_process";
-import { AsyncLocalStorage } from "node:async_hooks";
+import path, { basename, dirname, isAbsolute, join, relative, resolve, win32 } from "node:path";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { execFile, spawn } from "node:child_process";
+import fs, { createReadStream, existsSync, lstatSync, mkdirSync, openAsBlob, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { homedir, tmpdir } from "node:os";
 import { inflateRawSync, inflateSync } from "node:zlib";
 import { Worker } from "node:worker_threads";
@@ -307,6 +307,20 @@ function defaultRoles(now) {
 const browserPackage = "@wxg-prc-cpg/browser-skill-dsh-plugin";
 const components = [
 	{
+		id: "everything-search",
+		name: "本地文件搜索",
+		provider: "@linxin666/dsh-capabilities",
+		version: "1.0.0",
+		actions: ["search-files"],
+		dependencies: [],
+		icon: "document",
+		sourceLabel: "Everything 本地索引",
+		management: "file-search",
+		capabilityIds: ["local-file-search"],
+		required: true,
+		compositionVersion: 2
+	},
+	{
 		id: "audio-recorder",
 		name: "录音与保存",
 		provider: "@linxin666/dsh-capabilities",
@@ -535,6 +549,29 @@ function recordingCapability(now) {
 	};
 	return {
 		id: "audio-recording",
+		source: "builtin",
+		enabled: true,
+		pinned: false,
+		draft: definition,
+		versions: [{
+			...structuredClone(definition),
+			version: 1,
+			createdAt: now
+		}]
+	};
+}
+function fileSearchCapability(now) {
+	const definition = {
+		name: "本地文件搜索",
+		description: "通过宠物或岗位搜索本地文件，支持部分文件名、多关键词和通配符，可选择文件夹限定范围。",
+		instructions: "路径留空搜索全部已索引的本地位置；输入部分文件名或 * / ? 通配符。选择文件夹后点击确定。搜索只返回名称、路径和元信息，移除记录不会删除原文件。",
+		components: [{
+			componentId: "everything-search",
+			actions: ["search-files"]
+		}]
+	};
+	return {
+		id: "local-file-search",
 		source: "builtin",
 		enabled: true,
 		pinned: false,
@@ -1051,6 +1088,381 @@ function json(res, status, body) {
 	});
 	res.end(JSON.stringify(body));
 }
+//#endregion
+//#region src/host/file-search.ts
+var FileSearchService = class {
+	root;
+	state;
+	engine;
+	roleId = "";
+	rows = /* @__PURE__ */ new Map();
+	active = /* @__PURE__ */ new Map();
+	tail = Promise.resolve();
+	constructor(root, state, engine) {
+		this.root = root;
+		this.state = state;
+		this.engine = engine;
+	}
+	serial(fn) {
+		const next = this.tail.then(fn);
+		this.tail = next.catch(() => {});
+		return next;
+	}
+	file(id) {
+		if (!/^[a-f\d-]{36}$/.test(id)) throw new InputError("搜索记录标识无效");
+		return join(this.root, id + ".json");
+	}
+	async init() {
+		await mkdir(this.root, { recursive: true });
+		try {
+			this.roleId = JSON.parse(await readFile(join(this.root, "settings.json"), "utf8")).roleId || "";
+		} catch (e) {
+			if (e.code !== "ENOENT") throw e;
+			if (this.roles().some((role) => role.id === "builtin-file-search")) await this.configure("builtin-file-search");
+		}
+		for (const name of await readdir(this.root)) if (/^[a-f\d-]{36}\.json$/.test(name)) {
+			const row = JSON.parse(await readFile(join(this.root, name), "utf8"));
+			this.rows.set(row.id, row);
+		}
+	}
+	roles() {
+		const state = this.state();
+		return state.roles.filter((r) => r.enabled && !r.removedAt && !r.archivedAt && latest(r.versions) && allowedActions(state, r.id, latest(r.versions)).includes("search-files")).map((r) => ({
+			id: r.id,
+			name: latest(r.versions).name
+		}));
+	}
+	async config() {
+		const roles = this.roles(), roleId = this.roleId || (roles.length === 1 ? roles[0].id : ""), engine = await this.engine.status();
+		return {
+			roleId,
+			roles,
+			ready: roles.some((r) => r.id === roleId),
+			engine
+		};
+	}
+	async configure(roleId) {
+		return this.serial(async () => {
+			if (!this.roles().some((r) => r.id === roleId)) throw new InputError("请选择已绑定本地文件搜索能力的启用岗位");
+			await writeFile(join(this.root, "settings.json.tmp"), JSON.stringify({ roleId }));
+			await rename(join(this.root, "settings.json.tmp"), join(this.root, "settings.json"));
+			this.roleId = roleId;
+			return this.config();
+		});
+	}
+	list() {
+		return [...this.rows.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+	}
+	activities() {
+		return [...this.active].map(([id, run]) => ({
+			id,
+			roleId: run.roleId,
+			roleVersion: run.roleVersion,
+			name: "本地文件搜索",
+			kind: "file-search",
+			status: "running",
+			componentIds: ["everything-search"]
+		}));
+	}
+	reconcile() {
+		for (const run of this.active.values()) {
+			const s = this.state(), role = s.roles.find((r) => r.id === run.roleId), version = role?.versions.find((v) => v.version === run.roleVersion);
+			if (!version || role?.archivedAt || role?.removedAt || !allowedActions(s, run.roleId, version).includes("search-files")) run.controller.abort();
+		}
+	}
+	cancel(id) {
+		this.file(id);
+		this.active.get(id)?.controller.abort();
+		return { cancelled: id };
+	}
+	async search(body) {
+		const id = typeof body.id === "string" ? body.id : randomUUID();
+		this.file(id);
+		const query = text$1(body.query, "搜索内容", 500, true), rawPath = text$1(body.path ?? "", "搜索路径", 2e3), requestedRole = typeof body.roleId === "string" ? body.roleId : "";
+		if (this.active.has(id) || this.rows.has(id)) throw new InputError("此搜索已提交，请重新查询", 409);
+		const roles = this.roles(), roleId = requestedRole || this.roleId || (roles.length === 1 ? roles[0].id : "");
+		if (!roles.some((r) => r.id === roleId)) throw new InputError("请在本地文件搜索能力设置中选择归属岗位");
+		const version = latest(this.state().roles.find((r) => r.id === roleId).versions), controller = new AbortController();
+		if (this.active.size >= 4) throw new InputError("正在处理其他搜索，请稍候", 429);
+		this.active.set(id, {
+			controller,
+			roleId,
+			roleVersion: version.version
+		});
+		try {
+			let directory = "";
+			if (rawPath) {
+				if (!/^[a-z]:[\\/]/i.test(rawPath) || /["\x00-\x1f]/.test(rawPath)) throw new InputError("请选择本机文件夹或输入完整盘符路径");
+				directory = win32.normalize(rawPath);
+				if (!(await stat(directory).catch(() => null))?.isDirectory()) throw new InputError("搜索路径不存在或不是文件夹");
+			}
+			controller.signal.throwIfAborted();
+			const result = await this.engine.query(query, directory, controller.signal);
+			this.reconcile();
+			controller.signal.throwIfAborted();
+			const now = (/* @__PURE__ */ new Date()).toISOString(), row = {
+				id,
+				roleId,
+				roleVersion: version.version,
+				roleName: version.name,
+				title: "搜索 · " + query.slice(0, 80),
+				query,
+				path: directory,
+				createdAt: now,
+				updatedAt: now,
+				...result
+			};
+			return await this.serial(async () => {
+				controller.signal.throwIfAborted();
+				await writeFile(this.file(id) + ".tmp", JSON.stringify(row));
+				await rename(this.file(id) + ".tmp", this.file(id));
+				this.rows.set(id, row);
+				return row;
+			});
+		} finally {
+			this.active.delete(id);
+		}
+	}
+	async command(body) {
+		return this.serial(async () => {
+			const id = text$1(body.id, "搜索记录", 36, true), file = this.file(id), row = this.rows.get(id);
+			if (!row) throw new InputError("搜索记录不存在", 404);
+			if (body.action === "delete") {
+				await rm(file);
+				this.rows.delete(id);
+				return { deleted: id };
+			}
+			if (body.action !== "rename") throw new InputError("未知搜索操作");
+			const updated = {
+				...row,
+				title: text$1(body.title, "名称", 120, true),
+				updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+			};
+			await writeFile(file + ".tmp", JSON.stringify(updated));
+			await rename(file + ".tmp", file);
+			this.rows.set(id, updated);
+			return updated;
+		});
+	}
+	async close() {
+		for (const run of this.active.values()) run.controller.abort();
+		await this.engine.close();
+		await this.tail;
+	}
+};
+async function fileSearchRoutes(service, req, res) {
+	const path = new URL(req.url, "http://localhost").pathname.replace("/api/capabilities/file-search/", "");
+	if (req.method === "GET" && path === "config") return json(res, 200, await service.config());
+	if (req.method === "GET" && path === "list") return json(res, 200, service.list());
+	if (req.method !== "POST") throw new InputError("接口不存在", 404);
+	const body = await readBody(req);
+	if (path === "config") return json(res, 200, await service.configure(body.roleId));
+	if (path === "query") return json(res, 200, await service.search(body));
+	if (path === "cancel") return json(res, 200, service.cancel(body.id));
+	if (path === "command") return json(res, 200, await service.command(body));
+	throw new InputError("接口不存在", 404);
+}
+//#endregion
+//#region src/core/file-search.ts
+/** Filename terms only: Everything operators are data, * and ? remain wildcards. */
+function filenameTerms(query) {
+	return query.trim().split(/\s+/u).filter(Boolean).map((term) => {
+		const pattern = [...term].map((c) => c === "*" ? ".*" : c === "?" ? "." : /[\p{L}\p{N}_-]/u.test(c) ? c : `\\x{${c.codePointAt(0).toString(16)}}`).join("");
+		return "nopath:regex:" + (/[?*]/.test(term) ? "^" + pattern + "$" : pattern);
+	});
+}
+//#endregion
+//#region src/host/everything.ts
+var EverythingEngine = class {
+	tools;
+	root;
+	fixtureInstance;
+	child;
+	starting;
+	closed = false;
+	instance;
+	constructor(tools, root, fixtureInstance) {
+		this.tools = tools;
+		this.root = root;
+		this.fixtureInstance = fixtureInstance;
+		this.instance = fixtureInstance ?? "DSH-" + createHash("sha256").update(resolve(root)).digest("hex").slice(0, 12);
+	}
+	async executable(tool, key) {
+		const root = join(this.tools, tool);
+		try {
+			const path = resolve(root, JSON.parse((await readFile(join(root, "current.json"), "utf8")).replace(/^\uFEFF/, ""))[key]), rel = relative(root, path);
+			if (!rel || rel.startsWith("..") || isAbsolute(rel) || !(await stat(path)).isFile()) throw Error();
+			return path;
+		} catch {
+			throw new InputError("搜索工具尚未安装，请运行工作台部署入口补装 Everything。", 503);
+		}
+	}
+	run(exe, args, signal) {
+		return new Promise((ok, fail) => execFile(exe, args, {
+			windowsHide: true,
+			timeout: 2e4,
+			maxBuffer: 2 * 1024 * 1024,
+			encoding: "utf8",
+			signal,
+			env: {
+				...process.env,
+				APPDATA: this.root
+			}
+		}, (error, stdout) => error ? fail(error) : ok(stdout.trim())));
+	}
+	async status() {
+		try {
+			const es = await this.executable("es", "es");
+			for (const instance of [this.instance, ...this.fixtureInstance ? [] : [""]]) try {
+				await this.run(es, [...instance ? ["-instance", instance] : [], "-get-everything-version"]);
+				return {
+					state: "ready",
+					message: "Everything 已连接；搜索范围为已索引的本地位置。"
+				};
+			} catch {}
+			await this.executable("everything", "everything");
+			return {
+				state: "stopped",
+				message: "首次搜索时自动启动 Everything；首次建立索引可能需要稍候。"
+			};
+		} catch (error) {
+			return {
+				state: "missing",
+				message: error.message
+			};
+		}
+	}
+	async ensure() {
+		if (this.closed) throw new InputError("搜索服务已关闭", 503);
+		const es = await this.executable("es", "es");
+		for (const instance of [this.instance, ...this.fixtureInstance ? [] : [""]]) try {
+			await this.run(es, [...instance ? ["-instance", instance] : [], "-get-everything-version"]);
+			return instance;
+		} catch {}
+		if (this.fixtureInstance) throw new InputError("测试索引未运行", 503);
+		if (this.starting) return this.starting;
+		this.starting = (async () => {
+			const service = await this.run("sc.exe", ["query", "Everything"]).catch(() => "");
+			if (!/\b4\s+RUNNING\b/.test(service)) throw new InputError("Everything 索引服务尚未启动，请运行工作台部署入口并完成 Windows 授权。", 503);
+			const exe = await this.executable("everything", "everything");
+			await mkdir(this.root, { recursive: true });
+			const config = join(this.root, "Everything.ini");
+			let ini = await readFile(config, "utf8").catch((e) => {
+				if (e.code !== "ENOENT") throw e;
+				return "﻿[Everything]\r\nrun_as_admin=0\r\nrun_in_background=1\r\nshow_tray_icon=0\r\ncheck_for_updates_on_startup=0\r\n";
+			});
+			const pipe = String.raw`service_pipe_name=\\.\PIPE\Everything Service`;
+			ini = /^service_pipe_name=/m.test(ini) ? ini.replace(/^service_pipe_name=.*$/m, pipe) : ini + pipe + "\r\n";
+			await writeFile(config, ini);
+			if (this.closed) throw new InputError("搜索服务已关闭", 503);
+			this.child = spawn(exe, [
+				"-instance",
+				this.instance,
+				"-config",
+				config,
+				"-db",
+				join(this.root, "Everything.db"),
+				"-startup"
+			], {
+				windowsHide: true,
+				stdio: "ignore"
+			});
+			let failure;
+			this.child.on("error", (error) => {
+				failure = error;
+			});
+			for (let i = 0; i < 30; i++) {
+				if (failure) throw failure;
+				await new Promise((ok) => setTimeout(ok, 200));
+				try {
+					await this.run(es, [
+						"-instance",
+						this.instance,
+						"-get-everything-version"
+					]);
+					return this.instance;
+				} catch {}
+			}
+			throw new InputError("Everything 尚未启动，请检查搜索工具安装后重试。", 503);
+		})().finally(() => {
+			this.starting = void 0;
+		});
+		return this.starting;
+	}
+	async query(query, directory, signal) {
+		const es = await this.executable("es", "es"), instance = await this.ensure();
+		signal?.throwIfAborted();
+		await mkdir(this.root, { recursive: true });
+		const output = join(this.root, randomUUID() + ".json");
+		try {
+			await this.run(es, [
+				...instance ? ["-instance", instance] : [],
+				"-ipc2",
+				"-export-json",
+				output,
+				"-name",
+				"-path-column",
+				"-size",
+				"-date-modified",
+				"-attributes",
+				"-date-format",
+				"1",
+				"-sort-name",
+				"-n",
+				"201",
+				"-timeout",
+				"15000",
+				...directory ? ["-path", directory] : [],
+				"--",
+				...filenameTerms(query)
+			], signal);
+			const raw = (await readFile(output, "utf8")).replace(/^\uFEFF/, "").trim();
+			const rows = raw ? JSON.parse(raw) : [];
+			if (!Array.isArray(rows)) throw Error("搜索引擎返回格式错误");
+			return {
+				items: rows.map((row) => {
+					if (typeof row.name !== "string" || typeof row.path !== "string") throw Error("搜索结果路径无效");
+					const path = win32.resolve(row.path, row.name);
+					return {
+						path,
+						name: win32.basename(path),
+						directory: (Number(row.attributes) & 16) !== 0,
+						size: Number.isFinite(row.size) ? row.size : null,
+						modifiedAt: typeof row.date_modified === "string" ? row.date_modified : ""
+					};
+				}).filter((item) => {
+					if (!/^[a-z]:\\/i.test(item.path)) return false;
+					if (!directory) return true;
+					const rel = win32.relative(directory, item.path);
+					return rel !== ".." && !rel.startsWith("..\\") && !win32.isAbsolute(rel);
+				}).slice(0, 200),
+				hasMore: rows.length > 200
+			};
+		} catch (error) {
+			if (signal?.aborted) throw new InputError("搜索已取消", 409);
+			const code = error.code;
+			if (code === "8" || Number(code) === 8) throw new InputError("Everything 未运行，请重试。", 503);
+			throw new InputError("搜索未完成，索引可能仍在加载或引擎未就绪，请稍后重试。", 503);
+		} finally {
+			await rm(output, { force: true });
+		}
+	}
+	async close() {
+		this.closed = true;
+		await this.starting?.catch(() => {});
+		if (!this.child) return;
+		try {
+			await this.run(await this.executable("es", "es"), [
+				"-instance",
+				this.instance,
+				"-exit"
+			]);
+		} catch {
+			this.child.kill();
+		}
+		this.child = void 0;
+	}
+};
 //#endregion
 //#region src/host/recording.ts
 const live = (r) => r.status === "recording" || r.status === "paused";
@@ -2694,7 +3106,7 @@ var ModelAccess = class {
 	}
 };
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js
 var require_identity = /* @__PURE__ */ __commonJSMin(((exports) => {
 	const ALIAS = Symbol.for("yaml.alias");
 	const DOC = Symbol.for("yaml.document");
@@ -2744,7 +3156,7 @@ var require_identity = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.isSeq = isSeq;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js
 var require_visit = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	const BREAK = Symbol("break visit");
@@ -2934,7 +3346,7 @@ var require_visit = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.visitAsync = visitAsync;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js
 var require_directives = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var visit = require_visit();
@@ -3099,7 +3511,7 @@ var require_directives = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Directives = Directives;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js
 var require_anchors = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var visit = require_visit();
@@ -3166,7 +3578,7 @@ var require_anchors = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.findNewAnchor = findNewAnchor;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js
 var require_applyReviver = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/**
 	* Applies the JSON.parse reviver algorithm as defined in the ECMA-262 spec,
@@ -3206,7 +3618,7 @@ var require_applyReviver = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.applyReviver = applyReviver;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js
 var require_toJS = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	/**
@@ -3243,7 +3655,7 @@ var require_toJS = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.toJS = toJS;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js
 var require_Node = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var applyReviver = require_applyReviver();
 	var identity = require_identity();
@@ -3277,7 +3689,7 @@ var require_Node = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.NodeBase = NodeBase;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
 var require_Alias = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var anchors = require_anchors();
 	var visit = require_visit();
@@ -3371,7 +3783,7 @@ var require_Alias = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Alias = Alias;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js
 var require_Scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Node = require_Node();
@@ -3398,7 +3810,7 @@ var require_Scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.isScalarValue = isScalarValue;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js
 var require_createNode = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Alias = require_Alias();
 	var identity = require_identity();
@@ -3461,7 +3873,7 @@ var require_createNode = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.createNode = createNode;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js
 var require_Collection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var createNode = require_createNode();
 	var identity = require_identity();
@@ -3582,7 +3994,7 @@ var require_Collection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.isEmptyPath = isEmptyPath;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js
 var require_stringifyComment = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/**
 	* Stringifies a comment.
@@ -3602,7 +4014,7 @@ var require_stringifyComment = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyComment = stringifyComment;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js
 var require_foldFlowLines = /* @__PURE__ */ __commonJSMin(((exports) => {
 	const FOLD_FLOW = "flow";
 	const FOLD_BLOCK = "block";
@@ -3718,7 +4130,7 @@ var require_foldFlowLines = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.foldFlowLines = foldFlowLines;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js
 var require_stringifyString = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var foldFlowLines = require_foldFlowLines();
@@ -3942,7 +4354,7 @@ var require_stringifyString = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyString = stringifyString;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js
 var require_stringify = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var anchors = require_anchors();
 	var identity = require_identity();
@@ -4050,7 +4462,7 @@ var require_stringify = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringify = stringify;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js
 var require_stringifyPair = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Scalar = require_Scalar();
@@ -4147,7 +4559,7 @@ var require_stringifyPair = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyPair = stringifyPair;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js
 var require_log = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var node_process$2 = __require("process");
 	function debug(logLevel, ...messages) {
@@ -4161,7 +4573,7 @@ var require_log = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.warn = warn;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js
 var require_merge = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Scalar = require_Scalar();
@@ -4204,7 +4616,7 @@ var require_merge = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.merge = merge;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js
 var require_addPairToJSMap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var log = require_log();
 	var merge = require_merge();
@@ -4255,7 +4667,7 @@ var require_addPairToJSMap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.addPairToJSMap = addPairToJSMap;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js
 var require_Pair = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var createNode = require_createNode();
 	var stringifyPair = require_stringifyPair();
@@ -4288,7 +4700,7 @@ var require_Pair = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.createPair = createPair;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js
 var require_stringifyCollection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var stringify = require_stringify();
@@ -4406,7 +4818,7 @@ var require_stringifyCollection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyCollection = stringifyCollection;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js
 var require_YAMLMap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var stringifyCollection = require_stringifyCollection();
 	var addPairToJSMap = require_addPairToJSMap();
@@ -4515,7 +4927,7 @@ var require_YAMLMap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.findPair = findPair;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js
 var require_map = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var YAMLMap = require_YAMLMap();
@@ -4532,7 +4944,7 @@ var require_map = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js
 var require_YAMLSeq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var createNode = require_createNode();
 	var stringifyCollection = require_stringifyCollection();
@@ -4638,7 +5050,7 @@ var require_YAMLSeq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.YAMLSeq = YAMLSeq;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js
 var require_seq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var YAMLSeq = require_YAMLSeq();
@@ -4655,7 +5067,7 @@ var require_seq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js
 var require_string = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var stringifyString = require_stringifyString();
 	exports.string = {
@@ -4670,7 +5082,7 @@ var require_string = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js
 var require_null = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	const nullTag = {
@@ -4685,7 +5097,7 @@ var require_null = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.nullTag = nullTag;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js
 var require_bool$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	const boolTag = {
@@ -4704,7 +5116,7 @@ var require_bool$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.boolTag = boolTag;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js
 var require_stringifyNumber = /* @__PURE__ */ __commonJSMin(((exports) => {
 	function stringifyNumber({ format, minFractionDigits, tag, value }) {
 		if (typeof value === "bigint") return String(value);
@@ -4725,7 +5137,7 @@ var require_stringifyNumber = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyNumber = stringifyNumber;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js
 var require_float$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var stringifyNumber = require_stringifyNumber();
@@ -4766,7 +5178,7 @@ var require_float$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.floatNaN = floatNaN;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js
 var require_int$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var stringifyNumber = require_stringifyNumber();
 	const intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
@@ -4807,7 +5219,7 @@ var require_int$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.intOct = intOct;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js
 var require_schema$2 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var map = require_map();
 	var _null = require_null();
@@ -4831,7 +5243,7 @@ var require_schema$2 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	];
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js
 var require_schema$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var map = require_map();
@@ -4893,7 +5305,7 @@ var require_schema$1 = /* @__PURE__ */ __commonJSMin(((exports) => {
 	});
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js
 var require_binary = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var node_buffer = __require("buffer");
 	var Scalar = require_Scalar();
@@ -4949,7 +5361,7 @@ var require_binary = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
 var require_pairs = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Pair = require_Pair();
@@ -5009,7 +5421,7 @@ var require_pairs = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolvePairs = resolvePairs;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js
 var require_omap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var toJS = require_toJS();
@@ -5072,7 +5484,7 @@ var require_omap = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.omap = omap;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js
 var require_bool = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	function boolStringify({ value, source }, ctx) {
@@ -5099,7 +5511,7 @@ var require_bool = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.trueTag = trueTag;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js
 var require_float = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var stringifyNumber = require_stringifyNumber();
@@ -5143,7 +5555,7 @@ var require_float = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.floatNaN = floatNaN;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js
 var require_int = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var stringifyNumber = require_stringifyNumber();
 	const intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
@@ -5218,7 +5630,7 @@ var require_int = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.intOct = intOct;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js
 var require_set = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Pair = require_Pair();
@@ -5286,7 +5698,7 @@ var require_set = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.set = set;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
 var require_timestamp = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var stringifyNumber = require_stringifyNumber();
 	/** Internal types handle bigint as number, because TS can't figure it out. */
@@ -5369,7 +5781,7 @@ var require_timestamp = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.timestamp = timestamp;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js
 var require_schema = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var map = require_map();
 	var _null = require_null();
@@ -5409,7 +5821,7 @@ var require_schema = /* @__PURE__ */ __commonJSMin(((exports) => {
 	];
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js
 var require_tags = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var map = require_map();
 	var _null = require_null();
@@ -5493,7 +5905,7 @@ var require_tags = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.getTags = getTags;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js
 var require_Schema = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var map = require_map();
@@ -5521,7 +5933,7 @@ var require_Schema = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js
 var require_stringifyDocument = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var stringify = require_stringify();
@@ -5582,7 +5994,7 @@ var require_stringifyDocument = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringifyDocument = stringifyDocument;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js
 var require_Document = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Alias = require_Alias();
 	var Collection = require_Collection();
@@ -5863,7 +6275,7 @@ var require_Document = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Document = Document;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js
 var require_errors = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var YAMLError = class extends Error {
 		constructor(name, pos, code, message) {
@@ -5916,7 +6328,7 @@ var require_errors = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.prettifyError = prettifyError;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js
 var require_resolve_props = /* @__PURE__ */ __commonJSMin(((exports) => {
 	function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
 		let spaceBefore = false;
@@ -6023,7 +6435,7 @@ var require_resolve_props = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveProps = resolveProps;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js
 var require_util_contains_newline = /* @__PURE__ */ __commonJSMin(((exports) => {
 	function containsNewline(key) {
 		if (!key) return null;
@@ -6052,7 +6464,7 @@ var require_util_contains_newline = /* @__PURE__ */ __commonJSMin(((exports) => 
 	exports.containsNewline = containsNewline;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js
 var require_util_flow_indent_check = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var utilContainsNewline = require_util_contains_newline();
 	function flowIndentCheck(indent, fc, onError) {
@@ -6064,7 +6476,7 @@ var require_util_flow_indent_check = /* @__PURE__ */ __commonJSMin(((exports) =>
 	exports.flowIndentCheck = flowIndentCheck;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js
 var require_util_map_includes = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	function mapIncludes(ctx, items, search) {
@@ -6076,7 +6488,7 @@ var require_util_map_includes = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.mapIncludes = mapIncludes;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js
 var require_resolve_block_map = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Pair = require_Pair();
 	var YAMLMap = require_YAMLMap();
@@ -6160,7 +6572,7 @@ var require_resolve_block_map = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveBlockMap = resolveBlockMap;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js
 var require_resolve_block_seq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var YAMLSeq = require_YAMLSeq();
 	var resolveProps = require_resolve_props();
@@ -6202,7 +6614,7 @@ var require_resolve_block_seq = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveBlockSeq = resolveBlockSeq;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js
 var require_resolve_end = /* @__PURE__ */ __commonJSMin(((exports) => {
 	function resolveEnd(end, offset, reqSpace, onError) {
 		let comment = "";
@@ -6240,7 +6652,7 @@ var require_resolve_end = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveEnd = resolveEnd;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js
 var require_resolve_flow_collection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Pair = require_Pair();
@@ -6395,7 +6807,7 @@ var require_resolve_flow_collection = /* @__PURE__ */ __commonJSMin(((exports) =
 	exports.resolveFlowCollection = resolveFlowCollection;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js
 var require_compose_collection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Scalar = require_Scalar();
@@ -6447,7 +6859,7 @@ var require_compose_collection = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.composeCollection = composeCollection;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js
 var require_resolve_block_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	function resolveBlockScalar(ctx, scalar, onError) {
@@ -6623,7 +7035,7 @@ var require_resolve_block_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveBlockScalar = resolveBlockScalar;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
 var require_resolve_flow_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var resolveEnd = require_resolve_end();
@@ -6828,7 +7240,7 @@ var require_resolve_flow_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveFlowScalar = resolveFlowScalar;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js
 var require_compose_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var identity = require_identity();
 	var Scalar = require_Scalar();
@@ -6887,7 +7299,7 @@ var require_compose_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.composeScalar = composeScalar;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js
 var require_util_empty_scalar_position = /* @__PURE__ */ __commonJSMin(((exports) => {
 	function emptyScalarPosition(offset, before, pos) {
 		if (before) {
@@ -6914,7 +7326,7 @@ var require_util_empty_scalar_position = /* @__PURE__ */ __commonJSMin(((exports
 	exports.emptyScalarPosition = emptyScalarPosition;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js
 var require_compose_node = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Alias = require_Alias();
 	var identity = require_identity();
@@ -7003,7 +7415,7 @@ var require_compose_node = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.composeNode = composeNode;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js
 var require_compose_doc = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Document = require_Document();
 	var composeNode = require_compose_node();
@@ -7045,7 +7457,7 @@ var require_compose_doc = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.composeDoc = composeDoc;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js
 var require_composer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var node_process$1 = __require("process");
 	var directives = require_directives();
@@ -7243,7 +7655,7 @@ var require_composer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Composer = Composer;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js
 var require_cst_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var resolveBlockScalar = require_resolve_block_scalar();
 	var resolveFlowScalar = require_resolve_flow_scalar();
@@ -7510,7 +7922,7 @@ var require_cst_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.setScalarValue = setScalarValue;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js
 var require_cst_stringify = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/**
 	* Stringify a CST document, token, or collection item
@@ -7561,7 +7973,7 @@ var require_cst_stringify = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.stringify = stringify;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js
 var require_cst_visit = /* @__PURE__ */ __commonJSMin(((exports) => {
 	const BREAK = Symbol("break visit");
 	const SKIP = Symbol("skip children");
@@ -7652,7 +8064,7 @@ var require_cst_visit = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.visit = visit;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js
 var require_cst = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var cstScalar = require_cst_scalar();
 	var cstStringify = require_cst_stringify();
@@ -7731,7 +8143,7 @@ var require_cst = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.tokenType = tokenType;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js
 var require_lexer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var cst = require_cst();
 	function isEmpty(ch) {
@@ -8262,7 +8674,7 @@ var require_lexer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Lexer = Lexer;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js
 var require_line_counter = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/**
 	* Tracks newlines during parsing in order to provide an efficient API for
@@ -8309,7 +8721,7 @@ var require_line_counter = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.LineCounter = LineCounter;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js
 var require_parser = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var node_process = __require("process");
 	var cst = require_cst();
@@ -9172,7 +9584,7 @@ var require_parser = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Parser = Parser;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js
+//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js
 var require_public_api = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var composer = require_composer();
 	var Document = require_Document();
@@ -14411,6 +14823,44 @@ var CapabilityStore = class {
 				await this.persist(next);
 				this.state = next;
 			}
+			if (this.state.fileSearchCapabilityVersion !== 1) {
+				const next = this.mutableSnapshot(), now = (/* @__PURE__ */ new Date()).toISOString();
+				if (!next.capabilities.some((c) => c.id === "local-file-search")) next.capabilities.push(fileSearchCapability(now));
+				if (!next.roles.some((r) => r.id === "builtin-file-search")) {
+					const definition = {
+						name: "文件搜索助手",
+						color: "#4F73E8",
+						icon: {
+							kind: "builtin",
+							id: "document"
+						},
+						duties: "按文件名和路径查找本地已索引文件，展示结果、复制路径和定位所在文件夹。",
+						requirements: "只查找文件元信息；不删除原文件，不将路径当作已读取的正文。",
+						format: "文件名、完整路径、类型、大小与修改时间。",
+						capabilities: [{
+							capabilityId: "local-file-search",
+							version: 1,
+							enabled: true
+						}]
+					};
+					next.roles.push({
+						id: "builtin-file-search",
+						enabled: true,
+						draft: definition,
+						versions: [{
+							...structuredClone(definition),
+							version: 1,
+							createdAt: now,
+							preset: "workbench-role-builtin-file-search-v1"
+						}]
+					});
+				}
+				next.fileSearchCapabilityVersion = 1;
+				next.revision++;
+				next.updatedAt = now;
+				await this.persist(next);
+				this.state = next;
+			}
 		} catch (error) {
 			await this.close();
 			throw error;
@@ -15544,6 +15994,16 @@ async function apply(ctx, config$1 = {}) {
 	} catch (error) {
 		recordingError = error instanceof Error ? error.message : "录音存储不可用";
 	}
+	const searchRoot = join(home, "capabilities", "file-search");
+	const fileSearch = new FileSearchService(searchRoot, () => store.snapshot(), new EverythingEngine(join(home, "..", "external-tools"), join(searchRoot, "engine")));
+	let searchError = "";
+	try {
+		await fileSearch.init();
+	} catch (error) {
+		searchError = error instanceof Error ? error.message : "搜索存储不可用";
+	}
+	ctx.effect(() => () => fileSearch.close(), "file search lifecycle");
+	ctx.effect(() => store.subscribe(() => fileSearch.reconcile()), "file search authorization");
 	const skillAssets = new RoleSkills(home);
 	const skillGuidance = (roleId, version, cwd, createdAt) => {
 		const state = store.snapshot(), role = state.roles.find((r) => r.id === roleId)?.versions.find((v) => v.version === version);
@@ -15698,6 +16158,7 @@ async function apply(ctx, config$1 = {}) {
 				componentIds: [...new Set(state.roles.find((r) => r.id === t.roleId)?.versions.find((v) => v.version === t.roleVersion)?.capabilities.filter((b) => b.enabled).flatMap((b) => resolveBinding(state, b)?.components.map((p) => p.componentId) ?? []) ?? [])]
 			})),
 			...recording.activities(),
+			...fileSearch.activities(),
 			...packageRunner.activities(),
 			...await requirements.componentActivities(),
 			...await meeting.componentActivities(),
@@ -15744,6 +16205,10 @@ async function apply(ctx, config$1 = {}) {
 				fence(req, req.method === "PUT" && (route.startsWith("/api/capabilities/meeting/upload/") || route.startsWith("/api/capabilities/packages/upload/") || route === "/api/capabilities/recording/chunk"));
 				const rejection = ctx.connection.requestRejection(req);
 				if (rejection !== void 0) return json(res, rejection, { error: rejection === 401 ? "请从工作台入口重新连接后重试" : "不允许访问此接口" });
+				if (route.startsWith("/api/capabilities/file-search/")) {
+					if (searchError) throw new InputError("搜索存储不可用：" + searchError, 503);
+					return await fileSearchRoutes(fileSearch, req, res);
+				}
 				if (route.startsWith("/api/capabilities/recording/")) {
 					if (recordingError) throw new InputError("录音存储不可用：" + recordingError, 503);
 					return await recordingRoutes(recording, req, res);

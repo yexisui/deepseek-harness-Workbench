@@ -94,6 +94,8 @@ try {
     $ff=Get-Content -LiteralPath (Join-Path $root 'external-tools/ffmpeg/current.json') -Raw | ConvertFrom-Json
     & (Join-Path (Join-Path $root 'external-tools/ffmpeg') $ff.ffmpeg) -version | Select-Object -First 1
     if($LASTEXITCODE -ne 0){throw 'FFmpeg runtime failed'}
+    $searchSetup=Join-Path $root 'external-tools/search-service.ps1'
+    if(Test-Path -LiteralPath $searchSetup){ & (Join-Path $root 'external-tools/install.ps1') -Check -Only everything,es -SkipService; & $searchSetup -Check:$readOnly }
     $summary=[pscustomobject]@{release=$manifest.release;mode=$Mode;reused=$reused;repaired=$done;completedAt=(Get-Date -Format o)}
     if(-not $readOnly){$summary|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $root 'offline-state/last-install.json') -Encoding UTF8}
     Write-Host ("Completed. Reused: $reused; installed/repaired: $done. No downloads or package-manager installs.")

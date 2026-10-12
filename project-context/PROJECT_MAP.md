@@ -12,7 +12,7 @@
 | ../deploy.ps1 | Deploy 全量部署、Bootstrap 补齐便携基础环境、Tools 工具补装、Check 安装检查 |
 | ../一键部署.cmd | 唯一安装入口；默认完整部署，-Mode Build 可重新构建，维护说明见 M007 |
 | ../test-deploy.ps1 | Bootstrap、启动入口、Node 安装与配置保护回归 |
-| ../external-tools/ | 必需外部程序清单与安装器；目前 FFmpeg/ffprobe |
+| ../external-tools/ | 必需外部程序清单与安装器；目前 FFmpeg/ffprobe、Everything/ES |
 | ../capability-packages/ | 外置能力源码与打包脚本；目前音频分段定位、固定模板流程图 |
 | runtime*、dsh-data、chat-data、desktop-state | 本机环境、配置和业务数据，不入库 |
 
@@ -36,3 +36,6 @@
 shared-settings存可共享设置快照，scripts/settings-sync.cjs负责导出/导入；部署及启动自动应用变化。dsh-data仍为本机运行数据。安装包只复制offline子目录，保留Git最新根脚本；使用步骤见shared-settings/README.txt，状态见M007。
 
 2026-10-11入口更新：安装ZIP统一置于项目根offline-delivery，无需手工解压；一键部署调用scripts/offline/prepare-offline.ps1自动准备。新布局优先，旧offline布局仍兼容；交付文件不进Git。
+
+### 本地文件搜索（2026-10-12）
+统一能力及岗位迁移位于 dsh-capabilities，查询适配器为 src/host/everything.ts 与 file-search.ts；shared/client/FileSearchForm 与 file-search-client 共用宠物/主 UI 状态。系统目录选择在 desktop/src/search-picker.cjs 与 main/preload IPC，工具安装在 external-tools。默认新增文件搜索助手；确认需求和验证限制见 A029。

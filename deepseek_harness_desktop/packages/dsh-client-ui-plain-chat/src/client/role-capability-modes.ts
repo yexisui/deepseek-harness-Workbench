@@ -1,12 +1,12 @@
 import { actionsOf, type RoleVersion, type State } from '../../../dsh-capabilities/src/core/model.ts'
-export type CapabilityMode = 'chat' | 'meeting' | 'requirements' | 'developer'
+export type CapabilityMode = 'chat' | 'file-search' | 'meeting' | 'requirements' | 'developer'
 export function roleCapabilityModes(state?: State, version?: RoleVersion): { mode: CapabilityMode; label: string }[] {
   const result: { mode: CapabilityMode; label: string }[] = [{mode:'chat',label:'对话与工具'}]
   for (const binding of version?.capabilities ?? []) {
     if (!binding.enabled) continue
     const cap = state?.capabilities.find(c => c.id === binding.capabilityId), published = cap?.versions.find(v => v.version === binding.version)
     const actions = binding.actions ?? actionsOf(published)
-    const mode: CapabilityMode = actions.includes('transcribe') ? 'meeting' : actions.includes('analyze-requirements') ? 'requirements' : actions.includes('develop') ? 'developer' : 'chat'
+    const mode: CapabilityMode = actions.includes('search-files') ? 'file-search' : actions.includes('transcribe') ? 'meeting' : actions.includes('analyze-requirements') ? 'requirements' : actions.includes('develop') ? 'developer' : 'chat'
     if (mode !== 'chat' && !result.some(r => r.mode === mode)) result.push({mode,label:published?.name ?? cap?.draft.name ?? mode})
   }
   return result

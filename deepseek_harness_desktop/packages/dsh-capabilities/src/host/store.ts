@@ -1,4 +1,4 @@
-import { recordingCapability } from '../core/model.ts'
+import { fileSearchCapability, recordingCapability } from '../core/model.ts'
 import { applyCapabilitySettings, saveRoleSettings } from '../core/current-settings.ts'
 import {ManagedSkills} from '../../../dsh-skill-explorer/src/managed.ts'
 import {dirname} from 'node:path'
@@ -126,6 +126,15 @@ export class CapabilityStore {
           this.publishRole(role,{...structuredClone(current),capabilities:[...current.capabilities,binding]},now)
         }
         next.recordingCapabilityVersion=1;next.revision++;next.updatedAt=now;await this.persist(next);this.state=next
+      }
+      if (this.state.fileSearchCapabilityVersion !== 1) {
+        const next=this.mutableSnapshot(),now=new Date().toISOString()
+        if(!next.capabilities.some(c=>c.id==='local-file-search'))next.capabilities.push(fileSearchCapability(now))
+        if(!next.roles.some(r=>r.id==='builtin-file-search')) {
+          const definition: RoleDefinition = {name:'文件搜索助手',color:'#4F73E8',icon:{kind:'builtin',id:'document'},duties:'按文件名和路径查找本地已索引文件，展示结果、复制路径和定位所在文件夹。',requirements:'只查找文件元信息；不删除原文件，不将路径当作已读取的正文。',format:'文件名、完整路径、类型、大小与修改时间。',capabilities:[{capabilityId:'local-file-search',version:1,enabled:true}]}
+          next.roles.push({id:'builtin-file-search',enabled:true,draft:definition,versions:[{...structuredClone(definition),version:1,createdAt:now,preset:'workbench-role-builtin-file-search-v1'}]})
+        }
+        next.fileSearchCapabilityVersion=1;next.revision++;next.updatedAt=now;await this.persist(next);this.state=next
       }
     } catch (error) { await this.close(); throw error }
   }

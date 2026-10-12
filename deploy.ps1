@@ -7,6 +7,8 @@ param(
     [switch]$Repair
 )
 
+$ErrorActionPreference = 'Stop'
+
 # Prepare a ZIP supplied beside the project, without overwriting Git-managed launchers.
 if ($MyInvocation.InvocationName -ne '.' -and $Mode -ne 'Desktop' -and (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'offline-delivery'))) {
     try {

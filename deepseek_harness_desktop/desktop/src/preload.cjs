@@ -10,6 +10,8 @@
 const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('desktop', {
+  selectSearchDirectory: (path) => ipcRenderer.invoke('desktop:select-search-directory', path),
+  revealSearchResult: (path) => ipcRenderer.invoke('desktop:reveal-search-result', path),
   selectProjectDirectory: () => ipcRenderer.invoke('desktop:select-project-directory'),
   getPathForFile: (file) => webUtils.getPathForFile(file),
   resolveProjectPaths: (paths) => ipcRenderer.invoke('desktop:resolve-project-paths', paths),

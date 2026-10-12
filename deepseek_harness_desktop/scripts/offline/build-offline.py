@@ -8,10 +8,14 @@ from pathlib import Path
 p=argparse.ArgumentParser()
 p.add_argument('--donor',required=True);p.add_argument('--source',required=True);p.add_argument('--output',required=True)
 a=p.parse_args();donor=Path(a.donor).resolve();source=Path(a.source).resolve();out=Path(a.output).resolve()
+# npm dependency paths can exceed Win32 MAX_PATH even in a normal workspace.
+if os.name == 'nt':
+    donor=Path('\\\\?\\'+str(donor)) if not str(donor).startswith('\\\\?\\') else donor
+    source=Path('\\\\?\\'+str(source)) if not str(source).startswith('\\\\?\\') else source
 out.mkdir(parents=True,exist_ok=True)
 if any(out.iterdir()): raise SystemExit('Output must be empty; refusing to overwrite a release')
 offline=out/'offline';offline.mkdir()
-release='2026.10.12-r5-win-x64'
+release='2026.10.12-r8-win-x64'
 files=[]; seen=set()
 def digest(f):
     h=hashlib.sha256()
@@ -39,6 +43,12 @@ trees=[
     (source/'deepseek_harness_desktop/desktop/package.json','deepseek_harness_desktop/desktop/package.json'),
     (source/'start-desktop.ps1','start-desktop.ps1'),
 ]
+for tool in json.loads((source/'external-tools/tools.json').read_text('utf-8-sig'))['tools']:
+    if tool['id'] == 'ffmpeg':continue
+    toolroot=source/'external-tools'/tool['id']
+    trees.extend([(toolroot/'releases','external-tools/'+tool['id']+'/releases'),(toolroot/'current.json','external-tools/'+tool['id']+'/current.json')])
+for name in ['install.ps1','search-service.ps1','everything-LICENSE.txt','es-LICENSE.txt']:
+    trees.append((source/'external-tools'/name,'external-tools/'+name))
 # Legacy portable BrowserSkill is already maintained separately from the npm plugin.
 bsk=donor/'runtime/browserskill/0.3.0'
 if not bsk.exists():bsk=source/'runtime/browserskill/0.3.0'
@@ -91,7 +101,7 @@ readme='''Windows x64 离线安装包
 只检查：一键部署.cmd -Mode Check
 上述命令在Git项目根目录的终端执行；检查不安装，修复和默认安装均不下载。
 新版本替换程序文件时保留个人设置；必要的插件注册配置修改前保存到 offline-state/backups。
-本包只修复包含的程序及依赖，不安装系统级 C++ 运行库或修改系统设置。
+本包只修复包含的程序及依赖，不安装系统级 C++ 运行库。首次使用文件搜索会在部署时安装 Everything 索引服务，Windows 可能请求管理员授权；已有服务直接复用。
 
 包内不包含 API Key、聊天记录或原电脑的个人设置。第一次使用请配置模型。
 离线安装不代表在线模型/搜索能离线工作；内网应配置可访问的服务。

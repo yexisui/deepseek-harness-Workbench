@@ -30,6 +30,349 @@ window.__ModuleLoader__.load({
 		react = __toESM(react, 1);
 		let react_jsx_runtime = require("react/jsx-runtime");
 		let react_dom = require("react-dom");
+		//#region ../../shared/client/file-search-client.ts
+		async function fileSearchApi(path, body) {
+			const response = await fetch("/api/capabilities/file-search/" + path, {
+				credentials: "same-origin",
+				...body !== void 0 ? {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(body)
+				} : {}
+			});
+			const result = await response.json();
+			if (!response.ok) throw Error(result.error || "文件搜索失败");
+			return result;
+		}
+		function createFileSearchClient() {
+			let state = {
+				rows: [],
+				busy: false,
+				error: "",
+				query: "",
+				path: ""
+			}, generation = 0;
+			const listeners = /* @__PURE__ */ new Set();
+			const emit = (patch) => {
+				state = {
+					...state,
+					...patch
+				};
+				listeners.forEach((fn) => fn());
+			};
+			const upsert = (row) => emit({ rows: [row, ...state.rows.filter((r) => r.id !== row.id)].sort((a, b) => b.createdAt.localeCompare(a.createdAt)) });
+			const refreshConfig = async () => {
+				try {
+					emit({ config: await fileSearchApi("config") });
+				} catch (e) {
+					emit({ error: e.message });
+				}
+			};
+			const refresh = async () => {
+				try {
+					emit({ rows: await fileSearchApi("list") });
+				} catch (e) {
+					emit({ error: e.message });
+				}
+			};
+			const cancel = async () => {
+				const id = state.request?.id;
+				generation++;
+				emit({
+					busy: false,
+					error: "搜索已取消"
+				});
+				if (id) await fileSearchApi("cancel", { id }).catch(() => {});
+			};
+			return {
+				getSnapshot: () => state,
+				subscribe: (fn) => {
+					listeners.add(fn);
+					return () => {
+						listeners.delete(fn);
+					};
+				},
+				refreshConfig,
+				refresh,
+				cancel,
+				draft: (patch) => emit({
+					...patch,
+					error: ""
+				}),
+				open: () => window.dispatchEvent(new CustomEvent("workbench-file-search-open", { detail: "new" })),
+				async search(roleId) {
+					if (!state.query.trim() || state.busy) return;
+					const token = ++generation, request = {
+						id: crypto.randomUUID(),
+						query: state.query.trim(),
+						path: state.path.trim(),
+						roleId: roleId || state.config?.roleId || ""
+					};
+					emit({
+						busy: true,
+						error: "",
+						request
+					});
+					window.dispatchEvent(new CustomEvent("workbench-file-search-open", { detail: request.id }));
+					try {
+						const row = await fileSearchApi("query", request);
+						if (token === generation) upsert(row);
+					} catch (e) {
+						if (token === generation) emit({ error: e.message });
+					} finally {
+						if (token === generation) emit({ busy: false });
+					}
+				},
+				async command(id, action, value = {}) {
+					const row = await fileSearchApi("command", {
+						id,
+						action,
+						...value
+					});
+					if ("deleted" in row) emit({ rows: state.rows.filter((r) => r.id !== id) });
+					else upsert(row);
+				}
+			};
+		}
+		const fileSearchClient = () => window.workbenchFileSearch ??= createFileSearchClient();
+		const searchDesktop = () => window.desktop;
+		function fileSearchCommand(text) {
+			const match = text.trim().match(/^(?:查找文件|搜索文件)[：:\s]+(.+)$/u);
+			if (!match) return false;
+			const client = fileSearchClient();
+			client.draft({
+				query: match[1],
+				path: ""
+			});
+			client.search();
+			return true;
+		}
+		//#endregion
+		//#region \0dsh-css:shared/client/FileSearchForm.module.css.mjs
+		const css$19 = ".p3UGNa_form{flex-direction:column;gap:8px;width:100%;max-width:720px;display:flex}.p3UGNa_field{min-width:0;position:relative}.p3UGNa_field input{box-sizing:border-box;width:100%;min-width:0;height:38px;font:inherit;color:var(--dsw-alias-label-primary,#202938);background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#dbe1eb);border-radius:8px;padding:7px 42px 7px 10px}.p3UGNa_field button{color:#fff;cursor:pointer;background:linear-gradient(135deg,#506fff,#344dde);border:1px solid #6782ff;border-radius:6px;place-items:center;width:32px;height:32px;padding:4px;display:grid;position:absolute;top:3px;right:3px}.p3UGNa_field button:disabled{opacity:.5;cursor:default}.p3UGNa_field .p3UGNa_folder{background:var(--dsw-alias-bg-layer-2,#f5f7fb);border-color:var(--dsw-alias-border-l2,#dbe1eb);color:var(--dsw-alias-label-secondary,#758095)}.p3UGNa_compact{gap:6px;font-size:12px}.p3UGNa_compact input{color:#eef1ff;background:#10172a;border-color:#45587e;height:32px;padding:6px 36px 6px 8px}.p3UGNa_compact input::placeholder{color:#92a3c6;opacity:1}.p3UGNa_compact button{width:26px;height:26px}.p3UGNa_compact .p3UGNa_folder{color:#bfcff3;background:#26324b;border-color:#465b83}.p3UGNa_error{overflow-wrap:anywhere;margin:4px 0 0;font-size:12px}.p3UGNa_field input:focus-visible,.p3UGNa_field button:focus-visible{outline-offset:2px;outline:2px solid #8ca5ff}";
+		const tagId$19 = "@linxin666/dsh-client-ui-plain-chat/shared/client/FileSearchForm.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$19) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$19;
+			tag.textContent = css$19;
+			document.head.appendChild(tag);
+		}
+		var FileSearchForm_module_css_default = {
+			"compact": "p3UGNa_compact",
+			"error": "p3UGNa_error",
+			"field": "p3UGNa_field",
+			"folder": "p3UGNa_folder",
+			"form": "p3UGNa_form"
+		};
+		//#endregion
+		//#region ../../shared/client/FileSearchForm.tsx
+		function SearchIcon({ kind = "search" }) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("svg", {
+				viewBox: "0 0 24 24",
+				width: "17",
+				height: "17",
+				fill: "none",
+				stroke: "currentColor",
+				strokeWidth: "1.8",
+				"aria-hidden": "true",
+				children: kind === "folder" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 7V5h7l2 3h9v12H3zM3 10h18" }) : kind === "back" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m15 5-7 7 7 7" }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("circle", {
+					cx: "10.5",
+					cy: "10.5",
+					r: "6.5"
+				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m16 16 5 5" })] })
+			});
+		}
+		function FileSearchForm({ compact = false, roleId, onPickingChange }) {
+			const client = fileSearchClient(), state = (0, react.useSyncExternalStore)(client.subscribe, client.getSnapshot), [error, setError] = (0, react.useState)(""), [picking, setPicking] = (0, react.useState)(false);
+			const pick = async () => {
+				const bridge = searchDesktop();
+				if (!bridge?.selectSearchDirectory) {
+					setError("请在桌面端选择文件夹，或直接填写宿主机器的完整路径");
+					return;
+				}
+				setPicking(true);
+				onPickingChange?.(true);
+				setError("");
+				try {
+					const path = await bridge.selectSearchDirectory(state.path);
+					if (path !== null) client.draft({ path });
+				} catch (e) {
+					setError(e.message);
+				} finally {
+					setPicking(false);
+					onPickingChange?.(false);
+				}
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("form", {
+				className: `${FileSearchForm_module_css_default.form} ${compact ? FileSearchForm_module_css_default.compact : ""}`,
+				"aria-label": "本地文件搜索",
+				onSubmit: (e) => {
+					e.preventDefault();
+					client.search(roleId);
+				},
+				onPointerDown: (e) => e.stopPropagation(),
+				onKeyDown: (e) => {
+					e.stopPropagation();
+					if (e.key === "Enter" && e.nativeEvent.isComposing) e.preventDefault();
+				},
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: FileSearchForm_module_css_default.field,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+							"aria-label": "搜索路径（可选，留空全局搜索）",
+							placeholder: "路径（留空全局）",
+							value: state.path,
+							onChange: (e) => client.draft({ path: e.target.value }),
+							spellCheck: false
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							type: "button",
+							className: FileSearchForm_module_css_default.folder,
+							disabled: picking,
+							"aria-label": "选择搜索文件夹",
+							title: "选择文件夹",
+							onClick: () => void pick(),
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(SearchIcon, { kind: "folder" })
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: FileSearchForm_module_css_default.field,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+							"aria-label": "搜索内容",
+							placeholder: "搜索内容",
+							required: true,
+							maxLength: 500,
+							value: state.query,
+							onChange: (e) => client.draft({ query: e.target.value })
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							type: "submit",
+							disabled: state.busy || !state.query.trim(),
+							"aria-label": "搜索本地文件",
+							title: "搜索",
+							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(SearchIcon, {})
+						})]
+					}),
+					error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: FileSearchForm_module_css_default.error,
+						role: "alert",
+						children: error
+					})
+				]
+			});
+		}
+		//#endregion
+		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/FileSearchView.module.css.mjs
+		const css$18 = ".G5Dr9W_view{background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#fff) 94%,transparent);color:var(--dsw-alias-label-primary,#202938);flex-direction:column;flex:1;gap:12px;min-width:0;padding:20px 24px;display:flex;overflow:auto}.G5Dr9W_view h3{overflow-wrap:anywhere;margin:0;font-size:18px}.G5Dr9W_muted{color:var(--dsw-alias-label-secondary,#758095);overflow-wrap:anywhere;margin:0;font-size:12px}.G5Dr9W_list{flex-direction:column;display:flex}.G5Dr9W_item{border-bottom:1px solid var(--dsw-alias-border-l2,#dbe1eb);justify-content:space-between;align-items:center;gap:12px;min-width:0;padding:12px 0;display:flex}.G5Dr9W_info{flex-direction:column;gap:4px;min-width:0;display:flex}.G5Dr9W_path{overflow-wrap:anywhere;user-select:text;font-size:12px}.G5Dr9W_info small{color:var(--dsw-alias-label-secondary,#758095);font-size:12px}.G5Dr9W_actions{flex-shrink:0;gap:6px;display:flex}.G5Dr9W_actions button,.G5Dr9W_view>p button{font:inherit;border:1px solid var(--dsw-alias-border-l2,#dbe1eb);background:var(--dsw-alias-bg-layer-2,#f5f7fb);color:var(--dsw-alias-label-primary,#202938);cursor:pointer;border-radius:7px;padding:5px 9px}@media (width<=600px){.G5Dr9W_item{flex-direction:column;align-items:flex-start}.G5Dr9W_view{padding:16px}}";
+		const tagId$18 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/FileSearchView.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$18) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$18;
+			tag.textContent = css$18;
+			document.head.appendChild(tag);
+		}
+		var FileSearchView_module_css_default = {
+			"actions": "G5Dr9W_actions",
+			"info": "G5Dr9W_info",
+			"item": "G5Dr9W_item",
+			"list": "G5Dr9W_list",
+			"muted": "G5Dr9W_muted",
+			"path": "G5Dr9W_path",
+			"view": "G5Dr9W_view"
+		};
+		//#endregion
+		//#region src/client/FileSearchView.tsx
+		function FileSearchView({ id = "new", roleId }) {
+			const client = fileSearchClient(), state = (0, react.useSyncExternalStore)(client.subscribe, client.getSnapshot), row = state.rows.find((r) => r.id === id), pending = state.request?.id === id, [notice, setNotice] = (0, react.useState)("");
+			const copy = async (path) => {
+				try {
+					await navigator.clipboard.writeText(path);
+					setNotice("路径已复制");
+				} catch {
+					setNotice("复制失败，请选择结果路径手动复制");
+				}
+			};
+			const reveal = async (path) => {
+				try {
+					const bridge = searchDesktop();
+					if (!bridge?.revealSearchResult) throw Error("请在桌面端定位文件，或复制路径");
+					await bridge.revealSearchResult(path);
+					setNotice("");
+				} catch (e) {
+					setNotice(e.message);
+				}
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+				className: FileSearchView_module_css_default.view,
+				"aria-label": "本地文件搜索结果",
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: row?.title || "本地文件搜索" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileSearchForm, { roleId }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: FileSearchView_module_css_default.muted,
+						children: "输入部分文件名即可查找，空格分隔多个关键词；支持 * 和 ?。路径留空为全局搜索。"
+					}),
+					pending && state.busy && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						role: "status",
+						children: ["正在搜索… ", /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							onClick: () => void client.cancel(),
+							children: "取消搜索"
+						})]
+					}),
+					pending && state.error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "alert",
+						children: state.error
+					}),
+					notice && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "status",
+						children: notice
+					}),
+					row && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+						className: FileSearchView_module_css_default.muted,
+						children: [
+							row.roleName,
+							" · ",
+							new Date(row.createdAt).toLocaleString(),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("br", {}),
+							"范围：",
+							row.path || "全部已索引的本地位置",
+							" · 关键词：",
+							row.query,
+							" · ",
+							row.items.length,
+							" 项",
+							row.hasMore ? "（仅显示前 200 项，请缩小范围）" : ""
+						]
+					}), !row.items.length ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "没有匹配结果，请尝试更短的关键词或清空路径。" }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: FileSearchView_module_css_default.list,
+						children: row.items.map((item) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
+							className: FileSearchView_module_css_default.item,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: FileSearchView_module_css_default.info,
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: item.name }),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										className: FileSearchView_module_css_default.path,
+										children: item.path
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [item.directory ? "文件夹" : item.size === null ? "文件" : (item.size / 1024).toFixed(1) + " KB", item.modifiedAt && " · " + item.modifiedAt.replace("T", " ")] })
+								]
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: FileSearchView_module_css_default.actions,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									onClick: () => void reveal(item.path),
+									children: "所在位置"
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									onClick: () => void copy(item.path),
+									children: "复制路径"
+								})]
+							})]
+						}, item.path))
+					})] })
+				]
+			});
+		}
+		//#endregion
 		//#region ../../shared/client/recording-client.ts
 		async function recordingApi(path, body) {
 			const r = await fetch("/api/capabilities/recording/" + path, {
@@ -413,7 +756,7 @@ window.__ModuleLoader__.load({
 			const c = recordingClient(), state = (0, react.useSyncExternalStore)(c.subscribe, c.getSnapshot), row = state.rows.find((r) => r.id === id), [draft, setDraft] = (0, react.useState)(""), [error, setError] = (0, react.useState)("");
 			const send = async () => {
 				if (!draft.trim()) return;
-				if (recordingCommand(draft)) {
+				if (fileSearchCommand(draft) || recordingCommand(draft)) {
 					setDraft("");
 					return;
 				}
@@ -752,6 +1095,20 @@ window.__ModuleLoader__.load({
 		const browserPackage = "@wxg-prc-cpg/browser-skill-dsh-plugin";
 		const components = [
 			{
+				id: "everything-search",
+				name: "本地文件搜索",
+				provider: "@linxin666/dsh-capabilities",
+				version: "1.0.0",
+				actions: ["search-files"],
+				dependencies: [],
+				icon: "document",
+				sourceLabel: "Everything 本地索引",
+				management: "file-search",
+				capabilityIds: ["local-file-search"],
+				required: true,
+				compositionVersion: 2
+			},
+			{
 				id: "audio-recorder",
 				name: "录音与保存",
 				provider: "@linxin666/dsh-capabilities",
@@ -838,6 +1195,7 @@ window.__ModuleLoader__.load({
 			}
 		];
 		const actionNames = {
+			"search-files": "搜索本地文件",
 			"record-audio": "录音与保存",
 			navigate: "打开网页",
 			read: "读取网页",
@@ -907,7 +1265,7 @@ window.__ModuleLoader__.load({
 				if (!binding.enabled) continue;
 				const cap = state?.capabilities.find((c) => c.id === binding.capabilityId), published = cap?.versions.find((v) => v.version === binding.version);
 				const actions = binding.actions ?? actionsOf(published);
-				const mode = actions.includes("transcribe") ? "meeting" : actions.includes("analyze-requirements") ? "requirements" : actions.includes("develop") ? "developer" : "chat";
+				const mode = actions.includes("search-files") ? "file-search" : actions.includes("transcribe") ? "meeting" : actions.includes("analyze-requirements") ? "requirements" : actions.includes("develop") ? "developer" : "chat";
 				if (mode !== "chat" && !result.some((r) => r.mode === mode)) result.push({
 					mode,
 					label: published?.name ?? cap?.draft.name ?? mode
@@ -1031,7 +1389,7 @@ window.__ModuleLoader__.load({
 				onDraftChange?.(value);
 			};
 			const send = async () => {
-				if (recordingCommand(draft)) {
+				if (fileSearchCommand(draft) || recordingCommand(draft)) {
 					update("");
 					return;
 				}
@@ -1613,6 +1971,126 @@ window.__ModuleLoader__.load({
 			"time": "eqpZFq_time",
 			"versionValue": "eqpZFq_versionValue"
 		};
+		//#endregion
+		//#region src/client/FileSearchSettings.tsx
+		function FileSearchSettings({ disabled = false, onEditingChange }) {
+			const client = fileSearchClient(), state = (0, react.useSyncExternalStore)(client.subscribe, client.getSnapshot), [role, setRole] = (0, react.useState)(""), [busy, setBusy] = (0, react.useState)(false), [notice, setNotice] = (0, react.useState)(""), [loaded, setLoaded] = (0, react.useState)(false);
+			(0, react.useEffect)(() => {
+				client.refreshConfig();
+			}, [client]);
+			(0, react.useEffect)(() => {
+				if (state.config && !loaded) {
+					setRole(state.config.roleId);
+					setLoaded(true);
+				}
+			}, [state.config, loaded]);
+			const changed = loaded && role !== state.config?.roleId;
+			(0, react.useEffect)(() => {
+				onEditingChange?.(changed);
+				return () => onEditingChange?.(false);
+			}, [changed, onEditingChange]);
+			const save = async () => {
+				setBusy(true);
+				setNotice("");
+				try {
+					await fileSearchApi("config", { roleId: role });
+					await client.refreshConfig();
+					window.dispatchEvent(new Event("workbench-file-search-config-changed"));
+					setNotice("已保存，下次搜索生效");
+				} catch (e) {
+					setNotice(e.message);
+				} finally {
+					setBusy(false);
+				}
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: ManagedCapabilities_module_css_default.row,
+				style: { display: "block" },
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "本地文件搜索" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: "支持部分文件名、多关键词及 * / ? 通配符。路径留空搜索全部已索引的本地位置。"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "status",
+						children: state.config?.engine.message || state.error || "正在读取搜索状态…"
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", { children: ["搜索归属岗位", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+						"aria-label": "搜索归属岗位",
+						value: role,
+						disabled: disabled || busy,
+						onChange: (e) => {
+							setRole(e.target.value);
+							setNotice("");
+						},
+						style: {
+							display: "block",
+							width: "100%",
+							margin: "10px 0",
+							padding: 10,
+							borderRadius: 10
+						},
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+								value: "",
+								children: "请选择已绑定的岗位"
+							}),
+							role && !state.config?.roles.some((r) => r.id === role) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+								value: role,
+								disabled: true,
+								children: "原岗位已不可用，请重新选择"
+							}),
+							state.config?.roles.map((r) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+								value: r.id,
+								children: r.name
+							}, r.id))
+						]
+					})] }),
+					state.config && !state.config.roles.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "请先在岗位编辑中添加“本地文件搜索”能力。" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: ManagedCapabilities_module_css_default.actions,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: disabled || busy || !role || !changed,
+								onClick: () => void save(),
+								children: "保存"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: busy || !changed,
+								onClick: () => {
+									setRole(state.config?.roleId || "");
+									setNotice("");
+								},
+								children: "取消"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: busy,
+								onClick: () => void client.refreshConfig(),
+								children: "刷新状态"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								disabled: disabled || !state.config?.ready || changed,
+								onClick: client.open,
+								children: "开始搜索"
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						className: ManagedCapabilities_module_css_default.muted,
+						children: "查询结果保存在该岗位下；移除搜索记录只移除记录，不删除原文件。"
+					}),
+					notice && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+						role: "status",
+						children: notice
+					})
+				]
+			});
+		}
 		//#endregion
 		//#region src/client/RecordingSettings.tsx
 		function RecordingSettings({ disabled = false }) {
@@ -6897,6 +7375,7 @@ window.__ModuleLoader__.load({
 			if (problems.length) return status("组件待完善", problems.join("；"), "pending");
 			if (descriptors.some((value) => value?.management !== management)) return status("分项检测", "此能力包含不同服务，请在组件中心分别检查。", "unknown");
 			if (management === "package") return packageStatus?.ready ? status("已启用", packageStatus.message, "ready") : status("待检测", "正在读取执行组件状态", "unknown");
+			if (management === "file-search") return status("已启用", "在设置中检测 Everything，并选择搜索归属岗位。", "context");
 			if (management === "recording") return status("已启用", "选择录音归属岗位后，通过宠物按钮或对话开始录音。", "context");
 			if (management === "developer") return status("项目内检测", "进入开发对话并绑定项目后检测文件、Git 和验证环境；默认只读。", "context");
 			const service = management === "requirements" ? requirements : management === "meeting-asr" ? meeting : void 0;
@@ -7191,6 +7670,14 @@ window.__ModuleLoader__.load({
 		//#region src/client/ComponentService.tsx
 		/** Module differences live here; shared composition views never assume a browser environment. */
 		const adapters = {
+			"file-search": () => ({
+				description: "使用 Everything 本地索引按名称和路径查找文件。",
+				status: "索引与引擎状态在搜索设置中检测",
+				title: "文件搜索服务",
+				name: "Everything 与本地搜索记录",
+				detail: "支持部分文件名、多关键词及通配符；查询不读取文件正文。",
+				configuration: "搜索设置"
+			}),
 			recording: () => ({
 				description: "使用默认麦克风录音并分批保存，可供多个岗位绑定。",
 				status: "开始时请求麦克风权限",
@@ -12464,7 +12951,10 @@ window.__ModuleLoader__.load({
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 							"data-capability-config": true,
-							children: kind === "recording" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RecordingSettings, { disabled: !!item.removedAt }) : kind === "package" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PackageCapabilitySettings, {
+							children: kind === "file-search" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileSearchSettings, {
+								disabled: !!item.removedAt,
+								onEditingChange: onEditing
+							}) : kind === "recording" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RecordingSettings, { disabled: !!item.removedAt }) : kind === "package" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PackageCapabilitySettings, {
 								item,
 								data
 							}) : kind === "developer" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DeveloperProjectSettings, {
@@ -12719,17 +13209,21 @@ window.__ModuleLoader__.load({
 								meetingStatus,
 								requirementsStatus,
 								onConfigure,
-								children: [descriptor.management === "recording" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RecordingSettings, {}), part ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ActionFields, {
-									value: part.actions,
-									available: descriptor.actions,
-									onChange: (actions) => change({
-										...draft,
-										components: draft.components.map((p) => p.componentId === selected ? {
-											...p,
-											actions
-										} : p)
-									})
-								}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "请先将组件添加到中间区域。" })]
+								children: [
+									descriptor.management === "recording" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RecordingSettings, {}),
+									descriptor.management === "file-search" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileSearchSettings, {}),
+									part ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ActionFields, {
+										value: part.actions,
+										available: descriptor.actions,
+										onChange: (actions) => change({
+											...draft,
+											components: draft.components.map((p) => p.componentId === selected ? {
+												...p,
+												actions
+											} : p)
+										})
+									}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "请先将组件添加到中间区域。" })
+								]
 							}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 								className: ManagedCapabilities_module_css_default.empty,
 								children: "选择一个组件以调整动作。"
@@ -14072,7 +14566,7 @@ window.__ModuleLoader__.load({
 				});
 			};
 			const send = () => void run(async () => {
-				if (recordingCommand(view.draft)) {
+				if (fileSearchCommand(view.draft) || recordingCommand(view.draft)) {
 					set({ draft: "" });
 					return;
 				}
@@ -16287,7 +16781,7 @@ window.__ModuleLoader__.load({
 				rememberCurrent();
 			}
 			async function run(operation, instruction = draft, scope = context) {
-				if (recordingCommand(instruction)) {
+				if (fileSearchCommand(instruction) || recordingCommand(instruction)) {
 					updateDraft("");
 					return;
 				}
@@ -18785,7 +19279,7 @@ window.__ModuleLoader__.load({
 				generate(value);
 			};
 			const send = () => {
-				if (recordingCommand(draft)) {
+				if (fileSearchCommand(draft) || recordingCommand(draft)) {
 					setDraft("");
 					return;
 				}
@@ -19588,7 +20082,7 @@ window.__ModuleLoader__.load({
 										className: LocalConversationRows_module_css_default.title,
 										children: row.title
 									}),
-									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: row.recordingId ? "录音" : row.kind === "developer" ? "开发" : row.kind === "requirements" ? "需求" : row.kind === "demo" ? "会议" : row.draft.trim() ? "草稿" : "临时" })
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: row.searchId ? "搜索" : row.recordingId ? "录音" : row.kind === "developer" ? "开发" : row.kind === "requirements" ? "需求" : row.kind === "demo" ? "会议" : row.draft.trim() ? "草稿" : "临时" })
 								]
 							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								type: "button",
@@ -20847,6 +21341,14 @@ window.__ModuleLoader__.load({
 			};
 			const roleSelection = createRoleSelection();
 			const localConversations = createLocalConversations();
+			const searches = fileSearchClient();
+			let activeSearch = sessionStorage.getItem("workbench-file-search-active");
+			const leaveSearch = () => {
+				activeSearch = null;
+				sessionStorage.removeItem("workbench-file-search-active");
+			};
+			searches.refresh();
+			searches.refreshConfig();
 			const recordings = recordingClient();
 			let activeRecording = sessionStorage.getItem("workbench-recording-active");
 			const leaveRecording = () => {
@@ -20915,6 +21417,7 @@ window.__ModuleLoader__.load({
 				return version.preset;
 			});
 			const selectRole = (id) => {
+				leaveSearch();
 				leaveRecording();
 				if (id === roleSelection.getSnapshot()) return;
 				start.reset();
@@ -20930,6 +21433,7 @@ window.__ModuleLoader__.load({
 				}
 			};
 			const startFreshChat = (role = "chat", mode) => {
+				leaveSearch();
 				leaveRecording();
 				requirementViewKey = `requirements-new-${role}-${++requirementNavigation}`;
 				requirementHistory.leave();
@@ -20944,7 +21448,32 @@ window.__ModuleLoader__.load({
 				sessions.clear();
 				layout.selectPanel(null);
 			};
+			const openSearch = (id) => {
+				const state = searches.getSnapshot(), row = state.rows.find((r) => r.id === id), roleId = row?.roleId ?? (state.request?.id === id ? state.request.roleId : state.config?.roleId);
+				if (row) searches.draft({
+					query: row.query,
+					path: row.path
+				});
+				leaveRecording();
+				activeSearch = id;
+				sessionStorage.setItem("workbench-file-search-active", id);
+				start.reset();
+				localConversations.leave();
+				requirementHistory.leave();
+				developerHistory.leave();
+				if (roleId) roleSelection.select(roleId);
+				clearSavedDraft();
+				revision++;
+				listeners.forEach((fn) => fn());
+				sessions.clear();
+				layout.selectPanel(null);
+			};
 			const openLocalConversation = (id) => {
+				if (searches.getSnapshot().rows.some((r) => r.id === id)) {
+					openSearch(id);
+					return;
+				}
+				leaveSearch();
 				const recording = recordings.getSnapshot().rows.find((row) => row.id === id);
 				if (recording) {
 					activeRecording = id;
@@ -20961,6 +21490,7 @@ window.__ModuleLoader__.load({
 					layout.selectPanel(null);
 					return;
 				}
+				leaveSearch();
 				leaveRecording();
 				const developer = developerHistory.getSnapshot().items.find((item) => item.id === id);
 				if (developer) {
@@ -21009,6 +21539,10 @@ window.__ModuleLoader__.load({
 				layout.selectPanel(null);
 			};
 			const renameLocalConversation = async (id, title) => {
+				if (searches.getSnapshot().rows.some((r) => r.id === id)) {
+					await searches.command(id, "rename", { title });
+					return;
+				}
 				if (recordings.getSnapshot().rows.some((r) => r.id === id)) {
 					await recordings.command(id, "rename", { title });
 					return;
@@ -21051,6 +21585,12 @@ window.__ModuleLoader__.load({
 				localConversations.rename(id, title);
 			};
 			const removeLocalConversation = (id) => {
+				if (searches.getSnapshot().rows.some((r) => r.id === id)) {
+					searches.command(id, "delete").then(() => {
+						if (activeSearch === id) startFreshChat();
+					}).catch((e) => window.alert(e.message));
+					return;
+				}
 				if (recordings.getSnapshot().rows.some((r) => r.id === id)) {
 					if (!window.confirm("移除此录音会话及其录音文件？")) return;
 					recordings.command(id, "delete").then(() => {
@@ -21096,6 +21636,7 @@ window.__ModuleLoader__.load({
 			ctx.effect(() => {
 				return sessions.list.subscribe(() => {
 					if (sessions.list.getSnapshot().current !== void 0) {
+						leaveSearch();
 						leaveRecording();
 						if (localConversations.active()) localConversations.leave();
 						if (requirementHistory.getSnapshot().activeId) requirementHistory.leave();
@@ -21118,6 +21659,19 @@ window.__ModuleLoader__.load({
 					window.removeEventListener("focus", refresh);
 				};
 			}, "plain-chat: recording navigation");
+			ctx.effect(() => {
+				const open = (e) => openSearch(e.detail);
+				const refresh = () => {
+					searches.refresh();
+					searches.refreshConfig();
+				};
+				window.addEventListener("workbench-file-search-open", open);
+				window.addEventListener("focus", refresh);
+				return () => {
+					window.removeEventListener("workbench-file-search-open", open);
+					window.removeEventListener("focus", refresh);
+				};
+			}, "plain-chat: file search navigation");
 			const registry = ctx.slots;
 			ctx.effect(() => registerComponentInventory(registry), "plain-chat: shared component inventory compatibility");
 			ctx.effect(() => decorateSlot(registry, "conversation.composer.bar", "InputBar", (Original) => function RecordingCommands(props) {
@@ -21125,7 +21679,7 @@ window.__ModuleLoader__.load({
 					if (key === "submit") return (mode) => {
 						const binding = props.sessionId ? sessions.binding(props.sessionId) : void 0;
 						const input = binding ? ctx.conversation.input.for(binding.ctx) : void 0;
-						if (input && recordingCommand(input.state.getSnapshot().draft)) {
+						if (input && (fileSearchCommand(input.state.getSnapshot().draft) || recordingCommand(input.state.getSnapshot().draft))) {
 							input.setDraft("");
 							return;
 						}
@@ -21175,7 +21729,8 @@ window.__ModuleLoader__.load({
 					const developerKey = developerViewKey;
 					const recordingSnapshot = (0, react.useSyncExternalStore)(recordings.subscribe, recordings.getSnapshot);
 					const recording = recordingSnapshot.rows.find((r) => r.id === activeRecording);
-					const effectiveRole = recording?.roleId ?? developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole;
+					const search = (0, react.useSyncExternalStore)(searches.subscribe, searches.getSnapshot).rows.find((r) => r.id === activeSearch);
+					const effectiveRole = search?.roleId ?? recording?.roleId ?? developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole;
 					const capabilities = (0, react.useSyncExternalStore)(capabilityClient.subscribe, capabilityClient.getSnapshot);
 					const analysisRole = capabilities.data?.state.roles.find((role) => role.id === effectiveRole);
 					const analysisVersion = requirement ? analysisRole?.versions.find((version) => version.version === requirement.roleVersion) : analysisRole && latest(analysisRole.versions);
@@ -21194,7 +21749,7 @@ window.__ModuleLoader__.load({
 					const originRole = capabilities.data?.state.roles.find((role) => role.id === displayedRole);
 					const originVersion = noSession ? developer ? developerVersion : requirement ? analysisVersion : local?.kind === "demo" ? meetingVersion : originRole && latest(originRole.versions) : originRole?.versions.find((v) => v.preset === actualPreset);
 					const modes = roleCapabilityModes(capabilities.data?.state, originVersion);
-					const workMode = developer ? "developer" : requirement ? "requirements" : local?.kind === "demo" ? "meeting" : local?.workMode && modes.some((m) => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes);
+					const workMode = activeSearch ? "file-search" : developer ? "developer" : requirement ? "requirements" : local?.kind === "demo" ? "meeting" : local?.workMode && modes.some((m) => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes);
 					const showDeveloper = workMode === "developer", showRequirements = workMode === "requirements";
 					const translate = (key, ...args) => key === "hero.chooseWorkspace" && (plain || noSession) ? t("workspace") : props.t(key, ...args);
 					const renderSlot = (key, owner, ...rest) => {
@@ -21259,7 +21814,7 @@ window.__ModuleLoader__.load({
 								className: Chat_module_css_default.assistantToolbar,
 								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCurrentAssistant, {
 									selected: displayedRole,
-									preset: noSession && recording ? originRole?.versions.find((v) => v.version === recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === "meeting" ? meetingVersion?.preset : noSession ? void 0 : actualPreset,
+									preset: noSession && search ? originRole?.versions.find((v) => v.version === search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find((v) => v.version === recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === "meeting" ? meetingVersion?.preset : noSession ? void 0 : actualPreset,
 									onOpen: settingsNavigation.openPresets
 								})
 							}),
@@ -21288,7 +21843,10 @@ window.__ModuleLoader__.load({
 							String(actualPreset ?? "").startsWith("workbench-role-") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(BrowserObservation, { sessionId: props.sessionId }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 								className: Chat_module_css_default.conversationContent,
-								children: noSession && recording ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RecordingView, { id: recording.id }, recording.id) : noSession && developerSnapshot.activeId && !developer ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+								children: noSession && (activeSearch || !recording && workMode === "file-search") ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileSearchView, {
+									id: activeSearch ?? "new",
+									roleId: effectiveRole === "chat" ? void 0 : effectiveRole
+								}, activeSearch ?? effectiveRole) : noSession && recording ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RecordingView, { id: recording.id }, recording.id) : noSession && developerSnapshot.activeId && !developer ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
 									role: "status",
 									children: [
 										developerSnapshot.error || "正在恢复开发任务…",
@@ -21401,8 +21959,18 @@ window.__ModuleLoader__.load({
 				const requirements = (0, react.useSyncExternalStore)(requirementHistory.subscribe, requirementHistory.getSnapshot);
 				const developers = (0, react.useSyncExternalStore)(developerHistory.subscribe, developerHistory.getSnapshot);
 				const meetings = (0, react.useSyncExternalStore)(meetingHistory.subscribe, meetingHistory.getSnapshot);
+				const recorded = (0, react.useSyncExternalStore)(recordings.subscribe, recordings.getSnapshot);
 				const historyRows = [
-					...(0, react.useSyncExternalStore)(recordings.subscribe, recordings.getSnapshot).rows.map((row) => ({
+					...(0, react.useSyncExternalStore)(searches.subscribe, searches.getSnapshot).rows.map((row) => ({
+						id: row.id,
+						role: row.roleId,
+						kind: "demo",
+						title: row.title,
+						draft: "",
+						updatedAt: Date.parse(row.updatedAt),
+						searchId: row.id
+					})),
+					...recorded.rows.map((row) => ({
 						id: row.id,
 						role: row.roleId,
 						kind: "demo",
@@ -21442,6 +22010,7 @@ window.__ModuleLoader__.load({
 					if (header?.getAttribute("aria-expanded") === "false") header.click();
 				};
 				const open = (id) => {
+					leaveSearch();
 					leaveRecording();
 					start.reset();
 					localConversations.leave();
@@ -21464,7 +22033,7 @@ window.__ModuleLoader__.load({
 							host,
 							label: ungroupedNewLabel,
 							rows: historyRows,
-							activeId: activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId,
+							activeId: activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId,
 							onLoadMore: requirements.hasMore || requirements.error ? () => {
 								requirementHistory.load(!requirements.error);
 							} : void 0,

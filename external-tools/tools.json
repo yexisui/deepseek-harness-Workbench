@@ -1,13 +1,47 @@
 {
   "schema": 1,
-  "tools": [{
-    "id": "ffmpeg",
-    "version": "9.0.2",
-    "directory": "ffmpeg-9.0.2-essentials_build",
-    "archive": "ffmpeg-9.0.2-essentials_build.zip",
-    "url": "https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-9.0.2-essentials_build.zip",
-    "sha256": "60F467265B1E312373DBCD92200C2618A74850F98D3D078E94296BB3FA2047BA",
-    "license": "GPL-3.0; preserve the upstream LICENSE and README in the installation",
-    "executables": {"ffmpeg": "bin/ffmpeg.exe", "ffprobe": "bin/ffprobe.exe"}
-  }]
+  "tools": [
+    {
+      "id": "ffmpeg",
+      "version": "9.0.2",
+      "directory": "ffmpeg-9.0.2-essentials_build",
+      "archive": "ffmpeg-9.0.2-essentials_build.zip",
+      "url": "https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-9.0.2-essentials_build.zip",
+      "sha256": "60F467265B1E312373DBCD92200C2618A74850F98D3D078E94296BB3FA2047BA",
+      "license": "GPL-3.0; preserve the upstream LICENSE and README in the installation",
+      "executables": {
+        "ffmpeg": "bin/ffmpeg.exe",
+        "ffprobe": "bin/ffprobe.exe"
+      }
+    },
+    {
+      "id": "everything",
+      "version": "1.4.1.1032",
+      "directory": "Everything-1.4.1.1032.x64",
+      "archive": "Everything-1.4.1.1032.x64.zip",
+      "url": "https://www.voidtools.com/Everything-1.4.1.1032.x64.zip",
+      "sha256": "698DF475EC44E638F66F1B6A32D28FEA613CEC78D3B6310E6ABE53431EEB940C",
+      "flatArchive": true,
+      "fileVersion": true,
+      "licenseFile": "everything-LICENSE.txt",
+      "license": "MIT; preserve everything-LICENSE.txt",
+      "executables": {
+        "everything": "everything.exe"
+      }
+    },
+    {
+      "id": "es",
+      "version": "1.1.0.38",
+      "directory": "ES-1.1.0.38.x64",
+      "archive": "ES-1.1.0.38.x64.zip",
+      "url": "https://www.voidtools.com/ES-1.1.0.38.x64.zip",
+      "sha256": "5E0C70CBF4F694080C34AA7C6C745E606C16FE76A4B5423B93EBF9DC34274C99",
+      "flatArchive": true,
+      "licenseFile": "es-LICENSE.txt",
+      "license": "MIT; preserve es-LICENSE.txt",
+      "executables": {
+        "es": "es.exe"
+      }
+    }
+  ]
 }

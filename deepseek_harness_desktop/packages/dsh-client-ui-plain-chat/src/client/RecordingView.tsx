@@ -1,10 +1,11 @@
+import { fileSearchCommand } from '../../../../shared/client/file-search-client.ts'
 import React,{useState,useSyncExternalStore} from 'react'
 import {recordingClient,recordingCommand,recordingTime} from '../../../../shared/client/recording-client.ts'
 import {RecordingControls} from '../../../../shared/client/RecordingControls.tsx'
 import s from './Chat.module.css'
 export function RecordingView({id}:{id:string}){
  const c=recordingClient(),state=useSyncExternalStore(c.subscribe,c.getSnapshot),row=state.rows.find(r=>r.id===id),[draft,setDraft]=useState(''),[error,setError]=useState('')
- const send=async()=>{if(!draft.trim())return;if(recordingCommand(draft)){setDraft('');return}try{await c.command(id,'note',{text:draft});setDraft('');setError('')}catch(e){setError(String(e))}}
+ const send=async()=>{if(!draft.trim())return;if(fileSearchCommand(draft)||recordingCommand(draft)){setDraft('');return}try{await c.command(id,'note',{text:draft});setDraft('');setError('')}catch(e){setError(String(e))}}
  if(!row)return <p role="status">正在读取录音…</p>
  const active=state.activeId===id,live=row.status==='recording'||row.status==='paused'
  return <section style={{height:'100%',display:'flex',flexDirection:'column',padding:'20px 28px',boxSizing:'border-box',gap:16}}>

@@ -590,3 +590,8 @@
     transition: none;
   }
 }
+
+.searchPanel{box-sizing:border-box;width:240px;max-width:calc(100vw - 16px)}
+.functionRow{display:flex;align-items:center;gap:6px}
+.searchButton{width:30px;height:30px;padding:5px;border-radius:10px;border:1px solid #6782ff;background:linear-gradient(135deg,#506fff,#344dde);color:#fff;display:grid;place-items:center;cursor:pointer}
+.searchBack{margin-left:auto;width:20px;height:20px;padding:2px;border:0;background:transparent;color:#b3c4ff;display:grid;place-items:center;cursor:pointer}

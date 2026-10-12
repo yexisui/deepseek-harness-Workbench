@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$ArchivePath)
 $ErrorActionPreference = 'Stop'
@@ -19,32 +19,32 @@ function Expect-Failure([scriptblock]$Action, [string]$Pattern) {
 }
 $installer = Join-Path $testRoot 'install.ps1'
 $before = @(Get-ChildItem -LiteralPath $testRoot -Recurse -File).Count
-Expect-Failure { & $installer -Check } 'Missing external tool'
+Expect-Failure { & $installer -Only ffmpeg -Check } 'Missing external tool'
 if (@(Get-ChildItem -LiteralPath $testRoot -Recurse -File).Count -ne $before) { throw 'Check wrote files.' }
 New-Item -ItemType Directory -Path (Join-Path $testRoot 'downloads') | Out-Null
 $cache = Join-Path $testRoot ('downloads\' + $tool.archive)
 [IO.File]::WriteAllText($cache, 'deliberately invalid test archive')
-Expect-Failure { & $installer } 'checksum differs'
+Expect-Failure { & $installer -Only ffmpeg } 'checksum differs'
 if (Test-Path -LiteralPath (Join-Path $testRoot 'ffmpeg\current.json')) { throw 'Invalid archive published a pointer.' }
 Copy-Item -LiteralPath $ArchivePath -Destination $cache -Force
-& $installer
+& $installer -Only ffmpeg
 Write-Host 'PASS clean installation from verified offline cache'
 $pointer = Join-Path $testRoot 'ffmpeg\current.json'
 $pointerHash = (Get-FileHash -LiteralPath $pointer).Hash
-& $installer -Check
+& $installer -Only ffmpeg -Check
 if ((Get-FileHash -LiteralPath $pointer).Hash -ne $pointerHash) { throw 'Check modified pointer.' }
 $current = Get-Content -LiteralPath $pointer -Raw -Encoding UTF8 | ConvertFrom-Json
 $exe = Join-Path (Join-Path $testRoot 'ffmpeg') $current.ffmpeg
 $probe = Join-Path (Join-Path $testRoot 'ffmpeg') $current.ffprobe
 $stamp = (Get-Item -LiteralPath $exe).LastWriteTimeUtc
-& $installer
+& $installer -Only ffmpeg
 if ((Get-Item -LiteralPath $exe).LastWriteTimeUtc -ne $stamp) { throw 'Reuse replaced an existing executable.' }
 Write-Host 'PASS existing installation reuse'
 $bad = $current | ConvertTo-Json
 $bad.Replace($current.version, '0.0.0-invalid') | Set-Content -LiteralPath $pointer -Encoding UTF8
-Expect-Failure { & $installer -Check } 'Tool pointer differs'
-& $installer
-& $installer -Check
+Expect-Failure { & $installer -Only ffmpeg -Check } 'Tool pointer differs'
+& $installer -Only ffmpeg
+& $installer -Only ffmpeg -Check
 $audio = Join-Path $testRoot 'synthetic.wav'
 & $exe -hide_banner -loglevel error -f lavfi -i 'sine=frequency=440:duration=1' -ac 1 -ar 16000 $audio
 if ($LASTEXITCODE -ne 0) { throw 'Synthetic audio generation failed.' }

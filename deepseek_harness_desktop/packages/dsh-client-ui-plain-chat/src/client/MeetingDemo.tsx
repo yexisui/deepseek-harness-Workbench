@@ -1,3 +1,4 @@
+import { fileSearchCommand } from '../../../../shared/client/file-search-client.ts'
 import { recordingCommand } from '../../../../shared/client/recording-client.ts'
 import { ExecutionHistory } from './ExecutionProcess.tsx'
 import { MessageTime } from './MessageTime.tsx'
@@ -155,7 +156,7 @@ export function MeetingDemo({ conversationTitle, initialState, loadModels, onSna
   }
   const revise = (value: string) => { if (phase !== 'ready' || !value.trim()) return; if (job?.timingStatus === 'processing') { setNotice('正在补全时间定位，请完成后再修改纪要'); return };  void generate(value) }
   const send = () => {
-    if(recordingCommand(draft)){setDraft('');return}
+    if(fileSearchCommand(draft)||recordingCommand(draft)){setDraft('');return}
     if (job?.timingStatus === 'processing') { setNotice('正在补全时间定位，请完成后再发送，输入已保留'); return }
     const value = draft.trim(); if (!value) return; setDraft('')
     if (phase === 'audience') return chooseAudience(value)

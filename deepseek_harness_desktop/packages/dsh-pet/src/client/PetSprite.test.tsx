@@ -983,4 +983,31 @@ describe('pet capability panel',()=>{
   renderPet();fireEvent.contextMenu(screen.getByRole('button',{name:'鲸鱼娘'}));
   expect(screen.getByText('泡泡')).toBeTruthy();expect(screen.queryByText('喂食')).toBeNull();expect(screen.queryByText('改名')).toBeNull();expect(screen.queryByRole('toolbar',{name:'宠物录音工具'})).toBeNull()
  })
+ it('keeps search and the original recording controls exclusive and retains the search draft',async()=>{
+  const previousSearch=window.workbenchFileSearch,previousRecorder=window.workbenchRecorder
+  const {createFileSearchClient}=await import('../../../../shared/client/file-search-client.ts')
+  const client=createFileSearchClient(),subscribers=new Set<()=>void>()
+  let recording:any={config:{roles:[{id:'recording',name:'录音助手'}]},rows:[],activeId:null,elapsed:0,busy:false}
+  window.workbenchFileSearch=client
+  vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,json:async()=>({roleId:'search',roles:[{id:'search',name:'文件搜索助手'}],ready:true,engine:{state:'ready'}})})))
+  window.workbenchRecorder={getSnapshot:()=>recording,subscribe:(fn:()=>void)=>{subscribers.add(fn);return()=>subscribers.delete(fn)},refreshConfig:async()=>{},run:vi.fn()} as any
+  try{
+   await act(async()=>{renderPet();await client.refreshConfig()})
+   fireEvent.contextMenu(screen.getByRole('button',{name:'鲸鱼娘'}))
+   expect(screen.getByRole('button',{name:'开始录音'})).toBeTruthy()
+   fireEvent.click(screen.getByRole('button',{name:'搜索本地文件'}))
+   expect(screen.queryByRole('button',{name:'开始录音'})).toBeNull()
+   fireEvent.change(screen.getByRole('textbox',{name:'搜索内容'}),{target:{value:'会议 纪要'}})
+   expect(screen.getAllByRole('textbox')).toHaveLength(2)
+   fireEvent.click(screen.getByRole('button',{name:'返回宠物功能'}))
+   fireEvent.click(screen.getByRole('button',{name:'搜索本地文件'}))
+   expect((screen.getByRole('textbox',{name:'搜索内容'}) as HTMLInputElement).value).toBe('会议 纪要')
+   act(()=>{recording={...recording,activeId:'recording-1',rows:[{id:'recording-1',status:'recording'}],elapsed:4000};subscribers.forEach(fn=>fn())})
+   expect(screen.queryByRole('textbox',{name:'搜索内容'})).toBeNull()
+   expect(screen.queryByRole('button',{name:'搜索本地文件'})).toBeNull()
+   for(const name of ['暂停录音','完成录音','取消录音'])expect(screen.getByRole('button',{name})).toBeTruthy()
+   act(()=>{recording={...recording,rows:[{id:'recording-1',status:'paused'}]};subscribers.forEach(fn=>fn())})
+   expect(screen.getByRole('button',{name:'继续录音'})).toBeTruthy()
+  }finally{cleanup();window.workbenchFileSearch=previousSearch;window.workbenchRecorder=previousRecorder;vi.unstubAllGlobals()}
+ })
 })

@@ -1,3 +1,5 @@
+import { fileSearchClient, fileSearchCommand } from '../../../../shared/client/file-search-client.ts'
+import { FileSearchView } from './FileSearchView.tsx'
 import { recordingClient, recordingCommand } from '../../../../shared/client/recording-client.ts'
 import { RecordingView } from './RecordingView.tsx'
 import { roleCapabilityModes, defaultCapabilityMode, type CapabilityMode } from './role-capability-modes.ts'
@@ -70,6 +72,10 @@ export function apply(ctx: Context): void {
   const clearSavedDraft = () => { try { sessionStorage.removeItem('workbench-chat-draft') } catch { /* Optional storage. */ } }
   const roleSelection = createRoleSelection<string>()
   const localConversations = createLocalConversations()
+  const searches=fileSearchClient()
+  let activeSearch:string|null=sessionStorage.getItem('workbench-file-search-active')
+  const leaveSearch=()=>{activeSearch=null;sessionStorage.removeItem('workbench-file-search-active')}
+  void searches.refresh();void searches.refreshConfig()
   const recordings = recordingClient()
   let activeRecording: string | null = sessionStorage.getItem('workbench-recording-active')
   const leaveRecording = () => {activeRecording=null;sessionStorage.removeItem('workbench-recording-active')}
@@ -115,7 +121,7 @@ export function apply(ctx: Context): void {
   })
   // 切换岗位需要重新创建会话；重复选中则保留失败重试的会话身份。
   const selectRole = (id: string) => {
-    leaveRecording()
+    leaveSearch();leaveRecording()
     if (id === roleSelection.getSnapshot()) return
     start.reset()
     requirementHistory.leave()
@@ -131,7 +137,7 @@ export function apply(ctx: Context): void {
   // Both the main New button and the ungrouped chat-row + open a fresh draft.
   // A new draft always begins in free chat; published sessions keep their own preset.
   const startFreshChat = (role = 'chat', mode?: CapabilityMode) => {
-    leaveRecording()
+    leaveSearch();leaveRecording()
     requirementViewKey = `requirements-new-${role}-${++requirementNavigation}`
     requirementHistory.leave()
     developerHistory.leave(); developerViewKey = `developer-new-${++developerNavigation}`
@@ -144,10 +150,17 @@ export function apply(ctx: Context): void {
     sessions.clear()
     layout.selectPanel(null)
   }
+  const openSearch=(id:string)=>{
+    const state=searches.getSnapshot(),row=state.rows.find(r=>r.id===id),roleId=row?.roleId??(state.request?.id===id?state.request.roleId:state.config?.roleId)
+    if(row)searches.draft({query:row.query,path:row.path})
+    leaveRecording();activeSearch=id;sessionStorage.setItem('workbench-file-search-active',id);start.reset();localConversations.leave();requirementHistory.leave();developerHistory.leave();if(roleId)roleSelection.select(roleId);clearSavedDraft();revision++;listeners.forEach(fn=>fn());sessions.clear();layout.selectPanel(null)
+  }
   const openLocalConversation = (id: string) => {
+    if(searches.getSnapshot().rows.some(r=>r.id===id)){openSearch(id);return}
+    leaveSearch()
     const recording=recordings.getSnapshot().rows.find(row=>row.id===id)
     if(recording){activeRecording=id;sessionStorage.setItem('workbench-recording-active',id);start.reset();localConversations.leave();requirementHistory.leave();developerHistory.leave();roleSelection.select(recording.roleId);clearSavedDraft();revision++;listeners.forEach(fn=>fn());sessions.clear();layout.selectPanel(null);return}
-    leaveRecording()
+    leaveSearch();leaveRecording()
     const developer = developerHistory.getSnapshot().items.find(item => item.id === id)
     if (developer) {
       developerViewKey = `developer-${id}-${++developerNavigation}`
@@ -175,6 +188,7 @@ export function apply(ctx: Context): void {
     layout.selectPanel(null)
   }
   const renameLocalConversation = async (id: string, title: string) => {
+    if(searches.getSnapshot().rows.some(r=>r.id===id)){await searches.command(id,'rename',{title});return}
     if(recordings.getSnapshot().rows.some(r=>r.id===id)){await recordings.command(id,'rename',{title});return}
     if (requirementHistory.getSnapshot().items.some(row => row.id === id)) {
       const current = await getRequirementTask(id)
@@ -201,6 +215,7 @@ export function apply(ctx: Context): void {
     localConversations.rename(id, title)
   }
   const removeLocalConversation = (id: string) => {
+    if(searches.getSnapshot().rows.some(r=>r.id===id)){void searches.command(id,'delete').then(()=>{if(activeSearch===id)startFreshChat()}).catch(e=>window.alert(e.message));return}
     if(recordings.getSnapshot().rows.some(r=>r.id===id)){if(!window.confirm('移除此录音会话及其录音文件？'))return;void recordings.command(id,'delete').then(()=>{if(activeRecording===id)startFreshChat()}).catch(e=>window.alert(e.message));return}
     const developer = developerHistory.getSnapshot().items.find(item => item.id === id)
     if (developer) {
@@ -233,7 +248,7 @@ export function apply(ctx: Context): void {
   }
   ctx.effect(() => {
     const unsubscribe = sessions.list.subscribe(() => {
-      if (sessions.list.getSnapshot().current !== undefined) { leaveRecording(); if (localConversations.active()) localConversations.leave(); if (requirementHistory.getSnapshot().activeId) requirementHistory.leave(); if (developerHistory.getSnapshot().activeId) developerHistory.leave() }
+      if (sessions.list.getSnapshot().current !== undefined) { leaveSearch();leaveRecording(); if (localConversations.active()) localConversations.leave(); if (requirementHistory.getSnapshot().activeId) requirementHistory.leave(); if (developerHistory.getSnapshot().activeId) developerHistory.leave() }
     })
     return unsubscribe
   }, 'plain-chat: local draft lifecycle')
@@ -244,10 +259,16 @@ export function apply(ctx: Context): void {
     window.addEventListener('workbench-recording-open',open);window.addEventListener('workbench-recording-removed',removed);window.addEventListener('focus',refresh)
     return()=>{window.removeEventListener('workbench-recording-open',open);window.removeEventListener('workbench-recording-removed',removed);window.removeEventListener('focus',refresh)}
   },'plain-chat: recording navigation')
+  ctx.effect(()=>{
+    const open=(e:Event)=>openSearch((e as CustomEvent<string>).detail)
+    const refresh=()=>{void searches.refresh();void searches.refreshConfig()}
+    window.addEventListener('workbench-file-search-open',open);window.addEventListener('focus',refresh)
+    return()=>{window.removeEventListener('workbench-file-search-open',open);window.removeEventListener('focus',refresh)}
+  },'plain-chat: file search navigation')
   const registry = ctx.slots as unknown as Registry
   ctx.effect(() => registerComponentInventory(registry), 'plain-chat: shared component inventory compatibility')
   ctx.effect(()=>decorateSlot(registry,'conversation.composer.bar','InputBar',Original=>function RecordingCommands(props:any){
-    const keyboard=useMemo(()=>props.keyboard?new Proxy(props.keyboard,{get(target,key){if(key==='submit')return(mode:unknown)=>{const binding=props.sessionId?sessions.binding(props.sessionId):undefined;const input=binding?ctx.conversation.input.for(binding.ctx):undefined;if(input&&recordingCommand(input.state.getSnapshot().draft)){input.setDraft('');return}target.submit(mode)};const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value}}):undefined,[props.keyboard,props.sessionId])
+    const keyboard=useMemo(()=>props.keyboard?new Proxy(props.keyboard,{get(target,key){if(key==='submit')return(mode:unknown)=>{const binding=props.sessionId?sessions.binding(props.sessionId):undefined;const input=binding?ctx.conversation.input.for(binding.ctx):undefined;if(input&&(fileSearchCommand(input.state.getSnapshot().draft)||recordingCommand(input.state.getSnapshot().draft))){input.setDraft('');return}target.submit(mode)};const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value}}):undefined,[props.keyboard,props.sessionId])
     return <Original {...props} keyboard={keyboard}/>
   }),'plain-chat: native recording commands')
   const capabilityPreview = createCapabilityPreview()
@@ -283,7 +304,9 @@ export function apply(ctx: Context): void {
       const developerKey = developerViewKey
       const recordingSnapshot=useSyncExternalStore(recordings.subscribe,recordings.getSnapshot)
       const recording=recordingSnapshot.rows.find(r=>r.id===activeRecording)
-      const effectiveRole = recording?.roleId ?? developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole
+      const searchSnapshot=useSyncExternalStore(searches.subscribe,searches.getSnapshot)
+      const search=searchSnapshot.rows.find(r=>r.id===activeSearch)
+      const effectiveRole = search?.roleId ?? recording?.roleId ?? developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole
       const capabilities = useSyncExternalStore(capabilityClient.subscribe, capabilityClient.getSnapshot)
       const analysisRole = capabilities.data?.state.roles.find(role => role.id === effectiveRole)
       const analysisVersion = requirement ? analysisRole?.versions.find(version => version.version === requirement.roleVersion) : analysisRole && latest(analysisRole.versions)
@@ -304,7 +327,7 @@ export function apply(ctx: Context): void {
       const originRole = capabilities.data?.state.roles.find(role => role.id === displayedRole)
       const originVersion = noSession ? (developer ? developerVersion : requirement ? analysisVersion : local?.kind === 'demo' ? meetingVersion : originRole && latest(originRole.versions)) : originRole?.versions.find(v => v.preset === actualPreset)
       const modes = roleCapabilityModes(capabilities.data?.state, originVersion)
-      const workMode: CapabilityMode = developer ? 'developer' : requirement ? 'requirements' : local?.kind === 'demo' ? 'meeting' : local?.workMode && modes.some(m => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes)
+      const workMode: CapabilityMode = activeSearch ? 'file-search' : developer ? 'developer' : requirement ? 'requirements' : local?.kind === 'demo' ? 'meeting' : local?.workMode && modes.some(m => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes)
       const showDeveloper = workMode === 'developer', showRequirements = workMode === 'requirements'
       const translate = (key: string, ...args: unknown[]) => key === 'hero.chooseWorkspace' && (plain || noSession) ? t('workspace') : props.t(key, ...args)
       const renderSlot = (key: string, owner: any, ...rest: any[]) => {
@@ -339,12 +362,12 @@ export function apply(ctx: Context): void {
         if (binding && local?.kind === 'draft') localConversations.commitChat(local.id)
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /></div>
+        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && search ? originRole?.versions.find(v=>v.version===search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /></div>
         {displayedRole !== 'chat' && modes.length > 1 && <nav aria-label="岗位能力入口" className={styles.capabilityModes}>{modes.map(item => <button key={item.mode} type="button" aria-pressed={noSession ? workMode === item.mode : item.mode === 'chat'} onClick={() => { if (noSession && workMode === item.mode) return; startFreshChat(displayedRole, item.mode) }}>{item.label}</button>)}</nav>}
         {!recording && recordingSnapshot.error && <p role="alert" style={{margin:"4px 24px",fontSize:13}}>{recordingSnapshot.error}</p>}
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
-        <div className={styles.conversationContent}>{noSession && recording ? <RecordingView key={recording.id} id={recording.id}/> : noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
+        <div className={styles.conversationContent}>{noSession && (activeSearch || !recording && workMode==='file-search') ? <FileSearchView key={activeSearch??effectiveRole} id={activeSearch??'new'} roleId={effectiveRole==='chat'?undefined:effectiveRole}/> : noSession && recording ? <RecordingView key={recording.id} id={recording.id}/> : noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
           ? <DeveloperAssistant initialTitle={local?.customTitle ? local.title : undefined} key={developerKey} taskId={developer?.id} draftKey={local?.id ?? developerKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={developerVersion?.version} loadModels={loadMeetingModels} onDraftChange={value => {
             if (developerKey !== developerViewKey || sessions.list.getSnapshot().current !== undefined || developerHistory.getSnapshot().activeId) return
             const row = localConversations.active()
@@ -395,7 +418,8 @@ export function apply(ctx: Context): void {
     const developers = useSyncExternalStore(developerHistory.subscribe, developerHistory.getSnapshot)
     const meetings = useSyncExternalStore(meetingHistory.subscribe, meetingHistory.getSnapshot)
     const recorded=useSyncExternalStore(recordings.subscribe,recordings.getSnapshot)
-    const historyRows = [...recorded.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),recordingId:row.id})),...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
+    const searched=useSyncExternalStore(searches.subscribe,searches.getSnapshot)
+    const historyRows = [...searched.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),searchId:row.id})),...recorded.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),recordingId:row.id})),...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
     const [host, setHost] = useState<HTMLDivElement | null>(null)
     const translate = (key: string, ...args: unknown[]) => key === 'group.ungrouped' ? t('history') : props.t(key, ...args)
     // The upstream ungrouped row renders a + button but deliberately gives it
@@ -410,10 +434,10 @@ export function apply(ctx: Context): void {
       const header = button?.closest<HTMLElement>('[role="treeitem"]')
       if (header?.getAttribute('aria-expanded') === 'false') header.click()
     }
-    const open = (id: string) => { leaveRecording(); start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
+    const open = (id: string) => { leaveSearch();leaveRecording(); start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
     return <div ref={setHost} style={{ display: 'contents' }} onClickCapture={onClickCapture}>
       <Original {...props} t={translate} open={open} />
-      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} onRename={renameLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
+      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} onRename={renameLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
         {meetings.loading && <p role="status">正在读取会议记录…</p>}{meetings.error && <p role="alert">{meetings.error}</p>}
         {meetings.unreadableCount > 0 && <p role="status">{meetings.unreadableCount} 条会议记录暂不可读，原文件已保留。</p>}
         {(meetings.hasMore || meetings.error) && <button type="button" className={historyStyles.open} disabled={meetings.loading} onClick={() => { void meetingHistory.load(!meetings.error) }}>{meetings.error ? '重试读取会议记录' : '加载更多会议记录'}</button>}
