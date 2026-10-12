@@ -49,6 +49,13 @@ export function isBundledSource(relPath) {
   return !/\.(test|spec)\.[cm]?[jt]sx?$/.test(posix)
 }
 
+/** Git stores text sources as LF; Windows editor line endings do not change a build. */
+export function sourceDigest(relPath, bytes) {
+  const content = /\.(?:[cm]?[jt]sx?|css|json|ya?ml|md|txt|html)$/.test(relPath)
+    ? bytes.toString('utf8').replace(/\r\n/g, '\n') : bytes
+  return createHash('sha256').update(content).digest('hex')
+}
+
 /**
  * Fingerprint a set of path/digest pairs.
  * Order-independent, so directory-walk order never matters.
@@ -105,7 +112,7 @@ function sourceFiles(dir) {
 function sourceEntries(pkgDir) {
   const dir = join(ROOT, pkgDir, 'src')
   if (!existsSync(dir)) return []
-  return sourceFiles(dir).map((rel) => [rel, createHash('sha256').update(readFileSync(join(dir, rel))).digest('hex')])
+  return sourceFiles(dir).map((rel) => [rel, sourceDigest(rel, readFileSync(join(dir, rel)))])
 }
 
 /** Package directories whose lib/ is committed to git (the only shipped artifacts). */

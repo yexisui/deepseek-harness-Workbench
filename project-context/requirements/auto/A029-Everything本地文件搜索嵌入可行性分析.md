@@ -163,4 +163,6 @@ Everything 1.4.1.1032 x64 和 ES 1.1.0.38 x64 放入 external-tools 各自目录
 
 完整安装回归状态：通过。首次安装 44,033 个文件，重复安装完整复用；删除 Node 和损坏主 UI 后只修复 2 个文件；只读检查不修改文件，损坏 payload 校验被拒绝，已有设置和业务哨兵保留。验证使用不可达代理，未联网安装。最终 r8 安装出的工作台已实际启动，真实查询、默认岗位、历史导航、宠物面板与 375px 界面检查通过，无页面脚本错误。实施与验证证据保存在二次开发工作区 everything-implementation（本机，不作为另一份维护来源）。
 
-Git 定位：main；实现提交主题为“Add Everything file search capability with compact pet controls”。原录音共享控制及客户端文件字节保持，生成的运行包与查询数据继续忽略入库。
+Git 定位：main / 0071368（Add Everything file search capability with compact pet controls）。原录音共享控制及客户端文件字节保持，生成的运行包与查询数据继续忽略入库。
+
+提交后另补充构建指纹的 CRLF/LF 统一处理：同一文本在 Windows 编辑器与 Git 检出后保持相同指纹，内容变更及二进制字节仍能识别；7 项维护脚本测试通过。此项不改变运行程序或已验证的 r8 payload。

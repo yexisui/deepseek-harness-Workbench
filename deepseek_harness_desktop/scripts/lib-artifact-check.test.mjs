@@ -5,7 +5,13 @@
  */
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { fingerprintEntries, isBundledSource, parseAggregateInputs } from './lib-artifact-check.mjs'
+import { fingerprintEntries, isBundledSource, parseAggregateInputs, sourceDigest } from './lib-artifact-check.mjs'
+
+it('normalizes Git text line endings while preserving source changes and binary bytes', () => {
+  assert.equal(sourceDigest('index.ts', Buffer.from('a\r\nb\r\n')), sourceDigest('index.ts', Buffer.from('a\nb\n')))
+  assert.notEqual(sourceDigest('index.ts', Buffer.from('a\nb\n')), sourceDigest('index.ts', Buffer.from('a\nc\n')))
+  assert.notEqual(sourceDigest('asset.png', Buffer.from([13,10])), sourceDigest('asset.png', Buffer.from([10])))
+})
 
 describe('isBundledSource', () => {
   it('keeps shipped sources', () => {
