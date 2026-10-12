@@ -13,7 +13,7 @@ export function resolveWorkbenchModel(ctx: Context, selectedModel: string): stri
   try { const settings = ctx.get('settings' as never) as { get(ns: string): unknown } | undefined; route = settings?.get('agent-default-model') as typeof route } catch { /* No default configured. */ }
   return route?.provider && route.model ? `${route.provider}/${route.model}` : ''
 }
-export async function workbenchText(ctx: Context, prompt: string, selectedModel: string, system: string, maxTokens: number | undefined, signal?: AbortSignal, timeoutMs: number | null = 180_000): Promise<string> {
+export async function workbenchText(ctx: Context, prompt: string, selectedModel: string, system: string, maxTokens: number | undefined, signal?: AbortSignal, timeoutMs: number | null = 180_000, onDelta?: (text: string) => void): Promise<string> {
   const route = resolveWorkbenchModel(ctx,selectedModel), slash = route.indexOf('/')
   let llm: { stream(options: unknown): AsyncIterable<{ type: string; text?: string; reason?: { kind: string; failure?: { message?: string } } }> } | undefined
   try { llm=ctx.get('llm' as never) as typeof llm } catch { /* Report missing service below. */ }
@@ -25,7 +25,7 @@ export async function workbenchText(ctx: Context, prompt: string, selectedModel:
   let result=''
   for await(const chunk of llm.stream({provider:route.slice(0,slash),model:route.slice(slash+1),system,messages:[{id:randomUUID(),role:'user',content:[{type:'text',text:prompt}],source:{kind:'user'}}],temperature:0.1,...(maxTokens === undefined ? {} : { maxTokens }),signal:combined})) {
     if(combined?.aborted)throw new Error(signal?.aborted?'本次分析已停止':'模型处理超时，请重试')
-    if(chunk.type==='text-delta'){if(!received){step(progressId,'模型生成','running','正在接收正文',{model:route});received=true}result+=chunk.text??''}
+    if(chunk.type==='text-delta'){if(!received){step(progressId,'模型生成','running','正在接收正文',{model:route});received=true}result+=chunk.text??'';onDelta?.(chunk.text??'')}
     if(result.length>512_000)throw new Error('模型返回内容过长，请缩小分析范围')
     if(chunk.type==='finish'&&chunk.reason?.kind==='max-tokens')throw new Error('模型输出达到所选模型的 token 上限，正文可能被截断；请在模型设置中调整最大输出 token 数后重试')
     if(chunk.type==='finish'&&chunk.reason?.kind==='error')throw new Error(chunk.reason.failure?.message||'工作台模型处理失败')

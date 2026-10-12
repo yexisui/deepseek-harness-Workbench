@@ -34,7 +34,7 @@ export function createDocumentClient(){
  }
  async function rpc<T=any>(op:string,args:unknown={}):Promise<T>{ensureFrame();await ready;return new Promise((resolve,reject)=>{const id=++seq,timeout=setTimeout(()=>{pending.delete(id);reject(Error('编辑器响应超时，请保留页面并重试'))},60000);pending.set(id,{resolve,reject,timer:timeout});frame!.contentWindow!.postMessage({source:'workbench-document-host',channel,id,op,args},location.origin)})}
  const fail=(e:unknown)=>emit({error:e instanceof Error?e.message:String(e)})
- async function refresh(){try{emit({rows:await documentApi<DocumentRecord[]>('list')})}catch(e){fail(e)}}
+ async function refresh(){try{const rows=await documentApi<DocumentRecord[]>('list'),current=rows.find(r=>r.id===state.active?.id);emit({rows,...(current&&current.revision>=(state.active?.revision??0)?{active:current}:{})})}catch(e){fail(e)}}
  async function flush(){
   clearTimeout(timer)
   const work=async()=>{
@@ -66,8 +66,11 @@ export function createDocumentClient(){
  }
  async function command(id:string,action:string,value?:unknown){if(id===state.active?.id)await flush();const row=await documentApi<DocumentRecord>('command',{id,action,value});upsert(row);if(id===state.active?.id)emit({active:row.removedAt?undefined:row})}
  window.addEventListener('beforeunload',event=>{if(state.active&&!state.draftSaved){event.preventDefault();event.returnValue=''}})
+ setInterval(()=>{if(state.rows.some(r=>r.messages.some(m=>m.status==='running')))void refresh()},700)
  return {getSnapshot:()=>state,subscribe:(fn:()=>void)=>{listeners.add(fn);return()=>{listeners.delete(fn)}},refresh,rpc,flush,open,importBytes,openNative,save,command,fail,
   async newDocument(){await flush();emit({active:undefined,context:undefined,dirty:false,draftSaved:false,error:''})},
+  async ask(input:{question:string;model:string;scope:string;chapter?:number}){await flush();const active=state.active;if(!active)throw Error('请先打开文档');const context=await rpc<DocumentContext>('context');await documentApi('ask',{...input,id:active.id,context});await refresh()},
+  async stop(){if(state.active){await documentApi('stop',{id:state.active.id});await refresh()}},
   mount(node:HTMLElement){ensureFrame();node.appendChild(frame!);return()=>{holder!.appendChild(frame!)}},
   clearError:()=>emit({error:''}),notify:()=>refresh(),hasNative:(id:string)=>handles.has(id),
  }

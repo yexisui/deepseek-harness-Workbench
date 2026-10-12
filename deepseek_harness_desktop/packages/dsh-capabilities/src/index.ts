@@ -47,8 +47,10 @@ declare module '@deepseek-ai/cordis' { interface Context { capabilities: Capabil
 export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: string; port?: number } = {}) {
   const home = dshHome(), store = new CapabilityStore(join(home, 'capabilities'))
   await store.init()
-  const documents=new DocumentsService(join(home,'capabilities','documents'),()=>store.snapshot())
+  const documents=new DocumentsService(join(home,'capabilities','documents'),()=>store.snapshot(),(prompt,model,system,signal,onDelta)=>workbenchText(ctx,prompt,model,system,undefined,signal,180_000,onDelta))
   await documents.init()
+  ctx.effect(()=>()=>documents.ai.close(),'document lifecycle')
+  ctx.effect(()=>store.subscribe(()=>documents.ai.reconcile()),'document authorization')
   const recording = new RecordingService(join(home,'capabilities','recordings'),()=>store.snapshot(),join(home,'..','external-tools'))
   let recordingError = ''
   try { await recording.init() } catch (error) { recordingError = error instanceof Error ? error.message : '录音存储不可用' }

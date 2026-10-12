@@ -1,3 +1,4 @@
+import {DocumentAI,type DocumentModel} from './document-ai.ts'
 import {randomUUID} from 'node:crypto'
 import {mkdir,readFile,writeFile,rename} from 'node:fs/promises'
 import {join} from 'node:path'
@@ -13,8 +14,9 @@ const uuid=/^[0-9a-f-]{36}$/i
 export class DocumentsService {
  private tail:Promise<unknown>=Promise.resolve()
  private rows:DocumentRecord[]=[]
- constructor(readonly root:string,readonly state:()=>State){}
- async init(){await mkdir(this.root,{recursive:true});try{this.rows=JSON.parse(await readFile(join(this.root,'index.json'),'utf8'))}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e}}
+ readonly ai:DocumentAI
+ constructor(readonly root:string,readonly state:()=>State,model:DocumentModel=async()=>{throw Error('模型服务尚未就绪')}){this.ai=new DocumentAI(root,id=>this.get(id),()=>this.exclusive(()=>this.persist()),(row,revise)=>this.authorize(row.roleId,row.roleVersion,revise?'revise-document':'ask-document'),model)}
+ async init(){await mkdir(this.root,{recursive:true});try{this.rows=JSON.parse(await readFile(join(this.root,'index.json'),'utf8'))}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e}await this.ai.init(this.rows)}
  list(){return structuredClone(this.rows.filter(r=>!r.removedAt))}
  get(id:string){const row=this.rows.find(r=>r.id===id&&!r.removedAt);if(!row||!uuid.test(id))throw new InputError('文档会话不存在',404);return row}
  authorize(roleId:string,roleVersion:number,action:Action){const state=this.state(),role=state.roles.find(r=>r.id===roleId),version=role?.versions.find(v=>v.version===roleVersion);if(!version||role?.removedAt||role?.archivedAt||!allowedActions(state,roleId,version).includes(action))throw new InputError('当前岗位未启用此文档动作，请到岗位与能力中心检查关联组件',403)}
@@ -36,7 +38,7 @@ export class DocumentsService {
    const next=row.revision+1,target=join(this.root,id,'current.docx'),temp=target+'.tmp';await writeFile(temp,bytes);await rename(temp,target);row.revision=next;row.updatedAt=new Date().toISOString();await this.persist();return structuredClone(row)
   })
  }
- async command(id:string,action:string,value:unknown){return this.exclusive(async()=>{const row=this.get(id);if(action==='rename')row.title=text(value,'名称',120,true);else if(action==='remove')row.removedAt=new Date().toISOString();else throw new InputError('未知文档操作');row.updatedAt=new Date().toISOString();await this.persist();return structuredClone(row)})}
+ async command(id:string,action:string,value:unknown){return this.exclusive(async()=>{const row=this.get(id);if(action==='rename')row.title=text(value,'名称',120,true);else if(action==='remove'){this.ai.stop(id);row.removedAt=new Date().toISOString();}else throw new InputError('未知文档操作');row.updatedAt=new Date().toISOString();await this.persist();return structuredClone(row)})}
  async routes(req:IncomingMessage,res:ServerResponse){
   const url=new URL(req.url!,'http://localhost'),route=url.pathname,base='/api/capabilities/documents/'
   if(await documentAssets(req,res,route))return
@@ -46,6 +48,8 @@ export class DocumentsService {
   if(op.startsWith('file/')&&req.method==='PUT')return json(res,200,await this.upload(op.slice(5),Number(url.searchParams.get('revision')),req))
   if(req.method!=='POST')throw new InputError('文档接口不存在',404)
   const body=await readBody(req)
+  if(op==='ask')return json(res,202,await this.ai.ask(body))
+  if(op==='stop')return json(res,200,this.ai.stop(text(body.id,'文档',36,true)))
   if(op==='create')return json(res,201,await this.create(body))
   if(op==='command')return json(res,200,await this.command(text(body.id,'文档',36,true),text(body.action,'动作',20,true),body.value))
   throw new InputError('文档接口不存在',404)
