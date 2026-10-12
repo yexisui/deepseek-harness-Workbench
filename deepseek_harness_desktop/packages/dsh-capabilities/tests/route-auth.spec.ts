@@ -13,7 +13,6 @@ vi.mock('../src/host/packages.ts', () => ({ CapabilityPackages: class { init=vi.
 vi.mock('../src/host/package-runner.ts', () => ({ PackageRunner: class { init=vi.fn(); close=vi.fn(); activities=()=>[] } }))
 vi.mock('../src/host/runtime.ts', () => ({ CapabilityRuntime: class { constructor() { return mocks.runtime } } }))
 vi.mock('../src/host/presets.ts', () => ({ writePresets: mocks.writePresets, preparePresets: vi.fn() }))
-vi.mock('../../dsh-jev-mode/src/index.ts', () => ({ apply: async () => ({}) }))
 vi.mock('../../../shared/host/dsh-home.ts', () => ({ dshHome: () => `${process.env.TEMP}/dsh-route-auth-test` }))
 import { apply, inject } from '../src/index.ts'
 

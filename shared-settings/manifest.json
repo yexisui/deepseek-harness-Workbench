@@ -12,11 +12,6 @@
       "sha256": "341b5b5c9bf54b265bf4c9c9f4b1bfc8fad07e01d2aba31fda19601344dc99a9"
     },
     {
-      "path": "jev-mode/config.json",
-      "format": "structured",
-      "sha256": "ba7322ae1630aa552636c7aaab4e856300f67cbc473689fe4b2a505d7ce4002f"
-    },
-    {
       "path": "pet.json",
       "format": "structured",
       "sha256": "405595776c83e6c32bdf4f16e3539bac4ff11712af4e8ca202e0948f89536f8d"

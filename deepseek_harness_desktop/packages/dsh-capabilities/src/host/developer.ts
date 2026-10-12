@@ -1,6 +1,5 @@
 import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import { randomUUID, createHash } from 'node:crypto'
-import type { JevService } from '../../../dsh-jev-mode/src/host/service.ts'
 import { mkdir, open, readFile, readdir, rename, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { GitService } from '../../../dsh-git-graph/src/host/git-service.ts'
@@ -24,7 +23,7 @@ export class DeveloperService {
   private tail: Promise<unknown> = Promise.resolve()
   private running = new Map<string, { cwd: string; controller: AbortController; promise?: Promise<void> }>()
   private closed = false
-  constructor(readonly root: string, readonly git: GitService, private model: Model, private run: Run, private state: () => State, private jev?: JevService, private skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) { this.executions = new ExecutionStore(join(root,'_executions')) }
+  constructor(readonly root: string, readonly git: GitService, private model: Model, private run: Run, private state: () => State, private skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) { this.executions = new ExecutionStore(join(root,'_executions')) }
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private path(id: string, sub = '') { if (!UUID.test(id)) throw new InputError('开发任务标识无效'); return join(this.root, sub, id + '.json') }
   private async atomic(file: string, value: unknown) {
@@ -232,11 +231,9 @@ export class DeveloperService {
   }
   private async developWork(id: string, roundId: string, signal: AbortSignal) {
     const observed = new Map<string, string>(), evidence: unknown[] = []
-    const jev = this.jev?.begin('developer:'+id)
     let formatRetries = 0
     try {
       let task = await this.get(id)
-      await jev?.check('begin', {permission:task.permission,messages:task.messages.slice(-16)}, signal)
       const listing = await this.git.workspace.files(task.cwd)
       // Project rules are data for the development agent, scoped to its selected directory.
       for (const name of listing.files.filter(name => /(^|\/)AGENTS\.md$/i.test(name)).slice(0, 30)) {
@@ -245,7 +242,7 @@ export class DeveloperService {
       for (let step = 0; step < 24; step++) {
         signal.throwIfAborted(); task = await this.get(id); const role = this.authorize(task)
         const prompt = JSON.stringify({ project: task.cwd, permission: task.permission, role: { duties: role.duties, requirements: role.requirements, format: role.format, skills: this.skillGuidance?.(task.roleId,task.roleVersion,task.cwd,Date.parse(task.createdAt)) }, files: listing.files.slice(0, 2500), conversation: task.messages.slice(-16), operations: evidence.slice(-24) })
-        const output = await this.model(prompt + (jev?.guidance() ?? ''), task.model, signal); signal.throwIfAborted()
+        const output = await this.model(prompt, task.model, signal); signal.throwIfAborted()
         let command: Record<string, unknown>
         try { command = object(JSON.parse(output.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, ''))) }
         catch {
@@ -256,8 +253,6 @@ export class DeveloperService {
           continue
         }
         if (command.action === 'finish') {
-          const reviewed=await jev?.check('review',{messages:task.messages.slice(-16),evidence,answer:command.message},signal)
-          if(reviewed?.decision==='clarify')command.message=String(command.message)+'\n\nJEV 待确认：'+reviewed.summary+'\n'+reviewed.missing.join('\n')
           await this.update(id, current => { current.messages.push({ id: randomUUID(), role: 'assistant', runId:roundId, text: text(command.message, '回答', 40000, true), at: now() }) }); break
         }
         const name = string(command.path, '文件路径', 1500)
@@ -272,7 +267,6 @@ export class DeveloperService {
           if (current.permission !== 'edit') { evidence.push({ error: '任务为只读，请说明建议并结束，不能修改' }); continue }
           const expected = observed.get(name)
           if (!expected) { evidence.push({ error: '必须先 read 此路径，包括新文件；使用当前内容再修改' }); continue }
-          await jev?.check('action',{permission:current.permission,messages:current.messages.slice(-4),command,expectedVersion:expected,evidence:evidence.slice(-6)},signal)
           const authorized=await this.get(id);this.authorize(authorized);signal.throwIfAborted()
           if(authorized.permission!=='edit')throw new InputError('检查期间任务编辑权限已改变，未写入文件',409)
           const result = await this.git.workspace.write(task.cwd, name, command.action === 'remove' ? null : text(command.content, '文件内容', 256 * 1024), expected)
@@ -289,7 +283,7 @@ export class DeveloperService {
         try { round.after = await this.snapshot(task.cwd) } catch { /* Missing directory does not erase the failure record. */ }
         this.event(task, 'system', round.error)
       })
-    } finally { jev?.finish() }
+    }
   }
   async verify(id: string, commandId: string, requestId: string) { return this.serialized(async () => {
     const task = await this.get(id)

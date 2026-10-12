@@ -5,7 +5,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { execFileSync } = require('node:child_process');
 const structuredFiles = [
-  'settings.yaml', 'pet.json', 'skin-center-active.json', 'jev-mode/config.json',
+  'settings.yaml', 'pet.json', 'skin-center-active.json',
   'plugin-management/classification.json', 'skill-management/state.json',
   'capabilities/state.json', 'capabilities/recordings/settings.json',
   'profiles/web/cordis.patch.yml',

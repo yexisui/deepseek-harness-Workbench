@@ -4,7 +4,7 @@ import {createRoot} from 'react-dom/client'
 import {afterEach,expect,it,vi} from 'vitest'
 import {ExecutionHistory,ExecutionProcessCard} from '../src/client/ExecutionProcess.tsx'
 import type {ExecutionRecord} from '../../../shared/types/execution.ts'
-const run:ExecutionRecord={schema:1,id:'run-1',taskId:'task-1',operation:'生成纪要',input:'测试要求',inputKind:'user',startedAt:'2026-10-09T02:00:00Z',finishedAt:'2026-10-09T02:00:05Z',status:'review',summary:'本轮未通过；上一版纪要保留',seq:1,events:[{id:'e1',seq:1,key:'jev',title:'JEV结果复核',status:'review',detail:'负责人缺少依据',startedAt:'2026-10-09T02:00:03Z',updatedAt:'2026-10-09T02:00:05Z'}]}
+const run:ExecutionRecord={schema:1,id:'run-1',taskId:'task-1',operation:'生成纪要',input:'测试要求',inputKind:'user',startedAt:'2026-10-09T02:00:00Z',finishedAt:'2026-10-09T02:00:05Z',status:'review',summary:'本轮未通过；上一版纪要保留',seq:1,events:[{id:'e1',seq:1,key:'validation',title:'结果校验',status:'review',detail:'负责人缺少依据',startedAt:'2026-10-09T02:00:03Z',updatedAt:'2026-10-09T02:00:05Z'}]}
 let host:HTMLDivElement,root:ReturnType<typeof createRoot>
 function setup(){(globalThis as any).IS_REACT_ACT_ENVIRONMENT=true;host=document.createElement('div');document.body.append(host);root=createRoot(host);sessionStorage.clear()}
 afterEach(async()=>{await act(async()=>root?.unmount());host?.remove();vi.unstubAllGlobals();vi.useRealTimers()})

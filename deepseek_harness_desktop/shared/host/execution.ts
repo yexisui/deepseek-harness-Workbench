@@ -20,7 +20,6 @@ export class ExecutionRun {
     else this.record.events.push({id:randomUUID(),key,title,status,startedAt:at,updatedAt:at,...extra,...(detail!==undefined?{detail:clean(detail).slice(0,16000)}:{}),seq:this.record.seq})
     this.persist()
   }
-  jev(value: NonNullable<ExecutionRecord['jev']>) { this.record.jev=value;this.persist() }
   async finish(value: {status:ExecutionStatus;summary?:string;result?:ExecutionRecord['result']}) {
     for(const event of this.record.events)if(event.status==='running'){event.status=value.status==='done'?'done':value.status;event.updatedAt=now();event.seq=++this.record.seq}
     Object.assign(this.record,value,{summary:value.summary?clean(value.summary):undefined,finishedAt:now()});this.persist();await this.tail

@@ -1,7 +1,6 @@
 {
-  "packages/dsh-capabilities": "5e79ff931628cb4cd594c7b20ad8a6c7a0a6e361d125bca920f3e1f7dcd49410",
-  "packages/dsh-client-ui-plain-chat": "3a1dedee01c9fe376cef74de7135987bd75bb378809cf3623ac1c5491d79c7c8",
-  "packages/dsh-jev-mode": "2eb32945f0458a732b8a5541d667bb285aaf8cb3005f9e22e6075879b407f380",
+  "packages/dsh-capabilities": "527aecd0a901054892670e4ef19c2261819b6ac7cf3957bfe8b84c4ce6b825ee",
+  "packages/dsh-client-ui-plain-chat": "a210ffcbe5acabb10792a14091e7b230fb0f00dffe59d7629180ba6849cd6193",
   "packages/dsh-market": "fc82971916fe62003ee9346bece27a1a6435ef6feea83f0678c5cfeb89b458c4",
   "packages/dsh-preset-center": "4071e8d2e0ce34f1785ce96ea283102aa34aa419a351b1c9921aeec806fb25c5",
   "packages/dsh-web-all": "3f29ce28db94db55f2778c74b7defa0b9db56b62a9436d1dc64560cb7e3744b3",

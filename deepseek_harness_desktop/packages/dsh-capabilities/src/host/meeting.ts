@@ -5,7 +5,6 @@ import { createReadStream, openAsBlob } from 'node:fs'
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { randomUUID } from 'node:crypto'
-import type { JevService } from '../../../dsh-jev-mode/src/host/service.ts'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { latest, type Role, type State } from '../core/model.ts'
 import { allowedActions, wasRevoked } from '../core/policy.ts'
@@ -94,7 +93,7 @@ export class MeetingService {
     void task.finally(() => { pending.delete(task); if (!pending.size && this.pending.get(id) === pending) this.pending.delete(id) }).catch(() => {})
     return task
   }
-  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly jev?: JevService, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly resolveAsr?: () => Promise<MeetingAsrConfig>, private readonly segmenter?: MeetingSegmenter) { this.executions = new ExecutionStore(join(root,'_executions')) }
+  constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly resolveAsr?: () => Promise<MeetingAsrConfig>, private readonly segmenter?: MeetingSegmenter) { this.executions = new ExecutionStore(join(root,'_executions')) }
   private config() { return config(this.asrSettings?.()) }
   private capabilityError(): string | undefined {
     if (!this.currentState) return
@@ -336,14 +335,12 @@ export class MeetingService {
       if(changed)step('corrections','保存转写校对','done',changed+' 个片段已校对；本轮使用校对后的原文')
       await this.finishGenerateWork(job,instruction)
       return job
-    },value=>({status:value.status==='ready'?'done':this.stopped.has(job.id)?'stopped':execution()?.record.events.some(e=>e.key.startsWith('jev-review')&&e.status==='review')?'review':'failed',summary:value.status==='ready'?'纪要已保存':(value.error??'本轮未完成')+(value.minutes?'；上一版纪要保留':''),...(value.status==='ready'&&value.minutes?{result:{kind:'minutes',text:JSON.stringify(value.minutes)}}:{})}))
+    },value=>({status:value.status==='ready'?'done':this.stopped.has(job.id)?'stopped':'failed',summary:value.status==='ready'?'纪要已保存':(value.error??'本轮未完成')+(value.minutes?'；上一版纪要保留':''),...(value.status==='ready'&&value.minutes?{result:{kind:'minutes',text:JSON.stringify(value.minutes)}}:{})}))
   }
   private async finishGenerateWork(job: MeetingJob, instruction?: string) {
     const controller = new AbortController(); this.controllers.set(job.id, controller)
-    const jev=this.jev?.begin('meeting:'+job.id)
     try {
       const text = this.transcriptText(job.segments)
-      await jev?.check('begin',{task:'整理会议纪要，核对转写忠实性，不执行上线审批或采购',transcript:text,instruction,audience:job.audience,focus:job.focus},controller.signal)
       const chunks = text.match(/[\s\S]{1,16000}/g) ?? []
       let source = text
       if (chunks.length > 1) {
@@ -354,13 +351,11 @@ export class MeetingService {
       const previous = job.minutes ? `\n现有纪要：${JSON.stringify(job.minutes)}` : ''
       const roleGuidance = job.role ? `岗位：${job.role.name}。职责：${job.role.duties}。工作要求：${job.role.requirements}。输出偏好：${job.role.format}。\n` : ''
       const prompt = `${roleGuidance}${job.role?this.skillGuidance?.(job.role.id ?? MEETING_ROLE_ID,job.role.version,undefined,Date.parse(job.createdAt))??'':''}用途：${job.audience || '通用会议纪要'}；重点：${job.focus || '结论与待办'}。${instruction ? `用户修改要求：${string(instruction, 1000)}。` : ''}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`
-      const minutes = parseMinutes(await this.ask(prompt+(jev?.guidance()??''), job.summaryModel, controller.signal), job.segments)
-      const reviewed=await jev?.check('review',{task:'核对纪要是否忠于转写。业务待确认项已如实标明时允许保留，不要求其实际完成。不得遗漏转写中已明确的负责人。',transcript:text,minutes},controller.signal)
-      if(reviewed?.decision==='clarify')throw new InputError('JEV 纪要复核需要确认，未覆盖已有纪要：'+reviewed.summary,409)
+      const minutes = parseMinutes(await this.ask(prompt, job.summaryModel, controller.signal), job.segments)
       controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt, job.role?.id)
       step('sources','纪要结构与来源ID检查','done','只核对结构和来源ID有效性，不代表逐条事实已人工确认')
       delete job.timing; delete job.timingStatus; delete job.timingError; job.minutes = minutes; job.minutesGeneratedAt = new Date().toISOString(); job.status = 'ready'; await this.save(job)
-    } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? (this.stopped.has(job.id) ? '本轮已停止，历史结果保留' : '组件已停用，本次处理已停止；历史结果保留') : errorText(error); await this.save(job) } finally { jev?.finish(); if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
+    } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? (this.stopped.has(job.id) ? '本轮已停止，历史结果保留' : '组件已停用，本次处理已停止；历史结果保留') : errorText(error); await this.save(job) } finally { if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
   }
   async repairTiming(id: string) {
     if (this.running.has(id)) throw new InputError('此会议正在处理，请稍后重试', 409)

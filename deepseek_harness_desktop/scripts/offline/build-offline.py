@@ -11,7 +11,7 @@ a=p.parse_args();donor=Path(a.donor).resolve();source=Path(a.source).resolve();o
 out.mkdir(parents=True,exist_ok=True)
 if any(out.iterdir()): raise SystemExit('Output must be empty; refusing to overwrite a release')
 offline=out/'offline';offline.mkdir()
-release='2026.10.12-r3-win-x64'
+release='2026.10.12-r4-win-x64'
 files=[]; seen=set()
 def digest(f):
     h=hashlib.sha256()

@@ -1,7 +1,6 @@
 import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import { attachRequirementProject, projectFiles, projectFile, syncRequirementLedger } from './requirements-project.ts'
 import { randomUUID } from 'node:crypto'
-import type { JevService } from '../../../dsh-jev-mode/src/host/service.ts'
 import { mkdir, readFile, readdir, open, rename, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
 import { actionsOf, latest, type State, type RoleVersion } from '../core/model.ts'
@@ -49,7 +48,7 @@ export class RequirementsService {
   private configuration = { revision: 0, defaults: { depth: 'standard', questionStyle: 'short', model: '' } as RequirementDefaults }
   private running = new Map<string, { controller: AbortController; promise?: Promise<void> }>()
   private closed = false
-  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly jev?: JevService, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) { this.executions = new ExecutionStore(join(root,'_executions')) }
+  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) { this.executions = new ExecutionStore(join(root,'_executions')) }
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private path(id: string) { if (!UUID.test(id)) throw new InputError('需求任务标识无效'); return join(this.root, `${id}.json`) }
   private async atomic(file: string, value: unknown) {
@@ -450,13 +449,13 @@ export class RequirementsService {
     await this.executions.run(snapshot.id,{id:snapshot.run!.id,operation:({analyze:'整理需求',clarify:'引导澄清',check:'检查需求',revise:'修改需求',document:'整理文档'})[snapshot.run!.operation],input:snapshot.run!.instruction,inputKind:'user',model:snapshot.run!.model,roleVersion:snapshot.roleVersion,mode:snapshot.mode},async()=>{
       step('materials','读取分析资料','done',snapshot.materials.filter(m=>!m.removed).length+' 份资料；分析栏目：'+(snapshot.sections??[]).filter(s=>s.enabled).map(s=>s.title).join('、'))
       return controller.signal.aborted?snapshot:(await this.executeWork(snapshot,controller))??snapshot
-    },task=>({status:task.run?.status==='ready'?'done':controller.signal.aborted?'stopped':execution()?.record.events.some(e=>e.key.startsWith('jev-review')&&e.status==='review')?'review':'failed',summary:task.run?.status==='ready'?'需求结果已保存':task.run?.error||'本轮已停止，原结果保留',result:task.run?.status==='ready'?{kind:'requirements',text:(task.proposal?.summary??'需求已更新')+'\n\n'+requirementMarkdown(task)}:undefined}))
+    },task=>({status:task.run?.status==='ready'?'done':controller.signal.aborted?'stopped':'failed',summary:task.run?.status==='ready'?'需求结果已保存':task.run?.error||'本轮已停止，原结果保留',result:task.run?.status==='ready'?{kind:'requirements',text:(task.proposal?.summary??'需求已更新')+'\n\n'+requirementMarkdown(task)}:undefined}))
   }
   private async executeWork(snapshot:RequirementTask,controller:AbortController) {
     const runId=snapshot.run!.id
     try {
       const prompt=this.prompt(snapshot)
-      const response=this.jev?await this.jev.text('requirements:'+snapshot.id,prompt,p=>this.model(p,snapshot.run!.model,controller.signal),controller.signal):await this.model(prompt,snapshot.run!.model,controller.signal)
+      const response=await this.model(prompt,snapshot.run!.model,controller.signal)
       if(controller.signal.aborted)return
       step('parse','解析并校验需求结构与来源','running')
       const proposal=this.proposal(response,snapshot)

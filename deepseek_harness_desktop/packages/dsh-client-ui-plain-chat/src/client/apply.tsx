@@ -41,8 +41,6 @@ import { en, zh, type ChatKey } from './locales.ts'
 import { ru } from '../../../dsh-i18n/src/client/ru/plain-chat.ts'
 import styles from './Chat.module.css'
 import historyStyles from './LocalConversationRows.module.css'
-import { JevToggle, JevActivity, JevSettings, JevModelReturn } from '../../../dsh-jev-mode/src/ui/JevControls.tsx'
-import { registerJevNavigation } from '../../../dsh-jev-mode/src/ui/view-model.ts'
 
 export const inject = ['slots', 'locale', 'sessions', 'conversation', 'layout', 'remote', 'remote.session']
 const NS = 'workbench-chat'
@@ -254,18 +252,7 @@ export function apply(ctx: Context): void {
   }),'plain-chat: native recording commands')
   const capabilityPreview = createCapabilityPreview()
   registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <UnifiedCenter />)
-  ctx.slots.inject('settings.section', () => ctx.slots.register({name:'settings.section',id:'jev-mode',order:23,label:()=> 'JEV 模式',locale:NS}, () => <JevSettings/>))
   const settingsNavigation = createSettingsNavigation()
-  ctx.effect(()=>registerJevNavigation(scope=>{
-    const separator=scope.indexOf(':'),kind=scope.slice(0,separator),id=scope.slice(separator+1)
-    if(kind==='native'){
-      const session=sessions.list.getSnapshot().byId[id as Parameters<typeof sessions.open>[0]]
-      return session?{name:session.title||session.displayTitle||'聊天会话',open:()=>{sessions.open(session.id);layout.selectPanel(null);settingsNavigation.close()}}:undefined
-    }
-    const row=kind==='developer'?developerHistory.getSnapshot().items.find(row=>row.id===id):kind==='requirements'?requirementHistory.getSnapshot().items.find(row=>row.id===id):kind==='meeting'?localConversations.getSnapshot().items.find(row=>(row.meeting as {jobId?:string}|undefined)?.jobId===id):undefined
-    return row?{name:row.title,open:()=>{openLocalConversation(row.id);settingsNavigation.close()}}:undefined
-  }), 'plain-chat: JEV conversation navigation')
-  ctx.effect(()=>decorateSlot(registry,'settings.section','ModelsSection',Original=>function JevLinkedModels(props:any){return <JevModelReturn><Original {...props}/></JevModelReturn>}), 'plain-chat: JEV model settings return')
   ctx.effect(() => {
     const open = (event: Event) => settingsNavigation.openSection(settingsSectionForLink((event as CustomEvent<CapabilityLink>).detail))
     window.addEventListener('workbench-capability-link', open)
@@ -352,8 +339,7 @@ export function apply(ctx: Context): void {
         if (binding && local?.kind === 'draft') localConversations.commitChat(local.id)
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /><JevToggle/></div>
-        {!noSession&&<JevActivity scope={!noSession?'native:'+props.sessionId:developer?'developer:'+developer.id:requirement?'requirements:'+requirement.id:(local?.meeting as {jobId?:string}|undefined)?.jobId?'meeting:'+(local!.meeting as {jobId:string}).jobId:undefined}/>}
+        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /></div>
         {displayedRole !== 'chat' && modes.length > 1 && <nav aria-label="岗位能力入口" className={styles.capabilityModes}>{modes.map(item => <button key={item.mode} type="button" aria-pressed={noSession ? workMode === item.mode : item.mode === 'chat'} onClick={() => { if (noSession && workMode === item.mode) return; startFreshChat(displayedRole, item.mode) }}>{item.label}</button>)}</nav>}
         {!recording && recordingSnapshot.error && <p role="alert" style={{margin:"4px 24px",fontSize:13}}>{recordingSnapshot.error}</p>}
         <BrowserTaskStatus sessionId={props.sessionId}/>

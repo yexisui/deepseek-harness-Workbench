@@ -42,7 +42,7 @@ export function ExecutionProcessCard({run,showInput=false}:{run:ExecutionRecord;
     {showInput&&<div className={s.input}><small>{run.inputKind==='user'?'本轮要求':'本轮操作'} · {run.operation}</small><p>{run.input}</p><MessageTime value={run.startedAt}/></div>}
     <details className={s.process} open={open} onToggle={e=>{const value=e.currentTarget.open;setOpen(value);try{sessionStorage.setItem(key,String(value))}catch{}}}>
       <summary><span>执行过程</span><strong>{active?.title||names[run.status]}</strong><small>{seconds}秒</small></summary>
-      <p className={s.meta}>{run.operation}{run.model?' · '+run.model:''}{run.jev?' · JEV '+(run.jev.enabled?'开启':'关闭')+' · 配置 v'+run.jev.revision:''}</p>
+      <p className={s.meta}>{run.operation}{run.model?' · '+run.model:''}</p>
       <ol>{run.events.map(event=><li key={event.id} data-status={event.status}><div><strong>{event.title}</strong><span>{names[event.status]}</span>{event.total!==undefined&&<small>{event.current??0}/{event.total}</small>}</div>{event.detail&&<p>{event.detail}</p>}{event.model&&<small>{event.model}</small>}<MessageTime value={event.updatedAt}/></li>)}</ol>
       <MessageTime value={run.finishedAt||run.startedAt}/>
     </details>

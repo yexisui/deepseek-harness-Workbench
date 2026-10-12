@@ -7,9 +7,6 @@ import {Readable} from 'node:stream'
 import type {IncomingMessage} from 'node:http'
 import {ExecutionStore,step,execution} from '../../../shared/host/execution.ts'
 import {MeetingService} from '../src/host/meeting.ts'
-import {JevStore} from '../../dsh-jev-mode/src/host/store.ts'
-import {JevService} from '../../dsh-jev-mode/src/host/service.ts'
-import {defaults,JevTechnicalError,type Decision} from '../../dsh-jev-mode/src/core/contract.ts'
 const roots:string[]=[],drains:(()=>Promise<unknown>)[]=[]
 afterEach(async()=>{for(const drain of drains.splice(0))await drain();vi.unstubAllGlobals();for(const root of roots.splice(0)){if(!resolve(root).startsWith(resolve(tmpdir())+'\\'))throw Error('unsafe cleanup');await rm(root,{recursive:true,force:true})}})
 async function root(){const p=await mkdtemp(join(tmpdir(),'execution-history-'));roots.push(p);return p}
@@ -38,17 +35,6 @@ it('does not recreate a removed journal when a late operation finishes',async()=
 it('keeps business output with a visible warning when journal writes fail',async()=>{
  const store=new ExecutionStore(await root()),task=randomUUID();await store.init();const save=vi.spyOn(store,'save').mockRejectedValue(Error('fixture disk failure'))
  try{expect(await store.run(task,{operation:'处理',input:'test'},async()=>{step('save','业务结果已保存');return 'kept'},value=>({status:'done',result:{kind:'test',text:value}}))).toBe('kept');const record=(await store.list(task)).items[0]!;expect(record.warning).toContain('保存失败');expect(record.result?.text).toBe('kept')}finally{save.mockRestore()}
-})
-it('keeps candidate fallback and decisions in the business round after the global trace is evicted',async()=>{
- const dir=await root(),journal=new ExecutionStore(join(dir,'runs')),store=new JevStore(join(dir,'jev'));await journal.init();await store.init();drains.push(()=>store.close())
- await store.update(0,{...defaults,enabled:true,candidates:[{id:'first',model:'local/first',enabled:true,reasoningEffort:''},{id:'second',model:'local/second',enabled:true,reasoningEffort:''}]})
- const allow:Decision={decision:'allow',summary:'待办按待确认保留',checks:[],missing:[]}
- const jev=new JevService(store,{id:'self-owned',assess:async input=>{if(input.config.model==='local/first')throw new JevTechnicalError('fixture failure');return allow}},()=>{})
- const task=randomUUID();await journal.run(task,{operation:'纪要',input:'会议'},async()=>{const run=jev.begin('meeting:'+task);try{await run.check('review',{minutes:'待确认'})}finally{run.finish()}},()=>({status:'done'}))
- const original=(await journal.list(task)).items[0]!,trace=store.history()[0]!
- for(let i=0;i<201;i++)await store.record({...trace,id:randomUUID(),scope:'other'})
- expect(store.history().some(t=>t.id===trace.id)).toBe(false)
- const saved=await journal.get(task,original.id);expect(saved.jev?.enabled).toBe(true);expect(saved.events.filter(e=>e.key.includes('candidate')).map(e=>e.status)).toEqual(['failed','done']);expect(saved.events.find(e=>e.key==='jev-review-0')?.detail).toContain('待办按待确认保留')
 })
 for(const mode of ['quick','guided'] as const)it('records '+mode+' upload, confirmation and revisions without overwriting old results',async()=>{
  const dir=await root();vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify({text:'陈浩周五修复权限问题。'}))))

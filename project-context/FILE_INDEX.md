@@ -308,3 +308,5 @@
 - 2026-10-11：离线制包逻辑调整为交付ZIP仅含offline；外层重复入口禁入规则见AGENTS第15节，r2本地交付与校验记录见M007。
 
 - [requirements/auto/A026-工作台品牌标识移除与桌面入口同步.md](requirements/auto/A026-工作台品牌标识移除与桌面入口同步.md)：T037品牌显示范围、桌面CMD实际加载链、正式同步、后台验证和r3离线交付证据；当前实施记录。
+
+- [requirements/auto/A027-JEV模式移除与业务回归.md](requirements/auto/A027-JEV模式移除与业务回归.md)：T038退役范围、业务保护、正式同步、基线对照和r4交付验证；A020改为历史参考。

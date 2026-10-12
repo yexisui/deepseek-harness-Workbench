@@ -17,7 +17,6 @@ const originalManifest = fs.readFileSync(manifestPath, 'utf8')
 const originalWorkspace = fs.existsSync(workspacePath) ? fs.readFileSync(workspacePath, 'utf8') : null
 const manifest = JSON.parse(originalManifest)
 // Install all standalone workbench services from this same complete build.
-// JEV is mounted by capabilities and compiled into its runtime, not registered twice.
 const roots = ['@linxin666/dsh-web-all', '@linxin666/dsh-client-ui-plain-chat', '@linxin666/dsh-capabilities']
 manifest.dependencies ??= {}
 for (const name of roots) {

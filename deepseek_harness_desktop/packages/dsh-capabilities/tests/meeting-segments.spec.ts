@@ -20,7 +20,7 @@ it.skipIf(!process.env.DSH_SEGMENT_TEST_ROOT)('runs real FFmpeg and an imported 
  const fetchMock=vi.fn(async()=>new Response(JSON.stringify({text:`这是第${++count}段会议内容，请周五完成测试。`})))
  const originalFetch=globalThis.fetch;globalThis.fetch=fetchMock as any
  const ask=async(prompt:string)=>prompt.includes('只为现有纪要')?JSON.stringify({links:[{index:0,sources:[{id:'t1',quote:'会议内容，请周五完成测试'}]}]}):JSON.stringify({title:'测试纪要',overview:'测试内容',decisions:[{text:'周五完成测试',sourceIds:['s2']}],actions:[],unknown:[]})
- const meeting=new MeetingService(join(root,'meetings'),ask,()=>store.snapshot().roles.find(r=>r.id===MEETING_ROLE_ID),()=>store.snapshot(),()=>({endpoint:'http://127.0.0.1:9999/v1/audio/transcriptions',model:'test',format:'json'}),undefined,undefined,undefined,segmenter)
+ const meeting=new MeetingService(join(root,'meetings'),ask,()=>store.snapshot().roles.find(r=>r.id===MEETING_ROLE_ID),()=>store.snapshot(),()=>({endpoint:'http://127.0.0.1:9999/v1/audio/transcriptions',model:'test',format:'json'}),undefined,undefined,segmenter)
  await meeting.init()
  try {
   const template=store.snapshot().roles.find(r=>r.id===MEETING_ROLE_ID)!
