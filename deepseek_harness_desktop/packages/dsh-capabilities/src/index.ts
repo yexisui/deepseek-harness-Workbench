@@ -47,7 +47,7 @@ declare module '@deepseek-ai/cordis' { interface Context { capabilities: Capabil
 export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: string; port?: number } = {}) {
   const home = dshHome(), store = new CapabilityStore(join(home, 'capabilities'))
   await store.init()
-  const documents=new DocumentsService(join(home,'capabilities','documents'),()=>store.snapshot(),(prompt,model,system,signal,onDelta)=>workbenchText(ctx,prompt,model,system,undefined,signal,180_000,onDelta))
+  const documents=new DocumentsService(join(home,'capabilities','documents'),()=>store.snapshot(),(prompt,model,system,signal,onDelta)=>workbenchText(ctx,prompt,model,system,undefined,signal,180_000,onDelta),()=>{try{return ctx.get('documentKnowledge' as never) as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter|undefined}catch{return undefined}})
   await documents.init()
   ctx.effect(()=>()=>documents.ai.close(),'document lifecycle')
   ctx.effect(()=>store.subscribe(()=>documents.ai.reconcile()),'document authorization')

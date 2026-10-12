@@ -1,3 +1,4 @@
+import {noDocumentKnowledge,type DocumentKnowledgeAdapter} from '../core/document-knowledge.ts'
 import {DocumentAI,type DocumentModel} from './document-ai.ts'
 import {randomUUID} from 'node:crypto'
 import {mkdir,readFile,writeFile,rename} from 'node:fs/promises'
@@ -15,7 +16,7 @@ export class DocumentsService {
  private tail:Promise<unknown>=Promise.resolve()
  private rows:DocumentRecord[]=[]
  readonly ai:DocumentAI
- constructor(readonly root:string,readonly state:()=>State,model:DocumentModel=async()=>{throw Error('模型服务尚未就绪')}){this.ai=new DocumentAI(root,id=>this.get(id),()=>this.exclusive(()=>this.persist()),(row,revise)=>this.authorize(row.roleId,row.roleVersion,revise?'revise-document':'ask-document'),model,(id,revision)=>this.exclusive(async()=>{if(this.get(id).revision!==revision)throw new InputError('工作副本已更新，请重新生成建议',409);return this.bytes(id)}))}
+ constructor(readonly root:string,readonly state:()=>State,model:DocumentModel=async()=>{throw Error('模型服务尚未就绪')},readonly knowledge:()=>DocumentKnowledgeAdapter|undefined=()=>undefined){this.ai=new DocumentAI(root,id=>this.get(id),()=>this.exclusive(()=>this.persist()),(row,revise)=>this.authorize(row.roleId,row.roleVersion,revise?'revise-document':'ask-document'),model,(id,revision)=>this.exclusive(async()=>{if(this.get(id).revision!==revision)throw new InputError('工作副本已更新，请重新生成建议',409);return this.bytes(id)}),knowledge)}
  async init(){await mkdir(this.root,{recursive:true});try{this.rows=JSON.parse(await readFile(join(this.root,'index.json'),'utf8'))}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e}await this.ai.init(this.rows)}
  list(){return structuredClone(this.rows.filter(r=>!r.removedAt))}
  get(id:string){const row=this.rows.find(r=>r.id===id&&!r.removedAt);if(!row||!uuid.test(id))throw new InputError('文档会话不存在',404);return row}
@@ -43,6 +44,7 @@ export class DocumentsService {
   const url=new URL(req.url!,'http://localhost'),route=url.pathname,base='/api/capabilities/documents/'
   if(await documentAssets(req,res,route))return
   const op=route.slice(base.length)
+  if(op==='knowledge'&&req.method==='GET')return json(res,200,await this.knowledge()?.status()??noDocumentKnowledge)
   if(op==='list'&&req.method==='GET')return json(res,200,this.list())
   if(op.startsWith('file/')&&req.method==='GET'){const bytes=await this.bytes(op.slice(5));res.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.wordprocessingml.document');res.setHeader('Cache-Control','no-store');res.end(bytes);return}
   if(op.startsWith('file/')&&req.method==='PUT')return json(res,200,await this.upload(op.slice(5),Number(url.searchParams.get('revision')),req))
