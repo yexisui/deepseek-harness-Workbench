@@ -1,21 +1,27 @@
 """Build a Windows offline release from a tested CLEAN deployment, never a personal home.
 Usage: python build-offline.py --donor CLEAN_ROOT --source REPO --output OUTPUT_DIR
-Only allowlisted program trees are copied. This script does not download anything.
+Only allowlisted program trees and verified capability releases are copied. No personal settings or tasks.
+Use --capability-releases PATH for release assets absent from the clean donor. No downloads.
 """
 import argparse, hashlib, json, os, shutil, zipfile
 from pathlib import Path
+from capability_releases import release_files
 
 p=argparse.ArgumentParser()
 p.add_argument('--donor',required=True);p.add_argument('--source',required=True);p.add_argument('--output',required=True)
+p.add_argument('--capability-releases', help='Verified program releases directory; defaults to the clean donor releases')
 a=p.parse_args();donor=Path(a.donor).resolve();source=Path(a.source).resolve();out=Path(a.output).resolve()
 # npm dependency paths can exceed Win32 MAX_PATH even in a normal workspace.
 if os.name == 'nt':
     donor=Path('\\\\?\\'+str(donor)) if not str(donor).startswith('\\\\?\\') else donor
     source=Path('\\\\?\\'+str(source)) if not str(source).startswith('\\\\?\\') else source
+# Fail before building a large payload if shared records would have no executable files.
+capability_files=release_files(source/'shared-settings/files/capabilities/state.json',
+    Path(a.capability_releases) if a.capability_releases else donor/'dsh-data/capabilities/packages/releases')
 out.mkdir(parents=True,exist_ok=True)
 if any(out.iterdir()): raise SystemExit('Output must be empty; refusing to overwrite a release')
 offline=out/'offline';offline.mkdir()
-release='2026.10.12-r8-win-x64'
+release='2026.10.12-r9-win-x64'
 files=[]; seen=set()
 def digest(f):
     h=hashlib.sha256()
@@ -72,6 +78,10 @@ with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64
             z.write(f,name)
             files.append({'path':name,'size':f.stat().st_size,'sha256':digest(f)})
             if len(files)%5000==0:print('Packed',len(files),'files',flush=True)
+    for f,name in capability_files:
+        if name in seen:raise RuntimeError('Duplicate '+name)
+        seen.add(name);z.write(f,name)
+        files.append({'path':name,'size':f.stat().st_size,'sha256':digest(f)})
 profile=json.loads((donor/'dsh-data/profiles/web/package.json').read_text('utf-8-sig'))
 for name in profile['dependencies']:
     installed=donor/'dsh-data/profiles/web/node_modules'/name/'package.json'
@@ -107,7 +117,8 @@ readme='''Windows x64 离线安装包
 离线安装不代表在线模型/搜索能离线工作；内网应配置可访问的服务。
 浏览器插件不自动安装。可选包为offline/capability-packages/BrowserSkill-0.3.0-offline.zip。
 需要时关闭工作台，将该ZIP解压到工作台根目录；再在Chrome/Edge扩展管理中启用开发者模式，加载runtime/browserskill/0.3.0/extension。它不是能力导入ZIP。
-额外的流程图、音频片段定位能力ZIP位于offline/capability-packages，可在能力管理中本地导入。
+共享能力记录引用的发布文件已包含在安装与修复清单中（含历史版本）；安装后保留原能力标识与岗位关联。
+额外的流程图、音频片段定位能力ZIP仍位于offline/capability-packages，可在能力管理中本地导入。
 安装ZIP内只提供offline目录，不附带根部署或启动入口。请保留offline-delivery中的原始ZIP，以便修复提取文件。开发工具、测试环境、下载缓存、Git 历史均不包含。
 '''
 (offline/'使用说明.txt').write_text(readme,encoding='utf-8-sig')

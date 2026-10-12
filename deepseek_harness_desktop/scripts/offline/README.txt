@@ -16,3 +16,9 @@ prepare-offline.ps1只提取ZIP内offline/内容，兼容2026.10.11旧交付包�
 在临时目录验证ZIP选择、自动提取/复用/修复、只读模式和路径保护；不会修改正式业务数据。Git入口优先使用源仓库install.ps1读取离线资源，保留现有根启动脚本。
 
 制作输出目录中的根入口仅用于隔离验证，不能打入交付ZIP。发布前核对外层条目全部以offline/开头；封装调整也应更新版本与SHA256。
+
+能力发布文件（2026-10-12）
+共享能力定义中的当前及历史 packageHash 都必须有对应程序文件，制作前由 capability_releases.py 核对发布身份、文件清单和 SHA256。缺失或损坏时停止，避免产生“有能力记录、无执行程序”的安装包。
+干净 donor 不含发布文件时，给原制作命令追加 --capability-releases <已校验的 releases 目录>。该参数只选择共享定义引用的 capability.json 与 runtime/resources/docs 文件，不读取用户会话、录音、任务或凭据。程序文件进入 payload 校验清单，仍不提交 Git；不恢复已移入回收站的能力。
+专项回归：python -m unittest discover -s deepseek_harness_desktop/scripts/offline -p test_capability_releases.py
+该命令使用临时包验证引用收集、缺失/损坏拒绝、私人文件保护与身份一致性；完整发布仍须执行隔离安装、Check、损坏修复和实际宿主/界面验证。
