@@ -1,4 +1,5 @@
 'use strict';
+const { windowAppearance, applyWindowAppearance } = require('./window-appearance.cjs');
 
 function artifactDestination(current, target) {
   try {
@@ -14,8 +15,9 @@ function openPackageArtifact(parent, target, BrowserWindow) {
   if (!destination) return false;
   if (destination.download) parent.webContents.downloadURL(destination.url);
   else {
-    const viewer = new BrowserWindow({ parent, width: 1120, height: 850, autoHideMenuBar: true,
+    const viewer = new BrowserWindow({ ...windowAppearance, parent, width: 1120, height: 850,
       webPreferences: { session: parent.webContents.session, contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false } });
+    applyWindowAppearance(viewer);
     viewer.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     viewer.webContents.on('will-navigate', (event, url) => {
       if (!artifactDestination(destination.url, url)) event.preventDefault();

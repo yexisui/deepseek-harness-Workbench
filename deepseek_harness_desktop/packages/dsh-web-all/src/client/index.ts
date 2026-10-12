@@ -17,6 +17,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { mountClientChildren } from './mount-children.ts'
 import { subscribeBodyInvalidations } from './body-mutations.ts'
+import { installWorkbenchAppearance } from './workbench-appearance.ts'
 
 /** Column shims: element selector → attribute to stamp. */
 const COLUMN_SHIMS: ReadonlyArray<readonly [selector: string, attribute: string]> = [
@@ -391,6 +392,7 @@ export function apply(ctx: Context): void {
     console.error('[dsh-web-all] client children mount failed', error)
   })
   ctx.effect(() => {
+    const removeAppearance = installWorkbenchAppearance()
     const responsiveStyle = ensureResponsiveStyle()
     const bootShield = installBootShield()
     applyShims()
@@ -425,6 +427,7 @@ export function apply(ctx: Context): void {
       unsubscribeBody()
       bootShield.remove()
       responsiveStyle.remove()
+      removeAppearance()
       removeMobileDismiss()
     }
   })

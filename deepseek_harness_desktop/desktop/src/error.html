@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'">
-<title>DeepSeek Harness — startup problem</title>
+<title>启动问题</title>
 <style>
   html, body { height: 100%; margin: 0; }
   body {
@@ -26,7 +26,7 @@
 </style>
 </head>
 <body>
-  <h1>The dsh host could not start</h1>
+  <h1>后台服务未能启动</h1>
   <div class="message" id="message"></div>
   <pre id="log"></pre>
   <div class="actions">
@@ -41,7 +41,7 @@
     window.desktop.onError((payload) => {
       document.getElementById('message').textContent = payload.message;
       document.getElementById('log').textContent = payload.log || '(no host output captured)';
-      document.title = 'DeepSeek Harness — startup problem';
+      document.title = '启动问题';
     });
   </script>
 </body>

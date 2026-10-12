@@ -48,6 +48,9 @@ for (const entry of entries) {
 }
 console.log('Verified: all ' + entries.length + ' custom workbench packages are installed.')
 
+const appearancePatch = spawnSync(process.execPath, [fileURLToPath(new URL('./lib/patch-workbench-appearance.mjs', import.meta.url)), root], { stdio: 'inherit', windowsHide: true })
+if (appearancePatch.error || appearancePatch.status !== 0) throw appearancePatch.error ?? new Error('Workbench appearance patch failed')
+
 // Reapply the checked Models key control after official package installation.
 const keyPatch = spawnSync(process.execPath, [fileURLToPath(new URL("./lib/patch-model-key.mjs", import.meta.url)), require.resolve("@deepseek-ai/dsh-client-ui-settings-models/client")], { stdio: "inherit", windowsHide: true })
 if (keyPatch.error || keyPatch.status !== 0) throw keyPatch.error ?? new Error("Models key patch failed")

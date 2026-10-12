@@ -11,7 +11,7 @@ test('only same-origin capability artifact destinations are handled',()=>{
 test('viewer reuses authenticated session with sandbox and downloads through desktop',()=>{
  let opts,loaded,downloaded,openHandler,navigateHandler;
  const session={},parent={webContents:{getURL:()=>origin,session,downloadURL:u=>downloaded=u}};
- class Window {constructor(o){opts=o;this.webContents={setWindowOpenHandler:f=>openHandler=f,on:(_,f)=>navigateHandler=f}} async loadURL(u){loaded=u}}
+ class Window {setMenu(){} setTitle(){} constructor(o){opts=o;this.webContents={setWindowOpenHandler:f=>openHandler=f,on:(_,f)=>navigateHandler=f}} async loadURL(u){loaded=u}}
  assert.equal(openPackageArtifact(parent,root+'view',Window),true);assert.equal(opts.webPreferences.session,session);assert.equal(opts.webPreferences.nodeIntegration,false);assert.equal(opts.webPreferences.sandbox,true);assert.equal(opts.webPreferences.preload,undefined);assert.equal(loaded,root+'view');assert.equal(openHandler().action,'deny');
  let denied=false;navigateHandler({preventDefault:()=>denied=true},'https://example.com');assert.equal(denied,true);
  openPackageArtifact(parent,root+'download.svg',Window);assert.equal(downloaded,root+'download.svg');

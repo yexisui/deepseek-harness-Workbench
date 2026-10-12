@@ -12,7 +12,9 @@
  * quit, forced after 5s).
  */
 
-const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Menu } = require('electron');
+const { windowAppearance, applyWindowAppearance } = require('./window-appearance.cjs');
+app.setName('工作台');
 const { spawn, execFile } = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -193,7 +195,7 @@ function createWindow() {
     height: 900,
     minWidth: 960,
     minHeight: 600,
-    title: 'DeepSeek Harness',
+    ...windowAppearance,
     backgroundColor: '#0b1220',
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -203,6 +205,7 @@ function createWindow() {
       spellcheck: false,
     },
   });
+  applyWindowAppearance(window);
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (openPackageArtifact(window, url, BrowserWindow)) return { action: 'deny' };
     if (/^https?:\/\//.test(url) && !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//.test(url)) {
@@ -359,7 +362,7 @@ if (!gotLock) {
     mainWindow.show();
     mainWindow.focus();
   });
-  app.whenReady().then(run).catch((error) => {
+  app.whenReady().then(() => { Menu.setApplicationMenu(null); return run(); }).catch((error) => {
     console.error(error);
     app.quit();
   });

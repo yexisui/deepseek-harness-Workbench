@@ -87,7 +87,7 @@ test('main directory IPC preserves explicit selection, handles cancellation and 
   let opened = 0;
   let navigate = false;
   const electron = {
-    app: { isPackaged: true, requestSingleInstanceLock: () => true, on: () => {}, whenReady: () => new Promise(() => {}) },
+    app: { setName: () => {}, isPackaged: true, requestSingleInstanceLock: () => true, on: () => {}, whenReady: () => new Promise(() => {}) },
     ipcMain: { on: () => {}, handle: (name, handler) => handlers.set(name, handler) },
     dialog: { showOpenDialog: async (owner, options) => {
       assert.equal(owner, window);

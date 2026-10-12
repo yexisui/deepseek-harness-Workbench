@@ -2,7 +2,7 @@
 # Unsigned on purpose: internal/local distribution only (see desktop/README.md
 # Known limitations). Code signing and notarization are a separate follow-up.
 appId: com.deepseek.harness
-productName: DeepSeek Harness
+productName: 工作台
 copyright: Copyright (c) DeepSeek Harness Contributors
 
 directories:
@@ -51,7 +51,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: always
   createStartMenuShortcut: true
-  shortcutName: DeepSeek Harness
+  shortcutName: 工作台
   include: build/installer.nsh
   installerLanguages:
     - zh_CN
