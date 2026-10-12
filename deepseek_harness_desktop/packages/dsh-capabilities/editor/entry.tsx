@@ -7,7 +7,7 @@ import '@docx-editor.dev/react/styles.css'
 import './frame.css'
 
 const channel=new URLSearchParams(location.search).get('channel')||'validation'
-let editor:any, revision=0, fontFailures:string[]=[]
+let editor:any, revision=0, fontFailures:string[]=[],lastAI:number|undefined
 const send=(type:string,value:any)=>parent.postMessage({source:'workbench-document',channel,type,value},location.origin)
 const ready=new Promise<void>(resolve=>{(window as any).__ready=resolve})
 async function fonts(){
@@ -22,22 +22,29 @@ function context(){
 async function call(op:string,args:any={}){
   await ready
   if(op==='load'){
-    editor.load(new Uint8Array(args.bytes));revision=0
+    editor.load(new Uint8Array(args.bytes));revision=0;lastAI=undefined
+    await editor.save() // Public save flushes a deferred document open before reads.
     const started=Date.now()
     do{await new Promise(resolve=>setTimeout(resolve,30));const state=editor.snapshot();if(state.parseError)throw Error(String(state.parseError));if(!state.isLoading&&!state.isOpening&&state.editable)return context()}while(Date.now()-started<45000)
     throw Error('文档打开超时，请检查文件是否损坏或包含过多图片')
   }
   if(op==='context')return context()
   if(op==='save')return {bytes:await editor.save(),revision}
-  if(op==='find'){const matches=editor.findMatches(args.text,{matchCase:true});if(matches[args.index||0])editor.selectMatch(matches[args.index||0]);return {count:matches.length,...context()}}
+  if(op==='find'){if(args.paraId){if(!editor.scrollToAnchor({paraId:args.paraId,search:args.text}))throw Error('引用处已变化，请核对原文');editor.highlightAnchor({paraId:args.paraId,search:args.text});return context()}const matches=editor.findMatches(args.text,{matchCase:true});if(!matches.length)throw Error('原文已变化，未找到对应内容');if(matches[args.index||0])editor.selectMatch(matches[args.index||0]);return {count:matches.length,...context()}}
   if(op==='replace'){
     if(args.revision!==revision)throw Error('文档已变化，请重新生成修改建议')
-    const matches=editor.findMatches(args.before,{matchCase:true})
-    if(matches.length!==1)throw Error('修改位置不唯一，请缩小选区或补充上下文')
-    editor.selectMatch(matches[0]);const result=editor.exec({type:'pasteWithoutFormatting',text:args.after})
+    if(args.paraId&&!editor.query({type:'paragraphs'}).some((p:any)=>p.paraId===args.paraId&&p.text.includes(args.before)))throw Error('修改目标已变化，请重新生成建议')
+    // The current tree editor exposes DocEdits types but refuses replaceText at runtime.
+    // Its supported selection/paste contract retains native undo and run formatting.
+    const matches=editor.findMatches(args.before,{matchCase:true});if(matches.length!==1)throw Error('修改位置不唯一，请补充可区分的上下文')
+    const selected=editor.selectMatch(matches[0]);if(!selected.ok)throw Error(selected.reason)
+    const result=editor.exec({type:'pasteWithoutFormatting',text:args.after})
     if(!result.ok)throw Error(result.message||result.reason||'编辑器拒绝修改')
+    if(!result.changed)throw Error('未产生文档修改')
+    lastAI=revision
     return context()
   }
+  if(op==='undo-ai'){if(lastAI===undefined||lastAI!==revision)throw Error('后续已有其他编辑，请使用文档工具栏逐步撤销');const result=editor.exec({type:'undo'});if(!result.ok)throw Error(result.reason);lastAI=undefined;return context()}
   if(op==='undo'){const result=editor.exec({type:'undo'});return {result,...context()}}
   throw Error('不支持的文档操作')
 }

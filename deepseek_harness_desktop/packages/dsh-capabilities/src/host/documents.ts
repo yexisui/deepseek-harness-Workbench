@@ -15,7 +15,7 @@ export class DocumentsService {
  private tail:Promise<unknown>=Promise.resolve()
  private rows:DocumentRecord[]=[]
  readonly ai:DocumentAI
- constructor(readonly root:string,readonly state:()=>State,model:DocumentModel=async()=>{throw Error('模型服务尚未就绪')}){this.ai=new DocumentAI(root,id=>this.get(id),()=>this.exclusive(()=>this.persist()),(row,revise)=>this.authorize(row.roleId,row.roleVersion,revise?'revise-document':'ask-document'),model)}
+ constructor(readonly root:string,readonly state:()=>State,model:DocumentModel=async()=>{throw Error('模型服务尚未就绪')}){this.ai=new DocumentAI(root,id=>this.get(id),()=>this.exclusive(()=>this.persist()),(row,revise)=>this.authorize(row.roleId,row.roleVersion,revise?'revise-document':'ask-document'),model,(id,revision)=>this.exclusive(async()=>{if(this.get(id).revision!==revision)throw new InputError('工作副本已更新，请重新生成建议',409);return this.bytes(id)}))}
  async init(){await mkdir(this.root,{recursive:true});try{this.rows=JSON.parse(await readFile(join(this.root,'index.json'),'utf8'))}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e}await this.ai.init(this.rows)}
  list(){return structuredClone(this.rows.filter(r=>!r.removedAt))}
  get(id:string){const row=this.rows.find(r=>r.id===id&&!r.removedAt);if(!row||!uuid.test(id))throw new InputError('文档会话不存在',404);return row}
@@ -49,6 +49,7 @@ export class DocumentsService {
   if(req.method!=='POST')throw new InputError('文档接口不存在',404)
   const body=await readBody(req)
   if(op==='ask')return json(res,202,await this.ai.ask(body))
+  if(op==='adopt-check'||op==='adopted')return json(res,200,await this.exclusive(async()=>{const row=this.get(text(body.id,'文档',36,true));this.authorize(row.roleId,row.roleVersion,'revise-document');const proposal=row.messages.find(m=>m.proposal?.id===body.proposalId)?.proposal;if(!proposal||proposal.status!=='ready')throw new InputError('修改建议不存在或已经采用');if(op==='adopt-check'){if(proposal.storageRevision!==row.revision)throw new InputError('生成建议后文档已改变，请重新生成',409);return proposal}proposal.status='adopted';await this.persist();return proposal}))
   if(op==='stop')return json(res,200,this.ai.stop(text(body.id,'文档',36,true)))
   if(op==='create')return json(res,201,await this.create(body))
   if(op==='command')return json(res,200,await this.command(text(body.id,'文档',36,true),text(body.action,'动作',20,true),body.value))

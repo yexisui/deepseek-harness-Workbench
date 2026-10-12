@@ -69,7 +69,9 @@ export function createDocumentClient(){
  setInterval(()=>{if(state.rows.some(r=>r.messages.some(m=>m.status==='running')))void refresh()},700)
  return {getSnapshot:()=>state,subscribe:(fn:()=>void)=>{listeners.add(fn);return()=>{listeners.delete(fn)}},refresh,rpc,flush,open,importBytes,openNative,save,command,fail,
   async newDocument(){await flush();emit({active:undefined,context:undefined,dirty:false,draftSaved:false,error:''})},
-  async ask(input:{question:string;model:string;scope:string;chapter?:number}){await flush();const active=state.active;if(!active)throw Error('请先打开文档');const context=await rpc<DocumentContext>('context');await documentApi('ask',{...input,id:active.id,context});await refresh()},
+  async ask(input:{question:string;model:string;scope:string;chapter?:number;mode?:'ask'|'revise'}){await flush();const active=state.active;if(!active)throw Error('请先打开文档');const context=await rpc<DocumentContext>('context');await documentApi('ask',{...input,id:active.id,context,storageRevision:active.revision});await refresh()},
+  async adopt(proposalId:string){await flush();const active=state.active;if(!active)throw Error('请先打开文档');const proposal=await documentApi<import('../../packages/dsh-capabilities/src/core/documents-model.ts').DocumentProposal>('adopt-check',{id:active.id,proposalId});await rpc('replace',{before:proposal.before,after:proposal.after,paraId:proposal.paraId,revision:proposal.editorRevision});await flush();await documentApi('adopted',{id:active.id,proposalId});await refresh()},
+  async undoAI(){await rpc('undo-ai');await flush()},
   async stop(){if(state.active){await documentApi('stop',{id:state.active.id});await refresh()}},
   mount(node:HTMLElement){ensureFrame();node.appendChild(frame!);return()=>{holder!.appendChild(frame!)}},
   clearError:()=>emit({error:''}),notify:()=>refresh(),hasNative:(id:string)=>handles.has(id),
