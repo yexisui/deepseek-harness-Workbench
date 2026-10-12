@@ -11,7 +11,7 @@
 | [archive/INDEX.md](<archive/INDEX.md>) | 原始归档位置、共享筛选范围与历史效力 | 当前协作管理文件 |
 | [archive/jev-module-original.md](<archive/jev-module-original.md>) | JEV 早期模块设计说明，关联 A020 | 历史参考；以 A020 最新记录为准 |
 | [archive/project-analysis-20260917.md](<archive/project-analysis-20260917.md>) | 早期源码分析与二次开发背景 | 历史参考，不代表当前结构 |
-| [claude/C001-客户端后台功能测试与外置能力包未加载.md](<claude/C001-客户端后台功能测试与外置能力包未加载.md>) | T036 原始只读测试、能力发布文件交付缺口与r9修复验证 | Claude 原始记录；Codex于2026-10-12补充复核与修复，已验证 |
+| [claude/C001-客户端后台功能测试与外置能力包未加载.md](<claude/C001-客户端后台功能测试与外置能力包未加载.md>) | T036 原始测试、正式客户端恢复复测、能力发布文件交付缺口与r9修复验证 | Claude 确认正式加载恢复；Codex 修复交付并验证隔离执行；正式实际任务未测 |
 | [claude/README.md](<claude/README.md>) | Claude 生成文档的目录说明、编号规则与索引 | 当前协作管理文件 |
 | [archive/upstream/AGENTS.md.txt](<archive/upstream/AGENTS.md.txt>) | 原项目历史参考：AGENTS.md | 历史背景；不自动应用旧规则 |
 | [archive/upstream/CONTRIBUTING.md](<archive/upstream/CONTRIBUTING.md>) | 原项目历史参考：CONTRIBUTING.md | 历史背景；不自动应用旧规则 |
