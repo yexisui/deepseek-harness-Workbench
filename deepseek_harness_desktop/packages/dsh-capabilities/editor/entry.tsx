@@ -21,7 +21,12 @@ function context(){
 }
 async function call(op:string,args:any={}){
   await ready
-  if(op==='load'){editor.load(new Uint8Array(args.bytes));revision=0;return context()}
+  if(op==='load'){
+    editor.load(new Uint8Array(args.bytes));revision=0
+    const started=Date.now()
+    do{await new Promise(resolve=>setTimeout(resolve,30));const state=editor.snapshot();if(state.parseError)throw Error(String(state.parseError));if(!state.isLoading&&!state.isOpening&&state.editable)return context()}while(Date.now()-started<45000)
+    throw Error('文档打开超时，请检查文件是否损坏或包含过多图片')
+  }
   if(op==='context')return context()
   if(op==='save')return {bytes:await editor.save(),revision}
   if(op==='find'){const matches=editor.findMatches(args.text,{matchCase:true});if(matches[args.index||0])editor.selectMatch(matches[args.index||0]);return {count:matches.length,...context()}}

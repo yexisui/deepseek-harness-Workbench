@@ -1,3 +1,4 @@
+import { documentCapability, documentRole } from '../core/documents-model.ts'
 import { fileSearchCapability, recordingCapability } from '../core/model.ts'
 import { applyCapabilitySettings, saveRoleSettings } from '../core/current-settings.ts'
 import {ManagedSkills} from '../../../dsh-skill-explorer/src/managed.ts'
@@ -126,6 +127,12 @@ export class CapabilityStore {
           this.publishRole(role,{...structuredClone(current),capabilities:[...current.capabilities,binding]},now)
         }
         next.recordingCapabilityVersion=1;next.revision++;next.updatedAt=now;await this.persist(next);this.state=next
+      }
+      if(this.state.documentCapabilityVersion!==1){
+        const next=this.mutableSnapshot(),now=new Date().toISOString()
+        if(!next.capabilities.some(c=>c.id==='smart-document'))next.capabilities.push(documentCapability(now))
+        if(!next.roles.some(r=>r.id==='builtin-smart-document'))next.roles.push(documentRole(now))
+        next.documentCapabilityVersion=1;next.revision++;next.updatedAt=now;await this.persist(next);this.state=next
       }
       if (this.state.fileSearchCapabilityVersion !== 1) {
         const next=this.mutableSnapshot(),now=new Date().toISOString()

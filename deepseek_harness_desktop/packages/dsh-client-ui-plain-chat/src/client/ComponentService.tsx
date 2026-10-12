@@ -8,6 +8,7 @@ type Context = { component?: Component; data: Snapshot; meetingStatus?: MeetingA
 type Presentation = { description: string; summary?: string; status: string; title: string; name: string; detail: string; configuration?: string }
 /** Module differences live here; shared composition views never assume a browser environment. */
 const adapters: Record<Component['management'], (context: Context) => Presentation> = {
+  'smart-document':()=>({description:'本机打开、编辑和保存 DOCX，选区问答与修改建议使用工作台模型。',status:'文档在本机处理；AI 按所选模型连接',title:'智能文档服务',name:'本机 DOCX 引擎与工作台模型',detail:'支持 DOCX 原生编辑；模型账号在工作台模型设置维护。知识库接口预留，暂未接入。',configuration:'文档设置'}),
   'file-search':()=>({description:'使用 Everything 本地索引按名称和路径查找文件。',status:'索引与引擎状态在搜索设置中检测',title:'文件搜索服务',name:'Everything 与本地搜索记录',detail:'支持部分文件名、多关键词及通配符；查询不读取文件正文。',configuration:'搜索设置'}),
   recording:()=>({description:'使用默认麦克风录音并分批保存，可供多个岗位绑定。',status:'开始时请求麦克风权限',title:'录音服务',name:'麦克风与本地录音存储',detail:'宠物和对话共用录音状态；完成后保存，暂停不新建会话。',configuration:'录音归属岗位'}),
   package: ({data,component}) => ({description:'能力包自带的执行组件，动作使用当前设置运行。',status:data.packages?.find(h=>component?.capabilityIds?.includes(h.capabilityId))?.message??'正在读取能力包状态',title:'能力包执行器',name:'本机 Node.js 组件',detail:'构建文件随能力分发，工作台模型账号留在本机。可在设置页配置、运行或停止。',configuration:'能力设置',publishNotice:'草稿不影响现有任务；缩小动作范围或停用会撤销后续调用。已有岗位保持固定版本。'}),

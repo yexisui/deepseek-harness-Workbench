@@ -1,3 +1,4 @@
+import { DocumentsService } from './host/documents.ts'
 import { FileSearchService, fileSearchRoutes } from './host/file-search.ts'
 import { EverythingEngine } from './host/everything.ts'
 import { RecordingService, recordingRoutes } from './host/recording.ts'
@@ -46,6 +47,8 @@ declare module '@deepseek-ai/cordis' { interface Context { capabilities: Capabil
 export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: string; port?: number } = {}) {
   const home = dshHome(), store = new CapabilityStore(join(home, 'capabilities'))
   await store.init()
+  const documents=new DocumentsService(join(home,'capabilities','documents'),()=>store.snapshot())
+  await documents.init()
   const recording = new RecordingService(join(home,'capabilities','recordings'),()=>store.snapshot(),join(home,'..','external-tools'))
   let recordingError = ''
   try { await recording.init() } catch (error) { recordingError = error instanceof Error ? error.message : '录音存储不可用' }
@@ -147,6 +150,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       // A named webServer route bypasses Connection's /api route; reuse its public authentication check explicitly.
       const rejection = ctx.connection.requestRejection(req)
       if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
+      if (route.startsWith('/api/capabilities/documents/')) return await documents.routes(req,res)
       if (route.startsWith('/api/capabilities/file-search/')) { if(searchError)throw new InputError('搜索存储不可用：'+searchError,503);return await fileSearchRoutes(fileSearch,req,res) }
       if (route.startsWith('/api/capabilities/recording/')) { if(recordingError)throw new InputError('录音存储不可用：'+recordingError,503);return await recordingRoutes(recording, req, res) }
       if (route.startsWith('/api/capabilities/packages/')) return await packageRoutes(packages, packageRunner, req, res)

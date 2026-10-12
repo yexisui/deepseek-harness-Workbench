@@ -1,3 +1,5 @@
+import { documentsClient } from '../../../../shared/client/documents-client.ts'
+import { DocumentAssistant } from './DocumentAssistant.tsx'
 import { fileSearchClient, fileSearchCommand } from '../../../../shared/client/file-search-client.ts'
 import { FileSearchView } from './FileSearchView.tsx'
 import { recordingClient, recordingCommand } from '../../../../shared/client/recording-client.ts'
@@ -72,9 +74,12 @@ export function apply(ctx: Context): void {
   const clearSavedDraft = () => { try { sessionStorage.removeItem('workbench-chat-draft') } catch { /* Optional storage. */ } }
   const roleSelection = createRoleSelection<string>()
   const localConversations = createLocalConversations()
+  const documents=documentsClient()
+  let activeDocument:string|null=null
+  void documents.refresh()
   const searches=fileSearchClient()
   let activeSearch:string|null=sessionStorage.getItem('workbench-file-search-active')
-  const leaveSearch=()=>{activeSearch=null;sessionStorage.removeItem('workbench-file-search-active')}
+  const leaveSearch=()=>{activeDocument=null;activeSearch=null;sessionStorage.removeItem('workbench-file-search-active')}
   void searches.refresh();void searches.refreshConfig()
   const recordings = recordingClient()
   let activeRecording: string | null = sessionStorage.getItem('workbench-recording-active')
@@ -137,6 +142,7 @@ export function apply(ctx: Context): void {
   // Both the main New button and the ungrouped chat-row + open a fresh draft.
   // A new draft always begins in free chat; published sessions keep their own preset.
   const startFreshChat = (role = 'chat', mode?: CapabilityMode) => {
+    if(mode==='document'||role==='builtin-smart-document')void documents.newDocument().catch(documents.fail)
     leaveSearch();leaveRecording()
     requirementViewKey = `requirements-new-${role}-${++requirementNavigation}`
     requirementHistory.leave()
@@ -150,12 +156,20 @@ export function apply(ctx: Context): void {
     sessions.clear()
     layout.selectPanel(null)
   }
+  const openDocument=(id:string)=>{
+    const row=documents.getSnapshot().rows.find(r=>r.id===id);if(!row)return
+    leaveSearch();leaveRecording();activeDocument=id;start.reset();localConversations.leave();requirementHistory.leave();developerHistory.leave();roleSelection.select(row.roleId);clearSavedDraft();revision++;listeners.forEach(fn=>fn());sessions.clear();layout.selectPanel(null)
+    void documents.open(id).catch(documents.fail)
+  }
+  ctx.effect(()=>{const open=(e:Event)=>openDocument((e as CustomEvent<string>).detail);window.addEventListener('workbench-document-open',open);return()=>window.removeEventListener('workbench-document-open',open)},'plain-chat: document navigation')
   const openSearch=(id:string)=>{
+    activeDocument=null
     const state=searches.getSnapshot(),row=state.rows.find(r=>r.id===id),roleId=row?.roleId??(state.request?.id===id?state.request.roleId:state.config?.roleId)
     if(row)searches.draft({query:row.query,path:row.path})
     leaveRecording();activeSearch=id;sessionStorage.setItem('workbench-file-search-active',id);start.reset();localConversations.leave();requirementHistory.leave();developerHistory.leave();if(roleId)roleSelection.select(roleId);clearSavedDraft();revision++;listeners.forEach(fn=>fn());sessions.clear();layout.selectPanel(null)
   }
   const openLocalConversation = (id: string) => {
+    if(documents.getSnapshot().rows.some(r=>r.id===id)){openDocument(id);return}
     if(searches.getSnapshot().rows.some(r=>r.id===id)){openSearch(id);return}
     leaveSearch()
     const recording=recordings.getSnapshot().rows.find(row=>row.id===id)
@@ -188,6 +202,7 @@ export function apply(ctx: Context): void {
     layout.selectPanel(null)
   }
   const renameLocalConversation = async (id: string, title: string) => {
+    if(documents.getSnapshot().rows.some(r=>r.id===id)){await documents.command(id,'rename',title);return}
     if(searches.getSnapshot().rows.some(r=>r.id===id)){await searches.command(id,'rename',{title});return}
     if(recordings.getSnapshot().rows.some(r=>r.id===id)){await recordings.command(id,'rename',{title});return}
     if (requirementHistory.getSnapshot().items.some(row => row.id === id)) {
@@ -215,6 +230,7 @@ export function apply(ctx: Context): void {
     localConversations.rename(id, title)
   }
   const removeLocalConversation = (id: string) => {
+    if(documents.getSnapshot().rows.some(r=>r.id===id)){void documents.command(id,'remove').then(()=>{if(activeDocument===id)startFreshChat()}).catch(documents.fail);return}
     if(searches.getSnapshot().rows.some(r=>r.id===id)){void searches.command(id,'delete').then(()=>{if(activeSearch===id)startFreshChat()}).catch(e=>window.alert(e.message));return}
     if(recordings.getSnapshot().rows.some(r=>r.id===id)){if(!window.confirm('移除此录音会话及其录音文件？'))return;void recordings.command(id,'delete').then(()=>{if(activeRecording===id)startFreshChat()}).catch(e=>window.alert(e.message));return}
     const developer = developerHistory.getSnapshot().items.find(item => item.id === id)
@@ -306,7 +322,9 @@ export function apply(ctx: Context): void {
       const recording=recordingSnapshot.rows.find(r=>r.id===activeRecording)
       const searchSnapshot=useSyncExternalStore(searches.subscribe,searches.getSnapshot)
       const search=searchSnapshot.rows.find(r=>r.id===activeSearch)
-      const effectiveRole = search?.roleId ?? recording?.roleId ?? developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole
+      const documentSnapshot=useSyncExternalStore(documents.subscribe,documents.getSnapshot)
+      const documentRow=documentSnapshot.rows.find(r=>r.id===activeDocument)
+      const effectiveRole = documentRow?.roleId ?? search?.roleId ?? recording?.roleId ?? developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole
       const capabilities = useSyncExternalStore(capabilityClient.subscribe, capabilityClient.getSnapshot)
       const analysisRole = capabilities.data?.state.roles.find(role => role.id === effectiveRole)
       const analysisVersion = requirement ? analysisRole?.versions.find(version => version.version === requirement.roleVersion) : analysisRole && latest(analysisRole.versions)
@@ -327,7 +345,7 @@ export function apply(ctx: Context): void {
       const originRole = capabilities.data?.state.roles.find(role => role.id === displayedRole)
       const originVersion = noSession ? (developer ? developerVersion : requirement ? analysisVersion : local?.kind === 'demo' ? meetingVersion : originRole && latest(originRole.versions)) : originRole?.versions.find(v => v.preset === actualPreset)
       const modes = roleCapabilityModes(capabilities.data?.state, originVersion)
-      const workMode: CapabilityMode = activeSearch ? 'file-search' : developer ? 'developer' : requirement ? 'requirements' : local?.kind === 'demo' ? 'meeting' : local?.workMode && modes.some(m => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes)
+      const workMode: CapabilityMode = activeDocument ? 'document' : activeSearch ? 'file-search' : developer ? 'developer' : requirement ? 'requirements' : local?.kind === 'demo' ? 'meeting' : local?.workMode && modes.some(m => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes)
       const showDeveloper = workMode === 'developer', showRequirements = workMode === 'requirements'
       const translate = (key: string, ...args: unknown[]) => key === 'hero.chooseWorkspace' && (plain || noSession) ? t('workspace') : props.t(key, ...args)
       const renderSlot = (key: string, owner: any, ...rest: any[]) => {
@@ -367,7 +385,7 @@ export function apply(ctx: Context): void {
         {!recording && recordingSnapshot.error && <p role="alert" style={{margin:"4px 24px",fontSize:13}}>{recordingSnapshot.error}</p>}
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
-        <div className={styles.conversationContent}>{noSession && (activeSearch || !recording && workMode==='file-search') ? <FileSearchView key={activeSearch??effectiveRole} id={activeSearch??'new'} roleId={effectiveRole==='chat'?undefined:effectiveRole}/> : noSession && recording ? <RecordingView key={recording.id} id={recording.id}/> : noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
+        <div className={styles.conversationContent}>{noSession && workMode==='document' ? <DocumentAssistant roleId={effectiveRole}/> : noSession && (activeSearch || !recording && workMode==='file-search') ? <FileSearchView key={activeSearch??effectiveRole} id={activeSearch??'new'} roleId={effectiveRole==='chat'?undefined:effectiveRole}/> : noSession && recording ? <RecordingView key={recording.id} id={recording.id}/> : noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
           ? <DeveloperAssistant initialTitle={local?.customTitle ? local.title : undefined} key={developerKey} taskId={developer?.id} draftKey={local?.id ?? developerKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={developerVersion?.version} loadModels={loadMeetingModels} onDraftChange={value => {
             if (developerKey !== developerViewKey || sessions.list.getSnapshot().current !== undefined || developerHistory.getSnapshot().activeId) return
             const row = localConversations.active()
@@ -419,7 +437,8 @@ export function apply(ctx: Context): void {
     const meetings = useSyncExternalStore(meetingHistory.subscribe, meetingHistory.getSnapshot)
     const recorded=useSyncExternalStore(recordings.subscribe,recordings.getSnapshot)
     const searched=useSyncExternalStore(searches.subscribe,searches.getSnapshot)
-    const historyRows = [...searched.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),searchId:row.id})),...recorded.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),recordingId:row.id})),...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
+    const documentRows=useSyncExternalStore(documents.subscribe,documents.getSnapshot)
+    const historyRows = [...documentRows.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),documentId:row.id})),...searched.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),searchId:row.id})),...recorded.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),recordingId:row.id})),...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
     const [host, setHost] = useState<HTMLDivElement | null>(null)
     const translate = (key: string, ...args: unknown[]) => key === 'group.ungrouped' ? t('history') : props.t(key, ...args)
     // The upstream ungrouped row renders a + button but deliberately gives it
@@ -437,7 +456,7 @@ export function apply(ctx: Context): void {
     const open = (id: string) => { leaveSearch();leaveRecording(); start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
     return <div ref={setHost} style={{ display: 'contents' }} onClickCapture={onClickCapture}>
       <Original {...props} t={translate} open={open} />
-      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} onRename={renameLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
+      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={activeDocument ?? activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} onRename={renameLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
         {meetings.loading && <p role="status">正在读取会议记录…</p>}{meetings.error && <p role="alert">{meetings.error}</p>}
         {meetings.unreadableCount > 0 && <p role="status">{meetings.unreadableCount} 条会议记录暂不可读，原文件已保留。</p>}
         {(meetings.hasMore || meetings.error) && <button type="button" className={historyStyles.open} disabled={meetings.loading} onClick={() => { void meetingHistory.load(!meetings.error) }}>{meetings.error ? '重试读取会议记录' : '加载更多会议记录'}</button>}

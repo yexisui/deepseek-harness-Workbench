@@ -3,7 +3,7 @@ import { defaultRoles, MEETING_CAPABILITY_ID } from './default-roles.ts'
 import type { RoleIconSpec } from './appearance.ts'
 import { REQUIREMENTS_CAPABILITY_ID, REQUIREMENTS_COMPONENT_ID } from './requirements-model.ts'
 import { DEVELOPER_CAPABILITY_ID, developerParts } from './developer-model.ts'
-export type Action = `pack:${string}` | 'search-files' | 'record-audio' | 'navigate' | 'read' | 'screenshot' | 'transcribe' | 'analyze-requirements' | 'develop' | 'inspect-git' | 'verify-code'
+export type Action = 'edit-document' | 'ask-document' | 'revise-document' | `pack:${string}` | 'search-files' | 'record-audio' | 'navigate' | 'read' | 'screenshot' | 'transcribe' | 'analyze-requirements' | 'develop' | 'inspect-git' | 'verify-code'
 export type Part = { componentId: string; actions: Action[] }
 export type Definition = { name: string; description: string; instructions: string; components: Part[]; excludedDependencies?: string[]; componentOrder?: string[] }
 export type Version = Definition & { directSave?: boolean; version: number; createdAt: string; packageHash?: string }
@@ -13,15 +13,16 @@ export type SkillBinding = { id: string; name: string; hash: string; enabled: bo
 export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec; duties: string; requirements: string; format: string; capabilities: Binding[]; skills?: SkillBinding[] }
 export type RoleVersion = RoleDefinition & { directSave?: boolean; version: number; preset: string; createdAt: string }
 export type Role = { removedAt?: string; archivedAt?: string; id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
-export type State = { packageModels?: Record<string,string>; packageReleases?: Record<string, import('./distribution.ts').PackageRelease>; componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; fileSearchCapabilityVersion?: 1; recordingCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
+export type State = { packageModels?: Record<string,string>; packageReleases?: Record<string, import('./distribution.ts').PackageRelease>; componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; documentCapabilityVersion?: 1; fileSearchCapabilityVersion?: 1; recordingCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
 export type Component = {
   id: string; name: string; provider: string; version: string; actions: readonly Action[]; dependencies: readonly string[]
-  icon: 'browser' | 'audio' | 'document'; sourceLabel: string; management: 'file-search' | 'recording' | 'browser' | 'meeting-asr' | 'requirements' | 'developer' | 'package'; actionLabels?: Record<string,string>; pluginModule?: string
+  icon: 'browser' | 'audio' | 'document'; sourceLabel: string; management: 'smart-document' | 'file-search' | 'recording' | 'browser' | 'meeting-asr' | 'requirements' | 'developer' | 'package'; actionLabels?: Record<string,string>; pluginModule?: string
   /** Exclusive workflows cannot be assembled into unrelated capabilities until their execution adapter supports it. */
   capabilityIds?: readonly string[]; required?: boolean; compositionVersion: 1 | 2
 }
 export const browserPackage = '@wxg-prc-cpg/browser-skill-dsh-plugin'
 export const components: readonly Component[] = [
+  {id:'document-editor',name:'Word 编辑与理解',provider:'@linxin666/dsh-capabilities',version:'1.0.0',actions:['edit-document','ask-document','revise-document'],dependencies:[],icon:'document',sourceLabel:'本机文档引擎',management:'smart-document',capabilityIds:['smart-document'],required:true,compositionVersion:2},
   { id:'everything-search',name:'本地文件搜索',provider:'@linxin666/dsh-capabilities',version:'1.0.0',actions:['search-files'],dependencies:[],icon:'document',sourceLabel:'Everything 本地索引',management:'file-search',capabilityIds:['local-file-search'],required:true,compositionVersion:2 },
   { id:'audio-recorder',name:'录音与保存',provider:'@linxin666/dsh-capabilities',version:'1.0.0',actions:['record-audio'],dependencies:[],icon:'audio',sourceLabel:'内置录音服务',management:'recording',capabilityIds:['audio-recording'],required:true,compositionVersion:2 },
   ...developerParts.map((part, i): Component => ({ id: part.componentId, name: ['项目文件与开发对话', 'Git 变更与版本', '项目验证运行'][i]!, provider: i === 1 ? '@linxin666/dsh-client-ui-git-graph' : '@linxin666/dsh-capabilities', version: '1.0.0', actions: [...part.actions], dependencies: [], icon: 'document', sourceLabel: '内置开发服务', management: 'developer', capabilityIds: [DEVELOPER_CAPABILITY_ID], required: true, compositionVersion: 2 })),
@@ -29,7 +30,7 @@ export const components: readonly Component[] = [
   { id: 'meeting-asr', name: '会议录音转写', provider: '@linxin666/dsh-capabilities', version: '1.0.0', actions: ['transcribe'], dependencies: [], icon: 'audio', sourceLabel: '内置会议服务', management: 'meeting-asr', capabilityIds: [MEETING_CAPABILITY_ID], required: true, compositionVersion: 2 },
   { id: REQUIREMENTS_COMPONENT_ID, name: '需求分析服务', provider: '@linxin666/dsh-capabilities', version: '1.0.0', actions: ['analyze-requirements'], dependencies: [], icon: 'document', sourceLabel: '内置需求服务', management: 'requirements', capabilityIds: [REQUIREMENTS_CAPABILITY_ID], required: true, compositionVersion: 2 },
 ]
-export const actionNames: Record<Action, string> = { 'search-files':'搜索本地文件', 'record-audio':'录音与保存', navigate: '打开网页', read: '读取网页', screenshot: '截取页面', transcribe: '转写录音', 'analyze-requirements': '分析与整理需求', develop: '读取与按任务授权编辑项目', 'inspect-git': '审阅差异与手动 Git 操作', 'verify-code': '运行已确认的项目检查' }
+export const actionNames: Record<Action, string> = { 'edit-document':'编辑与保存 Word', 'ask-document':'理解文档', 'revise-document':'生成修改建议', 'search-files':'搜索本地文件', 'record-audio':'录音与保存', navigate: '打开网页', read: '读取网页', screenshot: '截取页面', transcribe: '转写录音', 'analyze-requirements': '分析与整理需求', develop: '读取与按任务授权编辑项目', 'inspect-git': '审阅差异与手动 Git 操作', 'verify-code': '运行已确认的项目检查' }
 export const emptyDefinition = (): Definition => ({ name: '', description: '', instructions: '', components: [] })
 export const emptyRole = (): RoleDefinition => ({ name: '', color: '#4F73E8', duties: '', requirements: '', format: '', capabilities: [] })
 export const latest = <T>(versions: T[]): T | undefined => versions.at(-1)

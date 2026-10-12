@@ -393,6 +393,9 @@ ipcMain.on('desktop:attention', (event, payload) => {
   raiseAttention(kind);
 });
 
+const documentFiles=require('./document-files.cjs').createDocumentFiles({dialog,window:()=>mainWindow,assertSender:event=>assertProjectSender(event,mainWindow,tokenUrl)});
+ipcMain.handle('desktop:document-open',(event,value)=>documentFiles.open(event,value));
+ipcMain.handle('desktop:document-save',(event,value)=>documentFiles.save(event,value));
 ipcMain.handle('desktop:select-search-directory', async (event, previous) => {
   assertProjectSender(event, mainWindow, tokenUrl);
   const { searchDirectoryDefault } = require('./search-picker.cjs');
