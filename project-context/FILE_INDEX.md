@@ -310,3 +310,5 @@
 - [requirements/auto/A026-工作台品牌标识移除与桌面入口同步.md](requirements/auto/A026-工作台品牌标识移除与桌面入口同步.md)：T037品牌显示范围、桌面CMD实际加载链、正式同步、后台验证和r3离线交付证据；当前实施记录。
 
 - [requirements/auto/A027-JEV模式移除与业务回归.md](requirements/auto/A027-JEV模式移除与业务回归.md)：T038退役范围、业务保护、正式同步、基线对照和r4交付验证；A020改为历史参考。
+
+- [requirements/auto/A028-移除宠物额度悬浮框.md](requirements/auto/A028-移除宠物额度悬浮框.md)：T039额度框移除范围、宠物保留、正式同步和r5离线交付证据。
