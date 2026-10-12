@@ -9,7 +9,7 @@
     {
       "path": "capabilities/state.json",
       "format": "structured",
-      "sha256": "341b5b5c9bf54b265bf4c9c9f4b1bfc8fad07e01d2aba31fda19601344dc99a9"
+      "sha256": "94bafa303c471617edc0e4c9bc6944948945e6cfb0cd09c7765faf4b5199e29e"
     },
     {
       "path": "pet.json",

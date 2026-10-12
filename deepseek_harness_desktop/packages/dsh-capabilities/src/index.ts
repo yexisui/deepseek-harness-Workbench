@@ -48,8 +48,9 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   const home = dshHome(), store = new CapabilityStore(join(home, 'capabilities'))
   await store.init()
   const documents=new DocumentsService(join(home,'capabilities','documents'),()=>store.snapshot(),(prompt,model,system,signal,onDelta)=>workbenchText(ctx,prompt,model,system,undefined,signal,180_000,onDelta),()=>{try{return ctx.get('documentKnowledge' as never) as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter|undefined}catch{return undefined}})
-  await documents.init()
-  ctx.effect(()=>()=>documents.ai.close(),'document lifecycle')
+  let documentError = ''
+  try { await documents.init() } catch (error) { documentError = error instanceof Error ? error.message : '文档存储不可用' }
+  ctx.effect(()=>()=>documents.close(),'document lifecycle')
   ctx.effect(()=>store.subscribe(()=>documents.ai.reconcile()),'document authorization')
   const recording = new RecordingService(join(home,'capabilities','recordings'),()=>store.snapshot(),join(home,'..','external-tools'))
   let recordingError = ''
@@ -129,7 +130,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   runtime.packageRunner = packageRunner
   const activities = async (state = store.snapshot()) => {
     const browser = runtime.tasks().filter(t => t.browserSessions.length || ['running', 'stopping'].includes(t.status)).map(t => ({ id: t.sessionId, roleId: t.roleId, roleVersion: t.roleVersion, name: t.name, status: t.status, kind: 'browser', componentIds: [...new Set(state.roles.find(r => r.id === t.roleId)?.versions.find(v => v.version === t.roleVersion)?.capabilities.filter(b => b.enabled).flatMap(b => resolveBinding(state, b)?.components.map(p => p.componentId) ?? []) ?? [])] }))
-    return [...browser, ...recording.activities(), ...fileSearch.activities(), ...packageRunner.activities(), ...await requirements.componentActivities(), ...await meeting.componentActivities(), ...await developer?.componentActivities() ?? []].sort((a,b) => a.id.localeCompare(b.id))
+    return [...browser, ...documents.ai.activities(), ...recording.activities(), ...fileSearch.activities(), ...packageRunner.activities(), ...await requirements.componentActivities(), ...await meeting.componentActivities(), ...await developer?.componentActivities() ?? []].sort((a,b) => a.id.localeCompare(b.id))
   }
   runtime.componentActivities = activities
   const registry = new ComponentRegistryStore(join(home, 'capabilities'), () => store.snapshot(), activities)
@@ -152,7 +153,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       // A named webServer route bypasses Connection's /api route; reuse its public authentication check explicitly.
       const rejection = ctx.connection.requestRejection(req)
       if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
-      if (route.startsWith('/api/capabilities/documents/')) return await documents.routes(req,res)
+      if (route.startsWith('/api/capabilities/documents/')) { if(documentError)throw new InputError('文档存储不可用：'+documentError,503);return await documents.routes(req,res) }
       if (route.startsWith('/api/capabilities/file-search/')) { if(searchError)throw new InputError('搜索存储不可用：'+searchError,503);return await fileSearchRoutes(fileSearch,req,res) }
       if (route.startsWith('/api/capabilities/recording/')) { if(recordingError)throw new InputError('录音存储不可用：'+recordingError,503);return await recordingRoutes(recording, req, res) }
       if (route.startsWith('/api/capabilities/packages/')) return await packageRoutes(packages, packageRunner, req, res)

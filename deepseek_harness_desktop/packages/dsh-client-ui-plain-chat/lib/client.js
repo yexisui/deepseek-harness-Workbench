@@ -30,6 +30,839 @@ window.__ModuleLoader__.load({
 		react = __toESM(react, 1);
 		let react_jsx_runtime = require("react/jsx-runtime");
 		let react_dom = require("react-dom");
+		//#region ../../shared/client/documents-client.ts
+		const base = "/api/capabilities/documents/";
+		async function documentApi(path, body) {
+			const res = await fetch(base + path, {
+				credentials: "same-origin",
+				...body === void 0 ? {} : {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(body)
+				}
+			}), data = await res.json();
+			if (!res.ok) throw Error(data.error || "文档服务不可用");
+			return data;
+		}
+		const documentDesktop = () => window.desktop;
+		const emptyDraft = {
+			question: "",
+			model: "",
+			scope: "auto",
+			chapter: -1,
+			mode: "ask",
+			useKnowledge: false
+		};
+		function createDocumentClient() {
+			let state = {
+				rows: [],
+				error: "",
+				busy: false,
+				saving: false,
+				dirty: false,
+				draftSaved: false,
+				ready: false
+			}, frame, holder, ready, seq = 0, loading = false, timer, saveQueue = Promise.resolve(), bytes;
+			let operations = Promise.resolve();
+			const roleDocuments = /* @__PURE__ */ new Map(), drafts = /* @__PURE__ */ new Map();
+			function sequence(work) {
+				const result = operations.then(work);
+				operations = result.then(() => {}, () => {});
+				return result;
+			}
+			const channel = crypto.randomUUID(), listeners = /* @__PURE__ */ new Set(), pending = /* @__PURE__ */ new Map(), handles = /* @__PURE__ */ new Map();
+			const emit = (patch) => {
+				state = {
+					...state,
+					...patch
+				};
+				listeners.forEach((fn) => fn());
+			};
+			const upsert = (row) => emit({ rows: [row, ...state.rows.filter((r) => r.id !== row.id)].filter((r) => !r.removedAt).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)) });
+			function ensureFrame() {
+				if (frame) return;
+				holder = document.createElement("div");
+				holder.hidden = true;
+				document.body.appendChild(holder);
+				frame = document.createElement("iframe");
+				frame.title = "Word 文档编辑器";
+				frame.src = "/api/capabilities/documents/editor/index.html?channel=" + channel;
+				frame.style.cssText = "width:100%;height:100%;border:0;display:block";
+				holder.appendChild(frame);
+				ready = new Promise((resolve, reject) => {
+					const timeout = setTimeout(() => reject(Error("文档引擎加载超时，请重新打开智能文档助手")), 6e4);
+					window.addEventListener("message", (event) => {
+						if (event.source !== frame.contentWindow || event.origin !== location.origin || event.data?.source !== "workbench-document" || event.data.channel !== channel) return;
+						const { type, value } = event.data;
+						if (type === "ready") {
+							clearTimeout(timeout);
+							emit({ ready: true });
+							resolve();
+						} else if (type === "result") {
+							const task = pending.get(value.id);
+							if (task) {
+								clearTimeout(task.timer);
+								pending.delete(value.id);
+								value.ok ? task.resolve(value.result) : task.reject(Error(value.error));
+							}
+						} else if (type === "selection") emit({ context: value });
+						else if (type === "change" && !loading && state.active) {
+							emit({
+								dirty: true,
+								draftSaved: false
+							});
+							clearTimeout(timer);
+							timer = setTimeout(() => void flush().catch(fail), 500);
+						} else if (type === "save-request") save(false).catch(fail);
+						else if (type === "error") {
+							emit({ error: String(value) });
+							if (!state.ready) {
+								clearTimeout(timeout);
+								reject(Error(String(value)));
+							}
+						} else if (type === "font-error") emit({ error: "字体显示可能有差异：" + value });
+					});
+				});
+				ready.catch(fail);
+			}
+			async function rpc(op, args = {}) {
+				ensureFrame();
+				await ready;
+				return new Promise((resolve, reject) => {
+					const id = ++seq, timeout = setTimeout(() => {
+						pending.delete(id);
+						reject(Error("编辑器响应超时，请保留页面并重试"));
+					}, 6e4);
+					pending.set(id, {
+						resolve,
+						reject,
+						timer: timeout
+					});
+					frame.contentWindow.postMessage({
+						source: "workbench-document-host",
+						channel,
+						id,
+						op,
+						args
+					}, location.origin);
+				});
+			}
+			const fail = (e) => emit({ error: e instanceof Error ? e.message : String(e) });
+			async function refresh() {
+				try {
+					const rows = await documentApi("list"), current = rows.find((r) => r.id === state.active?.id);
+					emit({
+						rows,
+						...current && current.revision >= (state.active?.revision ?? 0) ? { active: current } : {}
+					});
+				} catch (e) {
+					fail(e);
+				}
+			}
+			async function flush() {
+				clearTimeout(timer);
+				const work = async () => {
+					if (!state.active || loading || state.draftSaved) return;
+					const row = state.active, capture = await rpc("save");
+					bytes = capture.bytes;
+					emit({ saving: true });
+					try {
+						const res = await fetch("/api/capabilities/documents/file/" + row.id + "?revision=" + row.revision, {
+							method: "PUT",
+							headers: { "Content-Type": "application/octet-stream" },
+							body: capture.bytes
+						}), result = await res.json();
+						if (!res.ok) throw Error(result.error || "工作副本保存失败");
+						upsert(result);
+						if (state.active?.id === row.id) {
+							const current = await rpc("context");
+							emit({
+								active: result,
+								context: current,
+								draftSaved: current.revision === capture.revision
+							});
+						}
+					} finally {
+						emit({ saving: false });
+					}
+				};
+				const result = saveQueue.then(work);
+				saveQueue = result.catch(() => {});
+				return result;
+			}
+			async function load(row, data) {
+				loading = true;
+				emit({
+					busy: true,
+					error: ""
+				});
+				try {
+					const context = await rpc("load", { bytes: data });
+					if (context.parseError || !context.editable) throw Error(context.parseError || "文档不能编辑");
+					bytes = data;
+					roleDocuments.set(row.roleId, row.id);
+					emit({
+						active: row,
+						context,
+						dirty: false,
+						draftSaved: row.revision > 0
+					});
+					upsert(row);
+				} finally {
+					loading = false;
+					emit({ busy: false });
+				}
+			}
+			async function open(id) {
+				if (state.active?.id === id) return;
+				await flush();
+				const row = state.rows.find((r) => r.id === id);
+				if (!row) throw Error("文档会话不存在");
+				const res = await fetch("/api/capabilities/documents/file/" + id);
+				if (!res.ok) throw Error("文档工作副本读取失败");
+				const previous = state.active, previousBytes = bytes;
+				try {
+					await load(row, await res.arrayBuffer());
+				} catch (error) {
+					if (previous && previousBytes) await load(previous, previousBytes);
+					throw error;
+				}
+			}
+			async function importBytes(name, data, roleId, handle) {
+				if (data.byteLength > 40 * 1024 * 1024) throw Error("文档超过 40 MB");
+				await flush();
+				const row = await documentApi("create", {
+					filename: name,
+					roleId
+				}), previous = state.active, previousBytes = bytes;
+				try {
+					await load(row, data);
+					if (handle) handles.set(row.id, handle);
+					await flush();
+					window.dispatchEvent(new CustomEvent("workbench-document-open", { detail: row.id }));
+				} catch (error) {
+					if (previous && previousBytes) await load(previous, previousBytes);
+					await command(row.id, "remove");
+					throw error;
+				}
+			}
+			async function openNative(roleId, path) {
+				const value = await documentDesktop()?.openDocument?.(path);
+				if (value) await importBytes(value.name, new Uint8Array(value.bytes).buffer, roleId, value.handle);
+			}
+			async function save(saveAs) {
+				const row = state.active;
+				if (!row) return;
+				await flush();
+				const data = await rpc("save"), native = documentDesktop();
+				if (native?.saveDocument) {
+					const result = await native.saveDocument({
+						handle: handles.get(row.id),
+						name: row.filename,
+						bytes: data.bytes,
+						saveAs
+					});
+					if (!result) return;
+					handles.set(row.id, result.handle);
+				} else {
+					const url = URL.createObjectURL(new Blob([data.bytes], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" })), a = document.createElement("a");
+					a.href = url;
+					a.download = row.filename;
+					a.click();
+					setTimeout(() => URL.revokeObjectURL(url), 1e4);
+				}
+				const current = await rpc("context");
+				emit({
+					dirty: current.revision !== data.revision,
+					error: ""
+				});
+			}
+			async function command(id, action, value) {
+				if (id === state.active?.id) await flush();
+				const row = await documentApi("command", {
+					id,
+					action,
+					value
+				});
+				upsert(row);
+				if (row.removedAt) roleDocuments.delete(row.roleId);
+				if (id === state.active?.id) emit({
+					active: row.removedAt ? void 0 : row,
+					...row.removedAt ? { context: void 0 } : {}
+				});
+			}
+			window.addEventListener("beforeunload", (event) => {
+				if (state.active && !state.draftSaved) {
+					event.preventDefault();
+					event.returnValue = "";
+				}
+			});
+			setInterval(() => {
+				if (state.rows.some((r) => r.messages.some((m) => m.status === "running"))) refresh();
+			}, 700);
+			return {
+				getSnapshot: () => state,
+				subscribe: (fn) => {
+					listeners.add(fn);
+					return () => {
+						listeners.delete(fn);
+					};
+				},
+				refresh,
+				rpc,
+				flush,
+				open: (id) => sequence(() => open(id)),
+				importBytes: (name, data, roleId) => sequence(() => importBytes(name, data, roleId)),
+				openNative: (roleId, path) => sequence(() => openNative(roleId, path)),
+				save: (saveAs) => sequence(() => save(saveAs)),
+				command: (id, action, value) => sequence(() => command(id, action, value)),
+				fail,
+				draft: (key) => drafts.get(key) ?? emptyDraft,
+				updateDraft: (key, patch) => {
+					drafts.set(key, {
+						...drafts.get(key) ?? emptyDraft,
+						...patch
+					});
+					emit({});
+				},
+				activateRole: (roleId) => sequence(async () => {
+					if (state.active?.roleId === roleId) return;
+					await flush();
+					const id = roleDocuments.get(roleId);
+					if (id && state.rows.some((row) => row.id === id)) await open(id);
+					else emit({
+						active: void 0,
+						context: void 0,
+						dirty: false,
+						draftSaved: false,
+						error: ""
+					});
+				}),
+				newDocument: () => sequence(async () => {
+					await flush();
+					if (state.active) roleDocuments.delete(state.active.roleId);
+					emit({
+						active: void 0,
+						context: void 0,
+						dirty: false,
+						draftSaved: false,
+						error: ""
+					});
+				}),
+				ask: (input) => sequence(async () => {
+					await flush();
+					const active = state.active;
+					if (!active) throw Error("请先打开文档");
+					const context = await rpc("context");
+					await documentApi("ask", {
+						...input,
+						id: active.id,
+						context,
+						storageRevision: active.revision
+					});
+					await refresh();
+				}),
+				adopt: (proposalId) => sequence(async () => {
+					await flush();
+					const active = state.active;
+					if (!active) throw Error("请先打开文档");
+					const proposal = await documentApi("adopt-check", {
+						id: active.id,
+						proposalId
+					});
+					await rpc("replace", {
+						before: proposal.before,
+						after: proposal.after,
+						paraId: proposal.paraId,
+						revision: proposal.editorRevision
+					});
+					await flush();
+					await documentApi("adopted", {
+						id: active.id,
+						proposalId
+					});
+					await refresh();
+				}),
+				undoAI: () => sequence(async () => {
+					await rpc("undo-ai");
+					await flush();
+				}),
+				async stop() {
+					if (state.active) {
+						await documentApi("stop", { id: state.active.id });
+						await refresh();
+					}
+				},
+				mount(node) {
+					ensureFrame();
+					node.appendChild(frame);
+					return () => {
+						holder.appendChild(frame);
+					};
+				},
+				clearError: () => emit({ error: "" }),
+				notify: () => refresh(),
+				hasNative: (id) => handles.has(id)
+			};
+		}
+		const documentsClient = () => window.workbenchDocuments ??= createDocumentClient();
+		//#endregion
+		//#region \0dsh-css:shared/client/pill-checkbox.module.css.mjs
+		const css$20 = ".DtUdKa_pill.DtUdKa_pill[type=checkbox]{vertical-align:middle;cursor:pointer;transition:background .18s;-webkit-appearance:none!important;appearance:none!important;box-sizing:border-box!important;opacity:1!important;background:#858b95!important;border:0!important;border-radius:999px!important;flex:none!important;width:46px!important;min-width:46px!important;height:28px!important;min-height:28px!important;margin:0 8px 0 0!important;padding:3px!important;display:inline-block!important;position:relative!important;inset:auto!important}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:before{content:\"\";background:#fff;border-radius:50%;width:22px;height:22px;transition:transform .18s;display:block;box-shadow:0 1px 3px #0003}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:checked{background:#25834a!important}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:checked:before{transform:translate(18px)}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:indeterminate{background:#68768b!important}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:indeterminate:before{transform:translate(9px)}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:disabled{cursor:not-allowed;opacity:.55!important}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:focus-visible{outline-offset:3px;outline:3px solid #4d90ef}@media (prefers-reduced-motion:reduce){.DtUdKa_pill.DtUdKa_pill[type=checkbox],.DtUdKa_pill.DtUdKa_pill[type=checkbox]:before{transition:none}}";
+		const tagId$20 = "@linxin666/dsh-client-ui-plain-chat/shared/client/pill-checkbox.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$20) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$20;
+			tag.textContent = css$20;
+			document.head.appendChild(tag);
+		}
+		var pill_checkbox_module_css_default = { "pill": "DtUdKa_pill" };
+		//#endregion
+		//#region ../../shared/client/PillCheckbox.tsx
+		/** Native selection/change semantics with the shared pill appearance, including mixed selection. */
+		const PillCheckbox = (0, react.forwardRef)(function PillCheckbox({ className, ...props }, ref) {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+				...props,
+				ref,
+				type: "checkbox",
+				className: [pill_checkbox_module_css_default.pill, className].filter(Boolean).join(" ")
+			});
+		});
+		//#endregion
+		//#region src/client/MessageTime.tsx
+		function MessageTime({ value, label = "" }) {
+			const date = value ? new Date(value) : null;
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				style: {
+					marginTop: 8,
+					fontSize: 12,
+					fontWeight: 400,
+					lineHeight: 1.5,
+					color: "var(--dsw-alias-label-secondary, #758095)"
+				},
+				children: date && Number.isFinite(date.getTime()) ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("time", {
+					dateTime: date.toISOString(),
+					children: [label, date.toLocaleString("zh-CN", {
+						year: "numeric",
+						month: "2-digit",
+						day: "2-digit",
+						hour: "2-digit",
+						minute: "2-digit",
+						second: "2-digit",
+						hour12: false
+					})]
+				}) : "时间未记录"
+			});
+		}
+		//#endregion
+		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/DocumentAssistant.module.css.mjs
+		const css$19 = ".HrL-0a_root{--doc-bg:var(--dsw-alias-bg-layer-2,#fff);--doc-text:var(--dsw-alias-label-primary,#202938);--doc-muted:var(--dsw-alias-label-secondary,#758095);--doc-border:var(--dsw-alias-border-l2,#e0e5ec);height:100%;min-height:480px;color:var(--doc-text);background:var(--doc-bg);flex-direction:column;display:flex;overflow:hidden}.HrL-0a_toolbar{border-bottom:1px solid var(--doc-border);flex-wrap:wrap;align-items:center;gap:8px;padding:12px 16px;display:flex}.HrL-0a_identity{flex:1;gap:4px;min-width:160px;display:grid}.HrL-0a_identity small,.HrL-0a_hint,.HrL-0a_empty small{color:var(--doc-muted);font-size:12px}.HrL-0a_root button,.HrL-0a_root select{font:inherit;border:1px solid var(--doc-border);color:inherit;background:var(--doc-bg);cursor:pointer;border-radius:8px;padding:7px 12px;font-size:13px}.HrL-0a_root button:hover{background:var(--dsw-alias-bg-layer-3,#f1f4fa)}.HrL-0a_root button:disabled{opacity:.5;cursor:default}.HrL-0a_layout{flex:1;grid-template-columns:minmax(0,1fr);min-height:0;display:grid}.HrL-0a_layout[data-sidebar=true]{grid-template-columns:minmax(0,1fr) 5px minmax(290px,var(--doc-side-width,360px))}.HrL-0a_editor{background:#edf0f4;min-width:0;min-height:400px;position:relative}.HrL-0a_frame{height:100%;min-height:400px}.HrL-0a_side{border-left:1px solid var(--doc-border);flex-direction:column;gap:12px;min-height:0;padding:16px;display:flex;overflow:auto}.HrL-0a_side h3{margin:0;font-size:15px}.HrL-0a_context{border:1px solid var(--doc-border);white-space:pre-wrap;overflow-wrap:anywhere;border-radius:12px;max-height:220px;padding:12px;font-size:13px;overflow:auto}.HrL-0a_context button{text-align:left;width:100%;margin-top:6px;display:block}.HrL-0a_empty{background:var(--doc-bg);flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:24px;display:flex;position:absolute;inset:0}.HrL-0a_empty p{color:var(--doc-muted)}.HrL-0a_empty button{text-align:left;justify-content:space-between;gap:12px;width:min(460px,100%);display:flex}.HrL-0a_error{color:#b54736;background:var(--dsw-alias-bg-layer-3,#fff5f2);justify-content:space-between;gap:10px;padding:10px 16px;font-size:13px;display:flex}.HrL-0a_hint{margin:0;line-height:1.6}.HrL-0a_root button:focus-visible,.HrL-0a_root select:focus-visible{outline-offset:2px;outline:2px solid #4f73e8}@media (width<=850px){.HrL-0a_layout[data-sidebar=true]{grid-template-columns:1fr}.HrL-0a_side{border-left:0;border-top:1px solid var(--doc-border);max-height:380px}.HrL-0a_editor{min-height:460px}.HrL-0a_root{overflow:auto}.HrL-0a_layout{display:block}.HrL-0a_frame{height:460px}.HrL-0a_toolbar{padding:10px}}@media (prefers-reduced-motion:reduce){.HrL-0a_root *{scroll-behavior:auto!important}}.HrL-0a_messages{flex-direction:column;flex:1;gap:12px;min-height:120px;display:flex;overflow:auto}.HrL-0a_messages article{border:1px solid var(--doc-border);overflow-wrap:anywhere;border-radius:12px;padding:12px;font-size:13px;line-height:1.65}.HrL-0a_messages article[data-role=user]{background:var(--dsw-alias-bg-layer-3,#f4f6fb)}.HrL-0a_messages article small{color:var(--doc-muted);font-size:12px}.HrL-0a_messages article p{white-space:pre-wrap;margin:8px 0}.HrL-0a_messages article button{margin-right:4px;padding:3px 7px;font-size:11px}.HrL-0a_suggestions{flex-direction:column;gap:8px;display:flex}.HrL-0a_composer{gap:8px;display:grid}.HrL-0a_composer textarea{resize:vertical;min-height:72px;max-height:180px;font:inherit;color:inherit;border:1px solid var(--doc-border);background:var(--doc-bg);border-radius:10px;padding:10px;font-size:13px}.HrL-0a_options{flex-wrap:wrap;gap:6px;display:flex}.HrL-0a_options select{flex:1;min-width:0;max-width:100%}.HrL-0a_composer textarea:focus-visible{outline-offset:2px;outline:2px solid #4f73e8}.HrL-0a_proposal{gap:8px;margin-top:10px;display:grid}.HrL-0a_proposal del,.HrL-0a_proposal ins{white-space:pre-wrap;border-radius:6px;padding:8px;text-decoration:none}.HrL-0a_proposal del{background:#b5473614;border-left:3px solid #b54736}.HrL-0a_proposal ins{background:#27845814;border-left:3px solid #278458}.HrL-0a_options button[aria-pressed=true]{color:#4f73e8;border-color:#4f73e8}.HrL-0a_resize{cursor:col-resize;touch-action:none;background:var(--doc-border)}.HrL-0a_resize:hover,.HrL-0a_resize:focus-visible{background:#4f73e8;outline:none}@media (width<=850px){.HrL-0a_resize{display:none}}";
+		const tagId$19 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/DocumentAssistant.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$19) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$19;
+			tag.textContent = css$19;
+			document.head.appendChild(tag);
+		}
+		var DocumentAssistant_module_css_default = {
+			"composer": "HrL-0a_composer",
+			"context": "HrL-0a_context",
+			"editor": "HrL-0a_editor",
+			"empty": "HrL-0a_empty",
+			"error": "HrL-0a_error",
+			"frame": "HrL-0a_frame",
+			"hint": "HrL-0a_hint",
+			"identity": "HrL-0a_identity",
+			"layout": "HrL-0a_layout",
+			"messages": "HrL-0a_messages",
+			"options": "HrL-0a_options",
+			"proposal": "HrL-0a_proposal",
+			"resize": "HrL-0a_resize",
+			"root": "HrL-0a_root",
+			"side": "HrL-0a_side",
+			"suggestions": "HrL-0a_suggestions",
+			"toolbar": "HrL-0a_toolbar"
+		};
+		//#endregion
+		//#region src/client/DocumentAssistant.tsx
+		function DocumentAssistant({ roleId, loadModels }) {
+			const client = documentsClient(), state = (0, react.useSyncExternalStore)(client.subscribe, client.getSnapshot), mount = (0, react.useRef)(null), input = (0, react.useRef)(null), [side, setSide] = (0, react.useState)(true), [sideWidth, setSideWidth] = (0, react.useState)(360);
+			const [models, setModels] = (0, react.useState)([]), [sending, setSending] = (0, react.useState)(false);
+			const draftKey = state.active?.roleId === roleId ? state.active.id : "role:" + roleId, { model, question, scope, chapter, mode, useKnowledge } = client.draft(draftKey);
+			const setModel = (model) => client.updateDraft(draftKey, { model }), setQuestion = (question) => client.updateDraft(draftKey, { question }), setScope = (scope) => client.updateDraft(draftKey, { scope }), setChapter = (chapter) => client.updateDraft(draftKey, { chapter }), setMode = (mode) => client.updateDraft(draftKey, { mode }), setUseKnowledge = (useKnowledge) => client.updateDraft(draftKey, { useKnowledge });
+			const [knowledge, setKnowledge] = (0, react.useState)({
+				configured: false,
+				verified: false,
+				message: "接口已预留，暂未接入服务。",
+				label: "外部资料库"
+			});
+			(0, react.useEffect)(() => {
+				documentApi("knowledge").then(setKnowledge).catch(client.fail);
+			}, []);
+			const generating = state.active?.messages.some((m) => m.status === "running"), chapters = state.context?.paragraphs.map((p, index) => ({
+				...p,
+				index
+			})).filter((p) => /^Heading\d$/i.test(p.styleId || "")) ?? [];
+			(0, react.useEffect)(() => {
+				loadModels().then(setModels).catch(client.fail);
+			}, []);
+			async function ask(value = question) {
+				if (!value.trim() || generating || sending) return;
+				setSending(true);
+				try {
+					await client.ask({
+						question: value,
+						model,
+						mode,
+						useKnowledge,
+						scope: scope === "auto" ? state.context?.selection ? "selection" : "document" : scope,
+						chapter
+					});
+					setQuestion("");
+				} finally {
+					setSending(false);
+				}
+			}
+			(0, react.useEffect)(() => {
+				client.refresh();
+				return client.mount(mount.current);
+			}, []);
+			(0, react.useEffect)(() => {
+				client.activateRole(roleId).catch(client.fail);
+			}, [roleId]);
+			const run = (fn) => {
+				fn().catch(client.fail);
+			};
+			async function file(value) {
+				if (value) {
+					const path = documentDesktop()?.getPathForFile?.(value);
+					if (path && documentDesktop()?.openDocument) await client.openNative(roleId, path);
+					else await client.importBytes(value.name, await value.arrayBuffer(), roleId);
+				}
+			}
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+				className: DocumentAssistant_module_css_default.root,
+				"aria-label": "智能文档工作区",
+				onDragOver: (e) => {
+					if (e.dataTransfer.types.includes("Files")) e.preventDefault();
+				},
+				onDrop: (e) => {
+					e.preventDefault();
+					run(() => file(e.dataTransfer.files[0]));
+				},
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("header", {
+						className: DocumentAssistant_module_css_default.toolbar,
+						children: [
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: DocumentAssistant_module_css_default.identity,
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: state.active?.title || "智能文档助手" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: state.busy ? "正在打开…" : state.saving ? "正在暂存…" : state.active ? state.dirty ? "有未保存修改 · " + (state.draftSaved ? "工作副本已暂存" : "正在暂存") : "工作副本已就绪" : "打开 Word，编辑并理解文档" })]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+								ref: input,
+								type: "file",
+								accept: ".docx",
+								hidden: true,
+								onChange: (e) => {
+									run(() => file(e.target.files?.[0]));
+									e.target.value = "";
+								}
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								disabled: state.busy,
+								onClick: () => documentDesktop()?.openDocument ? run(() => client.openNative(roleId)) : input.current?.click(),
+								children: "打开 Word"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								disabled: !state.active || state.busy,
+								onClick: () => run(() => client.save(false)),
+								children: state.active && !client.hasNative(state.active.id) ? "保存副本" : "保存"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								disabled: !state.active || state.busy,
+								onClick: () => run(() => client.save(true)),
+								children: "另存为"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								"aria-expanded": side,
+								onClick: () => setSide(!side),
+								children: side ? "收起助手" : "展开助手"
+							})
+						]
+					}),
+					state.error && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: DocumentAssistant_module_css_default.error,
+						role: "alert",
+						children: [state.error, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							onClick: client.clearError,
+							"aria-label": "关闭提示",
+							children: "×"
+						})]
+					}),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: DocumentAssistant_module_css_default.layout,
+						"data-sidebar": side,
+						style: { "--doc-side-width": sideWidth + "px" },
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: DocumentAssistant_module_css_default.editor,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+								className: DocumentAssistant_module_css_default.frame,
+								ref: mount
+							}), !state.active && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								className: DocumentAssistant_module_css_default.empty,
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "从一份 Word 开始" }),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "点击“打开 Word”或将 DOCX 拖到这里。工作副本在本机暂存。" }),
+									state.rows.filter((row) => row.roleId === roleId).slice(0, 6).map((row) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+										onClick: () => run(() => client.open(row.id)),
+										children: [row.title, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: new Date(row.updatedAt).toLocaleString() })]
+									}, row.id))
+								]
+							})]
+						}), side && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							className: DocumentAssistant_module_css_default.resize,
+							role: "separator",
+							"aria-label": "调整文档助手宽度",
+							"aria-orientation": "vertical",
+							"aria-valuenow": sideWidth,
+							"aria-valuemin": 290,
+							"aria-valuemax": 600,
+							tabIndex: 0,
+							onKeyDown: (e) => {
+								if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+									e.preventDefault();
+									setSideWidth((w) => Math.max(290, Math.min(600, w + (e.key === "ArrowLeft" ? 20 : -20))));
+								}
+							},
+							onPointerDown: (e) => {
+								e.currentTarget.setPointerCapture(e.pointerId);
+							},
+							onPointerMove: (e) => {
+								if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+									const rect = e.currentTarget.parentElement.getBoundingClientRect();
+									setSideWidth(Math.max(290, Math.min(600, rect.right - e.clientX)));
+								}
+							},
+							onPointerUp: (e) => e.currentTarget.releasePointerCapture(e.pointerId)
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("aside", {
+							className: DocumentAssistant_module_css_default.side,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "文档助手" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: DocumentAssistant_module_css_default.options,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										"aria-pressed": mode === "ask",
+										onClick: () => setMode("ask"),
+										children: "理解文档"
+									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										"aria-pressed": mode === "revise",
+										onClick: () => setMode("revise"),
+										children: "AI 修改"
+									})]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: DocumentAssistant_module_css_default.context,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: state.context?.selection ? "当前选区" : "文档大纲" }),
+										state.context?.selection ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: state.context.selection }) : state.context?.outline.map((item, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											onClick: () => run(() => client.rpc("find", { text: item.text })),
+											children: item.text
+										}, i)),
+										!state.context?.selection && !state.context?.outline.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "在左侧选择文字，可围绕该内容提问。" })
+									]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: DocumentAssistant_module_css_default.messages,
+									"aria-live": "polite",
+									children: [state.active?.messages.map((message) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
+										"data-role": message.role,
+										children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+												message.role === "user" ? "你" : "文档助手",
+												" · ",
+												message.scope
+											] }),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: message.text || (message.status === "running" ? "正在理解文档…" : "") }),
+											message.role === "assistant" && [...new Set([...message.text.matchAll(/\[P(\d+)\]/g)].map((m) => Number(m[1]) - 1))].filter((i) => message.sources?.some((p) => p.id === "P" + (i + 1))).map((i) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+												onClick: () => run(() => client.rpc("find", {
+													text: message.sources.find((p) => p.id === "P" + (i + 1)).text,
+													paraId: message.sources.find((p) => p.id === "P" + (i + 1)).paraId
+												})),
+												children: ["定位 P", i + 1]
+											}, i)),
+											message.knowledge?.map((source) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [
+												/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+													"[",
+													source.id,
+													"] ",
+													source.title
+												] }),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: source.text }),
+												source.url && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("a", {
+													href: source.url,
+													target: "_blank",
+													rel: "noreferrer",
+													children: "查看来源"
+												})
+											] }, source.id)),
+											message.proposal && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+												className: DocumentAssistant_module_css_default.proposal,
+												children: [
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "修改建议" }),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("del", { children: message.proposal.before }),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ins", { children: message.proposal.after }),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														disabled: state.busy || message.proposal.status === "adopted",
+														onClick: () => run(() => client.adopt(message.proposal.id)),
+														children: message.proposal.status === "adopted" ? "已采用" : "采用修改"
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														onClick: () => run(() => client.rpc("find", {
+															text: message.proposal.before,
+															paraId: message.proposal.paraId
+														})),
+														children: "定位原文"
+													})
+												]
+											}),
+											message.status !== "running" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MessageTime, { value: message.createdAt })
+										]
+									}, message.id)), !state.active?.messages.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										className: DocumentAssistant_module_css_default.suggestions,
+										children: [
+											"概括文档的主要内容",
+											"解释选区的业务含义",
+											"列出需要进一步确认的问题"
+										].map((value) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											disabled: !state.active || sending,
+											onClick: () => run(() => ask(value)),
+											children: value
+										}, value))
+									})]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("form", {
+									className: DocumentAssistant_module_css_default.composer,
+									onSubmit: (e) => {
+										e.preventDefault();
+										run(() => ask());
+									},
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											className: DocumentAssistant_module_css_default.options,
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+												"aria-label": "问答范围",
+												value: scope,
+												onChange: (e) => setScope(e.target.value),
+												children: [
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+														value: "auto",
+														children: state.context?.selection ? "当前选区" : "全文正文"
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+														value: "document",
+														children: "全文正文"
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+														value: "selection",
+														disabled: !state.context?.selection,
+														children: "当前选区"
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+														value: "chapter",
+														disabled: !chapters.length,
+														children: "指定章节"
+													})
+												]
+											}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+												"aria-label": "文档问答模型",
+												value: model,
+												onChange: (e) => setModel(e.target.value),
+												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+													value: "",
+													children: "工作台默认模型"
+												}), models.map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+													value: m.id,
+													children: m.name
+												}, m.id))]
+											})]
+										}),
+										scope === "chapter" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+											"aria-label": "选择章节",
+											value: chapter,
+											onChange: (e) => setChapter(Number(e.target.value)),
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+												value: -1,
+												children: "选择章节"
+											}), chapters.map((p) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+												value: p.index,
+												children: p.text
+											}, p.index))]
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("textarea", {
+											"aria-label": "向文档助手提问",
+											placeholder: mode === "revise" ? "描述要怎样修改；一次改写一处段落内文字…" : "询问文档、解释选区…",
+											value: question,
+											onChange: (e) => setQuestion(e.target.value),
+											onKeyDown: (e) => {
+												if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+													e.preventDefault();
+													run(() => ask());
+												}
+											}
+										}),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											className: DocumentAssistant_module_css_default.options,
+											children: [
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													type: "button",
+													disabled: !state.active,
+													onClick: () => run(() => client.undoAI()),
+													children: "撤销刚才的 AI 修改"
+												}),
+												generating ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													type: "button",
+													onClick: () => run(() => client.stop()),
+													children: "停止生成"
+												}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													type: "submit",
+													disabled: !state.active || sending || !question.trim(),
+													children: sending ? "提交中…" : mode === "revise" ? "生成修改建议" : "发送"
+												}),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													type: "button",
+													disabled: !state.active?.messages.some((m) => m.role === "user") || generating || sending,
+													onClick: () => run(() => ask(state.active.messages.filter((m) => m.role === "user").at(-1).text)),
+													children: "重试上一问"
+												})
+											]
+										})
+									]
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+									className: DocumentAssistant_module_css_default.hint,
+									children: ["问题及所选正文会发送至当前模型 API。", knowledge.message]
+								}),
+								knowledge.configured && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+									className: DocumentAssistant_module_css_default.hint,
+									children: [
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
+											checked: useKnowledge,
+											onChange: (e) => setUseKnowledge(e.target.checked)
+										}),
+										"结合 ",
+										knowledge.label,
+										knowledge.verified ? "" : "（连接待验证）"
+									]
+								})
+							]
+						})] })]
+					})
+				]
+			});
+		}
+		//#endregion
 		//#region ../../shared/client/file-search-client.ts
 		async function fileSearchApi(path, body) {
 			const response = await fetch("/api/capabilities/file-search/" + path, {
@@ -149,13 +982,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:shared/client/FileSearchForm.module.css.mjs
-		const css$19 = ".p3UGNa_form{flex-direction:column;gap:8px;width:100%;max-width:720px;display:flex}.p3UGNa_field{min-width:0;position:relative}.p3UGNa_field input{box-sizing:border-box;width:100%;min-width:0;height:38px;font:inherit;color:var(--dsw-alias-label-primary,#202938);background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#dbe1eb);border-radius:8px;padding:7px 42px 7px 10px}.p3UGNa_field button{color:#fff;cursor:pointer;background:linear-gradient(135deg,#506fff,#344dde);border:1px solid #6782ff;border-radius:6px;place-items:center;width:32px;height:32px;padding:4px;display:grid;position:absolute;top:3px;right:3px}.p3UGNa_field button:disabled{opacity:.5;cursor:default}.p3UGNa_field .p3UGNa_folder{background:var(--dsw-alias-bg-layer-2,#f5f7fb);border-color:var(--dsw-alias-border-l2,#dbe1eb);color:var(--dsw-alias-label-secondary,#758095)}.p3UGNa_compact{gap:6px;font-size:12px}.p3UGNa_compact input{color:#eef1ff;background:#10172a;border-color:#45587e;height:32px;padding:6px 36px 6px 8px}.p3UGNa_compact input::placeholder{color:#92a3c6;opacity:1}.p3UGNa_compact button{width:26px;height:26px}.p3UGNa_compact .p3UGNa_folder{color:#bfcff3;background:#26324b;border-color:#465b83}.p3UGNa_error{overflow-wrap:anywhere;margin:4px 0 0;font-size:12px}.p3UGNa_field input:focus-visible,.p3UGNa_field button:focus-visible{outline-offset:2px;outline:2px solid #8ca5ff}";
-		const tagId$19 = "@linxin666/dsh-client-ui-plain-chat/shared/client/FileSearchForm.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$19) + "]") === null) {
+		const css$18 = ".p3UGNa_form{flex-direction:column;gap:8px;width:100%;max-width:720px;display:flex}.p3UGNa_field{min-width:0;position:relative}.p3UGNa_field input{box-sizing:border-box;width:100%;min-width:0;height:38px;font:inherit;color:var(--dsw-alias-label-primary,#202938);background:var(--dsw-alias-bg-layer-1,#fff);border:1px solid var(--dsw-alias-border-l2,#dbe1eb);border-radius:8px;padding:7px 42px 7px 10px}.p3UGNa_field button{color:#fff;cursor:pointer;background:linear-gradient(135deg,#506fff,#344dde);border:1px solid #6782ff;border-radius:6px;place-items:center;width:32px;height:32px;padding:4px;display:grid;position:absolute;top:3px;right:3px}.p3UGNa_field button:disabled{opacity:.5;cursor:default}.p3UGNa_field .p3UGNa_folder{background:var(--dsw-alias-bg-layer-2,#f5f7fb);border-color:var(--dsw-alias-border-l2,#dbe1eb);color:var(--dsw-alias-label-secondary,#758095)}.p3UGNa_compact{gap:6px;font-size:12px}.p3UGNa_compact input{color:#eef1ff;background:#10172a;border-color:#45587e;height:32px;padding:6px 36px 6px 8px}.p3UGNa_compact input::placeholder{color:#92a3c6;opacity:1}.p3UGNa_compact button{width:26px;height:26px}.p3UGNa_compact .p3UGNa_folder{color:#bfcff3;background:#26324b;border-color:#465b83}.p3UGNa_error{overflow-wrap:anywhere;margin:4px 0 0;font-size:12px}.p3UGNa_field input:focus-visible,.p3UGNa_field button:focus-visible{outline-offset:2px;outline:2px solid #8ca5ff}";
+		const tagId$18 = "@linxin666/dsh-client-ui-plain-chat/shared/client/FileSearchForm.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$18) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$19;
-			tag.textContent = css$19;
+			tag.dataset.pluginCss = tagId$18;
+			tag.textContent = css$18;
 			document.head.appendChild(tag);
 		}
 		var FileSearchForm_module_css_default = {
@@ -262,13 +1095,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/FileSearchView.module.css.mjs
-		const css$18 = ".G5Dr9W_view{background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#fff) 94%,transparent);color:var(--dsw-alias-label-primary,#202938);flex-direction:column;flex:1;gap:12px;min-width:0;padding:20px 24px;display:flex;overflow:auto}.G5Dr9W_view h3{overflow-wrap:anywhere;margin:0;font-size:18px}.G5Dr9W_muted{color:var(--dsw-alias-label-secondary,#758095);overflow-wrap:anywhere;margin:0;font-size:12px}.G5Dr9W_list{flex-direction:column;display:flex}.G5Dr9W_item{border-bottom:1px solid var(--dsw-alias-border-l2,#dbe1eb);justify-content:space-between;align-items:center;gap:12px;min-width:0;padding:12px 0;display:flex}.G5Dr9W_info{flex-direction:column;gap:4px;min-width:0;display:flex}.G5Dr9W_path{overflow-wrap:anywhere;user-select:text;font-size:12px}.G5Dr9W_info small{color:var(--dsw-alias-label-secondary,#758095);font-size:12px}.G5Dr9W_actions{flex-shrink:0;gap:6px;display:flex}.G5Dr9W_actions button,.G5Dr9W_view>p button{font:inherit;border:1px solid var(--dsw-alias-border-l2,#dbe1eb);background:var(--dsw-alias-bg-layer-2,#f5f7fb);color:var(--dsw-alias-label-primary,#202938);cursor:pointer;border-radius:7px;padding:5px 9px}@media (width<=600px){.G5Dr9W_item{flex-direction:column;align-items:flex-start}.G5Dr9W_view{padding:16px}}";
-		const tagId$18 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/FileSearchView.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$18) + "]") === null) {
+		const css$17 = ".G5Dr9W_view{background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#fff) 94%,transparent);color:var(--dsw-alias-label-primary,#202938);flex-direction:column;flex:1;gap:12px;min-width:0;padding:20px 24px;display:flex;overflow:auto}.G5Dr9W_view h3{overflow-wrap:anywhere;margin:0;font-size:18px}.G5Dr9W_muted{color:var(--dsw-alias-label-secondary,#758095);overflow-wrap:anywhere;margin:0;font-size:12px}.G5Dr9W_list{flex-direction:column;display:flex}.G5Dr9W_item{border-bottom:1px solid var(--dsw-alias-border-l2,#dbe1eb);justify-content:space-between;align-items:center;gap:12px;min-width:0;padding:12px 0;display:flex}.G5Dr9W_info{flex-direction:column;gap:4px;min-width:0;display:flex}.G5Dr9W_path{overflow-wrap:anywhere;user-select:text;font-size:12px}.G5Dr9W_info small{color:var(--dsw-alias-label-secondary,#758095);font-size:12px}.G5Dr9W_actions{flex-shrink:0;gap:6px;display:flex}.G5Dr9W_actions button,.G5Dr9W_view>p button{font:inherit;border:1px solid var(--dsw-alias-border-l2,#dbe1eb);background:var(--dsw-alias-bg-layer-2,#f5f7fb);color:var(--dsw-alias-label-primary,#202938);cursor:pointer;border-radius:7px;padding:5px 9px}@media (width<=600px){.G5Dr9W_item{flex-direction:column;align-items:flex-start}.G5Dr9W_view{padding:16px}}";
+		const tagId$17 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/FileSearchView.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$17) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$18;
-			tag.textContent = css$18;
+			tag.dataset.pluginCss = tagId$17;
+			tag.textContent = css$17;
 			document.head.appendChild(tag);
 		}
 		var FileSearchView_module_css_default = {
@@ -727,13 +1560,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/Chat.module.css.mjs
-		const css$17 = ".yzXCLW_card{box-sizing:border-box;border:1px solid var(--dsw-alias-border-l2,#d5dbe7);background:var(--dsw-alias-bg-layer-2,#fff);width:100%;color:var(--dsw-alias-label-primary,#202938);border-radius:20px;padding:18px;box-shadow:0 3px 14px #182c5010}.yzXCLW_input{resize:vertical;box-sizing:border-box;width:100%;min-height:108px;max-height:300px;color:inherit;font:inherit;background:0 0;border:0;outline:none;line-height:1.6;display:block}.yzXCLW_input::placeholder{color:var(--dsw-alias-label-secondary,#78869f)}.yzXCLW_input:focus-visible{outline-offset:5px;border-radius:4px;outline:2px solid #8b9dd5}.yzXCLW_row{justify-content:space-between;align-items:center;gap:12px;margin-top:10px;display:flex}.yzXCLW_hint{opacity:.72;font-size:12px;line-height:1.6}.yzXCLW_send{background:var(--dsw-alias-button-primary-fill,#405eae);min-width:44px;min-height:44px;color:var(--dsw-alias-label-primary-foreground,#fff);cursor:pointer;border:0;border-radius:999px;flex-shrink:0;padding:10px 16px}.yzXCLW_send:hover{background:var(--dsw-alias-button-primary-hover,#334c91)}.yzXCLW_send:disabled{opacity:.45;cursor:default}.yzXCLW_error{color:#b53232;margin-top:10px;font-size:13px}.yzXCLW_badge{opacity:.8;font-size:14px}.yzXCLW_previewNotice{border-bottom:1px solid var(--dsw-alias-border-l2,#d5dbe7);color:var(--dsw-alias-label-secondary,#78869f);flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:14px;padding:0 0 14px;font-size:12px;line-height:1.7;display:flex}.yzXCLW_previewNotice button{color:var(--dsw-alias-button-primary-fill,#405eae);cursor:pointer;font:inherit;background:0 0;border:0;padding:3px 0}@media (width<=600px){.yzXCLW_card{padding:14px}.yzXCLW_row{align-items:flex-end}.yzXCLW_hint{font-size:11px}}.yzXCLW_conversationShell{flex-direction:column;min-width:0;height:100%;min-height:0;display:flex}.yzXCLW_assistantToolbar{flex-wrap:wrap;flex:none;align-items:center;gap:8px 18px;min-width:0;padding:20px 28px 8px;display:flex}.yzXCLW_assistantToolbar>*{min-width:0;max-width:100%}.yzXCLW_conversationContent{flex:1;min-width:0;min-height:0}@media (width<=600px){.yzXCLW_assistantToolbar{padding:12px 16px 6px}}.yzXCLW_capabilityModes{flex-wrap:wrap;flex-shrink:0;gap:6px;padding:6px 16px;display:flex}.yzXCLW_capabilityModes button{font:inherit;color:inherit;border:1px solid var(--border-color,#aab2c344);cursor:pointer;background:0 0;border-radius:8px;padding:5px 10px}.yzXCLW_capabilityModes button[aria-pressed=true]{background:var(--role-accent-soft,#5870ce20);border-color:var(--role-accent,#5870ce)}";
-		const tagId$17 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Chat.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$17) + "]") === null) {
+		const css$16 = ".yzXCLW_card{box-sizing:border-box;border:1px solid var(--dsw-alias-border-l2,#d5dbe7);background:var(--dsw-alias-bg-layer-2,#fff);width:100%;color:var(--dsw-alias-label-primary,#202938);border-radius:20px;padding:18px;box-shadow:0 3px 14px #182c5010}.yzXCLW_input{resize:vertical;box-sizing:border-box;width:100%;min-height:108px;max-height:300px;color:inherit;font:inherit;background:0 0;border:0;outline:none;line-height:1.6;display:block}.yzXCLW_input::placeholder{color:var(--dsw-alias-label-secondary,#78869f)}.yzXCLW_input:focus-visible{outline-offset:5px;border-radius:4px;outline:2px solid #8b9dd5}.yzXCLW_row{justify-content:space-between;align-items:center;gap:12px;margin-top:10px;display:flex}.yzXCLW_hint{opacity:.72;font-size:12px;line-height:1.6}.yzXCLW_send{background:var(--dsw-alias-button-primary-fill,#405eae);min-width:44px;min-height:44px;color:var(--dsw-alias-label-primary-foreground,#fff);cursor:pointer;border:0;border-radius:999px;flex-shrink:0;padding:10px 16px}.yzXCLW_send:hover{background:var(--dsw-alias-button-primary-hover,#334c91)}.yzXCLW_send:disabled{opacity:.45;cursor:default}.yzXCLW_error{color:#b53232;margin-top:10px;font-size:13px}.yzXCLW_badge{opacity:.8;font-size:14px}.yzXCLW_previewNotice{border-bottom:1px solid var(--dsw-alias-border-l2,#d5dbe7);color:var(--dsw-alias-label-secondary,#78869f);flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:14px;padding:0 0 14px;font-size:12px;line-height:1.7;display:flex}.yzXCLW_previewNotice button{color:var(--dsw-alias-button-primary-fill,#405eae);cursor:pointer;font:inherit;background:0 0;border:0;padding:3px 0}@media (width<=600px){.yzXCLW_card{padding:14px}.yzXCLW_row{align-items:flex-end}.yzXCLW_hint{font-size:11px}}.yzXCLW_conversationShell{flex-direction:column;min-width:0;height:100%;min-height:0;display:flex}.yzXCLW_assistantToolbar{flex-wrap:wrap;flex:none;align-items:center;gap:8px 18px;min-width:0;padding:20px 28px 8px;display:flex}.yzXCLW_assistantToolbar>*{min-width:0;max-width:100%}.yzXCLW_conversationContent{flex:1;min-width:0;min-height:0}@media (width<=600px){.yzXCLW_assistantToolbar{padding:12px 16px 6px}}.yzXCLW_capabilityModes{flex-wrap:wrap;flex-shrink:0;gap:6px;padding:6px 16px;display:flex}.yzXCLW_capabilityModes button{font:inherit;color:inherit;border:1px solid var(--border-color,#aab2c344);cursor:pointer;background:0 0;border-radius:8px;padding:5px 10px}.yzXCLW_capabilityModes button[aria-pressed=true]{background:var(--role-accent-soft,#5870ce20);border-color:var(--role-accent,#5870ce)}";
+		const tagId$16 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/Chat.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$16) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$17;
-			tag.textContent = css$17;
+			tag.dataset.pluginCss = tagId$16;
+			tag.textContent = css$16;
 			document.head.appendChild(tag);
 		}
 		var Chat_module_css_default = {
@@ -1095,6 +1928,24 @@ window.__ModuleLoader__.load({
 		const browserPackage = "@wxg-prc-cpg/browser-skill-dsh-plugin";
 		const components = [
 			{
+				id: "document-editor",
+				name: "Word 编辑与理解",
+				provider: "@linxin666/dsh-capabilities",
+				version: "1.0.0",
+				actions: [
+					"edit-document",
+					"ask-document",
+					"revise-document"
+				],
+				dependencies: [],
+				icon: "document",
+				sourceLabel: "本机文档引擎",
+				management: "smart-document",
+				capabilityIds: ["smart-document"],
+				required: true,
+				compositionVersion: 2
+			},
+			{
 				id: "everything-search",
 				name: "本地文件搜索",
 				provider: "@linxin666/dsh-capabilities",
@@ -1195,6 +2046,9 @@ window.__ModuleLoader__.load({
 			}
 		];
 		const actionNames = {
+			"edit-document": "编辑与保存 Word",
+			"ask-document": "理解文档",
+			"revise-document": "生成修改建议",
 			"search-files": "搜索本地文件",
 			"record-audio": "录音与保存",
 			navigate: "打开网页",
@@ -1265,7 +2119,7 @@ window.__ModuleLoader__.load({
 				if (!binding.enabled) continue;
 				const cap = state?.capabilities.find((c) => c.id === binding.capabilityId), published = cap?.versions.find((v) => v.version === binding.version);
 				const actions = binding.actions ?? actionsOf(published);
-				const mode = actions.includes("search-files") ? "file-search" : actions.includes("transcribe") ? "meeting" : actions.includes("analyze-requirements") ? "requirements" : actions.includes("develop") ? "developer" : "chat";
+				const mode = actions.includes("edit-document") ? "document" : actions.includes("search-files") ? "file-search" : actions.includes("transcribe") ? "meeting" : actions.includes("analyze-requirements") ? "requirements" : actions.includes("develop") ? "developer" : "chat";
 				if (mode !== "chat" && !result.some((r) => r.mode === mode)) result.push({
 					mode,
 					label: published?.name ?? cap?.draft.name ?? mode
@@ -1606,13 +2460,13 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/AppearanceNavigation.module.css.mjs
-		const css$16 = ".W_oMjq_group{width:100%;min-width:0}.W_oMjq_heading{box-sizing:border-box;cursor:pointer;align-items:center;gap:10px;width:100%;list-style:none;display:flex}.W_oMjq_heading::-webkit-details-marker{display:none}.W_oMjq_heading>svg{flex-shrink:0}.W_oMjq_heading:focus-visible{outline:2px solid var(--dsw-alias-button-primary-fill,#4263ba);outline-offset:-2px;border-radius:8px}.W_oMjq_chevron{opacity:.65;margin-left:auto}.W_oMjq_group[open]>.W_oMjq_heading .W_oMjq_chevron{transform:rotate(90deg)}.W_oMjq_children{border-left:1px solid var(--dsw-alias-border-l2,#dfe4ed);flex-direction:column;gap:4px;margin:4px 0 6px 17px;padding-left:10px;display:flex}.W_oMjq_children>button{box-sizing:border-box;width:100%;font-size:13px}";
-		const tagId$16 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/AppearanceNavigation.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$16) + "]") === null) {
+		const css$15 = ".W_oMjq_group{width:100%;min-width:0}.W_oMjq_heading{box-sizing:border-box;cursor:pointer;align-items:center;gap:10px;width:100%;list-style:none;display:flex}.W_oMjq_heading::-webkit-details-marker{display:none}.W_oMjq_heading>svg{flex-shrink:0}.W_oMjq_heading:focus-visible{outline:2px solid var(--dsw-alias-button-primary-fill,#4263ba);outline-offset:-2px;border-radius:8px}.W_oMjq_chevron{opacity:.65;margin-left:auto}.W_oMjq_group[open]>.W_oMjq_heading .W_oMjq_chevron{transform:rotate(90deg)}.W_oMjq_children{border-left:1px solid var(--dsw-alias-border-l2,#dfe4ed);flex-direction:column;gap:4px;margin:4px 0 6px 17px;padding-left:10px;display:flex}.W_oMjq_children>button{box-sizing:border-box;width:100%;font-size:13px}";
+		const tagId$15 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/AppearanceNavigation.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$15) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$16;
-			tag.textContent = css$16;
+			tag.dataset.pluginCss = tagId$15;
+			tag.textContent = css$15;
 			document.head.appendChild(tag);
 		}
 		var AppearanceNavigation_module_css_default = {
@@ -1885,13 +2739,13 @@ window.__ModuleLoader__.load({
 		(0, react.createContext)(null);
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css.mjs
-		const css$15 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:54px;height:32px;display:inline-flex;position:relative}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}.eqpZFq_compositionFieldset{border:0;min-width:0;margin:0;padding:0}.eqpZFq_compositionInfo{border:1px solid var(--role-border);border-radius:9px;margin-bottom:18px;padding:12px}.eqpZFq_compositionInfo summary{color:var(--role-muted);cursor:pointer;font-size:12px}.eqpZFq_compositionInfo[open] summary{margin-bottom:16px}.eqpZFq_associationRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;padding:14px 16px;display:flex}.eqpZFq_associationIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_associationIdentity>div{min-width:0}.eqpZFq_associationIdentity strong{margin-right:8px}.eqpZFq_associationIdentity small{color:var(--role-muted);overflow-wrap:anywhere;margin-top:5px;font-size:11px;display:block}.eqpZFq_associationSymbol{width:34px;height:34px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 10%,transparent);border-radius:8px;flex-shrink:0;place-items:center;font-size:22px;display:grid}.eqpZFq_associationActions{flex-shrink:0;align-items:center;gap:6px;display:flex}.eqpZFq_compositionFeedback,.eqpZFq_compositionToolbar{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;padding:12px;font-size:12px;display:flex}.eqpZFq_compositionToolbar{z-index:1;position:sticky;bottom:0;box-shadow:0 -5px 12px #00000008}.eqpZFq_missingAssociations{border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border));background:color-mix(in srgb,#be8432 8%,var(--role-bg));border-radius:9px;margin:10px 0;padding:12px;font-size:12px}.eqpZFq_missingRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;display:flex}.eqpZFq_missingRow small{color:var(--role-muted)}@media (width<=650px){.eqpZFq_associationRow{flex-wrap:wrap;align-items:flex-start;padding:12px}.eqpZFq_associationActions{margin-left:auto}}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}.eqpZFq_versionValue{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px}.eqpZFq_presetIssues{overflow-wrap:anywhere;padding-left:20px}.eqpZFq_listToolbar{justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px;display:flex}.eqpZFq_listToolbar .eqpZFq_tabs{flex:1;margin:0}.eqpZFq_capabilityList{flex-direction:column;gap:8px;display:flex}.eqpZFq_capabilityRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;align-items:center;gap:8px;min-width:0;padding:0 12px 0 0;display:flex}.eqpZFq_capabilityRow:hover{border-color:var(--role-accent)}.eqpZFq_capabilityOpen{text-align:left;min-width:0;min-height:80px;color:inherit;font:inherit;cursor:pointer;background:0 0;border:0;border-radius:10px;flex:1;align-items:center;gap:12px;padding:12px 8px 12px 14px;display:flex}.eqpZFq_capabilityOpen>:first-child{flex-shrink:0}.eqpZFq_capabilityIdentity{flex:1;min-width:0}.eqpZFq_capabilityIdentity strong,.eqpZFq_capabilityIdentity small{text-overflow:ellipsis;white-space:nowrap;display:block;overflow:hidden}.eqpZFq_capabilityIdentity strong{font-size:14px}.eqpZFq_capabilityIdentity small{color:var(--role-muted);margin-top:5px;font-size:12px}.eqpZFq_capabilityIdentity .eqpZFq_draftHint{color:var(--role-accent)}.eqpZFq_capabilityStatus{color:var(--role-muted);flex-shrink:0;font-size:12px}.eqpZFq_filterPanel{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;flex-wrap:wrap;align-items:flex-start;gap:18px;margin-bottom:14px;padding:16px;display:flex}.eqpZFq_filterPanel fieldset{border:0;flex:1;min-width:170px;padding:0}.eqpZFq_filterPanel legend{font-size:13px;font-weight:600}.eqpZFq_filterSummary{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px;font-size:12px;display:flex}.eqpZFq_moreMenu{position:relative}.eqpZFq_morePanel{z-index:3;border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;min-width:120px;padding:6px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 4px 16px #0002}.eqpZFq_morePanel .eqpZFq_button{text-align:left;border:0;width:100%}.eqpZFq_detailBack{margin-bottom:18px}.eqpZFq_detailIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_detailIdentity h3{overflow-wrap:anywhere}.eqpZFq_detailDescription{color:var(--role-muted);overflow-wrap:anywhere;font-size:13px}.eqpZFq_detailDisclosure{border-top:1px solid var(--role-border);overflow-wrap:anywhere;margin-top:12px;padding:14px 0;font-size:13px}.eqpZFq_detailDisclosure summary{cursor:pointer;color:var(--role-muted)}.eqpZFq_detailDisclosure[open] summary{color:var(--role-text);margin-bottom:12px}@media (width<=600px){.eqpZFq_capabilityOpen{grid-template-columns:32px minmax(0,1fr) 10px;column-gap:10px;display:grid}.eqpZFq_capabilityOpen>:first-child{grid-row:1/3}.eqpZFq_capabilityIdentity{grid-column:2}.eqpZFq_capabilityStatus{grid-column:2;margin-top:5px}.eqpZFq_capabilityOpen>:last-child{grid-area:1/3/3}.eqpZFq_capabilityRow{padding-right:8px}.eqpZFq_detailIdentity{max-width:100%}}.eqpZFq_importDrop{border:1px dashed var(--role-border);border-radius:12px;min-width:0;padding:20px}.eqpZFq_importDrop[data-dragging]{border-color:var(--role-accent,#5863b0);background:var(--role-selected,#5863b015)}.eqpZFq_importFile{overflow-wrap:anywhere;margin:0 0 16px}.eqpZFq_importButtons{flex-wrap:wrap;gap:8px;display:flex}";
-		const tagId$15 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$15) + "]") === null) {
+		const css$14 = ".eqpZFq_page{--role-bg:var(--dsw-alias-bg-layer-2,#fff);--role-text:var(--dsw-alias-label-primary,#202938);--role-muted:var(--dsw-alias-label-secondary,#758095);--role-border:var(--dsw-alias-border-l2,#e0e5ec);--role-accent:var(--dsw-alias-button-primary-fill,#4263ba);color:var(--role-text);min-width:0;font:inherit}.eqpZFq_heading,.eqpZFq_actions,.eqpZFq_tabs,.eqpZFq_status{flex-wrap:wrap;align-items:center;gap:10px;display:flex}.eqpZFq_heading{justify-content:space-between;margin-bottom:20px}.eqpZFq_heading h2,.eqpZFq_heading h3{margin:0 0 6px}.eqpZFq_page p{line-height:1.7}.eqpZFq_muted,.eqpZFq_time{color:var(--role-muted);font-size:12px}.eqpZFq_button{color:inherit;border:1px solid var(--role-border);background:var(--role-bg);cursor:pointer;border-radius:8px;padding:8px 12px}.eqpZFq_button:hover{border-color:var(--role-accent)}.eqpZFq_primary{background:var(--role-accent);color:#fff;border-color:var(--role-accent)}.eqpZFq_button:disabled{opacity:.5;cursor:default}.eqpZFq_search{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:9px;margin:12px 0;padding:11px 13px}.eqpZFq_tabs{border-bottom:1px solid var(--role-border);gap:3px;margin:16px 0}.eqpZFq_tabs button{color:var(--role-muted);cursor:pointer;background:0 0;border:0;border-bottom:2px solid #0000;padding:10px 13px}.eqpZFq_tabs button[aria-pressed=true]{color:var(--role-accent);border-bottom-color:var(--role-accent)}.eqpZFq_grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;display:grid}.eqpZFq_card,.eqpZFq_row{border:1px solid var(--role-border);background:var(--role-bg);border-radius:12px;padding:16px}.eqpZFq_card{flex-direction:column;gap:9px;display:flex}.eqpZFq_card h3{margin:0;font-size:15px}.eqpZFq_card p{margin:0;font-size:12px}.eqpZFq_card .eqpZFq_actions{margin-top:auto}.eqpZFq_row{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin:10px 0;display:flex}.eqpZFq_row small{color:var(--role-muted);word-break:break-all;margin-top:5px;display:block}.eqpZFq_badge{background:color-mix(in srgb,var(--role-accent) 9%,var(--role-bg));color:var(--role-text);border-radius:6px;padding:3px 7px;font-size:11px}.eqpZFq_notice{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 4%,var(--role-bg));border-radius:9px;padding:12px 14px}.eqpZFq_error{color:#b33c42;background:color-mix(in srgb,#b33c42 6%,var(--role-bg));border-radius:8px;padding:10px}.eqpZFq_fields{flex-direction:column;gap:16px;display:flex}.eqpZFq_field{flex-direction:column;gap:8px;font-size:13px;font-weight:550;display:flex}.eqpZFq_field input,.eqpZFq_field textarea,.eqpZFq_field select{box-sizing:border-box;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;font:inherit;border-radius:8px;padding:10px;font-weight:400}.eqpZFq_secretField{align-items:center;gap:6px;display:flex}.eqpZFq_secretField input{flex:1;min-width:0}.eqpZFq_secretField button{border:1px solid var(--role-border)}.eqpZFq_check{align-items:center;gap:8px;margin:12px 0;font-size:13px;display:flex}.eqpZFq_footer{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;display:flex}.eqpZFq_footer p{margin:0;font-size:12px}.eqpZFq_empty{text-align:center;color:var(--role-muted);padding:40px 15px}.eqpZFq_list{margin:8px 0;padding-left:20px;font-size:12px;line-height:1.9}.eqpZFq_dialogBody{max-height:70vh;padding:20px 24px;overflow:auto}.eqpZFq_tasks{border-bottom:1px solid var(--role-border);padding:10px 16px;font-size:12px}.eqpZFq_tasks button{margin-left:12px}.eqpZFq_choice{text-align:left;border:1px solid var(--role-border);background:var(--role-bg);width:100%;color:inherit;border-radius:10px;align-items:center;gap:12px;margin:8px 0;padding:14px;display:flex}.eqpZFq_choice[aria-pressed=true]{border-color:var(--role-accent)}.eqpZFq_choice span{flex:1}.eqpZFq_choice small{color:var(--role-muted);margin-top:5px;display:block}.eqpZFq_cardTop{align-items:center;gap:9px;display:flex}.eqpZFq_cardSource{color:var(--role-muted);flex:1;font-size:11px}.eqpZFq_iconButton{width:34px;height:34px;color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;flex-shrink:0;justify-content:center;align-items:center;transition:color .15s,background .15s,transform .15s;display:inline-flex}.eqpZFq_iconButton:hover{color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 8%,transparent)}.eqpZFq_iconButton.eqpZFq_pinned{color:#fff;background:#344575;border-color:#7585b1;box-shadow:0 2px 5px #0f1a3c26}.eqpZFq_iconButton.eqpZFq_pinned:hover{color:#fff;background:#29385f}.eqpZFq_pinned svg{fill:color-mix(in srgb,currentColor 18%,transparent)}.eqpZFq_iconButton:active{transform:scale(.92)}.eqpZFq_pinnedCard{border-color:color-mix(in srgb,var(--role-accent) 38%,var(--role-border))}.eqpZFq_cardDescription{color:var(--role-muted);overflow-wrap:anywhere}.eqpZFq_cardMeta{color:var(--role-muted);flex-wrap:wrap;align-items:center;gap:8px;margin:3px 0;font-size:11px;display:flex}.eqpZFq_pinLabel{color:color-mix(in srgb,var(--role-accent) 40%,var(--role-text))}.eqpZFq_card h3{overflow-wrap:anywhere}.eqpZFq_cardFooter{border-top:1px solid var(--role-border);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:12px;display:flex}.eqpZFq_inlineAction{justify-content:center;align-items:center;gap:5px;display:inline-flex}.eqpZFq_removeAction{color:var(--role-muted);cursor:pointer;background:0 0;border:1px solid #0000;border-radius:8px;padding:8px}.eqpZFq_removeAction:hover{color:var(--dsw-alias-label-error,#b43f4c);background:#b43f4c14}.eqpZFq_iconButton:disabled,.eqpZFq_removeAction:disabled{opacity:.5;cursor:default}.eqpZFq_page button:focus-visible{outline:2px solid var(--role-accent);outline-offset:3px}.eqpZFq_dangerButton{color:#fff;background:#ac3444;border-color:#ac3444}.eqpZFq_removalImpact{border:1px solid var(--role-border);border-radius:10px;padding:14px;font-size:13px}.eqpZFq_confirmActions{justify-content:flex-end;gap:10px;margin-top:20px;display:flex}.eqpZFq_recycleToolbar{border:1px solid var(--role-border);background:color-mix(in srgb,var(--role-accent) 5%,var(--role-bg));border-radius:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin:14px 0;padding:12px;display:flex}.eqpZFq_selectionSummary{flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;display:flex}.eqpZFq_recycleSelect{cursor:pointer;flex-shrink:0;justify-content:center;align-items:center;width:54px;height:32px;display:inline-flex;position:relative}.eqpZFq_selectedCard{background:color-mix(in srgb,#7585b1 10%,var(--role-bg));border-color:#7585b1;box-shadow:0 0 0 1px #7585b1}.eqpZFq_deleteList{overflow-wrap:anywhere;max-height:180px;overflow:auto}.eqpZFq_compositionFieldset{border:0;min-width:0;margin:0;padding:0}.eqpZFq_compositionInfo{border:1px solid var(--role-border);border-radius:9px;margin-bottom:18px;padding:12px}.eqpZFq_compositionInfo summary{color:var(--role-muted);cursor:pointer;font-size:12px}.eqpZFq_compositionInfo[open] summary{margin-bottom:16px}.eqpZFq_associationRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;justify-content:space-between;align-items:center;gap:12px;margin:10px 0;padding:14px 16px;display:flex}.eqpZFq_associationIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_associationIdentity>div{min-width:0}.eqpZFq_associationIdentity strong{margin-right:8px}.eqpZFq_associationIdentity small{color:var(--role-muted);overflow-wrap:anywhere;margin-top:5px;font-size:11px;display:block}.eqpZFq_associationSymbol{width:34px;height:34px;color:var(--role-accent);background:color-mix(in srgb,var(--role-accent) 10%,transparent);border-radius:8px;flex-shrink:0;place-items:center;font-size:22px;display:grid}.eqpZFq_associationActions{flex-shrink:0;align-items:center;gap:6px;display:flex}.eqpZFq_compositionFeedback,.eqpZFq_compositionToolbar{border:1px solid var(--role-border);background:var(--role-bg);border-radius:9px;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;padding:12px;font-size:12px;display:flex}.eqpZFq_compositionToolbar{z-index:1;position:sticky;bottom:0;box-shadow:0 -5px 12px #00000008}.eqpZFq_missingAssociations{border:1px solid color-mix(in srgb,#be8432 55%,var(--role-border));background:color-mix(in srgb,#be8432 8%,var(--role-bg));border-radius:9px;margin:10px 0;padding:12px;font-size:12px}.eqpZFq_missingRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;display:flex}.eqpZFq_missingRow small{color:var(--role-muted)}@media (width<=650px){.eqpZFq_associationRow{flex-wrap:wrap;align-items:flex-start;padding:12px}.eqpZFq_associationActions{margin-left:auto}}@media (prefers-reduced-motion:reduce){.eqpZFq_iconButton{transition:none}.eqpZFq_iconButton:active{transform:none}}.eqpZFq_versionValue{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px}.eqpZFq_presetIssues{overflow-wrap:anywhere;padding-left:20px}.eqpZFq_listToolbar{justify-content:space-between;align-items:center;gap:12px;margin:4px 0 14px;display:flex}.eqpZFq_listToolbar .eqpZFq_tabs{flex:1;margin:0}.eqpZFq_capabilityList{flex-direction:column;gap:8px;display:flex}.eqpZFq_capabilityRow{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;align-items:center;gap:8px;min-width:0;padding:0 12px 0 0;display:flex}.eqpZFq_capabilityRow:hover{border-color:var(--role-accent)}.eqpZFq_capabilityOpen{text-align:left;min-width:0;min-height:80px;color:inherit;font:inherit;cursor:pointer;background:0 0;border:0;border-radius:10px;flex:1;align-items:center;gap:12px;padding:12px 8px 12px 14px;display:flex}.eqpZFq_capabilityOpen>:first-child{flex-shrink:0}.eqpZFq_capabilityIdentity{flex:1;min-width:0}.eqpZFq_capabilityIdentity strong,.eqpZFq_capabilityIdentity small{text-overflow:ellipsis;white-space:nowrap;display:block;overflow:hidden}.eqpZFq_capabilityIdentity strong{font-size:14px}.eqpZFq_capabilityIdentity small{color:var(--role-muted);margin-top:5px;font-size:12px}.eqpZFq_capabilityIdentity .eqpZFq_draftHint{color:var(--role-accent)}.eqpZFq_capabilityStatus{color:var(--role-muted);flex-shrink:0;font-size:12px}.eqpZFq_filterPanel{border:1px solid var(--role-border);background:var(--role-bg);border-radius:10px;flex-wrap:wrap;align-items:flex-start;gap:18px;margin-bottom:14px;padding:16px;display:flex}.eqpZFq_filterPanel fieldset{border:0;flex:1;min-width:170px;padding:0}.eqpZFq_filterPanel legend{font-size:13px;font-weight:600}.eqpZFq_filterSummary{color:var(--role-muted);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px;font-size:12px;display:flex}.eqpZFq_moreMenu{position:relative}.eqpZFq_morePanel{z-index:3;border:1px solid var(--role-border);background:var(--role-bg);border-radius:8px;min-width:120px;padding:6px;position:absolute;top:calc(100% + 6px);right:0;box-shadow:0 4px 16px #0002}.eqpZFq_morePanel .eqpZFq_button{text-align:left;border:0;width:100%}.eqpZFq_detailBack{margin-bottom:18px}.eqpZFq_detailIdentity{align-items:center;gap:12px;min-width:0;display:flex}.eqpZFq_detailIdentity h3{overflow-wrap:anywhere}.eqpZFq_detailDescription{color:var(--role-muted);overflow-wrap:anywhere;font-size:13px}.eqpZFq_detailDisclosure{border-top:1px solid var(--role-border);overflow-wrap:anywhere;margin-top:12px;padding:14px 0;font-size:13px}.eqpZFq_detailDisclosure summary{cursor:pointer;color:var(--role-muted)}.eqpZFq_detailDisclosure[open] summary{color:var(--role-text);margin-bottom:12px}@media (width<=600px){.eqpZFq_capabilityOpen{grid-template-columns:32px minmax(0,1fr) 10px;column-gap:10px;display:grid}.eqpZFq_capabilityOpen>:first-child{grid-row:1/3}.eqpZFq_capabilityIdentity{grid-column:2}.eqpZFq_capabilityStatus{grid-column:2;margin-top:5px}.eqpZFq_capabilityOpen>:last-child{grid-area:1/3/3}.eqpZFq_capabilityRow{padding-right:8px}.eqpZFq_detailIdentity{max-width:100%}}.eqpZFq_importDrop{border:1px dashed var(--role-border);border-radius:12px;min-width:0;padding:20px}.eqpZFq_importDrop[data-dragging]{border-color:var(--role-accent,#5863b0);background:var(--role-selected,#5863b015)}.eqpZFq_importFile{overflow-wrap:anywhere;margin:0 0 16px}.eqpZFq_importButtons{flex-wrap:wrap;gap:8px;display:flex}";
+		const tagId$14 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$14) + "]") === null) {
 			const tag = document.createElement("style");
 			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$15;
-			tag.textContent = css$15;
+			tag.dataset.pluginCss = tagId$14;
+			tag.textContent = css$14;
 			document.head.appendChild(tag);
 		}
 		var ManagedCapabilities_module_css_default = {
@@ -2165,29 +3019,6 @@ window.__ModuleLoader__.load({
 				]
 			});
 		}
-		//#endregion
-		//#region \0dsh-css:shared/client/pill-checkbox.module.css.mjs
-		const css$14 = ".DtUdKa_pill.DtUdKa_pill[type=checkbox]{vertical-align:middle;cursor:pointer;transition:background .18s;-webkit-appearance:none!important;appearance:none!important;box-sizing:border-box!important;opacity:1!important;background:#858b95!important;border:0!important;border-radius:999px!important;flex:none!important;width:46px!important;min-width:46px!important;height:28px!important;min-height:28px!important;margin:0 8px 0 0!important;padding:3px!important;display:inline-block!important;position:relative!important;inset:auto!important}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:before{content:\"\";background:#fff;border-radius:50%;width:22px;height:22px;transition:transform .18s;display:block;box-shadow:0 1px 3px #0003}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:checked{background:#25834a!important}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:checked:before{transform:translate(18px)}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:indeterminate{background:#68768b!important}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:indeterminate:before{transform:translate(9px)}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:disabled{cursor:not-allowed;opacity:.55!important}.DtUdKa_pill.DtUdKa_pill[type=checkbox]:focus-visible{outline-offset:3px;outline:3px solid #4d90ef}@media (prefers-reduced-motion:reduce){.DtUdKa_pill.DtUdKa_pill[type=checkbox],.DtUdKa_pill.DtUdKa_pill[type=checkbox]:before{transition:none}}";
-		const tagId$14 = "@linxin666/dsh-client-ui-plain-chat/shared/client/pill-checkbox.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$14) + "]") === null) {
-			const tag = document.createElement("style");
-			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
-			tag.dataset.pluginCss = tagId$14;
-			tag.textContent = css$14;
-			document.head.appendChild(tag);
-		}
-		var pill_checkbox_module_css_default = { "pill": "DtUdKa_pill" };
-		//#endregion
-		//#region ../../shared/client/PillCheckbox.tsx
-		/** Native selection/change semantics with the shared pill appearance, including mixed selection. */
-		const PillCheckbox = (0, react.forwardRef)(function PillCheckbox({ className, ...props }, ref) {
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-				...props,
-				ref,
-				type: "checkbox",
-				className: [pill_checkbox_module_css_default.pill, className].filter(Boolean).join(" ")
-			});
-		});
 		//#endregion
 		//#region \0dsh-css:shared/client/enable-switch.module.css.mjs
 		const css$13 = ".ob063a_switch{box-sizing:border-box;cursor:pointer;vertical-align:middle;flex:none;width:46px;height:28px;transition:background .18s;position:relative;background:#858b95!important;border:0!important;border-radius:999px!important;padding:3px!important}.ob063a_switch[data-on=true]{background:#25834a!important}.ob063a_switch span{color:#333;background:#fff;border-radius:50%;justify-content:center;align-items:center;width:22px;height:22px;transition:transform .18s;display:flex;box-shadow:0 1px 3px #0003}.ob063a_switch[data-on=true] span{transform:translate(18px)}.ob063a_switch:disabled{opacity:.55;cursor:not-allowed}.ob063a_switch:focus-visible{outline-offset:3px;outline:3px solid #4d90ef}@media (prefers-reduced-motion:reduce){.ob063a_switch,.ob063a_switch span{transition:none}}";
@@ -7375,6 +8206,7 @@ window.__ModuleLoader__.load({
 			if (problems.length) return status("组件待完善", problems.join("；"), "pending");
 			if (descriptors.some((value) => value?.management !== management)) return status("分项检测", "此能力包含不同服务，请在组件中心分别检查。", "unknown");
 			if (management === "package") return packageStatus?.ready ? status("已启用", packageStatus.message, "ready") : status("待检测", "正在读取执行组件状态", "unknown");
+			if (management === "smart-document") return status("岗位内使用", "在智能文档岗位中打开 Word；AI 连接沿用工作台模型，实际请求时验证。", "context");
 			if (management === "file-search") return status("已启用", "在设置中检测 Everything，并选择搜索归属岗位。", "context");
 			if (management === "recording") return status("已启用", "选择录音归属岗位后，通过宠物按钮或对话开始录音。", "context");
 			if (management === "developer") return status("项目内检测", "进入开发对话并绑定项目后检测文件、Git 和验证环境；默认只读。", "context");
@@ -7670,6 +8502,14 @@ window.__ModuleLoader__.load({
 		//#region src/client/ComponentService.tsx
 		/** Module differences live here; shared composition views never assume a browser environment. */
 		const adapters = {
+			"smart-document": () => ({
+				description: "本机打开、编辑和保存 DOCX，选区问答与修改建议使用工作台模型。",
+				status: "文档在本机处理；AI 按所选模型连接",
+				title: "智能文档服务",
+				name: "本机 DOCX 引擎与工作台模型",
+				detail: "支持 DOCX 原生编辑；模型账号在工作台模型设置维护。知识库接口预留，暂未接入。",
+				configuration: "文档设置"
+			}),
 			"file-search": () => ({
 				description: "使用 Everything 本地索引按名称和路径查找文件。",
 				status: "索引与引擎状态在搜索设置中检测",
@@ -12046,6 +12886,20 @@ window.__ModuleLoader__.load({
 			] });
 		}
 		//#endregion
+		//#region src/client/DocumentSettings.tsx
+		function DocumentSettings() {
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+				className: ManagedCapabilities_module_css_default.row,
+				children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "文档编辑与 AI" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "Word 在本机打开、编辑和保存，无需 Office 授权或文档服务器。" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "AI 默认使用工作台当前模型，也可在文档侧栏切换；账号、地址和密钥统一在模型设置维护。" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "支持 .docx（最多 40 MB）。复杂分页、字体与修订可能存在差异，请核对重要文件。" }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "外部资料库：接口已预留，暂未接入服务。" })
+				] })
+			});
+		}
+		//#endregion
 		//#region src/client/PackageCapabilitySettings.tsx
 		const jobNames = {
 			running: "执行中",
@@ -12951,7 +13805,7 @@ window.__ModuleLoader__.load({
 						}),
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 							"data-capability-config": true,
-							children: kind === "file-search" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileSearchSettings, {
+							children: kind === "smart-document" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DocumentSettings, {}) : kind === "file-search" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileSearchSettings, {
 								disabled: !!item.removedAt,
 								onEditingChange: onEditing
 							}) : kind === "recording" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RecordingSettings, { disabled: !!item.removedAt }) : kind === "package" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(PackageCapabilitySettings, {
@@ -13777,32 +14631,6 @@ window.__ModuleLoader__.load({
 						children: "这里管理原生预设。原生默认预设仅在创建会话时没有指定岗位或预设才会采用；上方选定的岗位用于工作台下一次新对话，当前会话继续使用创建时的设置。"
 					}), children]
 				})]
-			});
-		}
-		//#endregion
-		//#region src/client/MessageTime.tsx
-		function MessageTime({ value, label = "" }) {
-			const date = value ? new Date(value) : null;
-			return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-				style: {
-					marginTop: 8,
-					fontSize: 12,
-					fontWeight: 400,
-					lineHeight: 1.5,
-					color: "var(--dsw-alias-label-secondary, #758095)"
-				},
-				children: date && Number.isFinite(date.getTime()) ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("time", {
-					dateTime: date.toISOString(),
-					children: [label, date.toLocaleString("zh-CN", {
-						year: "numeric",
-						month: "2-digit",
-						day: "2-digit",
-						hour: "2-digit",
-						minute: "2-digit",
-						second: "2-digit",
-						hour12: false
-					})]
-				}) : "时间未记录"
 			});
 		}
 		//#endregion
@@ -21341,9 +22169,13 @@ window.__ModuleLoader__.load({
 			};
 			const roleSelection = createRoleSelection();
 			const localConversations = createLocalConversations();
+			const documents = documentsClient();
+			let activeDocument = null;
+			documents.refresh();
 			const searches = fileSearchClient();
 			let activeSearch = sessionStorage.getItem("workbench-file-search-active");
 			const leaveSearch = () => {
+				activeDocument = null;
 				activeSearch = null;
 				sessionStorage.removeItem("workbench-file-search-active");
 			};
@@ -21417,9 +22249,9 @@ window.__ModuleLoader__.load({
 				return version.preset;
 			});
 			const selectRole = (id) => {
+				if (id === roleSelection.getSnapshot()) return;
 				leaveSearch();
 				leaveRecording();
-				if (id === roleSelection.getSnapshot()) return;
 				start.reset();
 				requirementHistory.leave();
 				developerHistory.leave();
@@ -21433,6 +22265,7 @@ window.__ModuleLoader__.load({
 				}
 			};
 			const startFreshChat = (role = "chat", mode) => {
+				if (mode === "document" || role === "builtin-smart-document") documents.newDocument().catch(documents.fail);
 				leaveSearch();
 				leaveRecording();
 				requirementViewKey = `requirements-new-${role}-${++requirementNavigation}`;
@@ -21448,7 +22281,31 @@ window.__ModuleLoader__.load({
 				sessions.clear();
 				layout.selectPanel(null);
 			};
+			const openDocument = (id) => {
+				const row = documents.getSnapshot().rows.find((r) => r.id === id);
+				if (!row) return;
+				leaveSearch();
+				leaveRecording();
+				activeDocument = id;
+				start.reset();
+				localConversations.leave();
+				requirementHistory.leave();
+				developerHistory.leave();
+				roleSelection.select(row.roleId);
+				clearSavedDraft();
+				revision++;
+				listeners.forEach((fn) => fn());
+				sessions.clear();
+				layout.selectPanel(null);
+				documents.open(id).catch(documents.fail);
+			};
+			ctx.effect(() => {
+				const open = (e) => openDocument(e.detail);
+				window.addEventListener("workbench-document-open", open);
+				return () => window.removeEventListener("workbench-document-open", open);
+			}, "plain-chat: document navigation");
 			const openSearch = (id) => {
+				activeDocument = null;
 				const state = searches.getSnapshot(), row = state.rows.find((r) => r.id === id), roleId = row?.roleId ?? (state.request?.id === id ? state.request.roleId : state.config?.roleId);
 				if (row) searches.draft({
 					query: row.query,
@@ -21469,6 +22326,10 @@ window.__ModuleLoader__.load({
 				layout.selectPanel(null);
 			};
 			const openLocalConversation = (id) => {
+				if (documents.getSnapshot().rows.some((r) => r.id === id)) {
+					openDocument(id);
+					return;
+				}
 				if (searches.getSnapshot().rows.some((r) => r.id === id)) {
 					openSearch(id);
 					return;
@@ -21539,6 +22400,10 @@ window.__ModuleLoader__.load({
 				layout.selectPanel(null);
 			};
 			const renameLocalConversation = async (id, title) => {
+				if (documents.getSnapshot().rows.some((r) => r.id === id)) {
+					await documents.command(id, "rename", title);
+					return;
+				}
 				if (searches.getSnapshot().rows.some((r) => r.id === id)) {
 					await searches.command(id, "rename", { title });
 					return;
@@ -21585,6 +22450,12 @@ window.__ModuleLoader__.load({
 				localConversations.rename(id, title);
 			};
 			const removeLocalConversation = (id) => {
+				if (documents.getSnapshot().rows.some((r) => r.id === id)) {
+					documents.command(id, "remove").then(() => {
+						if (activeDocument === id) startFreshChat();
+					}).catch(documents.fail);
+					return;
+				}
 				if (searches.getSnapshot().rows.some((r) => r.id === id)) {
 					searches.command(id, "delete").then(() => {
 						if (activeSearch === id) startFreshChat();
@@ -21730,7 +22601,7 @@ window.__ModuleLoader__.load({
 					const recordingSnapshot = (0, react.useSyncExternalStore)(recordings.subscribe, recordings.getSnapshot);
 					const recording = recordingSnapshot.rows.find((r) => r.id === activeRecording);
 					const search = (0, react.useSyncExternalStore)(searches.subscribe, searches.getSnapshot).rows.find((r) => r.id === activeSearch);
-					const effectiveRole = search?.roleId ?? recording?.roleId ?? developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole;
+					const effectiveRole = (0, react.useSyncExternalStore)(documents.subscribe, documents.getSnapshot).rows.find((r) => r.id === activeDocument)?.roleId ?? search?.roleId ?? recording?.roleId ?? developer?.roleId ?? requirement?.roleId ?? local?.role ?? selectedRole;
 					const capabilities = (0, react.useSyncExternalStore)(capabilityClient.subscribe, capabilityClient.getSnapshot);
 					const analysisRole = capabilities.data?.state.roles.find((role) => role.id === effectiveRole);
 					const analysisVersion = requirement ? analysisRole?.versions.find((version) => version.version === requirement.roleVersion) : analysisRole && latest(analysisRole.versions);
@@ -21749,7 +22620,7 @@ window.__ModuleLoader__.load({
 					const originRole = capabilities.data?.state.roles.find((role) => role.id === displayedRole);
 					const originVersion = noSession ? developer ? developerVersion : requirement ? analysisVersion : local?.kind === "demo" ? meetingVersion : originRole && latest(originRole.versions) : originRole?.versions.find((v) => v.preset === actualPreset);
 					const modes = roleCapabilityModes(capabilities.data?.state, originVersion);
-					const workMode = activeSearch ? "file-search" : developer ? "developer" : requirement ? "requirements" : local?.kind === "demo" ? "meeting" : local?.workMode && modes.some((m) => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes);
+					const workMode = activeDocument ? "document" : activeSearch ? "file-search" : developer ? "developer" : requirement ? "requirements" : local?.kind === "demo" ? "meeting" : local?.workMode && modes.some((m) => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes);
 					const showDeveloper = workMode === "developer", showRequirements = workMode === "requirements";
 					const translate = (key, ...args) => key === "hero.chooseWorkspace" && (plain || noSession) ? t("workspace") : props.t(key, ...args);
 					const renderSlot = (key, owner, ...rest) => {
@@ -21843,7 +22714,10 @@ window.__ModuleLoader__.load({
 							String(actualPreset ?? "").startsWith("workbench-role-") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(BrowserObservation, { sessionId: props.sessionId }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 								className: Chat_module_css_default.conversationContent,
-								children: noSession && (activeSearch || !recording && workMode === "file-search") ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileSearchView, {
+								children: noSession && workMode === "document" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(DocumentAssistant, {
+									roleId: effectiveRole,
+									loadModels: loadMeetingModels
+								}) : noSession && (activeSearch || !recording && workMode === "file-search") ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FileSearchView, {
 									id: activeSearch ?? "new",
 									roleId: effectiveRole === "chat" ? void 0 : effectiveRole
 								}, activeSearch ?? effectiveRole) : noSession && recording ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(RecordingView, { id: recording.id }, recording.id) : noSession && developerSnapshot.activeId && !developer ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
@@ -21960,8 +22834,18 @@ window.__ModuleLoader__.load({
 				const developers = (0, react.useSyncExternalStore)(developerHistory.subscribe, developerHistory.getSnapshot);
 				const meetings = (0, react.useSyncExternalStore)(meetingHistory.subscribe, meetingHistory.getSnapshot);
 				const recorded = (0, react.useSyncExternalStore)(recordings.subscribe, recordings.getSnapshot);
+				const searched = (0, react.useSyncExternalStore)(searches.subscribe, searches.getSnapshot);
 				const historyRows = [
-					...(0, react.useSyncExternalStore)(searches.subscribe, searches.getSnapshot).rows.map((row) => ({
+					...(0, react.useSyncExternalStore)(documents.subscribe, documents.getSnapshot).rows.map((row) => ({
+						id: row.id,
+						role: row.roleId,
+						kind: "demo",
+						title: row.title,
+						draft: "",
+						updatedAt: Date.parse(row.updatedAt),
+						documentId: row.id
+					})),
+					...searched.rows.map((row) => ({
 						id: row.id,
 						role: row.roleId,
 						kind: "demo",
@@ -22033,7 +22917,7 @@ window.__ModuleLoader__.load({
 							host,
 							label: ungroupedNewLabel,
 							rows: historyRows,
-							activeId: activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId,
+							activeId: activeDocument ?? activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId,
 							onLoadMore: requirements.hasMore || requirements.error ? () => {
 								requirementHistory.load(!requirements.error);
 							} : void 0,

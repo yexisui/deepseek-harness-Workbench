@@ -12,6 +12,7 @@
 | [archive/jev-module-original.md](<archive/jev-module-original.md>) | JEV 早期模块设计说明，关联 A020 | 历史参考；以 A020 最新记录为准 |
 | [archive/project-analysis-20260917.md](<archive/project-analysis-20260917.md>) | 早期源码分析与二次开发背景 | 历史参考，不代表当前结构 |
 | [claude/C001-客户端后台功能测试与外置能力包未加载.md](<claude/C001-客户端后台功能测试与外置能力包未加载.md>) | T036 原始测试、正式客户端恢复复测、能力发布文件交付缺口与r9修复验证 | Claude 确认正式加载恢复；Codex 修复交付并验证隔离执行；正式实际任务未测 |
+| [claude/C002-Codex-AI智能文档分阶段执行计划.md](<claude/C002-Codex-AI智能文档分阶段执行计划.md>) | Codex 编写的 T041 执行与交付记录：阶段提交、验证、离线包及验收步骤 | 当前结果与边界的维护来源，待用户最终查验 |
 | [claude/README.md](<claude/README.md>) | Claude 生成文档的目录说明、编号规则与索引 | 当前协作管理文件 |
 | [archive/upstream/AGENTS.md.txt](<archive/upstream/AGENTS.md.txt>) | 原项目历史参考：AGENTS.md | 历史背景；不自动应用旧规则 |
 | [archive/upstream/CONTRIBUTING.md](<archive/upstream/CONTRIBUTING.md>) | 原项目历史参考：CONTRIBUTING.md | 历史背景；不自动应用旧规则 |
@@ -290,6 +291,8 @@
 | FILE_INDEX.md | 本索引自身 | 新增、移动、删除共享文件时同步维护 |
 
 | [requirements/auto/A025-对话式固定模板流程图能力.md](requirements/auto/A025-对话式固定模板流程图能力.md) | T035用户确认需求、固定模板能力实现、正式岗位对话与保留结果证据 | 当前实施与验证记录，正式启用完成 |
+| [requirements/auto/A030-AI智能文档可行性与首版方案.md](<requirements/auto/A030-AI智能文档可行性与首版方案.md>) | T041 历史选型与第18节本轮实施导航；最新验证结果见 C002 | 保留 Fylar 与旧离线模型讨论，不能覆盖用户最新决定 |
+| [requirements/auto/A030-AI智能文档可行性与首版方案.html](<requirements/auto/A030-AI智能文档可行性与首版方案.html>) | A030 的离线可读报告，由同名 Markdown 生成 | 展示附件；方案正文由同名 Markdown 维护 |
 
 2026-10-11：AGENTS.MD第13节维护仅使用main规则；A006新增main整合、13个分支清理和验证记录，当前状态见PEFR_PLAN.MD。
 

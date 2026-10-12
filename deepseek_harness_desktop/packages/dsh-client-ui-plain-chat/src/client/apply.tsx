@@ -126,8 +126,8 @@ export function apply(ctx: Context): void {
   })
   // 切换岗位需要重新创建会话；重复选中则保留失败重试的会话身份。
   const selectRole = (id: string) => {
-    leaveSearch();leaveRecording()
     if (id === roleSelection.getSnapshot()) return
+    leaveSearch();leaveRecording()
     start.reset()
     requirementHistory.leave()
     developerHistory.leave(); developerViewKey = `developer-new-${++developerNavigation}`

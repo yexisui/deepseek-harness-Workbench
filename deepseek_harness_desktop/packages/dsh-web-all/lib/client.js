@@ -3360,6 +3360,24 @@ window.__ModuleLoader__.load({
 		const browserPackage = "@wxg-prc-cpg/browser-skill-dsh-plugin";
 		const components = [
 			{
+				id: "document-editor",
+				name: "Word 编辑与理解",
+				provider: "@linxin666/dsh-capabilities",
+				version: "1.0.0",
+				actions: [
+					"edit-document",
+					"ask-document",
+					"revise-document"
+				],
+				dependencies: [],
+				icon: "document",
+				sourceLabel: "本机文档引擎",
+				management: "smart-document",
+				capabilityIds: ["smart-document"],
+				required: true,
+				compositionVersion: 2
+			},
+			{
 				id: "everything-search",
 				name: "本地文件搜索",
 				provider: "@linxin666/dsh-capabilities",
@@ -17609,7 +17627,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/clsx@2.1.1/node_modules/clsx/dist/clsx.mjs
+		//#region ../../../../node_modules/clsx/dist/clsx.mjs
 		function r(e) {
 			var t, f, n = "";
 			if ("string" == typeof e || "number" == typeof e) n += e;
@@ -17624,7 +17642,7 @@ window.__ModuleLoader__.load({
 			return n;
 		}
 		//#endregion
-		//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/qrcode.react@4.2.0_react@18.3.1/node_modules/qrcode.react/lib/esm/index.js
+		//#region ../../../../../dsh-data/profiles/web/node_modules/qrcode.react/lib/esm/index.js
 		var __defProp = Object.defineProperty;
 		var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 		var __hasOwnProp = Object.prototype.hasOwnProperty;
@@ -28691,7 +28709,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/@xterm+xterm@6.0.0/node_modules/@xterm/xterm/lib/xterm.js
+		//#region ../../../../../dsh-data/profiles/web/node_modules/@xterm/xterm/lib/xterm.js
 		var require_xterm = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			(function(e, t) {
 				if ("object" == typeof exports && "object" == typeof module) module.exports = t();
@@ -41689,7 +41707,7 @@ window.__ModuleLoader__.load({
 			})()));
 		}));
 		//#endregion
-		//#region ../../../../../../../Desktop/deepseek harness 工作台/deepseek_harness_desktop/node_modules/.pnpm/@xterm+addon-fit@0.11.0/node_modules/@xterm/addon-fit/lib/addon-fit.js
+		//#region ../../../../../dsh-data/profiles/web/node_modules/@xterm/addon-fit/lib/addon-fit.js
 		var require_addon_fit = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			(function(e, t) {
 				"object" == typeof exports && "object" == typeof module ? module.exports = t() : "function" == typeof define && define.amd ? define([], t) : "object" == typeof exports ? exports.FitAddon = t() : e.FitAddon = t();

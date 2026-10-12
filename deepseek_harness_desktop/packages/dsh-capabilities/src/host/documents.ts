@@ -1,7 +1,7 @@
 import {noDocumentKnowledge,type DocumentKnowledgeAdapter} from '../core/document-knowledge.ts'
 import {DocumentAI,type DocumentModel} from './document-ai.ts'
 import {randomUUID} from 'node:crypto'
-import {mkdir,readFile,writeFile,rename} from 'node:fs/promises'
+import {mkdir,readFile,writeFile,rename,unlink} from 'node:fs/promises'
 import {join} from 'node:path'
 import type {IncomingMessage,ServerResponse} from 'node:http'
 import type {State,Action} from '../core/model.ts'
@@ -30,13 +30,14 @@ export class DocumentsService {
   const now=new Date().toISOString(),row:DocumentRecord={id:randomUUID(),title:filename.replace(/\.docx$/i,''),filename,roleId,roleVersion,createdAt:now,updatedAt:now,revision:0,messages:[]}
   await mkdir(join(this.root,row.id));this.rows.push(row);try{await this.persist()}catch(e){this.rows.pop();throw e}return structuredClone(row)
  })}
- async bytes(id:string){this.get(id);return readFile(join(this.root,id,'current.docx'))}
+ async bytes(id:string){const row=this.get(id);try{return await readFile(join(this.root,id,`revision-${row.revision}.docx`))}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;return readFile(join(this.root,id,'current.docx'))}}
+ async close(){await this.ai.close();await this.tail}
  async upload(id:string,expected:number,req:IncomingMessage){
   const chunks:Buffer[]=[];let size=0
   for await(const chunk of req){size+=chunk.length;if(size>MAX_DOCUMENT_BYTES)throw new InputError('文档超过 40 MB，请先精简图片',413);chunks.push(Buffer.from(chunk))}
   const bytes=Buffer.concat(chunks);if(bytes.length<4||bytes.readUInt32LE(0)!==0x04034b50)throw new InputError('文档不是有效的 DOCX 文件')
   return this.exclusive(async()=>{const row=this.get(id);if(expected!==row.revision)throw new InputError('文档工作副本已更新，请重新打开后再保存',409)
-   const next=row.revision+1,target=join(this.root,id,'current.docx'),temp=target+'.tmp';await writeFile(temp,bytes);await rename(temp,target);row.revision=next;row.updatedAt=new Date().toISOString();await this.persist();return structuredClone(row)
+   const previous=row.revision,updatedAt=row.updatedAt,next=previous+1,target=join(this.root,id,`revision-${next}.docx`),temp=target+'.tmp';await writeFile(temp,bytes);await rename(temp,target);row.revision=next;row.updatedAt=new Date().toISOString();try{await this.persist()}catch(e){row.revision=previous;row.updatedAt=updatedAt;throw e}await unlink(join(this.root,id,`revision-${previous}.docx`)).catch(()=>{});return structuredClone(row)
   })
  }
  async command(id:string,action:string,value:unknown){return this.exclusive(async()=>{const row=this.get(id);if(action==='rename')row.title=text(value,'名称',120,true);else if(action==='remove'){this.ai.stop(id);row.removedAt=new Date().toISOString();}else throw new InputError('未知文档操作');row.updatedAt=new Date().toISOString();await this.persist();return structuredClone(row)})}
