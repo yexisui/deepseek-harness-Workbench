@@ -142,7 +142,7 @@ export function apply(ctx: Context): void {
   // Both the main New button and the ungrouped chat-row + open a fresh draft.
   // A new draft always begins in free chat; published sessions keep their own preset.
   const startFreshChat = (role = 'chat', mode?: CapabilityMode) => {
-    if(mode==='document'||role==='builtin-smart-document')void documents.newDocument().catch(documents.fail)
+    void documents.newDocument().catch(documents.fail)
     leaveSearch();leaveRecording()
     requirementViewKey = `requirements-new-${role}-${++requirementNavigation}`
     requirementHistory.leave()

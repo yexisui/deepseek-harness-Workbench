@@ -27,7 +27,7 @@ export class DocumentsService {
   const roleId=text(body.roleId,'岗位',120,true),role=this.state().roles.find(r=>r.id===roleId),roleVersion=role?.versions.at(-1)?.version
   if(!roleVersion)throw new InputError('岗位不存在');this.authorize(roleId,roleVersion,'edit-document')
   const filename=text(body.filename,'文档名称',240,true);if(!filename.toLowerCase().endsWith('.docx'))throw new InputError('请打开 .docx 文件；旧版 .doc 需先另存为 .docx')
-  const now=new Date().toISOString(),row:DocumentRecord={id:randomUUID(),title:filename.replace(/\.docx$/i,''),filename,roleId,roleVersion,createdAt:now,updatedAt:now,revision:0,messages:[]}
+  const now=new Date().toISOString(),row:DocumentRecord={id:randomUUID(),conversationId:typeof body.conversationId==='string'?text(body.conversationId,'对话',120,true):randomUUID(),title:filename.replace(/\.docx$/i,''),filename,roleId,roleVersion,createdAt:now,updatedAt:now,revision:0,messages:[]}
   await mkdir(join(this.root,row.id));this.rows.push(row);try{await this.persist()}catch(e){this.rows.pop();throw e}return structuredClone(row)
  })}
  async bytes(id:string){const row=this.get(id);try{return await readFile(join(this.root,id,`revision-${row.revision}.docx`))}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;return readFile(join(this.root,id,'current.docx'))}}

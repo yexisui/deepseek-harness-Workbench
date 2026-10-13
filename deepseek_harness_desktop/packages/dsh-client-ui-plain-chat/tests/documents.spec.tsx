@@ -9,6 +9,26 @@ import {initialState} from '../../dsh-capabilities/src/core/model.ts'
 import {roleCapabilityModes} from '../src/client/role-capability-modes.ts'
 
 afterEach(()=>{vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllGlobals();document.body.innerHTML='';delete window.workbenchDocuments})
+it('isolates document history in new conversations and restores the old conversation on reopen',async()=>{
+ const h=harness(),bytes=new TextEncoder().encode('正文').buffer
+ await h.client.importBytes('同一对话甲.docx',bytes,'r1');const first=h.client.getSnapshot().conversationId
+ await h.client.importBytes('同一对话乙.docx',bytes,'r1')
+ expect(h.rows[0].conversationId).toBe(first);expect(h.rows[1].conversationId).toBe(first)
+ await h.client.newDocument();await h.client.activateRole('r1')
+ expect(h.client.getSnapshot().active).toBeUndefined();expect(h.client.getSnapshot().conversationId).not.toBe(first)
+ await h.client.importBytes('新对话.docx',bytes,'r1');expect(h.rows[2].conversationId).not.toBe(first)
+ await h.client.open('doc-0');expect(h.client.getSnapshot().conversationId).toBe(first)
+ window.workbenchDocuments=h.client;(globalThis as any).IS_REACT_ACT_ENVIRONMENT=true
+ const root=createRoot(h.host);await act(async()=>root.render(<DocumentAssistant roleId="r1" loadModels={async()=>[]}/>))
+ await act(async()=>h.host.querySelector<HTMLButtonElement>('[aria-controls="document-history"]')!.click())
+ expect(h.host.querySelector('#document-history')?.textContent).toContain('同一对话乙')
+ expect(h.host.querySelector('#document-history')?.textContent).not.toContain('新对话.docx')
+ await act(async()=>h.host.querySelector<HTMLButtonElement>('[aria-label="移除历史记录：同一对话甲.docx"]')!.click())
+ expect(h.client.getSnapshot().active).toBeUndefined()
+ expect(h.host.querySelector('#document-history')?.textContent).not.toContain('同一对话甲')
+ expect(h.host.querySelector('#document-history')?.textContent).toContain('同一对话乙')
+ await act(async()=>root.unmount())
+})
 it('opens history while a document is active and regenerates the chosen answer without clearing the draft',async()=>{
  const h=harness();window.workbenchDocuments=h.client;(globalThis as any).IS_REACT_ACT_ENVIRONMENT=true
  await h.client.importBytes('历史文档.docx',new TextEncoder().encode('正文').buffer,'r1')
@@ -66,6 +86,7 @@ function harness(){
   else if(path==='create'){const body=JSON.parse(init.body);data={...body,id:'doc-'+rows.length,title:body.filename,revision:0,messages:[],updatedAt:new Date().toISOString()};rows.push(data)}
   else if(path.startsWith('file/')){const row=rows.find(r=>path.includes(r.id));if(init?.method==='PUT'){if(hold){const wait=hold;hold=undefined;await wait}row.revision++;row.bytes=init.body;data=row}else return {ok:true,arrayBuffer:async()=>row.bytes}}
   else if(path==='ask'){data={id:'answer'}}
+  else if(path==='command'){const body=JSON.parse(init.body),row=rows.find(r=>r.id===body.id);row.removedAt=new Date().toISOString();data=row}
   else throw Error('Unexpected API '+path)
   return {ok:true,json:async()=>structuredClone(data)}
  }))

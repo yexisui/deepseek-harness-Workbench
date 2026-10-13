@@ -1793,6 +1793,7 @@ var DocumentsService = class {
 			if (!filename.toLowerCase().endsWith(".docx")) throw new InputError("请打开 .docx 文件；旧版 .doc 需先另存为 .docx");
 			const now = (/* @__PURE__ */ new Date()).toISOString(), row = {
 				id: randomUUID(),
+				conversationId: typeof body.conversationId === "string" ? text$1(body.conversationId, "对话", 120, true) : randomUUID(),
 				title: filename.replace(/\.docx$/i, ""),
 				filename,
 				roleId,

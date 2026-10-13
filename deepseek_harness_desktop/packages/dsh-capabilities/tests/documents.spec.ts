@@ -10,14 +10,14 @@ import {CapabilityStore} from '../src/host/store.ts'
 describe('document sessions',()=>{
  it('persists working copies, rejects stale writers and keeps source-independent history',async()=>{
   const root=await mkdtemp(join(tmpdir(),'dsh-doc-test-')),state=initialState(),now=new Date().toISOString();state.capabilities.push(documentCapability(now));state.roles.push(documentRole(now));const service=new DocumentsService(root,()=>state)
-  try{await service.init();const row=await service.create({roleId:DOCUMENT_ROLE_ID,filename:'验证.docx'}),data=Buffer.from([80,75,3,4,1,2,3])
+  try{await service.init();const row=await service.create({roleId:DOCUMENT_ROLE_ID,filename:'验证.docx',conversationId:'conversation-test'}),data=Buffer.from([80,75,3,4,1,2,3])
    await service.upload(row.id,0,Readable.from([data]) as any);expect(await service.bytes(row.id)).toEqual(data)
    await expect(service.upload(row.id,0,Readable.from([data]) as any)).rejects.toThrow('已更新')
    await expect(service.create({roleId:DOCUMENT_ROLE_ID,filename:'old.doc'})).rejects.toThrow('.docx')
    state.roles.find(r=>r.id===DOCUMENT_ROLE_ID)!.enabled=false;await expect(service.create({roleId:DOCUMENT_ROLE_ID,filename:'new.docx'})).rejects.toThrow('未启用')
    // Revocation cannot prevent the user from retaining an already edited working copy.
    await service.upload(row.id,1,Readable.from([data]) as any)
-   const restored=new DocumentsService(root,()=>state);await restored.init();expect(restored.list()[0]?.revision).toBe(2)
+   const restored=new DocumentsService(root,()=>state);await restored.init();expect(restored.list()[0]?.revision).toBe(2);expect(restored.list()[0]?.conversationId).toBe('conversation-test')
    await restored.command(row.id,'rename','新标题');expect(restored.list()[0]?.title).toBe('新标题');await restored.command(row.id,'remove',null);expect(restored.list()).toEqual([])
   }finally{await rm(root,{recursive:true,force:true})}
  })
