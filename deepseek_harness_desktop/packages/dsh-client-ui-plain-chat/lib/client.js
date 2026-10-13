@@ -457,7 +457,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/DocumentAssistant.module.css.mjs
-		const css$19 = ".HrL-0a_root{--doc-bg:var(--dsw-alias-bg-layer-2,#fff);--doc-text:var(--dsw-alias-label-primary,#202938);--doc-muted:var(--dsw-alias-label-secondary,#758095);--doc-border:var(--dsw-alias-border-l2,#e0e5ec);height:100%;min-height:480px;color:var(--doc-text);background:var(--doc-bg);flex-direction:column;display:flex;overflow:hidden}.HrL-0a_toolbar{border-bottom:1px solid var(--doc-border);flex-wrap:wrap;align-items:center;gap:8px;padding:12px 16px;display:flex}.HrL-0a_identity{flex:1;gap:4px;min-width:160px;display:grid}.HrL-0a_identity small,.HrL-0a_hint,.HrL-0a_empty small{color:var(--doc-muted);font-size:12px}.HrL-0a_root button,.HrL-0a_root select{font:inherit;border:1px solid var(--doc-border);color:inherit;background:var(--doc-bg);cursor:pointer;border-radius:8px;padding:7px 12px;font-size:13px}.HrL-0a_root button:hover{background:var(--dsw-alias-bg-layer-3,#f1f4fa)}.HrL-0a_root button:disabled{opacity:.5;cursor:default}.HrL-0a_layout{flex:1;grid-template-columns:minmax(0,1fr);min-height:0;display:grid}.HrL-0a_layout[data-sidebar=true]{grid-template-columns:minmax(0,1fr) 5px minmax(290px,var(--doc-side-width,360px))}.HrL-0a_editor{background:#edf0f4;min-width:0;min-height:400px;position:relative}.HrL-0a_frame{height:100%;min-height:400px}.HrL-0a_side{border-left:1px solid var(--doc-border);flex-direction:column;gap:12px;min-height:0;padding:16px;display:flex;overflow:auto}.HrL-0a_side h3{margin:0;font-size:15px}.HrL-0a_context{border:1px solid var(--doc-border);white-space:pre-wrap;overflow-wrap:anywhere;border-radius:12px;max-height:220px;padding:12px;font-size:13px;overflow:auto}.HrL-0a_context button{text-align:left;width:100%;margin-top:6px;display:block}.HrL-0a_empty{background:var(--doc-bg);flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:24px;display:flex;position:absolute;inset:0}.HrL-0a_empty p{color:var(--doc-muted)}.HrL-0a_empty button{text-align:left;justify-content:space-between;gap:12px;width:min(460px,100%);display:flex}.HrL-0a_error{color:#b54736;background:var(--dsw-alias-bg-layer-3,#fff5f2);justify-content:space-between;gap:10px;padding:10px 16px;font-size:13px;display:flex}.HrL-0a_hint{margin:0;line-height:1.6}.HrL-0a_root button:focus-visible,.HrL-0a_root select:focus-visible{outline-offset:2px;outline:2px solid #4f73e8}@media (width<=850px){.HrL-0a_layout[data-sidebar=true]{grid-template-columns:1fr}.HrL-0a_side{border-left:0;border-top:1px solid var(--doc-border);max-height:380px}.HrL-0a_editor{min-height:460px}.HrL-0a_root{overflow:auto}.HrL-0a_layout{display:block}.HrL-0a_frame{height:460px}.HrL-0a_toolbar{padding:10px}}@media (prefers-reduced-motion:reduce){.HrL-0a_root *{scroll-behavior:auto!important}}.HrL-0a_messages{flex-direction:column;flex:1;gap:12px;min-height:120px;display:flex;overflow:auto}.HrL-0a_messages article{border:1px solid var(--doc-border);overflow-wrap:anywhere;border-radius:12px;padding:12px;font-size:13px;line-height:1.65}.HrL-0a_messages article[data-role=user]{background:var(--dsw-alias-bg-layer-3,#f4f6fb)}.HrL-0a_messages article small{color:var(--doc-muted);font-size:12px}.HrL-0a_messages article p{white-space:pre-wrap;margin:8px 0}.HrL-0a_messages article button{margin-right:4px;padding:3px 7px;font-size:11px}.HrL-0a_suggestions{flex-direction:column;gap:8px;display:flex}.HrL-0a_composer{gap:8px;display:grid}.HrL-0a_composer textarea{resize:vertical;min-height:72px;max-height:180px;font:inherit;color:inherit;border:1px solid var(--doc-border);background:var(--doc-bg);border-radius:10px;padding:10px;font-size:13px}.HrL-0a_options{flex-wrap:wrap;gap:6px;display:flex}.HrL-0a_options select{flex:1;min-width:0;max-width:100%}.HrL-0a_composer textarea:focus-visible{outline-offset:2px;outline:2px solid #4f73e8}.HrL-0a_proposal{gap:8px;margin-top:10px;display:grid}.HrL-0a_proposal del,.HrL-0a_proposal ins{white-space:pre-wrap;border-radius:6px;padding:8px;text-decoration:none}.HrL-0a_proposal del{background:#b5473614;border-left:3px solid #b54736}.HrL-0a_proposal ins{background:#27845814;border-left:3px solid #278458}.HrL-0a_options button[aria-pressed=true]{color:#4f73e8;border-color:#4f73e8}.HrL-0a_resize{cursor:col-resize;touch-action:none;background:var(--doc-border)}.HrL-0a_resize:hover,.HrL-0a_resize:focus-visible{background:#4f73e8;outline:none}@media (width<=850px){.HrL-0a_resize{display:none}}.HrL-0a_root{min-height:0}.HrL-0a_toolbar{gap:6px;padding:8px 12px}.HrL-0a_identity{gap:2px}.HrL-0a_identity strong{text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:14px;overflow:hidden}.HrL-0a_root button,.HrL-0a_root select{border-radius:6px;padding:5px 9px;font-size:12px}.HrL-0a_editor,.HrL-0a_frame{min-height:0}.HrL-0a_frame[data-empty=true]{visibility:hidden}.HrL-0a_side{grid-template-rows:minmax(140px,34%) minmax(280px,1fr);gap:0;padding:0;display:grid;overflow:hidden}.HrL-0a_preview,.HrL-0a_chat{flex-direction:column;min-width:0;min-height:0;display:flex;overflow:hidden}.HrL-0a_preview{border-bottom:1px solid var(--doc-border)}.HrL-0a_panelHeader{border-bottom:1px solid var(--doc-border);flex:none;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;display:flex}.HrL-0a_panelHeader strong{white-space:nowrap;font-size:13px}.HrL-0a_tabs{gap:4px;display:flex}.HrL-0a_tabs button{border-color:#0000;padding:4px 7px}.HrL-0a_tabs button[aria-selected=true],.HrL-0a_tabs button[aria-pressed=true]{color:var(--dsw-alias-brand-primary,#4f73e8);background:var(--dsw-alias-bg-layer-3,#f1f4fa);border-color:currentColor}.HrL-0a_context{border:0;border-radius:0;flex:1;min-height:0;max-height:none;margin:0;padding:10px 12px;line-height:1.7}.HrL-0a_context p{margin:0 0 10px}.HrL-0a_context .HrL-0a_heading{font-weight:600}.HrL-0a_context button{white-space:normal;background:0 0;border:0;margin:0 0 3px}.HrL-0a_messages{overscroll-behavior:contain;gap:8px;min-height:50px;padding:10px}.HrL-0a_messages article{border-radius:8px;padding:9px}.HrL-0a_suggestions{gap:6px}.HrL-0a_suggestions button{text-align:left;padding:7px 9px}.HrL-0a_composer{border-top:1px solid var(--doc-border);flex:none;gap:6px;padding:8px 10px}.HrL-0a_composer textarea{box-sizing:border-box;resize:vertical;border-radius:6px;width:100%;height:76px;min-height:60px;max-height:110px;padding:8px;line-height:1.5}.HrL-0a_chat>.HrL-0a_hint{padding:0 10px 8px;font-size:11px}.HrL-0a_options{gap:5px}.HrL-0a_options select{padding:5px 4px}.HrL-0a_composer button[type=submit]{color:#fff;background:#4f73e8;border-color:#4f73e8;margin-left:auto}.HrL-0a_empty{text-align:center;gap:10px}.HrL-0a_empty>strong{font-size:20px}.HrL-0a_empty p{max-width:340px;margin:0 0 8px;font-size:13px;line-height:1.7}.HrL-0a_emptyIcon{border:1px solid var(--doc-border);color:#4f73e8;background:var(--dsw-alias-bg-layer-3,#f1f4fa);border-radius:10px;place-items:center;width:52px;height:60px;font-size:26px;font-weight:600;display:grid}.HrL-0a_empty button{align-items:center;padding:9px 12px;font-size:12px}.HrL-0a_empty .HrL-0a_openAction{color:#fff;background:#4f73e8;justify-content:center;width:auto;margin-bottom:12px}.HrL-0a_empty small{font-size:11px}@media (width<=850px){.HrL-0a_root{min-height:650px}.HrL-0a_layout{overflow:auto}.HrL-0a_editor,.HrL-0a_frame{height:460px;min-height:460px}.HrL-0a_side{grid-template-rows:200px minmax(0,1fr);height:620px;max-height:none}.HrL-0a_empty{padding:16px}}";
+		const css$19 = ".HrL-0a_root{--doc-bg:var(--dsw-alias-bg-layer-2,#fff);--doc-text:var(--dsw-alias-label-primary,#202938);--doc-muted:var(--dsw-alias-label-secondary,#758095);--doc-border:var(--dsw-alias-border-l2,#e0e5ec);height:100%;min-height:480px;color:var(--doc-text);background:var(--doc-bg);flex-direction:column;display:flex;overflow:hidden}.HrL-0a_toolbar{border-bottom:1px solid var(--doc-border);flex-wrap:wrap;align-items:center;gap:8px;padding:12px 16px;display:flex}.HrL-0a_identity{flex:1;gap:4px;min-width:160px;display:grid}.HrL-0a_identity small,.HrL-0a_hint,.HrL-0a_empty small{color:var(--doc-muted);font-size:12px}.HrL-0a_root button,.HrL-0a_root select{font:inherit;border:1px solid var(--doc-border);color:inherit;background:var(--doc-bg);cursor:pointer;border-radius:8px;padding:7px 12px;font-size:13px}.HrL-0a_root button:hover{background:var(--dsw-alias-bg-layer-3,#f1f4fa)}.HrL-0a_root button:disabled{opacity:.5;cursor:default}.HrL-0a_layout{flex:1;grid-template-columns:minmax(0,1fr);min-height:0;display:grid}.HrL-0a_layout[data-sidebar=true]{grid-template-columns:minmax(0,1fr) 5px minmax(290px,var(--doc-side-width,360px))}.HrL-0a_editor{background:#edf0f4;min-width:0;min-height:400px;position:relative}.HrL-0a_frame{height:100%;min-height:400px}.HrL-0a_side{border-left:1px solid var(--doc-border);flex-direction:column;gap:12px;min-height:0;padding:16px;display:flex;overflow:auto}.HrL-0a_side h3{margin:0;font-size:15px}.HrL-0a_context{border:1px solid var(--doc-border);white-space:pre-wrap;overflow-wrap:anywhere;border-radius:12px;max-height:220px;padding:12px;font-size:13px;overflow:auto}.HrL-0a_context button{text-align:left;width:100%;margin-top:6px;display:block}.HrL-0a_empty{background:var(--doc-bg);flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:24px;display:flex;position:absolute;inset:0}.HrL-0a_empty p{color:var(--doc-muted)}.HrL-0a_empty button{text-align:left;justify-content:space-between;gap:12px;width:min(460px,100%);display:flex}.HrL-0a_error{color:#b54736;background:var(--dsw-alias-bg-layer-3,#fff5f2);justify-content:space-between;gap:10px;padding:10px 16px;font-size:13px;display:flex}.HrL-0a_hint{margin:0;line-height:1.6}.HrL-0a_root button:focus-visible,.HrL-0a_root select:focus-visible{outline-offset:2px;outline:2px solid #4f73e8}@media (width<=850px){.HrL-0a_layout[data-sidebar=true]{grid-template-columns:1fr}.HrL-0a_side{border-left:0;border-top:1px solid var(--doc-border);max-height:380px}.HrL-0a_editor{min-height:460px}.HrL-0a_root{overflow:auto}.HrL-0a_layout{display:block}.HrL-0a_frame{height:460px}.HrL-0a_toolbar{padding:10px}}@media (prefers-reduced-motion:reduce){.HrL-0a_root *{scroll-behavior:auto!important}}.HrL-0a_messages{flex-direction:column;flex:1;gap:12px;min-height:120px;display:flex;overflow:auto}.HrL-0a_messages article{border:1px solid var(--doc-border);overflow-wrap:anywhere;border-radius:12px;padding:12px;font-size:13px;line-height:1.65}.HrL-0a_messages article[data-role=user]{background:var(--dsw-alias-bg-layer-3,#f4f6fb)}.HrL-0a_messages article small{color:var(--doc-muted);font-size:12px}.HrL-0a_messages article p{white-space:pre-wrap;margin:8px 0}.HrL-0a_messages article button{margin-right:4px;padding:3px 7px;font-size:11px}.HrL-0a_suggestions{flex-direction:column;gap:8px;display:flex}.HrL-0a_composer{gap:8px;display:grid}.HrL-0a_composer textarea{resize:vertical;min-height:72px;max-height:180px;font:inherit;color:inherit;border:1px solid var(--doc-border);background:var(--doc-bg);border-radius:10px;padding:10px;font-size:13px}.HrL-0a_options{flex-wrap:wrap;gap:6px;display:flex}.HrL-0a_options select{flex:1;min-width:0;max-width:100%}.HrL-0a_composer textarea:focus-visible{outline-offset:2px;outline:2px solid #4f73e8}.HrL-0a_proposal{gap:8px;margin-top:10px;display:grid}.HrL-0a_proposal del,.HrL-0a_proposal ins{white-space:pre-wrap;border-radius:6px;padding:8px;text-decoration:none}.HrL-0a_proposal del{background:#b5473614;border-left:3px solid #b54736}.HrL-0a_proposal ins{background:#27845814;border-left:3px solid #278458}.HrL-0a_options button[aria-pressed=true]{color:#4f73e8;border-color:#4f73e8}.HrL-0a_resize{cursor:col-resize;touch-action:none;background:var(--doc-border)}.HrL-0a_resize:hover,.HrL-0a_resize:focus-visible{background:#4f73e8;outline:none}@media (width<=850px){.HrL-0a_resize{display:none}}.HrL-0a_root{min-height:0}.HrL-0a_toolbar{gap:6px;padding:8px 12px}.HrL-0a_identity{gap:2px}.HrL-0a_identity strong{text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:14px;overflow:hidden}.HrL-0a_root button,.HrL-0a_root select{border-radius:6px;padding:5px 9px;font-size:12px}.HrL-0a_editor,.HrL-0a_frame{min-height:0}.HrL-0a_frame[data-empty=true]{visibility:hidden}.HrL-0a_side{grid-template-rows:minmax(140px,34%) minmax(280px,1fr);gap:0;padding:0;display:grid;overflow:hidden}.HrL-0a_preview,.HrL-0a_chat{flex-direction:column;min-width:0;min-height:0;display:flex;overflow:hidden}.HrL-0a_preview{border-bottom:1px solid var(--doc-border)}.HrL-0a_panelHeader{border-bottom:1px solid var(--doc-border);flex:none;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;display:flex}.HrL-0a_panelHeader strong{white-space:nowrap;font-size:13px}.HrL-0a_tabs{gap:4px;display:flex}.HrL-0a_tabs button{border-color:#0000;padding:4px 7px}.HrL-0a_tabs button[aria-selected=true],.HrL-0a_tabs button[aria-pressed=true]{color:var(--dsw-alias-brand-primary,#4f73e8);background:var(--dsw-alias-bg-layer-3,#f1f4fa);border-color:currentColor}.HrL-0a_context{border:0;border-radius:0;flex:1;min-height:0;max-height:none;margin:0;padding:10px 12px;line-height:1.7}.HrL-0a_context p{margin:0 0 10px}.HrL-0a_context .HrL-0a_heading{font-weight:600}.HrL-0a_context button{white-space:normal;background:0 0;border:0;margin:0 0 3px}.HrL-0a_messages{overscroll-behavior:contain;gap:8px;min-height:50px;padding:10px}.HrL-0a_messages article{border-radius:8px;padding:9px}.HrL-0a_suggestions{gap:6px}.HrL-0a_suggestions button{text-align:left;padding:7px 9px}.HrL-0a_composer{border-top:1px solid var(--doc-border);flex:none;gap:6px;padding:8px 10px}.HrL-0a_composer textarea{box-sizing:border-box;resize:vertical;border-radius:6px;width:100%;height:76px;min-height:60px;max-height:110px;padding:8px;line-height:1.5}.HrL-0a_chat>.HrL-0a_hint{padding:0 10px 8px;font-size:11px}.HrL-0a_options{gap:5px}.HrL-0a_options select{padding:5px 4px}.HrL-0a_composer button[type=submit]{color:#fff;background:#4f73e8;border-color:#4f73e8;margin-left:auto}.HrL-0a_empty{text-align:center;gap:10px}.HrL-0a_empty>strong{font-size:20px}.HrL-0a_empty p{max-width:340px;margin:0 0 8px;font-size:13px;line-height:1.7}.HrL-0a_emptyIcon{border:1px solid var(--doc-border);color:#4f73e8;background:var(--dsw-alias-bg-layer-3,#f1f4fa);border-radius:10px;place-items:center;width:52px;height:60px;font-size:26px;font-weight:600;display:grid}.HrL-0a_empty button{align-items:center;padding:9px 12px;font-size:12px}.HrL-0a_empty .HrL-0a_openAction{color:#fff;background:#4f73e8;justify-content:center;width:auto;margin-bottom:12px}.HrL-0a_empty small{font-size:11px}@media (width<=850px){.HrL-0a_root{min-height:650px}.HrL-0a_layout{overflow:auto}.HrL-0a_editor,.HrL-0a_frame{height:460px;min-height:460px}.HrL-0a_side{grid-template-rows:200px minmax(0,1fr);height:620px;max-height:none}.HrL-0a_empty{padding:16px}}.HrL-0a_history{border-bottom:1px solid var(--doc-border);background:var(--doc-bg);flex-direction:column;flex:none;min-height:0;max-height:260px;display:flex}.HrL-0a_history input{border:1px solid var(--doc-border);background:var(--doc-bg);min-width:0;max-width:360px;color:inherit;font:inherit;border-radius:6px;flex:1;padding:6px 9px;font-size:12px}.HrL-0a_historyList{grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:6px;padding:8px 12px;display:grid;overflow:auto}.HrL-0a_historyList button{text-align:left;gap:4px;min-width:0;display:grid}.HrL-0a_historyList strong,.HrL-0a_historyList span{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.HrL-0a_historyList small,.HrL-0a_historyList span{color:var(--doc-muted);font-size:11px}.HrL-0a_historyList button[aria-current=true]{border-color:#4f73e8}.HrL-0a_messageFooter{justify-content:space-between;align-items:center;gap:8px;display:flex}.HrL-0a_messages .HrL-0a_messageFooter button{background:0 0;border-color:#0000;place-items:center;width:26px;height:26px;margin:0;padding:4px;display:grid}.HrL-0a_messages .HrL-0a_messageFooter button:hover{border-color:var(--doc-border)}";
 		const tagId$19 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/DocumentAssistant.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$19) + "]") === null) {
 			const tag = document.createElement("style");
@@ -477,8 +477,11 @@ window.__ModuleLoader__.load({
 			"frame": "HrL-0a_frame",
 			"heading": "HrL-0a_heading",
 			"hint": "HrL-0a_hint",
+			"history": "HrL-0a_history",
+			"historyList": "HrL-0a_historyList",
 			"identity": "HrL-0a_identity",
 			"layout": "HrL-0a_layout",
+			"messageFooter": "HrL-0a_messageFooter",
 			"messages": "HrL-0a_messages",
 			"openAction": "HrL-0a_openAction",
 			"options": "HrL-0a_options",
@@ -496,7 +499,7 @@ window.__ModuleLoader__.load({
 		//#region src/client/DocumentAssistant.tsx
 		function DocumentAssistant({ roleId, loadModels }) {
 			const client = documentsClient(), state = (0, react.useSyncExternalStore)(client.subscribe, client.getSnapshot), mount = (0, react.useRef)(null), input = (0, react.useRef)(null), [side, setSide] = (0, react.useState)(true), [sideWidth, setSideWidth] = (0, react.useState)(380), [contentTab, setContentTab] = (0, react.useState)("text");
-			const [models, setModels] = (0, react.useState)([]), [sending, setSending] = (0, react.useState)(false);
+			const [models, setModels] = (0, react.useState)([]), [sending, setSending] = (0, react.useState)(false), [history, setHistory] = (0, react.useState)(false), [historyQuery, setHistoryQuery] = (0, react.useState)("");
 			const draftKey = state.active?.roleId === roleId ? state.active.id : "role:" + roleId, { model, question, scope, chapter, mode, useKnowledge } = client.draft(draftKey);
 			const setModel = (model) => client.updateDraft(draftKey, { model }), setQuestion = (question) => client.updateDraft(draftKey, { question }), setScope = (scope) => client.updateDraft(draftKey, { scope }), setChapter = (chapter) => client.updateDraft(draftKey, { chapter }), setMode = (mode) => client.updateDraft(draftKey, { mode }), setUseKnowledge = (useKnowledge) => client.updateDraft(draftKey, { useKnowledge });
 			const [knowledge, setKnowledge] = (0, react.useState)({
@@ -515,7 +518,7 @@ window.__ModuleLoader__.load({
 			(0, react.useEffect)(() => {
 				loadModels().then(setModels).catch(client.fail);
 			}, []);
-			async function ask(value = question) {
+			async function ask(value = question, preserveDraft = false) {
 				if (!value.trim() || generating || sending) return;
 				setSending(true);
 				try {
@@ -527,7 +530,7 @@ window.__ModuleLoader__.load({
 						scope: scope === "auto" ? state.context?.selection ? "selection" : "document" : scope,
 						chapter
 					});
-					setQuestion("");
+					if (!preserveDraft) setQuestion("");
 				} finally {
 					setSending(false);
 				}
@@ -593,11 +596,68 @@ window.__ModuleLoader__.load({
 								children: "另存为"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								"aria-expanded": history,
+								"aria-controls": "document-history",
+								onClick: () => {
+									setHistory(!history);
+									if (!history) client.refresh();
+								},
+								children: "历史记录"
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								"aria-expanded": side,
 								onClick: () => setSide(!side),
 								children: side ? "收起助手" : "展开助手"
 							})
 						]
+					}),
+					history && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+						id: "document-history",
+						className: DocumentAssistant_module_css_default.history,
+						"aria-label": "文档历史记录",
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("header", {
+							className: DocumentAssistant_module_css_default.panelHeader,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "历史记录" }),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+									autoFocus: true,
+									type: "search",
+									"aria-label": "搜索文档历史",
+									placeholder: "搜索文档或问答…",
+									value: historyQuery,
+									onChange: (e) => setHistoryQuery(e.target.value)
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+									"aria-label": "关闭历史记录",
+									onClick: () => setHistory(false),
+									children: "×"
+								})
+							]
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: DocumentAssistant_module_css_default.historyList,
+							children: [state.rows.filter((row) => row.roleId === roleId && !row.removedAt && (row.title + " " + row.messages.map((m) => m.text).join(" ")).toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase())).map((row) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+								disabled: state.busy || sending,
+								"aria-current": row.id === state.active?.id ? "true" : void 0,
+								onClick: () => run(async () => {
+									await client.open(row.id);
+									setHistory(false);
+								}),
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: row.title }),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+										new Date(row.updatedAt).toLocaleString(),
+										" · ",
+										row.messages.filter((m) => m.role === "user").length,
+										" 个问题",
+										row.id === state.active?.id ? " · 当前文档" : ""
+									] }),
+									row.messages.length > 0 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: row.messages.at(-1)?.text })
+								]
+							}, row.id)), !state.rows.some((row) => row.roleId === roleId && !row.removedAt && (row.title + " " + row.messages.map((m) => m.text).join(" ")).toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase())) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+								className: DocumentAssistant_module_css_default.hint,
+								children: historyQuery ? "没有匹配的历史记录" : "打开过的文档及其问答会保存在这里。"
+							})]
+						})]
 					}),
 					state.error && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: DocumentAssistant_module_css_default.error,
@@ -764,7 +824,7 @@ window.__ModuleLoader__.load({
 									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 										className: DocumentAssistant_module_css_default.messages,
 										"aria-live": "polite",
-										children: [state.active?.messages.map((message) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
+										children: [state.active?.messages.map((message, messageIndex) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
 											"data-role": message.role,
 											children: [
 												/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
@@ -815,7 +875,26 @@ window.__ModuleLoader__.load({
 														})
 													]
 												}),
-												message.status !== "running" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MessageTime, { value: message.createdAt })
+												message.status !== "running" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("footer", {
+													className: DocumentAssistant_module_css_default.messageFooter,
+													children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)(MessageTime, { value: message.createdAt }), (message.role === "user" || state.active.messages.slice(0, messageIndex).some((m) => m.role === "user")) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														"aria-label": "重新生成",
+														title: "使用当前文档、范围和模型重新生成此问题的回答；保留已有记录",
+														disabled: generating || sending || state.busy,
+														onClick: () => run(() => ask(message.role === "user" ? message.text : state.active.messages.slice(0, messageIndex).filter((m) => m.role === "user").at(-1).text, true)),
+														children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+															width: "14",
+															height: "14",
+															viewBox: "0 0 24 24",
+															fill: "none",
+															stroke: "currentColor",
+															strokeWidth: "1.8",
+															"aria-hidden": "true",
+															children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M20 7v5h-5M4 17v-5h5" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17" })]
+														})
+													})]
+												})
 											]
 										}, message.id)), !state.active?.messages.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 											className: DocumentAssistant_module_css_default.suggestions,
@@ -903,29 +982,20 @@ window.__ModuleLoader__.load({
 											}),
 											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 												className: DocumentAssistant_module_css_default.options,
-												children: [
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-														type: "button",
-														disabled: !state.active,
-														onClick: () => run(() => client.undoAI()),
-														children: "撤销 AI 修改"
-													}),
-													generating ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-														type: "button",
-														onClick: () => run(() => client.stop()),
-														children: "停止生成"
-													}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-														type: "submit",
-														disabled: !state.active || sending || !question.trim(),
-														children: sending ? "提交中…" : mode === "revise" ? "生成修改建议" : "发送"
-													}),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-														type: "button",
-														disabled: !state.active?.messages.some((m) => m.role === "user") || generating || sending,
-														onClick: () => run(() => ask(state.active.messages.filter((m) => m.role === "user").at(-1).text)),
-														children: "重试上一问"
-													})
-												]
+												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													type: "button",
+													disabled: !state.active,
+													onClick: () => run(() => client.undoAI()),
+													children: "撤销 AI 修改"
+												}), generating ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													type: "button",
+													onClick: () => run(() => client.stop()),
+													children: "停止生成"
+												}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+													type: "submit",
+													disabled: !state.active || sending || !question.trim(),
+													children: sending ? "提交中…" : mode === "revise" ? "生成修改建议" : "发送"
+												})]
 											})
 										]
 									}),

@@ -9,6 +9,28 @@ import {initialState} from '../../dsh-capabilities/src/core/model.ts'
 import {roleCapabilityModes} from '../src/client/role-capability-modes.ts'
 
 afterEach(()=>{vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllGlobals();document.body.innerHTML='';delete window.workbenchDocuments})
+it('opens history while a document is active and regenerates the chosen answer without clearing the draft',async()=>{
+ const h=harness();window.workbenchDocuments=h.client;(globalThis as any).IS_REACT_ACT_ENVIRONMENT=true
+ await h.client.importBytes('历史文档.docx',new TextEncoder().encode('正文').buffer,'r1')
+ h.rows[0].messages=[{id:'u1',role:'user',text:'第一个问题',createdAt:'2026-10-13T00:00:00Z'},{id:'a1',role:'assistant',text:'第一个回答',createdAt:'2026-10-13T00:00:01Z',status:'done'},{id:'u2',role:'user',text:'另一个问题',createdAt:'2026-10-13T00:00:02Z'}]
+ await h.client.refresh();h.client.updateDraft('doc-0',{question:'未发送的草稿'})
+ const ask=vi.spyOn(h.client,'ask').mockResolvedValue(undefined),root=createRoot(h.host)
+ await act(async()=>root.render(<DocumentAssistant roleId="r1" loadModels={async()=>[]}/>))
+ expect(h.host.textContent).not.toContain('重试上一问')
+ const regenerate=h.host.querySelectorAll<HTMLButtonElement>('[aria-label="重新生成"]')
+ expect(regenerate).toHaveLength(3)
+ await act(async()=>regenerate[1]!.click())
+ expect(ask).toHaveBeenCalledWith(expect.objectContaining({question:'第一个问题'}))
+ expect(h.host.querySelector('textarea')?.value).toBe('未发送的草稿')
+ await act(async()=>h.host.querySelector<HTMLButtonElement>('[aria-controls="document-history"]')!.click())
+ expect(h.host.querySelector('#document-history')?.textContent).toContain('2 个问题')
+ expect(h.host.querySelector('#document-history')?.textContent).toContain('历史文档.docx')
+ const open=vi.spyOn(h.client,'open')
+ await act(async()=>h.host.querySelector<HTMLButtonElement>('#document-history [aria-current=true]')!.click())
+ expect(open).toHaveBeenCalledWith('doc-0');expect(h.host.querySelector('#document-history')).toBeNull()
+ expect(h.host.textContent).toContain('第一个回答')
+ await act(async()=>root.unmount())
+})
 it('shows imported text in the upper reading pane and switches selection and outline independently of the composer',async()=>{
  const h=harness();window.workbenchDocuments=h.client;(globalThis as any).IS_REACT_ACT_ENVIRONMENT=true
  await h.client.importBytes('布局.docx',new TextEncoder().encode('实际导入的正文').buffer,'r1')
@@ -16,7 +38,7 @@ it('shows imported text in the upper reading pane and switches selection and out
  await act(async()=>root.render(<DocumentAssistant roleId="r1" loadModels={async()=>[]}/>))
  const pane=()=>h.host.querySelector('[role=tabpanel]')!
  expect(pane().textContent).toContain('实际导入的正文')
- const tab=(name:string)=>[...h.host.querySelectorAll<HTMLButtonElement>('[role=tab]')].find(b=>b.textContent===name)!
+ const tab=(name:string)=>Array.from(h.host.querySelectorAll<HTMLButtonElement>('[role=tab]')).find(b=>b.textContent===name)!
  await act(async()=>tab('选区').click());expect(pane().textContent).toContain('在左侧文档中选择文字')
  await act(async()=>tab('大纲').click());expect(pane().textContent).toContain('暂无可识别的标题大纲')
  await act(async()=>tab('原文').click());expect(pane().textContent).toContain('实际导入的正文')
