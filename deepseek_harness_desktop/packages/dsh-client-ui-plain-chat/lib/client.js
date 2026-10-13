@@ -457,7 +457,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/DocumentAssistant.module.css.mjs
-		const css$19 = ".HrL-0a_root{--doc-bg:var(--dsw-alias-bg-layer-2,#fff);--doc-text:var(--dsw-alias-label-primary,#202938);--doc-muted:var(--dsw-alias-label-secondary,#758095);--doc-border:var(--dsw-alias-border-l2,#e0e5ec);height:100%;min-height:480px;color:var(--doc-text);background:var(--doc-bg);flex-direction:column;display:flex;overflow:hidden}.HrL-0a_toolbar{border-bottom:1px solid var(--doc-border);flex-wrap:wrap;align-items:center;gap:8px;padding:12px 16px;display:flex}.HrL-0a_identity{flex:1;gap:4px;min-width:160px;display:grid}.HrL-0a_identity small,.HrL-0a_hint,.HrL-0a_empty small{color:var(--doc-muted);font-size:12px}.HrL-0a_root button,.HrL-0a_root select{font:inherit;border:1px solid var(--doc-border);color:inherit;background:var(--doc-bg);cursor:pointer;border-radius:8px;padding:7px 12px;font-size:13px}.HrL-0a_root button:hover{background:var(--dsw-alias-bg-layer-3,#f1f4fa)}.HrL-0a_root button:disabled{opacity:.5;cursor:default}.HrL-0a_layout{flex:1;grid-template-columns:minmax(0,1fr);min-height:0;display:grid}.HrL-0a_layout[data-sidebar=true]{grid-template-columns:minmax(0,1fr) 5px minmax(290px,var(--doc-side-width,360px))}.HrL-0a_editor{background:#edf0f4;min-width:0;min-height:400px;position:relative}.HrL-0a_frame{height:100%;min-height:400px}.HrL-0a_side{border-left:1px solid var(--doc-border);flex-direction:column;gap:12px;min-height:0;padding:16px;display:flex;overflow:auto}.HrL-0a_side h3{margin:0;font-size:15px}.HrL-0a_context{border:1px solid var(--doc-border);white-space:pre-wrap;overflow-wrap:anywhere;border-radius:12px;max-height:220px;padding:12px;font-size:13px;overflow:auto}.HrL-0a_context button{text-align:left;width:100%;margin-top:6px;display:block}.HrL-0a_empty{background:var(--doc-bg);flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:24px;display:flex;position:absolute;inset:0}.HrL-0a_empty p{color:var(--doc-muted)}.HrL-0a_empty button{text-align:left;justify-content:space-between;gap:12px;width:min(460px,100%);display:flex}.HrL-0a_error{color:#b54736;background:var(--dsw-alias-bg-layer-3,#fff5f2);justify-content:space-between;gap:10px;padding:10px 16px;font-size:13px;display:flex}.HrL-0a_hint{margin:0;line-height:1.6}.HrL-0a_root button:focus-visible,.HrL-0a_root select:focus-visible{outline-offset:2px;outline:2px solid #4f73e8}@media (width<=850px){.HrL-0a_layout[data-sidebar=true]{grid-template-columns:1fr}.HrL-0a_side{border-left:0;border-top:1px solid var(--doc-border);max-height:380px}.HrL-0a_editor{min-height:460px}.HrL-0a_root{overflow:auto}.HrL-0a_layout{display:block}.HrL-0a_frame{height:460px}.HrL-0a_toolbar{padding:10px}}@media (prefers-reduced-motion:reduce){.HrL-0a_root *{scroll-behavior:auto!important}}.HrL-0a_messages{flex-direction:column;flex:1;gap:12px;min-height:120px;display:flex;overflow:auto}.HrL-0a_messages article{border:1px solid var(--doc-border);overflow-wrap:anywhere;border-radius:12px;padding:12px;font-size:13px;line-height:1.65}.HrL-0a_messages article[data-role=user]{background:var(--dsw-alias-bg-layer-3,#f4f6fb)}.HrL-0a_messages article small{color:var(--doc-muted);font-size:12px}.HrL-0a_messages article p{white-space:pre-wrap;margin:8px 0}.HrL-0a_messages article button{margin-right:4px;padding:3px 7px;font-size:11px}.HrL-0a_suggestions{flex-direction:column;gap:8px;display:flex}.HrL-0a_composer{gap:8px;display:grid}.HrL-0a_composer textarea{resize:vertical;min-height:72px;max-height:180px;font:inherit;color:inherit;border:1px solid var(--doc-border);background:var(--doc-bg);border-radius:10px;padding:10px;font-size:13px}.HrL-0a_options{flex-wrap:wrap;gap:6px;display:flex}.HrL-0a_options select{flex:1;min-width:0;max-width:100%}.HrL-0a_composer textarea:focus-visible{outline-offset:2px;outline:2px solid #4f73e8}.HrL-0a_proposal{gap:8px;margin-top:10px;display:grid}.HrL-0a_proposal del,.HrL-0a_proposal ins{white-space:pre-wrap;border-radius:6px;padding:8px;text-decoration:none}.HrL-0a_proposal del{background:#b5473614;border-left:3px solid #b54736}.HrL-0a_proposal ins{background:#27845814;border-left:3px solid #278458}.HrL-0a_options button[aria-pressed=true]{color:#4f73e8;border-color:#4f73e8}.HrL-0a_resize{cursor:col-resize;touch-action:none;background:var(--doc-border)}.HrL-0a_resize:hover,.HrL-0a_resize:focus-visible{background:#4f73e8;outline:none}@media (width<=850px){.HrL-0a_resize{display:none}}";
+		const css$19 = ".HrL-0a_root{--doc-bg:var(--dsw-alias-bg-layer-2,#fff);--doc-text:var(--dsw-alias-label-primary,#202938);--doc-muted:var(--dsw-alias-label-secondary,#758095);--doc-border:var(--dsw-alias-border-l2,#e0e5ec);height:100%;min-height:480px;color:var(--doc-text);background:var(--doc-bg);flex-direction:column;display:flex;overflow:hidden}.HrL-0a_toolbar{border-bottom:1px solid var(--doc-border);flex-wrap:wrap;align-items:center;gap:8px;padding:12px 16px;display:flex}.HrL-0a_identity{flex:1;gap:4px;min-width:160px;display:grid}.HrL-0a_identity small,.HrL-0a_hint,.HrL-0a_empty small{color:var(--doc-muted);font-size:12px}.HrL-0a_root button,.HrL-0a_root select{font:inherit;border:1px solid var(--doc-border);color:inherit;background:var(--doc-bg);cursor:pointer;border-radius:8px;padding:7px 12px;font-size:13px}.HrL-0a_root button:hover{background:var(--dsw-alias-bg-layer-3,#f1f4fa)}.HrL-0a_root button:disabled{opacity:.5;cursor:default}.HrL-0a_layout{flex:1;grid-template-columns:minmax(0,1fr);min-height:0;display:grid}.HrL-0a_layout[data-sidebar=true]{grid-template-columns:minmax(0,1fr) 5px minmax(290px,var(--doc-side-width,360px))}.HrL-0a_editor{background:#edf0f4;min-width:0;min-height:400px;position:relative}.HrL-0a_frame{height:100%;min-height:400px}.HrL-0a_side{border-left:1px solid var(--doc-border);flex-direction:column;gap:12px;min-height:0;padding:16px;display:flex;overflow:auto}.HrL-0a_side h3{margin:0;font-size:15px}.HrL-0a_context{border:1px solid var(--doc-border);white-space:pre-wrap;overflow-wrap:anywhere;border-radius:12px;max-height:220px;padding:12px;font-size:13px;overflow:auto}.HrL-0a_context button{text-align:left;width:100%;margin-top:6px;display:block}.HrL-0a_empty{background:var(--doc-bg);flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:24px;display:flex;position:absolute;inset:0}.HrL-0a_empty p{color:var(--doc-muted)}.HrL-0a_empty button{text-align:left;justify-content:space-between;gap:12px;width:min(460px,100%);display:flex}.HrL-0a_error{color:#b54736;background:var(--dsw-alias-bg-layer-3,#fff5f2);justify-content:space-between;gap:10px;padding:10px 16px;font-size:13px;display:flex}.HrL-0a_hint{margin:0;line-height:1.6}.HrL-0a_root button:focus-visible,.HrL-0a_root select:focus-visible{outline-offset:2px;outline:2px solid #4f73e8}@media (width<=850px){.HrL-0a_layout[data-sidebar=true]{grid-template-columns:1fr}.HrL-0a_side{border-left:0;border-top:1px solid var(--doc-border);max-height:380px}.HrL-0a_editor{min-height:460px}.HrL-0a_root{overflow:auto}.HrL-0a_layout{display:block}.HrL-0a_frame{height:460px}.HrL-0a_toolbar{padding:10px}}@media (prefers-reduced-motion:reduce){.HrL-0a_root *{scroll-behavior:auto!important}}.HrL-0a_messages{flex-direction:column;flex:1;gap:12px;min-height:120px;display:flex;overflow:auto}.HrL-0a_messages article{border:1px solid var(--doc-border);overflow-wrap:anywhere;border-radius:12px;padding:12px;font-size:13px;line-height:1.65}.HrL-0a_messages article[data-role=user]{background:var(--dsw-alias-bg-layer-3,#f4f6fb)}.HrL-0a_messages article small{color:var(--doc-muted);font-size:12px}.HrL-0a_messages article p{white-space:pre-wrap;margin:8px 0}.HrL-0a_messages article button{margin-right:4px;padding:3px 7px;font-size:11px}.HrL-0a_suggestions{flex-direction:column;gap:8px;display:flex}.HrL-0a_composer{gap:8px;display:grid}.HrL-0a_composer textarea{resize:vertical;min-height:72px;max-height:180px;font:inherit;color:inherit;border:1px solid var(--doc-border);background:var(--doc-bg);border-radius:10px;padding:10px;font-size:13px}.HrL-0a_options{flex-wrap:wrap;gap:6px;display:flex}.HrL-0a_options select{flex:1;min-width:0;max-width:100%}.HrL-0a_composer textarea:focus-visible{outline-offset:2px;outline:2px solid #4f73e8}.HrL-0a_proposal{gap:8px;margin-top:10px;display:grid}.HrL-0a_proposal del,.HrL-0a_proposal ins{white-space:pre-wrap;border-radius:6px;padding:8px;text-decoration:none}.HrL-0a_proposal del{background:#b5473614;border-left:3px solid #b54736}.HrL-0a_proposal ins{background:#27845814;border-left:3px solid #278458}.HrL-0a_options button[aria-pressed=true]{color:#4f73e8;border-color:#4f73e8}.HrL-0a_resize{cursor:col-resize;touch-action:none;background:var(--doc-border)}.HrL-0a_resize:hover,.HrL-0a_resize:focus-visible{background:#4f73e8;outline:none}@media (width<=850px){.HrL-0a_resize{display:none}}.HrL-0a_root{min-height:0}.HrL-0a_toolbar{gap:6px;padding:8px 12px}.HrL-0a_identity{gap:2px}.HrL-0a_identity strong{text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:14px;overflow:hidden}.HrL-0a_root button,.HrL-0a_root select{border-radius:6px;padding:5px 9px;font-size:12px}.HrL-0a_editor,.HrL-0a_frame{min-height:0}.HrL-0a_frame[data-empty=true]{visibility:hidden}.HrL-0a_side{grid-template-rows:minmax(140px,34%) minmax(280px,1fr);gap:0;padding:0;display:grid;overflow:hidden}.HrL-0a_preview,.HrL-0a_chat{flex-direction:column;min-width:0;min-height:0;display:flex;overflow:hidden}.HrL-0a_preview{border-bottom:1px solid var(--doc-border)}.HrL-0a_panelHeader{border-bottom:1px solid var(--doc-border);flex:none;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;display:flex}.HrL-0a_panelHeader strong{white-space:nowrap;font-size:13px}.HrL-0a_tabs{gap:4px;display:flex}.HrL-0a_tabs button{border-color:#0000;padding:4px 7px}.HrL-0a_tabs button[aria-selected=true],.HrL-0a_tabs button[aria-pressed=true]{color:var(--dsw-alias-brand-primary,#4f73e8);background:var(--dsw-alias-bg-layer-3,#f1f4fa);border-color:currentColor}.HrL-0a_context{border:0;border-radius:0;flex:1;min-height:0;max-height:none;margin:0;padding:10px 12px;line-height:1.7}.HrL-0a_context p{margin:0 0 10px}.HrL-0a_context .HrL-0a_heading{font-weight:600}.HrL-0a_context button{white-space:normal;background:0 0;border:0;margin:0 0 3px}.HrL-0a_messages{overscroll-behavior:contain;gap:8px;min-height:50px;padding:10px}.HrL-0a_messages article{border-radius:8px;padding:9px}.HrL-0a_suggestions{gap:6px}.HrL-0a_suggestions button{text-align:left;padding:7px 9px}.HrL-0a_composer{border-top:1px solid var(--doc-border);flex:none;gap:6px;padding:8px 10px}.HrL-0a_composer textarea{box-sizing:border-box;resize:vertical;border-radius:6px;width:100%;height:76px;min-height:60px;max-height:110px;padding:8px;line-height:1.5}.HrL-0a_chat>.HrL-0a_hint{padding:0 10px 8px;font-size:11px}.HrL-0a_options{gap:5px}.HrL-0a_options select{padding:5px 4px}.HrL-0a_composer button[type=submit]{color:#fff;background:#4f73e8;border-color:#4f73e8;margin-left:auto}.HrL-0a_empty{text-align:center;gap:10px}.HrL-0a_empty>strong{font-size:20px}.HrL-0a_empty p{max-width:340px;margin:0 0 8px;font-size:13px;line-height:1.7}.HrL-0a_emptyIcon{border:1px solid var(--doc-border);color:#4f73e8;background:var(--dsw-alias-bg-layer-3,#f1f4fa);border-radius:10px;place-items:center;width:52px;height:60px;font-size:26px;font-weight:600;display:grid}.HrL-0a_empty button{align-items:center;padding:9px 12px;font-size:12px}.HrL-0a_empty .HrL-0a_openAction{color:#fff;background:#4f73e8;justify-content:center;width:auto;margin-bottom:12px}.HrL-0a_empty small{font-size:11px}@media (width<=850px){.HrL-0a_root{min-height:650px}.HrL-0a_layout{overflow:auto}.HrL-0a_editor,.HrL-0a_frame{height:460px;min-height:460px}.HrL-0a_side{grid-template-rows:200px minmax(0,1fr);height:620px;max-height:none}.HrL-0a_empty{padding:16px}}";
 		const tagId$19 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/DocumentAssistant.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$19) + "]") === null) {
 			const tag = document.createElement("style");
@@ -467,28 +467,35 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var DocumentAssistant_module_css_default = {
+			"chat": "HrL-0a_chat",
 			"composer": "HrL-0a_composer",
 			"context": "HrL-0a_context",
 			"editor": "HrL-0a_editor",
 			"empty": "HrL-0a_empty",
+			"emptyIcon": "HrL-0a_emptyIcon",
 			"error": "HrL-0a_error",
 			"frame": "HrL-0a_frame",
+			"heading": "HrL-0a_heading",
 			"hint": "HrL-0a_hint",
 			"identity": "HrL-0a_identity",
 			"layout": "HrL-0a_layout",
 			"messages": "HrL-0a_messages",
+			"openAction": "HrL-0a_openAction",
 			"options": "HrL-0a_options",
+			"panelHeader": "HrL-0a_panelHeader",
+			"preview": "HrL-0a_preview",
 			"proposal": "HrL-0a_proposal",
 			"resize": "HrL-0a_resize",
 			"root": "HrL-0a_root",
 			"side": "HrL-0a_side",
 			"suggestions": "HrL-0a_suggestions",
+			"tabs": "HrL-0a_tabs",
 			"toolbar": "HrL-0a_toolbar"
 		};
 		//#endregion
 		//#region src/client/DocumentAssistant.tsx
 		function DocumentAssistant({ roleId, loadModels }) {
-			const client = documentsClient(), state = (0, react.useSyncExternalStore)(client.subscribe, client.getSnapshot), mount = (0, react.useRef)(null), input = (0, react.useRef)(null), [side, setSide] = (0, react.useState)(true), [sideWidth, setSideWidth] = (0, react.useState)(360);
+			const client = documentsClient(), state = (0, react.useSyncExternalStore)(client.subscribe, client.getSnapshot), mount = (0, react.useRef)(null), input = (0, react.useRef)(null), [side, setSide] = (0, react.useState)(true), [sideWidth, setSideWidth] = (0, react.useState)(380), [contentTab, setContentTab] = (0, react.useState)("text");
 			const [models, setModels] = (0, react.useState)([]), [sending, setSending] = (0, react.useState)(false);
 			const draftKey = state.active?.roleId === roleId ? state.active.id : "role:" + roleId, { model, question, scope, chapter, mode, useKnowledge } = client.draft(draftKey);
 			const setModel = (model) => client.updateDraft(draftKey, { model }), setQuestion = (question) => client.updateDraft(draftKey, { question }), setScope = (scope) => client.updateDraft(draftKey, { scope }), setChapter = (chapter) => client.updateDraft(draftKey, { chapter }), setMode = (mode) => client.updateDraft(draftKey, { mode }), setUseKnowledge = (useKnowledge) => client.updateDraft(draftKey, { useKnowledge });
@@ -609,12 +616,25 @@ window.__ModuleLoader__.load({
 							className: DocumentAssistant_module_css_default.editor,
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 								className: DocumentAssistant_module_css_default.frame,
+								"data-empty": !state.active,
 								ref: mount
 							}), !state.active && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 								className: DocumentAssistant_module_css_default.empty,
 								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										className: DocumentAssistant_module_css_default.emptyIcon,
+										"aria-hidden": "true",
+										children: "W"
+									}),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "从一份 Word 开始" }),
 									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "点击“打开 Word”或将 DOCX 拖到这里。工作副本在本机暂存。" }),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										className: DocumentAssistant_module_css_default.openAction,
+										disabled: state.busy,
+										onClick: () => documentDesktop()?.openDocument ? run(() => client.openNative(roleId)) : input.current?.click(),
+										children: "打开 Word 文档"
+									}),
+									state.rows.some((row) => row.roleId === roleId) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "最近打开" }),
 									state.rows.filter((row) => row.roleId === roleId).slice(0, 6).map((row) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 										onClick: () => run(() => client.open(row.id)),
 										children: [row.title, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: new Date(row.updatedAt).toLocaleString() })]
@@ -648,215 +668,286 @@ window.__ModuleLoader__.load({
 							onPointerUp: (e) => e.currentTarget.releasePointerCapture(e.pointerId)
 						}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("aside", {
 							className: DocumentAssistant_module_css_default.side,
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("h3", { children: "文档助手" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: DocumentAssistant_module_css_default.options,
-									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										"aria-pressed": mode === "ask",
-										onClick: () => setMode("ask"),
-										children: "理解文档"
-									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										"aria-pressed": mode === "revise",
-										onClick: () => setMode("revise"),
-										children: "AI 修改"
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+								className: DocumentAssistant_module_css_default.preview,
+								"aria-label": "文档内容",
+								children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("header", {
+									className: DocumentAssistant_module_css_default.panelHeader,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "文档内容" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+										className: DocumentAssistant_module_css_default.tabs,
+										role: "tablist",
+										"aria-label": "文档内容视图",
+										children: [
+											{
+												id: "text",
+												label: "原文"
+											},
+											{
+												id: "selection",
+												label: "选区"
+											},
+											{
+												id: "outline",
+												label: "大纲"
+											}
+										].map((tab) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											id: "document-tab-" + tab.id,
+											role: "tab",
+											"aria-selected": contentTab === tab.id,
+											"aria-controls": "document-content-panel",
+											tabIndex: contentTab === tab.id ? 0 : -1,
+											onKeyDown: (e) => {
+												const tabs = [
+													"text",
+													"selection",
+													"outline"
+												];
+												const index = tabs.indexOf(tab.id);
+												const next = e.key === "ArrowRight" ? tabs[(index + 1) % 3] : e.key === "ArrowLeft" ? tabs[(index + 2) % 3] : e.key === "Home" ? "text" : e.key === "End" ? "outline" : null;
+												if (next) {
+													e.preventDefault();
+													setContentTab(next);
+													document.getElementById("document-tab-" + next)?.focus();
+												}
+											},
+											onClick: () => setContentTab(tab.id),
+											children: tab.label
+										}, tab.id))
 									})]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+								}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 									className: DocumentAssistant_module_css_default.context,
+									id: "document-content-panel",
+									role: "tabpanel",
+									"aria-labelledby": "document-tab-" + contentTab,
+									tabIndex: 0,
 									children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: state.context?.selection ? "当前选区" : "文档大纲" }),
-										state.context?.selection ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: state.context.selection }) : state.context?.outline.map((item, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										contentTab === "text" && (state.context?.paragraphs.length ? state.context.paragraphs.map((p, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+											className: /^Heading\d$/i.test(p.styleId || "") ? DocumentAssistant_module_css_default.heading : void 0,
+											children: p.text
+										}, p.paraId || i)) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+											className: DocumentAssistant_module_css_default.hint,
+											children: "打开 Word 后，这里显示可用于问答的正文。"
+										})),
+										contentTab === "selection" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+											className: !state.context?.selection ? DocumentAssistant_module_css_default.hint : void 0,
+											children: state.context?.selection || "在左侧文档中选择文字，这里会显示选中内容。"
+										}),
+										contentTab === "outline" && (state.context?.outline.length ? state.context.outline.map((item, i) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+											style: { paddingLeft: Math.min(4, item.level) * 10 + 4 },
 											onClick: () => run(() => client.rpc("find", { text: item.text })),
 											children: item.text
-										}, i)),
-										!state.context?.selection && !state.context?.outline.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "在左侧选择文字，可围绕该内容提问。" })
+										}, i)) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+											className: DocumentAssistant_module_css_default.hint,
+											children: "当前文档暂无可识别的标题大纲。"
+										}))
 									]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: DocumentAssistant_module_css_default.messages,
-									"aria-live": "polite",
-									children: [state.active?.messages.map((message) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
-										"data-role": message.role,
-										children: [
-											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
-												message.role === "user" ? "你" : "文档助手",
-												" · ",
-												message.scope
-											] }),
-											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: message.text || (message.status === "running" ? "正在理解文档…" : "") }),
-											message.role === "assistant" && [...new Set([...message.text.matchAll(/\[P(\d+)\]/g)].map((m) => Number(m[1]) - 1))].filter((i) => message.sources?.some((p) => p.id === "P" + (i + 1))).map((i) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-												onClick: () => run(() => client.rpc("find", {
-													text: message.sources.find((p) => p.id === "P" + (i + 1)).text,
-													paraId: message.sources.find((p) => p.id === "P" + (i + 1)).paraId
-												})),
-												children: ["定位 P", i + 1]
-											}, i)),
-											message.knowledge?.map((source) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [
-												/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
-													"[",
-													source.id,
-													"] ",
-													source.title
-												] }),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: source.text }),
-												source.url && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("a", {
-													href: source.url,
-													target: "_blank",
-													rel: "noreferrer",
-													children: "查看来源"
-												})
-											] }, source.id)),
-											message.proposal && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-												className: DocumentAssistant_module_css_default.proposal,
-												children: [
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "修改建议" }),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("del", { children: message.proposal.before }),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ins", { children: message.proposal.after }),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-														disabled: state.busy || message.proposal.status === "adopted",
-														onClick: () => run(() => client.adopt(message.proposal.id)),
-														children: message.proposal.status === "adopted" ? "已采用" : "采用修改"
-													}),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-														onClick: () => run(() => client.rpc("find", {
-															text: message.proposal.before,
-															paraId: message.proposal.paraId
-														})),
-														children: "定位原文"
-													})
-												]
-											}),
-											message.status !== "running" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MessageTime, { value: message.createdAt })
-										]
-									}, message.id)), !state.active?.messages.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-										className: DocumentAssistant_module_css_default.suggestions,
-										children: [
-											"概括文档的主要内容",
-											"解释选区的业务含义",
-											"列出需要进一步确认的问题"
-										].map((value) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											disabled: !state.active || sending,
-											onClick: () => run(() => ask(value)),
-											children: value
-										}, value))
-									})]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("form", {
-									className: DocumentAssistant_module_css_default.composer,
-									onSubmit: (e) => {
-										e.preventDefault();
-										run(() => ask());
-									},
-									children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-											className: DocumentAssistant_module_css_default.options,
-											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-												"aria-label": "问答范围",
-												value: scope,
-												onChange: (e) => setScope(e.target.value),
-												children: [
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-														value: "auto",
-														children: state.context?.selection ? "当前选区" : "全文正文"
-													}),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-														value: "document",
-														children: "全文正文"
-													}),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-														value: "selection",
-														disabled: !state.context?.selection,
-														children: "当前选区"
-													}),
-													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-														value: "chapter",
-														disabled: !chapters.length,
-														children: "指定章节"
-													})
-												]
-											}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-												"aria-label": "文档问答模型",
-												value: model,
-												onChange: (e) => setModel(e.target.value),
-												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-													value: "",
-													children: "工作台默认模型"
-												}), models.map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-													value: m.id,
-													children: m.name
-												}, m.id))]
+								})]
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+								className: DocumentAssistant_module_css_default.chat,
+								"aria-label": "文档问答",
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("header", {
+										className: DocumentAssistant_module_css_default.panelHeader,
+										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "文档问答" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+											className: DocumentAssistant_module_css_default.tabs,
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												"aria-pressed": mode === "ask",
+												onClick: () => setMode("ask"),
+												children: "理解文档"
+											}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												"aria-pressed": mode === "revise",
+												onClick: () => setMode("revise"),
+												children: "AI 修改"
 											})]
-										}),
-										scope === "chapter" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-											"aria-label": "选择章节",
-											value: chapter,
-											onChange: (e) => setChapter(Number(e.target.value)),
-											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-												value: -1,
-												children: "选择章节"
-											}), chapters.map((p) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-												value: p.index,
-												children: p.text
-											}, p.index))]
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("textarea", {
-											"aria-label": "向文档助手提问",
-											placeholder: mode === "revise" ? "描述要怎样修改；一次改写一处段落内文字…" : "询问文档、解释选区…",
-											value: question,
-											onChange: (e) => setQuestion(e.target.value),
-											onKeyDown: (e) => {
-												if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-													e.preventDefault();
-													run(() => ask());
-												}
-											}
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-											className: DocumentAssistant_module_css_default.options,
+										})]
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+										className: DocumentAssistant_module_css_default.messages,
+										"aria-live": "polite",
+										children: [state.active?.messages.map((message) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
+											"data-role": message.role,
 											children: [
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													type: "button",
-													disabled: !state.active,
-													onClick: () => run(() => client.undoAI()),
-													children: "撤销刚才的 AI 修改"
+												/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("small", { children: [
+													message.role === "user" ? "你" : "文档助手",
+													" · ",
+													message.scope
+												] }),
+												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: message.text || (message.status === "running" ? "正在理解文档…" : "") }),
+												message.role === "assistant" && [...new Set([...message.text.matchAll(/\[P(\d+)\]/g)].map((m) => Number(m[1]) - 1))].filter((i) => message.sources?.some((p) => p.id === "P" + (i + 1))).map((i) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+													onClick: () => run(() => client.rpc("find", {
+														text: message.sources.find((p) => p.id === "P" + (i + 1)).text,
+														paraId: message.sources.find((p) => p.id === "P" + (i + 1)).paraId
+													})),
+													children: ["定位 P", i + 1]
+												}, i)),
+												message.knowledge?.map((source) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", { children: [
+													/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("summary", { children: [
+														"[",
+														source.id,
+														"] ",
+														source.title
+													] }),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: source.text }),
+													source.url && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("a", {
+														href: source.url,
+														target: "_blank",
+														rel: "noreferrer",
+														children: "查看来源"
+													})
+												] }, source.id)),
+												message.proposal && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+													className: DocumentAssistant_module_css_default.proposal,
+													children: [
+														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "修改建议" }),
+														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("del", { children: message.proposal.before }),
+														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("ins", { children: message.proposal.after }),
+														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+															disabled: state.busy || message.proposal.status === "adopted",
+															onClick: () => run(() => client.adopt(message.proposal.id)),
+															children: message.proposal.status === "adopted" ? "已采用" : "采用修改"
+														}),
+														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+															onClick: () => run(() => client.rpc("find", {
+																text: message.proposal.before,
+																paraId: message.proposal.paraId
+															})),
+															children: "定位原文"
+														})
+													]
 												}),
-												generating ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													type: "button",
-													onClick: () => run(() => client.stop()),
-													children: "停止生成"
-												}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													type: "submit",
-													disabled: !state.active || sending || !question.trim(),
-													children: sending ? "提交中…" : mode === "revise" ? "生成修改建议" : "发送"
-												}),
-												/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-													type: "button",
-													disabled: !state.active?.messages.some((m) => m.role === "user") || generating || sending,
-													onClick: () => run(() => ask(state.active.messages.filter((m) => m.role === "user").at(-1).text)),
-													children: "重试上一问"
-												})
+												message.status !== "running" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MessageTime, { value: message.createdAt })
 											]
-										})
-									]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
-									className: DocumentAssistant_module_css_default.hint,
-									children: ["问题及所选正文会发送至当前模型 API。", knowledge.message]
-								}),
-								knowledge.configured && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: DocumentAssistant_module_css_default.hint,
-									children: [
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
-											checked: useKnowledge,
-											onChange: (e) => setUseKnowledge(e.target.checked)
-										}),
-										"结合 ",
-										knowledge.label,
-										knowledge.verified ? "" : "（连接待验证）"
-									]
-								})
-							]
+										}, message.id)), !state.active?.messages.length && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+											className: DocumentAssistant_module_css_default.suggestions,
+											children: [
+												"概括文档的主要内容",
+												"解释选区的业务含义",
+												"列出需要进一步确认的问题"
+											].map((value) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+												disabled: !state.active || sending,
+												onClick: () => run(() => ask(value)),
+												children: value
+											}, value))
+										})]
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("form", {
+										className: DocumentAssistant_module_css_default.composer,
+										onSubmit: (e) => {
+											e.preventDefault();
+											run(() => ask());
+										},
+										children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+												className: DocumentAssistant_module_css_default.options,
+												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+													"aria-label": "问答范围",
+													value: scope,
+													onChange: (e) => setScope(e.target.value),
+													children: [
+														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+															value: "auto",
+															children: state.context?.selection ? "当前选区" : "全文正文"
+														}),
+														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+															value: "document",
+															children: "全文正文"
+														}),
+														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+															value: "selection",
+															disabled: !state.context?.selection,
+															children: "当前选区"
+														}),
+														/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+															value: "chapter",
+															disabled: !chapters.length,
+															children: "指定章节"
+														})
+													]
+												}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+													"aria-label": "文档问答模型",
+													value: model,
+													onChange: (e) => setModel(e.target.value),
+													children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+														value: "",
+														children: "工作台默认模型"
+													}), models.map((m) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+														value: m.id,
+														children: m.name
+													}, m.id))]
+												})]
+											}),
+											scope === "chapter" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
+												"aria-label": "选择章节",
+												value: chapter,
+												onChange: (e) => setChapter(Number(e.target.value)),
+												children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+													value: -1,
+													children: "选择章节"
+												}), chapters.map((p) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
+													value: p.index,
+													children: p.text
+												}, p.index))]
+											}),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)("textarea", {
+												rows: 3,
+												"aria-label": "向文档助手提问",
+												placeholder: mode === "revise" ? "描述要怎样修改；一次改写一处段落内文字…" : "询问文档、解释选区…",
+												value: question,
+												onChange: (e) => setQuestion(e.target.value),
+												onKeyDown: (e) => {
+													if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+														e.preventDefault();
+														run(() => ask());
+													}
+												}
+											}),
+											/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+												className: DocumentAssistant_module_css_default.options,
+												children: [
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														disabled: !state.active,
+														onClick: () => run(() => client.undoAI()),
+														children: "撤销 AI 修改"
+													}),
+													generating ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														onClick: () => run(() => client.stop()),
+														children: "停止生成"
+													}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "submit",
+														disabled: !state.active || sending || !question.trim(),
+														children: sending ? "提交中…" : mode === "revise" ? "生成修改建议" : "发送"
+													}),
+													/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+														type: "button",
+														disabled: !state.active?.messages.some((m) => m.role === "user") || generating || sending,
+														onClick: () => run(() => ask(state.active.messages.filter((m) => m.role === "user").at(-1).text)),
+														children: "重试上一问"
+													})
+												]
+											})
+										]
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+										className: DocumentAssistant_module_css_default.hint,
+										title: knowledge.message,
+										children: "问答使用当前模型 API · Ctrl + Enter 发送"
+									}),
+									knowledge.configured && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
+										className: DocumentAssistant_module_css_default.hint,
+										children: [
+											/* @__PURE__ */ (0, react_jsx_runtime.jsx)(PillCheckbox, {
+												checked: useKnowledge,
+												onChange: (e) => setUseKnowledge(e.target.checked)
+											}),
+											"结合 ",
+											knowledge.label,
+											knowledge.verified ? "" : "（连接待验证）"
+										]
+									})
+								]
+							})]
 						})] })]
 					})
 				]

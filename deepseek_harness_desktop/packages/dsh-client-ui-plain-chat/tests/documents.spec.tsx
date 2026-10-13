@@ -9,6 +9,21 @@ import {initialState} from '../../dsh-capabilities/src/core/model.ts'
 import {roleCapabilityModes} from '../src/client/role-capability-modes.ts'
 
 afterEach(()=>{vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllGlobals();document.body.innerHTML='';delete window.workbenchDocuments})
+it('shows imported text in the upper reading pane and switches selection and outline independently of the composer',async()=>{
+ const h=harness();window.workbenchDocuments=h.client;(globalThis as any).IS_REACT_ACT_ENVIRONMENT=true
+ await h.client.importBytes('布局.docx',new TextEncoder().encode('实际导入的正文').buffer,'r1')
+ const root=createRoot(h.host)
+ await act(async()=>root.render(<DocumentAssistant roleId="r1" loadModels={async()=>[]}/>))
+ const pane=()=>h.host.querySelector('[role=tabpanel]')!
+ expect(pane().textContent).toContain('实际导入的正文')
+ const tab=(name:string)=>[...h.host.querySelectorAll<HTMLButtonElement>('[role=tab]')].find(b=>b.textContent===name)!
+ await act(async()=>tab('选区').click());expect(pane().textContent).toContain('在左侧文档中选择文字')
+ await act(async()=>tab('大纲').click());expect(pane().textContent).toContain('暂无可识别的标题大纲')
+ await act(async()=>tab('原文').click());expect(pane().textContent).toContain('实际导入的正文')
+ expect(h.host.querySelector('[aria-label="文档问答"] textarea')).not.toBeNull()
+ expect(h.host.querySelector('[role=tab][aria-selected=true]')?.textContent).toBe('原文')
+ await act(async()=>root.unmount())
+})
 function harness(){
  vi.useFakeTimers()
  const client=createDocumentClient(),host=document.createElement('div');document.body.append(host);client.mount(host)
