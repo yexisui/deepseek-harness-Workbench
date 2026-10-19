@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "revision": 43,
-  "updatedAt": "2026-10-10T06:36:16.997Z",
+  "revision": 50,
+  "updatedAt": "2026-10-19T03:54:01.202Z",
   "roles": [
     {
       "id": "builtin-analyst",
@@ -213,6 +213,40 @@
           "version": 4,
           "preset": "workbench-role-builtin-developer-v4",
           "createdAt": "2026-10-09T03:56:52.921Z"
+        },
+        {
+          "name": "开发助手",
+          "color": "#22A58B",
+          "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+          "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+          "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "developer-workspace",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 5,
+          "preset": "workbench-role-builtin-developer-v5",
+          "createdAt": "2026-10-09T03:56:52.921Z"
+        },
+        {
+          "name": "开发助手",
+          "color": "#22A58B",
+          "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+          "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+          "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "developer-workspace",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 6,
+          "preset": "workbench-role-builtin-developer-v6",
+          "createdAt": "2026-10-09T03:56:52.921Z"
         }
       ]
     },
@@ -242,6 +276,11 @@
           },
           {
             "capabilityId": "audio-recording",
+            "version": 1,
+            "enabled": true
+          },
+          {
+            "capabilityId": "recording-followup",
             "version": 1,
             "enabled": true
           }
@@ -340,6 +379,42 @@
           "version": 4,
           "preset": "workbench-role-meeting-minutes-demo-v4",
           "createdAt": "2026-10-10T06:36:16.997Z"
+        },
+        {
+          "name": "会议纪要助手",
+          "color": "#6683bd",
+          "icon": {
+            "kind": "builtin",
+            "id": "document"
+          },
+          "duties": "在对话中帮助用户上传会议录音、核对转写内容，并生成可继续修改的会议纪要。",
+          "requirements": "只依据录音转写和用户确认的信息整理内容；区分结论、行动项与待确认事项，不编造负责人、期限或决策。",
+          "format": "会议概览、主要结论、行动项、待确认事项；行动项尽量列明负责人、期限与录音依据。",
+          "capabilities": [
+            {
+              "capabilityId": "meeting-transcription",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "local-603c79b3-b9a4-44fa-9dfe-ce5d484a1195",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "audio-recording",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "recording-followup",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 5,
+          "preset": "workbench-role-meeting-minutes-demo-v5",
+          "createdAt": "2026-10-12T08:39:44.769Z"
         }
       ]
     },
@@ -438,6 +513,51 @@
       ]
     },
     {
+      "id": "builtin-file-search",
+      "enabled": true,
+      "draft": {
+        "name": "文件搜索助手",
+        "color": "#4F73E8",
+        "icon": {
+          "kind": "builtin",
+          "id": "document"
+        },
+        "duties": "按文件名和路径查找本地已索引文件，展示结果、复制路径和定位所在文件夹。",
+        "requirements": "只查找文件元信息；不删除原文件，不将路径当作已读取的正文。",
+        "format": "文件名、完整路径、类型、大小与修改时间。",
+        "capabilities": [
+          {
+            "capabilityId": "local-file-search",
+            "version": 1,
+            "enabled": true
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "文件搜索助手",
+          "color": "#4F73E8",
+          "icon": {
+            "kind": "builtin",
+            "id": "document"
+          },
+          "duties": "按文件名和路径查找本地已索引文件，展示结果、复制路径和定位所在文件夹。",
+          "requirements": "只查找文件元信息；不删除原文件，不将路径当作已读取的正文。",
+          "format": "文件名、完整路径、类型、大小与修改时间。",
+          "capabilities": [
+            {
+              "capabilityId": "local-file-search",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-10-12T07:50:38.041Z",
+          "preset": "workbench-role-builtin-file-search-v1"
+        }
+      ]
+    },
+    {
       "id": "builtin-smart-document",
       "enabled": true,
       "draft": {
@@ -479,6 +599,92 @@
           "version": 1,
           "createdAt": "2026-10-12T15:42:50.661Z",
           "preset": "workbench-role-builtin-smart-document-v1"
+        }
+      ]
+    },
+    {
+      "id": "local-b7e37045-6ca6-4a47-918f-e4d0e5dc8eef",
+      "enabled": true,
+      "draft": {
+        "name": "AI 项目估算助手",
+        "color": "#2563eb",
+        "duties": "负责根据项目介绍、需求文档或功能清单，使用 workload-estimator 技能进行 AI 部分工作量估算。先理解范围与目标人月，再拆分模块和功能项，说明估算依据、假设与待确认事项，并按技能规定整理交付结果。",
+        "requirements": "处理工作量估算任务时使用已绑定的 workload-estimator 及其包内资源。遵循技能的估算口径、模板结构与公式规则；缺少关键信息时先询问。区分用户明确需求与估算假设，不凭空增加范围。仅在真实文件已生成并可访问时提供下载链接；如当前工具不能执行脚本或写入文件，应说明具体限制并保留可用的估算明细，不虚报生成成功。 生成Excel时同时加载excel-generation-guidelines，遵循业务技能规则后调用已绑定的Excel生成能力。业务估算规范由workload-estimator提供，文件生成工具不决定业务规则。",
+        "format": "用中文说明估算范围、模块与功能拆分、编码人天及总人天/人月、计算口径和待确认事项。具备实际生成条件时按技能模板交付 Excel；不把工作量直接等同于工期，不输出无依据的报价。",
+        "capabilities": [
+          {
+            "capabilityId": "local-683c2126-572d-400c-b982-58a0df5aa06d",
+            "version": 1,
+            "enabled": true
+          }
+        ],
+        "skills": [
+          {
+            "id": "96518f70-e180-421d-a62b-c3a849d21ee9",
+            "name": "workload-estimator",
+            "hash": "0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522",
+            "enabled": true
+          },
+          {
+            "id": "6683e8a6-b1b7-425f-a98b-ce08e43a8eb4",
+            "name": "excel-generation-guidelines",
+            "hash": "bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a",
+            "enabled": true
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "AI 项目估算助手",
+          "color": "#2563eb",
+          "duties": "负责根据项目介绍、需求文档或功能清单，使用 workload-estimator 技能进行 AI 部分工作量估算。先理解范围与目标人月，再拆分模块和功能项，说明估算依据、假设与待确认事项，并按技能规定整理交付结果。",
+          "requirements": "处理工作量估算任务时使用已绑定的 workload-estimator 及其包内资源。遵循技能的估算口径、模板结构与公式规则；缺少关键信息时先询问。区分用户明确需求与估算假设，不凭空增加范围。仅在真实文件已生成并可访问时提供下载链接；如当前工具不能执行脚本或写入文件，应说明具体限制并保留可用的估算明细，不虚报生成成功。",
+          "format": "用中文说明估算范围、模块与功能拆分、编码人天及总人天/人月、计算口径和待确认事项。具备实际生成条件时按技能模板交付 Excel；不把工作量直接等同于工期，不输出无依据的报价。",
+          "capabilities": [],
+          "skills": [
+            {
+              "id": "96518f70-e180-421d-a62b-c3a849d21ee9",
+              "name": "workload-estimator",
+              "hash": "0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522",
+              "enabled": true
+            }
+          ],
+          "version": 1,
+          "preset": "workbench-role-local-b7e37045-6ca6-4a47-918f-e4d0e5dc8eef-v1",
+          "createdAt": "2026-10-19T03:37:58.412Z",
+          "directSave": true
+        },
+        {
+          "name": "AI 项目估算助手",
+          "color": "#2563eb",
+          "duties": "负责根据项目介绍、需求文档或功能清单，使用 workload-estimator 技能进行 AI 部分工作量估算。先理解范围与目标人月，再拆分模块和功能项，说明估算依据、假设与待确认事项，并按技能规定整理交付结果。",
+          "requirements": "处理工作量估算任务时使用已绑定的 workload-estimator 及其包内资源。遵循技能的估算口径、模板结构与公式规则；缺少关键信息时先询问。区分用户明确需求与估算假设，不凭空增加范围。仅在真实文件已生成并可访问时提供下载链接；如当前工具不能执行脚本或写入文件，应说明具体限制并保留可用的估算明细，不虚报生成成功。 生成Excel时同时加载excel-generation-guidelines，遵循业务技能规则后调用已绑定的Excel生成能力。业务估算规范由workload-estimator提供，文件生成工具不决定业务规则。",
+          "format": "用中文说明估算范围、模块与功能拆分、编码人天及总人天/人月、计算口径和待确认事项。具备实际生成条件时按技能模板交付 Excel；不把工作量直接等同于工期，不输出无依据的报价。",
+          "capabilities": [
+            {
+              "capabilityId": "local-683c2126-572d-400c-b982-58a0df5aa06d",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "skills": [
+            {
+              "id": "96518f70-e180-421d-a62b-c3a849d21ee9",
+              "name": "workload-estimator",
+              "hash": "0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522",
+              "enabled": true
+            },
+            {
+              "id": "6683e8a6-b1b7-425f-a98b-ce08e43a8eb4",
+              "name": "excel-generation-guidelines",
+              "hash": "bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a",
+              "enabled": true
+            }
+          ],
+          "version": 2,
+          "preset": "workbench-role-local-b7e37045-6ca6-4a47-918f-e4d0e5dc8eef-v2",
+          "createdAt": "2026-10-19T03:54:01.202Z",
+          "directSave": true
         }
       ]
     }
@@ -838,6 +1044,84 @@
       ]
     },
     {
+      "id": "local-file-search",
+      "source": "builtin",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "本地文件搜索",
+        "description": "通过宠物或岗位搜索本地文件，支持部分文件名、多关键词和通配符，可选择文件夹限定范围。",
+        "instructions": "路径留空搜索全部已索引的本地位置；输入部分文件名或 * / ? 通配符。选择文件夹后点击确定。搜索只返回名称、路径和元信息，移除记录不会删除原文件。",
+        "components": [
+          {
+            "componentId": "everything-search",
+            "actions": [
+              "search-files"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "本地文件搜索",
+          "description": "通过宠物或岗位搜索本地文件，支持部分文件名、多关键词和通配符，可选择文件夹限定范围。",
+          "instructions": "路径留空搜索全部已索引的本地位置；输入部分文件名或 * / ? 通配符。选择文件夹后点击确定。搜索只返回名称、路径和元信息，移除记录不会删除原文件。",
+          "components": [
+            {
+              "componentId": "everything-search",
+              "actions": [
+                "search-files"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-10-12T07:50:38.041Z"
+        }
+      ]
+    },
+    {
+      "id": "recording-followup",
+      "source": "builtin",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "录音后续处理",
+        "description": "在当前录音会话中衔接转写、校对和纪要，不需要重新上传录音。",
+        "instructions": "只处理用户主动选择的已保存录音，保留原录音与结果。",
+        "followupTarget": "meeting-transcription",
+        "components": [
+          {
+            "componentId": "recording-followup",
+            "actions": [
+              "followup-transcribe",
+              "followup-quick",
+              "followup-guided"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "录音后续处理",
+          "description": "在当前录音会话中衔接转写、校对和纪要，不需要重新上传录音。",
+          "instructions": "只处理用户主动选择的已保存录音，保留原录音与结果。",
+          "followupTarget": "meeting-transcription",
+          "components": [
+            {
+              "componentId": "recording-followup",
+              "actions": [
+                "followup-transcribe",
+                "followup-quick",
+                "followup-guided"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-10-12T08:39:44.769Z"
+        }
+      ]
+    },
+    {
       "id": "smart-document",
       "source": "builtin",
       "enabled": true,
@@ -876,6 +1160,48 @@
           "createdAt": "2026-10-12T15:42:50.661Z"
         }
       ]
+    },
+    {
+      "id": "local-683c2126-572d-400c-b982-58a0df5aa06d",
+      "source": "local",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "Excel 生成",
+        "description": "按传入的工作表、单元格、公式和格式参数生成可下载的 XLSX 文件。业务字段、计算口径、样式规范由技能或用户要求提供。",
+        "instructions": "用户需要生成Excel文件时，通过capability_action调用本能力generate动作。input为JSON字符串，内容为工作簿生成参数，接口说明见已绑定的excel-generation-guidelines技能。先加载适用的业务技能与Excel生成规范技能，按其规则组织参数。此能力仅写入用户/技能指定的数据、公式和格式，不拆需求、不估算、不设固定比例、不调用模型、不执行任意脚本。成功后原样使用工具返回的downloadUrl提供下载链接；失败时如实说明，不编造文件。",
+        "components": [
+          {
+            "componentId": "pkg:org.workbench.excel:writer",
+            "actions": [
+              "pack:org.workbench.excel:writer:generate"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "Excel 生成",
+          "description": "按传入的工作表、单元格、公式和格式参数生成可下载的 XLSX 文件。业务字段、计算口径、样式规范由技能或用户要求提供。",
+          "instructions": "用户需要生成Excel文件时，通过capability_action调用本能力generate动作。input为JSON字符串，内容为工作簿生成参数，接口说明见已绑定的excel-generation-guidelines技能。先加载适用的业务技能与Excel生成规范技能，按其规则组织参数。此能力仅写入用户/技能指定的数据、公式和格式，不拆需求、不估算、不设固定比例、不调用模型、不执行任意脚本。成功后原样使用工具返回的downloadUrl提供下载链接；失败时如实说明，不编造文件。",
+          "components": [
+            {
+              "componentId": "pkg:org.workbench.excel:writer",
+              "actions": [
+                "pack:org.workbench.excel:writer:generate"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-10-19T03:54:01.092Z",
+          "packageHash": "b7f76536500f3665a7e7a78d3a96288464b6e614047a5b96bdda47c43b176f0e",
+          "directSave": true
+        }
+      ],
+      "packageOrigin": {
+        "id": "org.workbench.excel",
+        "draftBackups": []
+      }
     }
   ],
   "defaultRolesVersion": 2,
@@ -1065,8 +1391,47 @@
         }
       },
       "installedAt": "2026-10-10T02:12:04.038Z"
+    },
+    "b7f76536500f3665a7e7a78d3a96288464b6e614047a5b96bdda47c43b176f0e": {
+      "hash": "b7f76536500f3665a7e7a78d3a96288464b6e614047a5b96bdda47c43b176f0e",
+      "manifest": {
+        "schema": 1,
+        "protocol": "dsh-worker-v1",
+        "id": "org.workbench.excel",
+        "version": "1.0.0",
+        "name": "Excel 生成",
+        "description": "按传入的工作表、单元格、公式和格式参数生成可下载的 XLSX 文件。业务字段、计算口径、样式规范由技能或用户要求提供。",
+        "instructions": "用户需要生成Excel文件时，通过capability_action调用本能力generate动作。input为JSON字符串，内容为工作簿生成参数，接口说明见已绑定的excel-generation-guidelines技能。先加载适用的业务技能与Excel生成规范技能，按其规则组织参数。此能力仅写入用户/技能指定的数据、公式和格式，不拆需求、不估算、不设固定比例、不调用模型、不执行任意脚本。成功后原样使用工具返回的downloadUrl提供下载链接；失败时如实说明，不编造文件。",
+        "author": "工作台",
+        "license": "Apache-2.0 (bundled dependencies: see THIRD_PARTY_NOTICES.txt)",
+        "permissions": [
+          "node"
+        ],
+        "components": [
+          {
+            "id": "writer",
+            "name": "Excel 文件生成",
+            "entry": "runtime/main.cjs",
+            "actions": [
+              {
+                "id": "generate",
+                "name": "生成 Excel",
+                "description": "从工作簿参数创建 XLSX；支持多表、公式、合并、字体边框、列宽行高与冻结，不含业务规则。"
+              }
+            ]
+          }
+        ],
+        "files": {
+          "runtime/main.cjs": "cade38905ccf9507e4668c5fbc30251629ddea2cd201654249a5ecab55ef68ad",
+          "docs/README.txt": "6b7669b35dafa6b4b60e22174630afac5d7659fdee9ba6edbfd3783cc1d1a2c1",
+          "docs/THIRD_PARTY_NOTICES.txt": "f8b93e189b4a73a861f0836d5abb09113f90de9158f8d748ae827b712f3a712a"
+        }
+      },
+      "installedAt": "2026-10-19T03:54:01.092Z"
     }
   },
   "recordingCapabilityVersion": 1,
+  "fileSearchCapabilityVersion": 1,
+  "recordingFollowupVersion": 1,
   "documentCapabilityVersion": 1
 }

@@ -1,5 +1,5 @@
 {
-  "revision": 8,
+  "revision": 14,
   "skills": [
     {
       "id": "e5163661-906f-4075-976d-159db1281ad4",
@@ -16,6 +16,58 @@
       "updatedAt": "2026-10-07T04:25:45.638Z",
       "tags": [],
       "usage": "all"
+    },
+    {
+      "id": "96518f70-e180-421d-a62b-c3a849d21ee9",
+      "name": "workload-estimator",
+      "description": "根据项目介绍/需求文档生成工作量估算表（Excel）。当用户提供项目需求、功能描述、招标文件、需求清单等，要求输出「工作量估算表 / 工作量评估表 / 工时估算 / 人天 / 人月估算」时使用——即使没明说，只要是想评估项目开发工作量的需求都触发。生成的表格与标准模板完全一致：功能项自动拆分、只评估「编码人天」一列、其余人天列由公式按固定比例自动计算、公式全部保留；**只输出AI部分工作量**（非AI业务工程与公共部分不纳入估算）；总人月由用户指定目标，无目标时默认落在 20~30 人月区间，超出区间时通过***把原需求细分到极致 + 逐项调整工作量***调整（不新增需求外工作项、不机械按比例整体缩放）。",
+      "root": "{{WORKBENCH_ROOT}}\\dsh-data\\skills",
+      "scope": "global",
+      "hash": "0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522",
+      "enabled": true,
+      "auto": true,
+      "manual": true,
+      "tags": [],
+      "usage": "roles",
+      "category": "未分类",
+      "warnings": [
+        "含脚本：需要对应运行环境，导入不会执行脚本"
+      ],
+      "updatedAt": "2026-10-13T08:58:32.860Z",
+      "contentHistory": [
+        {
+          "at": 1791863302670,
+          "hash": "0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522"
+        }
+      ],
+      "hashes": [
+        "0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522"
+      ]
+    },
+    {
+      "id": "6683e8a6-b1b7-425f-a98b-ce08e43a8eb4",
+      "name": "excel-generation-guidelines",
+      "description": "使用工作台“Excel 生成”能力创建 XLSX 文件时，将用户或业务技能规定的数据、公式与样式转换为工作簿参数，并核对交付。适用于工作量表、清单和普通统计表的文件生成；不负责制定业务估算规则。",
+      "root": "{{WORKBENCH_ROOT}}\\dsh-data\\skills",
+      "scope": "global",
+      "hash": "bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a",
+      "enabled": true,
+      "auto": true,
+      "manual": true,
+      "tags": [],
+      "usage": "roles",
+      "category": "未分类",
+      "warnings": [],
+      "updatedAt": "2026-10-19T03:54:01.133Z",
+      "contentHistory": [
+        {
+          "at": 1792382041133,
+          "hash": "bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a"
+        }
+      ],
+      "hashes": [
+        "bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a"
+      ]
     }
   ]
 }

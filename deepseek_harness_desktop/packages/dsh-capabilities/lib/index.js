@@ -12382,6 +12382,14 @@ var PackageRunner = class {
 };
 //#endregion
 //#region src/host/package-artifact.ts
+function xlsx(output) {
+	if (!output || typeof output !== "object" || output.kind !== "xlsx") return false;
+	const value = output;
+	if (typeof value.fileName !== "string" || value.fileName.length > 150 || !value.fileName.toLowerCase().endsWith(".xlsx") || /[\\/:*?"<>|\r\n]/.test(value.fileName) || typeof value.base64 !== "string" || value.base64.length > 466668 || !Array.isArray(value.sheets) || !Number.isSafeInteger(value.formulaCount) || value.formulaCount < 0) throw new InputError("Excel结果格式无效");
+	const bytes = Buffer.from(value.base64, "base64");
+	if (bytes.toString("base64") !== value.base64 || bytes.length < 4 || bytes.length > 35e4 || bytes.readUInt32LE(0) !== 67324752) throw new InputError("Excel文件内容无效");
+	return true;
+}
 function diagram(output) {
 	if (!output || typeof output !== "object") return false;
 	const v = output;
@@ -12389,6 +12397,18 @@ function diagram(output) {
 }
 /** Keep large SVG bytes out of the model context; immutable job IDs preserve earlier chat images. */
 function packageResult(id, output, port) {
+	if (xlsx(output)) {
+		if (!Number.isInteger(port) || port < 1 || port > 65535) throw new InputError("Excel下载地址不可用");
+		return {
+			documentId: id,
+			fileName: output.fileName,
+			sheets: output.sheets,
+			formulaCount: output.formulaCount,
+			recalculation: output.recalculation,
+			downloadUrl: `http://127.0.0.1:${port}/api/capabilities/packages/artifact/${encodeURIComponent(id)}/download.xlsx`,
+			message: "请使用返回的downloadUrl提供Excel下载链接。公式已保留，打开后重算；文件生成成功不代表业务估算已审核。"
+		};
+	}
 	if (!diagram(output)) return output;
 	if (!Number.isInteger(port) || port < 1 || port > 65535) throw new InputError("流程图查看地址不可用");
 	const root = `http://127.0.0.1:${port}/api/capabilities/packages/artifact/` + encodeURIComponent(id);
@@ -12403,9 +12423,22 @@ function packageResult(id, output, port) {
 }
 /** The parent router performs the same authentication and origin checks as every capability request. */
 function servePackageArtifact(runner, route, res) {
-	const match = /^([a-f0-9-]{36})\/(image\.svg|download\.svg|view)$/.exec(route);
+	const match = /^([a-f0-9-]{36})\/(image\.svg|download\.svg|download\.xlsx|view)$/.exec(route);
 	if (!match) throw new InputError("图像不存在", 404);
 	const job = runner.get(match[1]), output = job.output;
+	if (match[2] === "download.xlsx") {
+		if (job.status !== "done" || !xlsx(output)) throw new InputError("Excel文件尚未生成", 404);
+		const bytes = Buffer.from(output.base64, "base64");
+		res.writeHead(200, {
+			"content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			"content-length": bytes.length,
+			"cache-control": "no-store",
+			"x-content-type-options": "nosniff",
+			"content-disposition": `attachment; filename="workbook.xlsx"; filename*=UTF-8''${encodeURIComponent(output.fileName)}`
+		});
+		res.end(bytes);
+		return;
+	}
 	if (job.status !== "done" || !diagram(output)) throw new InputError("图像尚未生成", 404);
 	const title = String(output.document.title ?? "流程图"), root = "/api/capabilities/packages/artifact/" + match[1];
 	if (match[2] !== "view") {

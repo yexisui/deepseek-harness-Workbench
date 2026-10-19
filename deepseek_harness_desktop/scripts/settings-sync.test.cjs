@@ -91,3 +91,11 @@ test('secret embedded in freeform text stops export without publishing a manifes
   assert.throws(() => exportSettings(root),/Possible credential/);
   assert(!fs.existsSync(path.join(root,'shared-settings/manifest.json')));
 });
+
+test('skill Python resources and binary Excel templates survive export/apply byte for byte', t => {
+ const source=fixture(t),target=fixture(t),python='print("template generation")\n',bytes=Buffer.from([80,75,3,4,0,255,128,42]);
+ for(const prefix of ['skills/sample','skill-management/versions/hash']){write(source,'dsh-data/'+prefix+'/scripts/build.py',python);const file=path.join(source,'dsh-data',prefix,'assets/template.xlsx');fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,bytes);}
+ exportSettings(source);copy(path.join(source,'shared-settings'),path.join(target,'shared-settings'));applySettings(target);
+ for(const prefix of ['skills/sample','skill-management/versions/hash']){assert.equal(fs.readFileSync(path.join(target,'dsh-data',prefix,'scripts/build.py'),'utf8'),python);assert.deepEqual(fs.readFileSync(path.join(target,'dsh-data',prefix,'assets/template.xlsx')),bytes);}
+ assert(!allowed('skins/sample/run.py'));assert(!allowed('skills/sample/program.exe'));
+});

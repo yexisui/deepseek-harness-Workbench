@@ -24,6 +24,7 @@ function allowed(relative) {
   if (relative.split('/').some(p => ['node_modules', '.git', '.cache'].includes(p))) return false;
   // These presets are regenerated from capabilities/state.json or installed by the runtime.
   if (/^\.agent-presets\/workbench-(?:role-|chat\/)/.test(relative)) return false;
+  if (/^(?:skills|skill-management\/versions)\//.test(relative) && /\.(?:py|xlsx)$/i.test(relative)) return true;
   return /\.(?:json|ya?ml|md|txt|css|m?js|png|jpe?g|webp|gif|svg)$/i.test(relative) || /\/LICENSE$/.test(relative);
 }
 function safe(root, relative) {
@@ -98,7 +99,7 @@ function exportSettings(root) {
   // Build and inspect everything in memory before publishing any files.
   const files = names.sort().map(name => {
     let bytes = fs.readFileSync(safe(home, name));
-    const format = /\.(json|ya?ml)$/.test(name) ? 'structured' : /\.(png|jpe?g|webp|gif)$/i.test(name) ? 'binary' : 'text';
+    const format = /\.(json|ya?ml)$/.test(name) ? 'structured' : /\.(png|jpe?g|webp|gif|xlsx)$/i.test(name) ? 'binary' : 'text';
     if (format === 'structured') {
       let value = transform(read(name, bytes), portable, true);
       if (name === 'capabilities/state.json') delete value.stoppedSessions;

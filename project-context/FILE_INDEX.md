@@ -317,3 +317,5 @@
 - [requirements/auto/A028-移除宠物额度悬浮框.md](requirements/auto/A028-移除宠物额度悬浮框.md)：T039额度框移除范围、宠物保留、正式同步和r5离线交付证据。
 
 - [requirements/auto/A029-Everything本地文件搜索嵌入可行性分析.md](requirements/auto/A029-Everything本地文件搜索嵌入可行性分析.md)：T040 的需求演进、正式实现、Everything/ES 工具与索引服务、默认岗位、紧凑互斥 UI、原生目录选择、数据边界、测试/旧测试限制和 r8 离线交付证据；最新实施记录取代早期仅预览状态。
+
+- [requirements/auto/A031-通用Excel生成能力与技能分层.md](requirements/auto/A031-通用Excel生成能力与技能分层.md)：T042通用生成模块、业务技能与参数规范分层、正式岗位绑定、真实Excel结果及r11离线交付证据；源码位于capability-packages/excel-generation，宿主仅扩展文件下载。

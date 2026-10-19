@@ -61,7 +61,7 @@ describe('portable capability distribution',()=>{
     const saved=await env.store.command(env.store.snapshot().revision,{type:'role.save',definition:{...emptyRole(),name:'外部能力岗位',capabilities:[{capabilityId:installed.id,version:1,enabled:true},{capabilityId:'browser',version:1,enabled:true}]},publish:true})
     const role=env.store.snapshot().roles.find(r=>r.id===saved.id)!,version=role.versions[0]!,registered=new Map<string,any>()
     const agent={id:'external-agent',ctx:{tools:{guard:()=>()=>{},register:(tool:any)=>{registered.set(tool.name,tool);return()=>registered.delete(tool.name)}},get:()=>undefined},session:{header:{createdAt:Date.now()-1000,agentPreset:version.preset},snapshotEvents:()=>[]}}
-    const ctx={tools:{guard:()=>()=>{}},on:()=>()=>{},agents:{list:()=>[agent]},agentPresets:{composedPreset:()=>version.preset}}
+    const ctx={webServer:{port:3082},tools:{guard:()=>()=>{}},on:()=>()=>{},agents:{list:()=>[agent]},agentPresets:{composedPreset:()=>version.preset}}
     const runtime=new CapabilityRuntime(ctx as never,env.store,{bskPath:'',bskHome:'',port:0});runtime.packageRunner=env.runner;await runtime.init();cleanups.push(()=>runtime.dispose())
     expect(runtime.health.loaded).toBe(false);expect(registered.has('capability_action')).toBe(true)
     const args={capabilityId:installed.id,action,input:JSON.stringify('from role')},exec={name:'capability_action',arguments:args,callId:'call-one',signal:new AbortController().signal,agent}

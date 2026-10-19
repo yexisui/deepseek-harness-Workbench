@@ -1,0 +1,74 @@
+{
+  "modules": [
+    {
+      "name": "域登录与安全",
+      "items": [
+        {
+          "func": "域登录验证",
+          "desc": "集成域登录验证，支持单点登录",
+          "coding_days": 3
+        },
+        {
+          "func": "加密验证",
+          "desc": "接口数据传输加密验证",
+          "coding_days": 2
+        },
+        {
+          "func": "数字证书",
+          "desc": "数字证书集成与验证",
+          "coding_days": 2
+        },
+        {
+          "func": "4A认证",
+          "desc": "4A统一认证集成",
+          "coding_days": 3
+        }
+      ]
+    },
+    {
+      "name": "系统日志管理",
+      "items": [
+        {
+          "func": "用户操作日志",
+          "desc": "记录用户操作日志，支持查询与导出",
+          "coding_days": 2
+        },
+        {
+          "func": "异常日志",
+          "desc": "系统异常日志记录与告警",
+          "coding_days": 1
+        }
+      ]
+    },
+    {
+      "name": "系统安全",
+      "items": [
+        {
+          "func": "配置文件加密",
+          "desc": "敏感配置文件加密存储",
+          "coding_days": 1
+        },
+        {
+          "func": "服务器漏洞及风险整改",
+          "desc": "服务器安全漏洞扫描与整改",
+          "coding_days": 3
+        },
+        {
+          "func": "证书域名",
+          "desc": "HTTPS证书域名配置",
+          "coding_days": 0.5
+        },
+        {
+          "func": "测试、预生产、生产服务器搭建部署",
+          "desc": "测试、预生产、生产服务器搭建部署",
+          "coding_days": 3
+        },
+        {
+          "func": "UAU角色配置",
+          "desc": "UAU角色配置",
+          "coding_days": 1
+        }
+      ]
+    }
+  ]
+}

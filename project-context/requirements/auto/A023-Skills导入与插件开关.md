@@ -171,3 +171,7 @@ node "<SECONDARY_WORKSPACE>/skills-plugin-management/release.mjs" --rollback
 - 检查过程：首次沙箱执行遇 Windows 临时文件重命名权限错误，改用获准的独立测试执行；能力测试一度出现临时目录清理竞争，复验及最终全套通过。浏览器本地页面访问限制仍未解除，实机视觉与完整点击保留待用户验收。
 - 正式版本 6f823a05244ade3cf980b540c978270603935e26，源码 ccb8c75，基线 3ad08ee。41 项文件回退演练及正式安装核对通过，11 项受保护配置、正式技能管理状态原字节保持。未强制重启、未推送，正常退出并重开工作台后加载。
 - 备份与证据：<SECONDARY_WORKSPACE>/skills-usage-tags 下 backup/source.zip、history.bundle、业务状态备份、release/backup、release/manifest.json、rollback-check.json、installed.json 和 checks。release.mjs --rollback 除发布版本边界外，若技能设置已发生变化会要求先迁移，再回退，防止旧代码忽略新范围字段而扩大权限。
+
+## 2026-10-19 后续：Excel实际生成能力已补齐
+
+按用户新增授权，原AI项目估算助手现已绑定通用“Excel 生成”功能和独立excel-generation-guidelines技能，workload-estimator源文件未修改。真实模型两表工作簿生成/下载及独立公式检查通过。前节“当前无法生成Excel”仅描述此前技能单独验证阶段，现状、能力边界和交付证据见[A031](A031-通用Excel生成能力与技能分层.md)。
