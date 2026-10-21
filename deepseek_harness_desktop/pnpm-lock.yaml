@@ -83,6 +83,10 @@ importers:
       '@wxg-prc-cpg/browser-skill-dsh-plugin':
         specifier: 0.3.0
         version: 0.3.0(@deepseek-ai/cordis@4.0.2)(@deepseek-ai/dsh-attachment@0.1.5-rc.1(@deepseek-ai/cordis@4.0.2)(@deepseek-ai/dsh-brand@0.1.5-rc.1(@deepseek-ai/cordis@4.0.2)))(@deepseek-ai/dsh-llm@0.1.5-rc.1(@deepseek-ai/cordis@4.0.2))(@deepseek-ai/dsh-tools@0.1.5-rc.1(86e2a937f7f43ecf70d100c48e2c6214))(@deepseek-ai/schemastery@3.18.2)(react@18.3.1)
+    devDependencies:
+      parse5:
+        specifier: 7.3.0
+        version: 7.3.0
 
   packages/dsh-client-ui-plain-chat:
     devDependencies:

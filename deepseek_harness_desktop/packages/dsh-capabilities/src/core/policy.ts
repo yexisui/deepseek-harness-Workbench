@@ -39,11 +39,13 @@ export function allowedRoleSkills(state:State,roleId:string,snapshot:RoleVersion
 }
 export function requiredAction(tool: string, args: Record<string, unknown>): Action | 'session' | undefined {
   if (tool === 'browser_session' && ['start', 'stop', 'list'].includes(String(args.action))) return args.url === undefined ? 'session' : 'navigate'
+  if (tool === 'browser_article') return 'read'
   if (tool === 'browser_page' && args.action === 'navigate') return 'navigate'
   if (tool === 'browser_inspect' && ['observe', 'snapshot', 'html'].includes(String(args.action))) return 'read'
   if (tool === 'browser_inspect' && args.action === 'screenshot') return 'screenshot'
 }
 export function callViolation(tool: string, args: Record<string, unknown>, allowed: Action[], owned: string[]): string | undefined {
+  if (tool === 'browser_article' && (!allowed.includes('navigate') || typeof args.url !== 'string')) return '完整文章读取需要网页导航和读取权限，以及明确的网址。'
   const action = requiredAction(tool, args)
   if (!action || (action === 'session' ? browserActions(allowed).length === 0 : !allowed.includes(action))) return '此岗位未获准执行该浏览器动作，或对应能力已停用。'
   if ('tabId' in args || 'device' in args) return '首期仅操作本会话创建的默认页面，不接受其他标签页或设备设置。'

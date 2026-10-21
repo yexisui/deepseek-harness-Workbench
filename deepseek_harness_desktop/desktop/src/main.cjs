@@ -190,7 +190,9 @@ function isGuiUrl(url) {
 }
 
 function createWindow() {
+  const background = process.argv.includes('--background');
   const window = new BrowserWindow({
+    show: !background,
     width: 1440,
     height: 900,
     minWidth: 960,
@@ -206,6 +208,7 @@ function createWindow() {
     },
   });
   applyWindowAppearance(window);
+  if (background) window.once('ready-to-show', () => { window.showInactive(); });
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (openPackageArtifact(window, url, BrowserWindow)) return { action: 'deny' };
     if (/^https?:\/\//.test(url) && !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//.test(url)) {
