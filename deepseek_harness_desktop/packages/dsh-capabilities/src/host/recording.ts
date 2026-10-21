@@ -8,7 +8,7 @@ import { allowedActions } from '../core/policy.ts'
 import { InputError } from '../core/validation.ts'
 import { json, readBody } from './http.ts'
 
-export type Recording = { id: string; roleId: string; roleVersion: number; roleName: string; title: string; createdAt: string; updatedAt: string; status: 'recording'|'paused'|'finished'|'interrupted'|'cancelled'; durationMs: number; nextChunk: number; mime: string; audio?: string; warning?: string; notes: {text:string;at:string}[] }
+export type Recording = { followup?: {jobId:string;operation:string;roleVersion:number;capabilityId:string;capabilityVersion:number}; id: string; roleId: string; roleVersion: number; roleName: string; title: string; createdAt: string; updatedAt: string; status: 'recording'|'paused'|'finished'|'interrupted'|'cancelled'; durationMs: number; nextChunk: number; mime: string; audio?: string; warning?: string; notes: {text:string;at:string}[] }
 const live = (r: Recording) => r.status === 'recording' || r.status === 'paused'
 export class RecordingService {
   private rows = new Map<string, Recording>()
@@ -31,6 +31,8 @@ export class RecordingService {
         row.status='interrupted'; row.warning='录音意外中断，已保留成功保存的部分。'; await this.finalize(row) }
     }
   }
+  async linkFollowup(id:string,link:NonNullable<Recording['followup']>){return this.serial(async()=>{const row=this.get(id);row.followup=link;await this.save(row);return row})}
+  audioFile(id:string){const row=this.get(id);if(!row.audio||live(row))throw new InputError('请先完成并保存录音');return join(this.directory(id),row.audio)}
   config() {
     const state=this.state()
     const roles=state.roles.filter(r=>r.enabled&&!r.removedAt&&!r.archivedAt&&latest(r.versions)&&allowedActions(state,r.id,latest(r.versions)!).includes('record-audio')).map(r=>({id:r.id,name:latest(r.versions)!.name}))

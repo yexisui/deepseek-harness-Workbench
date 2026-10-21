@@ -1,23 +1,27 @@
 import { fileSearchCommand } from '../../../../shared/client/file-search-client.ts'
-import React,{useState,useSyncExternalStore} from 'react'
-import {recordingClient,recordingCommand,recordingTime} from '../../../../shared/client/recording-client.ts'
+import React,{useEffect,useState,useSyncExternalStore} from 'react'
+import {recordingApi,recordingClient,recordingCommand,recordingTime} from '../../../../shared/client/recording-client.ts'
 import {RecordingControls} from '../../../../shared/client/RecordingControls.tsx'
+import {MeetingDemo,type MeetingDemoState} from './MeetingDemo.tsx'
 import s from './Chat.module.css'
-export function RecordingView({id}:{id:string}){
- const c=recordingClient(),state=useSyncExternalStore(c.subscribe,c.getSnapshot),row=state.rows.find(r=>r.id===id),[draft,setDraft]=useState(''),[error,setError]=useState('')
- const send=async()=>{if(!draft.trim())return;if(fileSearchCommand(draft)||recordingCommand(draft)){setDraft('');return}try{await c.command(id,'note',{text:draft});setDraft('');setError('')}catch(e){setError(String(e))}}
+type Options={choices:{id:string;label:string}[];link?:{jobId:string;operation:string;roleVersion:number};roleVersion?:number}
+function saved(id:string):{operation?:string;state?:MeetingDemoState}{try{return JSON.parse(localStorage.getItem('recording-followup:'+id)||'{}')}catch{return {}}}
+export function RecordingView({id,loadModels}:{id:string;loadModels?:()=>Promise<{id:string;name:string}[]>}){
+ const c=recordingClient(),state=useSyncExternalStore(c.subscribe,c.getSnapshot),row=state.rows.find(r=>r.id===id),[draft,setDraft]=useState(''),[error,setError]=useState(''),[options,setOptions]=useState<Options>(),[operation,setOperation]=useState(saved(id).operation??'')
+ useEffect(()=>{let live=true;const refresh=()=>void recordingApi<Options>('followup?id='+id).then(v=>{if(live)setOptions(v)}).catch(e=>{if(live)setError(e.message)});refresh();window.addEventListener('workbench-recording-config-changed',refresh);const timer=setInterval(refresh,15000);return()=>{live=false;clearInterval(timer);window.removeEventListener('workbench-recording-config-changed',refresh)}},[id])
+ const choose=(value:string)=>{setOperation(value);localStorage.setItem('recording-followup:'+id,JSON.stringify({operation:value}));setError('')}
+ const send=async()=>{if(!draft.trim())return;if(fileSearchCommand(draft)||recordingCommand(draft)){setDraft('');return}const requested:Record<string,string>={'转为文字':'transcribe','生成纪要':'quick','快速生成纪要':'quick','引导整理':'guided'};const action=requested[draft.trim().replace(/[。！!]+$/,'')];if(action){if(options?.choices.some(v=>v.id===action)){choose(action);setDraft('')}else setError('当前岗位未启用此后续操作');return}try{await c.command(id,'note',{text:draft});setDraft('');setError('')}catch(e){setError(String(e))}}
  if(!row)return <p role="status">正在读取录音…</p>
- const active=state.activeId===id,live=row.status==='recording'||row.status==='paused'
- return <section style={{height:'100%',display:'flex',flexDirection:'column',padding:'20px 28px',boxSizing:'border-box',gap:16}}>
-  <div style={{flex:1,overflowY:'auto'}}><h3 style={{fontSize:18}}>{row.title}</h3><p>{row.roleName} · {{recording:'正在录音',paused:'已暂停',finished:'录音已保存',interrupted:'录音已中断，已保存的部分可回听',cancelled:'录音已取消'}[row.status]} · {recordingTime(active?state.elapsed:row.durationMs)}</p>
-   {active&&<RecordingControls/>}
-   {live&&!active&&<button onClick={()=>void c.command(id,'recover').catch(e=>setError(e.message))}>恢复已保存部分</button>}
-   {row.audio&&<div style={{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}><audio controls preload="metadata" src={'/api/capabilities/recording/audio?id='+id}/><a href={'/api/capabilities/recording/audio?id='+id} download={row.title+(row.audio.endsWith('.webm')?'.webm':'.m4a')}>下载录音</a></div>}
-   {row.warning&&<p role="status">{row.warning}</p>}
-   <small style={{fontSize:12,opacity:.7}}>创建于 {new Date(row.createdAt).toLocaleString()}{!live&&<> · 保存于 {new Date(row.updatedAt).toLocaleString()}</>}</small>
-   {row.notes.map((note,i)=><div key={i} className={s.card} style={{marginTop:16,whiteSpace:'pre-wrap'}}>{note.text}<footer style={{fontSize:12,opacity:.7,marginTop:8}}>{new Date(note.at).toLocaleString()}</footer></div>)}
-  </div>
-  {(error||state.error)&&<p role="alert">{error||state.error}</p>}
-  <div className={s.card}><textarea className={s.input} aria-label="录音会话输入" placeholder="添加录音备注，或输入暂停录音、继续录音、完成录音" value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();void send()}}}/><div className={s.row}><small>录音与备注保存在当前岗位会话中</small><button className={s.send} aria-label="发送录音备注" onClick={()=>void send()}>↑</button></div></div>
- </section>
+ const active=state.activeId===id,live=row.status==='recording'||row.status==='paused',link=options?.link??row.followup,selected=link?.operation??operation
+ const header=<div><h3 style={{fontSize:18}}>{row.title}</h3><p>{row.roleName} · {{recording:'正在录音',paused:'已暂停',finished:'录音已保存',interrupted:'录音已中断，已保存的部分可回听',cancelled:'录音已取消'}[row.status]} · {recordingTime(active?state.elapsed:row.durationMs)}</p>
+  {active&&<RecordingControls/>}{live&&!active&&<button onClick={()=>void c.command(id,'recover').catch(e=>setError(e.message))}>恢复已保存部分</button>}
+  {row.audio&&<div style={{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}><audio controls preload="metadata" src={'/api/capabilities/recording/audio?id='+id}/><a href={'/api/capabilities/recording/audio?id='+id} download={row.title+(row.audio.endsWith('.webm')?'.webm':'.m4a')}>下载录音</a></div>}
+  {row.warning&&<p role="status">{row.warning}</p>}<small style={{fontSize:12,opacity:.7}}>创建于 {new Date(row.createdAt).toLocaleString()}{!live&&<> · 保存于 {new Date(row.updatedAt).toLocaleString()}</>}</small>
+  {row.notes.map((note,i)=><div key={i} className={s.card} style={{marginTop:16,whiteSpace:'pre-wrap'}}>{note.text}<footer style={{fontSize:12,opacity:.7,marginTop:8}}>{new Date(note.at).toLocaleString()}</footer></div>)}
+ </div>
+ if(selected&&row.audio&&options&&(link||options.choices.some(v=>v.id===selected))){const initial=saved(id).state;return <MeetingDemo key={id+selected} conversationTitle={row.title} assistant={{name:row.roleName,color:'#6683bd'}} roleId={row.roleId} roleVersion={link?.roleVersion??options.roleVersion} loadModels={loadModels} initialState={initial?.jobId||!link?initial:undefined} recordingSource={{id,operation:selected,jobId:link?.jobId}} canProcess={options.choices.some(v=>v.id===selected)} canGenerate={options.choices.some(v=>v.id==='quick'||v.id==='guided')} sourceHeader={<>{header}{!options.choices.length&&<p>后续处理已停用，已有结果仍可查看。</p>}</>} onSnapshot={snapshot=>{localStorage.setItem('recording-followup:'+id,JSON.stringify({operation:selected,state:snapshot}));if(snapshot.jobId&&!row.followup)void c.refresh()}}/>}
+ return <section style={{height:'100%',display:'flex',flexDirection:'column',padding:'20px 28px',boxSizing:'border-box',gap:16}}><div style={{flex:1,overflowY:'auto'}}>{header}
+ {row.audio&&!live&&!!options?.choices.length&&<div className={s.card} style={{marginTop:20}} aria-label="录音后续处理"><strong>录音已保存，接下来怎么处理？</strong><div style={{display:'flex',gap:10,flexWrap:'wrap',marginTop:12}}>{options.choices.map(choice=><button key={choice.id} className={s.button} onClick={()=>choose(choice.id)}>{choice.label}</button>)}</div><p style={{fontSize:12,opacity:.7}}>使用当前录音，在本会话继续处理。也可以稍后回来。</p></div>}</div>
+ {(error||state.error)&&<p role="alert">{error||state.error}</p>}
+ <div className={s.card}><textarea className={s.input} aria-label="录音会话输入" placeholder={live?'添加录音备注，或输入暂停录音、继续录音、完成录音':options?.choices.length?'输入“转为文字”“生成纪要”，或补充录音说明':'添加录音备注'} value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();void send()}}}/><div className={s.row}><small>录音与备注保存在当前岗位会话中</small><button className={s.send} aria-label="发送录音备注" onClick={()=>void send()}>↑</button></div></div></section>
 }

@@ -13,5 +13,5 @@ test('native caption remains empty after page titles change and menus cannot rea
   listeners.get('page-title-updated')({ preventDefault: () => { prevented = true; } }, 'DeepSeek Harness');
   assert.equal(prevented, true);
   assert.equal(windowAppearance.title, '');
-  assert.match(windowAppearance.icon, /blank-icon\.png$/);
+  assert.ok(windowAppearance.icon.endsWith(process.platform === 'win32' ? 'icon.ico' : 'icon.png'));
 });

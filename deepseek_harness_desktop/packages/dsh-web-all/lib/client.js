@@ -3378,6 +3378,24 @@ window.__ModuleLoader__.load({
 				compositionVersion: 2
 			},
 			{
+				id: "recording-followup",
+				name: "录音后续处理",
+				provider: "@linxin666/dsh-capabilities",
+				version: "1.0.0",
+				actions: [
+					"followup-transcribe",
+					"followup-quick",
+					"followup-guided"
+				],
+				dependencies: [],
+				icon: "audio",
+				sourceLabel: "录音流程衔接",
+				management: "recording-followup",
+				capabilityIds: ["recording-followup"],
+				required: true,
+				compositionVersion: 2
+			},
+			{
 				id: "everything-search",
 				name: "本地文件搜索",
 				provider: "@linxin666/dsh-capabilities",
@@ -5136,49 +5154,60 @@ window.__ModuleLoader__.load({
 				children: kind === "pin" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M16 3 21 8l-4 1-3 5v3l-7-7h3l5-3z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m3 21 7-7" })] }) : kind === "remove" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" }) }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6" }) })
 			});
 		}
-		function ManagementRow({ name, description, status, statusHint, icon, hint, onOpen, openLabel, pinned, onPin, pinLabel, busy, attributes }) {
+		function ManagementRow({ name, description, status, statusHint, icon, hint, onOpen, openLabel, pinned, onPin, pinLabel, busy, attributes, onRemove, removeLabel }) {
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
 				className: ManagedCapabilities_module_css_default.capabilityRow,
 				...attributes,
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-					className: ManagedCapabilities_module_css_default.capabilityOpen,
-					"aria-label": openLabel,
-					onClick: onOpen,
-					children: [
-						icon ?? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-							className: Capabilities_module_css_default.icon,
-							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "file" })
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-							className: ManagedCapabilities_module_css_default.capabilityIdentity,
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: name }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: description }),
-								hint && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
-									className: ManagedCapabilities_module_css_default.draftHint,
-									children: hint
-								})
-							]
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-							className: ManagedCapabilities_module_css_default.capabilityStatus,
-							title: statusHint,
-							children: status
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-							"aria-hidden": "true",
-							children: "›"
-						})
-					]
-				}), onPin && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-					className: `${ManagedCapabilities_module_css_default.iconButton} ${pinned ? ManagedCapabilities_module_css_default.pinned : ""}`,
-					disabled: busy,
-					"aria-label": pinLabel,
-					title: pinned ? "取消收藏" : "收藏",
-					"aria-pressed": !!pinned,
-					onClick: onPin,
-					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "pin" })
-				})]
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						className: ManagedCapabilities_module_css_default.capabilityOpen,
+						"aria-label": openLabel,
+						onClick: onOpen,
+						children: [
+							icon ?? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: Capabilities_module_css_default.icon,
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "file" })
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+								className: ManagedCapabilities_module_css_default.capabilityIdentity,
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: name }),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: description }),
+									hint && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+										className: ManagedCapabilities_module_css_default.draftHint,
+										children: hint
+									})
+								]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: ManagedCapabilities_module_css_default.capabilityStatus,
+								title: statusHint,
+								children: status
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								"aria-hidden": "true",
+								children: "›"
+							})
+						]
+					}),
+					onPin && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: `${ManagedCapabilities_module_css_default.iconButton} ${pinned ? ManagedCapabilities_module_css_default.pinned : ""}`,
+						disabled: busy,
+						"aria-label": pinLabel,
+						title: pinned ? "取消收藏" : "收藏",
+						"aria-pressed": !!pinned,
+						onClick: onPin,
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "pin" })
+					}),
+					onRemove && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.iconButton,
+						disabled: busy,
+						"aria-label": removeLabel,
+						title: "移除",
+						onClick: onRemove,
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "remove" })
+					})
+				]
 			});
 		}
 		//#endregion
@@ -5771,6 +5800,8 @@ window.__ModuleLoader__.load({
 		}
 		function SkillsCenter({ snapshot, busy, error, onImport, reload, change }) {
 			const [view, setView] = (0, react$1.useState)(initial), [filtering, setFiltering] = (0, react$1.useState)(false), [exporting, setExporting] = (0, react$1.useState)(false), [confirm, setConfirm] = (0, react$1.useState)(), [managingTags, setManagingTags] = (0, react$1.useState)(false), [tagFrom, setTagFrom] = (0, react$1.useState)(""), [tagTo, setTagTo] = (0, react$1.useState)(""), [tagError, setTagError] = (0, react$1.useState)(""), [tagBusy, setTagBusy] = (0, react$1.useState)(false), listPreferences = (0, react$1.useRef)(), listScroll = (0, react$1.useRef)(0), root = (0, react$1.useRef)(null);
+			const [removeId, setRemoveId] = (0, react$1.useState)();
+			const removeRow = snapshot.skills.find((r) => r.id === (removeId ?? view.selected));
 			const update = (patch) => setView((v) => ({
 				...v,
 				...patch
@@ -5897,7 +5928,10 @@ window.__ModuleLoader__.load({
 						onTab: (tab) => update({ tab }),
 						busy,
 						change,
-						onConfirm: setConfirm
+						onConfirm: (action) => {
+							setRemoveId(void 0);
+							setConfirm(action);
+						}
 					}) : view.page === "other" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(OtherSkills, {}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 							className: ManagedCapabilities_module_css_default.search,
@@ -6011,6 +6045,11 @@ window.__ModuleLoader__.load({
 								busy,
 								onPin: r.removed ? void 0 : () => change(r, "pinned", !r.pinned),
 								pinLabel: (r.pinned ? "取消收藏" : "收藏技能") + "：" + r.name,
+								onRemove: r.removed ? void 0 : () => {
+									setRemoveId(r.id);
+									setConfirm("remove");
+								},
+								removeLabel: "移除技能：" + r.name,
 								attributes: { "data-managed-skill": r.id }
 							}, r.id), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 								className: managed_panel_module_css_default.tags,
@@ -6137,7 +6176,7 @@ window.__ModuleLoader__.load({
 							}) }, r.id))]
 						})
 					}),
-					confirm && row && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$4, {
+					confirm && removeRow && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$4, {
 						title: "移除技能",
 						closeLabel: "取消操作",
 						onClose: () => {
@@ -6163,7 +6202,7 @@ window.__ModuleLoader__.load({
 										className: `${ManagedCapabilities_module_css_default.button} ${ManagedCapabilities_module_css_default.primary}`,
 										disabled: busy,
 										onClick: () => {
-											change(row, confirm);
+											change(removeRow, confirm);
 											setConfirm(void 0);
 										},
 										children: ["确认", "移除"]
@@ -6274,7 +6313,7 @@ window.__ModuleLoader__.load({
 					children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: `${ManagedCapabilities_module_css_default.page} ${ManagedCapabilities_module_css_default.dialogBody} ${managed_panel_module_css_default.importBody}`,
 						children: [
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "选择包含 SKILL.md 的文件夹或 ZIP，也可导入单个 SKILL.md。" }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "选择包含 SKILL.md 的文件夹或压缩包（ZIP、RAR、7z、TAR 等），也可导入单个 SKILL.md。" }),
 							"   ",
 							!preview ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -6283,7 +6322,7 @@ window.__ModuleLoader__.load({
 										className: ManagedCapabilities_module_css_default.button,
 										disabled: busy,
 										onClick: () => file.current?.click(),
-										children: "选择 ZIP / SKILL.md"
+										children: "选择压缩包 / SKILL.md"
 									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 										className: ManagedCapabilities_module_css_default.button,
 										disabled: busy,
@@ -6294,7 +6333,7 @@ window.__ModuleLoader__.load({
 								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 									ref: file,
 									type: "file",
-									accept: ".zip,.md",
+									accept: ".zip,.rar,.7z,.tar,.gz,.tgz,.bz2,.tbz2,.xz,.txz,.z,.md",
 									hidden: true,
 									onChange: (e) => upload(e.target.files)
 								}),
@@ -17627,7 +17666,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region ../../../../node_modules/clsx/dist/clsx.mjs
+		//#region ../../node_modules/.pnpm/clsx@2.1.1/node_modules/clsx/dist/clsx.mjs
 		function r(e) {
 			var t, f, n = "";
 			if ("string" == typeof e || "number" == typeof e) n += e;
@@ -17642,7 +17681,7 @@ window.__ModuleLoader__.load({
 			return n;
 		}
 		//#endregion
-		//#region ../../../../../dsh-data/profiles/web/node_modules/qrcode.react/lib/esm/index.js
+		//#region ../../node_modules/.pnpm/qrcode.react@4.2.0_react@18.3.1/node_modules/qrcode.react/lib/esm/index.js
 		var __defProp = Object.defineProperty;
 		var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 		var __hasOwnProp = Object.prototype.hasOwnProperty;
@@ -28709,7 +28748,7 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region ../../../../../dsh-data/profiles/web/node_modules/@xterm/xterm/lib/xterm.js
+		//#region ../../node_modules/.pnpm/@xterm+xterm@6.0.0/node_modules/@xterm/xterm/lib/xterm.js
 		var require_xterm = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			(function(e, t) {
 				if ("object" == typeof exports && "object" == typeof module) module.exports = t();
@@ -41707,7 +41746,7 @@ window.__ModuleLoader__.load({
 			})()));
 		}));
 		//#endregion
-		//#region ../../../../../dsh-data/profiles/web/node_modules/@xterm/addon-fit/lib/addon-fit.js
+		//#region ../../node_modules/.pnpm/@xterm+addon-fit@0.11.0/node_modules/@xterm/addon-fit/lib/addon-fit.js
 		var require_addon_fit = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			(function(e, t) {
 				"object" == typeof exports && "object" == typeof module ? module.exports = t() : "function" == typeof define && define.amd ? define([], t) : "object" == typeof exports ? exports.FitAddon = t() : e.FitAddon = t();

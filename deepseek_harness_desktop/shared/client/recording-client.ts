@@ -1,5 +1,5 @@
 /** Shared by the pet and conversation bundles; capture survives component unmounts. */
-export type RecordingRow = {id:string;roleId:string;roleVersion:number;roleName:string;title:string;createdAt:string;updatedAt:string;status:'recording'|'paused'|'finished'|'interrupted'|'cancelled';durationMs:number;nextChunk:number;audio?:string;warning?:string;notes:{text:string;at:string}[]}
+export type RecordingRow = {followup?:{jobId:string;operation:string;roleVersion:number;capabilityId:string;capabilityVersion:number};id:string;roleId:string;roleVersion:number;roleName:string;title:string;createdAt:string;updatedAt:string;status:'recording'|'paused'|'finished'|'interrupted'|'cancelled';durationMs:number;nextChunk:number;audio?:string;warning?:string;notes:{text:string;at:string}[]}
 export type RecordingConfig = {roleId:string;roles:{id:string;name:string}[];ready:boolean}
 export async function recordingApi<T>(path:string,body?:unknown):Promise<T>{const r=await fetch('/api/capabilities/recording/'+path,{credentials:'same-origin',...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const value=await r.json();if(!r.ok)throw Error(value.error||'录音保存失败');return value}
 type Snapshot={config?:RecordingConfig;rows:RecordingRow[];activeId:string|null;busy:boolean;error:string;elapsed:number;pending:number}

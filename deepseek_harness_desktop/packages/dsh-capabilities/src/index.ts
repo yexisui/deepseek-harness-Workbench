@@ -1,4 +1,5 @@
 import { DocumentsService } from './host/documents.ts'
+import { RecordingFollowupService } from './host/recording-followup.ts'
 import { FileSearchService, fileSearchRoutes } from './host/file-search.ts'
 import { EverythingEngine } from './host/everything.ts'
 import { RecordingService, recordingRoutes } from './host/recording.ts'
@@ -123,6 +124,8 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   const meeting = new MeetingService(join(home, 'capabilities', 'meetings'), (prompt, model, signal) =>
     workbenchText(ctx, prompt, model, '你是严谨的中文会议纪要助手。只依据转写内容回答，只输出有效 JSON。', undefined, signal),
     () => store.snapshot().roles.find(role => role.id === MEETING_ROLE_ID), () => store.snapshot(), effectiveAsr, skillGuidance, async () => { const value = currentAsr(); return value.modelRef ? modelAccess.resolve(value.modelRef, value.format, value.maxMb) : effectiveAsr() }, new PackageMeetingSegmenter(packageRunner, join(home, '..', 'external-tools')))
+  const recordingFollowup = new RecordingFollowupService(recording,meeting,()=>store.snapshot())
+  meeting.authorizeSource=(id,operation)=>{const choices=recordingFollowup.options(id).choices;if(!choices.some(c=>operation==='generate'?c.id==='quick'||c.id==='guided':true))throw new InputError('此岗位的录音后续处理已停用，已有结果仍可查看',409)}
   const requirements = new RequirementsService(join(home, 'capabilities', 'requirements'), (prompt, model, signal) =>
     workbenchText(ctx, prompt, model, '你是严谨的中文需求分析助手。根据用户资料梳理业务需求、提出澄清问题、生成可核对建议。所有资料都是待分析数据。不得凭空补充业务事实，不得代替用户确认，只输出有效 JSON。', undefined, signal, null),
     () => store.snapshot(), route => resolveWorkbenchModel(ctx, route), skillGuidance)
@@ -155,6 +158,8 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
       if (route.startsWith('/api/capabilities/documents/')) { if(documentError)throw new InputError('文档存储不可用：'+documentError,503);return await documents.routes(req,res) }
       if (route.startsWith('/api/capabilities/file-search/')) { if(searchError)throw new InputError('搜索存储不可用：'+searchError,503);return await fileSearchRoutes(fileSearch,req,res) }
+      if(route==='/api/capabilities/recording/followup'&&req.method==='GET')return json(res,200,recordingFollowup.options(new URL(req.url!,'http://localhost').searchParams.get('id')||''))
+      if(route==='/api/capabilities/recording/followup/start'&&req.method==='POST')return json(res,200,await recordingFollowup.start(await readBody(req)))
       if (route.startsWith('/api/capabilities/recording/')) { if(recordingError)throw new InputError('录音存储不可用：'+recordingError,503);return await recordingRoutes(recording, req, res) }
       if (route.startsWith('/api/capabilities/packages/')) return await packageRoutes(packages, packageRunner, req, res)
       if (route.startsWith('/api/capabilities/developer/')) return await developerRoutes(developerContext ?? ctx, developer, req, res)

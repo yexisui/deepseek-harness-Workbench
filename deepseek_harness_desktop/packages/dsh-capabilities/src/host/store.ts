@@ -1,5 +1,5 @@
 import { documentCapability, documentRole } from '../core/documents-model.ts'
-import { fileSearchCapability, recordingCapability } from '../core/model.ts'
+import { recordingFollowupCapability, fileSearchCapability, recordingCapability } from '../core/model.ts'
 import { applyCapabilitySettings, saveRoleSettings } from '../core/current-settings.ts'
 import {ManagedSkills} from '../../../dsh-skill-explorer/src/managed.ts'
 import {dirname} from 'node:path'
@@ -127,6 +127,16 @@ export class CapabilityStore {
           this.publishRole(role,{...structuredClone(current),capabilities:[...current.capabilities,binding]},now)
         }
         next.recordingCapabilityVersion=1;next.revision++;next.updatedAt=now;await this.persist(next);this.state=next
+      }
+      if(this.state.recordingFollowupVersion!==1){
+        const next=this.mutableSnapshot(),now=new Date().toISOString();
+        if(!next.capabilities.some(c=>c.id==='recording-followup'))next.capabilities.push(recordingFollowupCapability(now));
+        const role=next.roles.find(r=>r.id===MEETING_ROLE_ID),current=role&&latest(role.versions),binding={capabilityId:'recording-followup',version:1,enabled:true};
+        if(role&&current&&!current.capabilities.some(b=>b.capabilityId===binding.capabilityId)){
+          if(!role.draft.capabilities.some(b=>b.capabilityId===binding.capabilityId))role.draft.capabilities.push(structuredClone(binding));
+          this.publishRole(role,{...structuredClone(current),capabilities:[...current.capabilities,binding]},now);
+        }
+        next.recordingFollowupVersion=1;next.revision++;next.updatedAt=now;await this.persist(next);this.state=next;
       }
       if(this.state.documentCapabilityVersion!==1){
         const next=this.mutableSnapshot(),now=new Date().toISOString()

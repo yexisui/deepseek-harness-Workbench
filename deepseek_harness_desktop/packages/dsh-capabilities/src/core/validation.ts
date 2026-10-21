@@ -36,6 +36,7 @@ export function definition(value: unknown, catalog: readonly Component[] = compo
     if (new Set(actions).size !== actions.length) throw new InputError('动作重复')
     return { componentId, actions }
   }) }
+  if(data.followupTarget!==undefined)result.followupTarget=data.followupTarget===''?'':id(data.followupTarget)
   const dependencies = supportDependencies(result, catalog)
   const associations = [...result.components.map(p => p.componentId), ...dependencies]
   for (const key of ['excludedDependencies', 'componentOrder'] as const) {

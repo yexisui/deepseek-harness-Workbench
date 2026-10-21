@@ -1,8 +1,8 @@
 'use strict';
 const path = require('node:path');
 
-/** Transparent native icon: retain the normal Windows frame and its controls. */
-const windowAppearance = { title: '', icon: path.join(__dirname, 'assets/blank-icon.png') };
+/** Shared workbench icon: retain the normal Windows frame and its controls. */
+const windowAppearance = { title: '', icon: path.join(__dirname, process.platform === 'win32' ? 'assets/icon.ico' : 'assets/icon.png') };
 
 function applyWindowAppearance(window) {
   window.setMenu(null);

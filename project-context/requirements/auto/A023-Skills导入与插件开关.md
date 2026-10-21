@@ -172,6 +172,45 @@ node "<SECONDARY_WORKSPACE>/skills-plugin-management/release.mjs" --rollback
 - 正式版本 6f823a05244ade3cf980b540c978270603935e26，源码 ccb8c75，基线 3ad08ee。41 项文件回退演练及正式安装核对通过，11 项受保护配置、正式技能管理状态原字节保持。未强制重启、未推送，正常退出并重开工作台后加载。
 - 备份与证据：<SECONDARY_WORKSPACE>/skills-usage-tags 下 backup/source.zip、history.bundle、业务状态备份、release/backup、release/manifest.json、rollback-check.json、installed.json 和 checks。release.mjs --rollback 除发布版本边界外，若技能设置已发生变化会要求先迁移，再回退，防止旧代码忽略新范围字段而扩大权限。
 
+## 2026-10-13：workload-estimator 导入包格式修复
+
+用户要求排查附件技能导入失败，修复交付包，但由用户自行导入。静态核实 ManagedPanel.tsx 仅将 .zip 标记为压缩包，managed.ts 仅在该标记下解压；RAR 作为普通文件无法匹配 SKILL.md，与截图错误一致。原 RAR 实际包含有效 SKILL.md、Python 脚本、中文 Excel 模板和公共部分 JSON，共 4 个文件。
+
+已在原附件目录生成 C:/Users/24218/Desktop/1/workload-estimator-fixed.zip，根目录直接包含 SKILL.md，保留 assets/scripts 相对结构。逐文件 SHA-256 核对 ZIP 与解压原件内容一致。原 RAR 保留，未修改技能业务规则、正式源码或技能配置，未执行脚本、调用导入接口或安装技能。实际界面导入待用户操作。
+
+## 2026-10-13：按用户纠正改为扩展宿主压缩格式支持
+
+用户明确要求修改工作台兼容性，直接支持 RAR、7z 等，不以重新打包替代功能修复，技能仍由用户自行导入。
+
+已修改 dsh-skill-explorer 的选择入口与 managed.inspect 识别，新增 archive-formats.ts、skill-archive.ts。ZIP 沿用既有校验；其他格式复用 Windows System32/tar.exe（其他平台 bsdtar），转为有界内存 USTAR 流再读取，不将不可信条目直接解压到文件系统。保留 500 文件/32 MiB 限制，拒绝链接、特殊文件、路径越界与重复，超时30秒，不执行包内脚本。中文路径指定 UTF-8。支持 RAR、7z、TAR、TGZ、tar.gz/bz2/xz/Z 等；加密、分卷或损坏包返回明确失败。
+
+验证：原 workload-estimator.rar 在临时 home 中只 inspect、不 commit，识别 workload-estimator 和完整4文件，中文模板路径正确，技能列表始终为空。7z/TAR/TGZ/BZip2/XZ/Z 实际归档通过；路径越界及链接拒绝测试通过。Skills 首轮112通过、1条旧按钮文案断言失败；更新文案后对应7条界面及3条归档测试通过。聚合回归41通过、8跳过。tsc --noEmit通过；tsdown技能和聚合构建通过。原 declaration 构建存在跨包rootDir错误，临时产生的声明文件已清理，不称声明构建通过。未增加下载依赖、未更新离线ZIP。
+
+5个构建文件已同步本机正式安装目录并核对摘要（技能index/client/map，聚合client/map），更新源码指纹。未重启正在使用的桌面，用户正常退出重开后加载；完整界面手动导入待用户验证。未改技能内容或业务配置；仓库原有录音等未提交修改保持，不混合提交。此前生成ZIP只作为历史操作，不是本次解决方案。
+
+## 2026-10-13：正式导入复现、实际宿主修复与测试清理
+
+用户反馈重开后新界面仍报未找到 SKILL.md，授权正式导入测试、添加移除图标并在测试后移除。正式3082接口先复现RAR inspect 400。根因为 dsh-plugin-manager/src/index.ts 内嵌 mountSkills，独立技能包更新没有更新实际注册接口的插件管理器构建副本；前次仅隔离测试不足以证明正式后端生效。
+
+本轮重新构建并同步插件管理器、Skills及聚合包实际安装文件；共享 ManagementRow 新增可选移除动作，Skills 列表右侧使用共享垃圾桶，复用确认和回收站语义。正常关闭、重开桌面后，通过正式HTTP接口执行原RAR inspect→commit（停用）→detail→remove→list。识别4文件及中文资源，导入成功；测试技能 workload-estimator 已移入回收站且停用，运行目录不存在，原 requirement-review 记录逐字保持。没有执行估算脚本或启用技能，保留回收站恢复语义，未永久清除历史。
+
+验证：Skills类型检查通过，列表移除/取消确认、原详情移除恢复等8条UI测试通过；归档测试2通过、附件条件测试1跳过（原RAR通过正式HTTP验证）。插件管理器263通过、1跳过。三包构建完成并同步，源码指纹已更新。未宣称完整鼠标导入流程验收，正式接口全链已验证；资料及原有未提交工作保持。
+
+
+## 2026-10-19：仅绑定 workload-estimator 的岗位创建与真实模型验证
+
+用户明确授权在后台创建助手并验证，要求仅引入 workload-estimator。通过正式管理接口创建“AI 项目估算助手”（local-b7e37045-6ca6-4a47-918f-e4d0e5dc8eef），保存并启用，capabilities=[]，skills 仅绑定 workload-estimator 当前版本。技能启用、使用范围保留指定岗位；未改技能正文、模板、Python 脚本或产品源码。原有岗位、能力和其他技能逐项比较保持不变。
+
+实际新建对话“AI 项目估算助手 · 技能实测”（session-9d56ef99-d7e1-4dd8-ae81-5892b37a7324），采用该岗位预设和工作台原默认模型 deepseek-official/deepseek-flash。两轮模型调用均完成；实际调用 skill(workload-estimator) 与 skill_resource(scripts/build_estimate.py)，非仅配置检查。样例为虚构“AI采购材料预审小样”，目标2.0人月，未发送用户原始项目附件。
+
+第一轮输出4模块、13功能项、17.5编码人天，按技能公式合计43.75人天、2.01149人月；JSON可解析，字段与数量加总已独立核对。第二轮纠正开头分组计数、汇总引用K18（应为K17）及目标差异表述；发现OCR重试范围重复、样例验证作为编码项后再分摊测试的口径歧义，仍需人工确认，不能称结果可直接承诺工期或用于报价。
+
+当前岗位只开放 skill、skill_resource，均不提供执行Python、写入文件能力。助手如实报告无法生成Excel，无xlsx产物、无下载链接。本轮没有以外部代执行脚本冒充岗位输出，也没有追加其他技能/能力或修改授权策略。因此估算草稿与JSON流程通过，Excel文件生成未通过，原因是岗位执行工具缺失。
+
+助手及两轮测试对话保留。后台测试宿主原先未运行，本轮临时启动；测试后按受控停止流程退出，保存的岗位与对话下次正常启动可见。无页面点击验收。证据：<SECONDARY_WORKSPACE>/workload-estimator-role-20261019/result.json、assistant-responses.md、sample-spec-first-draft.json。JSON为第一轮草稿，第二轮修正建议见对话，未将未确认调整写回技能。
+
+按统一规则刷新 shared-settings 以保存岗位/技能开关。本次未提交或推送既有混合修改。现有设置导出白名单不包含.py/.xlsx，因此该快照不等于完整技能包的跨机器交付；本机原技能四文件保持，未修改共享导出程序或离线包。
+
 ## 2026-10-19 后续：Excel实际生成能力已补齐
 
 按用户新增授权，原AI项目估算助手现已绑定通用“Excel 生成”功能和独立excel-generation-guidelines技能，workload-estimator源文件未修改。真实模型两表工作簿生成/下载及独立公式检查通过。前节“当前无法生成Excel”仅描述此前技能单独验证阶段，现状、能力边界和交付证据见[A031](A031-通用Excel生成能力与技能分层.md)。

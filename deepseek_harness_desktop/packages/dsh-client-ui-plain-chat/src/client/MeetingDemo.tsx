@@ -1,3 +1,4 @@
+import { recordingApi } from '../../../../shared/client/recording-client.ts'
 import { fileSearchCommand } from '../../../../shared/client/file-search-client.ts'
 import { recordingCommand } from '../../../../shared/client/recording-client.ts'
 import { ExecutionHistory } from './ExecutionProcess.tsx'
@@ -48,8 +49,8 @@ function minutesText(minutes: Minutes): string {
   return lines.join('\n')
 }
 
-export function MeetingDemo({ conversationTitle, initialState, loadModels, onSnapshot, onCommit, onReset, assistant, roleVersion, roleId }: { conversationTitle?: string; initialState?: unknown; loadModels?: () => Promise<Array<{ id: string; name: string }>>; onSnapshot?: (state: MeetingDemoState) => void; onCommit?: (title: string) => void; onReset?: () => void; assistant?: Pick<RoleDefinition, 'name' | 'color' | 'icon'>; roleVersion?: number; roleId?: string } = {}) {
-  const initial = useRef(restore(initialState))
+export function MeetingDemo({ conversationTitle, initialState, loadModels, onSnapshot, onCommit, onReset, assistant, roleVersion, roleId, recordingSource, canProcess = true, canGenerate = true, sourceHeader }: { recordingSource?: {id:string;operation:string;jobId?:string};canProcess?:boolean;canGenerate?:boolean;sourceHeader?:React.ReactNode;conversationTitle?: string; initialState?: unknown; loadModels?: () => Promise<Array<{ id: string; name: string }>>; onSnapshot?: (state: MeetingDemoState) => void; onCommit?: (title: string) => void; onReset?: () => void; assistant?: Pick<RoleDefinition, 'name' | 'color' | 'icon'>; roleVersion?: number; roleId?: string } = {}) {
+  const initial = useRef(restore(initialState) ?? (recordingSource ? {mode:recordingSource.operation==='quick'?'quick':'guided',phase:recordingSource.jobId?'processing':recordingSource.operation==='guided'?'audience':'processing',audience:'',focus:'',summaryModel:'',messages:[{id:0,kind:'assistant',text:recordingSource.operation==='guided'&&!recordingSource.jobId?'先选择纪要用途和关注重点。':'使用本会话已保存录音继续处理。',createdAt:new Date().toISOString()}],trace:['从已保存录音接续'],draft:'',jobId:recordingSource.jobId??null,showTranscript:false} as MeetingDemoState : undefined))
   const assistantName = assistant?.name ?? '会议纪要助手'
   const assistantColor = assistant?.color ?? '#6683bd'
   const assistantIcon = assistant?.icon ?? { kind: 'builtin', id: 'document' } as const
@@ -120,7 +121,16 @@ export function MeetingDemo({ conversationTitle, initialState, loadModels, onSna
     setPhase(value === 'quick' ? 'upload' : 'audience'); log(`选择${value === 'quick' ? '快速生成' : '引导整理'}`)
   }
   const chooseAudience = (value: string) => { if (phase !== 'audience') return; setAudience(value); setPhase('focus'); add({ kind: 'user', text: value }, { kind: 'assistant', text: '这次希望重点突出什么？' }); log(`纪要用途：${value}`) }
-  const chooseFocus = (value: string) => { if (phase !== 'focus') return; setFocus(value); setPhase('upload'); add({ kind: 'user', text: value }, { kind: 'assistant', text: '准备好了，请上传录音。' }); log(`关注重点：${value}`) }
+  const chooseFocus = (value: string) => { if (phase !== 'focus') return; setFocus(value); if(recordingSource){void beginRecording(value);return} setPhase('upload'); add({ kind: 'user', text: value }, { kind: 'assistant', text: '准备好了，请上传录音。' }); log(`关注重点：${value}`) }
+  const sourceStarted=useRef(false)
+  const beginRecording=async(selectedFocus=focus)=>{
+    if(!recordingSource||busy||!canProcess)return
+    setBusy(true);setPhase('processing');setNotice('')
+    try{const result=await recordingApi<{job:Job}>('followup/start',{id:recordingSource.id,operation:recordingSource.operation,audience,focus:selectedFocus,summaryModel});setJobId(result.job.id);setJob(result.job)}
+    catch(e){setNotice(e instanceof Error?e.message:String(e));setPhase('upload')}
+    finally{setBusy(false)}
+  }
+  useEffect(()=>{if(recordingSource&&!jobId&&phase==='processing'&&!sourceStarted.current){sourceStarted.current=true;void beginRecording()}},[])
   const onFile = async (file?: File) => {
     if (!file || phase !== 'upload' || busy) return
     if (!/\.(mp3|m4a|wav|aac|flac|ogg|opus|webm|mp4)$/i.test(file.name)) { setNotice('请选择 MP3、M4A、WAV 等支持的音视频文件'); return }
@@ -145,6 +155,7 @@ export function MeetingDemo({ conversationTitle, initialState, loadModels, onSna
     finally { setBusy(false) }
   }
   const generate = async (instruction?: string) => {
+    if (!canGenerate){setNotice('此岗位的后续处理已停用，已有结果仍可查看');return}
     if (!jobId || busy || job?.timingStatus === 'processing') return
     setBusy(true); setPhase('processing')
     try {
@@ -162,6 +173,7 @@ export function MeetingDemo({ conversationTitle, initialState, loadModels, onSna
     if (phase === 'audience') return chooseAudience(value)
     if (phase === 'focus') return chooseFocus(value)
     if (phase === 'ready') return revise(value)
+    if(recordingSource&&phase==='transcript'&&['生成纪要','整理纪要','快速生成纪要'].includes(value))return void generate()
     if (phase === 'start') add({ kind: 'user', text: value }, { kind: 'assistant', text: '请先选择“快速生成”或“引导整理”。' })
     else setNotice(phase === 'transcript' ? '请先在转写原文中核对并确认' : phase === 'processing' ? '正在处理录音，请稍候' : '请先上传录音')
   }
@@ -204,7 +216,7 @@ export function MeetingDemo({ conversationTitle, initialState, loadModels, onSna
     <div className={s.cardHead}><div><small>录音转写</small><h3>{editable ? '请先核对原文' : '转写原文'}</h3></div><span>{(editable ? segments : displaySegments).length} 个片段</span></div>
     {jobId && <div className={s.audioBar}><audio ref={player} controls preload="metadata" src={`${endpoint}/audio/${jobId}`}/><small>{(editable ? segments : displaySegments).some(hasTiming) ? (editable ? segments : displaySegments).some(row => row.timingKind === 'chunk') ? '按录音片段起点回听；时间表示片段范围' : '点击有效时间戳回听；未知时间仅查看原文' : '当前转写未提供分段时间，可从头播放'}</small><button className={s.sourceLink} onClick={() => { const row = (editable ? segments : displaySegments)[0]; if (row) { setShowTranscript(true); setSourceRequest({ id: row.id, timed: Boolean(sourceRequest?.timed), play: true, fromStart: true }) } }}>从头播放</button></div>}
     <div className={s.transcriptRows}>{(editable ? segments : displaySegments).map((row, index) => <div className={s.transcriptRow} key={row.id} id={`meeting-source-${row.id}`} style={sourceRequest?.id === row.id ? { outline: '2px solid var(--color-primary, #6683bd)', outlineOffset: '2px' } : undefined}><button className={s.sourceLink} onClick={() => seek(row.id, !editable && Boolean(sourceRequest?.timed), hasTiming(row))}>{hasTiming(row) ? formatTime(row.start) : '原文'}</button><div>{editable ? <><input className={s.speakerInput} aria-label={`${segmentLabel(row)} 发言人`} value={row.speaker} onChange={event => setSegments(current => current.map((item, i) => i === index ? { ...item, speaker: event.target.value } : item))}/><textarea aria-label={`${segmentLabel(row)} 转写文字`} value={row.text} onChange={event => setSegments(current => current.map((item, i) => i === index ? { ...item, text: event.target.value } : item))}/></> : <><strong>{row.speaker}</strong><p>{row.text}</p></>}</div></div>)}</div>
-    {editable && <div className={s.cardFooter}><span>可修改说话人和识别文字，确认后生成纪要。</span><button className={s.primary} disabled={busy || job?.timingStatus === 'processing'} onClick={() => void generate()}>确认转写，生成纪要 →</button></div>}
+    {editable && <div className={s.cardFooter}>{modelControl}<span>可修改说话人和识别文字，确认后生成纪要。</span><button className={s.primary} disabled={!canGenerate || busy || job?.timingStatus === 'processing'} onClick={() => void generate()}>确认转写，生成纪要 →</button></div>}
   </div>
   const minutesCard = () => !job?.minutes ? null : <div className={s.resultCard}>
     <div className={s.cardHead}><div><small>会议纪要 · 可继续对话修改</small><h3>{job.minutes.title}</h3></div><span>基于录音生成</span></div>
@@ -229,12 +241,12 @@ export function MeetingDemo({ conversationTitle, initialState, loadModels, onSna
   }
   const status = job?.status
   return <div className={s.root} data-meeting-demo="true">
-    <div className={s.heading}><div>{!conversationTitle && <span>你好</span>}<strong>{conversationTitle || assistantName}</strong></div><div><span className={s.demoBadge}>{availability?.ready ? '录音转纪要' : '待配置'}</span><button onClick={() => onReset?.()}>重新开始</button></div></div>
+    <div className={s.heading}><div>{!recordingSource&&!conversationTitle && <span>你好</span>}<strong>{conversationTitle || assistantName}</strong></div><div><span className={s.demoBadge}>{availability?.ready ? '录音转纪要' : '待配置'}</span>{!recordingSource&&<button onClick={() => onReset?.()}>重新开始</button>}</div></div>
     <div className={s.tabs} role="tablist" aria-label="会话视图"><button role="tab" aria-selected={tab === 'chat'} onClick={() => setTab('chat')}>对话</button><button role="tab" aria-selected={tab === 'trace'} onClick={() => setTab('trace')}>轨迹</button></div>
-    <div className={s.scroll} ref={scroll} onScroll={()=>{const el=scroll.current;if(el)pinned.current=el.scrollHeight-el.scrollTop-el.clientHeight<80}} role="tabpanel">{tab === 'chat' ? <div className={s.messages}>{messages.filter(m=>m.kind!=='minutes').map(renderMessage)}<ExecutionHistory kind="meeting" id={jobId} active={Boolean(job&&(['uploading','transcribing','generating'].includes(job.status)||job.timingStatus==='processing'))}/>{messages.filter(m=>m.kind==='minutes').map(renderMessage)}{job?.minutes&&!messages.some(m=>m.kind==='minutes')&&assistantMessage(<><p>上一次保存的纪要</p>{minutesCard()}<MessageTime value={job.minutesGeneratedAt}/></>,-4)}{phase === 'processing' && status !== 'error' && assistantMessage(<div className={s.progress}><span>◌</span><div><strong>{status === 'generating' || status === 'transcribed' ? '正在生成纪要…' : status === 'uploading' ? '正在上传录音…' : '正在转写录音…'}</strong><small>可以切换会话，处理完成后回来查看</small><div className={s.progressTrack}><i/></div></div></div>, -1)}{status === 'error' && assistantMessage(<div className={s.resultCard}><div className={s.cardHead}><div><small>本轮未完成</small><h3>{job?.error}</h3></div></div><div className={s.cardFooter}><button disabled={busy} onClick={() => void retry()}>重试</button></div></div>, -2)}</div> : <div className={s.trace}><h2>会话轨迹</h2><p>记录本次会议处理步骤。</p><ol>{trace.map((entry, index) => <li key={index}><span>{String(index + 1).padStart(2, '0')}</span>{entry}</li>)}</ol></div>}</div>
+    <div className={s.scroll} ref={scroll} onScroll={()=>{const el=scroll.current;if(el)pinned.current=el.scrollHeight-el.scrollTop-el.clientHeight<80}} role="tabpanel">{tab === 'chat' ? <div className={s.messages}>{sourceHeader}{recordingSource&&phase==='upload'&&<div className={s.cardFooter}><p>使用当前已保存录音继续处理</p>{modelControl}<button disabled={busy||!canProcess} onClick={()=>void beginRecording()}>继续处理录音</button></div>}{messages.filter(m=>m.kind!=='minutes').map(renderMessage)}<ExecutionHistory kind="meeting" id={jobId} active={Boolean(job&&(['uploading','transcribing','generating'].includes(job.status)||job.timingStatus==='processing'))}/>{messages.filter(m=>m.kind==='minutes').map(renderMessage)}{job?.minutes&&!messages.some(m=>m.kind==='minutes')&&assistantMessage(<><p>上一次保存的纪要</p>{minutesCard()}<MessageTime value={job.minutesGeneratedAt}/></>,-4)}{phase === 'processing' && status !== 'error' && assistantMessage(<div className={s.progress}><span>◌</span><div><strong>{status === 'generating' || status === 'transcribed' ? '正在生成纪要…' : status === 'uploading' ? '正在上传录音…' : '正在转写录音…'}</strong><small>可以切换会话，处理完成后回来查看</small><div className={s.progressTrack}><i/></div></div></div>, -1)}{status === 'error' && assistantMessage(<div className={s.resultCard}><div className={s.cardHead}><div><small>本轮未完成</small><h3>{job?.error}</h3></div></div><div className={s.cardFooter}><button disabled={busy} onClick={() => void retry()}>重试</button></div></div>, -2)}</div> : <div className={s.trace}><h2>会话轨迹</h2><p>记录本次会议处理步骤。</p><ol>{trace.map((entry, index) => <li key={index}><span>{String(index + 1).padStart(2, '0')}</span>{entry}</li>)}</ol></div>}</div>
     {newProgress&&<button className={s.progressAction} onClick={()=>{pinned.current=true;setNewProgress(false);scroll.current?.scrollTo({top:scroll.current.scrollHeight,behavior:'smooth'})}}>有新进展 · 回到底部</button>}
     {job&&(['transcribing','generating'].includes(job.status)||job.timingStatus==='processing')&&<button className={s.progressAction} disabled={busy} onClick={()=>{setBusy(true);void post<Job>('/stop',{id:jobId}).then(next=>{setJob(next);setNotice('本轮已停止，录音与已保存结果保留')}).catch(e=>setNotice(e.message)).finally(()=>setBusy(false))}}>停止本轮</button>}
-    <div className={s.composerWrap}><div className={s.composer}><textarea aria-label="输入消息" value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && event.keyCode !== 229) { event.preventDefault(); send() } }} placeholder={phase === 'start' ? '先选择上方的整理方式，或输入消息' : phase === 'audience' ? '输入纪要用途' : phase === 'focus' ? '输入关注重点' : phase === 'ready' ? '输入要求，继续修改纪要' : '输入消息，继续对话'}/><div className={s.composerTools}><div><button aria-label="添加录音" title="添加录音" disabled={phase !== 'upload' || !availability?.ready || busy} onClick={() => input.current?.click()}>＋</button><span>{availability?.ready ? '录音交由已配置的识别接口处理' : '语音识别尚未配置'}</span></div><div><span>{assistantName}</span><button className={s.send} aria-label="发送消息" disabled={!draft.trim() || busy} onClick={send}>↑</button></div></div></div>{notice && <p className={s.notice} role="status">{notice}</p>}</div>
+    <div className={s.composerWrap}><div className={s.composer}><textarea aria-label="输入消息" value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && event.keyCode !== 229) { event.preventDefault(); send() } }} placeholder={phase === 'start' ? '先选择上方的整理方式，或输入消息' : phase === 'audience' ? '输入纪要用途' : phase === 'focus' ? '输入关注重点' : phase === 'ready' ? '输入要求，继续修改纪要' : '输入消息，继续对话'}/><div className={s.composerTools}><div><button aria-label="添加录音" title="添加录音" disabled={!!recordingSource || phase !== 'upload' || !availability?.ready || busy} onClick={() => input.current?.click()}>＋</button><span>{availability?.ready ? '录音交由已配置的识别接口处理' : '语音识别尚未配置'}</span></div><div><span>{assistantName}</span><button className={s.send} aria-label="发送消息" disabled={!draft.trim() || busy} onClick={send}>↑</button></div></div></div>{notice && <p className={s.notice} role="status">{notice}</p>}</div>
     <input ref={input} type="file" accept=".mp3,.m4a,.wav,.aac,.flac,.ogg,.opus,.webm,.mp4" hidden onChange={event => void onFile(event.target.files?.[0])}/>
   </div>
 }

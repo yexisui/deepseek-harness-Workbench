@@ -16,7 +16,7 @@ export type MeetingItem = { text: string; sourceIds: string[] }
 export type MeetingAction = MeetingItem & { owner: string; deadline: string }
 export type MeetingMinutes = { title: string; overview: string; decisions: MeetingItem[]; actions: MeetingAction[]; unknown: MeetingItem[] }
 type MeetingRole = { id?: string; version: number; name: string; duties: string; requirements: string; format: string }
-export type MeetingJob = {
+export type MeetingJob = { sourceRecordingId?: string;
   title?: string;
   transcribedAt?: string; minutesGeneratedAt?: string;
   id: string; fileName: string; extension: string; size: number; createdAt: string; updatedAt: string
@@ -173,6 +173,7 @@ export class MeetingService {
       try {
         const job = await this.get(file.slice(0, -5))
         if (job.id !== file.slice(0, -5) || !Number.isFinite(Date.parse(job.updatedAt)) || !Number.isFinite(Date.parse(job.createdAt)) || !['quick','guided'].includes(job.mode) || typeof job.fileName !== 'string') throw new Error('会议记录格式无效')
+        if(job.sourceRecordingId)continue
         items.push({ id: job.id, title: job.title || job.minutes?.title || job.fileName, customTitle: Boolean(job.title), mode: job.mode, audience: job.audience, focus: job.focus, summaryModel: job.summaryModel, status: job.status, updatedAt: job.updatedAt, createdAt: job.createdAt, roleId: job.role?.id ?? MEETING_ROLE_ID, roleVersion: job.role?.version })
       } catch { unreadableCount++ }
     }
@@ -215,7 +216,7 @@ export class MeetingService {
       this.deleted.add(id)
     } finally { this.removing.delete(id) }
   }
-  async create(input: unknown) {
+  async create(input: unknown, sourceRecordingId?: string) {
     if (!this.availability().ready) throw new InputError(this.availability().message, 503)
     const data = input && typeof input === 'object' ? input as Record<string, unknown> : {}
     const role = this.role(data.roleVersion, undefined, data.roleId)
@@ -223,9 +224,16 @@ export class MeetingService {
     const extension = /\.[a-z0-9]+$/i.exec(fileName)?.[0].toLowerCase() ?? ''
     if (!ALLOWED.has(extension)) throw new InputError('不支持此录音格式；请使用 MP3、M4A、WAV 等常见格式')
     const now = new Date().toISOString()
-    const job: MeetingJob = { title: string(data.title, 120) || undefined, id: randomUUID(), fileName, extension, size: 0, createdAt: now, updatedAt: now, mode: data.mode === 'guided' ? 'guided' : 'quick', audience: string(data.audience, 100), focus: string(data.focus, 100), summaryModel: string(data.summaryModel, 200), role, status: 'uploading', segments: [] }
+    const job: MeetingJob = { sourceRecordingId, title: string(data.title, 120) || undefined, id: randomUUID(), fileName, extension, size: 0, createdAt: now, updatedAt: now, mode: data.mode === 'guided' ? 'guided' : 'quick', audience: string(data.audience, 100), focus: string(data.focus, 100), summaryModel: string(data.summaryModel, 200), role, status: 'uploading', segments: [] }
     await this.save(job)
     return job
+  }
+  async importSavedAudio(id:string,path:string){
+    const stream=createReadStream(path) as unknown as IncomingMessage;
+    Object.defineProperty(stream,'complete',{value:true});
+    const job=await this.get(id);
+    if(job.status==='error'&&!job.size){job.status='uploading';delete job.error;await this.save(job)}
+    return this.upload(id,stream)
   }
   async upload(id: string, req: IncomingMessage) {
     this.uploads.set(id, req)
@@ -309,6 +317,7 @@ export class MeetingService {
   private ask(prompt: string, modelRoute: string, signal?: AbortSignal) { return this.workbenchText(prompt, modelRoute, signal) }
   private transcriptText(rows: MeetingSegment[]) { return rows.map(row => `[${row.id} ${hasTiming(row) ? Math.floor(row.start / 1000) + '秒' : '时间未知'} ${row.speaker}] ${row.text}`).join('\n') }
   async generate(id: string, edited?: MeetingSegment[], instruction?: string, summaryModel?: string) {
+    const sourceJob=await this.get(id);if(sourceJob.sourceRecordingId)this.authorizeSource(sourceJob.sourceRecordingId,'generate')
     if(this.controllers.has(id)||this.generating.has(id))throw new InputError('当前会议仍在处理，请等待或停止',409)
     this.generating.add(id)
     try{return await this.track(id, () => this.startGenerate(id, edited, instruction, summaryModel))}finally{this.generating.delete(id)}

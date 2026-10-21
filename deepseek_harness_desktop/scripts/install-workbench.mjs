@@ -29,12 +29,35 @@ for (const entry of entries) {
   workspace.setIn(['overrides', entry.name], spec)
   if (roots.includes(entry.name)) manifest.dependencies[entry.name] = spec
 }
+// pnpm preserves previous link: resolutions even after switching to file:.
+// Unlink only managed package junctions; their source/archive targets remain intact.
+const lockPath = path.join(profile, 'pnpm-lock.yaml')
+const originalLock = fs.existsSync(lockPath) ? fs.readFileSync(lockPath, 'utf8') : null
+const lock = originalLock === null ? null : parseDocument(originalLock)
+if (lock?.errors.length) throw new Error('Cannot parse profile pnpm-lock.yaml')
+const detached = []
+for (const name of roots) {
+  const modulePath = path.join(profile, 'node_modules', ...name.split('/'))
+  let stat
+  try { stat = fs.lstatSync(modulePath) } catch (error) { if (error.code !== 'ENOENT') throw error }
+  if (stat?.isSymbolicLink()) {
+    detached.push({ modulePath, target: fs.readlinkSync(modulePath) })
+    fs.unlinkSync(modulePath)
+  }
+  const key = ['importers', '.', 'dependencies', name]
+  if (String(lock?.getIn([...key, 'version']) ?? '').startsWith('link:')) lock.deleteIn(key)
+}
+if (lock) fs.writeFileSync(lockPath, lock.toString())
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n')
 fs.writeFileSync(workspacePath, workspace.toString())
 const result = spawnSync(process.execPath, [path.join(root, 'runtime/node_modules/pnpm/bin/pnpm.cjs'), 'install', '--ignore-scripts'], {
   cwd: profile, stdio: 'inherit', windowsHide: true,
 })
 if (result.error || result.status !== 0) {
+  if (originalLock !== null) fs.writeFileSync(lockPath, originalLock)
+  for (const { modulePath, target } of detached) {
+    if (!fs.existsSync(modulePath)) fs.symlinkSync(target, modulePath, process.platform === 'win32' ? 'junction' : 'dir')
+  }
   fs.writeFileSync(manifestPath, originalManifest)
   if (originalWorkspace !== null) fs.writeFileSync(workspacePath, originalWorkspace)
   else fs.rmSync(workspacePath, { force: true })

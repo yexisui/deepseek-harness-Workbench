@@ -1,6 +1,6 @@
 # 共享文件职责索引
 
-更新时间：2026-10-10。先读[规则](AGENTS.MD)与[台账](PEFR_PLAN.MD)。本表逐项列出所有共享文件；历史归档中的链接不作为当前操作入口。本机原件逐项清单另见 archive/archive-inventory.csv。
+更新时间：2026-10-12。先读[规则](AGENTS.MD)与[台账](PEFR_PLAN.MD)。本表逐项列出所有共享文件；历史归档中的链接不作为当前操作入口。本机原件逐项清单另见 archive/archive-inventory.csv。
 
 | 文件 | 负责什么 | 状态与关系 |
 | --- | --- | --- |
@@ -13,7 +13,7 @@
 | [archive/project-analysis-20260917.md](<archive/project-analysis-20260917.md>) | 早期源码分析与二次开发背景 | 历史参考，不代表当前结构 |
 | [claude/C001-客户端后台功能测试与外置能力包未加载.md](<claude/C001-客户端后台功能测试与外置能力包未加载.md>) | T036 原始测试、正式客户端恢复复测、能力发布文件交付缺口与r9修复验证 | Claude 确认正式加载恢复；Codex 修复交付并验证隔离执行；正式实际任务未测 |
 | [claude/C002-Codex-AI智能文档分阶段执行计划.md](<claude/C002-Codex-AI智能文档分阶段执行计划.md>) | Codex 编写的 T041 执行与交付记录：阶段提交、验证、离线包及验收步骤 | 当前结果与边界的维护来源；含 2026-10-13 UI 补正，桌面效果待验收 |
-| [claude/README.md](<claude/README.md>) | Claude 生成文档的目录说明、编号规则与索引 | 当前协作管理文件 |
+| [claude/README.md](<claude/README.md>) | 本目录来源、编号与索引；注明用户指定收录的Codex摘要例外 | 当前协作管理文件 |
 | [archive/upstream/AGENTS.md.txt](<archive/upstream/AGENTS.md.txt>) | 原项目历史参考：AGENTS.md | 历史背景；不自动应用旧规则 |
 | [archive/upstream/CONTRIBUTING.md](<archive/upstream/CONTRIBUTING.md>) | 原项目历史参考：CONTRIBUTING.md | 历史背景；不自动应用旧规则 |
 | [archive/upstream/desktop/README.md](<archive/upstream/desktop/README.md>) | 原项目历史参考：desktop/README.md | 历史背景；不自动应用旧规则 |
@@ -243,7 +243,7 @@
 | [requirements/auto/A013-BrowserSkill实际接入执行方案.md](<requirements/auto/A013-BrowserSkill实际接入执行方案.md>) | A013-BrowserSkill实际接入执行方案 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A014-会议纪要助手界面嵌入.md](<requirements/auto/A014-会议纪要助手界面嵌入.md>) | A014-会议纪要助手界面嵌入 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A015-桌面启动过期能力锁修复.md](<requirements/auto/A015-桌面启动过期能力锁修复.md>) | A015-桌面启动过期能力锁修复 | 事项现状见台账；原有历史记录保留 |
-| [requirements/auto/A016-会议纪要助手真实录音接入.md](<requirements/auto/A016-会议纪要助手真实录音接入.md>) | A016-会议纪要助手真实录音接入 | 包含录音保存、宠物入口与岗位归属实施验证；事项现状见台账 |
+| [requirements/auto/A016-会议纪要助手真实录音接入.md](<requirements/auto/A016-会议纪要助手真实录音接入.md>) | A016-会议纪要助手真实录音接入 | 包含录音保存、宠物入口、岗位归属及独立录音后续处理能力的实施与实测；事项现状见台账 |
 | [requirements/auto/A017-需求分析助手拓展基础方案.md](<requirements/auto/A017-需求分析助手拓展基础方案.md>) | A017-需求分析助手拓展基础方案 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A017-需求分析助手方式选择.png](<requirements/auto/A017-需求分析助手方式选择.png>) | 关联文档的历史展示或验证附件：A017-需求分析助手方式选择 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A017-需求分析助手第一版.png](<requirements/auto/A017-需求分析助手第一版.png>) | 关联文档的历史展示或验证附件：A017-需求分析助手第一版 | 事项现状见台账；原有历史记录保留 |
@@ -291,8 +291,6 @@
 | FILE_INDEX.md | 本索引自身 | 新增、移动、删除共享文件时同步维护 |
 
 | [requirements/auto/A025-对话式固定模板流程图能力.md](requirements/auto/A025-对话式固定模板流程图能力.md) | T035用户确认需求、固定模板能力实现、正式岗位对话与保留结果证据 | 当前实施与验证记录，正式启用完成 |
-| [requirements/auto/A030-AI智能文档可行性与首版方案.md](<requirements/auto/A030-AI智能文档可行性与首版方案.md>) | T041 历史选型与第18节本轮实施导航；最新验证结果见 C002 | 保留 Fylar 与旧离线模型讨论，不能覆盖用户最新决定 |
-| [requirements/auto/A030-AI智能文档可行性与首版方案.html](<requirements/auto/A030-AI智能文档可行性与首版方案.html>) | A030 的离线可读报告，由同名 Markdown 生成 | 展示附件；方案正文由同名 Markdown 维护 |
 
 2026-10-11：AGENTS.MD第13节维护仅使用main规则；A006新增main整合、13个分支清理和验证记录，当前状态见PEFR_PLAN.MD。
 
@@ -317,5 +315,21 @@
 - [requirements/auto/A028-移除宠物额度悬浮框.md](requirements/auto/A028-移除宠物额度悬浮框.md)：T039额度框移除范围、宠物保留、正式同步和r5离线交付证据。
 
 - [requirements/auto/A029-Everything本地文件搜索嵌入可行性分析.md](requirements/auto/A029-Everything本地文件搜索嵌入可行性分析.md)：T040 的需求演进、正式实现、Everything/ES 工具与索引服务、默认岗位、紧凑互斥 UI、原生目录选择、数据边界、测试/旧测试限制和 r8 离线交付证据；最新实施记录取代早期仅预览状态。
+| [requirements/auto/A030-AI智能文档可行性与首版方案.md](<requirements/auto/A030-AI智能文档可行性与首版方案.md>) | T041 历史选型与第18节本轮实施导航；最新验证结果见 C002 | 保留 Fylar 与旧离线模型讨论，不能覆盖用户最新决定 |
+| [requirements/auto/A030-AI智能文档可行性与首版方案.html](<requirements/auto/A030-AI智能文档可行性与首版方案.html>) | A030 的离线可读报告，由同名 Markdown 生成 | 展示附件；方案正文由同名 Markdown 维护 |
+
+- 2026-10-13：M007新增二次开发测试缓存与重复安装资产清理记录，负责维护删除范围、保留的正式依赖、约15.59 GiB磁盘释放、对话/配置保护核验及本机证据路径；旧隔离测试安装程序已部分清理，历史验证记录继续保留。
+- 2026-10-13：A023补充宿主技能多格式压缩包导入实现及未导入验证；源码入口为dsh-skill-explorer/src/archive-formats.ts、skill-archive.ts，使用系统bsdtar，无新增下载工具。
+
+- 2026-10-13：A023补充正式Skills接口由插件管理器内嵌加载的定位、构建同步及测试技能移除证据；shared/client/ManagementRow.tsx新增可选移除动作。
+
+- [.editorconfig](../.editorconfig)：正式工作台PowerShell脚本的编辑器编码设置（UTF-8 BOM）；二次开发根目录有同项本地设置。统一操作约束由AGENTS.MD第16节维护，清理与验证证据由M007记录，不替代工具写入时的显式编码。
+- 2026-10-13：M007新增桌面两个乱码空目录清理、13个PowerShell脚本编码审计及Windows PowerShell 5.1中文路径验证记录；AGENTS.MD第16节维护中文路径预防要求。
+
+- 2026-10-14：A026 追加用户确认中性工作台图标的替换范围、资源来源、42 项测试及原生窗口加载证据；保留原品牌清理历史，离线 ZIP 与实际任务栏视觉状态单独标注。
+
+- 2026-10-19：A023补记仅绑定 workload-estimator 的助手创建、两轮真实模型估算验证及Excel执行工具缺失；岗位/技能开关经现有管理接口保存，未修改产品或技能代码。
 
 - [requirements/auto/A031-通用Excel生成能力与技能分层.md](requirements/auto/A031-通用Excel生成能力与技能分层.md)：T042通用生成模块、业务技能与参数规范分层、正式岗位绑定、真实Excel结果及r11离线交付证据；源码位于capability-packages/excel-generation，宿主仅扩展文件下载。
+
+- 2026-10-21：A006追加main进度检查点范围和验证边界；A025维护流程图右下角布局选择、全部已有模板接入及横向/分层/树状/泳道扩展的已确认需求，新增功能实施前状态见台账。

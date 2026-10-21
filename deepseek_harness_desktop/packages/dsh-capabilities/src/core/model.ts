@@ -3,9 +3,9 @@ import { defaultRoles, MEETING_CAPABILITY_ID } from './default-roles.ts'
 import type { RoleIconSpec } from './appearance.ts'
 import { REQUIREMENTS_CAPABILITY_ID, REQUIREMENTS_COMPONENT_ID } from './requirements-model.ts'
 import { DEVELOPER_CAPABILITY_ID, developerParts } from './developer-model.ts'
-export type Action = 'edit-document' | 'ask-document' | 'revise-document' | `pack:${string}` | 'search-files' | 'record-audio' | 'navigate' | 'read' | 'screenshot' | 'transcribe' | 'analyze-requirements' | 'develop' | 'inspect-git' | 'verify-code'
+export type Action = 'edit-document' | 'ask-document' | 'revise-document' | `pack:${string}` | 'search-files' | 'followup-transcribe' | 'followup-quick' | 'followup-guided' | 'record-audio' | 'navigate' | 'read' | 'screenshot' | 'transcribe' | 'analyze-requirements' | 'develop' | 'inspect-git' | 'verify-code'
 export type Part = { componentId: string; actions: Action[] }
-export type Definition = { name: string; description: string; instructions: string; components: Part[]; excludedDependencies?: string[]; componentOrder?: string[] }
+export type Definition = { followupTarget?: string; name: string; description: string; instructions: string; components: Part[]; excludedDependencies?: string[]; componentOrder?: string[] }
 export type Version = Definition & { directSave?: boolean; version: number; createdAt: string; packageHash?: string }
 export type Capability = { id: string; packageOrigin?: import('./distribution.ts').PackageOrigin; source: 'builtin' | 'local'; enabled: boolean; pinned: boolean; removedAt?: string; purgedAt?: string; draft: Definition; versions: Version[] }
 export type Binding = { capabilityId: string; version: number; enabled: boolean; actions?: Action[] }
@@ -13,16 +13,17 @@ export type SkillBinding = { id: string; name: string; hash: string; enabled: bo
 export type RoleDefinition = { name: string; color: string; icon?: RoleIconSpec; duties: string; requirements: string; format: string; capabilities: Binding[]; skills?: SkillBinding[] }
 export type RoleVersion = RoleDefinition & { directSave?: boolean; version: number; preset: string; createdAt: string }
 export type Role = { removedAt?: string; archivedAt?: string; id: string; enabled: boolean; draft: RoleDefinition; versions: RoleVersion[] }
-export type State = { packageModels?: Record<string,string>; packageReleases?: Record<string, import('./distribution.ts').PackageRelease>; componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; documentCapabilityVersion?: 1; fileSearchCapabilityVersion?: 1; recordingCapabilityVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
+export type State = { packageModels?: Record<string,string>; packageReleases?: Record<string, import('./distribution.ts').PackageRelease>; componentRestrictions?: Record<string, { enabled?: boolean; revokedAt?: number }>; schema: 1; revision: number; updatedAt: string; capabilities: Capability[]; roles: Role[]; defaultRolesVersion?: 1 | 2; meetingCapabilityVersion?: 1; requirementsCapabilityVersion?: 1; developerCapabilityVersion?: 1; documentCapabilityVersion?: 1; fileSearchCapabilityVersion?: 1; recordingCapabilityVersion?: 1; recordingFollowupVersion?: 1; stoppedSessions?: string[]; revokedAt?: Record<string, number> }
 export type Component = {
   id: string; name: string; provider: string; version: string; actions: readonly Action[]; dependencies: readonly string[]
-  icon: 'browser' | 'audio' | 'document'; sourceLabel: string; management: 'smart-document' | 'file-search' | 'recording' | 'browser' | 'meeting-asr' | 'requirements' | 'developer' | 'package'; actionLabels?: Record<string,string>; pluginModule?: string
+  icon: 'browser' | 'audio' | 'document'; sourceLabel: string; management: 'smart-document' | 'recording-followup' | 'file-search' | 'recording' | 'browser' | 'meeting-asr' | 'requirements' | 'developer' | 'package'; actionLabels?: Record<string,string>; pluginModule?: string
   /** Exclusive workflows cannot be assembled into unrelated capabilities until their execution adapter supports it. */
   capabilityIds?: readonly string[]; required?: boolean; compositionVersion: 1 | 2
 }
 export const browserPackage = '@wxg-prc-cpg/browser-skill-dsh-plugin'
 export const components: readonly Component[] = [
   {id:'document-editor',name:'Word 编辑与理解',provider:'@linxin666/dsh-capabilities',version:'1.0.0',actions:['edit-document','ask-document','revise-document'],dependencies:[],icon:'document',sourceLabel:'本机文档引擎',management:'smart-document',capabilityIds:['smart-document'],required:true,compositionVersion:2},
+ {id:'recording-followup',name:'录音后续处理',provider:'@linxin666/dsh-capabilities',version:'1.0.0',actions:['followup-transcribe','followup-quick','followup-guided'],dependencies:[],icon:'audio',sourceLabel:'录音流程衔接',management:'recording-followup',capabilityIds:['recording-followup'],required:true,compositionVersion:2},
   { id:'everything-search',name:'本地文件搜索',provider:'@linxin666/dsh-capabilities',version:'1.0.0',actions:['search-files'],dependencies:[],icon:'document',sourceLabel:'Everything 本地索引',management:'file-search',capabilityIds:['local-file-search'],required:true,compositionVersion:2 },
   { id:'audio-recorder',name:'录音与保存',provider:'@linxin666/dsh-capabilities',version:'1.0.0',actions:['record-audio'],dependencies:[],icon:'audio',sourceLabel:'内置录音服务',management:'recording',capabilityIds:['audio-recording'],required:true,compositionVersion:2 },
   ...developerParts.map((part, i): Component => ({ id: part.componentId, name: ['项目文件与开发对话', 'Git 变更与版本', '项目验证运行'][i]!, provider: i === 1 ? '@linxin666/dsh-client-ui-git-graph' : '@linxin666/dsh-capabilities', version: '1.0.0', actions: [...part.actions], dependencies: [], icon: 'document', sourceLabel: '内置开发服务', management: 'developer', capabilityIds: [DEVELOPER_CAPABILITY_ID], required: true, compositionVersion: 2 })),
@@ -30,7 +31,7 @@ export const components: readonly Component[] = [
   { id: 'meeting-asr', name: '会议录音转写', provider: '@linxin666/dsh-capabilities', version: '1.0.0', actions: ['transcribe'], dependencies: [], icon: 'audio', sourceLabel: '内置会议服务', management: 'meeting-asr', capabilityIds: [MEETING_CAPABILITY_ID], required: true, compositionVersion: 2 },
   { id: REQUIREMENTS_COMPONENT_ID, name: '需求分析服务', provider: '@linxin666/dsh-capabilities', version: '1.0.0', actions: ['analyze-requirements'], dependencies: [], icon: 'document', sourceLabel: '内置需求服务', management: 'requirements', capabilityIds: [REQUIREMENTS_CAPABILITY_ID], required: true, compositionVersion: 2 },
 ]
-export const actionNames: Record<Action, string> = { 'edit-document':'编辑与保存 Word', 'ask-document':'理解文档', 'revise-document':'生成修改建议', 'search-files':'搜索本地文件', 'record-audio':'录音与保存', navigate: '打开网页', read: '读取网页', screenshot: '截取页面', transcribe: '转写录音', 'analyze-requirements': '分析与整理需求', develop: '读取与按任务授权编辑项目', 'inspect-git': '审阅差异与手动 Git 操作', 'verify-code': '运行已确认的项目检查' }
+export const actionNames: Record<Action, string> = { 'edit-document':'编辑与保存 Word', 'ask-document':'理解文档', 'revise-document':'生成修改建议', 'followup-transcribe':'转为文字', 'followup-quick':'快速生成纪要', 'followup-guided':'引导整理', 'search-files':'搜索本地文件', 'record-audio':'录音与保存', navigate: '打开网页', read: '读取网页', screenshot: '截取页面', transcribe: '转写录音', 'analyze-requirements': '分析与整理需求', develop: '读取与按任务授权编辑项目', 'inspect-git': '审阅差异与手动 Git 操作', 'verify-code': '运行已确认的项目检查' }
 export const emptyDefinition = (): Definition => ({ name: '', description: '', instructions: '', components: [] })
 export const emptyRole = (): RoleDefinition => ({ name: '', color: '#4F73E8', duties: '', requirements: '', format: '', capabilities: [] })
 export const latest = <T>(versions: T[]): T | undefined => versions.at(-1)
@@ -105,4 +106,9 @@ export function recordingCapability(now: string): Capability {
 export function fileSearchCapability(now: string): Capability {
  const definition: Definition = {name:'本地文件搜索',description:'通过宠物或岗位搜索本地文件，支持部分文件名、多关键词和通配符，可选择文件夹限定范围。',instructions:'路径留空搜索全部已索引的本地位置；输入部分文件名或 * / ? 通配符。选择文件夹后点击确定。搜索只返回名称、路径和元信息，移除记录不会删除原文件。',components:[{componentId:'everything-search',actions:['search-files']}]}
  return {id:'local-file-search',source:'builtin',enabled:true,pinned:false,draft:definition,versions:[{...structuredClone(definition),version:1,createdAt:now}]}
+}
+
+export function recordingFollowupCapability(now:string):Capability {
+ const definition:Definition={name:'录音后续处理',description:'在当前录音会话中衔接转写、校对和纪要，不需要重新上传录音。',instructions:'只处理用户主动选择的已保存录音，保留原录音与结果。',followupTarget:MEETING_CAPABILITY_ID,components:[{componentId:'recording-followup',actions:['followup-transcribe','followup-quick','followup-guided']}]};
+ return {id:'recording-followup',source:'builtin',enabled:true,pinned:false,draft:definition,versions:[{...structuredClone(definition),version:1,createdAt:now}]}
 }

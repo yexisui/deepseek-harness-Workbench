@@ -32,6 +32,7 @@ export function capabilityPresentation(data: Snapshot, capability: Capability, v
   if (management === 'package') return packageStatus?.ready ? status('已启用',packageStatus.message,'ready') : status('待检测','正在读取执行组件状态','unknown')
   if (management === 'smart-document') return status('岗位内使用','在智能文档岗位中打开 Word；AI 连接沿用工作台模型，实际请求时验证。','context')
   if (management === 'file-search') return status('已启用','在设置中检测 Everything，并选择搜索归属岗位。','context')
+  if (management === 'recording-followup') return status('按岗位使用','录音保存后显示已启用的后续操作，目标能力需绑定同一岗位。','context')
   if (management === 'recording') return status('已启用','选择录音归属岗位后，通过宠物按钮或对话开始录音。','context')
   if (management === 'developer') return status('项目内检测','进入开发对话并绑定项目后检测文件、Git 和验证环境；默认只读。','context')
   const service = management === 'requirements' ? requirements : management === 'meeting-asr' ? meeting : undefined

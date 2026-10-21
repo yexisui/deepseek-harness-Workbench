@@ -1,3 +1,5 @@
+import {readSkillArchive} from './skill-archive.ts'
+import {isSkillArchive} from './archive-formats.ts'
 import fs from 'node:fs'
 import path from 'node:path'
 import {createHash, randomUUID} from 'node:crypto'
@@ -63,7 +65,7 @@ export class ManagedSkills {
   const uploaded=new Map<string,Buffer>(),paths=new FilePaths();let bytes=0
   for(const f of input.files){const name=safeLocalPath(f.path);paths.add(name);if(typeof f.data!=='string'||!/^[A-Za-z0-9+/]*={0,2}$/.test(f.data))throw Error('文件编码无效');const data=Buffer.from(f.data,'base64');bytes+=data.length;if(bytes>LIMIT)throw Error('导入包超过 32 MiB');uploaded.set(name,data)}
   let files=uploaded
-  if(input.zip){if(uploaded.size!==1)throw Error('请选择一个 ZIP');const stage=path.join(this.root,'staging',randomUUID());plainMkdir(stage);try{const zip=path.join(stage,'input.zip'),out=path.join(stage,'out');fs.writeFileSync(zip,[...uploaded.values()][0]);extractLocalZip(zip,out);files=filesAt(out)}finally{this.erase(stage,path.join(this.root,'staging'))}}
+  if(input.zip||(uploaded.size===1&&isSkillArchive([...uploaded.keys()][0]))){if(uploaded.size!==1)throw Error('请选择一个压缩包');const stage=path.join(this.root,'staging',randomUUID());plainMkdir(stage);try{const zip=path.join(stage,'input.zip'),out=path.join(stage,'out');fs.writeFileSync(zip,[...uploaded.values()][0]);if([...uploaded.keys()][0].toLowerCase().endsWith('.zip')||input.zip){extractLocalZip(zip,out);files=filesAt(out)}else{files=readSkillArchive(zip)}}finally{this.erase(stage,path.join(this.root,'staging'))}}
   const skillPaths=[...files.keys()].filter(n=>path.posix.basename(n)==='SKILL.md')
   if(!skillPaths.length)throw Error('没有找到 SKILL.md，请选择技能文件或包含技能的目录')
   const candidates:Candidate[]=skillPaths.map(key=>{
