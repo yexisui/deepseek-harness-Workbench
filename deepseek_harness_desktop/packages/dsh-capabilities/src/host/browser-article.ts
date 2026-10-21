@@ -75,7 +75,7 @@ export function extractArticle(html: string, url: string) {
 
 export type ArticleBrowserCall = (name: 'browser_page' | 'browser_inspect', args: Record<string, unknown>) => Promise<any>
 export type ArticlePage = { number?: number; url: string; title: string; text: string; characters: number; sha256: string; htmlBytes: number }
-async function stableArticle(session: string, url: string, call: ArticleBrowserCall, signal: AbortSignal) {
+async function stableArticle(session: string, url: string, call: ArticleBrowserCall, signal: AbortSignal, extract = extractArticle) {
   let previous = '', lastError: unknown = new Error('正文或分页尚未稳定')
   for (let attempt = 0; attempt < 10; attempt++) {
     signal.throwIfAborted()
@@ -85,7 +85,7 @@ async function stableArticle(session: string, url: string, call: ArticleBrowserC
     if (html.truncated) throw Error('HTML 超过 4 MiB，正文或分页可能被截断')
     if (typeof html.html !== 'string') throw Error('浏览器未返回 HTML')
     try {
-      const parsed = extractArticle(html.html, url), signature = JSON.stringify(parsed)
+      const parsed = extract(html.html, url), signature = JSON.stringify(parsed)
       if (signature === previous) return { parsed, html }
       previous = signature
       lastError = new Error('正文或分页持续变化，暂时不能确认完整')
@@ -94,7 +94,7 @@ async function stableArticle(session: string, url: string, call: ArticleBrowserC
   throw lastError
 }
 /** Deterministic traversal; only a verified page body counts towards completion. */
-export async function readArticle(options: { session: string; url: string; maxPages?: number }, call: ArticleBrowserCall, signal: AbortSignal) {
+export async function readArticle(options: { session: string; url: string; maxPages?: number }, call: ArticleBrowserCall, signal: AbortSignal, hooks?: { extract?: typeof extractArticle; prepare?: () => Promise<void>; page?: (page: ArticlePage, html: string) => Promise<void> }) {
   const start = address(options.url), maxPages = options.maxPages ?? 20
   if (!Number.isInteger(maxPages) || maxPages < 1 || maxPages > 50) throw Error('maxPages 必须为 1 到 50 的整数')
   const queue: { url: string; number?: number }[] = [{ url: start }], scheduled = new Set([start]), visited = new Set<string>(), hashes = new Set<string>()
@@ -111,7 +111,8 @@ export async function readArticle(options: { session: string; url: string; maxPa
       const finalUrl = address(nav.finalUrl ?? nav.url)
       if (family(finalUrl) !== family(start)) throw Error('页面跳转到其他文章或登录页面')
       if (pages.some(p => p.url === finalUrl)) throw Error('分页跳回已读取页面')
-      const { parsed, html } = await stableArticle(options.session, finalUrl, call, signal)
+      await hooks?.prepare?.()
+      const { parsed, html } = await stableArticle(options.session, finalUrl, call, signal, hooks?.extract)
       if (title && parsed.title !== title) throw Error('分页标题与原文不一致')
       title ||= parsed.title; publishedAt ||= parsed.publishedAt; source ||= parsed.source; author ||= parsed.author
       expectedPages = Math.max(expectedPages, parsed.expectedPages)
@@ -124,6 +125,7 @@ export async function readArticle(options: { session: string; url: string; maxPa
       if (totalCharacters + parsed.body.length > 120000) throw Error('正文总量超过 12 万字符，本次未完整读取')
       hashes.add(hash); totalCharacters += parsed.body.length
       pages.push({ number, url: finalUrl, title: parsed.title, text: parsed.body, characters: parsed.body.length, sha256: hash, htmlBytes: html.byteSize ?? Buffer.byteLength(html.html) })
+      await hooks?.page?.(pages[pages.length - 1]!, html.html)
     } catch (error) {
       signal.throwIfAborted()
       failures.push({ url: item.url, reason: error instanceof Error ? error.message : String(error) })

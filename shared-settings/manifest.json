@@ -39,7 +39,7 @@
     {
       "path": "skill-management/state.json",
       "format": "structured",
-      "sha256": "52611f1713d59f43ac34aa7042fc3c2594d9c42c1835060cdb5afdc7f693b1a8"
+      "sha256": "4a0db615f7996538e00283cf464ac50d28c6314298d08d389729f043cf020640"
     },
     {
       "path": "skill-management/versions/0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522/SKILL.md",
@@ -185,6 +185,16 @@
       "path": "skins/furina/skin.json",
       "format": "structured",
       "sha256": "eaac87525cf305e6a7d78b5257705301fa3818e696c3ccbba205bd72a135f108"
+    },
+    {
+      "path": "skill-management/versions/a4cf4915a33ee16c3d69bd0f7e023c5290a0294c7fbf9235d2c34b516de85011/SKILL.md",
+      "format": "text",
+      "sha256": "efc50b4ec4b19475974d0f184336307e5d7b384ed1e544d0564170c862a0624d"
+    },
+    {
+      "path": "skills/webpage-archive/SKILL.md",
+      "format": "text",
+      "sha256": "7b78c06da79879683b276ab1b967f98798c82e5d1ed787d6e78d37f0eaf5aa78"
     }
   ]
 }

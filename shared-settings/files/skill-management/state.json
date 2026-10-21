@@ -1,5 +1,5 @@
 {
-  "revision": 14,
+  "revision": 18,
   "skills": [
     {
       "id": "e5163661-906f-4075-976d-159db1281ad4",
@@ -68,6 +68,35 @@
       "hashes": [
         "bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a"
       ]
+    },
+    {
+      "id": "91356269-7957-486a-89ba-56ed961c2b6b",
+      "name": "webpage-archive",
+      "description": "网页采集与归档：在后台读取指定网页及其分页，保存图文、表格与附件，分类整理并生成可离线阅读的资料包和总结。",
+      "root": "{{WORKBENCH_ROOT}}\\dsh-data\\skills",
+      "scope": "global",
+      "hash": "a4cf4915a33ee16c3d69bd0f7e023c5290a0294c7fbf9235d2c34b516de85011",
+      "enabled": true,
+      "auto": true,
+      "manual": true,
+      "tags": [
+        "网页采集",
+        "资料归档"
+      ],
+      "usage": "roles",
+      "category": "网页采集",
+      "warnings": [],
+      "updatedAt": "2026-10-21T05:52:40.827Z",
+      "contentHistory": [
+        {
+          "at": 1792561960827,
+          "hash": "a4cf4915a33ee16c3d69bd0f7e023c5290a0294c7fbf9235d2c34b516de85011"
+        }
+      ],
+      "hashes": [
+        "a4cf4915a33ee16c3d69bd0f7e023c5290a0294c7fbf9235d2c34b516de85011"
+      ],
+      "pinned": true
     }
   ]
 }

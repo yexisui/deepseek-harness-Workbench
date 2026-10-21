@@ -156,6 +156,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       // A named webServer route bypasses Connection's /api route; reuse its public authentication check explicitly.
       const rejection = ctx.connection.requestRejection(req)
       if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
+      if (route.startsWith('/api/capabilities/browser-archives/')) return await runtime.archives.serve(route.slice('/api/capabilities/browser-archives/'.length), req, res)
       if (route.startsWith('/api/capabilities/documents/')) { if(documentError)throw new InputError('文档存储不可用：'+documentError,503);return await documents.routes(req,res) }
       if (route.startsWith('/api/capabilities/file-search/')) { if(searchError)throw new InputError('搜索存储不可用：'+searchError,503);return await fileSearchRoutes(fileSearch,req,res) }
       if(route==='/api/capabilities/recording/followup'&&req.method==='GET')return json(res,200,recordingFollowup.options(new URL(req.url!,'http://localhost').searchParams.get('id')||''))

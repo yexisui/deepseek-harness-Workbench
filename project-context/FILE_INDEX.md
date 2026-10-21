@@ -345,3 +345,5 @@
 - 2026-10-21：A013 第 24 节维护中华网真实助手测试、保留会话身份、分页缺失与旧进程关闭误报证据；本机结果位于 browser-news-test-20261021，不把本轮测试视为正式采集流程已实施。
 
 - 2026-10-21：A013 第 25 节维护完整文章分页读取、正式重启和原对话 5/5 页复验；src/host/browser-article.ts 负责正文/分页完整性，tests/browser-article.spec.ts 负责对应回归；原岗位和会话保留。
+
+- 2026-10-21：A013 第26节维护图文归档、资源分类及 Skill 的实现/正式证据；browser-content.ts 负责内容结构，browser-archive.ts 负责文件归档与阅读结果，skills/webpage-archive/SKILL.md 固定工作流程，tests/browser-archive.spec.ts 覆盖新行为。本机网页与图片不入库，正式规则继续唯一维护。
