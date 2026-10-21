@@ -17085,7 +17085,7 @@ var CapabilityRuntime = class {
 		}
 		live.revealed = true;
 	}
-	authorize(exec) {
+	authorize(exec, completedStop) {
 		const live = exec.agent && this.live.get(exec.agent.id);
 		if (!this.active || !live || live.stopped) return "此会话未装配可执行能力，或任务已经停止。请从已启用的岗位创建新会话。";
 		const allowed = allowedActions(this.store.snapshot(), live.roleId, live.version);
@@ -17103,7 +17103,8 @@ var CapabilityRuntime = class {
 		if (exec.name === "skill_resource" || exec.name === "skill" && args.name !== "browser-skill") return this.skillAssets.bindings(this.store.snapshot(), live.roleId, live.version, live.agent.session.header.createdAt).some((s) => s.name === args.name) ? void 0 : "技能调用失败：岗位未绑定此技能，或该绑定已停用。";
 		if (!this.health.loaded) return "BrowserSkill 插件未加载。";
 		if (exec.name === "skill") return args.name === "browser-skill" && browserActions(allowed).length ? void 0 : "岗位未授权此技能。";
-		return callViolation(exec.name, args, allowed, this.owned(live.agent.id));
+		const owned = this.owned(live.agent.id);
+		return callViolation(exec.name, args, allowed, completedStop ? [...owned, completedStop] : owned);
 	}
 	async execute(live, tool, args, exec) {
 		const reason = this.authorize(exec);
@@ -17126,7 +17127,8 @@ var CapabilityRuntime = class {
 				...exec,
 				signal
 			});
-			if (live.stopped || abort.signal.aborted || this.authorize(exec)) {
+			const stoppedSession = tool.name === "browser_session" && args.action === "stop" && typeof args.session === "string" && result?.stopped === args.session ? args.session : void 0;
+			if (live.stopped || abort.signal.aborted || this.authorize(exec, stoppedSession)) {
 				if (tool.name.startsWith("browser_")) await Promise.all(this.owned(live.agent.id).map((id) => this.observation.stopSession(id)));
 				throw new Error("权限已撤销，操作结果不再继续执行。");
 			}
