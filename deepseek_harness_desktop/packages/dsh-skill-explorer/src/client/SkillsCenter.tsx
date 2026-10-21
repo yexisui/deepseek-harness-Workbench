@@ -5,7 +5,7 @@ import {Modal} from '../../../dsh-client-ui-plain-chat/src/client/PreviewModal.t
 import {SkillDetail} from './SkillDetail.tsx'
 import {OtherSkills} from './OtherSkills.tsx'
 import {managedRequest as request,prefix} from './managed-api.ts'
-import {pendingNavigation,consumeNavigation,restoredFrame,useNavigationFrame} from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
+import {pendingNavigation,consumeNavigation,restoredFrame,useNavigationFrame,requestLeave} from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
 import s from '../../../dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css'
 type Snapshot={revision:number;skills:ManagedSkill[];projects:string[]}
 type View={query:string;filter:string;status:string;category:string;scope:string;page:'list'|'trash'|'other';selected:string|null;tab:string}
@@ -30,7 +30,7 @@ export function SkillsCenter({snapshot,busy,error,onImport,reload,change}:{snaps
  const available=snapshot.skills.filter(r=>!!r.removed===(view.page==='trash'))
  const visible=snapshot.skills.filter(r=>!!r.removed===(view.page==='trash')&&(view.filter!=='pinned'||r.pinned)&&(view.status!=='enabled'||r.enabled)&&(view.status!=='disabled'||!r.enabled)&&(!view.category||(r.tags??(r.category==='未分类'?[]:[r.category])).includes(view.category))&&(!view.scope||(r.usage??'legacy')===view.scope)&&[r.name,r.description,...r.tags??[r.category]].join(' ').toLowerCase().includes(view.query.toLowerCase())).sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned))
  return <section ref={root} className={s.page} aria-label="Skills 技能管理">
- {row?<button className={`${s.button} ${s.detailBack}`} onClick={()=>update({selected:null})}>← {view.page==='trash'?'返回回收站':'全部技能'}</button>:<div className={s.heading}><h2>{view.page==='list'?'Skills 技能':view.page==='trash'?'技能回收站':'其他来源技能'}</h2>{view.page==='list'?<div className={s.actions}><button className={`${s.button} ${s.primary}`} onClick={onImport} disabled={busy}>导入技能</button><button className={s.button} onClick={()=>setExporting(true)} disabled={busy||!snapshot.skills.length}>导出技能</button><button className={s.iconButton} disabled={busy} aria-label="刷新技能" title="刷新技能" onClick={reload}>↻</button></div>:<button className={s.button} onClick={()=>setView(listPreferences.current??{...defaults})}>← 全部技能</button>}</div>}
+ {row?<button className={`${s.button} ${s.detailBack}`} onClick={()=>{if(requestLeave())update({selected:null})}}>← {view.page==='trash'?'返回回收站':'全部技能'}</button>:<div className={s.heading}><h2>{view.page==='list'?'Skills 技能':view.page==='trash'?'技能回收站':'其他来源技能'}</h2>{view.page==='list'?<div className={s.actions}><button className={`${s.button} ${s.primary}`} onClick={onImport} disabled={busy}>导入技能</button><button className={s.button} onClick={()=>setExporting(true)} disabled={busy||!snapshot.skills.length}>导出技能</button><button className={s.iconButton} disabled={busy} aria-label="刷新技能" title="刷新技能" onClick={reload}>↻</button></div>:<button className={s.button} onClick={()=>setView(listPreferences.current??{...defaults})}>← 全部技能</button>}</div>}
  {error&&<p role="alert" className={s.error}>{error}</p>}
  {row?<SkillDetail row={row} tags={tags} tab={view.tab} onTab={tab=>update({tab})} busy={busy} change={change} onConfirm={action=>{setRemoveId(undefined);setConfirm(action)}}/>:view.page==='other'?<OtherSkills/>:<>
  <input className={s.search} aria-label="搜索技能" placeholder="搜索技能名称、用途或标签" value={view.query} onChange={e=>update({query:e.target.value})}/>

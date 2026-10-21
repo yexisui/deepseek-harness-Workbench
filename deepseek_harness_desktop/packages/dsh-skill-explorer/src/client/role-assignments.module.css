@@ -1,0 +1,29 @@
+.assignments { margin:20px 0 26px; min-width:0; }
+.heading,.footer,.pickerFooter { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.heading { margin-bottom:12px; }
+.heading h3 { margin:0; font-size:14px; display:flex; align-items:center; gap:8px; }
+.count { font-size:12px; font-weight:400; color:var(--role-muted); background:color-mix(in srgb,var(--role-accent) 8%,var(--role-bg)); border-radius:8px; padding:2px 7px; }
+.list { border:1px solid var(--role-border); border-radius:10px; max-height:280px; overflow:auto; overscroll-behavior:contain; }
+.row { display:flex; align-items:center; gap:12px; min-height:62px; padding:8px 14px; box-sizing:border-box; min-width:0; }
+.row + .row { border-top:1px solid var(--role-border); }
+.identity,.optionIdentity { display:flex; align-items:center; gap:12px; min-width:0; flex:1; }
+.identity { border:0; background:none; color:inherit; padding:0; font:inherit; text-align:left; cursor:pointer; }
+.identity:hover .name { color:var(--role-accent); }
+.identity:disabled { cursor:default; opacity:.6; }
+.name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; }
+.icon.icon { width:36px; height:36px; border-radius:10px; flex-shrink:0; }
+.icon svg { width:22px; height:22px; }
+.empty { border:1px dashed var(--role-border); border-radius:10px; padding:22px 14px; text-align:center; color:var(--role-muted); font-size:13px; }
+.footer { border-top:1px solid var(--role-border); padding-top:14px; margin-top:14px; }
+dialog.picker { width:500px; max-width:calc(100vw - 64px); max-height:min(600px,calc(100dvh - 96px)); overflow:hidden; color:var(--role-text); }
+.search { padding:0 22px; flex-shrink:0; }
+.options { padding:0 22px; min-height:0; overflow:auto; overscroll-behavior:contain; }
+.options .row { padding:12px 0; min-height:72px; }
+.added { color:var(--role-muted); font-size:12px; white-space:nowrap; }
+.add { width:34px; height:34px; padding:0; flex-shrink:0; font-size:22px; color:var(--role-accent); }
+.pickerFooter { flex-shrink:0; border-top:1px solid var(--role-border); padding:16px 22px; margin-top:12px; }
+@media(max-width:540px) { dialog.picker { max-width:calc(100vw - 32px); max-height:calc(100dvh - 64px); } .search,.options { padding-left:16px; padding-right:16px; } .pickerFooter { padding:12px 16px; } .row { padding-left:10px; padding-right:10px; gap:8px; } }
+
+/* Keep the focused picker legible even when the workbench skin uses translucent layers. */
+dialog.picker { background:var(--role-bg); background:rgb(from var(--role-bg) r g b / 1); }
+.picker .add { display:inline-flex; align-items:center; justify-content:center; padding:0; line-height:1; }

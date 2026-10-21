@@ -26,10 +26,12 @@ function References({id}:{id:string}){
 export function SkillDetail({row,tab,onTab,busy,change,onConfirm,tags}:{row:ManagedSkill;tags:string[];tab:string;onTab:(value:string)=>void;busy:boolean;change:(row:ManagedSkill,action:string,value?:unknown)=>void;onConfirm:(action:'remove')=>void}){
  return <><div className={s.heading}><div className={s.actions}><ManagementIcon kind="file"/><h2>{row.name}</h2></div><div className={s.actions}><a className={s.button} href={prefix+'export?id='+encodeURIComponent(row.id)} download={row.name+'.zip'}>导出技能</a>{!row.removed&&<button className={s.iconButton} disabled={busy} title="移入回收站" aria-label={'移除技能：'+row.name} onClick={()=>onConfirm('remove')}><ManagementIcon kind="remove"/></button>}</div></div><p>{row.description}</p>
  <div className={s.tabs}>{[['settings','设置'],['contents','内容与资源'],['references','岗位引用']].map(([key,label])=><button key={key} aria-pressed={tab===key} onClick={()=>onTab(key)}>{label}</button>)}</div>
- {tab==='contents'?<Contents row={row}/>:tab==='references'?<References id={row.id}/>:<>
+ {tab==='contents'&&<Contents row={row}/>}
+ {tab==='references'&&<References id={row.id}/>}
+ <div hidden={tab!=='settings'}>
  {row.removed?<><p>此技能已移入回收站。恢复后保持停用。</p><button className={s.button} disabled={busy} onClick={()=>change(row,'restore')}>恢复技能</button></>:<>
  <SkillSettings row={row} busy={busy} tags={tags} change={change}/></>}
 <p className={s.muted}>来源：本地导入 · {row.removed?'已移除':row.enabled?'已启用':'已停用'}</p>
 
- </>}</>
+ </div></>
 }
