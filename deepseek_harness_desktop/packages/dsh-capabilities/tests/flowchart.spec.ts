@@ -1,3 +1,5 @@
+import {packageRoutes} from '../src/host/package-routes.ts'
+import {flowchartLayouts,selectFlowchartLayout} from '../src/host/flowchart-artifact.ts'
 import {afterEach,expect,it} from 'vitest'
 import {mkdtemp,rm,readFile} from 'node:fs/promises'
 import {tmpdir} from 'node:os'
@@ -59,3 +61,25 @@ it('real managed-agent tool returns image references and stops after capability 
  const result=JSON.parse(await registered.get('capability_action').execute(args,exec));expect(result.previewUrl).toBe('http://127.0.0.1:3082/api/capabilities/packages/artifact/'+result.documentId+'/image.svg');expect(e.runner.get(result.documentId).sessionId).toBe(agent.id)
  await e.store.command(e.store.snapshot().revision,{type:'capability.toggle',id:e.id,enabled:false});await expect(registered.get('capability_action').execute(args,exec)).rejects.toThrow()
 })
+
+it('previews do not mutate results; layout selection persists independently and drives SVG exports',async()=>{
+ const e=await environment();e.setResponse(e.fixtures.standard);const first=await e.run({mode:'create',style:'standard',content:'审核'}),original=await first.done;
+ const options=flowchartLayouts(e.runner,first.job.id);expect(options.layouts).toHaveLength(6);expect(options.layouts.find((l:any)=>l.id==='snake').available).toBe(false);
+ let preview='';servePackageArtifact(e.runner,first.job.id+'/image.svg',{writeHead:()=>{},end:(v:any)=>{preview=String(v)}} as any,'horizontal');expect(preview).toContain('data-node');expect(e.runner.get(first.job.id).presentation).toBeUndefined();
+ await selectFlowchartLayout(e.runner,first.job.id,'horizontal');expect(e.runner.get(first.job.id).output).toEqual(original);
+ await expect(selectFlowchartLayout(e.runner,first.job.id,'snake')).rejects.toThrow('蛇形');expect(flowchartLayouts(e.runner,first.job.id).selected).toBe('horizontal');
+ let downloaded='';servePackageArtifact(e.runner,first.job.id+'/download.svg',{writeHead:()=>{},end:(v:any)=>{downloaded=String(v)}} as any);expect(downloaded).toBe(preview);
+ await e.runner.close();const restored=new PackageRunner(e.packs,async()=>{throw Error('No model call')});await restored.init();cleanups.push(()=>restored.close());expect(flowchartLayouts(restored,first.job.id).selected).toBe('horizontal');expect(restored.get(first.job.id).output).toEqual(original);
+});
+it('independent charts retain independent layout choices and concurrent changes settle durably',async()=>{
+ const e=await environment(),first=await e.run({mode:'create',style:'snake',content:'第一张'});await first.done;const second=await e.run({mode:'create',style:'snake',content:'第二张'});await second.done;
+ await Promise.all([selectFlowchartLayout(e.runner,first.job.id,'tree'),selectFlowchartLayout(e.runner,first.job.id,'compact')]);expect(flowchartLayouts(e.runner,first.job.id).selected).toBe('compact');expect(flowchartLayouts(e.runner,second.job.id).selected).toBe('snake');
+});
+
+it('serves the layout catalog and selection through the authenticated package router',async()=>{
+ const e=await environment(),first=await e.run({mode:'create',style:'snake',content:'流程'});await first.done;
+ let body:any,status=0;const response={writeHead:(s:number)=>{status=s},end:(v:any)=>{body=JSON.parse(String(v))}};
+ await packageRoutes(e.packs,e.runner,{method:'GET',url:'/api/capabilities/packages/artifact/'+first.job.id+'/layouts'} as any,response as any);expect(status).toBe(200);expect(body.layouts).toHaveLength(6);
+ const request={method:'POST',url:'/api/capabilities/packages/artifact/'+first.job.id+'/layout',async *[Symbol.asyncIterator](){yield Buffer.from(JSON.stringify({style:'tree'}))}};
+ await packageRoutes(e.packs,e.runner,request as any,response as any);expect(body.selected).toBe('tree');
+});

@@ -13,7 +13,27 @@ import { isAbsolute as isAbsolute$1, join as join$1 } from "node:path/posix";
 import { defineTool } from "@deepseek-ai/dsh-tools";
 import { isDeepStrictEqual } from "node:util";
 //#region \0rolldown/runtime.js
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
+var __copyProps = (to, from, except, desc) => {
+	if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
+		key = keys[i];
+		if (!__hasOwnProp.call(to, key) && key !== except) __defProp(to, key, {
+			get: ((k) => from[k]).bind(null, key),
+			enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+		});
+	}
+	return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
+	value: mod,
+	enumerable: true
+}) : target, mod));
 var __require = /* #__PURE__ */ (() => createRequire(import.meta.url))();
 //#endregion
 //#region src/core/document-knowledge.ts
@@ -12601,6 +12621,17 @@ var PackageRunner = class {
 			});
 		});
 	}
+	presentationQueue = Promise.resolve();
+	async present(id, style) {
+		const change = this.presentationQueue.catch(() => {}).then(async () => {
+			const job = this.get(id);
+			job.presentation = { style };
+			await this.persist(job);
+			this.jobs.set(id, job);
+		});
+		this.presentationQueue = change;
+		await change;
+	}
 	async stop(id) {
 		const run = this.active.get(id);
 		if (!run) return this.get(id);
@@ -12616,6 +12647,452 @@ var PackageRunner = class {
 		await Promise.all([...this.active.keys()].map((id) => this.stop(id)));
 	}
 };
+//#endregion
+//#region src/host/flowchart-artifact.ts
+var import_renderer = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports) => {
+	const escape = (s) => String(s).replace(/[&<>"']/g, (c) => ({
+		"&": "&amp;",
+		"<": "&lt;",
+		">": "&gt;",
+		"\"": "&quot;",
+		"'": "&apos;"
+	})[c]);
+	const fail = (message) => {
+		throw Error(message);
+	};
+	function validate(value) {
+		if (!value || !layouts.some((layout) => layout.id === value.style)) fail("请选择受支持的流程图布局");
+		if (typeof value.title !== "string" || !value.title.trim() || value.title.length > 100) fail("标题需要 1–100 个字符");
+		if (!Array.isArray(value.nodes) || value.nodes.length < 2 || value.nodes.length > 60) fail("流程需要 2–60 个节点，较长流程请分图");
+		const ids = /* @__PURE__ */ new Set();
+		const nodes = value.nodes.map((n) => {
+			if (!n || typeof n.id !== "string" || !/^[a-zA-Z][\w-]{0,39}$/.test(n.id) || ids.has(n.id)) fail("节点标识缺失或重复");
+			ids.add(n.id);
+			if (typeof n.text !== "string" || !n.text.trim() || n.text.length > 180 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffd]/.test(n.text)) fail("节点文字为空、过长或含异常字符");
+			if (![
+				"start",
+				"step",
+				"decision",
+				"end"
+			].includes(n.type)) fail("节点类型无效");
+			if (n.lane !== void 0 && (typeof n.lane !== "string" || !n.lane.trim() || n.lane.length > 40)) fail("角色名称需要 1–40 个字符");
+			return {
+				id: n.id,
+				text: n.text,
+				type: n.type,
+				...n.lane ? { lane: n.lane } : {}
+			};
+		});
+		if (!Array.isArray(value.edges) || value.edges.length > 120) fail("流程连线无效");
+		const unique = /* @__PURE__ */ new Set();
+		const edges = value.edges.map((e) => {
+			if (!e || !ids.has(e.from) || !ids.has(e.to) || e.from === e.to) fail("连线引用了不存在的节点或自身");
+			const key = e.from + ">" + e.to;
+			if (unique.has(key)) fail("流程连线重复");
+			unique.add(key);
+			if (e.label !== void 0 && (typeof e.label !== "string" || e.label.length > 60)) fail("分支条件过长");
+			return {
+				from: e.from,
+				to: e.to,
+				...e.label ? { label: e.label } : {}
+			};
+		});
+		const reached = /* @__PURE__ */ new Set([nodes[0].id]);
+		for (let i = 0; i < nodes.length; i++) for (const e of edges) if (reached.has(e.from)) reached.add(e.to);
+		if (reached.size !== nodes.length) fail("存在从第一步无法到达的节点，请核对连线");
+		for (const n of nodes) if (n.type === "decision" && (edges.filter((e) => e.from === n.id).length < 2 || edges.some((e) => e.from === n.id && !e.label))) fail("判断节点需要至少两条带条件说明的分支");
+		if (value.style === "snake" && (nodes.some((n) => n.type === "decision") || edges.length !== nodes.length - 1 || edges.some((e, i) => e.from !== nodes[i].id || e.to !== nodes[i + 1].id))) fail("蛇形模板只支持按顺序执行的流程。当前包含分支、回路或顺序不一致，请保留标准图，或先确认如何拆分；原图未改变。");
+		if (value.style === "swimlane" && nodes.some((n) => !n.lane)) fail("当前流程缺少部分步骤的责任角色，请通过对话补充各步骤的人员或部门后使用泳道；原图未改变。");
+		return {
+			schema: 1,
+			title: value.title,
+			style: value.style,
+			nodes,
+			edges
+		};
+	}
+	function lines(text, limit = 17) {
+		const result = [];
+		let line = "", width = 0;
+		for (const c of text) {
+			const w = /[\u0000-\u007f]/.test(c) ? .55 : 1;
+			if (c === "\n" || width + w > limit) {
+				result.push(line);
+				line = "";
+				width = 0;
+				if (c === "\n") continue;
+			}
+			line += c;
+			width += w;
+		}
+		if (line) result.push(line);
+		return result;
+	}
+	function textBlock(text, x, y, { size = 17, color = "#19354b", limit = 17, weight = 500 } = {}) {
+		const a = lines(text, limit), dy = size * 1.5;
+		return `<text x="${x}" y="${y - (a.length - 1) * dy / 2}" text-anchor="middle" dominant-baseline="central" font-size="${size}" font-weight="${weight}" fill="${color}">${a.map((s, i) => `<tspan x="${x}" dy="${i ? dy : 0}">${escape(s)}</tspan>`).join("")}</text>`;
+	}
+	function render(document) {
+		const d = validate(document);
+		if (!["standard", "snake"].includes(d.style)) return renderExtended(d);
+		const snake = d.style === "snake", palette = [
+			"#117c94",
+			"#437bc2",
+			"#7361b1",
+			"#c18524",
+			"#35916d"
+		];
+		const header = 120 + (lines(d.title, 24).length - 1) * 38;
+		const cells = /* @__PURE__ */ new Map(), index = new Map(d.nodes.map((n, i) => [n.id, i]));
+		let width, height;
+		if (snake) {
+			const rows = Math.ceil(d.nodes.length / 3), rowHeight = Math.max(210, ...d.nodes.map((n) => lines(n.text, 14).length * 26 + 105));
+			width = 1120;
+			height = header + 40 + rows * rowHeight;
+			d.nodes.forEach((n, i) => {
+				const r = Math.floor(i / 3), c = r % 2 ? 2 - i % 3 : i % 3;
+				cells.set(n.id, {
+					x: 220 + c * 340,
+					y: header + 45 + r * rowHeight,
+					w: 264,
+					h: Math.max(92, lines(n.text, 14).length * 26 + 28),
+					rank: r
+				});
+			});
+		} else {
+			const ranks = d.nodes.map(() => 0);
+			for (let i = 0; i < d.nodes.length; i++) for (const e of d.edges) {
+				const a = index.get(e.from), b = index.get(e.to);
+				if (b === i && a < b) ranks[b] = Math.max(ranks[b], ranks[a] + 1);
+			}
+			const rows = /* @__PURE__ */ new Map();
+			d.nodes.forEach((n, i) => {
+				const r = ranks[i];
+				if (!rows.has(r)) rows.set(r, []);
+				rows.get(r).push(n);
+			});
+			const maxColumns = Math.max(...[...rows.values()].map((r) => r.length));
+			width = Math.max(760, maxColumns * 350 + 400);
+			let y = header;
+			for (const [rank, row] of [...rows].sort((a, b) => a[0] - b[0])) {
+				const heights = row.map((n) => Math.max(n.type === "decision" ? 140 : 76, lines(n.text, n.type === "decision" ? 11 : 17).length * 26 + (n.type === "decision" ? 80 : 30))), rh = Math.max(...heights);
+				row.forEach((n, i) => cells.set(n.id, {
+					x: width / 2 + (i - (row.length - 1) / 2) * 350,
+					y: y + rh / 2,
+					w: n.type === "decision" ? 290 : 286,
+					h: heights[i],
+					rank
+				}));
+				y += rh + 100;
+			}
+			height = y + 30;
+		}
+		let body = `<rect width="100%" height="100%" fill="#ffffff"/>${textBlock(d.title, width / 2, 44 + (lines(d.title, 24).length - 1) * 19, {
+			size: 25,
+			limit: 24,
+			weight: 700
+		})}`;
+		const edges = [];
+		for (let i = 0; i < d.edges.length; i++) {
+			const e = d.edges[i], a = cells.get(e.from), b = cells.get(e.to);
+			let p, labelX, labelY;
+			if (snake) {
+				if (a.rank === b.rank) {
+					const sign = b.x > a.x ? 1 : -1;
+					p = `M ${a.x + sign * a.w / 2} ${a.y} H ${b.x - sign * b.w / 2}`;
+				} else {
+					const side = a.rank % 2 ? -1 : 1, gutter = a.x + side * (a.w / 2 + 55);
+					p = `M ${a.x + side * a.w / 2} ${a.y} H ${gutter} Q ${gutter + side * 25} ${a.y} ${gutter + side * 25} ${a.y + 25} V ${b.y - 25} Q ${gutter + side * 25} ${b.y} ${gutter} ${b.y} H ${b.x + side * b.w / 2}`;
+				}
+				edges.push(`<path d="${p}" stroke="${palette[a.rank % palette.length]}" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#wide)"/>`);
+				continue;
+			}
+			if (b.rank > a.rank && b.rank === a.rank + 1) {
+				const ay = a.y + a.h / 2, by = b.y - b.h / 2, mid = (ay + by) / 2;
+				p = `M ${a.x} ${ay} V ${mid} H ${b.x} V ${by}`;
+				labelX = (a.x + b.x) / 2;
+				labelY = mid - 15;
+			} else {
+				const right = a.x > width / 2, sign = right ? 1 : -1, lane = right ? width - 55 - i % 4 * 12 : 55 + i % 4 * 12;
+				p = `M ${a.x + sign * a.w / 2} ${a.y} H ${lane} V ${b.y} H ${b.x + sign * b.w / 2}`;
+				labelX = right ? width - 100 : 100;
+				labelY = (a.y + b.y) / 2;
+			}
+			edges.push(`<path d="${p}" stroke="#5e7287" stroke-width="2.5" fill="none" stroke-linejoin="round" marker-end="url(#arrow)"/>`);
+			if (e.label) edges.push(`<rect x="${labelX - 70}" y="${labelY - 17}" width="140" height="${lines(e.label, 8).length * 21 + 8}" rx="5" fill="white"/>${textBlock(e.label, labelX, labelY, {
+				size: 14,
+				limit: 8
+			})}`);
+		}
+		body += edges.join("");
+		d.nodes.forEach((n, i) => {
+			const c = cells.get(n.id), end = n.type === "start" || n.type === "end", color = snake ? palette[c.rank % palette.length] : end ? "#b64f59" : n.type === "decision" ? "#b9842a" : "#327ba0", fill = snake ? "#f7fafc" : end ? "#fff0f1" : n.type === "decision" ? "#fff6df" : "#edf7fc";
+			body += n.type === "decision" ? `<path d="M ${c.x} ${c.y - c.h / 2} L ${c.x + c.w / 2} ${c.y} L ${c.x} ${c.y + c.h / 2} L ${c.x - c.w / 2} ${c.y} Z" fill="${fill}" stroke="${color}" stroke-width="2"/>` : `<rect x="${c.x - c.w / 2}" y="${c.y - c.h / 2}" width="${c.w}" height="${c.h}" rx="${end ? Math.min(c.h / 2, 32) : snake ? 13 : 5}" fill="${fill}" stroke="${color}" stroke-width="2"/>`;
+			if (snake) body += `<circle cx="${c.x - c.w / 2 + 5}" cy="${c.y - c.h / 2 + 4}" r="19" fill="${color}"/>${textBlock(String(i + 1), c.x - c.w / 2 + 5, c.y - c.h / 2 + 4, {
+				size: 16,
+				color: "white",
+				weight: 700
+			})}`;
+			body += textBlock(n.text, c.x, c.y, { limit: n.type === "decision" ? 11 : snake ? 14 : 17 });
+		});
+		return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escape(d.title)}" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif"><title>${escape(d.title)}</title><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#5e7287"/></marker><marker id="wide" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="2" markerHeight="2" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#5e7287"/></marker></defs>${body}</svg>`;
+	}
+	const layouts = [
+		{
+			id: "standard",
+			name: "标准纵向",
+			description: "从上到下，清晰呈现判断与返回"
+		},
+		{
+			id: "snake",
+			name: "蛇形折返",
+			description: "分行折返，适合连续操作步骤"
+		},
+		{
+			id: "horizontal",
+			name: "横向展开",
+			description: "从左到右，适合宽屏阅读"
+		},
+		{
+			id: "compact",
+			name: "紧凑分层",
+			description: "收紧节点间距，集中呈现流程"
+		},
+		{
+			id: "tree",
+			name: "树状分支",
+			description: "展开不同路径，突出分支层次"
+		},
+		{
+			id: "swimlane",
+			name: "角色泳道",
+			description: "按流程中已有的责任角色分栏"
+		}
+	];
+	function choices(document) {
+		return layouts.map((layout) => {
+			try {
+				validate({
+					...document,
+					style: layout.id
+				});
+				return {
+					...layout,
+					available: true
+				};
+			} catch (e) {
+				return {
+					...layout,
+					available: false,
+					reason: e.message
+				};
+			}
+		});
+	}
+	function renderExtended(d) {
+		const horizontal = d.style === "horizontal", compact = d.style === "compact", tree = d.style === "tree", swim = d.style === "swimlane";
+		const header = 130 + (lines(d.title, 24).length - 1) * 38, index = new Map(d.nodes.map((n, i) => [n.id, i]));
+		const ranks = d.nodes.map(() => 0);
+		for (let i = 0; i < d.nodes.length; i++) for (const e of d.edges) {
+			const a = index.get(e.from), b = index.get(e.to);
+			if (b === i && a < b) ranks[b] = Math.max(ranks[b], ranks[a] + 1);
+		}
+		const rows = /* @__PURE__ */ new Map();
+		d.nodes.forEach((n, i) => {
+			const r = ranks[i];
+			if (!rows.has(r)) rows.set(r, []);
+			rows.get(r).push(n);
+		});
+		const cells = /* @__PURE__ */ new Map(), lanes = [...new Set(d.nodes.map((n) => n.lane))];
+		let width = 760, height = header, background = "";
+		const size = (n) => ({
+			w: compact ? 220 : 286,
+			h: Math.max(n.type === "decision" ? 140 : 76, lines(n.text, compact ? 12 : n.type === "decision" ? 11 : 17).length * 26 + (n.type === "decision" ? 80 : 30)),
+			limit: compact ? 12 : n.type === "decision" ? 11 : 17
+		});
+		if (swim) {
+			width = Math.max(760, lanes.length * 350 + 180);
+			let y = header + 70;
+			d.nodes.forEach((n, i) => {
+				const s = size(n);
+				cells.set(n.id, {
+					...s,
+					x: 90 + (lanes.indexOf(n.lane) + .5) * (width - 180) / lanes.length,
+					y: y + s.h / 2,
+					rank: i
+				});
+				y += s.h + 95;
+			});
+			height = y + 40;
+			lanes.forEach((lane, i) => {
+				const w = (width - 180) / lanes.length, x = 90 + i * w;
+				background += `<rect x="${x}" y="${header - 20}" width="${w}" height="${height - header - 10}" fill="${i % 2 ? "#f0f5fb" : "#f8fafc"}" stroke="#cbd8e6"/>${textBlock(lane, x + w / 2, header + 15, {
+					size: 19,
+					limit: 14,
+					weight: 700
+				})}`;
+			});
+		} else if (horizontal) {
+			const groups = [...rows].sort((a, b) => a[0] - b[0]);
+			width = groups.length * 420 + 180;
+			height = header + Math.max(...groups.map(([, row]) => row.reduce((sum, n) => sum + size(n).h + 75, 0))) + 80;
+			groups.forEach(([rank, row], c) => {
+				let y = header;
+				row.forEach((n) => {
+					const s = size(n);
+					cells.set(n.id, {
+						...s,
+						x: 240 + c * 420,
+						y: y + s.h / 2,
+						rank
+					});
+					y += s.h + 75;
+				});
+			});
+		} else {
+			const gap = compact ? 260 : 380, slots = /* @__PURE__ */ new Map();
+			if (tree) {
+				let leaf = 0;
+				const visited = /* @__PURE__ */ new Set();
+				function place(id) {
+					if (visited.has(id)) return slots.get(id) ?? 0;
+					visited.add(id);
+					const xs = d.edges.filter((e) => e.from === id && ranks[index.get(e.to)] > ranks[index.get(id)] && !visited.has(e.to)).map((e) => place(e.to));
+					const x = xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : leaf++;
+					slots.set(id, x);
+					return x;
+				}
+				d.nodes.forEach((n) => place(n.id));
+				for (const row of rows.values()) {
+					const used = /* @__PURE__ */ new Set();
+					for (const n of row) {
+						let x = slots.get(n.id);
+						while ([...used].some((v) => Math.abs(v - x) < .9)) x += 1;
+						slots.set(n.id, x);
+						used.add(x);
+					}
+				}
+				width = Math.max(760, (Math.max(...slots.values()) + 1) * gap + 180);
+			} else width = Math.max(620, Math.max(...[...rows.values()].map((r) => r.length)) * gap + 220);
+			let y = header;
+			for (const [rank, row] of [...rows].sort((a, b) => a[0] - b[0])) {
+				const rh = Math.max(...row.map((n) => size(n).h));
+				row.forEach((n, i) => {
+					const s = size(n);
+					cells.set(n.id, {
+						...s,
+						x: tree ? 90 + (slots.get(n.id) + .5) * gap : width / 2 + (i - (row.length - 1) / 2) * gap,
+						y: y + rh / 2,
+						rank
+					});
+				});
+				y += rh + (compact ? 58 : 110);
+			}
+			height = y + 45;
+		}
+		let body = `<rect width="100%" height="100%" fill="white"/>${background}${textBlock(d.title, width / 2, 46 + (lines(d.title, 24).length - 1) * 19, {
+			size: 25,
+			limit: 24,
+			weight: 700
+		})}`;
+		for (let i = 0; i < d.edges.length; i++) {
+			const e = d.edges[i], a = cells.get(e.from), b = cells.get(e.to);
+			let p, lx, ly;
+			const labelHeight = lines(e.label || "", 8).length * 21 + 8;
+			if (horizontal) if (b.rank === a.rank + 1) {
+				const x1 = a.x + a.w / 2, x2 = b.x - b.w / 2, m = (x1 + x2) / 2;
+				p = `M ${x1} ${a.y} H ${m} V ${b.y} H ${x2}`;
+				lx = m;
+				ly = b.y - 12 - labelHeight / 2;
+			} else {
+				const lane = height - 25 - i % 3 * 18, x1 = a.x + a.w / 2, x2 = b.x - b.w / 2, g1 = x1 + 28 + i % 3 * 10, g2 = x2 - 28 - i % 3 * 10;
+				p = `M ${x1} ${a.y} H ${g1} V ${lane} H ${g2} V ${b.y} H ${x2}`;
+				lx = (g1 + g2) / 2;
+				ly = lane - 12 - labelHeight / 2;
+			}
+			else if (b.rank === a.rank + 1) {
+				const y1 = a.y + a.h / 2, y2 = b.y - b.h / 2, m = (y1 + y2) / 2;
+				p = `M ${a.x} ${y1} V ${m} H ${b.x} V ${y2}`;
+				lx = (a.x + b.x) / 2;
+				ly = m - 16;
+			} else {
+				const right = a.x > width / 2, lane = right ? width - 28 - i % 3 * 16 : 28 + i % 3 * 16, rowBottom = Math.max(...[...cells.values()].filter((c) => c.rank === a.rank).map((c) => c.y + c.h / 2)), rowTop = Math.min(...[...cells.values()].filter((c) => c.rank === b.rank).map((c) => c.y - c.h / 2)), y1 = rowBottom + 24, y2 = rowTop - 24;
+				p = `M ${a.x} ${a.y + a.h / 2} V ${y1} H ${lane} V ${y2} H ${b.x} V ${b.y - b.h / 2}`;
+				lx = right ? width - 85 : 85;
+				ly = (y1 + y2) / 2;
+			}
+			body += `<path data-from="${e.from}" data-to="${e.to}" d="${p}" stroke="#637b95" stroke-width="2.5" fill="none" stroke-linejoin="round" marker-end="url(#arrow)"/>`;
+			if (e.label) {
+				const h = lines(e.label, 8).length * 21 + 8;
+				body += `<rect x="${lx - 70}" y="${ly - h / 2}" width="140" height="${h}" rx="5" fill="white"/>${textBlock(e.label, lx, ly, {
+					size: 14,
+					limit: 8
+				})}`;
+			}
+		}
+		for (const n of d.nodes) {
+			const c = cells.get(n.id), end = n.type === "start" || n.type === "end", stroke = end ? "#b64f59" : n.type === "decision" ? "#b9842a" : "#327ba0", fill = end ? "#fff0f1" : n.type === "decision" ? "#fff6df" : "#edf7fc";
+			body += `<g data-node="${n.id}">`;
+			body += n.type === "decision" ? `<path d="M ${c.x} ${c.y - c.h / 2} L ${c.x + c.w / 2} ${c.y} L ${c.x} ${c.y + c.h / 2} L ${c.x - c.w / 2} ${c.y} Z" fill="${fill}" stroke="${stroke}" stroke-width="2"/>` : `<rect x="${c.x - c.w / 2}" y="${c.y - c.h / 2}" width="${c.w}" height="${c.h}" rx="${end ? 30 : 8}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+			body += textBlock(n.text, c.x, c.y, { limit: c.limit }) + "</g>";
+		}
+		return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escape(d.title)}" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif"><title>${escape(d.title)}</title><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#637b95"/></marker></defs>${body}</svg>`;
+	}
+	exports.choices = choices;
+	exports.render = render;
+})))(), 1);
+function flowchartArtifact(runner, id, style) {
+	const job = runner.get(id), output = job.output;
+	if (job.status !== "done" || output?.kind !== "flowchart" || !output.document || typeof output.svg !== "string") throw new InputError("流程图尚未生成", 404);
+	const selected = style ?? job.presentation?.style ?? String(output.document.style);
+	return {
+		job,
+		document: output.document,
+		selected,
+		svg: () => import_renderer.render({
+			...output.document,
+			style: selected
+		})
+	};
+}
+function flowchartLayouts(runner, id) {
+	const chart = flowchartArtifact(runner, id);
+	return {
+		selected: chart.selected,
+		layouts: import_renderer.choices(chart.document).map((item) => ({
+			...item,
+			previewUrl: `/api/capabilities/packages/artifact/${id}/image.svg?style=${item.id}`
+		}))
+	};
+}
+async function selectFlowchartLayout(runner, id, style) {
+	if (typeof style !== "string") throw new InputError("请选择流程图布局");
+	const chart = flowchartArtifact(runner, id, style);
+	try {
+		chart.svg();
+	} catch (error) {
+		throw new InputError(error.message);
+	}
+	await runner.present(id, style);
+	return flowchartLayouts(runner, id);
+}
+//#endregion
+//#region src/host/flowchart-viewer.ts
+/** Self-contained authenticated viewer: the same artifact endpoints serve chat and downloads. */
+function flowchartViewer(root, title, nonce) {
+	return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
+<style nonce="${nonce}">*{box-sizing:border-box}body{margin:0;background:#edf2f7;color:#18324e;font:15px "Microsoft YaHei",sans-serif}header{position:sticky;top:0;z-index:2;padding:14px 22px;background:white;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #d9e2ee}h1{font-size:18px;margin:0;flex:1}button,a{padding:9px 14px;border:1px solid #c6d7e9;border-radius:10px;background:#fff;color:#17539b;text-decoration:none;cursor:pointer;font:inherit}button:focus-visible,a:focus-visible{outline:3px solid #638bf0;outline-offset:2px}button:disabled{cursor:default;opacity:.55}main{padding:24px;overflow:auto}#diagram{display:block;max-width:100%;height:auto;margin:auto;background:white;box-shadow:0 4px 24px #18324e12}.control{position:fixed;right:24px;bottom:24px;z-index:3}#toggle{box-shadow:0 5px 22px #25385824;border-radius:22px}#panel{position:absolute;bottom:52px;right:0;width:min(450px,calc(100vw - 32px));max-height:min(520px,70vh);overflow:auto;background:white;border:1px solid #d9e2ee;border-radius:18px;padding:18px;box-shadow:0 12px 50px #18324e26}#panel[hidden]{display:none}.heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.heading p{font-size:12px;color:#6e8196;margin:5px 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.option{padding:8px;text-align:left;color:inherit;min-width:0}.option[aria-pressed=true]{border:2px solid #557ed7;background:#f2f6ff}.option img{width:100%;height:100px;object-fit:contain;background:#f8fafc;border-radius:5px}.option strong,.option small{display:block}.option strong{font-size:14px;margin:8px 0 4px}.option small{font-size:11px;color:#64748b;line-height:1.5}.unavailable{height:100px;background:#f3f5f8;border-radius:5px;display:grid;place-items:center;font-size:12px}#status{font-size:13px;line-height:1.6;max-width:350px}#status:empty{display:none}@media(prefers-color-scheme:dark){body{background:#161e2b;color:#e1e8f3}header,#panel,button,a{background:#202b3d;color:#e1e8f3;border-color:#46546a}.option[aria-pressed=true]{background:#293f62}.option small,.heading p{color:#b2c0d4}.unavailable{background:#303b4c}}
+</style><header><h1>${title}</h1><button id="size">原始大小</button><button id="png">下载 PNG</button><a href="${root}/download.svg" download>下载 SVG</a></header><main><img id="diagram" src="${root}/image.svg" alt="${title}"></main><div class="control"><div id="panel" hidden role="dialog" aria-label="流程图布局"><div class="heading"><div><strong>选择布局</strong><p>预览当前流程，保留全部步骤与连线</p></div><button id="close" aria-label="关闭布局选择">×</button></div><div class="grid" id="options"></div><p id="status" role="status"></p></div><button id="toggle" aria-expanded="false" aria-controls="panel">▦ 布局 / 风格</button></div>
+<script nonce="${nonce}">
+const root=${JSON.stringify(root)},img=document.getElementById('diagram'),status=document.getElementById('status'),panel=document.getElementById('panel'),toggle=document.getElementById('toggle');let busy=false;
+function close(){panel.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus()}
+async function request(suffix,body){const r=await fetch(root+suffix,{credentials:'same-origin',...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})}),value=await r.json();if(!r.ok)throw Error(value.error||'布局操作失败');return value}
+function show(data){const options=document.getElementById('options');options.replaceChildren();for(const l of data.layouts){const b=document.createElement('button');b.className='option';b.setAttribute('aria-pressed',String(data.selected===l.id));b.disabled=!l.available||busy;b.title=l.reason||l.description;if(l.available){const p=document.createElement('img');p.src=l.previewUrl;p.alt=l.name+'缩略图';b.append(p)}else{const p=document.createElement('div');p.className='unavailable';p.textContent='当前流程不适用';b.append(p)}const name=document.createElement('strong');name.textContent=l.name+(data.selected===l.id?' ✓':'');const detail=document.createElement('small');detail.textContent=l.reason||l.description;b.append(name,detail);b.onclick=async()=>{if(busy)return;busy=true;show(data);status.textContent='正在切换…';try{const result=await request('/layout',{style:l.id});img.src=root+'/image.svg?v='+Date.now();await img.decode();busy=false;show(result);status.textContent='已应用'+l.name}catch(e){busy=false;show(data);status.textContent=e.message} };options.append(b)}}
+toggle.onclick=async()=>{if(!panel.hidden){close();return}panel.hidden=false;toggle.setAttribute('aria-expanded','true');status.textContent='正在加载预览…';try{show(await request('/layouts'));status.textContent='';document.getElementById('close').focus()}catch(e){status.textContent=e.message}};document.getElementById('close').onclick=close;document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
+document.getElementById('size').onclick=function(){const full=img.style.maxWidth==='none';img.style.maxWidth=full?'100%':'none';this.textContent=full?'原始大小':'适应宽度'};
+document.getElementById('png').onclick=async function(){this.disabled=true;try{await img.decode();const scale=Math.min(2,16384/Math.max(img.naturalWidth,img.naturalHeight),Math.sqrt(32000000/(img.naturalWidth*img.naturalHeight))),c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);const blob=await new Promise(r=>c.toBlob(r,'image/png'));if(!blob)throw Error();const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=document.title+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(e){panel.hidden=false;status.textContent='图片下载失败，请重试或下载 SVG'}finally{this.disabled=false}};
+<\/script></html>`;
+}
 //#endregion
 //#region src/host/package-artifact.ts
 function xlsx(output) {
@@ -12658,7 +13135,7 @@ function packageResult(id, output, port) {
 	};
 }
 /** The parent router performs the same authentication and origin checks as every capability request. */
-function servePackageArtifact(runner, route, res) {
+function servePackageArtifact(runner, route, res, style) {
 	const match = /^([a-f0-9-]{36})\/(image\.svg|download\.svg|download\.xlsx|view)$/.exec(route);
 	if (!match) throw new InputError("图像不存在", 404);
 	const job = runner.get(match[1]), output = job.output;
@@ -12678,7 +13155,8 @@ function servePackageArtifact(runner, route, res) {
 	if (job.status !== "done" || !diagram(output)) throw new InputError("图像尚未生成", 404);
 	const title = String(output.document.title ?? "流程图"), root = "/api/capabilities/packages/artifact/" + match[1];
 	if (match[2] !== "view") {
-		const bytes = Buffer.from(output.svg, "utf8");
+		const chart = flowchartArtifact(runner, match[1], style);
+		const bytes = Buffer.from(style || job.presentation ? chart.svg() : output.svg, "utf8");
 		res.writeHead(200, {
 			"content-type": "image/svg+xml; charset=utf-8",
 			"content-length": bytes.length,
@@ -12703,7 +13181,7 @@ function servePackageArtifact(runner, route, res) {
 		"x-content-type-options": "nosniff",
 		"content-security-policy": `default-src 'none'; img-src 'self' blob:; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; connect-src 'self'; base-uri 'none'; frame-ancestors 'self'`
 	});
-	res.end(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escaped}</title><style nonce="${nonce}">*{box-sizing:border-box}body{margin:0;background:#edf2f7;color:#18324e;font:16px "Microsoft YaHei",sans-serif}header{position:sticky;top:0;padding:16px 24px;background:white;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid #d9e2ee}h1{font-size:18px;margin:0;flex:1}button,a{padding:9px 16px;border:1px solid #c6d7e9;border-radius:8px;background:#fff;color:#17539b;text-decoration:none;cursor:pointer;font:inherit}main{padding:24px;overflow:auto}img{display:block;max-width:100%;height:auto;margin:auto;background:white;box-shadow:0 4px 24px #18324e12}#status{font-size:14px}</style><header><h1>${escaped}</h1><button id="size">原始大小</button><button id="png">下载 PNG</button><a href="${root}/download.svg" download>下载 SVG</a><span id="status" role="status"></span></header><main><img id="diagram" src="${root}/image.svg" alt="${escaped}"></main><script nonce="${nonce}">const img=document.getElementById('diagram'),status=document.getElementById('status');document.getElementById('size').onclick=function(){const full=img.style.maxWidth==='none';img.style.maxWidth=full?'100%':'none';this.textContent=full?'原始大小':'适应宽度'};document.getElementById('png').onclick=async function(){this.disabled=true;try{await img.decode();const scale=Math.min(2,16384/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*scale);c.height=Math.round(img.naturalHeight*scale);const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);const blob=await new Promise(r=>c.toBlob(r,'image/png'));if(!blob)throw Error();const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=document.title+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status.textContent='已生成 PNG'}catch(e){status.textContent='图片下载失败，请重试或下载 SVG'}finally{this.disabled=false}};<\/script></html>`);
+	res.end(flowchartViewer(root, escaped, nonce));
 }
 //#endregion
 //#region src/host/package-routes.ts
@@ -12736,7 +13214,13 @@ async function packageRoutes(packages, runner, req, res) {
 	}
 	if (req.method === "GET" && route.startsWith("processing/")) return json(res, 200, packages.processStatus(route.slice(11)));
 	if (req.method === "GET" && route === "config") return json(res, 200, { model: packages.store.snapshot().packageModels?.[url.searchParams.get("id") ?? ""] ?? "" });
-	if (req.method === "GET" && route.startsWith("artifact/")) return servePackageArtifact(runner, route.slice(9), res);
+	const layoutRoute = /^artifact\/([a-f0-9-]{36})\/(layouts|layout)$/.exec(route);
+	if (layoutRoute && req.method === "GET" && layoutRoute[2] === "layouts") return json(res, 200, flowchartLayouts(runner, layoutRoute[1]));
+	if (layoutRoute && req.method === "POST" && layoutRoute[2] === "layout") {
+		const body = object(await readBody(req));
+		return json(res, 200, await selectFlowchartLayout(runner, layoutRoute[1], body.style));
+	}
+	if (req.method === "GET" && route.startsWith("artifact/")) return servePackageArtifact(runner, route.slice(9), res, url.searchParams.get("style"));
 	if (req.method === "GET" && route === "tasks") return json(res, 200, runner.list(url.searchParams.get("id") ?? void 0));
 	if (req.method === "GET" && route.startsWith("task/")) return json(res, 200, runner.get(route.slice(5)));
 	if (req.method !== "POST") throw new InputError("不支持此操作", 405);

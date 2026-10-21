@@ -133,6 +133,10 @@ function trackedLibPackages() {
 /** Fingerprint one package's inputs, including the aggregate's children. */
 function packageFingerprint(pkgDir) {
   let entries = sourceEntries(pkgDir)
+  if (pkgDir === 'packages/dsh-capabilities') {
+    const renderer = 'shared/flowchart/renderer.cjs'
+    entries.push([renderer, sourceDigest(renderer, readFileSync(join(ROOT, renderer)))])
+  }
   if (pkgDir === AGGREGATE_PACKAGE && existsSync(AGGREGATE)) {
     for (const child of parseAggregateInputs(readFileSync(AGGREGATE, 'utf8'))) {
       entries = entries.concat(sourceEntries(child).map(([rel, digest]) => [child + '/' + rel, digest]))

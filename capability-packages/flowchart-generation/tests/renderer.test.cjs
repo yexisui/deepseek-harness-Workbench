@@ -13,3 +13,40 @@ test('long Chinese labels grow their nodes instead of truncation',()=>{const d=s
 const realStandard={"schema":1,"title":"申请提交与审批归档","style":"standard","nodes":[{"id":"n1","text":"开始","type":"start"},{"id":"n2","text":"提交申请","type":"step"},{"id":"n3","text":"检查资料是否齐全","type":"decision"},{"id":"n4","text":"补充资料","type":"step"},{"id":"n5","text":"主管审批","type":"step"},{"id":"n6","text":"通知申请人","type":"step"},{"id":"n7","text":"归档","type":"step"},{"id":"n8","text":"结束","type":"end"}],"edges":[{"from":"n1","to":"n2"},{"from":"n2","to":"n3"},{"from":"n3","to":"n4","label":"不齐全"},{"from":"n3","to":"n5","label":"齐全"},{"from":"n4","to":"n3","label":"补充后返回重新检查"},{"from":"n5","to":"n6"},{"from":"n6","to":"n7"},{"from":"n7","to":"n8"}]};
 test('left branch return avoids the neighboring approval box',()=>{const svg=render(realStandard);assert(svg.includes('M 232 750 H 55 V 542 H 405'));assert(!svg.includes('M 518 750 H 1045'));});
 test('read also produces a displayable artifact without a model call',async()=>{const result=await execute({action:'diagram',input:{mode:'read'},api:{previous:{output:{document:snake}}}});assert.equal(result.kind,'flowchart');assert(result.svg.includes('<svg'));assert.deepEqual(result.document,snake);});
+
+test('extended layouts preserve every node, branch and return without mutating source',()=>{
+ const before=JSON.stringify(standard);
+ for(const style of ['horizontal','compact','tree','swimlane']){
+  const document={...standard,style,nodes:standard.nodes.map((n,i)=>({...n,lane:i%2?'审核部门':'申请人'}))},svg=render(document);
+  assert.equal((svg.match(/data-node=/g)||[]).length,standard.nodes.length);assert.equal((svg.match(/data-from=/g)||[]).length,standard.edges.length);
+  for(const edge of standard.edges)assert(svg.includes('data-from="'+edge.from+'" data-to="'+edge.to+'"'));
+  assert(!/NaN|undefined/.test(svg));assert.equal(render(document),svg);fs.writeFileSync(path.join(__dirname,'../dist/checks',style+'.svg'),svg);
+ }
+ assert.equal(JSON.stringify(standard),before);
+});
+test('layout availability explains missing roles and snake branches, lane edits preserve other content',()=>{
+ const {choices}=require('../runtime/renderer.cjs'),options=choices(standard);
+ assert.equal(options.length,6);assert.equal(options.find(l=>l.id==='snake').available,false);assert.match(options.find(l=>l.id==='swimlane').reason,/责任角色/);
+ const d=patch(standard,[{op:'lane',id:'n2',lane:'审核人'}]);assert.equal(d.nodes[1].lane,'审核人');assert.deepEqual(d.edges,standard.edges);
+ assert.throws(()=>render({...standard,style:'unknown'}),/受支持/);
+});
+test('all added layouts handle sixty nodes and long Chinese text',()=>{
+ const nodes=Array.from({length:60},(_,i)=>({id:'n'+i,text:'核对完整材料并保存办理记录'.repeat(i%8===0?8:1),type:i===0?'start':i===59?'end':'step',lane:i%2?'经办人':'审核人'}));
+ const edges=nodes.slice(1).map((n,i)=>({from:nodes[i].id,to:n.id}));
+ for(const style of ['horizontal','compact','tree','swimlane']){const svg=render({title:'长流程',style,nodes,edges});assert.equal((svg.match(/data-node=/g)||[]).length,60);assert(!/NaN|undefined/.test(svg));}
+});
+
+test('portable renderer matches the shared host source',()=>{assert.equal(fs.readFileSync(path.join(__dirname,'../runtime/renderer.cjs'),'utf8'),fs.readFileSync(path.join(__dirname,'../../../deepseek_harness_desktop/shared/flowchart/renderer.cjs'),'utf8'))});
+
+// A visible connection must not imply a step that is absent from the document.
+test('horizontal return avoids neighboring nodes and branch captions leave arrowheads visible',()=>{
+ const svg=render({...realStandard,style:'horizontal'});
+ const boxes=[...svg.matchAll(/<g data-node="([^"]+)"><rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)].map(m=>({id:m[1],x:+m[2],y:+m[3],w:+m[4],h:+m[5]}));
+ for(const match of svg.matchAll(/<path data-from="([^"]+)" data-to="([^"]+)" d="([^"]+)"/g)){
+  const tokens=match[3].split(' ');let x=+tokens[1],y=+tokens[2];const points=[[x,y]];
+  for(let i=3;i<tokens.length;i+=2){if(tokens[i]==='H')x=+tokens[i+1];else if(tokens[i]==='V')y=+tokens[i+1];else assert.fail('Unexpected path command');points.push([x,y]);}
+  for(let i=1;i<points.length;i++){const [ax,ay]=points[i-1],[bx,by]=points[i];for(const box of boxes.filter(b=>b.id!==match[1]&&b.id!==match[2])){const crosses=ax===bx?ax>box.x&&ax<box.x+box.w&&Math.max(ay,by)>box.y&&Math.min(ay,by)<box.y+box.h:ay>box.y&&ay<box.y+box.h&&Math.max(ax,bx)>box.x&&Math.min(ax,bx)<box.x+box.w;assert(!crosses,'edge '+match[1]+'>'+match[2]+' crosses '+box.id);}}
+  const end=points.at(-1);for(const rect of svg.matchAll(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)" rx="5" fill="white"/g))assert(!(end[0]>+rect[1]&&end[0]<+rect[1]+ +rect[3]&&end[1]>+rect[2]&&end[1]<+rect[2]+ +rect[4]),'caption obscures arrowhead');
+ }
+ fs.writeFileSync(path.join(__dirname,'../dist/checks/horizontal-return.svg'),svg);
+});

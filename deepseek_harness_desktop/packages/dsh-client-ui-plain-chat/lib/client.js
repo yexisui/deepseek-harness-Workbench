@@ -26,10 +26,364 @@ window.__ModuleLoader__.load({
 			enumerable: true
 		}) : target, mod));
 		//#endregion
+		let react_dom = require("react-dom");
 		let react = require("react");
 		react = __toESM(react, 1);
 		let react_jsx_runtime = require("react/jsx-runtime");
-		let react_dom = require("react-dom");
+		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/FlowchartLayouts.module.css.mjs
+		const css$21 = ".cxAnPW_message{min-width:0;position:relative}.cxAnPW_anchor{pointer-events:none;position:absolute;container-type:inline-size}.cxAnPW_control{pointer-events:auto;color:var(--dsw-alias-label-primary,#26364f);font:14px/1.5 Microsoft YaHei,sans-serif;position:absolute;bottom:10px;right:10px}.cxAnPW_toggle{border:1px solid var(--dsw-alias-border-l2,#cdd8ea);background:var(--dsw-alias-bg-layer-2,#fff);color:inherit;font:inherit;cursor:pointer;border-radius:24px;align-items:center;gap:8px;padding:9px 14px;display:flex;box-shadow:0 4px 20px #20345320}.cxAnPW_toggle>span{color:#7b8caa;margin-left:5px}.cxAnPW_panel{pointer-events:auto;color:var(--dsw-alias-label-primary,#26364f);box-sizing:border-box;border:1px solid var(--dsw-alias-border-l2,#d9e1ef);background:var(--dsw-alias-bg-layer-2,#fff);background:rgb(from var(--dsw-alias-bg-layer-2,#fff) r g b / .98);backdrop-filter:blur(16px);z-index:1000;border-radius:18px;max-height:min(560px,100vh - 24px);padding:16px;font:14px/1.5 Microsoft YaHei,sans-serif;position:fixed;overflow:auto;box-shadow:0 14px 50px #1c315a2b}.cxAnPW_heading{justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px;display:flex}.cxAnPW_heading strong{font-size:16px}.cxAnPW_heading small{color:var(--dsw-alias-label-secondary,#75849c);margin-top:4px;font-size:12px;display:block}.cxAnPW_heading button{color:inherit;cursor:pointer;background:0 0;border:0;padding:0 6px;font-size:22px}.cxAnPW_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;display:grid}.cxAnPW_option{border:1px solid var(--dsw-alias-border-l2,#dce3ef);color:inherit;text-align:left;cursor:pointer;min-width:0;font:inherit;background:0 0;border-radius:12px;padding:8px}.cxAnPW_option[aria-pressed=true]{background:#6080ce1a;border-color:#6080ce;box-shadow:0 0 0 1px #6080ce}.cxAnPW_option img{background:#f8fafc;border-radius:6px;object-fit:contain!important;width:100%!important;height:96px!important;max-height:96px!important;margin:0!important;display:block!important}.cxAnPW_option strong{justify-content:space-between;margin:7px 0 3px;font-size:13px;display:flex}.cxAnPW_option strong span{color:#577cc9}.cxAnPW_option small{color:var(--dsw-alias-label-secondary,#75849c);font-size:11px;line-height:1.5;display:block}.cxAnPW_option:disabled{cursor:default;opacity:.55}.cxAnPW_unavailable{background:#7788991a;border-radius:6px;place-items:center;height:96px;font-size:11px;display:grid}.cxAnPW_footer{border-top:1px solid var(--dsw-alias-border-l2,#dce3ef);flex-wrap:wrap;gap:8px 16px;margin-top:12px;padding-top:12px;font-size:12px;display:flex}.cxAnPW_footer a{color:var(--dsw-alias-button-primary-fill,#466abb)}.cxAnPW_error{color:var(--dsw-alias-state-error-primary,#b73242);font-size:12px}.cxAnPW_error button{color:inherit;cursor:pointer;background:0 0;border:0;text-decoration:underline}.cxAnPW_panel button:focus-visible,.cxAnPW_control button:focus-visible,.cxAnPW_footer a:focus-visible{outline-offset:3px;outline:2px solid #6689da}@container (width<=320px){.cxAnPW_panel{padding:10px}.cxAnPW_grid{gap:7px}.cxAnPW_option img,.cxAnPW_unavailable{height:75px!important}.cxAnPW_heading small{font-size:11px}}";
+		const tagId$21 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/FlowchartLayouts.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$21) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-client-ui-plain-chat";
+			tag.dataset.pluginCss = tagId$21;
+			tag.textContent = css$21;
+			document.head.appendChild(tag);
+		}
+		var FlowchartLayouts_module_css_default = {
+			"anchor": "cxAnPW_anchor",
+			"control": "cxAnPW_control",
+			"error": "cxAnPW_error",
+			"footer": "cxAnPW_footer",
+			"grid": "cxAnPW_grid",
+			"heading": "cxAnPW_heading",
+			"message": "cxAnPW_message",
+			"option": "cxAnPW_option",
+			"panel": "cxAnPW_panel",
+			"toggle": "cxAnPW_toggle",
+			"unavailable": "cxAnPW_unavailable"
+		};
+		//#endregion
+		//#region src/client/FlowchartLayouts.tsx
+		function flowchartId(src, origin = window.location.origin) {
+			try {
+				const url = new URL(src, origin);
+				return url.origin === origin ? /^\/api\/capabilities\/packages\/artifact\/([a-f0-9-]{36})\/image\.svg$/.exec(url.pathname)?.[1] ?? null : null;
+			} catch {
+				return null;
+			}
+		}
+		async function request$3(id, style) {
+			const response = await fetch(`/api/capabilities/packages/artifact/${id}/${style ? "layout" : "layouts"}`, {
+				credentials: "same-origin",
+				...style ? {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ style })
+				} : {}
+			});
+			const data = await response.json();
+			if (!response.ok) throw Error(data.error || "布局操作失败，请重试");
+			return data;
+		}
+		function FlowchartLayoutPicker({ id, onChange }) {
+			const [open, setOpen] = (0, react.useState)(false), [data, setData] = (0, react.useState)(), [busy, setBusy] = (0, react.useState)(false), [error, setError] = (0, react.useState)("");
+			const panel = (0, react.useRef)(null), [position, setPosition] = (0, react.useState)({
+				left: 12,
+				top: 12,
+				width: 450
+			}), element = (0, react.useRef)(null), toggle = (0, react.useRef)(null), closeButton = (0, react.useRef)(null), generation = (0, react.useRef)(0);
+			const close = (0, react.useCallback)(() => {
+				setOpen(false);
+				toggle.current?.focus();
+			}, []);
+			(0, react.useEffect)(() => () => {
+				generation.current++;
+			}, []);
+			(0, react.useEffect)(() => {
+				if (!open) return;
+				const onPointer = (event) => {
+					if (!element.current?.contains(event.target) && !panel.current?.contains(event.target)) setOpen(false);
+				};
+				const onKey = (event) => {
+					if (event.key === "Escape") {
+						event.preventDefault();
+						event.stopPropagation();
+						close();
+					}
+				};
+				document.addEventListener("pointerdown", onPointer);
+				document.addEventListener("keydown", onKey, true);
+				closeButton.current?.focus();
+				return () => {
+					document.removeEventListener("pointerdown", onPointer);
+					document.removeEventListener("keydown", onKey, true);
+				};
+			}, [open, close]);
+			(0, react.useEffect)(() => {
+				if (!open) return;
+				const place = () => {
+					const r = toggle.current.getBoundingClientRect(), width = Math.min(450, window.innerWidth - 24), height = Math.min(560, window.innerHeight - 24);
+					setPosition({
+						width,
+						left: Math.max(12, Math.min(r.right - width, window.innerWidth - width - 12)),
+						top: Math.max(12, Math.min(r.top - height - 10, window.innerHeight - height - 12))
+					});
+				};
+				place();
+				window.addEventListener("resize", place);
+				window.addEventListener("scroll", place, true);
+				document.addEventListener("load", place, true);
+				return () => {
+					window.removeEventListener("resize", place);
+					window.removeEventListener("scroll", place, true);
+					document.removeEventListener("load", place, true);
+				};
+			}, [open]);
+			const load = async () => {
+				setOpen(true);
+				setError("");
+				const current = ++generation.current;
+				try {
+					const value = await request$3(id);
+					if (current === generation.current) setData(value);
+				} catch (e) {
+					if (current === generation.current) setError(e.message);
+				}
+			};
+			const select = async (style) => {
+				if (busy || style === data?.selected) return;
+				setBusy(true);
+				setError("");
+				const current = generation.current;
+				try {
+					const value = await request$3(id, style);
+					if (current !== generation.current) return;
+					setData(value);
+					onChange();
+					window.dispatchEvent(new CustomEvent("workbench-flowchart-layout", { detail: id }));
+				} catch (e) {
+					if (current === generation.current) setError(e.message);
+				} finally {
+					if (current === generation.current) setBusy(false);
+				}
+			};
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				ref: element,
+				className: FlowchartLayouts_module_css_default.control,
+				onKeyDown: (event) => {
+					if (event.key === "Escape") {
+						event.stopPropagation();
+						close();
+					}
+				},
+				children: [open && (0, react_dom.createPortal)(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
+					ref: panel,
+					style: position,
+					className: FlowchartLayouts_module_css_default.panel,
+					role: "dialog",
+					"aria-label": "流程图布局",
+					"aria-busy": busy,
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: FlowchartLayouts_module_css_default.heading,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: "选择布局" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "预览当前流程，保留全部步骤与连线" })] }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								ref: closeButton,
+								onClick: close,
+								"aria-label": "关闭布局选择",
+								children: "×"
+							})]
+						}),
+						!data && !error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							role: "status",
+							children: "正在加载预览…"
+						}),
+						data && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+							className: FlowchartLayouts_module_css_default.grid,
+							children: data.layouts.map((layout) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+								type: "button",
+								className: FlowchartLayouts_module_css_default.option,
+								disabled: !layout.available || busy,
+								"aria-pressed": data.selected === layout.id,
+								title: layout.reason || layout.description,
+								onClick: () => void select(layout.id),
+								children: [
+									layout.available ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("img", {
+										src: layout.previewUrl,
+										alt: `${layout.name}缩略图`
+									}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										className: FlowchartLayouts_module_css_default.unavailable,
+										children: "当前流程不适用"
+									}),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: [layout.name, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+										"aria-hidden": "true",
+										children: data.selected === layout.id ? "✓" : ""
+									})] }),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: layout.reason || layout.description })
+								]
+							}, layout.id))
+						}),
+						busy && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							role: "status",
+							children: "正在应用布局…"
+						}),
+						error && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+							role: "alert",
+							className: FlowchartLayouts_module_css_default.error,
+							children: [error, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: () => void load(),
+								children: "重新加载"
+							})]
+						}),
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: FlowchartLayouts_module_css_default.footer,
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("a", {
+								href: `/api/capabilities/packages/artifact/${id}/view`,
+								target: "_blank",
+								rel: "noreferrer",
+								children: "查看大图 / 下载 PNG"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("a", {
+								href: `/api/capabilities/packages/artifact/${id}/download.svg`,
+								download: true,
+								children: "下载 SVG"
+							})]
+						})
+					]
+				}), document.body), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+					type: "button",
+					ref: toggle,
+					className: FlowchartLayouts_module_css_default.toggle,
+					"aria-label": "切换流程图布局",
+					"aria-expanded": open,
+					onClick: () => open ? close() : void load(),
+					children: [
+						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+							width: "16",
+							height: "16",
+							viewBox: "0 0 24 24",
+							fill: "none",
+							stroke: "currentColor",
+							strokeWidth: "1.7",
+							"aria-hidden": "true",
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+									x: "3",
+									y: "3",
+									width: "7",
+									height: "7",
+									rx: "2"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+									x: "14",
+									y: "3",
+									width: "7",
+									height: "7",
+									rx: "2"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+									x: "3",
+									y: "14",
+									width: "7",
+									height: "7",
+									rx: "2"
+								}),
+								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("rect", {
+									x: "14",
+									y: "14",
+									width: "7",
+									height: "7",
+									rx: "2"
+								})
+							]
+						}),
+						"布局 / 风格",
+						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							"aria-hidden": "true",
+							children: "⌃"
+						})
+					]
+				})]
+			});
+		}
+		/** Compatibility decorator: preserve upstream Markdown rendering and attach controls only to our same-origin artifacts. */
+		function FlowchartLayouts({ children }) {
+			const root = (0, react.useRef)(null), [anchors, setAnchors] = (0, react.useState)([]);
+			(0, react.useEffect)(() => {
+				const container = root.current;
+				let frame = 0, sequence = 0;
+				const keys = /* @__PURE__ */ new WeakMap(), observed = /* @__PURE__ */ new Set();
+				const refreshImage = (image) => {
+					const url = new URL(image.src);
+					url.searchParams.delete("style");
+					url.searchParams.set("view", String(Date.now()));
+					image.src = url.href;
+				};
+				const update = () => {
+					frame = 0;
+					const bounds = container.getBoundingClientRect();
+					const next = [];
+					for (const image of Array.from(container.querySelectorAll("img"))) {
+						if (image.closest("[data-flowchart-controls]")) continue;
+						const id = flowchartId(image.src);
+						if (!id) continue;
+						if (!keys.has(image)) keys.set(image, ++sequence);
+						if (!observed.has(image)) {
+							resize.observe(image);
+							observed.add(image);
+						}
+						const r = image.getBoundingClientRect();
+						if (r.width && r.height) next.push({
+							image,
+							id,
+							left: r.left - bounds.left,
+							top: r.top - bounds.top,
+							width: r.width,
+							height: r.height,
+							key: keys.get(image)
+						});
+					}
+					for (const image of observed) if (!container.contains(image)) {
+						resize.unobserve(image);
+						observed.delete(image);
+					}
+					setAnchors((previous) => previous.length === next.length && previous.every((a, i) => a.image === next[i]?.image && a.id === next[i]?.id && a.left === next[i]?.left && a.top === next[i]?.top && a.width === next[i]?.width && a.height === next[i]?.height) ? previous : next);
+				};
+				const schedule = () => {
+					if (!frame) frame = requestAnimationFrame(update);
+				}, resize = new ResizeObserver(schedule), mutation = new MutationObserver(schedule);
+				resize.observe(container);
+				mutation.observe(container, {
+					subtree: true,
+					childList: true,
+					attributes: true,
+					attributeFilter: ["src"]
+				});
+				container.addEventListener("load", schedule, true);
+				window.addEventListener("resize", schedule);
+				const changed = (event) => {
+					for (const image of observed) if (flowchartId(image.src) === event.detail) refreshImage(image);
+				};
+				window.addEventListener("workbench-flowchart-layout", changed);
+				schedule();
+				return () => {
+					cancelAnimationFrame(frame);
+					resize.disconnect();
+					mutation.disconnect();
+					container.removeEventListener("load", schedule, true);
+					window.removeEventListener("resize", schedule);
+					window.removeEventListener("workbench-flowchart-layout", changed);
+				};
+			}, []);
+			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: FlowchartLayouts_module_css_default.message,
+				ref: root,
+				children: [children, anchors.map((a) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					"data-flowchart-controls": true,
+					className: FlowchartLayouts_module_css_default.anchor,
+					style: {
+						left: a.left,
+						top: a.top,
+						width: a.width,
+						height: a.height
+					},
+					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FlowchartLayoutPicker, {
+						id: a.id,
+						onChange: () => {}
+					})
+				}, `${a.key}:${a.id}`))]
+			});
+		}
+		//#endregion
 		//#region ../../shared/client/documents-client.ts
 		const base = "/api/capabilities/documents/";
 		async function documentApi(path, body) {
@@ -10844,49 +11198,60 @@ window.__ModuleLoader__.load({
 				children: kind === "pin" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M16 3 21 8l-4 1-3 5v3l-7-7h3l5-3z" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m3 21 7-7" })] }) : kind === "remove" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" }) }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6" }) })
 			});
 		}
-		function ManagementRow({ name, description, status, statusHint, icon, hint, onOpen, openLabel, pinned, onPin, pinLabel, busy, attributes }) {
+		function ManagementRow({ name, description, status, statusHint, icon, hint, onOpen, openLabel, pinned, onPin, pinLabel, busy, attributes, onRemove, removeLabel }) {
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("article", {
 				className: ManagedCapabilities_module_css_default.capabilityRow,
 				...attributes,
-				children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-					className: ManagedCapabilities_module_css_default.capabilityOpen,
-					"aria-label": openLabel,
-					onClick: onOpen,
-					children: [
-						icon ?? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-							className: Capabilities_module_css_default.icon,
-							children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "file" })
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-							className: ManagedCapabilities_module_css_default.capabilityIdentity,
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: name }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: description }),
-								hint && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
-									className: ManagedCapabilities_module_css_default.draftHint,
-									children: hint
-								})
-							]
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-							className: ManagedCapabilities_module_css_default.capabilityStatus,
-							title: statusHint,
-							children: status
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-							"aria-hidden": "true",
-							children: "›"
-						})
-					]
-				}), onPin && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-					className: `${ManagedCapabilities_module_css_default.iconButton} ${pinned ? ManagedCapabilities_module_css_default.pinned : ""}`,
-					disabled: busy,
-					"aria-label": pinLabel,
-					title: pinned ? "取消收藏" : "收藏",
-					"aria-pressed": !!pinned,
-					onClick: onPin,
-					children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "pin" })
-				})]
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+						className: ManagedCapabilities_module_css_default.capabilityOpen,
+						"aria-label": openLabel,
+						onClick: onOpen,
+						children: [
+							icon ?? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: Capabilities_module_css_default.icon,
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "file" })
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+								className: ManagedCapabilities_module_css_default.capabilityIdentity,
+								children: [
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: name }),
+									/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: description }),
+									hint && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
+										className: ManagedCapabilities_module_css_default.draftHint,
+										children: hint
+									})
+								]
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								className: ManagedCapabilities_module_css_default.capabilityStatus,
+								title: statusHint,
+								children: status
+							}),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								"aria-hidden": "true",
+								children: "›"
+							})
+						]
+					}),
+					onPin && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: `${ManagedCapabilities_module_css_default.iconButton} ${pinned ? ManagedCapabilities_module_css_default.pinned : ""}`,
+						disabled: busy,
+						"aria-label": pinLabel,
+						title: pinned ? "取消收藏" : "收藏",
+						"aria-pressed": !!pinned,
+						onClick: onPin,
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "pin" })
+					}),
+					onRemove && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+						className: ManagedCapabilities_module_css_default.iconButton,
+						disabled: busy,
+						"aria-label": removeLabel,
+						title: "移除",
+						onClick: onRemove,
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagementIcon, { kind: "remove" })
+					})
+				]
 			});
 		}
 		//#endregion
@@ -22974,6 +23339,9 @@ window.__ModuleLoader__.load({
 				};
 			}, "plain-chat: file search navigation");
 			const registry = ctx.slots;
+			ctx.effect(() => decorateSlot(registry, "conversation.chat.node", "AssistantNodeView", (Original) => function FlowchartMessage(props) {
+				return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FlowchartLayouts, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, { ...props }) });
+			}), "plain-chat: flowchart layout controls");
 			ctx.effect(() => registerComponentInventory(registry), "plain-chat: shared component inventory compatibility");
 			ctx.effect(() => decorateSlot(registry, "conversation.composer.bar", "InputBar", (Original) => function RecordingCommands(props) {
 				const keyboard = (0, react.useMemo)(() => props.keyboard ? new Proxy(props.keyboard, { get(target, key) {

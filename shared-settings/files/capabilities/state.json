@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "revision": 51,
-  "updatedAt": "2026-10-19T03:54:01.202Z",
+  "revision": 54,
+  "updatedAt": "2026-10-21T01:31:44.463Z",
   "roles": [
     {
       "id": "builtin-analyst",
@@ -20,7 +20,7 @@
           },
           {
             "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
-            "version": 2,
+            "version": 4,
             "enabled": true
           }
         ]
@@ -75,6 +75,52 @@
           "version": 3,
           "preset": "workbench-role-builtin-analyst-v3",
           "createdAt": "2026-10-10T02:28:49.602Z",
+          "directSave": true
+        },
+        {
+          "name": "需求分析助手",
+          "color": "#4F73E8",
+          "duties": "协助梳理核电企业办公业务的软件需求，理解业务目标、使用角色与操作流程，整理功能清单和待确认事项。",
+          "requirements": "区分明确需求与待确认事项，不自行补充业务规则。\n信息不足时先提出澄清问题，使用业务人员易懂的语言。",
+          "format": "一、业务目标\n二、操作步骤\n三、功能清单\n四、待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "requirements-analysis",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+              "version": 3,
+              "enabled": true
+            }
+          ],
+          "version": 4,
+          "createdAt": "2026-10-21T01:13:53.482Z",
+          "preset": "workbench-role-builtin-analyst-v4",
+          "directSave": true
+        },
+        {
+          "name": "需求分析助手",
+          "color": "#4F73E8",
+          "duties": "协助梳理核电企业办公业务的软件需求，理解业务目标、使用角色与操作流程，整理功能清单和待确认事项。",
+          "requirements": "区分明确需求与待确认事项，不自行补充业务规则。\n信息不足时先提出澄清问题，使用业务人员易懂的语言。",
+          "format": "一、业务目标\n二、操作步骤\n三、功能清单\n四、待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "requirements-analysis",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+              "version": 4,
+              "enabled": true
+            }
+          ],
+          "version": 5,
+          "createdAt": "2026-10-21T01:31:44.461Z",
+          "preset": "workbench-role-builtin-analyst-v5",
           "directSave": true
         }
       ]
@@ -263,6 +309,23 @@
           ],
           "version": 7,
           "preset": "workbench-role-builtin-developer-v7",
+          "createdAt": "2026-10-09T03:56:52.921Z"
+        },
+        {
+          "name": "开发助手",
+          "color": "#22A58B",
+          "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+          "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+          "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "developer-workspace",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 8,
+          "preset": "workbench-role-builtin-developer-v8",
           "createdAt": "2026-10-09T03:56:52.921Z"
         }
       ]
@@ -485,7 +548,7 @@
         "capabilities": [
           {
             "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
-            "version": 2,
+            "version": 4,
             "enabled": true
           }
         ]
@@ -525,6 +588,42 @@
           "version": 2,
           "createdAt": "2026-10-10T02:12:04.038Z",
           "preset": "workbench-role-local-95621bed-5637-4a12-b3b8-f181e185cb3d-v2",
+          "directSave": true
+        },
+        {
+          "name": "流程图演示助手",
+          "color": "#4F73E8",
+          "duties": "面向普通用户，用简明中文整理操作步骤，并使用关联的流程图生成能力，将当前对话内容制作成用户指定的标准或蛇形流程图。支持通过对话修改，展示图片及查看和下载入口。",
+          "requirements": "",
+          "format": "",
+          "capabilities": [
+            {
+              "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+              "version": 3,
+              "enabled": true
+            }
+          ],
+          "version": 3,
+          "createdAt": "2026-10-21T01:13:53.482Z",
+          "preset": "workbench-role-local-95621bed-5637-4a12-b3b8-f181e185cb3d-v3",
+          "directSave": true
+        },
+        {
+          "name": "流程图演示助手",
+          "color": "#4F73E8",
+          "duties": "面向普通用户，用简明中文整理操作步骤，并使用关联的流程图生成能力，将当前对话内容制作成用户指定的标准或蛇形流程图。支持通过对话修改，展示图片及查看和下载入口。",
+          "requirements": "",
+          "format": "",
+          "capabilities": [
+            {
+              "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+              "version": 4,
+              "enabled": true
+            }
+          ],
+          "version": 4,
+          "createdAt": "2026-10-21T01:31:44.461Z",
+          "preset": "workbench-role-local-95621bed-5637-4a12-b3b8-f181e185cb3d-v4",
           "directSave": true
         }
       ]
@@ -972,8 +1071,8 @@
       "pinned": false,
       "draft": {
         "name": "流程图生成",
-        "description": "根据对话内容生成固定样式的标准流程图或蛇形流程图，支持通过对话修改、查看大图和下载图片。",
-        "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"或\"snake\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"snake\"或\"standard\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。",
+        "description": "根据对话生成流程图，支持标准、蛇形、横向、紧凑、树状和角色泳道布局，以及局部修改、缩略图切换和图片下载。",
+        "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"、\"snake\"、\"horizontal\"、\"compact\"、\"tree\"或\"swimlane\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"standard\"、\"snake\"、\"horizontal\"、\"compact\"、\"tree\"或\"swimlane\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。 布局还支持 horizontal（横向）、compact（紧凑分层）、tree（树状分支）、swimlane（角色泳道）。泳道每个节点必须有来源明确的 lane（人员、部门或角色），缺少时询问用户，不可编造。其他布局也保留已有 lane 信息。",
         "components": [
           {
             "componentId": "pkg:org.workbench.flowchart:renderer",
@@ -1016,6 +1115,40 @@
           "version": 2,
           "createdAt": "2026-10-10T02:12:04.038Z",
           "packageHash": "36886bcafd9ea6d5bcb1668eae658e34f74e458399d57f8b804a3b0c2651b68c",
+          "directSave": true
+        },
+        {
+          "name": "流程图生成",
+          "description": "根据对话生成流程图，支持标准、蛇形、横向、紧凑、树状和角色泳道布局，以及局部修改、缩略图切换和图片下载。",
+          "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"、\"snake\"、\"horizontal\"、\"compact\"、\"tree\"或\"swimlane\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"standard\"、\"snake\"、\"horizontal\"、\"compact\"、\"tree\"或\"swimlane\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。 布局还支持 horizontal（横向）、compact（紧凑分层）、tree（树状分支）、swimlane（角色泳道）。泳道每个节点必须有来源明确的 lane（人员、部门或角色），缺少时询问用户，不可编造。其他布局也保留已有 lane 信息。",
+          "components": [
+            {
+              "componentId": "pkg:org.workbench.flowchart:renderer",
+              "actions": [
+                "pack:org.workbench.flowchart:renderer:diagram"
+              ]
+            }
+          ],
+          "version": 3,
+          "createdAt": "2026-10-21T01:13:53.482Z",
+          "packageHash": "800c0074341386672fcafef161a9ce82beca5f5c6e5881bc021d3bb245ca6677",
+          "directSave": true
+        },
+        {
+          "name": "流程图生成",
+          "description": "根据对话生成流程图，支持标准、蛇形、横向、紧凑、树状和角色泳道布局，以及局部修改、缩略图切换和图片下载。",
+          "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"、\"snake\"、\"horizontal\"、\"compact\"、\"tree\"或\"swimlane\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"standard\"、\"snake\"、\"horizontal\"、\"compact\"、\"tree\"或\"swimlane\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。 布局还支持 horizontal（横向）、compact（紧凑分层）、tree（树状分支）、swimlane（角色泳道）。泳道每个节点必须有来源明确的 lane（人员、部门或角色），缺少时询问用户，不可编造。其他布局也保留已有 lane 信息。",
+          "components": [
+            {
+              "componentId": "pkg:org.workbench.flowchart:renderer",
+              "actions": [
+                "pack:org.workbench.flowchart:renderer:diagram"
+              ]
+            }
+          ],
+          "version": 4,
+          "createdAt": "2026-10-21T01:31:44.461Z",
+          "packageHash": "6cf1f955bf2f4b08aaa2a05ee7a9704cb48b8b442f1f39c185dc97f055e7a7b0",
           "directSave": true
         }
       ],
@@ -1445,6 +1578,86 @@
         }
       },
       "installedAt": "2026-10-19T03:54:01.092Z"
+    },
+    "800c0074341386672fcafef161a9ce82beca5f5c6e5881bc021d3bb245ca6677": {
+      "hash": "800c0074341386672fcafef161a9ce82beca5f5c6e5881bc021d3bb245ca6677",
+      "manifest": {
+        "schema": 1,
+        "protocol": "dsh-worker-v1",
+        "id": "org.workbench.flowchart",
+        "version": "1.1.0",
+        "name": "流程图生成",
+        "description": "根据对话生成流程图，支持标准、蛇形、横向、紧凑、树状和角色泳道布局，以及局部修改、缩略图切换和图片下载。",
+        "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"、\"snake\"、\"horizontal\"、\"compact\"、\"tree\"或\"swimlane\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"standard\"、\"snake\"、\"horizontal\"、\"compact\"、\"tree\"或\"swimlane\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。 布局还支持 horizontal（横向）、compact（紧凑分层）、tree（树状分支）、swimlane（角色泳道）。泳道每个节点必须有来源明确的 lane（人员、部门或角色），缺少时询问用户，不可编造。其他布局也保留已有 lane 信息。",
+        "author": "工作台",
+        "license": "Apache-2.0",
+        "permissions": [
+          "node",
+          "model"
+        ],
+        "components": [
+          {
+            "id": "renderer",
+            "name": "固定模板流程图",
+            "entry": "runtime/main.cjs",
+            "actions": [
+              {
+                "id": "diagram",
+                "name": "生成与修改流程图",
+                "description": "根据前文生成多种布局的流程图，通过对话局部修改、读取、切换样式。"
+              }
+            ]
+          }
+        ],
+        "files": {
+          "runtime/main.cjs": "db5dbfc9e8932b0ca908d6887889b01fb75132dd113036062b782201e6bba08f",
+          "resources/create.txt": "0be2d41a9ff3ec49fe095607e3f8aa55f1d6b3a80a736d1e3da4cd969b7d28a3",
+          "resources/edit.txt": "d5e1e4f808fd7d4fb46e4810fc324120fa559968cf18520a773c7895edd2b867",
+          "docs/README.txt": "2e54dd26c6f25ea3cc1a55802fef432cfb400f5cd728bdc9f23b8b6abe52d8ab",
+          "runtime/renderer.cjs": "1de1a3d402fec50192d098cd5e714923eb34f63b62687776141a56b820fb0773"
+        }
+      },
+      "installedAt": "2026-10-21T01:13:53.482Z"
+    },
+    "6cf1f955bf2f4b08aaa2a05ee7a9704cb48b8b442f1f39c185dc97f055e7a7b0": {
+      "hash": "6cf1f955bf2f4b08aaa2a05ee7a9704cb48b8b442f1f39c185dc97f055e7a7b0",
+      "manifest": {
+        "schema": 1,
+        "protocol": "dsh-worker-v1",
+        "id": "org.workbench.flowchart",
+        "version": "1.1.0",
+        "name": "流程图生成",
+        "description": "根据对话生成流程图，支持标准、蛇形、横向、紧凑、树状和角色泳道布局，以及局部修改、缩略图切换和图片下载。",
+        "instructions": "【流程图能力】用户要求将前文、总结或步骤做成流程图时，调用本能力 diagram 动作（通过 capability_action）。不要求用户重贴当前对话已有内容，不让用户编写JSON或提示词。先从对话找出实际对应内容；若指向不清楚或缺少会影响业务正确性的条件，简短询问。生成输入为 {\"mode\":\"create\",\"style\":\"standard\"、\"snake\"、\"horizontal\"、\"compact\"、\"tree\"或\"swimlane\",\"content\":\"从当前对话提取的完整相关内容\"}。standard是标准分支流程图，snake是蛇形顺序流程图。用户未指定样式时：有分支用standard，纯顺序默认standard；用户指定snake而含分支时必须确认，不可删减或展平分支。不要自行绘制Mermaid、SVG或生成另一套样式。工具返回 documentId 和图片地址，必须以 ![流程图](previewUrl) 在回复中展示，并提供[查看大图 / 下载PNG](viewUrl)、[下载SVG](downloadUrl)，原样使用工具返回的地址。后续用户说修改刚才的图，输入 {\"mode\":\"edit\",\"instruction\":\"完整修改要求\",\"documentId\":\"目标图返回的id\"}；未指定id时由宿主寻找本会话最近成功生成的图。多图指代不明确才询问。切换样式用 {\"mode\":\"restyle\",\"style\":\"standard\"、\"snake\"、\"horizontal\"、\"compact\"、\"tree\"或\"swimlane\",\"documentId\":\"目标id\"}。只修复排版或重新渲染用restyle并省略style。阅读原图用 {\"mode\":\"read\",\"documentId\":\"目标id\"}。文字乱码若能明确正确文字用edit纠正，若无法判断则询问，不要猜。修改失败如实说明且保留上一张成功图；不得宣称失败结果已生成。只在用户请求流程图任务时调用。普通用户只需描述需求，不展示内部操作、版本或数据格式。 布局还支持 horizontal（横向）、compact（紧凑分层）、tree（树状分支）、swimlane（角色泳道）。泳道每个节点必须有来源明确的 lane（人员、部门或角色），缺少时询问用户，不可编造。其他布局也保留已有 lane 信息。",
+        "author": "工作台",
+        "license": "Apache-2.0",
+        "permissions": [
+          "node",
+          "model"
+        ],
+        "components": [
+          {
+            "id": "renderer",
+            "name": "固定模板流程图",
+            "entry": "runtime/main.cjs",
+            "actions": [
+              {
+                "id": "diagram",
+                "name": "生成与修改流程图",
+                "description": "根据前文生成多种布局的流程图，通过对话局部修改、读取、切换样式。"
+              }
+            ]
+          }
+        ],
+        "files": {
+          "runtime/main.cjs": "db5dbfc9e8932b0ca908d6887889b01fb75132dd113036062b782201e6bba08f",
+          "resources/create.txt": "0be2d41a9ff3ec49fe095607e3f8aa55f1d6b3a80a736d1e3da4cd969b7d28a3",
+          "resources/edit.txt": "d5e1e4f808fd7d4fb46e4810fc324120fa559968cf18520a773c7895edd2b867",
+          "docs/README.txt": "2e54dd26c6f25ea3cc1a55802fef432cfb400f5cd728bdc9f23b8b6abe52d8ab",
+          "runtime/renderer.cjs": "c0cb7cedfde69eae96407a2dd564eed1208f20cf55865febfaf05c168b30e1c3"
+        }
+      },
+      "installedAt": "2026-10-21T01:31:44.461Z"
     }
   },
   "recordingCapabilityVersion": 1,

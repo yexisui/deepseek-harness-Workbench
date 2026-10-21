@@ -1,6 +1,9 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
+# The portable capability carries a generated copy of the same renderer bundled by the host.
+$rendererSource = Join-Path $root '../../deepseek_harness_desktop/shared/flowchart/renderer.cjs'
+Copy-Item -LiteralPath $rendererSource -Destination (Join-Path $root 'runtime/renderer.cjs')
 $manifest = Get-Content -LiteralPath (Join-Path $root 'capability.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 foreach ($entry in $manifest.files.PSObject.Properties) {
   $entry.Value = (Get-FileHash -LiteralPath (Join-Path $root $entry.Name) -Algorithm SHA256).Hash.ToLowerInvariant()

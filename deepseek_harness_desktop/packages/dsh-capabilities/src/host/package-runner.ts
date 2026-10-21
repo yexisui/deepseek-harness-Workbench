@@ -9,7 +9,7 @@ import { InputError, text } from '../core/validation.ts'
 import { plainMkdir } from './package-archive.ts'
 import type { CapabilityPackages } from './packages.ts'
 
-export type PackageJob = { id:string; capabilityId:string; version:number; action:Action; createdAt:number; finishedAt?:number; status:'running'|'stopping'|'stopped'|'done'|'error'; output?:unknown; error?:string; roleId?:string; roleVersion?:number; sessionId?:string }
+export type PackageJob = { id:string; capabilityId:string; version:number; action:Action; createdAt:number; finishedAt?:number; status:'running'|'stopping'|'stopped'|'done'|'error'; output?:unknown; presentation?:{style:string}; error?:string; roleId?:string; roleVersion?:number; sessionId?:string }
 export type PackageAuthority = { roleId:string; version:RoleVersion; sessionCreatedAt:number; sessionId?:string }
 const workerSource = String.raw`
 const {parentPort,workerData}=require('node:worker_threads');
@@ -119,6 +119,12 @@ export class PackageRunner {
         finally{inflight=false}
       })
     })
+  }
+  private presentationQueue:Promise<unknown>=Promise.resolve()
+  async present(id:string,style:string){
+    const change=this.presentationQueue.catch(()=>{}).then(async()=>{
+      const job=this.get(id);job.presentation={style};await this.persist(job);this.jobs.set(id,job)
+    });this.presentationQueue=change;await change
   }
   async stop(id:string){const run=this.active.get(id);if(!run)return this.get(id);const job=this.jobs.get(id)!;job.status='stopping';run.controller.abort();await run.done;return this.get(id)}
   async close(){this.closed=true;this.unsubscribe?.();await Promise.all([...this.active.keys()].map(id=>this.stop(id)))}

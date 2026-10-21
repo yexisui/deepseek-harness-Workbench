@@ -7,3 +7,7 @@
 在回复中查看预览，点击查看大图可下载PNG，SVG可直接下载。历史图保留，修改生成新图；用户无需管理版本。
 需要包含能力图像结果与会话关联支持的工作台。仅把此包导入较旧宿主不能提供完整图像预览与连续修改。
 许可：Apache-2.0，与工作台一致。无第三方绘图库。SVG/PNG均为确定性模板渲染，模型只整理流程数据。
+
+1.1.0：六种布局共用 runtime/renderer.cjs。聊天卡片右下角选择布局，缩略图与导出使用相同渲染器；角色泳道要求每一步有明确 lane。展示选择不覆盖原始流程数据。
+
+维护入口：deepseek_harness_desktop/shared/flowchart/renderer.cjs；build.ps1 自动复制为能力包 runtime/renderer.cjs，后者不单独编辑。

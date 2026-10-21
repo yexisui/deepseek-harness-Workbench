@@ -1,3 +1,4 @@
+import { flowchartLayouts,selectFlowchartLayout } from './flowchart-artifact.ts'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { integer, object, text, InputError } from '../core/validation.ts'
 import type { Action } from '../core/model.ts'
@@ -18,7 +19,10 @@ export async function packageRoutes(packages:CapabilityPackages,runner:PackageRu
   }
   if(req.method==='GET'&&route.startsWith('processing/'))return json(res,200,packages.processStatus(route.slice(11)))
   if(req.method==='GET'&&route==='config')return json(res,200,{model:packages.store.snapshot().packageModels?.[url.searchParams.get('id')??'']??''})
-  if(req.method==='GET'&&route.startsWith('artifact/'))return servePackageArtifact(runner,route.slice(9),res)
+  const layoutRoute=/^artifact\/([a-f0-9-]{36})\/(layouts|layout)$/.exec(route)
+  if(layoutRoute&&req.method==='GET'&&layoutRoute[2]==='layouts')return json(res,200,flowchartLayouts(runner,layoutRoute[1]!))
+  if(layoutRoute&&req.method==='POST'&&layoutRoute[2]==='layout'){const body=object(await readBody(req));return json(res,200,await selectFlowchartLayout(runner,layoutRoute[1]!,body.style))}
+  if(req.method==='GET'&&route.startsWith('artifact/'))return servePackageArtifact(runner,route.slice(9),res,url.searchParams.get('style'))
   if(req.method==='GET'&&route==='tasks')return json(res,200,runner.list(url.searchParams.get('id')??undefined))
   if(req.method==='GET'&&route.startsWith('task/'))return json(res,200,runner.get(route.slice(5)))
   if(req.method!=='POST')throw new InputError('不支持此操作',405)

@@ -4,3 +4,5 @@
 style=standard：允许分支、汇合、返回，模板统一绘制。
 style=snake：只支持单条顺序链；nodes和edges按顺序一一对应，不允许decision、分支或返回。如果原内容存在分支/回路，不可擅自简化或删去，输出{"clarification":"请用户确认改用标准图还是拆分流程的具体问题"}。
 信息有影响正确性的歧义时输出clarification。不要因颜色、字体、间距等模板负责的项目询问用户。
+
+支持 style: standard/snake/horizontal/compact/tree/swimlane。节点可包含 lane（已有明确人员、部门或角色）；不要编造角色，swimlane 缺少角色信息应返回 clarification。

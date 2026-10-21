@@ -1,3 +1,4 @@
+import { FlowchartLayouts } from './FlowchartLayouts.tsx'
 import { documentsClient } from '../../../../shared/client/documents-client.ts'
 import { DocumentAssistant } from './DocumentAssistant.tsx'
 import { fileSearchClient, fileSearchCommand } from '../../../../shared/client/file-search-client.ts'
@@ -282,6 +283,7 @@ export function apply(ctx: Context): void {
     return()=>{window.removeEventListener('workbench-file-search-open',open);window.removeEventListener('focus',refresh)}
   },'plain-chat: file search navigation')
   const registry = ctx.slots as unknown as Registry
+  ctx.effect(()=>decorateSlot(registry,'conversation.chat.node','AssistantNodeView',Original=>function FlowchartMessage(props:any){return <FlowchartLayouts><Original {...props}/></FlowchartLayouts>}), 'plain-chat: flowchart layout controls')
   ctx.effect(() => registerComponentInventory(registry), 'plain-chat: shared component inventory compatibility')
   ctx.effect(()=>decorateSlot(registry,'conversation.composer.bar','InputBar',Original=>function RecordingCommands(props:any){
     const keyboard=useMemo(()=>props.keyboard?new Proxy(props.keyboard,{get(target,key){if(key==='submit')return(mode:unknown)=>{const binding=props.sessionId?sessions.binding(props.sessionId):undefined;const input=binding?ctx.conversation.input.for(binding.ctx):undefined;if(input&&(fileSearchCommand(input.state.getSnapshot().draft)||recordingCommand(input.state.getSnapshot().draft))){input.setDraft('');return}target.submit(mode)};const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value}}):undefined,[props.keyboard,props.sessionId])
