@@ -23,14 +23,14 @@ function References({id}:{id:string}){
  const rows=roles.filter(r=>!r.removedAt&&(r.draft.skills?.some(b=>b.id===id)||r.versions.at(-1)?.skills?.some(b=>b.id===id)))
  return <>{!rows.length&&<p className={s.empty}>暂无岗位引用。可在岗位编辑器中添加此技能。</p>}{rows.map(role=><article className={s.row} key={role.id}><strong>{role.draft.name}{role.archivedAt?' · 已归档':''}</strong><p>{(role.versions.at(-1)?.skills??role.draft.skills)?.find(b=>b.id===id)?.enabled?'岗位中启用':'岗位中停用'}</p>{!role.archivedAt&&<button className={s.button} onClick={()=>openWorkbenchLink({section:'agent-presets',origin:captureNavigation(),restore:{section:'agent-presets',label:'岗位编辑',frames:[{kind:'role-editor',section:'agent-presets',label:'岗位编辑',view:{id:role.id}}]}})}>编辑岗位：{role.draft.name} ↗</button>}</article>)}</>
 }
-export function SkillDetail({row,tab,onTab,busy,change,onConfirm,tags}:{row:ManagedSkill;tags:string[];tab:string;onTab:(value:string)=>void;busy:boolean;change:(row:ManagedSkill,action:string,value?:unknown)=>void;onConfirm:(action:'remove')=>void}){
+export function SkillDetail({row,tab,onTab,busy,change,onConfirm}:{row:ManagedSkill;tab:string;onTab:(value:string)=>void;busy:boolean;change:(row:ManagedSkill,action:string,value?:unknown)=>void;onConfirm:(action:'remove')=>void}){
  return <><div className={s.heading}><div className={s.actions}><ManagementIcon kind="file"/><h2>{row.name}</h2></div><div className={s.actions}><a className={s.button} href={prefix+'export?id='+encodeURIComponent(row.id)} download={row.name+'.zip'}>导出技能</a>{!row.removed&&<button className={s.iconButton} disabled={busy} title="移入回收站" aria-label={'移除技能：'+row.name} onClick={()=>onConfirm('remove')}><ManagementIcon kind="remove"/></button>}</div></div><p>{row.description}</p>
  <div className={s.tabs}>{[['settings','设置'],['contents','内容与资源'],['references','岗位引用']].map(([key,label])=><button key={key} aria-pressed={tab===key} onClick={()=>onTab(key)}>{label}</button>)}</div>
  {tab==='contents'&&<Contents row={row}/>}
  {tab==='references'&&<References id={row.id}/>}
  <div hidden={tab!=='settings'}>
  {row.removed?<><p>此技能已移入回收站。恢复后保持停用。</p><button className={s.button} disabled={busy} onClick={()=>change(row,'restore')}>恢复技能</button></>:<>
- <SkillSettings row={row} busy={busy} tags={tags} change={change}/></>}
+ <SkillSettings row={row} busy={busy} change={change}/></>}
 <p className={s.muted}>来源：本地导入 · {row.removed?'已移除':row.enabled?'已启用':'已停用'}</p>
 
  </div></>

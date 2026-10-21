@@ -351,3 +351,5 @@
 - 2026-10-21：A023新增 Skills 列表筛选与统一 UI 修复记录；SkillsCenter 为统一入口，标签仅在详情/筛选中管理，后台4技能完整展示及原配置不变验证通过。
 
 - 2026-10-21：A023补记指定岗位添加弹窗实施及验收证据；统一入口为dsh-skill-explorer/src/client/SkillRoleAssignments.tsx与role-assignments.module.css，复用共享弹窗、岗位外观和原绑定接口。
+
+- 2026-10-21：A023新增 Skills 标签界面移除记录，取代此前“标签仅在详情/筛选中管理”的决定；SkillsCenter、SkillSettings、SkillDetail统一移除入口并兼容旧导航筛选，AGENTS.MD已更新，原业务数据保持。

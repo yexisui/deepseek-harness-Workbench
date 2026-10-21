@@ -1,13 +1,10 @@
-import React,{useState} from 'react'
+import React from 'react'
 import {SkillRoleAssignments} from './SkillRoleAssignments.tsx'
 import type {ManagedSkill} from '../managed.ts'
 import {EnableSwitch} from '../../../../shared/client/EnableSwitch.tsx'
 import s from '../../../dsh-client-ui-plain-chat/src/client/ManagedCapabilities.module.css'
-import css from './managed-panel.module.css'
-type Props={row:ManagedSkill;busy:boolean;tags:string[];change:(row:ManagedSkill,action:string,value?:unknown)=>void}
-export function SkillSettings({row,busy,tags,change}:Props){
- const [text,setText]=useState('')
- const add=(value:string)=>{const t=value.trim();if(!t)return;change(row,'tags',[...new Set([...(row.tags??[]),t])]);setText('')}
+type Props={row:ManagedSkill;busy:boolean;change:(row:ManagedSkill,action:string,value?:unknown)=>void}
+export function SkillSettings({row,busy,change}:Props){
  return <>
  <label className={s.check}>启用此技能 <EnableSwitch label={'启用技能 '+row.name} checked={row.enabled} busy={busy} onChange={v=>change(row,'enabled',v)}/></label>
  <p className={s.muted}>启用后，助手可在所选范围内，根据当前任务需要使用此技能。</p>
@@ -16,8 +13,6 @@ export function SkillSettings({row,busy,tags,change}:Props){
  {row.usage==='all'&&<p className={s.muted}>用于新建的普通对话和岗位对话；在岗位中单独停用的技能不会使用。</p>}
  {row.scope!=='global'&&<p className={s.muted}>此旧技能还限定于原项目：{row.scope}。如需跨项目使用，请另存导入。</p>}
  <div hidden={row.usage!=='roles'}><SkillRoleAssignments key={row.id} skillId={row.id} busy={busy}/></div>
- <label className={s.field}>标签</label><div className={css.tags}>{(row.tags??[]).map(t=><span className={css.tag} key={t}>{t}<button disabled={busy} aria-label={'移除标签 '+t} onClick={()=>change(row,'tags',row.tags!.filter(x=>x!==t))}>×</button></span>)}</div>
- <div className={s.actions}><input aria-label="添加技能标签" list="skill-tag-suggestions" value={text} maxLength={40} placeholder="输入或选择标签" disabled={busy} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.nativeEvent.isComposing){e.preventDefault();add(text)}}}/><datalist id="skill-tag-suggestions">{tags.filter(t=>!row.tags?.includes(t)).map(t=><option key={t} value={t}/>)}</datalist><button className={s.button} disabled={busy||!text.trim()} onClick={()=>add(text)}>添加标签</button></div>
  <details className={s.detailDisclosure}><summary>高级设置 · 调用方式</summary><p>按任务需要选用不代表后台自动运行，也不代表每次强制调用。关闭自动选用后保留原有手动调用限制；专用岗位流程按保存的岗位设置执行。</p><label className={s.check}>允许按任务需要自动选用<EnableSwitch label={'允许 AI 自动选用 '+row.name} checked={row.auto} busy={busy} onChange={v=>change(row,'auto',v)}/></label>{!row.manual&&<p>技能包不允许普通对话手动调用。</p>}</details>
  </>
 }

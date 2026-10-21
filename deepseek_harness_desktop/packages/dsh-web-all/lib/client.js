@@ -5720,34 +5720,8 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
-		//#region \0dsh-css:packages/dsh-skill-explorer/src/client/managed-panel.module.css.mjs
-		const css$24 = ".hWlOOW_resources{grid-template-columns:minmax(140px,28%) minmax(0,1fr);gap:18px;margin-top:18px;display:grid}.hWlOOW_resources nav{flex-direction:column;align-items:stretch;gap:8px;display:flex}.hWlOOW_resources nav button{text-align:left;overflow-wrap:anywhere}.hWlOOW_resources nav button[aria-pressed=true]{border-color:var(--role-accent);color:var(--role-accent)}.hWlOOW_resources>div{min-width:0}.hWlOOW_preview{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--role-bg);border:1px solid var(--role-border);border-radius:9px;max-height:55vh;padding:14px;font:13px/1.7 ui-monospace,monospace;overflow:auto}.hWlOOW_path{overflow-wrap:anywhere}.hWlOOW_importBody>label{margin:14px 0;display:block}.hWlOOW_importBody input:not([type=checkbox]):not([type=file]),.hWlOOW_importBody select{font:inherit;color:inherit;background:var(--role-bg);border:1px solid var(--role-border);box-sizing:border-box;border-radius:8px;max-width:100%;padding:8px}.hWlOOW_importBody footer{justify-content:flex-end;margin-top:18px}@media (width<=640px){.hWlOOW_resources{grid-template-columns:1fr}.hWlOOW_resources nav{max-height:150px;overflow:auto}.hWlOOW_preview{max-height:40vh}}.hWlOOW_tags{flex-wrap:wrap;gap:6px;margin:6px 0 10px;display:flex}.hWlOOW_tag{border:1px solid var(--role-border,#ccd1df);background:var(--role-surface,#edf0f7);color:inherit;border-radius:20px;align-items:center;gap:6px;padding:3px 10px;font-size:12px;display:inline-flex}.hWlOOW_tag button{color:inherit;cursor:pointer;background:0 0;border:0}";
-		const tagId$24 = "@linxin666/dsh-web-all/packages/dsh-skill-explorer/src/client/managed-panel.module.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$24) + "]") === null) {
-			const tag = document.createElement("style");
-			tag.dataset.plugin = "@linxin666/dsh-web-all";
-			tag.dataset.pluginCss = tagId$24;
-			tag.textContent = css$24;
-			document.head.appendChild(tag);
-		}
-		var managed_panel_module_css_default = {
-			"importBody": "hWlOOW_importBody",
-			"path": "hWlOOW_path",
-			"preview": "hWlOOW_preview",
-			"resources": "hWlOOW_resources",
-			"tag": "hWlOOW_tag",
-			"tags": "hWlOOW_tags"
-		};
-		//#endregion
 		//#region ../dsh-skill-explorer/src/client/SkillSettings.tsx
-		function SkillSettings({ row, busy, tags, change }) {
-			const [text, setText] = (0, react$1.useState)("");
-			const add = (value) => {
-				const t = value.trim();
-				if (!t) return;
-				change(row, "tags", [.../* @__PURE__ */ new Set([...row.tags ?? [], t])]);
-				setText("");
-			};
+		function SkillSettings({ row, busy, change }) {
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
 					className: ManagedCapabilities_module_css_default.check,
@@ -5809,52 +5783,6 @@ window.__ModuleLoader__.load({
 						busy
 					}, row.id)
 				}),
-				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("label", {
-					className: ManagedCapabilities_module_css_default.field,
-					children: "标签"
-				}),
-				/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-					className: managed_panel_module_css_default.tags,
-					children: (row.tags ?? []).map((t) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
-						className: managed_panel_module_css_default.tag,
-						children: [t, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							disabled: busy,
-							"aria-label": "移除标签 " + t,
-							onClick: () => change(row, "tags", row.tags.filter((x) => x !== t)),
-							children: "×"
-						})]
-					}, t))
-				}),
-				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-					className: ManagedCapabilities_module_css_default.actions,
-					children: [
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-							"aria-label": "添加技能标签",
-							list: "skill-tag-suggestions",
-							value: text,
-							maxLength: 40,
-							placeholder: "输入或选择标签",
-							disabled: busy,
-							onChange: (e) => setText(e.target.value),
-							onKeyDown: (e) => {
-								if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-									e.preventDefault();
-									add(text);
-								}
-							}
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("datalist", {
-							id: "skill-tag-suggestions",
-							children: tags.filter((t) => !row.tags?.includes(t)).map((t) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", { value: t }, t))
-						}),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-							className: ManagedCapabilities_module_css_default.button,
-							disabled: busy || !text.trim(),
-							onClick: () => add(text),
-							children: "添加标签"
-						})
-					]
-				}),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("details", {
 					className: ManagedCapabilities_module_css_default.detailDisclosure,
 					children: [
@@ -5887,6 +5815,23 @@ window.__ModuleLoader__.load({
 			if (!response.ok) throw Error(data.error ?? "操作失败");
 			return data;
 		}
+		//#endregion
+		//#region \0dsh-css:packages/dsh-skill-explorer/src/client/managed-panel.module.css.mjs
+		const css$24 = ".hWlOOW_resources{grid-template-columns:minmax(140px,28%) minmax(0,1fr);gap:18px;margin-top:18px;display:grid}.hWlOOW_resources nav{flex-direction:column;align-items:stretch;gap:8px;display:flex}.hWlOOW_resources nav button{text-align:left;overflow-wrap:anywhere}.hWlOOW_resources nav button[aria-pressed=true]{border-color:var(--role-accent);color:var(--role-accent)}.hWlOOW_resources>div{min-width:0}.hWlOOW_preview{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--role-bg);border:1px solid var(--role-border);border-radius:9px;max-height:55vh;padding:14px;font:13px/1.7 ui-monospace,monospace;overflow:auto}.hWlOOW_path{overflow-wrap:anywhere}.hWlOOW_importBody>label{margin:14px 0;display:block}.hWlOOW_importBody input:not([type=checkbox]):not([type=file]),.hWlOOW_importBody select{font:inherit;color:inherit;background:var(--role-bg);border:1px solid var(--role-border);box-sizing:border-box;border-radius:8px;max-width:100%;padding:8px}.hWlOOW_importBody footer{justify-content:flex-end;margin-top:18px}@media (width<=640px){.hWlOOW_resources{grid-template-columns:1fr}.hWlOOW_resources nav{max-height:150px;overflow:auto}.hWlOOW_preview{max-height:40vh}}";
+		const tagId$24 = "@linxin666/dsh-web-all/packages/dsh-skill-explorer/src/client/managed-panel.module.css";
+		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$24) + "]") === null) {
+			const tag = document.createElement("style");
+			tag.dataset.plugin = "@linxin666/dsh-web-all";
+			tag.dataset.pluginCss = tagId$24;
+			tag.textContent = css$24;
+			document.head.appendChild(tag);
+		}
+		var managed_panel_module_css_default = {
+			"importBody": "hWlOOW_importBody",
+			"path": "hWlOOW_path",
+			"preview": "hWlOOW_preview",
+			"resources": "hWlOOW_resources"
+		};
 		//#endregion
 		//#region ../dsh-skill-explorer/src/client/SkillDetail.tsx
 		function Contents({ row }) {
@@ -5994,7 +5939,7 @@ window.__ModuleLoader__.load({
 				]
 			}, role.id))] });
 		}
-		function SkillDetail({ row, tab, onTab, busy, change, onConfirm, tags }) {
+		function SkillDetail({ row, tab, onTab, busy, change, onConfirm }) {
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 					className: ManagedCapabilities_module_css_default.heading,
@@ -6043,7 +5988,6 @@ window.__ModuleLoader__.load({
 					})] }) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(SkillSettings, {
 						row,
 						busy,
-						tags,
 						change
 					}) }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
 						className: ManagedCapabilities_module_css_default.muted,
@@ -6224,25 +6168,30 @@ window.__ModuleLoader__.load({
 			query: "",
 			filter: "all",
 			status: "all",
-			category: "",
 			scope: "",
 			page: "list",
 			selected: null,
 			tab: "settings"
 		};
+		function restoreView(value) {
+			const { category: _legacyCategory, ...rest } = value;
+			return {
+				...defaults,
+				...rest
+			};
+		}
 		function initial() {
 			try {
-				return {
-					...defaults,
+				return restoreView({
 					...JSON.parse(sessionStorage.getItem("skills-center-view") ?? "{}"),
 					...restoredFrame(pendingNavigation("skills")?.restore, "skills")?.view
-				};
+				});
 			} catch {
 				return defaults;
 			}
 		}
 		function SkillsCenter({ snapshot, busy, error, onImport, reload, change }) {
-			const [view, setView] = (0, react$1.useState)(initial), [filtering, setFiltering] = (0, react$1.useState)(false), [exporting, setExporting] = (0, react$1.useState)(false), [confirm, setConfirm] = (0, react$1.useState)(), [managingTags, setManagingTags] = (0, react$1.useState)(false), [tagFrom, setTagFrom] = (0, react$1.useState)(""), [tagTo, setTagTo] = (0, react$1.useState)(""), [tagError, setTagError] = (0, react$1.useState)(""), [tagBusy, setTagBusy] = (0, react$1.useState)(false), listPreferences = (0, react$1.useRef)(), listScroll = (0, react$1.useRef)(0), root = (0, react$1.useRef)(null);
+			const [view, setView] = (0, react$1.useState)(initial), [filtering, setFiltering] = (0, react$1.useState)(false), [exporting, setExporting] = (0, react$1.useState)(false), [confirm, setConfirm] = (0, react$1.useState)(), listPreferences = (0, react$1.useRef)(), listScroll = (0, react$1.useRef)(0), root = (0, react$1.useRef)(null);
 			const [removeId, setRemoveId] = (0, react$1.useState)();
 			const removeRow = snapshot.skills.find((r) => r.id === (removeId ?? view.selected));
 			const update = (patch) => setView((v) => ({
@@ -6260,10 +6209,7 @@ window.__ModuleLoader__.load({
 					const l = e.detail;
 					if (l?.section === "skills") {
 						const saved = restoredFrame(l.restore, "skills")?.view;
-						if (saved) setView({
-							...defaults,
-							...saved
-						});
+						if (saved) setView(restoreView(saved));
 						consumeNavigation(l);
 					}
 				};
@@ -6293,53 +6239,24 @@ window.__ModuleLoader__.load({
 					if (el) el.scrollTop = listScroll.current;
 				}
 			}, [view.selected]);
-			const tags = [...new Set(snapshot.skills.flatMap((r) => r.tags ?? (r.category && r.category !== "未分类" ? [r.category] : [])))].sort();
-			const tagAction = async (remove) => {
-				if (tagBusy) return;
-				setTagBusy(true);
-				setTagError("");
-				try {
-					await managedRequest("tags", {
-						revision: snapshot.revision,
-						from: tagFrom,
-						...remove ? {} : { to: tagTo }
-					});
-					reload();
-					setTagFrom("");
-					setTagTo("");
-				} catch (e) {
-					setTagError(e instanceof Error ? e.message : String(e));
-				} finally {
-					setTagBusy(false);
-				}
-			};
 			const clearFilters = () => update({
 				filter: "all",
 				status: "all",
-				category: "",
 				scope: "",
 				query: ""
 			});
-			const filterLabels = [
-				view.status === "enabled" ? "状态：已启用" : view.status === "disabled" ? "状态：已停用" : "",
-				view.category ? "标签：" + view.category : "",
-				view.scope ? "范围：" + ({
-					all: "全部对话",
-					roles: "指定岗位",
-					legacy: "保留原有范围"
-				}[view.scope] ?? view.scope) : ""
-			].filter(Boolean);
+			const filterLabels = [view.status === "enabled" ? "状态：已启用" : view.status === "disabled" ? "状态：已停用" : "", view.scope ? "范围：" + ({
+				all: "全部对话",
+				roles: "指定岗位",
+				legacy: "保留原有范围"
+			}[view.scope] ?? view.scope) : ""].filter(Boolean);
 			const summaryLabels = [
 				view.filter === "pinned" ? "仅收藏" : "",
 				...filterLabels,
 				view.query ? "搜索：" + view.query : ""
 			].filter(Boolean);
 			const available = snapshot.skills.filter((r) => !!r.removed === (view.page === "trash"));
-			const visible = snapshot.skills.filter((r) => !!r.removed === (view.page === "trash") && (view.filter !== "pinned" || r.pinned) && (view.status !== "enabled" || r.enabled) && (view.status !== "disabled" || !r.enabled) && (!view.category || (r.tags ?? (r.category === "未分类" ? [] : [r.category])).includes(view.category)) && (!view.scope || (r.usage ?? "legacy") === view.scope) && [
-				r.name,
-				r.description,
-				...r.tags ?? [r.category]
-			].join(" ").toLowerCase().includes(view.query.toLowerCase())).sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned));
+			const visible = snapshot.skills.filter((r) => !!r.removed === (view.page === "trash") && (view.filter !== "pinned" || r.pinned) && (view.status !== "enabled" || r.enabled) && (view.status !== "disabled" || !r.enabled) && (!view.scope || (r.usage ?? "legacy") === view.scope) && [r.name, r.description].join(" ").toLowerCase().includes(view.query.toLowerCase())).sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned));
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
 				ref: root,
 				className: ManagedCapabilities_module_css_default.page,
@@ -6390,7 +6307,6 @@ window.__ModuleLoader__.load({
 					}),
 					row ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(SkillDetail, {
 						row,
-						tags,
 						tab: view.tab,
 						onTab: (tab) => update({ tab }),
 						busy,
@@ -6403,7 +6319,7 @@ window.__ModuleLoader__.load({
 						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
 							className: ManagedCapabilities_module_css_default.search,
 							"aria-label": "搜索技能",
-							placeholder: "搜索技能名称、用途或标签",
+							placeholder: "搜索技能名称或用途",
 							value: view.query,
 							onChange: (e) => update({ query: e.target.value })
 						}),
@@ -6447,18 +6363,6 @@ window.__ModuleLoader__.load({
 												children: "已停用"
 											})
 										]
-									})]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.field,
-									children: ["标签", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-										"aria-label": "技能标签筛选",
-										value: view.category,
-										onChange: (e) => update({ category: e.target.value }),
-										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-											value: "",
-											children: "全部标签"
-										}), tags.map((v) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", { children: v }, v))]
 									})]
 								}),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
@@ -6544,88 +6448,29 @@ window.__ModuleLoader__.load({
 						}),
 						view.page === "list" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 							className: ManagedCapabilities_module_css_default.actions,
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									onClick: () => setManagingTags(true),
-									children: "管理标签"
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									onClick: () => {
-										listPreferences.current = view;
-										update({ page: "other" });
-									},
-									children: "其他来源技能"
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									onClick: () => {
-										listPreferences.current = view;
-										update({
-											page: "trash",
-											filter: "all",
-											status: "all",
-											category: "",
-											scope: "",
-											query: ""
-										});
-									},
-									children: "回收站"
-								})
-							]
+							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								onClick: () => {
+									listPreferences.current = view;
+									update({ page: "other" });
+								},
+								children: "其他来源技能"
+							}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								onClick: () => {
+									listPreferences.current = view;
+									update({
+										page: "trash",
+										filter: "all",
+										status: "all",
+										scope: "",
+										query: ""
+									});
+								},
+								children: "回收站"
+							})]
 						})
 					] }),
-					managingTags && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$4, {
-						title: "管理标签",
-						closeLabel: "关闭标签管理",
-						onClose: () => {
-							if (!tagBusy) setManagingTags(false);
-						},
-						children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							className: ManagedCapabilities_module_css_default.page,
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "重命名会更新所有技能上的同名标签；删除仅移除标签，不删除技能。" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("label", {
-									className: ManagedCapabilities_module_css_default.field,
-									children: ["标签", /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("select", {
-										"aria-label": "要管理的标签",
-										value: tagFrom,
-										onChange: (e) => {
-											setTagFrom(e.target.value);
-											setTagTo(e.target.value);
-										},
-										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", {
-											value: "",
-											children: "选择标签"
-										}), tags.map((t) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("option", { children: t }, t))]
-									})]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-									"aria-label": "标签新名称",
-									value: tagTo,
-									maxLength: 40,
-									onChange: (e) => setTagTo(e.target.value)
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									disabled: tagBusy || !tagFrom || !tagTo.trim(),
-									onClick: () => void tagAction(false),
-									children: "重命名标签"
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-									className: ManagedCapabilities_module_css_default.button,
-									disabled: tagBusy || !tagFrom,
-									onClick: () => void tagAction(true),
-									children: "删除标签"
-								}),
-								tagError && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									role: "alert",
-									children: tagError
-								})
-							]
-						})
-					}),
 					exporting && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$4, {
 						title: "导出技能",
 						closeLabel: "关闭导出",
