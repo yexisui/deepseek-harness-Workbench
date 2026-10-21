@@ -3,6 +3,6 @@
   "packages/dsh-client-ui-plain-chat": "7db360fe958e3e526e44eb9841820d73c0089a5db070489fbba43ab30327825f",
   "packages/dsh-market": "a483821c51c607c31360ca90d7f0db8497257b31b897f525dd3f9b7955134eab",
   "packages/dsh-preset-center": "4071e8d2e0ce34f1785ce96ea283102aa34aa419a351b1c9921aeec806fb25c5",
-  "packages/dsh-web-all": "ec9f5a5e2cc46af67c880cf34c18b0d597e9b7042ac9fbb9eeee8ca3e4bcb9d5",
+  "packages/dsh-web-all": "69429e24e20e234c5c019f6b4e86842725815a9856a48610ad64be763ba70206",
   "packages/skins/skin-center": "ab55e0f4a95fb5f7e1db24a82ad5b35d9dabdd496bf89b44c2af8b6305470917"
 }

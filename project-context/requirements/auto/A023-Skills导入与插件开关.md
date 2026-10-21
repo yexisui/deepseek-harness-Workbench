@@ -214,3 +214,18 @@ node "<SECONDARY_WORKSPACE>/skills-plugin-management/release.mjs" --rollback
 ## 2026-10-19 后续：Excel实际生成能力已补齐
 
 按用户新增授权，原AI项目估算助手现已绑定通用“Excel 生成”功能和独立excel-generation-guidelines技能，workload-estimator源文件未修改。真实模型两表工作簿生成/下载及独立公式检查通过。前节“当前无法生成Excel”仅描述此前技能单独验证阶段，现状、能力边界和交付证据见[A031](A031-通用Excel生成能力与技能分层.md)。
+
+
+## 2026-10-21：技能列表完整显示与统一 UI 修复
+
+用户反馈只显示网页采集技能，且条目下方多出标签，要求统一整个 Skills 模块。核对正式管理数据：requirement-review（停用）、workload-estimator、excel-generation-guidelines、webpage-archive 共4项仍存在，未丢失。
+
+原界面把任意状态、标签、范围筛选都标为“筛选 · 已启用”，点击“全部”仅取消收藏过滤，其他条件仍保存在 sessionStorage。点击新技能下方“网页采集”标签即可复现截图中的单项列表；仅状态过滤为空时还缺少清除入口。这是筛选反馈与恢复路径缺陷，不需要重新导入或启用旧技能。
+
+本次统一修改 SkillsCenter：所有技能复用同一 ManagementRow，删除条目下方标签按钮；标签数据及原有详情编辑、搜索、筛选和管理功能保留。筛选按钮显示实际条件数量，列表展示当前数/总数及具体条件，提供“显示全部”；“全部”清除搜索、收藏、状态、标签和范围条件。详情返回继续保留筛选，回收站保持单独范围，零结果不再误导重新导入。
+
+验证：Skills 全量118通过、1项原附件条件测试跳过；新增4项覆盖持久化标签筛选、统一条目、纯状态空结果恢复及组合过滤/回收站。类型检查、Skills/插件管理/聚合三个构建通过。正式后台无头浏览器验证4项显示、无下挂标签、标签筛选后刷新并清除、收藏、详情返回和回收站往返，页面脚本错误0。未调用模型或编辑技能内容。
+
+正式安装仅同步三个入口的6个 client.js/map 文件，未修改后端。当前工作台原先未启动，本轮以 --background 启动完成实机网页验证。技能管理和能力/岗位状态文件 SHA-256 前后相同，原测试对话未修改。已检查实际列表截图；用户桌面审阅待验收。旧窗口如保留筛选，可点“全部”恢复完整列表。
+
+证据与运行文件备份：<SECONDARY_WORKSPACE>/skills-ui-consistency-20261021（ui-result.json、skills-all.png、skills-filtered.png、skills-tests.json、deployment.json、protected.json）。源码和聚合产物随本轮 Git 提交，可按该提交回退；本机运行文件备份不入库。只刷新本轮重建的聚合源码指纹，未改此前已存在的能力包指纹记录差异。未更新离线 ZIP，未推送。

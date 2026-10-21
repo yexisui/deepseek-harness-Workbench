@@ -1,3 +1,4 @@
+import {SkillsCenter} from '../src/client/SkillsCenter.tsx'
 import React,{act} from 'react'
 import {createRoot,type Root} from 'react-dom/client'
 import {afterEach,beforeEach,expect,it,vi} from 'vitest'
@@ -29,3 +30,43 @@ it('uses the shared import dialog without adding a run preflight',async()=>{awai
 
 it('removes import scope and uses detail tags and explicit usage choices',async()=>{await mount();await click('导入技能');expect(document.querySelector('dialog')?.textContent).not.toContain('工作台全局');expect(document.querySelector('dialog')?.querySelector('select')).toBeNull();await click('取消');await click('管理技能：review');expect(host.querySelector('[aria-label="技能使用范围"]')).toBeTruthy();expect(host.querySelector('[aria-label="添加技能标签"]')).toBeTruthy();const automatic=host.querySelector('[aria-label="允许 AI 自动选用 review"]');expect(automatic?.closest('details')?.open).toBe(false)})
 it('removes from the list with confirmation and does not open details',async()=>{await mount();await click('移除技能：review');expect(row.removed).toBeUndefined();await click('取消');expect(host.querySelector('[data-managed-skill]')).toBeTruthy();await click('移除技能：review');await click('确认移除');expect(row.removed).toBe(true);expect(host.querySelector('[data-managed-skill]')).toBeNull()})
+
+const skillRows=()=>[
+ {...row,id:'review',name:'requirement-review',enabled:false,tags:[]},
+ {...row,id:'estimate',name:'workload-estimator',tags:[]},
+ {...row,id:'excel',name:'excel-generation-guidelines',tags:[]},
+ {...row,id:'archive',name:'webpage-archive',tags:['网页采集','资料归档'],usage:'roles',pinned:true},
+ {...row,id:'removed',name:'old-skill',removed:true,tags:[]},
+]
+async function mountRows(rows:any[]=skillRows()){
+ const change=vi.fn();await act(async()=>root.render(<SkillsCenter snapshot={{revision:1,skills:rows,projects:[]}} busy={false} error="" onImport={vi.fn()} reload={vi.fn()} change={change}/>));return change
+}
+it('explains a persisted tag filter and All restores all four skills without changing them',async()=>{
+ sessionStorage.setItem('skills-center-view',JSON.stringify({category:'网页采集'}));const change=await mountRows();
+ expect(host.querySelectorAll('[data-managed-skill]')).toHaveLength(1);
+ expect(host.querySelector('[aria-label="技能筛选结果"]')?.textContent).toContain('显示 1 / 4 个技能 · 标签：网页采集');
+ expect(buttons().some(b=>b.textContent==='筛选 · 1')).toBe(true);expect(host.textContent).not.toContain('筛选 · 已启用');
+ await click('全部');expect(host.querySelectorAll('[data-managed-skill]')).toHaveLength(4);
+ expect(host.querySelector('[data-managed-skill="review"]')?.textContent).toContain('已停用');
+ expect(change).not.toHaveBeenCalled();expect(JSON.parse(sessionStorage.getItem('skills-center-view')!).category).toBe('');
+})
+it('uses the same compact row for tagged and untagged skills and retains tags in detail',async()=>{
+ await mountRows();const entries=Array.from(host.querySelectorAll('[data-managed-skill]'));
+ expect(entries).toHaveLength(4);expect(entries[0].parentElement?.children).toHaveLength(4);
+ expect(buttons().some(b=>['网页采集','资料归档'].includes(b.textContent??''))).toBe(false);
+ await click('管理技能：webpage-archive');expect(host.querySelector('[aria-label="添加技能标签"]')).toBeTruthy();expect(host.textContent).toContain('网页采集');
+ await click('← 全部技能');expect(host.querySelectorAll('[data-managed-skill]')).toHaveLength(4);
+})
+it('offers recovery for an empty status-only filter without suggesting reimport',async()=>{
+ sessionStorage.setItem('skills-center-view',JSON.stringify({status:'disabled'}));const change=await mountRows(skillRows().map(r=>({...r,enabled:true})));
+ expect(host.querySelectorAll('[data-managed-skill]')).toHaveLength(0);expect(host.textContent).toContain('状态：已停用');
+ expect(buttons().filter(b=>b.textContent==='导入技能')).toHaveLength(1);
+ await click('显示全部');expect(host.querySelectorAll('[data-managed-skill]')).toHaveLength(4);expect(change).not.toHaveBeenCalled();
+})
+it('clears search, favorites, status, tag and scope together while keeping the recycle bin separate',async()=>{
+ sessionStorage.setItem('skills-center-view',JSON.stringify({query:'webpage',filter:'pinned',status:'enabled',category:'网页采集',scope:'roles'}));await mountRows();
+ expect(host.querySelectorAll('[data-managed-skill]')).toHaveLength(1);await click('显示全部');
+ expect(host.querySelectorAll('[data-managed-skill]')).toHaveLength(4);expect(host.querySelector<HTMLInputElement>('[aria-label="搜索技能"]')?.value).toBe('');
+ await click('回收站');expect(host.querySelectorAll('[data-managed-skill]')).toHaveLength(1);expect(host.textContent).toContain('old-skill');
+ await click('← 全部技能');expect(host.querySelectorAll('[data-managed-skill]')).toHaveLength(4);
+})

@@ -347,3 +347,5 @@
 - 2026-10-21：A013 第 25 节维护完整文章分页读取、正式重启和原对话 5/5 页复验；src/host/browser-article.ts 负责正文/分页完整性，tests/browser-article.spec.ts 负责对应回归；原岗位和会话保留。
 
 - 2026-10-21：A013 第26节维护图文归档、资源分类及 Skill 的实现/正式证据；browser-content.ts 负责内容结构，browser-archive.ts 负责文件归档与阅读结果，skills/webpage-archive/SKILL.md 固定工作流程，tests/browser-archive.spec.ts 覆盖新行为。本机网页与图片不入库，正式规则继续唯一维护。
+
+- 2026-10-21：A023新增 Skills 列表筛选与统一 UI 修复记录；SkillsCenter 为统一入口，标签仅在详情/筛选中管理，后台4技能完整展示及原配置不变验证通过。
