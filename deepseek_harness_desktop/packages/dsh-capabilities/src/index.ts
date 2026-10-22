@@ -22,6 +22,7 @@ import { registryCatalog, componentPublishIssues } from './core/component-regist
 import { ComponentRegistryStore } from './host/component-registry.ts'
 import { RequirementsService } from './host/requirements.ts'
 import { DeveloperService } from './host/developer.ts'
+import { createCodeAssistant } from './host/code-assistant.ts'
 import { developerRoutes } from './host/developer-routes.ts'
 import type { GitService } from '../../dsh-git-graph/src/host/git-service.ts'
 import type {} from '@deepseek-ai/dsh-workspace'
@@ -64,6 +65,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   ctx.effect(()=>store.subscribe(()=>fileSearch.reconcile()),'file search authorization')
   const skillAssets=new RoleSkills(home)
   const skillGuidance=(roleId:string,version:number,cwd?:string,createdAt?:number)=>{const state=store.snapshot(),role=state.roles.find(r=>r.id===roleId)?.versions.find(v=>v.version===version);if(!role)throw Error('岗位技能加载失败：岗位版本不存在');return skillAssets.guidance(state,roleId,role,cwd,createdAt)}
+  let codeAssistant: Awaited<ReturnType<typeof createCodeAssistant>> | undefined
   let developer: DeveloperService | undefined
   let developerContext: Context | undefined
   ctx.inject(['workbenchGit', 'workspaceRegistry', 'subprocess'], async active => {
@@ -81,6 +83,8 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
         try { const result = await handle.done; drain(); return result.exitCode } finally { clearInterval(timer) }
       }, () => store.snapshot(), skillGuidance)
     await service.init(); developer = service; developerContext = active
+    const coding = await createCodeAssistant(active, home, store, active.workbenchGit); codeAssistant = coding
+    active.effect(() => async () => { if (codeAssistant === coding) codeAssistant = undefined; await coding.close() }, "code assistant module lifecycle")
     active.effect(() => async () => { if (developer === service) { developer = undefined; developerContext = undefined }; await service.close() }, 'developer workspace lifecycle')
   })
   const asrEntry: MeetingAsrConfig = {
@@ -133,7 +137,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   runtime.packageRunner = packageRunner
   const activities = async (state = store.snapshot()) => {
     const browser = runtime.tasks().filter(t => t.browserSessions.length || ['running', 'stopping'].includes(t.status)).map(t => ({ id: t.sessionId, roleId: t.roleId, roleVersion: t.roleVersion, name: t.name, status: t.status, kind: 'browser', componentIds: [...new Set(state.roles.find(r => r.id === t.roleId)?.versions.find(v => v.version === t.roleVersion)?.capabilities.filter(b => b.enabled).flatMap(b => resolveBinding(state, b)?.components.map(p => p.componentId) ?? []) ?? [])] }))
-    return [...browser, ...documents.ai.activities(), ...recording.activities(), ...fileSearch.activities(), ...packageRunner.activities(), ...await requirements.componentActivities(), ...await meeting.componentActivities(), ...await developer?.componentActivities() ?? []].sort((a,b) => a.id.localeCompare(b.id))
+    return [...browser, ...documents.ai.activities(), ...recording.activities(), ...fileSearch.activities(), ...packageRunner.activities(), ...await requirements.componentActivities(), ...await meeting.componentActivities(), ...await developer?.componentActivities() ?? [], ...codeAssistant?.activities() ?? []].sort((a,b) => a.id.localeCompare(b.id))
   }
   runtime.componentActivities = activities
   const registry = new ComponentRegistryStore(join(home, 'capabilities'), () => store.snapshot(), activities)
@@ -163,6 +167,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if(route==='/api/capabilities/recording/followup/start'&&req.method==='POST')return json(res,200,await recordingFollowup.start(await readBody(req)))
       if (route.startsWith('/api/capabilities/recording/')) { if(recordingError)throw new InputError('录音存储不可用：'+recordingError,503);return await recordingRoutes(recording, req, res) }
       if (route.startsWith('/api/capabilities/packages/')) return await packageRoutes(packages, packageRunner, req, res)
+      if (route.startsWith('/api/capabilities/code-assistant/')) { if (!codeAssistant) throw new InputError('代码助手模块尚未就绪，请检查开发能力和 Git 插件', 503); return await codeAssistant.routes(req, res) }
       if (route.startsWith('/api/capabilities/developer/')) return await developerRoutes(developerContext ?? ctx, developer, req, res)
       if (req.method === 'GET' && route === '/api/capabilities/requirements/config') return json(res, 200, requirements.availability(new URL(req.url ?? '/', 'http://localhost').searchParams.get('roleId') ?? undefined))
       if (req.method === 'GET' && route === '/api/capabilities/requirements/tasks') {
@@ -200,7 +205,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       const body = object(await readBody(req))
       if (route === '/api/capabilities/components/preview') return json(res, 200, await store.exclusive(() => registry.preview(text(body.id, '组件标识', 160, true), text(body.action, '操作', 80, true))))
       if (route === '/api/capabilities/components/command') {
-        const result = await store.exclusive(async () => { const before = registry.snapshot().revision; const result = await registry.command(body); if (result.revision !== before) { store.notify(); if (body.type === 'component.disable') { const ids = [text(body.id, '组件标识', 160, true)]; await Promise.all([requirements.stopComponents(ids), meeting.stopComponents(ids), developer?.stopComponents(ids)]) } }; return result })
+        const result = await store.exclusive(async () => { const before = registry.snapshot().revision; const result = await registry.command(body); if (result.revision !== before) { store.notify(); if (body.type === 'component.disable') { const ids = [text(body.id, '组件标识', 160, true)]; await Promise.all([requirements.stopComponents(ids), meeting.stopComponents(ids), developer?.stopComponents(ids), codeAssistant?.stopComponents(ids)]) } }; return result })
         return json(res, 200, { registry: result })
       }
       if (route === '/api/capabilities/requirements/create') return json(res, 201, await requirements.create(body))

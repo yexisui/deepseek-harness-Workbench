@@ -3,6 +3,8 @@ import { recordingCommand } from '../../../../shared/client/recording-client.ts'
 import { ExecutionProcessCard, useExecutionHistory } from './ExecutionProcess.tsx'
 import { MessageTime } from './MessageTime.tsx'
 import React, { useEffect, useRef, useState } from 'react'
+import { CodeAssistant } from '../../../dsh-code-assistant/src/client/CodeAssistant.tsx'
+import { EnableSwitch } from '../../../../shared/client/EnableSwitch.tsx'
 import type { DeveloperContext, DeveloperProject, DeveloperTask } from '../../../dsh-capabilities/src/core/developer-model.ts'
 import type { BranchesView, GraphView, WorktreeListView } from '../../../dsh-git-graph/src/core/types.ts'
 import type { CommitPreview, FileView, WorkspaceDiff, WorkspaceState } from '../../../dsh-git-graph/src/core/workspace.ts'
@@ -13,7 +15,7 @@ import s from './DeveloperAssistant.module.css'
 
 const tabs = [['develop', '开发'], ['changes', '变更'], ['runs', '运行']]
 const scopes = [['round', '本轮变更'], ['task', '任务累计'], ['uncommitted', '当前修改']]
-type Props = { initialTitle?: string; taskId?: string; draftKey: string; roleId: string; roleVersion?: number; initialDraft?: string; onDraftChange?: (value: string) => void; loadModels: () => Promise<{ id: string; name: string }[]>; onCommit: (task: DeveloperTask) => void }
+type Props = { initialTaskId?: string; onTaskChange?: (task: { id: string; title: string } | null) => void; initialTitle?: string; taskId?: string; draftKey: string; roleId: string; roleVersion?: number; initialDraft?: string; onDraftChange?: (value: string) => void; loadModels: () => Promise<{ id: string; name: string }[]>; onCommit: (task: DeveloperTask) => void }
 type Preference = { cwd: string; tab: string; scope: string; path: string; draft: string; model: string; contexts: DeveloperContext[]; chat: boolean; versionTab: string; runTab: string }
 function saved(key: string, draft = ''): Preference {
   try { const raw = JSON.parse(sessionStorage.getItem(key) ?? '{}'); if (raw.tab === 'versions') raw.tab = 'develop'; if (raw.scope === 'branch' || raw.scope === 'checkpoint') raw.scope = 'uncommitted'; return { cwd: '', tab: 'develop', scope: 'uncommitted', path: '', draft, model: '', contexts: [], chat: true, versionTab: 'commits', runTab: 'checks', ...raw } } catch { return { cwd: '', tab: 'develop', scope: 'uncommitted', path: '', draft, model: '', contexts: [], chat: true, versionTab: 'commits', runTab: 'checks' } }
@@ -25,6 +27,9 @@ function Tabs({ values, value, onChange, label }: { values: string[][]; value: s
   }}>{title}</button>)}</div>
 }
 export function DeveloperAssistant(props: Props) {
+  return props.taskId ? <LegacyDeveloperAssistant {...props} /> : <CodeAssistant {...props} Toggle={EnableSwitch} />
+}
+export function LegacyDeveloperAssistant(props: Props) {
   const storageKey = 'workbench-developer-view-' + (props.taskId ?? props.draftKey)
   const [view, setView] = useState(() => saved(storageKey, props.initialDraft)), viewRef = useRef(view); viewRef.current = view
   const set = (patch: Partial<Preference>) => setView(old => ({ ...old, ...patch }))

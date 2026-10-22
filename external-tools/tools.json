@@ -42,6 +42,21 @@
       "executables": {
         "es": "es.exe"
       }
+    },
+    {
+      "id": "opencode",
+      "version": "1.19.3",
+      "directory": "opencode-1.19.3-win-x64",
+      "archive": "opencode-windows-x64-1.19.3.zip",
+      "url": "https://github.com/anomalyco/opencode/releases/download/v1.19.3/opencode-windows-x64.zip",
+      "sha256": "E4CE9117F55FC068414513789F8C7D1049F855D7518BB4E350B9170A3A20D8C3",
+      "flatArchive": true,
+      "versionArgument": "--version",
+      "licenseFile": "opencode-LICENSE.txt",
+      "license": "MIT; preserve opencode-LICENSE.txt",
+      "executables": {
+        "opencode": "opencode.exe"
+      }
     }
   ]
 }

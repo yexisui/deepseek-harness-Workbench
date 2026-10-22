@@ -9,6 +9,7 @@ from capability_releases import release_files
 
 p=argparse.ArgumentParser()
 p.add_argument('--donor',required=True);p.add_argument('--source',required=True);p.add_argument('--output',required=True)
+p.add_argument('--delivery-dir', help='Optional validation output directory before publishing to offline-delivery')
 p.add_argument('--capability-releases', help='Verified program releases directory; defaults to the clean donor releases')
 a=p.parse_args();donor=Path(a.donor).resolve();source=Path(a.source).resolve();out=Path(a.output).resolve()
 # npm dependency paths can exceed Win32 MAX_PATH even in a normal workspace.
@@ -21,7 +22,7 @@ capability_files=release_files(source/'shared-settings/files/capabilities/state.
 out.mkdir(parents=True,exist_ok=True)
 if any(out.iterdir()): raise SystemExit('Output must be empty; refusing to overwrite a release')
 offline=out/'offline';offline.mkdir()
-release='2026.10.21-r12-win-x64'
+release='2026.10.22-r13-win-x64'
 files=[]; seen=set()
 def digest(f):
     h=hashlib.sha256()
@@ -53,7 +54,7 @@ for tool in json.loads((source/'external-tools/tools.json').read_text('utf-8-sig
     if tool['id'] == 'ffmpeg':continue
     toolroot=source/'external-tools'/tool['id']
     trees.extend([(toolroot/'releases','external-tools/'+tool['id']+'/releases'),(toolroot/'current.json','external-tools/'+tool['id']+'/current.json')])
-for name in ['install.ps1','search-service.ps1','everything-LICENSE.txt','es-LICENSE.txt']:
+for name in ['install.ps1','search-service.ps1','everything-LICENSE.txt','es-LICENSE.txt','opencode-LICENSE.txt']:
     trees.append((source/'external-tools'/name,'external-tools/'+name))
 # Legacy portable BrowserSkill is already maintained separately from the npm plugin.
 bsk=donor/'runtime/browserskill/0.3.0'
@@ -123,7 +124,7 @@ readme='''Windows x64 离线安装包
 '''
 (offline/'使用说明.txt').write_text(readme,encoding='utf-8-sig')
 print(json.dumps({'release':release,'files':len(files),'payloadBytes':archive.stat().st_size,'unpackedBytes':manifest['unpackedBytes']},ensure_ascii=False),flush=True)
-delivery_dir=source/'offline-delivery'
+delivery_dir=Path(a.delivery_dir).resolve() if a.delivery_dir else source/'offline-delivery'
 delivery_dir.mkdir(parents=True,exist_ok=True)
 delivery=delivery_dir/('DeepSeek-Workbench-Offline-'+release+'.zip')
 if delivery.exists():raise SystemExit('Release already exists; increment release before publishing a changed package')

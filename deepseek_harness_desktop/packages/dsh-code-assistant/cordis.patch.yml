@@ -1,0 +1,3 @@
+# This embeddable module is owned by its host adapter in dsh-capabilities.
+# It does not create a second standalone app or duplicate model configuration.
+[]

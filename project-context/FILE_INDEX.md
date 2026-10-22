@@ -1,6 +1,6 @@
 # 共享文件职责索引
 
-更新时间：2026-10-12。先读[规则](AGENTS.MD)与[台账](PEFR_PLAN.MD)。本表逐项列出所有共享文件；历史归档中的链接不作为当前操作入口。本机原件逐项清单另见 archive/archive-inventory.csv。
+更新时间：2026-10-21。先读[规则](AGENTS.MD)与[台账](PEFR_PLAN.MD)。本表逐项列出所有共享文件；历史归档中的链接不作为当前操作入口。本机原件逐项清单另见 archive/archive-inventory.csv。
 
 | 文件 | 负责什么 | 状态与关系 |
 | --- | --- | --- |
@@ -252,6 +252,8 @@
 | [requirements/auto/A018-开发助手后台实测.png](<requirements/auto/A018-开发助手后台实测.png>) | 关联文档的历史展示或验证附件：A018-开发助手后台实测 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A018-开发助手实装界面.png](<requirements/auto/A018-开发助手实装界面.png>) | 关联文档的历史展示或验证附件：A018-开发助手实装界面 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A018-开发助手拓展基础方案.md](<requirements/auto/A018-开发助手拓展基础方案.md>) | A018-开发助手拓展基础方案 | 事项现状见台账；原有历史记录保留 |
+| [requirements/auto/A018-开源码助手集成方案.md](<requirements/auto/A018-开源码助手集成方案.md>) | 当前V2：模型复用工作台、功能离线、独立开源码助手模块及OpenCode选型 | A018第23节/T025；首版已实装，第9节维护验证证据、离线交付与限制 |
+| [requirements/auto/A018-开源码助手集成方案.html](<requirements/auto/A018-开源码助手集成方案.html>) | 当前V2方案生成的离线阅读版 | 派生附件，同名Markdown为维护来源；包含第9节首版实装结果 |
 | [requirements/auto/A018-开发助手深色实装界面.png](<requirements/auto/A018-开发助手深色实装界面.png>) | 关联文档的历史展示或验证附件：A018-开发助手深色实装界面 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A018-开发助手界面示意.png](<requirements/auto/A018-开发助手界面示意.png>) | 关联文档的历史展示或验证附件：A018-开发助手界面示意 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A018-开发助手窄屏实装界面.png](<requirements/auto/A018-开发助手窄屏实装界面.png>) | 关联文档的历史展示或验证附件：A018-开发助手窄屏实装界面 | 事项现状见台账；原有历史记录保留 |
@@ -353,3 +355,9 @@
 - 2026-10-21：A023补记指定岗位添加弹窗实施及验收证据；统一入口为dsh-skill-explorer/src/client/SkillRoleAssignments.tsx与role-assignments.module.css，复用共享弹窗、岗位外观和原绑定接口。
 
 - 2026-10-21：A023新增 Skills 标签界面移除记录，取代此前“标签仅在详情/筛选中管理”的决定；SkillsCenter、SkillSettings、SkillDetail统一移除入口并兼容旧导航筛选，AGENTS.MD已更新，原业务数据保持。
+
+- 2026-10-21：按用户“先去 GitHub 查找完善开源项目并出方案”的要求，完成 Cline、OpenCode、OpenHands、Aider、Tabby、Serena、Continue 和 Roo Code 对比，补充 Monaco 与 ast-grep；核对 Continue 停止主动维护、Roo 归档及 Serena 当前分组件许可。建议先验证 Cline SDK，OpenCode 备选。仅新增 A018 调研与离线阅读版、维护索引；未安装工具、改动业务源码或配置、调用模型验证、重启或更新离线包。
+
+- 2026-10-21（V2修订）：用户明确模型直接复用工作台，要求功能开源、离线、独立模块嵌入，允许抛弃旧方案。A018现以OpenCode本地引擎+独立模块+宿主模型桥接为建议；首轮Cline优先方案已取代，旧实装证据仅保留历史。更新同名方案/HTML、A018第22节、T025及FILE_INDEX；仅文档变更，未实施或实测离线运行。
+
+- 2026-10-22：T025 独立代码模块已实装，具体证据与限制维护在 A018 当前方案第9节；模块源码为 deepseek_harness_desktop/packages/dsh-code-assistant，宿主适配为 dsh-capabilities/src/host/code-assistant.ts，离线交付为 r13。

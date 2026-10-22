@@ -9,7 +9,7 @@ import {ManagedCenter} from '../src/client/ManagedCenter.tsx'
 import {ManagedRoleEditor} from '../src/client/ManagedRoles.tsx'
 import {ComponentCenter} from '../src/client/ComponentCenter.tsx'
 import {DeveloperProjectSettings} from '../src/client/DeveloperProjectSettings.tsx'
-import {DeveloperAssistant} from '../src/client/DeveloperAssistant.tsx'
+import {LegacyDeveloperAssistant as DeveloperAssistant} from '../src/client/DeveloperAssistant.tsx'
 import {RequirementsAssistant} from '../src/client/RequirementsAssistant.tsx'
 import {MeetingDemo} from '../src/client/MeetingDemo.tsx'
 import {capabilityClient,editorDrafts,openCapabilityLink,lastCapabilityLink} from '../src/client/capability-client.ts'
@@ -115,9 +115,9 @@ it('NR12 restores meeting trace along with its existing snapshot',async()=>{
  let snapshot:any;const props={onSnapshot:(s:any)=>{snapshot=s}};await render(<MeetingDemo {...props}/>);await click('轨迹');await remount(<MeetingDemo initialState={snapshot} {...props}/>);expect(host.querySelector('[aria-selected="true"]')?.textContent).toBe('轨迹');expect(snapshot.trace).toContain('打开会议纪要助手')
 })
 
-it('NR13 restores developer main and version subtabs after remount',async()=>{
- const view=<DeveloperAssistant roleId="builtin-developer" draftKey="navigation-review" loadModels={async()=>[]} onCommit={()=>{}}/>;await render(view);await fill(host.querySelector('[aria-label="已有项目"]')!,'C:/qa/one');await click('版本');await click('分支与目录');await remount(view)
- expect(host.querySelector('[aria-label="开发助手主页签"] [aria-selected="true"]')?.textContent).toBe('版本');expect(host.querySelector('[aria-label="版本页面"] [aria-selected="true"]')?.textContent).toBe('分支与目录')
+it('NR13 restores legacy developer main and run subtabs after remount',async()=>{
+ const view=<DeveloperAssistant roleId="builtin-developer" draftKey="navigation-review" loadModels={async()=>[]} onCommit={()=>{}}/>;await render(view);await fill(host.querySelector('[aria-label="已有项目"]')!,'C:/qa/one');await click('运行');await click('操作轨迹');await remount(view)
+ expect(host.querySelector('[aria-label="开发助手主页签"] [aria-selected="true"]')?.textContent).toBe('运行');expect(host.querySelector('[aria-label="运行页面"] [aria-selected="true"]')?.textContent).toBe('操作轨迹')
 })
 
 it('NR14 preserves component action tab across an ordinary local list return',async()=>{

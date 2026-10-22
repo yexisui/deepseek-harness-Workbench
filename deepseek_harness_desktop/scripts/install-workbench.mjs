@@ -17,7 +17,7 @@ const originalManifest = fs.readFileSync(manifestPath, 'utf8')
 const originalWorkspace = fs.existsSync(workspacePath) ? fs.readFileSync(workspacePath, 'utf8') : null
 const manifest = JSON.parse(originalManifest)
 // Install all standalone workbench services from this same complete build.
-const roots = ['@linxin666/dsh-web-all', '@linxin666/dsh-client-ui-plain-chat', '@linxin666/dsh-capabilities']
+const roots = ['@linxin666/dsh-web-all', '@linxin666/dsh-client-ui-plain-chat', '@linxin666/dsh-capabilities', '@linxin666/dsh-code-assistant']
 manifest.dependencies ??= {}
 for (const name of roots) {
   if (!entries.some(entry => entry.name === name)) throw new Error('Build is missing workbench service: ' + name)

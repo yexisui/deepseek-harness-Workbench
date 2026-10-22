@@ -1,0 +1,10 @@
+OpenCode 1.19.3 (MIT): https://github.com/anomalyco/opencode/tree/v1.19.3
+No modifications to the upstream executable. Runtime configuration and host adapters are maintained in this module.
+OpenCode LICENSE is distributed in external-tools/opencode-LICENSE.txt and installed beside the executable.
+
+Monaco Editor 0.55.1 (MIT): https://github.com/microsoft/monaco-editor
+Original LICENSE and ThirdPartyNotices are shipped in lib/assets/editor.
+
+@opencode-ai/plugin 1.19.3 and transitive dependencies: see assets-lock/engine/package-lock.json.
+The real package tree, including package license declarations and included notice files, is shipped in lib/assets/engine-runtime.
+The host adapter and module code use the workbench Apache-2.0 license.

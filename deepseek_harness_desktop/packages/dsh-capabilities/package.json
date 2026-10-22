@@ -1,6 +1,6 @@
 {
   "name": "@linxin666/dsh-capabilities",
-  "version": "0.1.0-local.14",
+  "version": "0.1.0-local.15",
   "private": true,
   "description": "岗位能力、版本、授权、会议纪要与需求分析服务",
   "type": "module",
@@ -24,7 +24,8 @@
   "dependencies": {
     "@wxg-prc-cpg/browser-skill-dsh-plugin": "0.3.0",
     "dsh-office-toolkit": "0.3.32",
-    "pizzip": "3.2.0"
+    "pizzip": "3.2.0",
+    "@linxin666/dsh-code-assistant": "workspace:*"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",

@@ -15,7 +15,7 @@ const packages = fs.readdirSync(path.join(source, 'packages')).filter(name =>
   name !== 'skins' && name !== 'dsh-client-ui-plain-chat' && name !== 'dsh-web-all'
   && fs.existsSync(path.join(source, 'packages', name, 'tsdown.config.ts'))
   && Object.hasOwn(aggregateDependencies, JSON.parse(fs.readFileSync(path.join(source, 'packages', name, 'package.json'), 'utf8')).name),
-).sort().concat(['skins/skin-center', 'dsh-capabilities', 'dsh-client-ui-plain-chat', 'dsh-web-all'])
+).sort().concat(['skins/skin-center', 'dsh-code-assistant', 'dsh-capabilities', 'dsh-client-ui-plain-chat', 'dsh-web-all'])
 const excluded = new Set(['node_modules', '.git', '.agents', 'lib', 'dist', 'tests', 'test'])
 const inputs = []
 function collect(relative) {
@@ -55,10 +55,10 @@ function linkPackage(parent, name) {
 }
 // Reuse the pinned installed SDK/build tools without adding an environment to source.
 for (const parent of [
-  path.join(dev, 'node_modules'),
   path.join(root, 'runtime/node_modules'),
   path.join(root, 'dsh-data/profiles/web/node_modules'),
   path.join(root, 'dsh-data/profiles/web/node_modules/.pnpm/node_modules'),
+  path.join(dev, 'node_modules'),
 ]) {
   if (!fs.existsSync(parent)) continue
   for (const name of fs.readdirSync(parent)) {
@@ -69,6 +69,15 @@ for (const parent of [
 }
 const tool = path.join(dependencies, 'tsdown/dist/run.mjs')
 if (!fs.existsSync(tool)) throw new Error('Development dependencies are missing; run Deploy first.')
+const codeAssets = path.join(dev, 'code-assistant-assets')
+{
+  const prepared = spawnSync(process.execPath, [path.join(source, 'scripts/prepare-code-assistant.mjs'), root, source], { stdio: 'inherit', windowsHide: true })
+  if (prepared.error || prepared.status !== 0) throw prepared.error ?? new Error('Code assistant asset preparation failed')
+}
+const codePackage = path.join(dependencies, '@linxin666/dsh-code-assistant')
+if (fs.existsSync(codePackage)) fs.unlinkSync(codePackage)
+fs.mkdirSync(path.dirname(codePackage), { recursive: true })
+fs.symlinkSync(path.join(mirror, 'packages/dsh-code-assistant'), codePackage, process.platform === 'win32' ? 'junction' : 'dir')
 const entries = []
 function copyTree(input, output) {
   if (fs.lstatSync(input).isSymbolicLink()) throw new Error('Runtime files cannot be links: ' + input)
@@ -82,7 +91,7 @@ function copyTree(input, output) {
 }
 for (const relative of packages) {
   const directory = path.join(mirror, 'packages', relative)
-  const result = spawnSync(process.execPath, [tool], { cwd: directory, stdio: 'inherit', windowsHide: true })
+  const result = spawnSync(process.execPath, [tool], { cwd: directory, stdio: 'inherit', windowsHide: true, env: { ...process.env, DSH_CODE_ASSETS: codeAssets } })
   if (result.error) throw result.error
   if (result.status !== 0) throw new Error('Build failed: ' + relative)
   const manifest = JSON.parse(fs.readFileSync(path.join(directory, 'package.json'), 'utf8'))
@@ -109,7 +118,7 @@ for (const relative of packages) {
   delete manifest.devDependencies
   manifest.dshWorkbench = { localWorkshop: 1, authorServicesRemoved: 1, documentationArchived: 1 }
   for (const [name, version] of Object.entries(manifest.dependencies ?? {})) {
-    if (version.startsWith('workspace:')) manifest.dependencies[name] = '0.3.23'
+    if (version.startsWith('workspace:')) manifest.dependencies[name] = name === '@linxin666/dsh-code-assistant' ? '0.1.0' : '0.3.23'
   }
   fs.writeFileSync(path.join(packed, 'package.json'), JSON.stringify(manifest, null, 2) + '\n')
   entries.push({ name: manifest.name, relative: path.relative(root, packed).split(path.sep).join('/') })

@@ -49,7 +49,8 @@ foreach ($entry in $manifest.tools) {
             $version = (Get-Item -LiteralPath (Join-Path $release $exe.Value)).VersionInfo.FileVersion
             if ($version -ne $tool.version) { throw "Unexpected $($exe.Name) file version: $version" }
         } else {
-            $output = & (Join-Path $release $exe.Value) -version
+            $versionArgument = if ($tool.versionArgument) { $tool.versionArgument } else { '-version' }
+            $output = & (Join-Path $release $exe.Value) $versionArgument
             if ($LASTEXITCODE -ne 0 -or ($output -join "`n") -notmatch ([regex]::Escape($tool.version))) { throw "Cannot start the expected $($exe.Name) version." }
         }
     }
