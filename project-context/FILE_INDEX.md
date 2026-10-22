@@ -254,6 +254,7 @@
 | [requirements/auto/A018-开发助手拓展基础方案.md](<requirements/auto/A018-开发助手拓展基础方案.md>) | A018-开发助手拓展基础方案 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A018-开源码助手集成方案.md](<requirements/auto/A018-开源码助手集成方案.md>) | 当前V2：模型复用工作台、功能离线、独立开源码助手模块及OpenCode选型 | A018第23节/T025；首版已实装，第9节维护验证证据、离线交付与限制 |
 | [requirements/auto/A018-开源码助手集成方案.html](<requirements/auto/A018-开源码助手集成方案.html>) | 当前V2方案生成的离线阅读版 | 派生附件，同名Markdown为维护来源；包含第9节首版实装结果 |
+| [requirements/auto/A018-开源码助手正式验收.jpg](<requirements/auto/A018-开源码助手正式验收.jpg>) | 正式工作台实际界面，示例项目修复与3项测试通过 | A018方案第9.5节；不含认证信息 |
 | [requirements/auto/A018-开发助手深色实装界面.png](<requirements/auto/A018-开发助手深色实装界面.png>) | 关联文档的历史展示或验证附件：A018-开发助手深色实装界面 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A018-开发助手界面示意.png](<requirements/auto/A018-开发助手界面示意.png>) | 关联文档的历史展示或验证附件：A018-开发助手界面示意 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A018-开发助手窄屏实装界面.png](<requirements/auto/A018-开发助手窄屏实装界面.png>) | 关联文档的历史展示或验证附件：A018-开发助手窄屏实装界面 | 事项现状见台账；原有历史记录保留 |
