@@ -14635,11 +14635,15 @@ window.__ModuleLoader__.load({
 				]
 			});
 		}
-		function ManagedRolePicker({ selected, onSelect, t }) {
+		function ManagedRolePicker({ selected, onSelect, t, current, onManage }) {
 			const { data } = useCapabilities(), [open, setOpen] = (0, react.useState)(false), [editor, setEditor] = (0, react.useState)(false);
 			const role = data?.state.roles.find((role) => role.id === selected), displayed = role && rolePresentation(role);
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-				/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+				current ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCurrentAssistant, {
+					selected,
+					preset: current.preset,
+					onOpen: () => setOpen(true)
+				}) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 					className: Roles_module_css_default.picker,
 					"aria-haspopup": "dialog",
 					onClick: () => setOpen(true),
@@ -14672,7 +14676,7 @@ window.__ModuleLoader__.load({
 									color: freeChat.color
 								}) }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: freeChat.name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: freeChat.description })] })]
 							}),
-							[...data?.state.roles ?? []].sort((left, right) => Number(right.id === "meeting-minutes-demo") - Number(left.id === "meeting-minutes-demo")).filter((role) => role.enabled && role.versions.length).map((role) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
+							[...data?.state.roles ?? []].sort((left, right) => Number(right.id === "meeting-minutes-demo") - Number(left.id === "meeting-minutes-demo")).filter((role) => role.enabled && !role.archivedAt && !role.removedAt && role.versions.length).map((role) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 								className: ManagedCapabilities_module_css_default.choice,
 								"aria-pressed": selected === role.id,
 								onClick: () => {
@@ -14685,14 +14689,21 @@ window.__ModuleLoader__.load({
 									color: rolePresentation(role).color
 								}) }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: latest(role.versions).name }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: latest(role.versions).capabilities.some((b) => b.enabled && b.capabilityId === "meeting-transcription") ? "快速生成 / 引导整理" : usesRequirements(data?.state, latest(role.versions)) ? "快速整理 / 引导分析" : `${latest(role.versions).capabilities.length} 个能力` })] })]
 							}, role.id)),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							onManage ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								className: ManagedCapabilities_module_css_default.button,
+								onClick: () => {
+									setOpen(false);
+									onManage();
+								},
+								children: "管理岗位"
+							}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 								className: ManagedCapabilities_module_css_default.button,
 								onClick: () => setEditor(true),
 								children: "＋ 创建岗位助手"
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
 								className: ManagedCapabilities_module_css_default.muted,
-								children: "选择仅用于下一次新对话，当前对话的岗位不会改变。"
+								children: current ? "选择后立即进入该助手，原对话保留。" : "选择仅用于下一次新对话，当前对话的岗位不会改变。"
 							})
 						]
 					})
@@ -14708,12 +14719,13 @@ window.__ModuleLoader__.load({
 			const iconSpec = appearance?.icon;
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 				type: "button",
+				"aria-haspopup": "dialog",
 				"data-current-assistant": "true",
 				"data-role-icon": roleAppearanceIconId(role?.id ?? "chat", iconSpec),
 				className: Roles_module_css_default.currentAssistant,
 				style: appearanceStyle(color),
 				"aria-label": `打开岗位助手：${name}`,
-				title: `当前选定：${name} · 点击管理岗位`,
+				title: `当前选定：${name} · 点击切换助手`,
 				onClick: onOpen,
 				children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)(RoleAppearanceIcon, {
@@ -24776,6 +24788,13 @@ window.__ModuleLoader__.load({
 				sessions.clear();
 				layout.selectPanel(null);
 			};
+			const switchAssistant = (id) => {
+				const draft = localConversations.getSnapshot().items.find((row) => row.role === id && row.kind === "draft");
+				localConversations.leave();
+				leaveSearch();
+				leaveRecording();
+				openLocalConversation((draft ?? localConversations.start(id)).id);
+			};
 			const renameLocalConversation = async (id, title) => {
 				if (documents.getSnapshot().rows.some((r) => r.id === id)) {
 					await documents.command(id, "rename", title);
@@ -25063,10 +25082,14 @@ window.__ModuleLoader__.load({
 						children: [
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 								className: Chat_module_css_default.assistantToolbar,
-								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedCurrentAssistant, {
+								children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ManagedRolePicker, {
+									t,
 									selected: displayedRole,
-									preset: noSession && search ? originRole?.versions.find((v) => v.version === search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find((v) => v.version === recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === "meeting" ? meetingVersion?.preset : noSession ? void 0 : actualPreset,
-									onOpen: settingsNavigation.openPresets
+									onSelect: (id) => {
+										if (id !== displayedRole) switchAssistant(id);
+									},
+									current: { preset: noSession && search ? originRole?.versions.find((v) => v.version === search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find((v) => v.version === recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === "meeting" ? meetingVersion?.preset : noSession ? void 0 : actualPreset },
+									onManage: settingsNavigation.openPresets
 								})
 							}),
 							displayedRole !== "chat" && modes.length > 1 && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("nav", {

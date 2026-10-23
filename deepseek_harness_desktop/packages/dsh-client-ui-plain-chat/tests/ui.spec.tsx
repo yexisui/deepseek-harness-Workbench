@@ -405,6 +405,53 @@ describe('ordinary chat UI integration', () => {
     expect(container.textContent).toContain('会议纪要 · 引导整理')
   })
 
+  async function switchFromToolbar(name: string) {
+    await click('[data-current-assistant="true"]')
+    const dialog = document.querySelector('[role="dialog"]') ?? document.querySelector('dialog')!
+    const choice = Array.from(dialog.querySelectorAll('button')).find(button => button.querySelector('strong')?.textContent === name)!
+    expect(choice).toBeTruthy()
+    await act(async () => choice.click())
+  }
+
+  it('switches from a saved session immediately without rebinding or submitting it', async () => {
+    app.list.current = 'readerSession'
+    app.list.byId.readerSession = { projectionValues: { agentPreset: 'workbench-role-reader-v1' } }
+    const input = app.addBinding('readerSession', '保留原对话未发送输入')
+    await render({ ...app.props, sessionId: 'readerSession' })
+    await switchFromToolbar('会议纪要助手')
+    expect(app.sessions.clear).toHaveBeenCalledTimes(1)
+    await render()
+    expect(container.querySelector('[data-meeting-demo="true"]')).not.toBeNull()
+    expect(container.querySelector('[data-current-assistant]')!.textContent).toContain('会议纪要助手')
+    expect(app.list.byId.readerSession.projectionValues.agentPreset).toBe('workbench-role-reader-v1')
+    expect(input.state.getSnapshot().draft).toBe('保留原对话未发送输入')
+    expect(input.submit).not.toHaveBeenCalled()
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+  })
+
+  it('restores each assistant draft when switching back and uses the target preset on send', async () => {
+    await render()
+    await type('自由聊天草稿')
+    await switchFromToolbar('网页助手')
+    expect(container.querySelector('textarea')!.value).toBe('')
+    await type('网页助手草稿')
+    await switchFromToolbar('自由聊天')
+    expect(container.querySelector('textarea')!.value).toBe('自由聊天草稿')
+    await switchFromToolbar('网页助手')
+    expect(container.querySelector('textarea')!.value).toBe('网页助手草稿')
+    await click('button[aria-label="发送消息"]')
+    expect(app.remoteCreate).toHaveBeenCalledWith(expect.objectContaining({ agentPreset: 'workbench-role-reader-v1' }))
+  })
+
+  it('selecting the visible assistant again keeps its draft and session untouched', async () => {
+    await render()
+    await type('不应丢失')
+    await switchFromToolbar('自由聊天')
+    expect(container.querySelector('textarea')!.value).toBe('不应丢失')
+    expect(app.sessions.clear).not.toHaveBeenCalled()
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+  })
+
   it('shows each existing conversation’s saved role after switching drafts and returning', async () => {
     app.list.byId.readerSession = { projectionValues: { agentPreset: 'workbench-role-reader-v1' } }
     await renderWithSidebarAndRoles({ ...app.props, sessionId: 'readerSession' })
@@ -422,7 +469,7 @@ describe('ordinary chat UI integration', () => {
   it('starts a published role with its actual preset and retains the draft during selection', async () => {
     await render()
     await type('请读取网页')
-    await click('button[aria-haspopup="dialog"]')
+    await click('button[aria-haspopup="dialog"]:not([data-current-assistant])')
     await act(async () => { Array.from(document.querySelectorAll<HTMLButtonElement>('dialog button')).find(b => b.textContent?.includes('网页助手'))!.click() })
     expect(container.querySelector('textarea')!.value).toBe('请读取网页')
     await click('button[aria-label="发送消息"]')

@@ -24,7 +24,7 @@ import { registerCapabilityCenter } from './capability-settings.tsx'
 import { nativePresetHook } from './native-preset-view.ts'
 import { AgentPresetDisclosure } from './RoleAssistants.tsx'
 
-import { BrowserTaskStatus, ManagedCurrentAssistant, ManagedRolePicker, ManagedRolesSection, MEETING_DEMO_ROLE_ID } from './ManagedRoles.tsx'
+import { BrowserTaskStatus, ManagedRolePicker, ManagedRolesSection, MEETING_DEMO_ROLE_ID } from './ManagedRoles.tsx'
 import { DeveloperAssistant } from './DeveloperAssistant.tsx'
 import { developerApi, createDeveloperHistory, usesDeveloper } from './developer-client.ts'
 import { RequirementsAssistant } from './RequirementsAssistant.tsx'
@@ -202,6 +202,13 @@ export function apply(ctx: Context): void {
     listeners.forEach(fn => fn())
     sessions.clear()
     layout.selectPanel(null)
+  }
+  // Switch the visible assistant without rebinding or stopping the previous session.
+  const switchAssistant = (id: string) => {
+    const draft = localConversations.getSnapshot().items.find(row => row.role === id && row.kind === 'draft')
+    localConversations.leave()
+    leaveSearch(); leaveRecording()
+    openLocalConversation((draft ?? localConversations.start(id)).id)
   }
   const renameLocalConversation = async (id: string, title: string) => {
     if(documents.getSnapshot().rows.some(r=>r.id===id)){await documents.command(id,'rename',title);return}
@@ -383,7 +390,7 @@ export function apply(ctx: Context): void {
         if (binding && local?.kind === 'draft') localConversations.commitChat(local.id)
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedCurrentAssistant selected={displayedRole} preset={noSession && search ? originRole?.versions.find(v=>v.version===search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset} onOpen={settingsNavigation.openPresets} /></div>
+        <div className={styles.assistantToolbar}><ManagedRolePicker t={t} selected={displayedRole} onSelect={id => { if (id !== displayedRole) switchAssistant(id) }} current={{ preset: noSession && search ? originRole?.versions.find(v=>v.version===search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset }} onManage={settingsNavigation.openPresets} /></div>
         {displayedRole !== 'chat' && modes.length > 1 && <nav aria-label="岗位能力入口" className={styles.capabilityModes}>{modes.map(item => <button key={item.mode} type="button" aria-pressed={noSession ? workMode === item.mode : item.mode === 'chat'} onClick={() => { if (noSession && workMode === item.mode) return; startFreshChat(displayedRole, item.mode) }}>{item.label}</button>)}</nav>}
         {!recording && recordingSnapshot.error && <p role="alert" style={{margin:"4px 24px",fontSize:13}}>{recordingSnapshot.error}</p>}
         <BrowserTaskStatus sessionId={props.sessionId}/>

@@ -158,19 +158,19 @@ export function PresetRepairNotice({ issues }: { issues: string[] }) {
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
   </div>
 }
-export function ManagedRolePicker({ selected, onSelect, t }: { selected: string; onSelect: (id: string) => void; t: (key: ChatKey) => string }) {
+export function ManagedRolePicker({ selected, onSelect, t, current, onManage }: { selected: string; onSelect: (id: string) => void; t: (key: ChatKey) => string; current?: { preset?: string }; onManage?: () => void }) {
   const { data } = useCapabilities(), [open, setOpen] = useState(false), [editor, setEditor] = useState(false)
   const role = data?.state.roles.find(role => role.id === selected), displayed = role && rolePresentation(role)
   return <>
-    <button className={r.picker} aria-haspopup="dialog" onClick={() => setOpen(true)}>
+    {current ? <ManagedCurrentAssistant selected={selected} preset={current.preset} onOpen={() => setOpen(true)}/> : <button className={r.picker} aria-haspopup="dialog" onClick={() => setOpen(true)}>
       <RoleAppearanceIcon roleId={role?.id ?? 'chat'} icon={displayed?.icon} color={displayed?.color ?? freeChat.color}/><span>{displayed?.name ?? t('mode')}</span><span>⌄</span>
-    </button>
+    </button>}
     {open && <Modal title="选择岗位助手" closeLabel="关闭" onClose={() => setOpen(false)}><div className={`${s.page} ${s.dialogBody}`}>
       <button className={s.choice} aria-pressed={selected === 'chat'} onClick={() => { onSelect('chat'); setOpen(false) }}><div><RoleAppearanceIcon roleId="chat" color={freeChat.color}/></div><span><strong>{freeChat.name}</strong><small>{freeChat.description}</small></span></button>
-      {[...(data?.state.roles ?? [])].sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID)).filter(role => role.enabled && role.versions.length).map(role => <button className={s.choice} key={role.id} aria-pressed={selected === role.id} onClick={() => { onSelect(role.id); setOpen(false) }}>
+      {[...(data?.state.roles ?? [])].sort((left, right) => Number(right.id === MEETING_ROLE_ID) - Number(left.id === MEETING_ROLE_ID)).filter(role => role.enabled && !role.archivedAt && !role.removedAt && role.versions.length).map(role => <button className={s.choice} key={role.id} aria-pressed={selected === role.id} onClick={() => { onSelect(role.id); setOpen(false) }}>
         <div><RoleAppearanceIcon roleId={role.id} icon={rolePresentation(role).icon} color={rolePresentation(role).color}/></div><span><strong>{latest(role.versions)!.name}</strong><small>{latest(role.versions)!.capabilities.some(b=>b.enabled&&b.capabilityId===MEETING_CAPABILITY_ID) ? '快速生成 / 引导整理' : usesRequirements(data?.state, latest(role.versions)) ? '快速整理 / 引导分析' : `${latest(role.versions)!.capabilities.length} 个能力`}</small></span>
       </button>)}
-      <button className={s.button} onClick={() => setEditor(true)}>＋ 创建岗位助手</button><p className={s.muted}>选择仅用于下一次新对话，当前对话的岗位不会改变。</p>
+      {onManage ? <button className={s.button} onClick={() => { setOpen(false); onManage() }}>管理岗位</button> : <button className={s.button} onClick={() => setEditor(true)}>＋ 创建岗位助手</button>}<p className={s.muted}>{current ? "选择后立即进入该助手，原对话保留。" : "选择仅用于下一次新对话，当前对话的岗位不会改变。"}</p>
     </div></Modal>}
     {editor && <ManagedRoleEditor onClose={() => setEditor(false)}/>}
   </>
@@ -185,7 +185,7 @@ export function ManagedCurrentAssistant({ selected, onOpen, preset }: { selected
   const name = appearance?.name ?? freeChat.name, color = appearance?.color ?? freeChat.color
   const iconSpec = appearance?.icon
   const icon = roleAppearanceIconId(role?.id ?? 'chat', iconSpec)
-  return <button type="button" data-current-assistant="true" data-role-icon={icon} className={r.currentAssistant} style={appearanceStyle(color)} aria-label={`打开岗位助手：${name}`} title={`当前选定：${name} · 点击管理岗位`} onClick={onOpen}>
+  return <button type="button" aria-haspopup="dialog" data-current-assistant="true" data-role-icon={icon} className={r.currentAssistant} style={appearanceStyle(color)} aria-label={`打开岗位助手：${name}`} title={`当前选定：${name} · 点击切换助手`} onClick={onOpen}>
     <RoleAppearanceIcon roleId={role?.id ?? 'chat'} icon={iconSpec} color={color}/><span className={r.currentText}>{name}</span><svg className={r.currentArrow} aria-hidden="true" viewBox="0 0 16 16" fill="none"><path d="m6 4 4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
   </button>
 }
