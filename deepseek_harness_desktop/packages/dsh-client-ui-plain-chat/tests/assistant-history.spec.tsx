@@ -1,0 +1,55 @@
+// @vitest-environment jsdom
+import React, { act } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
+import { beforeEach, afterEach, expect, it, vi } from 'vitest'
+import { AssistantHistory } from '../src/client/AssistantHistory.tsx'
+import { capabilityClient } from '../src/client/capability-client.ts'
+import { emptyRole, initialState } from '../../dsh-capabilities/src/core/model.ts'
+let root: Root, container: HTMLDivElement
+beforeEach(async () => {
+  localStorage.clear(); sessionStorage.clear()
+  const state = initialState(), definition = { ...emptyRole(), name: '测试会议助手' }
+  state.roles.push({ id: 'test-meeting', enabled: true, draft: definition, versions: [{ ...definition, preset: 'workbench-role-test-meeting-v1', version: 1, createdAt: state.updatedAt }] })
+  vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => ({ state, components: [], health: {}, tasks: [] }) })))
+  await capabilityClient.refresh()
+  ;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true
+  HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+  container = document.createElement('div'); document.body.append(container); root = createRoot(container)
+})
+afterEach(async () => { await act(async () => root.unmount()); container.remove(); vi.unstubAllGlobals() })
+function setup() {
+  const open = vi.fn(), onOpen = vi.fn(), onNew = vi.fn(), rename = vi.fn(async () => {}), archive = vi.fn(async () => {}), fork = vi.fn()
+  const list = { phase: 'ready', current: undefined, ids: ['native', 'free'], byId: { native: { title: '原生助手对话', updatedAt: 200, projectionValues: { agentPreset: 'workbench-role-test-meeting-v1' } }, free: { title: '普通聊天', updatedAt: 250, projectionValues: { agentPreset: 'workbench-chat' } } } }
+  const workspaces = { items: [{ title: '项目甲', sessionIds: ['native', 'free'] }], archivedSessionIds: [] }
+  const Original = (props: any) => <div data-original>{props.useSessions((s: any) => s.ids).map((id: string) => <span data-native={id} key={id}>{list.byId[id as keyof typeof list.byId].title}</span>)}</div>
+  const props = { Original, browser: { wide: true, useSessions: (fn: any) => fn(list), useWorkspaces: (fn: any) => fn(workspaces), t: (key: string) => key, open, renameSession: rename, archiveSession: archive, forkSession: fork }, rows: [{ id: 'local', title: '录音摘要', role: 'test-meeting', kind: 'demo' as const, draft: '', updatedAt: 100, createdAt: 1 }], activeId: null, onOpen, onNew, onRename: vi.fn(async () => {}), onRemove: vi.fn(), ready: true }
+  return { props, open, onOpen, onNew, rename, archive, fork }
+}
+const click = async (selector: string) => { const button = container.querySelector<HTMLButtonElement>(selector); expect(button).toBeTruthy(); await act(async () => button!.click()) }
+const input = async (text: string) => { await act(async () => { const field = container.querySelector<HTMLInputElement>('input[aria-label="搜索对话"]')!; Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(field, text); field.dispatchEvent(new Event('input', { bubbles: true })) }) }
+it('groups local and native assistant conversations once, searches across both zones and restores collapse', async () => {
+  const app = setup(); await act(async () => root.render(<AssistantHistory {...app.props}/>))
+  expect(container.querySelector('[data-original] [data-native="native"]')).toBeNull()
+  expect(container.querySelector('[data-original] [data-native="free"]')).toBeTruthy()
+  expect(container.querySelectorAll('[data-assistant-group="test-meeting"] [data-conversation-id]').length).toBe(2)
+  await click('[data-assistant-group="test-meeting"] button[aria-expanded="true"]')
+  await input('项目甲')
+  expect(container.querySelectorAll('[aria-label="对话搜索结果"] [data-conversation-id]').length).toBe(2)
+  await click('[aria-label="对话搜索结果"] [data-conversation-id="session:native"] button')
+  expect(app.open).toHaveBeenCalledWith('native')
+  await click('button[aria-label="清空搜索"]')
+  expect(container.querySelector('[data-assistant-group="test-meeting"] button[aria-expanded="false"]')).toBeTruthy()
+  await click('button[aria-label="新建测试会议助手对话"]'); expect(app.onNew).toHaveBeenCalledWith('test-meeting')
+})
+it('switches sort modes and directions, persists them, and keeps native menu actions', async () => {
+  const app = setup(); await act(async () => root.render(<AssistantHistory {...app.props}/>))
+  const ids = () => Array.from(container.querySelectorAll('[data-assistant-group="test-meeting"] [data-conversation-id]')).map(el => el.getAttribute('data-conversation-id'))
+  expect(ids()).toEqual(['session:native', 'local'])
+  await click('button[aria-label="排序方向：降序"]'); expect(ids()).toEqual(['local', 'session:native'])
+  await click('button[aria-label="排序方式：时间"]')
+  expect(JSON.parse(localStorage.getItem('workbench-sidebar-preferences-v1')!)).toMatchObject({ sort: 'number', direction: 'asc' })
+  await click('button[aria-label="会话操作：原生助手对话"]')
+  expect(Array.from(document.querySelectorAll('[role="menuitem"]')).map(el => el.textContent)).toEqual(['重命名', '分叉', '归档', '移除对话'])
+  await act(async () => { const button = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')).find(el => el.textContent === '归档'); button!.click() })
+  expect(app.archive).toHaveBeenCalledWith('native')
+})

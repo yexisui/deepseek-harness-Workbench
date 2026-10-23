@@ -14,12 +14,12 @@ export function usesDeveloper(state: State | undefined, version: RoleVersion | u
 export function createDeveloperHistory() {
   let activeId: string | null = null
   try { activeId = sessionStorage.getItem('workbench-developer-active') } catch { /* Optional selection. */ }
-  let state = { items: [] as DeveloperSummary[], activeId, error: '' }
+  let state = { items: [] as DeveloperSummary[], activeId, error: '', loading: false }
   const listeners = new Set<() => void>(), removed = new Set<string>()
   const update = (next: Partial<typeof state>) => { state = { ...state, ...next }; try { state.activeId ? sessionStorage.setItem('workbench-developer-active', state.activeId) : sessionStorage.removeItem('workbench-developer-active') } catch { /* Server history remains. */ } listeners.forEach(fn => fn()) }
   return {
     subscribe: (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn) } }, getSnapshot: () => state,
-    load: async () => { try { const result = await developerApi<{ items: DeveloperSummary[] }>('tasks'); update({ items: result.items.filter(row => !removed.has(row.id)), error: '' }) } catch (error) { update({ error: error instanceof Error ? error.message : String(error) }) } },
+    load: async () => { update({ loading: true }); try { const result = await developerApi<{ items: DeveloperSummary[] }>('tasks'); update({ items: result.items.filter(row => !removed.has(row.id)), error: '' }) } catch (error) { update({ error: error instanceof Error ? error.message : String(error) }) } finally { update({ loading: false }) } },
     open: (id: string) => update({ activeId: id }), leave: () => update({ activeId: null }),
     upsert: (task: DeveloperTask, activate: boolean) => { if (removed.has(task.id)) return; const row = developerSummary(task), old = state.items.find(r => r.id === row.id); if (old && old.updatedAt > row.updatedAt) return; update({ items: [...state.items.filter(r => r.id !== row.id), row].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), ...(activate ? { activeId: row.id } : {}) }) },
     remove: async (id: string) => { await developerApi('task', { id }, undefined, 'DELETE'); removed.add(id); update({ items: state.items.filter(row => row.id !== id), activeId: state.activeId === id ? null : state.activeId }) },

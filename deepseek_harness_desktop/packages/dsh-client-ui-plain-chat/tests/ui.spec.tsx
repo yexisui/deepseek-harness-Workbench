@@ -125,6 +125,8 @@ describe('ordinary chat UI integration', () => {
     const definition = { ...emptyRole(), name: '网页助手', capabilities: [{ capabilityId: 'browser', version: 1, enabled: true }] }
     state.roles.push({ id: 'reader', enabled: true, draft: definition, versions: [{ ...definition, version: 1, preset: 'workbench-role-reader-v1', createdAt: state.updatedAt }] })
     vi.stubGlobal('fetch', vi.fn(async (url: string | URL | Request) => {
+      if (/\/capabilities\/(recording|file-search|documents)\/list/.test(String(url))) return { ok: true, json: async () => [] }
+      if (String(url).includes('/developer/tasks?')) return { ok: true, json: async () => ({ items: [] }) }
       if (String(url).includes('/meeting/jobs?')) return { ok: true, json: async () => ({ items: [], total: 0, unreadableCount: 0 }) }
       if (String(url).includes('/requirements/tasks?')) return { ok: true, json: async () => ({ items: [], total: 0 }) }
       if (String(url).includes('/requirements/config')) return { ok: true, json: async () => ({ ready: true, modelConfigured: true, defaults: { depth: 'standard', questionStyle: 'short', model: '' }, revision: 0, maxTextChars: 60000 }) }
@@ -274,7 +276,9 @@ describe('ordinary chat UI integration', () => {
 
   it('labels ungrouped history as ordinary chats', async () => {
     await render(app.props, 'sidebar.workspaces')
-    expect(container.textContent).toBe('聊天')
+    expect(container.textContent).toContain('自由聊天')
+    expect(container.textContent).toContain('助手专区')
+    expect(container.querySelector('input[aria-label="搜索对话"]')).not.toBeNull()
   })
 
   it('recovers a persisted meeting into an empty sidebar after refreshing server history', async () => {
@@ -286,6 +290,27 @@ describe('ordinary chat UI integration', () => {
     expect(container.textContent).toContain('会议')
     expect(container.textContent).not.toContain('重试读取会议记录')
     expect(JSON.parse(localStorage.getItem('workbench-meeting-demos-v1')!)).toHaveLength(1)
+  })
+
+  it('searches older pages of meeting and requirement history without expanding their groups', async () => {
+    await render(app.props, 'sidebar.workspaces')
+    const original = vi.mocked(fetch).getMockImplementation()!
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      const url = new URL(String(input), 'http://localhost')
+      const second = url.searchParams.has('cursor') || Number(url.searchParams.get('offset')) > 0
+      if (url.pathname.endsWith('/meeting/jobs')) return { ok: true, json: async () => ({ items: [{ id: second ? 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' : 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', roleId: 'meeting-minutes-demo', title: second ? '旧会议（第二页）' : '新会议', mode: 'guided', status: 'ready', createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z' }], total: 2, nextCursor: second ? undefined : 'older' }) } as Response
+      if (url.pathname.endsWith('/requirements/tasks')) return { ok: true, json: async () => ({ items: [{ id: second ? 'requirement-old' : 'requirement-new', roleId: 'builtin-analyst', title: second ? '旧需求（第二页）' : '新需求', mode: 'quick', updatedAt: '2026-10-01T00:00:00Z', roleVersion: 1, confirmed: 0, total: 0, openQuestions: 0, running: false }], total: 2 }) } as Response
+      return original(input, init)
+    })
+    await act(async () => { window.dispatchEvent(new Event('focus')) })
+    await act(async () => {
+      const input = container.querySelector<HTMLInputElement>('input[aria-label="搜索对话"]')!
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, '第二页')
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    expect(container.querySelector('[aria-label="对话搜索结果"]')!.textContent).toContain('旧会议（第二页）')
+    expect(container.querySelector('[aria-label="对话搜索结果"]')!.textContent).toContain('旧需求（第二页）')
+    expect(container.querySelectorAll('[aria-label="对话搜索结果"] [data-conversation-id]')).toHaveLength(2)
   })
 
   it('makes the chat-group plus start a fresh free-chat draft without changing real workspace plus', async () => {
@@ -357,11 +382,11 @@ describe('ordinary chat UI integration', () => {
     await renderWithSidebarAndRoles()
     await click('button[aria-label="选定助手：会议纪要助手"]')
     await act(async () => { Array.from(container.querySelectorAll<HTMLButtonElement>('[data-meeting-demo] button')).find(button => button.textContent?.includes('快速生成'))!.click() })
-    expect(container.querySelector('[data-chat-group] [aria-current="page"]')!.textContent).toContain('会议纪要 · 快速生成')
+    expect(container.querySelector('[data-assistant-group] [aria-current="page"]')!.textContent).toContain('会议纪要 · 快速生成')
     await click('[data-action="open-existing"]')
-    expect(container.querySelector('[data-chat-group] [aria-label^="打开本地会话"]')!.querySelector('small')!.textContent).toBe('会议')
+    expect(container.querySelector('[data-assistant-group]')!.textContent).toContain('会议纪要助手')
     await renderWithSidebarAndRoles({ ...app.props, sessionId: 'older' })
-    await click('[data-chat-group] [aria-label^="打开本地会话"]')
+    await click('[data-local-conversations] [aria-label^="打开本地会话"]')
     await renderWithSidebarAndRoles(app.props)
     expect(container.querySelector('[data-meeting-demo="true"]')).not.toBeNull()
     expect(container.textContent).toContain('已选择 快速生成')
@@ -376,7 +401,7 @@ describe('ordinary chat UI integration', () => {
     await click('button[aria-label="选定助手：自由聊天"]')
     expect(container.querySelector('[data-meeting-demo="true"]')).toBeNull()
     expect(container.querySelector('[data-current-assistant="true"]')!.getAttribute('aria-label')).toBe('打开岗位助手：自由聊天')
-    expect(container.querySelectorAll('[data-chat-group] [aria-label^="打开本地会话"]')).toHaveLength(2)
+    expect(container.querySelectorAll('[data-local-conversations] [aria-label^="打开本地会话"]')).toHaveLength(2)
     expect(container.textContent).toContain('会议纪要 · 引导整理')
   })
 
@@ -573,7 +598,7 @@ describe('ordinary chat UI integration', () => {
     expect(created!.materials).toHaveLength(1)
     expect(document.querySelector('[role="dialog"][aria-label="资料内容"]')).toBeNull()
     expect(rowLabels()).toHaveLength(1)
-    expect(currentRow().textContent).toContain('需求')
+    expect(currentRow().closest('[data-assistant-group]')!.textContent).toContain('需求分析助手')
     expect(app.remoteCreate).not.toHaveBeenCalled()
     await act(async () => { button('切换分析方式').click() })
     const existingId = created!.id
@@ -584,7 +609,7 @@ describe('ordinary chat UI integration', () => {
     expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith('/requirements/create'))).toHaveLength(1)
     await click('[data-action="new"]')
     expect(container.querySelector('[data-requirements-assistant]')).toBeNull()
-    await click('[data-chat-group] [aria-label="打开本地会话：保留原来写下的业务想法"]')
+    await click('[data-assistant-group] [aria-label="打开本地会话：保留原来写下的业务想法"]')
     expect(container.querySelector('[data-requirements-assistant]')).not.toBeNull()
     expect(container.textContent).toContain('需求结果')
   })
@@ -597,7 +622,7 @@ describe('ordinary chat UI integration', () => {
     await click('[data-action="new"]')
     await click('button[aria-label="选定助手：需求分析助手"]')
     expect(container.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('')
-    await click('[data-chat-group] [aria-label="打开本地会话：第一份尚未发送的需求草稿"]')
+    await click('[data-assistant-group] [aria-label="打开本地会话：第一份尚未发送的需求草稿"]')
     expect(container.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('第一份尚未发送的需求草稿')
     expect(container.querySelector('button[aria-label="选择常规模式"]')).toBeNull()
     expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith('/requirements/create'))).toHaveLength(0)

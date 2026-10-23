@@ -6,7 +6,7 @@ import { FileSearchView } from './FileSearchView.tsx'
 import { recordingClient, recordingCommand } from '../../../../shared/client/recording-client.ts'
 import { RecordingView } from './RecordingView.tsx'
 import { roleCapabilityModes, defaultCapabilityMode, type CapabilityMode } from './role-capability-modes.ts'
-import React, { useMemo, useState, useSyncExternalStore } from 'react'
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
@@ -33,7 +33,7 @@ import type { DeveloperTask } from '../../../dsh-capabilities/src/core/developer
 import { createRequirementHistory } from './requirement-history.ts'
 import { usesRequirements } from './requirements-routing.ts'
 import { MeetingDemo } from './MeetingDemo.tsx'
-import { LocalConversationRows } from './LocalConversationRows.tsx'
+import { AssistantHistory } from './AssistantHistory.tsx'
 import { NativeConversationRemoval } from './NativeConversationRemoval.tsx'
 import { createLocalConversations } from './local-conversations.ts'
 import { removeMeetingConversation } from './meeting-removal.ts'
@@ -45,7 +45,6 @@ import { createRoleSelection, createSettingsNavigation } from './role-ui-state.t
 import { en, zh, type ChatKey } from './locales.ts'
 import { ru } from '../../../dsh-i18n/src/client/ru/plain-chat.ts'
 import styles from './Chat.module.css'
-import historyStyles from './LocalConversationRows.module.css'
 
 export const inject = ['slots', 'locale', 'sessions', 'conversation', 'layout', 'remote', 'remote.session']
 const NS = 'workbench-chat'
@@ -77,15 +76,17 @@ export function apply(ctx: Context): void {
   const localConversations = createLocalConversations()
   const documents=documentsClient()
   let activeDocument:string|null=null
-  void documents.refresh()
+  let historyInitialLoaded = false
+  const documentsLoaded = documents.refresh()
   const searches=fileSearchClient()
   let activeSearch:string|null=sessionStorage.getItem('workbench-file-search-active')
   const leaveSearch=()=>{activeDocument=null;activeSearch=null;sessionStorage.removeItem('workbench-file-search-active')}
-  void searches.refresh();void searches.refreshConfig()
+  const searchesLoaded = searches.refresh();void searches.refreshConfig()
   const recordings = recordingClient()
   let activeRecording: string | null = sessionStorage.getItem('workbench-recording-active')
   const leaveRecording = () => {activeRecording=null;sessionStorage.removeItem('workbench-recording-active')}
-  void recordings.refresh()
+  const recordingsLoaded = recordings.refresh()
+  void Promise.allSettled([documentsLoaded, searchesLoaded, recordingsLoaded]).then(() => { historyInitialLoaded = true; revision++; listeners.forEach(fn => fn()) })
   const meetingHistory = createMeetingHistory(localConversations)
   ctx.effect(() => { void meetingHistory.load(); const refresh = () => { void meetingHistory.load() }; window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, 'plain-chat: meeting history')
   const requirementHistory = createRequirementHistory()
@@ -440,31 +441,23 @@ export function apply(ctx: Context): void {
     const recorded=useSyncExternalStore(recordings.subscribe,recordings.getSnapshot)
     const searched=useSyncExternalStore(searches.subscribe,searches.getSnapshot)
     const documentRows=useSyncExternalStore(documents.subscribe,documents.getSnapshot)
-    const historyRows = [...documentRows.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),documentId:row.id})),...searched.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),searchId:row.id})),...recorded.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',updatedAt:Date.parse(row.updatedAt),recordingId:row.id})),...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
-    const [host, setHost] = useState<HTMLDivElement | null>(null)
-    const translate = (key: string, ...args: unknown[]) => key === 'group.ungrouped' ? t('history') : props.t(key, ...args)
-    // The upstream ungrouped row renders a + button but deliberately gives it
-    // no action. Capture that one button without changing real workspace rows.
-    const ungroupedNewLabel = props.t('actions.newSession.aria', { name: t('history') })
-    const onClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
-      const button = (event.target as HTMLElement).closest('button[aria-label]')
-      if (button?.getAttribute('aria-label') !== ungroupedNewLabel) return
-      event.preventDefault()
-      event.stopPropagation()
-      startFreshChat()
-      const header = button?.closest<HTMLElement>('[role="treeitem"]')
-      if (header?.getAttribute('aria-expanded') === 'false') header.click()
-    }
+    useSyncExternalStore(subscribe, snapshot)
+    useEffect(() => { if (meetings.hasMore && !meetings.loading && !meetings.error) void meetingHistory.load(true) }, [meetings])
+    useEffect(() => { if (requirements.hasMore && !requirements.loading && !requirements.error) void requirementHistory.load(true) }, [requirements])
+    const historyRows = [...documentRows.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',createdAt:Date.parse(row.createdAt),updatedAt:Date.parse(row.updatedAt),documentId:row.id})),...searched.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',createdAt:Date.parse(row.createdAt),updatedAt:Date.parse(row.updatedAt),searchId:row.id})),...recorded.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',roleName:row.roleName,createdAt:Date.parse(row.createdAt),updatedAt:Date.parse(row.updatedAt),recordingId:row.id})),...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, workspace: item.cwd?.split(/[\\/]/).pop(), running: item.running, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
     const open = (id: string) => { leaveSearch();leaveRecording(); start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
-    return <div ref={setHost} style={{ display: 'contents' }} onClickCapture={onClickCapture}>
-      <Original {...props} t={translate} open={open} />
-      <LocalConversationRows host={host} label={ungroupedNewLabel} rows={historyRows} activeId={activeDocument ?? activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onLoadMore={requirements.hasMore || requirements.error ? () => { void requirementHistory.load(!requirements.error) } : undefined} loading={requirements.loading} error={requirements.error} onOpen={openLocalConversation} onRemove={removeLocalConversation} onRename={renameLocalConversation} historyExtras={(meetings.loading || meetings.error || meetings.unreadableCount > 0 || meetings.hasMore) ? <>
-        {meetings.loading && <p role="status">正在读取会议记录…</p>}{meetings.error && <p role="alert">{meetings.error}</p>}
+    const historyReady = historyInitialLoaded && !developers.loading && !meetings.loading && !meetings.hasMore && !meetings.error && !requirements.loading && !requirements.hasMore && !requirements.error && !developers.error && !recorded.error && !searched.error && !documentRows.error
+    return <>
+      <AssistantHistory Original={Original} browser={{ ...props, open }} rows={historyRows} activeId={activeDocument ?? activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onOpen={openLocalConversation} onRemove={removeLocalConversation} onRename={renameLocalConversation} onNew={startFreshChat} ready={historyReady} historyStatus={<>
+        {(meetings.loading || requirements.loading || meetings.hasMore || requirements.hasMore) && <p role="status">正在读取历史对话…</p>}
+        {meetings.error && <p role="alert">{meetings.error}<button onClick={() => { void meetingHistory.load(meetings.hasMore) }}>重试会议记录</button></p>}
+        {requirements.error && <p role="alert">{requirements.error}<button onClick={() => { void requirementHistory.load(requirements.hasMore) }}>重试需求记录</button></p>}
         {meetings.unreadableCount > 0 && <p role="status">{meetings.unreadableCount} 条会议记录暂不可读，原文件已保留。</p>}
-        {(meetings.hasMore || meetings.error) && <button type="button" className={historyStyles.open} disabled={meetings.loading} onClick={() => { void meetingHistory.load(!meetings.error) }}>{meetings.error ? '重试读取会议记录' : '加载更多会议记录'}</button>}
-      </> : null}/>
+        {developers.error && <p role="alert">{developers.error}<button onClick={() => { void developerHistory.load() }}>重试开发记录</button></p>}
+        {recorded.error && <p role="status">{recorded.error}</p>}{searched.error && <p role="status">{searched.error}</p>}{documentRows.error && <p role="status">{documentRows.error}</p>}
+      </>}/>
       <NativeConversationRemoval sessions={sessions}/>
-    </div>
+    </>
   }), 'plain-chat: history label')
   ctx.effect(() => () => { start.reset(); listeners.clear() }, 'plain-chat: cleanup')
 }

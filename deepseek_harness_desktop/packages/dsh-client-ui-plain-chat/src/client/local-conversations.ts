@@ -7,6 +7,7 @@ export type LocalConversation = {
   customTitle?: boolean
   title: string
   draft: string
+  createdAt?: number
   updatedAt: number
   codeTaskId?: string
   searchId?: string
@@ -55,7 +56,7 @@ export function createLocalConversations(mint: () => string = () => `local-${cry
     const current = active()
     const retained = snapshot.items.filter(row => row !== current || row.kind === 'demo' || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode))
     const now = Date.now()
-    const row: LocalConversation = { id: mint(), role, workMode, kind: 'draft', title: '新对话', draft: '', updatedAt: now }
+    const row: LocalConversation = { id: mint(), role, workMode, kind: 'draft', title: '新对话', draft: '', createdAt: now, updatedAt: now }
     update([row, ...retained], row.id)
     return row
   }
