@@ -93,7 +93,7 @@ export function MeetingDemo({ conversationTitle, initialState, loadModels, onSna
         const next = await api<Job>(`/job/${jobId}`)
         if (!active) return
         setJob(next)
-        if (next.status === 'transcribed' && mode === 'guided') {
+        if (next.status === 'transcribed') {
           setPhase('transcript')
           setSegments(current => current.length ? current : next.segments)
           setMessages(current => current.some(message => message.kind === 'transcript') ? current : [...current, { id: nextId.current++, kind: 'transcript', createdAt: next.transcribedAt }])

@@ -7,6 +7,7 @@ export type CodeAssistantHost = {
 }
 export class CodeAssistantService {
   constructor(host: CodeAssistantHost)
+  fork(id: string, target: string): Promise<{id:string}>
   init(): Promise<void>
   close(): Promise<void>
   routes(req: IncomingMessage, res: ServerResponse): Promise<void>

@@ -1,3 +1,4 @@
+import { forkIdentity, existingFork, writeFork } from './conversation-fork.ts'
 import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import { attachRequirementProject, projectFiles, projectFile, syncRequirementLedger } from './requirements-project.ts'
 import { randomUUID } from 'node:crypto'
@@ -68,6 +69,14 @@ export class RequirementsService {
     step('event-'+task.events.length,'需求操作','done',message)
     task.events.push({ runId:execution()?.record.id, id: randomUUID(), at: now(), kind, text: message, ...(objectId ? { objectId } : {}) })
   }
+  async fork(id:string,target:string){return this.serialized(async()=>{
+    const source=await this.get(id),row=forkIdentity(source,target),file=this.path(target),existing=await existingFork<RequirementTask>(file,id);if(existing)return existing
+    if(row.run?.status==='running'){row.run.status='interrupted';row.run.finishedAt=now();row.run.error='分叉保留已保存内容，不继续原任务'}
+    // The project directory is shared, but writing the source requirement ledger is not.
+    if(row.project)row.project.ledger=false
+    try{await this.executions.fork(id,target);await writeFork(file,row)}catch(e){await this.executions.remove(target);throw e}return row
+  })}
+
   async init() {
     await this.executions.init()
     await mkdir(this.root, { recursive: true })

@@ -16,6 +16,7 @@ export function LocalConversationRows({ host, label, rows, activeId, onOpen, onR
   const [menu, setMenu] = useState<{ id: string; left: number; top: number } | null>(null)
   const [renaming, setRenaming] = useState<{ id: string; title: string } | null>(null)
   const [saving, setSaving] = useState(false)
+  const [forking, setForking] = useState(false)
   const [actionError, setActionError] = useState('')
   const [renameError, setRenameError] = useState('')
   const renameInput = useRef<HTMLInputElement>(null)
@@ -145,7 +146,7 @@ export function LocalConversationRows({ host, label, rows, activeId, onOpen, onR
     <button disabled={!onRename} ref={menuItem} type="button" role="menuitem" onClick={() => { const row = rows.find(row => row.id === menu.id); setMenu(null); if (row) { setRenameError(''); setRenaming({ id: row.id, title: row.title }) } }}>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m10 3 3 3M3 10l7-7a2.1 2.1 0 0 1 3 3l-7 7-4 1 1-4Z"/></svg>重命名
     </button>
-    <button type="button" role="menuitem" disabled={!onFork || !(canFork?.(rows.find(row => row.id === menu.id)!) ?? Boolean(rows.find(row => row.id === menu.id)?.nativeId))} title={!(canFork?.(rows.find(row => row.id === menu.id)!) ?? Boolean(rows.find(row => row.id === menu.id)?.nativeId)) ? '此类专用记录暂不支持分叉' : undefined} onClick={() => { const id = menu.id; setMenu(null); void Promise.resolve().then(() => onFork?.(id)).catch(e => setActionError(String(e))) }}>
+    <button type="button" role="menuitem" disabled={forking || !onFork || !(canFork?.(rows.find(row => row.id === menu.id)!) ?? Boolean(rows.find(row => row.id === menu.id)?.nativeId))} title={!(canFork?.(rows.find(row => row.id === menu.id)!) ?? Boolean(rows.find(row => row.id === menu.id)?.nativeId)) ? '此类专用记录暂不支持分叉' : undefined} onClick={() => { const id = menu.id; setForking(true); void Promise.resolve().then(() => onFork?.(id)).then(() => setMenu(null)).catch(e => setActionError(String(e))).finally(() => setForking(false)) }}>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 3v10M4 9c6 0 8-2 8-6"/><circle cx="4" cy="2" r="1"/><circle cx="12" cy="2" r="1"/><circle cx="4" cy="14" r="1"/></svg>分叉
     </button>
     <button type="button" role="menuitem" disabled={!onArchive} onClick={() => { const id = menu.id; setMenu(null); void onArchive?.(id).catch(e => setActionError(String(e))) }}>

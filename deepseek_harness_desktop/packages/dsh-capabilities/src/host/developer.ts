@@ -1,3 +1,4 @@
+import { forkIdentity, existingFork, writeFork } from './conversation-fork.ts'
 import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import { randomUUID, createHash } from 'node:crypto'
 import { mkdir, open, readFile, readdir, rename, unlink } from 'node:fs/promises'
@@ -31,6 +32,12 @@ export class DeveloperService {
     try { await handle.writeFile(JSON.stringify(value)); await handle.sync() } finally { await handle.close() }
     try { await rename(temp, file) } finally { await unlink(temp).catch(() => {}) }
   }
+  async fork(id:string,target:string){return this.serialized(async()=>{
+    const row=forkIdentity(await this.get(id),target),file=this.path(target),existing=await existingFork<DeveloperTask>(file,id);if(existing)return existing
+    for(const run of [...row.rounds,...row.checks])if(run.status==='running')run.status='interrupted'
+    try{await this.executions.fork(id,target);await writeFork(file,row)}catch(e){await this.executions.remove(target);throw e}return row
+  })}
+
   async init() {
     await this.executions.init()
     for (const folder of ['', 'snapshots', 'projects']) await mkdir(join(this.root, folder), { recursive: true })

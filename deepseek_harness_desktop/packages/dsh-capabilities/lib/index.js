@@ -1,8 +1,8 @@
 import { createRequire } from "node:module";
+import { cp, link, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, stat, unlink, writeFile } from "node:fs/promises";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import path, { basename, dirname, extname, isAbsolute, join, relative, resolve, win32 } from "node:path";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { link, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, stat, unlink, writeFile } from "node:fs/promises";
 import { execFile, spawn, spawnSync } from "node:child_process";
 import fs, { createReadStream, existsSync, lstatSync, mkdirSync, openAsBlob, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
@@ -10,6 +10,7 @@ import { inflateRawSync, inflateSync } from "node:zlib";
 import { Worker } from "node:worker_threads";
 import z from "@deepseek-ai/schemastery";
 import { isAbsolute as isAbsolute$1, join as join$1 } from "node:path/posix";
+import { CodeAssistantService, moduleAssets } from "@linxin666/dsh-code-assistant";
 import { setTimeout as setTimeout$1 } from "node:timers/promises";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
@@ -41,243 +42,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 	enumerable: true
 }) : target, mod));
 var __require = /* #__PURE__ */ (() => createRequire(import.meta.url))();
-//#endregion
-//#region src/core/document-knowledge.ts
-const noDocumentKnowledge = {
-	configured: false,
-	verified: false,
-	label: "外部资料库",
-	message: "接口已预留，暂未接入服务。"
-};
-function knowledgeSources(sources) {
-	if (!Array.isArray(sources)) throw Error("资料库未返回有效来源列表");
-	return sources.slice(0, 8).map((source, index) => {
-		if (typeof source.title !== "string" || typeof source.text !== "string") throw Error("资料库来源缺少标题或正文");
-		let url;
-		if (source.url) {
-			const value = new URL(source.url);
-			if (!["https:", "http:"].includes(value.protocol) || value.username || value.password) throw Error("资料库来源链接无效");
-			url = value.href;
-		}
-		return {
-			id: "K" + (index + 1),
-			title: source.title.slice(0, 240),
-			text: source.text.slice(0, 6e3),
-			...url ? { url } : {}
-		};
-	});
-}
-//#endregion
-//#region ../../shared/host/execution.ts
-const UUID$2 = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
-const context = new AsyncLocalStorage();
-const now$2 = () => (/* @__PURE__ */ new Date()).toISOString();
-const clean$2 = (s) => s.replace(/Bearer\s+\S+/gi, "Bearer [隐藏]").replace(/((?:api[_-]?key|authorization|token)\s*[:=]\s*)[^\s,;]+/gi, "$1[隐藏]");
-function execution() {
-	return context.getStore();
-}
-function step(key, title, status = "done", detail, extra = {}) {
-	execution()?.step(key, title, status, detail, extra);
-}
-var ExecutionRun = class {
-	record;
-	store;
-	tail = Promise.resolve();
-	constructor(record, store) {
-		this.record = record;
-		this.store = store;
-	}
-	persist() {
-		this.tail = this.tail.then(() => this.store.save(this.record)).catch(() => {
-			this.record.warning = "部分执行记录保存失败，请保留当前结果后检查磁盘";
-			this.store.live.set(this.record.id, this.record);
-		});
-	}
-	step(key, title, status, detail, extra = {}) {
-		const existing = this.record.events.find((e) => e.key === key), at = now$2();
-		this.record.seq++;
-		if (existing) Object.assign(existing, extra, {
-			seq: this.record.seq,
-			title,
-			status,
-			updatedAt: at,
-			...detail !== void 0 ? { detail: clean$2(detail).slice(0, 16e3) } : {}
-		});
-		else this.record.events.push({
-			id: randomUUID(),
-			key,
-			title,
-			status,
-			startedAt: at,
-			updatedAt: at,
-			...extra,
-			...detail !== void 0 ? { detail: clean$2(detail).slice(0, 16e3) } : {},
-			seq: this.record.seq
-		});
-		this.persist();
-	}
-	async finish(value) {
-		for (const event of this.record.events) if (event.status === "running") {
-			event.status = value.status === "done" ? "done" : value.status;
-			event.updatedAt = now$2();
-			event.seq = ++this.record.seq;
-		}
-		Object.assign(this.record, value, {
-			summary: value.summary ? clean$2(value.summary) : void 0,
-			finishedAt: now$2()
-		});
-		this.persist();
-		await this.tail;
-	}
-};
-var ExecutionStore = class {
-	root;
-	live = /* @__PURE__ */ new Map();
-	pending = /* @__PURE__ */ new Set();
-	writes = /* @__PURE__ */ new Set();
-	deleted = /* @__PURE__ */ new Set();
-	constructor(root) {
-		this.root = root;
-	}
-	id(id) {
-		if (!UUID$2.test(id)) throw new Error("执行记录标识无效");
-		return id;
-	}
-	file(taskId, id) {
-		return join(this.root, this.id(taskId), this.id(id) + ".json");
-	}
-	save(record) {
-		if (this.deleted.has(record.taskId)) return Promise.resolve();
-		const write = this.write(record);
-		this.writes.add(write);
-		write.finally(() => this.writes.delete(write)).catch(() => {});
-		return write;
-	}
-	async write(record) {
-		const file = this.file(record.taskId, record.id);
-		await mkdir(join(this.root, record.taskId), { recursive: true });
-		const tmp = file + "." + randomUUID() + ".tmp";
-		try {
-			await writeFile(tmp, JSON.stringify(record), { mode: 384 });
-			await rename(tmp, file);
-		} finally {
-			await rm(tmp, { force: true }).catch(() => {});
-		}
-	}
-	async init() {
-		await mkdir(this.root, { recursive: true });
-		for (const dir of await readdir(this.root)) {
-			if (!UUID$2.test(dir)) continue;
-			for (const file of await readdir(join(this.root, dir))) {
-				if (!UUID$2.test(file.slice(0, -5)) || !file.endsWith(".json")) continue;
-				const record = JSON.parse(await readFile(join(this.root, dir, file), "utf8"));
-				if (record.status === "running") {
-					record.status = "interrupted";
-					record.finishedAt = now$2();
-					record.summary = "工作台重启中断了本轮；已保存的结果保留，不自动重放";
-					for (const e of record.events) if (e.status === "running") {
-						e.status = "interrupted";
-						e.updatedAt = record.finishedAt;
-						e.seq = ++record.seq;
-					}
-					await this.save(record);
-				}
-			}
-		}
-	}
-	async list(taskId, offset = 0, limit = 10) {
-		this.id(taskId);
-		if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 1 || limit > 50) throw new Error("执行记录分页无效");
-		let names;
-		try {
-			names = await readdir(join(this.root, taskId));
-		} catch (e) {
-			if (e.code === "ENOENT") names = [];
-			else throw e;
-		}
-		const records = [];
-		for (const name of names) {
-			if (!name.endsWith(".json") || !UUID$2.test(name.slice(0, -5))) continue;
-			records.push(JSON.parse(await readFile(join(this.root, taskId, name), "utf8")));
-		}
-		for (const value of this.live.values()) if (value.taskId === taskId) {
-			const i = records.findIndex((r) => r.id === value.id);
-			if (i < 0) records.push(structuredClone(value));
-			else records[i] = structuredClone(value);
-		}
-		records.sort((a, b) => b.startedAt.localeCompare(a.startedAt) || b.id.localeCompare(a.id));
-		return {
-			items: records.slice(offset, offset + limit),
-			total: records.length,
-			...offset + limit < records.length ? { nextOffset: offset + limit } : {}
-		};
-	}
-	async get(taskId, id, afterSeq = 0) {
-		if (!Number.isSafeInteger(afterSeq) || afterSeq < 0) throw new Error("执行序号无效");
-		const record = this.live.get(id)?.taskId === taskId ? structuredClone(this.live.get(id)) : JSON.parse(await readFile(this.file(taskId, id), "utf8"));
-		return {
-			...record,
-			events: record.events.filter((e) => e.seq > afterSeq)
-		};
-	}
-	async remove(taskId) {
-		this.id(taskId);
-		this.deleted.add(taskId);
-		await Promise.allSettled([...this.writes]);
-		await rm(join(this.root, taskId), {
-			recursive: true,
-			force: true
-		});
-		for (const [id, r] of this.live) if (r.taskId === taskId) this.live.delete(id);
-	}
-	async drain() {
-		await Promise.allSettled([...this.pending]);
-	}
-	run(taskId, meta, work, finish) {
-		const pending = this.execute(taskId, meta, work, finish);
-		this.pending.add(pending);
-		pending.finally(() => this.pending.delete(pending)).catch(() => {});
-		return pending;
-	}
-	async execute(taskId, meta, work, finish) {
-		const record = {
-			schema: 1,
-			id: meta.id ?? randomUUID(),
-			taskId: this.id(taskId),
-			operation: meta.operation,
-			input: clean$2(meta.input),
-			inputKind: meta.inputKind ?? "operation",
-			startedAt: now$2(),
-			status: "running",
-			events: [],
-			seq: 0,
-			model: meta.model,
-			roleVersion: meta.roleVersion,
-			mode: meta.mode
-		};
-		this.id(record.id);
-		try {
-			await this.save(record);
-		} catch {
-			record.warning = "执行过程保存失败，请保留当前结果后检查磁盘";
-			this.live.set(record.id, record);
-		}
-		const run = new ExecutionRun(record, this);
-		return context.run(run, async () => {
-			try {
-				const value = await work();
-				await run.finish(finish(value));
-				return value;
-			} catch (e) {
-				await run.finish({
-					status: "failed",
-					summary: e instanceof Error ? e.message : String(e)
-				});
-				throw e;
-			}
-		});
-	}
-};
 //#endregion
 //#region src/core/requirements-model.ts
 /** Persisted requirements contracts. Pure data and rendering, shared by host and UI. */
@@ -1092,6 +856,337 @@ function roleCompositionIssues(value) {
 	return [];
 }
 //#endregion
+//#region src/host/conversation-fork.ts
+function forkIdentity(source, id) {
+	if (!/^[a-f0-9-]{36}$/i.test(id) || source.id === id) throw new InputError("分叉请求标识无效");
+	const at = (/* @__PURE__ */ new Date()).toISOString();
+	return {
+		...structuredClone(source),
+		id,
+		title: (source.title || "对话").slice(0, 110) + " · 分叉",
+		createdAt: at,
+		updatedAt: at,
+		forkedFrom: source.id
+	};
+}
+async function existingFork(file, source) {
+	try {
+		const row = JSON.parse(await readFile(file, "utf8"));
+		if (row.forkedFrom !== source) throw new InputError("分叉标识已被占用", 409);
+		return row;
+	} catch (e) {
+		if (e.code === "ENOENT") return;
+		throw e;
+	}
+}
+async function writeFork(file, row) {
+	const tmp = file + ".fork.tmp";
+	try {
+		await writeFile(tmp, JSON.stringify(row));
+		await rename(tmp, file);
+	} finally {
+		await rm(tmp, { force: true });
+	}
+}
+async function copyForkDirectory(source, target) {
+	await mkdir(target, { recursive: true });
+	await cp(source, target, {
+		recursive: true,
+		filter: (p) => !p.endsWith(".tmp")
+	}).catch((e) => {
+		if (e.code !== "ENOENT") throw e;
+	});
+}
+/** Types register once. Adding a role never needs another fork handler. */
+var ConversationForks = class {
+	owners = /* @__PURE__ */ new Map();
+	adapters = /* @__PURE__ */ new Map();
+	pending = /* @__PURE__ */ new Map();
+	register(kind, adapter) {
+		if (this.adapters.has(kind)) throw Error("Duplicate conversation adapter: " + kind);
+		this.adapters.set(kind, adapter);
+	}
+	async fork(kind, id, requestId) {
+		if (!/^[a-f0-9-]{36}$/i.test(requestId)) throw new InputError("分叉请求标识无效");
+		const adapter = this.adapters.get(kind);
+		if (!adapter) throw new InputError("该对话类型未登记分叉适配", 400);
+		const owner = kind + ":" + id, previous = this.owners.get(requestId);
+		if (previous && previous !== owner) throw new InputError("分叉标识已被占用", 409);
+		this.owners.set(requestId, owner);
+		const key = owner + ":" + requestId;
+		let work = this.pending.get(key);
+		if (!work) {
+			work = adapter(id, requestId);
+			this.pending.set(key, work);
+			work.finally(() => {
+				this.pending.delete(key);
+				this.owners.delete(requestId);
+			}).catch(() => {});
+		}
+		return {
+			kind,
+			...await work
+		};
+	}
+};
+//#endregion
+//#region src/core/document-knowledge.ts
+const noDocumentKnowledge = {
+	configured: false,
+	verified: false,
+	label: "外部资料库",
+	message: "接口已预留，暂未接入服务。"
+};
+function knowledgeSources(sources) {
+	if (!Array.isArray(sources)) throw Error("资料库未返回有效来源列表");
+	return sources.slice(0, 8).map((source, index) => {
+		if (typeof source.title !== "string" || typeof source.text !== "string") throw Error("资料库来源缺少标题或正文");
+		let url;
+		if (source.url) {
+			const value = new URL(source.url);
+			if (!["https:", "http:"].includes(value.protocol) || value.username || value.password) throw Error("资料库来源链接无效");
+			url = value.href;
+		}
+		return {
+			id: "K" + (index + 1),
+			title: source.title.slice(0, 240),
+			text: source.text.slice(0, 6e3),
+			...url ? { url } : {}
+		};
+	});
+}
+//#endregion
+//#region ../../shared/host/execution.ts
+const UUID$2 = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+const context = new AsyncLocalStorage();
+const now$2 = () => (/* @__PURE__ */ new Date()).toISOString();
+const clean$2 = (s) => s.replace(/Bearer\s+\S+/gi, "Bearer [隐藏]").replace(/((?:api[_-]?key|authorization|token)\s*[:=]\s*)[^\s,;]+/gi, "$1[隐藏]");
+function execution() {
+	return context.getStore();
+}
+function step(key, title, status = "done", detail, extra = {}) {
+	execution()?.step(key, title, status, detail, extra);
+}
+var ExecutionRun = class {
+	record;
+	store;
+	tail = Promise.resolve();
+	constructor(record, store) {
+		this.record = record;
+		this.store = store;
+	}
+	persist() {
+		this.tail = this.tail.then(() => this.store.save(this.record)).catch(() => {
+			this.record.warning = "部分执行记录保存失败，请保留当前结果后检查磁盘";
+			this.store.live.set(this.record.id, this.record);
+		});
+	}
+	step(key, title, status, detail, extra = {}) {
+		const existing = this.record.events.find((e) => e.key === key), at = now$2();
+		this.record.seq++;
+		if (existing) Object.assign(existing, extra, {
+			seq: this.record.seq,
+			title,
+			status,
+			updatedAt: at,
+			...detail !== void 0 ? { detail: clean$2(detail).slice(0, 16e3) } : {}
+		});
+		else this.record.events.push({
+			id: randomUUID(),
+			key,
+			title,
+			status,
+			startedAt: at,
+			updatedAt: at,
+			...extra,
+			...detail !== void 0 ? { detail: clean$2(detail).slice(0, 16e3) } : {},
+			seq: this.record.seq
+		});
+		this.persist();
+	}
+	async finish(value) {
+		for (const event of this.record.events) if (event.status === "running") {
+			event.status = value.status === "done" ? "done" : value.status;
+			event.updatedAt = now$2();
+			event.seq = ++this.record.seq;
+		}
+		Object.assign(this.record, value, {
+			summary: value.summary ? clean$2(value.summary) : void 0,
+			finishedAt: now$2()
+		});
+		this.persist();
+		await this.tail;
+	}
+};
+var ExecutionStore = class {
+	root;
+	live = /* @__PURE__ */ new Map();
+	pending = /* @__PURE__ */ new Set();
+	writes = /* @__PURE__ */ new Set();
+	deleted = /* @__PURE__ */ new Set();
+	constructor(root) {
+		this.root = root;
+	}
+	id(id) {
+		if (!UUID$2.test(id)) throw new Error("执行记录标识无效");
+		return id;
+	}
+	file(taskId, id) {
+		return join(this.root, this.id(taskId), this.id(id) + ".json");
+	}
+	save(record) {
+		if (this.deleted.has(record.taskId)) return Promise.resolve();
+		const write = this.write(record);
+		this.writes.add(write);
+		write.finally(() => this.writes.delete(write)).catch(() => {});
+		return write;
+	}
+	async write(record) {
+		const file = this.file(record.taskId, record.id);
+		await mkdir(join(this.root, record.taskId), { recursive: true });
+		const tmp = file + "." + randomUUID() + ".tmp";
+		try {
+			await writeFile(tmp, JSON.stringify(record), { mode: 384 });
+			await rename(tmp, file);
+		} finally {
+			await rm(tmp, { force: true }).catch(() => {});
+		}
+	}
+	async init() {
+		await mkdir(this.root, { recursive: true });
+		for (const dir of await readdir(this.root)) {
+			if (!UUID$2.test(dir)) continue;
+			for (const file of await readdir(join(this.root, dir))) {
+				if (!UUID$2.test(file.slice(0, -5)) || !file.endsWith(".json")) continue;
+				const record = JSON.parse(await readFile(join(this.root, dir, file), "utf8"));
+				if (record.status === "running") {
+					record.status = "interrupted";
+					record.finishedAt = now$2();
+					record.summary = "工作台重启中断了本轮；已保存的结果保留，不自动重放";
+					for (const e of record.events) if (e.status === "running") {
+						e.status = "interrupted";
+						e.updatedAt = record.finishedAt;
+						e.seq = ++record.seq;
+					}
+					await this.save(record);
+				}
+			}
+		}
+	}
+	async list(taskId, offset = 0, limit = 10) {
+		this.id(taskId);
+		if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 1 || limit > 50) throw new Error("执行记录分页无效");
+		let names;
+		try {
+			names = await readdir(join(this.root, taskId));
+		} catch (e) {
+			if (e.code === "ENOENT") names = [];
+			else throw e;
+		}
+		const records = [];
+		for (const name of names) {
+			if (!name.endsWith(".json") || !UUID$2.test(name.slice(0, -5))) continue;
+			records.push(JSON.parse(await readFile(join(this.root, taskId, name), "utf8")));
+		}
+		for (const value of this.live.values()) if (value.taskId === taskId) {
+			const i = records.findIndex((r) => r.id === value.id);
+			if (i < 0) records.push(structuredClone(value));
+			else records[i] = structuredClone(value);
+		}
+		records.sort((a, b) => b.startedAt.localeCompare(a.startedAt) || b.id.localeCompare(a.id));
+		return {
+			items: records.slice(offset, offset + limit),
+			total: records.length,
+			...offset + limit < records.length ? { nextOffset: offset + limit } : {}
+		};
+	}
+	async get(taskId, id, afterSeq = 0) {
+		if (!Number.isSafeInteger(afterSeq) || afterSeq < 0) throw new Error("执行序号无效");
+		const record = this.live.get(id)?.taskId === taskId ? structuredClone(this.live.get(id)) : JSON.parse(await readFile(this.file(taskId, id), "utf8"));
+		return {
+			...record,
+			events: record.events.filter((e) => e.seq > afterSeq)
+		};
+	}
+	async remove(taskId) {
+		this.id(taskId);
+		this.deleted.add(taskId);
+		await Promise.allSettled([...this.writes]);
+		await rm(join(this.root, taskId), {
+			recursive: true,
+			force: true
+		});
+		for (const [id, r] of this.live) if (r.taskId === taskId) this.live.delete(id);
+	}
+	async fork(source, target) {
+		this.id(target);
+		this.deleted.delete(target);
+		let offset = 0;
+		do {
+			const page = await this.list(source, offset, 50);
+			for (const original of page.items) {
+				const row = structuredClone(original);
+				row.taskId = target;
+				if (row.status === "running") {
+					row.status = "interrupted";
+					row.finishedAt = now$2();
+				}
+				for (const event of row.events) if (event.status === "running") event.status = "interrupted";
+				await this.save(row);
+			}
+			offset += page.items.length;
+			if (offset >= page.total) break;
+		} while (true);
+	}
+	async drain() {
+		await Promise.allSettled([...this.pending]);
+	}
+	run(taskId, meta, work, finish) {
+		const pending = this.execute(taskId, meta, work, finish);
+		this.pending.add(pending);
+		pending.finally(() => this.pending.delete(pending)).catch(() => {});
+		return pending;
+	}
+	async execute(taskId, meta, work, finish) {
+		const record = {
+			schema: 1,
+			id: meta.id ?? randomUUID(),
+			taskId: this.id(taskId),
+			operation: meta.operation,
+			input: clean$2(meta.input),
+			inputKind: meta.inputKind ?? "operation",
+			startedAt: now$2(),
+			status: "running",
+			events: [],
+			seq: 0,
+			model: meta.model,
+			roleVersion: meta.roleVersion,
+			mode: meta.mode
+		};
+		this.id(record.id);
+		try {
+			await this.save(record);
+		} catch {
+			record.warning = "执行过程保存失败，请保留当前结果后检查磁盘";
+			this.live.set(record.id, record);
+		}
+		const run = new ExecutionRun(record, this);
+		return context.run(run, async () => {
+			try {
+				const value = await work();
+				await run.finish(finish(value));
+				return value;
+			} catch (e) {
+				await run.finish({
+					status: "failed",
+					summary: e instanceof Error ? e.message : String(e)
+				});
+				throw e;
+			}
+		});
+	}
+};
+//#endregion
 //#region src/host/document-patch.ts
 const require$1 = createRequire(import.meta.url);
 function parseDocumentProposal(raw, context, scopeTexts) {
@@ -1833,6 +1928,33 @@ var DocumentsService = class {
 			return this.bytes(id);
 		}), knowledge);
 	}
+	async fork(id, target) {
+		return this.exclusive(async () => {
+			const row = forkIdentity(this.get(id), target), existing = this.rows.find((r) => r.id === target);
+			if (existing) {
+				if (existing.forkedFrom !== id) throw new InputError("分叉标识已占用");
+				return structuredClone(existing);
+			}
+			row.conversationId = target;
+			for (const m of row.messages) if (m.status === "running") m.status = "stopped";
+			const bytes = await this.bytes(id);
+			const directory = join(this.root, target);
+			try {
+				await mkdir(directory);
+				await writeFile(join(directory, "revision-" + row.revision + ".docx"), bytes);
+				this.rows.push(row);
+				await this.persist();
+			} catch (e) {
+				this.rows = this.rows.filter((r) => r.id !== target);
+				await import("node:fs/promises").then((fs) => fs.rm(directory, {
+					recursive: true,
+					force: true
+				}));
+				throw e;
+			}
+			return structuredClone(row);
+		});
+	}
 	async init() {
 		await mkdir(this.root, { recursive: true });
 		try {
@@ -2114,6 +2236,17 @@ var FileSearchService = class {
 	file(id) {
 		if (!/^[a-f\d-]{36}$/.test(id)) throw new InputError("搜索记录标识无效");
 		return join(this.root, id + ".json");
+	}
+	async fork(id, target) {
+		return this.serial(async () => {
+			const source = this.rows.get(id);
+			if (!source) throw new InputError("搜索记录不存在", 404);
+			const row = forkIdentity(source, target), file = this.file(target), existing = await existingFork(file, id);
+			if (existing) return existing;
+			await writeFork(file, row);
+			this.rows.set(target, row);
+			return row;
+		});
 	}
 	async init() {
 		await mkdir(this.root, { recursive: true });
@@ -2503,6 +2636,43 @@ var RecordingService = class {
 		}
 		await rename(join(directory, "record.json.tmp"), join(directory, "record.json"));
 		this.rows.set(row.id, row);
+	}
+	async fork(id, target, forkMeeting, rollbackMeeting) {
+		return this.serial(async () => {
+			const row = forkIdentity(this.get(id), target), existing = await existingFork(join(this.directory(target), "record.json"), id);
+			if (existing) return existing;
+			const wasLive = live(row);
+			if (wasLive) row.status = "interrupted";
+			const directory = this.directory(target), staging = directory + ".fork";
+			try {
+				await copyForkDirectory(this.directory(id), staging);
+				await rm(join(staging, "record.json"), { force: true });
+				if (wasLive && row.nextChunk) {
+					const chunks = [];
+					for (let i = 0; i < row.nextChunk; i++) chunks.push(await readFile(join(staging, "chunk-" + i)));
+					row.audio = row.mime.includes("webm") ? "recording.webm" : "recording.mp4";
+					await writeFile(join(staging, row.audio), Buffer.concat(chunks));
+				}
+				if (row.followup) {
+					const job = await forkMeeting(row.followup.jobId, target);
+					row.followup = {
+						...row.followup,
+						jobId: job.id
+					};
+				}
+				await writeFork(join(staging, "record.json"), row);
+				await rename(staging, directory);
+				this.rows.set(target, row);
+			} catch (e) {
+				await rm(staging, {
+					recursive: true,
+					force: true
+				});
+				if (row.followup?.jobId === target) await rollbackMeeting?.(target);
+				throw e;
+			}
+			return row;
+		});
 	}
 	async init() {
 		await mkdir(this.root, { recursive: true });
@@ -3104,6 +3274,7 @@ var MeetingService = class {
 		this.segmenter = segmenter;
 		this.executions = new ExecutionStore(join(root, "_executions"));
 	}
+	authorizeSource = () => {};
 	config() {
 		return config(this.asrSettings?.());
 	}
@@ -3142,6 +3313,34 @@ var MeetingService = class {
 			requirements: published.requirements,
 			format: published.format
 		};
+	}
+	async fork(id, target, recordingId) {
+		const row = forkIdentity(await this.get(id), target), file = this.path(target), existing = await existingFork(file, id);
+		if (existing) return existing;
+		row.authorityAt = row.authorityAt ?? (await this.get(id)).createdAt;
+		if (recordingId) row.sourceRecordingId = recordingId;
+		row.status = row.minutes ? "ready" : row.segments.length ? "transcribed" : "error";
+		if (row.status === "error") row.error = "分叉尚无完整转写，可以继续上传或重试";
+		if (row.timingStatus === "processing") {
+			row.timingStatus = "error";
+			row.timingError = "原时间定位任务未复制";
+		}
+		const sourceAudio = this.audio({
+			...row,
+			id
+		}), targetAudio = this.audio(row);
+		try {
+			await import("node:fs/promises").then((fs) => fs.copyFile(sourceAudio, targetAudio)).catch((e) => {
+				if (e.code !== "ENOENT" || row.size) throw e;
+			});
+			await this.executions.fork(id, target);
+			await writeFork(file, row);
+		} catch (e) {
+			await rm(targetAudio, { force: true });
+			await this.executions.remove(target);
+			throw e;
+		}
+		return row;
 	}
 	async init() {
 		await this.executions.init();
@@ -3237,7 +3436,7 @@ var MeetingService = class {
 			if (!file.endsWith(".json") || !ID.test(file.slice(0, -5)) || this.deleted.has(file.slice(0, -5)) || this.removing.has(file.slice(0, -5))) continue;
 			try {
 				const job = await this.get(file.slice(0, -5));
-				if (job.id !== file.slice(0, -5) || !Number.isFinite(Date.parse(job.updatedAt)) || !Number.isFinite(Date.parse(job.createdAt)) || !["quick", "guided"].includes(job.mode) || typeof job.fileName !== "string") throw new Error("会议记录格式无效");
+				if (job.id !== file.slice(0, -5) || !Number.isFinite(Date.parse(job.updatedAt)) || !Number.isFinite(Date.parse(job.authorityAt ?? job.createdAt)) || !["quick", "guided"].includes(job.mode) || typeof job.fileName !== "string") throw new Error("会议记录格式无效");
 				if (job.sourceRecordingId) continue;
 				items.push({
 					id: job.id,
@@ -3360,7 +3559,7 @@ var MeetingService = class {
 	}
 	async uploadAudio(id, req) {
 		const job = await this.get(id);
-		this.role(job.role?.version, job.createdAt, job.role?.id);
+		this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
 		if (job.status !== "uploading") throw new InputError("此任务无法重复上传", 409);
 		const path = this.audio(job), temp = `${path}.upload`;
 		const handle = await import("node:fs").then((fs) => fs.createWriteStream(temp, { flags: "wx" }));
@@ -3394,7 +3593,7 @@ var MeetingService = class {
 	}
 	async retry(id) {
 		const job = await this.get(id);
-		this.role(job.role?.version, job.createdAt, job.role?.id);
+		this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
 		if (job.status !== "error") throw new InputError("只有失败的任务可以重试", 409);
 		if (!job.size) throw new InputError("请重新选择录音上传", 409);
 		job.status = job.segments.length ? "transcribed" : "transcribing";
@@ -3439,7 +3638,7 @@ var MeetingService = class {
 			if (!segments.length) throw new Error("未识别到可用语音，请检查录音内容");
 			const latest = await this.get(id);
 			controller.signal.throwIfAborted();
-			this.role(latest.role?.version, latest.createdAt, latest.role?.id);
+			this.role(latest.role?.version, latest.authorityAt ?? latest.createdAt, latest.role?.id);
 			step("transcribe", "语音转写", "done", segments.length + " 个片段");
 			latest.segments = segments;
 			latest.transcribedAt = (/* @__PURE__ */ new Date()).toISOString();
@@ -3502,7 +3701,7 @@ var MeetingService = class {
 	}
 	async startGenerate(id, edited, instruction, summaryModel) {
 		const job = await this.get(id);
-		this.role(job.role?.version, job.createdAt, job.role?.id);
+		this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
 		if (this.timingRunning.has(id) || job.timingStatus === "processing") throw new InputError("时间定位处理中，请完成后再修改纪要", 409);
 		if (![
 			"transcribed",
@@ -3561,10 +3760,10 @@ var MeetingService = class {
 				source = summaries.join("\n");
 			}
 			const previous = job.minutes ? `\n现有纪要：${JSON.stringify(job.minutes)}` : "";
-			const prompt = `${job.role ? `岗位：${job.role.name}。职责：${job.role.duties}。工作要求：${job.role.requirements}。输出偏好：${job.role.format}。\n` : ""}${job.role ? this.skillGuidance?.(job.role.id ?? "meeting-minutes-demo", job.role.version, void 0, Date.parse(job.createdAt)) ?? "" : ""}用途：${job.audience || "通用会议纪要"}；重点：${job.focus || "结论与待办"}。${instruction ? `用户修改要求：${string$1(instruction, 1e3)}。` : ""}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`;
+			const prompt = `${job.role ? `岗位：${job.role.name}。职责：${job.role.duties}。工作要求：${job.role.requirements}。输出偏好：${job.role.format}。\n` : ""}${job.role ? this.skillGuidance?.(job.role.id ?? "meeting-minutes-demo", job.role.version, void 0, Date.parse(job.authorityAt ?? job.createdAt)) ?? "" : ""}用途：${job.audience || "通用会议纪要"}；重点：${job.focus || "结论与待办"}。${instruction ? `用户修改要求：${string$1(instruction, 1e3)}。` : ""}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`;
 			const minutes = parseMinutes(await this.ask(prompt, job.summaryModel, controller.signal), job.segments);
 			controller.signal.throwIfAborted();
-			this.role(job.role?.version, job.createdAt, job.role?.id);
+			this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
 			step("sources", "纪要结构与来源ID检查", "done", "只核对结构和来源ID有效性，不代表逐条事实已人工确认");
 			delete job.timing;
 			delete job.timingStatus;
@@ -3587,7 +3786,7 @@ var MeetingService = class {
 		this.timingRunning.add(id);
 		try {
 			const job = await this.get(id);
-			this.role(job.role?.version, job.createdAt, job.role?.id);
+			this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
 			if (job.status !== "ready" || !job.minutes || !job.size) throw new InputError("请先完成会议纪要", 409);
 			job.timingStatus = "processing";
 			delete job.timingError;
@@ -3645,7 +3844,7 @@ var MeetingService = class {
 			}
 			if (!Object.values(links).some((ids) => ids.length)) throw new Error("已取得时间片段，但未找到可靠纪要来源；原纪要保留");
 			controller.signal.throwIfAborted();
-			this.role(job.role?.version, job.createdAt, job.role?.id);
+			this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
 			job.timing = {
 				segments,
 				links
@@ -3701,7 +3900,7 @@ var MeetingService = class {
 		await Promise.all([...this.controllers].map(async ([id, controller]) => {
 			try {
 				const job = await this.get(id);
-				this.role(job.role?.version, job.createdAt, job.role?.id);
+				this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
 			} catch {
 				controller.abort();
 			}
@@ -4671,7 +4870,7 @@ var require_Node = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.NodeBase = NodeBase;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
+//#region ../../../../../runtime/node_modules/yaml/dist/nodes/Alias.js
 var require_Alias = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var anchors = require_anchors();
 	var visit = require_visit();
@@ -4706,29 +4905,31 @@ var require_Alias = /* @__PURE__ */ __commonJSMin(((exports) => {
 				if (node === this) break;
 				if (node.anchor === this.source) found = node;
 			}
+			if (found && ctx) {
+				const { anchors, doc, maxAliasCount } = ctx;
+				let data = anchors.get(found);
+				if (!data) {
+					toJS.toJS(found, null, ctx);
+					data = anchors.get(found);
+				}
+				/* istanbul ignore if */
+				if (data?.res === void 0) throw new ReferenceError("This should not happen: Alias anchor was not resolved?");
+				if (maxAliasCount >= 0) {
+					data.count += 1;
+					if (data.aliasCount === 0) data.aliasCount = getAliasCount(doc, found, anchors);
+					if (data.count * data.aliasCount > maxAliasCount) throw new ReferenceError("Excessive alias count indicates a resource exhaustion attack");
+				}
+			}
 			return found;
 		}
 		toJSON(_arg, ctx) {
 			if (!ctx) return { source: this.source };
-			const { anchors, doc, maxAliasCount } = ctx;
-			const source = this.resolve(doc, ctx);
+			const source = this.resolve(ctx.doc, ctx);
 			if (!source) {
 				const msg = `Unresolved alias (the anchor must be set before the alias): ${this.source}`;
 				throw new ReferenceError(msg);
 			}
-			let data = anchors.get(source);
-			if (!data) {
-				toJS.toJS(source, null, ctx);
-				data = anchors.get(source);
-			}
-			/* istanbul ignore if */
-			if (data?.res === void 0) throw new ReferenceError("This should not happen: Alias anchor was not resolved?");
-			if (maxAliasCount >= 0) {
-				data.count += 1;
-				if (data.aliasCount === 0) data.aliasCount = getAliasCount(doc, source, anchors);
-				if (data.count * data.aliasCount > maxAliasCount) throw new ReferenceError("Excessive alias count indicates a resource exhaustion attack");
-			}
-			return data.res;
+			return ctx.anchors.get(source).res;
 		}
 		toString(ctx, _onComment, _onChompKeep) {
 			const src = `*${this.source}`;
@@ -8017,7 +8218,7 @@ var require_resolve_block_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveBlockScalar = resolveBlockScalar;
 }));
 //#endregion
-//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
+//#region ../../../../../runtime/node_modules/yaml/dist/compose/resolve-flow-scalar.js
 var require_resolve_flow_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var resolveEnd = require_resolve_end();
@@ -8089,39 +8290,40 @@ var require_resolve_flow_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 				break;
 		}
 		if (badChar) onError(0, "BAD_SCALAR_START", `Plain value cannot start with ${badChar}`);
-		return foldLines(source);
+		return unfoldLines(source);
 	}
 	function singleQuotedValue(source, onError) {
 		if (source[source.length - 1] !== "'" || source.length === 1) onError(source.length, "MISSING_CHAR", "Missing closing 'quote");
-		return foldLines(source.slice(1, -1)).replace(/''/g, "'");
+		return unfoldLines(source.slice(1, -1)).replace(/''/g, "'");
 	}
-	function foldLines(source) {
+	function unfoldLines(source) {
+		const line = /(.*?)\r?\n/sy;
+		let match = line.exec(source);
+		if (!match) return source;
 		/**
-		* The negative lookbehind here and in the `re` RegExp is to
+		* The negative lookbehinds in these RegExps are to
 		* prevent causing a polynomial search time in certain cases.
 		*
-		* The try-catch is for Safari, which doesn't support this yet:
+		* The try-catch is for Safari < 16.4 and other old browsers:
 		* https://caniuse.com/js-regexp-lookbehind
 		*/
-		let first, line;
+		let trimEnd, trimBoth;
 		try {
-			first = /* @__PURE__ */ new RegExp("(.*?)(?<![ 	])[ 	]*\r?\n", "sy");
-			line = /* @__PURE__ */ new RegExp("[ 	]*(.*?)(?:(?<![ 	])[ 	]*)?\r?\n", "sy");
+			trimEnd = /* @__PURE__ */ new RegExp("(?<![ 	])[ 	]+$");
+			trimBoth = /* @__PURE__ */ new RegExp("^[ 	]+|(?<![ 	])[ 	]+$", "g");
 		} catch {
-			first = /(.*?)[ \t]*\r?\n/sy;
-			line = /[ \t]*(.*?)[ \t]*\r?\n/sy;
+			trimEnd = /[ \t]+$/;
+			trimBoth = /^[ \t]+|[ \t]+$/g;
 		}
-		let match = first.exec(source);
-		if (!match) return source;
-		let res = match[1];
+		let res = match[1].replace(trimEnd, "");
 		let sep = " ";
-		let pos = first.lastIndex;
-		line.lastIndex = pos;
+		let pos = line.lastIndex;
 		while (match = line.exec(source)) {
-			if (match[1] === "") if (sep === "\n") res += sep;
+			const lm = match[1].replace(trimBoth, "");
+			if (lm === "") if (sep === "\n") res += sep;
 			else sep = "\n";
 			else {
-				res += sep + match[1];
+				res += sep + lm;
 				sep = " ";
 			}
 			pos = line.lastIndex;
@@ -13659,6 +13861,26 @@ var RequirementsService = class {
 			...objectId ? { objectId } : {}
 		});
 	}
+	async fork(id, target) {
+		return this.serialized(async () => {
+			const row = forkIdentity(await this.get(id), target), file = this.path(target), existing = await existingFork(file, id);
+			if (existing) return existing;
+			if (row.run?.status === "running") {
+				row.run.status = "interrupted";
+				row.run.finishedAt = now$1();
+				row.run.error = "分叉保留已保存内容，不继续原任务";
+			}
+			if (row.project) row.project.ledger = false;
+			try {
+				await this.executions.fork(id, target);
+				await writeFork(file, row);
+			} catch (e) {
+				await this.executions.remove(target);
+				throw e;
+			}
+			return row;
+		});
+	}
 	async init() {
 		await this.executions.init();
 		await mkdir(this.root, { recursive: true });
@@ -14934,6 +15156,21 @@ var DeveloperService = class {
 			await unlink(temp).catch(() => {});
 		}
 	}
+	async fork(id, target) {
+		return this.serialized(async () => {
+			const row = forkIdentity(await this.get(id), target), file = this.path(target), existing = await existingFork(file, id);
+			if (existing) return existing;
+			for (const run of [...row.rounds, ...row.checks]) if (run.status === "running") run.status = "interrupted";
+			try {
+				await this.executions.fork(id, target);
+				await writeFork(file, row);
+			} catch (e) {
+				await this.executions.remove(target);
+				throw e;
+			}
+			return row;
+		});
+	}
 	async init() {
 		await this.executions.init();
 		for (const folder of [
@@ -15667,6 +15904,106 @@ var DeveloperService = class {
 	}
 };
 //#endregion
+//#region src/host/model-text.ts
+/** Both business workflows use the workbench's existing model accounts and routing. */
+function resolveWorkbenchModel(ctx, selectedModel) {
+	if (selectedModel) {
+		const slash = selectedModel.indexOf("/");
+		if (slash < 1 || slash === selectedModel.length - 1) throw new Error("模型选择无效，请重新选择工作台模型");
+		return selectedModel;
+	}
+	let route;
+	try {
+		route = ctx.get("settings")?.get("agent-default-model");
+	} catch {}
+	return route?.provider && route.model ? `${route.provider}/${route.model}` : "";
+}
+async function workbenchText(ctx, prompt, selectedModel, system, maxTokens, signal, timeoutMs = 18e4, onDelta) {
+	const route = resolveWorkbenchModel(ctx, selectedModel), slash = route.indexOf("/");
+	let llm;
+	try {
+		llm = ctx.get("llm");
+	} catch {}
+	if (!llm || slash < 1) throw new Error("请在工作台配置默认模型，或选择本次分析使用的模型");
+	const timeout = timeoutMs === null ? void 0 : AbortSignal.timeout(timeoutMs), combined = timeout ? signal ? AbortSignal.any([signal, timeout]) : timeout : signal;
+	if (execution()) execution().record.model = route;
+	const progressId = "model-" + randomUUID();
+	step(progressId, "模型生成", "running", "等待模型响应", { model: route });
+	let received = false;
+	let result = "";
+	for await (const chunk of llm.stream({
+		provider: route.slice(0, slash),
+		model: route.slice(slash + 1),
+		system,
+		messages: [{
+			id: randomUUID(),
+			role: "user",
+			content: [{
+				type: "text",
+				text: prompt
+			}],
+			source: { kind: "user" }
+		}],
+		temperature: .1,
+		...maxTokens === void 0 ? {} : { maxTokens },
+		signal: combined
+	})) {
+		if (combined?.aborted) throw new Error(signal?.aborted ? "本次分析已停止" : "模型处理超时，请重试");
+		if (chunk.type === "text-delta") {
+			if (!received) {
+				step(progressId, "模型生成", "running", "正在接收正文", { model: route });
+				received = true;
+			}
+			result += chunk.text ?? "";
+			onDelta?.(chunk.text ?? "");
+		}
+		if (result.length > 512e3) throw new Error("模型返回内容过长，请缩小分析范围");
+		if (chunk.type === "finish" && chunk.reason?.kind === "max-tokens") throw new Error("模型输出达到所选模型的 token 上限，正文可能被截断；请在模型设置中调整最大输出 token 数后重试");
+		if (chunk.type === "finish" && chunk.reason?.kind === "error") throw new Error(chunk.reason.failure?.message || "工作台模型处理失败");
+	}
+	if (!result.trim()) throw new Error("工作台模型没有返回内容");
+	step(progressId, "模型生成", "done", "正文接收完成；等待业务校验", { model: route });
+	return result;
+}
+//#endregion
+//#region src/host/code-assistant.ts
+/** Narrow workbench adapter: models and authority stay in the host, state stays in the module. */
+async function createCodeAssistant(ctx, home, store, git) {
+	const skills = new RoleSkills(home);
+	const service = new CodeAssistantService({
+		root: join(home, "code-assistant"),
+		toolsRoot: join(home, "..", "external-tools"),
+		assets: moduleAssets(),
+		workspace: git.workspace,
+		projects: () => ctx.workspaceRegistry.list().map((workspace) => ({
+			path: workspace.path,
+			name: workspace.path.split(/[\\/]/).at(-1) || workspace.path
+		})),
+		addProject: async (path) => {
+			await ctx.workspaceRegistry.create(path, path.split(/[\\/]/).at(-1) || "代码项目");
+		},
+		resolveModel: (selected) => resolveWorkbenchModel(ctx, selected),
+		stream: (options) => {
+			const llm = ctx.get("llm");
+			if (!llm) throw new Error("工作台模型服务尚未加载");
+			return llm.stream(options);
+		},
+		authorize: (task, action) => {
+			const state = store.snapshot(), role = state.roles.find((role) => role.id === task.roleId);
+			task.roleVersion ??= role?.versions.at(-1)?.version;
+			const version = role?.versions.find((version) => version.version === task.roleVersion);
+			if (!version || !allowedActions(state, task.roleId, version).includes(action) || wasRevoked(state, task.roleId, version, task.authorityAt)) throw new Error("此岗位的开发能力已停用或授权已改变，请在能力中心检查");
+		},
+		guidance: async (task) => {
+			const state = store.snapshot(), version = state.roles.find((role) => role.id === task.roleId)?.versions.find((version) => version.version === task.roleVersion);
+			const rules = await readFile(join(task.cwd, "AGENTS.md"), "utf8").catch(() => "");
+			return (version ? skills.guidance(state, task.roleId, version, task.cwd, task.authorityAt) : "") + (rules ? "\n项目规则：\n" + rules.slice(0, 32e3) : "");
+		}
+	});
+	await service.init();
+	return service;
+}
+//#endregion
 //#region src/host/developer-routes.ts
 /** Called only after the capability API's same-origin fence and connection authentication. */
 async function developerRoutes(ctx, service, req, res) {
@@ -15779,68 +16116,6 @@ async function developerRoutes(ctx, service, req, res) {
 		return json(res, 200, { requested: true });
 	}
 	throw new InputError("接口不存在", 404);
-}
-//#endregion
-//#region src/host/model-text.ts
-/** Both business workflows use the workbench's existing model accounts and routing. */
-function resolveWorkbenchModel(ctx, selectedModel) {
-	if (selectedModel) {
-		const slash = selectedModel.indexOf("/");
-		if (slash < 1 || slash === selectedModel.length - 1) throw new Error("模型选择无效，请重新选择工作台模型");
-		return selectedModel;
-	}
-	let route;
-	try {
-		route = ctx.get("settings")?.get("agent-default-model");
-	} catch {}
-	return route?.provider && route.model ? `${route.provider}/${route.model}` : "";
-}
-async function workbenchText(ctx, prompt, selectedModel, system, maxTokens, signal, timeoutMs = 18e4, onDelta) {
-	const route = resolveWorkbenchModel(ctx, selectedModel), slash = route.indexOf("/");
-	let llm;
-	try {
-		llm = ctx.get("llm");
-	} catch {}
-	if (!llm || slash < 1) throw new Error("请在工作台配置默认模型，或选择本次分析使用的模型");
-	const timeout = timeoutMs === null ? void 0 : AbortSignal.timeout(timeoutMs), combined = timeout ? signal ? AbortSignal.any([signal, timeout]) : timeout : signal;
-	if (execution()) execution().record.model = route;
-	const progressId = "model-" + randomUUID();
-	step(progressId, "模型生成", "running", "等待模型响应", { model: route });
-	let received = false;
-	let result = "";
-	for await (const chunk of llm.stream({
-		provider: route.slice(0, slash),
-		model: route.slice(slash + 1),
-		system,
-		messages: [{
-			id: randomUUID(),
-			role: "user",
-			content: [{
-				type: "text",
-				text: prompt
-			}],
-			source: { kind: "user" }
-		}],
-		temperature: .1,
-		...maxTokens === void 0 ? {} : { maxTokens },
-		signal: combined
-	})) {
-		if (combined?.aborted) throw new Error(signal?.aborted ? "本次分析已停止" : "模型处理超时，请重试");
-		if (chunk.type === "text-delta") {
-			if (!received) {
-				step(progressId, "模型生成", "running", "正在接收正文", { model: route });
-				received = true;
-			}
-			result += chunk.text ?? "";
-			onDelta?.(chunk.text ?? "");
-		}
-		if (result.length > 512e3) throw new Error("模型返回内容过长，请缩小分析范围");
-		if (chunk.type === "finish" && chunk.reason?.kind === "max-tokens") throw new Error("模型输出达到所选模型的 token 上限，正文可能被截断；请在模型设置中调整最大输出 token 数后重试");
-		if (chunk.type === "finish" && chunk.reason?.kind === "error") throw new Error(chunk.reason.failure?.message || "工作台模型处理失败");
-	}
-	if (!result.trim()) throw new Error("工作台模型没有返回内容");
-	step(progressId, "模型生成", "done", "正文接收完成；等待业务校验", { model: route });
-	return result;
 }
 //#endregion
 //#region src/core/documents-model.ts
@@ -25422,6 +25697,7 @@ async function apply(ctx, config$1 = {}) {
 		if (!role) throw Error("岗位技能加载失败：岗位版本不存在");
 		return skillAssets.guidance(state, roleId, role, cwd, createdAt);
 	};
+	let codeAssistant;
 	let developer;
 	let developerContext;
 	ctx.inject([
@@ -25479,6 +25755,12 @@ async function apply(ctx, config$1 = {}) {
 		await service.init();
 		developer = service;
 		developerContext = active;
+		const coding = await createCodeAssistant(active, home, store, active.workbenchGit);
+		codeAssistant = coding;
+		active.effect(() => async () => {
+			if (codeAssistant === coding) codeAssistant = void 0;
+			await coding.close();
+		}, "code assistant module lifecycle");
 		active.effect(() => async () => {
 			if (developer === service) {
 				developer = void 0;
@@ -25579,7 +25861,8 @@ async function apply(ctx, config$1 = {}) {
 			...packageRunner.activities(),
 			...await requirements.componentActivities(),
 			...await meeting.componentActivities(),
-			...await developer?.componentActivities() ?? []
+			...await developer?.componentActivities() ?? [],
+			...codeAssistant?.activities() ?? []
 		].sort((a, b) => a.id.localeCompare(b.id));
 	};
 	runtime.componentActivities = activities;
@@ -25613,6 +25896,29 @@ async function apply(ctx, config$1 = {}) {
 	ctx.effect(() => protectManagedDeletion(ctx.agentPresets), "managed preset deletion guard");
 	ctx.effect(() => protectManagedCopy(ctx.agentPresets), "managed preset copy guard");
 	ctx.provide("capabilities", runtime);
+	const forks = new ConversationForks();
+	forks.register("meeting", (id, target) => meeting.fork(id, target));
+	forks.register("recording", (id, target) => {
+		if (recordingError) throw new InputError("录音存储不可用：" + recordingError, 503);
+		return recording.fork(id, target, (a, b) => meeting.fork(a, b, b), (id) => meeting.remove(id));
+	});
+	forks.register("requirements", (id, target) => requirements.fork(id, target));
+	forks.register("documents", (id, target) => {
+		if (documentError) throw new InputError("文档存储不可用：" + documentError, 503);
+		return documents.fork(id, target);
+	});
+	forks.register("file-search", (id, target) => {
+		if (searchError) throw new InputError("搜索存储不可用：" + searchError, 503);
+		return fileSearch.fork(id, target);
+	});
+	forks.register("developer", async (id, target) => {
+		if (!developer) throw new InputError("开发模块未加载", 503);
+		return developer.fork(id, target);
+	});
+	forks.register("code", async (id, target) => {
+		if (!codeAssistant) throw new InputError("代码模块未加载", 503);
+		return codeAssistant.fork(id, target);
+	});
 	ctx.effect(() => ctx.webServer.register({
 		kind: "prefix",
 		path: "/api/capabilities",
@@ -25622,6 +25928,10 @@ async function apply(ctx, config$1 = {}) {
 				fence(req, req.method === "PUT" && (route.startsWith("/api/capabilities/meeting/upload/") || route.startsWith("/api/capabilities/packages/upload/") || route === "/api/capabilities/recording/chunk"));
 				const rejection = ctx.connection.requestRejection(req);
 				if (rejection !== void 0) return json(res, rejection, { error: rejection === 401 ? "请从工作台入口重新连接后重试" : "不允许访问此接口" });
+				if (route === "/api/capabilities/conversations/fork" && req.method === "POST") {
+					const body = await readBody(req);
+					return json(res, 200, await forks.fork(text$3(body.kind, "对话类型", 40, true), text$3(body.id, "对话", 120, true), text$3(body.requestId, "请求标识", 36, true)));
+				}
 				if (route.startsWith("/api/capabilities/browser-archives/")) return await runtime.archives.serve(route.slice(35), req, res);
 				if (route.startsWith("/api/capabilities/documents/")) {
 					if (documentError) throw new InputError("文档存储不可用：" + documentError, 503);
@@ -25638,6 +25948,10 @@ async function apply(ctx, config$1 = {}) {
 					return await recordingRoutes(recording, req, res);
 				}
 				if (route.startsWith("/api/capabilities/packages/")) return await packageRoutes(packages, packageRunner, req, res);
+				if (route.startsWith("/api/capabilities/code-assistant/")) {
+					if (!codeAssistant) throw new InputError("代码助手模块尚未就绪，请检查开发能力和 Git 插件", 503);
+					return await codeAssistant.routes(req, res);
+				}
 				if (route.startsWith("/api/capabilities/developer/")) return await developerRoutes(developerContext ?? ctx, developer, req, res);
 				if (req.method === "GET" && route === "/api/capabilities/requirements/config") return json(res, 200, requirements.availability(new URL(req.url ?? "/", "http://localhost").searchParams.get("roleId") ?? void 0));
 				if (req.method === "GET" && route === "/api/capabilities/requirements/tasks") {
@@ -25711,7 +26025,8 @@ async function apply(ctx, config$1 = {}) {
 							await Promise.all([
 								requirements.stopComponents(ids),
 								meeting.stopComponents(ids),
-								developer?.stopComponents(ids)
+								developer?.stopComponents(ids),
+								codeAssistant?.stopComponents(ids)
 							]);
 						}
 					}

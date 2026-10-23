@@ -1,3 +1,4 @@
+import { forkIdentity, existingFork, writeFork, copyForkDirectory } from './conversation-fork.ts'
 import { mkdir, readFile, writeFile, rename, open, readdir, rm, stat } from 'node:fs/promises'
 import { createReadStream } from 'node:fs'
 import { join, resolve, relative, isAbsolute } from 'node:path'
@@ -19,6 +20,13 @@ export class RecordingService {
   private serial<T>(run: () => Promise<T>) { const next = this.tail.then(run); this.tail = next.catch(() => {}); return next }
   private directory(id: string) { if (!/^[a-f0-9-]{36}$/.test(id)) throw new InputError('录音标识无效'); return join(this.root, id) }
   private async save(row: Recording) { const directory = this.directory(row.id); await mkdir(directory,{recursive:true}); const f=await open(join(directory,'record.json.tmp'),'w'); try { await f.writeFile(JSON.stringify(row)); await f.sync() } finally { await f.close() }; await rename(join(directory,'record.json.tmp'),join(directory,'record.json')); this.rows.set(row.id,row) }
+  async fork(id:string,target:string,forkMeeting:(source:string,target:string)=>Promise<{id:string}>,rollbackMeeting?:(id:string)=>Promise<unknown>){return this.serial(async()=>{
+    const row=forkIdentity(this.get(id),target),file=join(this.directory(target),'record.json'),existing=await existingFork<Recording>(file,id);if(existing)return existing
+    const wasLive=live(row);if(wasLive)row.status='interrupted'
+    const directory=this.directory(target),staging=directory+'.fork'
+    try{await copyForkDirectory(this.directory(id),staging);await rm(join(staging,'record.json'),{force:true});if(wasLive&&row.nextChunk){const chunks=[];for(let i=0;i<row.nextChunk;i++)chunks.push(await readFile(join(staging,'chunk-'+i)));row.audio=row.mime.includes('webm')?'recording.webm':'recording.mp4';await writeFile(join(staging,row.audio),Buffer.concat(chunks))}if(row.followup){const job=await forkMeeting(row.followup.jobId,target);row.followup={...row.followup,jobId:job.id}}await writeFork(join(staging,'record.json'),row);await rename(staging,directory);this.rows.set(target,row)}catch(e){await rm(staging,{recursive:true,force:true});if(row.followup?.jobId===target)await rollbackMeeting?.(target);throw e}return row
+  })}
+
   async init() {
     await mkdir(this.root,{recursive:true})
     try { this.roleId=JSON.parse(await readFile(join(this.root,'settings.json'),'utf8')).roleId || '' } catch(e) { if ((e as NodeJS.ErrnoException).code!=='ENOENT') throw e }

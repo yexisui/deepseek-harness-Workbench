@@ -23,7 +23,7 @@ function setup() {
   const list = { phase: 'ready', current: undefined, ids: ['native', 'free'], byId: { native: { title: '原生助手对话', updatedAt: 200, projectionValues: { agentPreset: 'workbench-role-test-meeting-v1' } }, free: { title: '普通聊天', updatedAt: 250, projectionValues: { agentPreset: 'workbench-chat' } } } }
   const workspaces = { items: [{ title: '项目甲', sessionIds: ['native', 'free'] }], archivedSessionIds: [] }
   const Original = (props: any) => <div data-original>{props.useSessions((s: any) => s.ids).map((id: string) => <span data-native={id} key={id}>{list.byId[id as keyof typeof list.byId].title}</span>)}</div>
-  const props = { Original, browser: { wide: true, useSessions: (fn: any) => fn(list), useWorkspaces: (fn: any) => fn(workspaces), t: (key: string) => key, open, renameSession: rename, archiveSession: archive, forkSession: fork }, rows: [{ id: 'local', title: '录音摘要', role: 'test-meeting', kind: 'demo' as const, draft: '', updatedAt: 100, createdAt: 1 }], activeId: null, onOpen, onNew, onRename: vi.fn(async () => {}), onRemove: vi.fn(), ready: true }
+  const props = { Original, browser: { wide: true, useSessions: (fn: any) => fn(list), useWorkspaces: (fn: any) => fn(workspaces), t: (key: string) => key, open, renameSession: rename, archiveSession: archive, forkSession: fork }, rows: [{ id: 'local', title: '录音摘要', role: 'test-meeting', kind: 'demo' as const, draft: '', updatedAt: 100, createdAt: 1 }], activeId: null, onOpen, onNew, onRename: vi.fn(async () => {}), onRemove: vi.fn(), onFork: vi.fn(async () => {}), ready: true }
   return { props, open, onOpen, onNew, rename, archive, fork }
 }
 const click = async (selector: string) => { const button = container.querySelector<HTMLButtonElement>(selector); expect(button).toBeTruthy(); await act(async () => button!.click()) }
@@ -97,7 +97,7 @@ it('archives special records without deleting them, retains numbering and restor
   await click('button[aria-label="会话操作：录音摘要"]')
   const menu=Array.from(document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'))
   expect(menu.map(b=>b.textContent?.trim())).toEqual(['重命名','分叉','归档'])
-  expect(menu[1]!.disabled).toBe(true)
+  expect(menu[1]!.disabled).toBe(false)
   await act(async()=>menu[2]!.click())
   expect(container.querySelector('[data-conversation-id="local"]')).toBeNull()
   expect(app.props.onRemove).not.toHaveBeenCalled()
@@ -108,3 +108,5 @@ it('archives special records without deleting them, retains numbering and restor
   await act(async()=>Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='恢复')!.dispatchEvent(new MouseEvent('click',{bubbles:true})))
   expect(container.querySelector('[data-conversation-id="local"]')).toBeTruthy()
 })
+
+it('delegates every specialized conversation fork without changing the source',async()=>{const app=setup();await act(async()=>root.render(<AssistantHistory {...app.props}/>));await click('button[aria-label="会话操作：录音摘要"]');const fork=Array.from(document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')).find(b=>b.textContent?.trim()==='分叉')!;await act(async()=>fork.click());expect(app.props.onFork).toHaveBeenCalledWith('local');expect(app.props.onRemove).not.toHaveBeenCalled();expect(container.querySelector('[data-conversation-id="local"]')).toBeTruthy()})

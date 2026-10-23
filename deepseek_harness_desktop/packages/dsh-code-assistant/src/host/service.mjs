@@ -48,6 +48,14 @@ export class CodeAssistantService {
       model: data.model || '', mode: 'read', status: 'idle', createdAt: now(), updatedAt: now(), messages: [], permissions: [], requests: [], sessionId: '', error: '' }
     this.authorize(task, 'develop'); this.tasks.set(id, task); await this.save(task); return this.view(task)
   }) }
+  async fork(id,target) { return this.serialize(async()=>{
+    if(!idPattern.test(target)||target===id)throw Error('分叉标识无效')
+    const source=this.get(id),existing=this.tasks.get(target)
+    if(existing){if(existing.forkedFrom!==id)throw Error('分叉标识已占用');return this.view(existing)}
+    const task={...structuredClone(source),id:target,forkedFrom:id,title:source.title.slice(0,90)+' · 分叉',createdAt:now(),updatedAt:now(),status:'idle',permissions:[],requests:[],sessionId:'',error:''}
+    try{if(source.sessionId){await assertIsolatedProject(source.cwd);await this.engine.start();const fork=await this.engine.request('/session/'+source.sessionId+'/fork',{},source.cwd);task.sessionId=fork.id;await this.refresh(task);task.permissions=[]}
+    await this.save(task);this.tasks.set(target,task)}catch(e){if(task.sessionId)await this.engine.request('/session/'+task.sessionId,undefined,task.cwd,true,{method:'DELETE'}).catch(()=>{});throw e}return this.view(task)
+  }) }
   async ensureSession(task) {
     await assertIsolatedProject(task.cwd)
     await this.engine.start()

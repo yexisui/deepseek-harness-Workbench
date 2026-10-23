@@ -1,3 +1,4 @@
+import { ConversationForks } from './host/conversation-fork.ts'
 import { DocumentsService } from './host/documents.ts'
 import { RecordingFollowupService } from './host/recording-followup.ts'
 import { FileSearchService, fileSearchRoutes } from './host/file-search.ts'
@@ -153,6 +154,14 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   ctx.effect(() => protectManagedDeletion(ctx.agentPresets), 'managed preset deletion guard')
   ctx.effect(() => protectManagedCopy(ctx.agentPresets), 'managed preset copy guard')
   ctx.provide('capabilities', runtime)
+  const forks=new ConversationForks()
+  forks.register('meeting',(id,target)=>meeting.fork(id,target))
+  forks.register('recording',(id,target)=>{if(recordingError)throw new InputError('录音存储不可用：'+recordingError,503);return recording.fork(id,target,(a,b)=>meeting.fork(a,b,b),id=>meeting.remove(id))})
+  forks.register('requirements',(id,target)=>requirements.fork(id,target))
+  forks.register('documents',(id,target)=>{if(documentError)throw new InputError('文档存储不可用：'+documentError,503);return documents.fork(id,target)})
+  forks.register('file-search',(id,target)=>{if(searchError)throw new InputError('搜索存储不可用：'+searchError,503);return fileSearch.fork(id,target)})
+  forks.register('developer',async(id,target)=>{if(!developer)throw new InputError('开发模块未加载',503);return developer.fork(id,target)})
+  forks.register('code',async(id,target)=>{if(!codeAssistant)throw new InputError('代码模块未加载',503);return codeAssistant.fork(id,target)})
   ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/api/capabilities', handler: async (req, res) => {
     try {
       const route = new URL(req.url ?? '/', 'http://localhost').pathname
@@ -160,6 +169,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       // A named webServer route bypasses Connection's /api route; reuse its public authentication check explicitly.
       const rejection = ctx.connection.requestRejection(req)
       if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
+      if(route==='/api/capabilities/conversations/fork'&&req.method==='POST'){const body=await readBody(req);return json(res,200,await forks.fork(text(body.kind,'对话类型',40,true),text(body.id,'对话',120,true),text(body.requestId,'请求标识',36,true)))}
       if (route.startsWith('/api/capabilities/browser-archives/')) return await runtime.archives.serve(route.slice('/api/capabilities/browser-archives/'.length), req, res)
       if (route.startsWith('/api/capabilities/documents/')) { if(documentError)throw new InputError('文档存储不可用：'+documentError,503);return await documents.routes(req,res) }
       if (route.startsWith('/api/capabilities/file-search/')) { if(searchError)throw new InputError('搜索存储不可用：'+searchError,503);return await fileSearchRoutes(fileSearch,req,res) }

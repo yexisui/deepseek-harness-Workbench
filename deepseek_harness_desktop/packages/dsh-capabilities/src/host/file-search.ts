@@ -1,3 +1,4 @@
+import { forkIdentity, existingFork, writeFork } from './conversation-fork.ts'
 import { mkdir, readFile, writeFile, rename, readdir, rm, stat } from 'node:fs/promises'
 import { join, win32 } from 'node:path'
 import { randomUUID } from 'node:crypto'
@@ -17,6 +18,12 @@ export class FileSearchService {
   constructor(private root: string, private state: () => State, readonly engine: Pick<EverythingEngine, 'query' | 'status' | 'close'>) {}
   private serial<T>(fn: () => Promise<T>) { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private file(id: string) { if (!/^[a-f\d-]{36}$/.test(id)) throw new InputError('搜索记录标识无效'); return join(this.root, id + '.json') }
+  async fork(id:string,target:string){return this.serial(async()=>{
+    const source=this.rows.get(id);if(!source)throw new InputError('搜索记录不存在',404)
+    const row=forkIdentity(source,target),file=this.file(target),existing=await existingFork<FileSearchRecord>(file,id);if(existing)return existing
+    await writeFork(file,row);this.rows.set(target,row);return row
+  })}
+
   async init() {
     await mkdir(this.root, { recursive: true })
     try { this.roleId = JSON.parse(await readFile(join(this.root, 'settings.json'), 'utf8')).roleId || '' } catch (e) {

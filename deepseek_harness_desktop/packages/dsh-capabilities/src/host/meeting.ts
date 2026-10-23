@@ -1,3 +1,4 @@
+import { forkIdentity, existingFork, writeFork } from './conversation-fork.ts'
 import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import type { MeetingSegmenter } from './meeting-segments.ts'
 import { hasTiming, parseSegments, sourceKey, type TranscriptSegment } from '../core/meeting-timing.ts'
@@ -16,7 +17,7 @@ export type MeetingItem = { text: string; sourceIds: string[] }
 export type MeetingAction = MeetingItem & { owner: string; deadline: string }
 export type MeetingMinutes = { title: string; overview: string; decisions: MeetingItem[]; actions: MeetingAction[]; unknown: MeetingItem[] }
 type MeetingRole = { id?: string; version: number; name: string; duties: string; requirements: string; format: string }
-export type MeetingJob = { sourceRecordingId?: string;
+export type MeetingJob = { sourceRecordingId?: string; authorityAt?: string;
   title?: string;
   transcribedAt?: string; minutesGeneratedAt?: string;
   id: string; fileName: string; extension: string; size: number; createdAt: string; updatedAt: string
@@ -94,6 +95,7 @@ export class MeetingService {
     return task
   }
   constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly resolveAsr?: () => Promise<MeetingAsrConfig>, private readonly segmenter?: MeetingSegmenter) { this.executions = new ExecutionStore(join(root,'_executions')) }
+  authorizeSource: (id:string,action:string)=>void = () => {}
   private config() { return config(this.asrSettings?.()) }
   private capabilityError(): string | undefined {
     if (!this.currentState) return
@@ -121,6 +123,16 @@ export class MeetingService {
     }
     return { id: role.id, version: published.version, name: published.name, duties: published.duties, requirements: published.requirements, format: published.format }
   }
+  async fork(id:string,target:string,recordingId?:string){
+    const row=forkIdentity(await this.get(id),target),file=this.path(target),existing=await existingFork<MeetingJob>(file,id);if(existing)return existing
+    row.authorityAt=row.authorityAt??(await this.get(id)).createdAt;if(recordingId)row.sourceRecordingId=recordingId
+    row.status=row.minutes?'ready':row.segments.length?'transcribed':'error'
+    if(row.status==='error')row.error='分叉尚无完整转写，可以继续上传或重试'
+    if(row.timingStatus==='processing'){row.timingStatus='error';row.timingError='原时间定位任务未复制'}
+    const sourceAudio=this.audio({...row,id}),targetAudio=this.audio(row)
+    try{await import('node:fs/promises').then(fs=>fs.copyFile(sourceAudio,targetAudio)).catch(e=>{if(e.code!=='ENOENT'||row.size)throw e});await this.executions.fork(id,target);await writeFork(file,row)}catch(e){await rm(targetAudio,{force:true});await this.executions.remove(target);throw e}return row
+  }
+
   async init() {
     await this.executions.init()
     await mkdir(this.root, { recursive: true })
@@ -172,7 +184,7 @@ export class MeetingService {
       if (!file.endsWith('.json') || !ID.test(file.slice(0, -5)) || this.deleted.has(file.slice(0, -5)) || this.removing.has(file.slice(0, -5))) continue
       try {
         const job = await this.get(file.slice(0, -5))
-        if (job.id !== file.slice(0, -5) || !Number.isFinite(Date.parse(job.updatedAt)) || !Number.isFinite(Date.parse(job.createdAt)) || !['quick','guided'].includes(job.mode) || typeof job.fileName !== 'string') throw new Error('会议记录格式无效')
+        if (job.id !== file.slice(0, -5) || !Number.isFinite(Date.parse(job.updatedAt)) || !Number.isFinite(Date.parse(job.authorityAt??job.createdAt)) || !['quick','guided'].includes(job.mode) || typeof job.fileName !== 'string') throw new Error('会议记录格式无效')
         if(job.sourceRecordingId)continue
         items.push({ id: job.id, title: job.title || job.minutes?.title || job.fileName, customTitle: Boolean(job.title), mode: job.mode, audience: job.audience, focus: job.focus, summaryModel: job.summaryModel, status: job.status, updatedAt: job.updatedAt, createdAt: job.createdAt, roleId: job.role?.id ?? MEETING_ROLE_ID, roleVersion: job.role?.version })
       } catch { unreadableCount++ }
@@ -242,7 +254,7 @@ export class MeetingService {
   }
   private async uploadAudio(id: string, req: IncomingMessage) {
     const job = await this.get(id)
-    this.role(job.role?.version, job.createdAt, job.role?.id)
+    this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id)
     if (job.status !== 'uploading') throw new InputError('此任务无法重复上传', 409)
     const path = this.audio(job), temp = `${path}.upload`
     const handle = await import('node:fs').then(fs => fs.createWriteStream(temp, { flags: 'wx' }))
@@ -267,7 +279,7 @@ export class MeetingService {
   }
   async retry(id: string) {
     const job = await this.get(id)
-    this.role(job.role?.version, job.createdAt, job.role?.id)
+    this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id)
     if (job.status !== 'error') throw new InputError('只有失败的任务可以重试', 409)
     if (!job.size) throw new InputError('请重新选择录音上传', 409)
     job.status = job.segments.length ? 'transcribed' : 'transcribing'; delete job.error; await this.save(job)
@@ -293,7 +305,7 @@ export class MeetingService {
       const segments = await this.segmenter?.transcribe(job, this.audio(job), controller.signal, recognize) ?? await recognize(this.audio(job), job.fileName, controller.signal)
       if (!segments.length) throw new Error('未识别到可用语音，请检查录音内容')
       const latest = await this.get(id)
-      controller.signal.throwIfAborted(); this.role(latest.role?.version, latest.createdAt, latest.role?.id)
+      controller.signal.throwIfAborted(); this.role(latest.role?.version, latest.authorityAt??latest.createdAt, latest.role?.id)
       step('transcribe','语音转写','done',segments.length+' 个片段')
       latest.segments = segments; latest.transcribedAt = new Date().toISOString(); latest.status = 'transcribed'; await this.save(latest)
       step('transcript-save','转写保存完成','done',segments.length+' 个片段')
@@ -324,7 +336,7 @@ export class MeetingService {
   }
   private async startGenerate(id: string, edited?: MeetingSegment[], instruction?: string, summaryModel?: string) {
     const job = await this.get(id)
-    this.role(job.role?.version, job.createdAt, job.role?.id)
+    this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id)
     if (this.timingRunning.has(id) || job.timingStatus === 'processing') throw new InputError('时间定位处理中，请完成后再修改纪要', 409)
     if (!['transcribed', 'ready', 'error'].includes(job.status) || !job.segments.length) throw new InputError('请先完成录音转写', 409)
     const changed=edited?.filter((row,index)=>row.text!==job.segments[index]?.text||row.speaker!==job.segments[index]?.speaker).length??0
@@ -359,9 +371,9 @@ export class MeetingService {
       }
       const previous = job.minutes ? `\n现有纪要：${JSON.stringify(job.minutes)}` : ''
       const roleGuidance = job.role ? `岗位：${job.role.name}。职责：${job.role.duties}。工作要求：${job.role.requirements}。输出偏好：${job.role.format}。\n` : ''
-      const prompt = `${roleGuidance}${job.role?this.skillGuidance?.(job.role.id ?? MEETING_ROLE_ID,job.role.version,undefined,Date.parse(job.createdAt))??'':''}用途：${job.audience || '通用会议纪要'}；重点：${job.focus || '结论与待办'}。${instruction ? `用户修改要求：${string(instruction, 1000)}。` : ''}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`
+      const prompt = `${roleGuidance}${job.role?this.skillGuidance?.(job.role.id ?? MEETING_ROLE_ID,job.role.version,undefined,Date.parse(job.authorityAt??job.createdAt))??'':''}用途：${job.audience || '通用会议纪要'}；重点：${job.focus || '结论与待办'}。${instruction ? `用户修改要求：${string(instruction, 1000)}。` : ''}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`
       const minutes = parseMinutes(await this.ask(prompt, job.summaryModel, controller.signal), job.segments)
-      controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt, job.role?.id)
+      controller.signal.throwIfAborted(); this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id)
       step('sources','纪要结构与来源ID检查','done','只核对结构和来源ID有效性，不代表逐条事实已人工确认')
       delete job.timing; delete job.timingStatus; delete job.timingError; job.minutes = minutes; job.minutesGeneratedAt = new Date().toISOString(); job.status = 'ready'; await this.save(job)
     } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? (this.stopped.has(job.id) ? '本轮已停止，历史结果保留' : '组件已停用，本次处理已停止；历史结果保留') : errorText(error); await this.save(job) } finally { if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
@@ -371,7 +383,7 @@ export class MeetingService {
     this.running.add(id); this.timingRunning.add(id)
     try {
       const job = await this.get(id)
-      this.role(job.role?.version, job.createdAt, job.role?.id)
+      this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id)
       if (job.status !== 'ready' || !job.minutes || !job.size) throw new InputError('请先完成会议纪要', 409)
       job.timingStatus = 'processing'; delete job.timingError; await this.save(job)
       void this.track(id, () => this.finishTiming(job)).catch(() => {})
@@ -401,7 +413,7 @@ export class MeetingService {
         links[sourceKey(items[entry.index])] = [...new Set<string>(ids)].slice(0, 4)
       }
       if (!Object.values(links).some(ids => ids.length)) throw new Error('已取得时间片段，但未找到可靠纪要来源；原纪要保留')
-      controller.signal.throwIfAborted(); this.role(job.role?.version, job.createdAt, job.role?.id)
+      controller.signal.throwIfAborted(); this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id)
       job.timing = { segments, links }; job.timingStatus = 'ready'; delete job.timingError
       await this.save(job)
     } catch (error) {
@@ -426,7 +438,7 @@ export class MeetingService {
   }
   async reconcile() {
     await Promise.all([...this.controllers].map(async ([id, controller]) => {
-      try { const job = await this.get(id); this.role(job.role?.version, job.createdAt, job.role?.id) } catch { controller.abort() }
+      try { const job = await this.get(id); this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id) } catch { controller.abort() }
     }))
   }
   async stopComponents(ids: string[]) { this.segmenter?.stopComponents(ids); if (ids.includes('meeting-asr')) this.controllers.forEach(controller => controller.abort()) }

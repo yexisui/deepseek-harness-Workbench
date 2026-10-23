@@ -115,3 +115,4 @@ Desktop.ini
 
 # Locally bundled third-party editor assets are supplied by build/offline delivery.
 /deepseek_harness_desktop/packages/dsh-capabilities/lib/document-editor/
+/deepseek_harness_desktop/packages/dsh-code-assistant/lib/assets/

@@ -15006,7 +15006,7 @@ window.__ModuleLoader__.load({
 						const next = await api$1(`/job/${jobId}`);
 						if (!active) return;
 						setJob(next);
-						if (next.status === "transcribed" && mode === "guided") {
+						if (next.status === "transcribed") {
 							setPhase("transcript");
 							setSegments((current) => current.length ? current : next.segments);
 							setMessages((current) => current.some((message) => message.kind === "transcript") ? current : [...current, {
@@ -22527,6 +22527,7 @@ window.__ModuleLoader__.load({
 			const [menu, setMenu] = (0, react.useState)(null);
 			const [renaming, setRenaming] = (0, react.useState)(null);
 			const [saving, setSaving] = (0, react.useState)(false);
+			const [forking, setForking] = (0, react.useState)(false);
 			const [actionError, setActionError] = (0, react.useState)("");
 			const [renameError, setRenameError] = (0, react.useState)("");
 			const renameInput = (0, react.useRef)(null);
@@ -22825,12 +22826,12 @@ window.__ModuleLoader__.load({
 						/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 							type: "button",
 							role: "menuitem",
-							disabled: !onFork || !(canFork?.(rows.find((row) => row.id === menu.id)) ?? Boolean(rows.find((row) => row.id === menu.id)?.nativeId)),
+							disabled: forking || !onFork || !(canFork?.(rows.find((row) => row.id === menu.id)) ?? Boolean(rows.find((row) => row.id === menu.id)?.nativeId)),
 							title: !(canFork?.(rows.find((row) => row.id === menu.id)) ?? Boolean(rows.find((row) => row.id === menu.id)?.nativeId)) ? "此类专用记录暂不支持分叉" : void 0,
 							onClick: () => {
 								const id = menu.id;
-								setMenu(null);
-								Promise.resolve().then(() => onFork?.(id)).catch((e) => setActionError(String(e)));
+								setForking(true);
+								Promise.resolve().then(() => onFork?.(id)).then(() => setMenu(null)).catch((e) => setActionError(String(e))).finally(() => setForking(false));
 							},
 							children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
 								width: "16",
@@ -23092,7 +23093,7 @@ window.__ModuleLoader__.load({
 				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M10 6v4l3 2" })] }) : kind === "number" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M9 5h8M9 10h8M9 15h8M3 3h1v5M3 12c2-2 3 0 1 2l-1 2h2" }) }) : kind === "plus" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M10 4v12M4 10h12" }) : kind === "chevron" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m7 5 5 5-5 5" }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: kind === "asc" ? "M6 16V4m-3 3 3-3 3 3" : "M6 4v12m-3-3 3 3 3-3" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M12 5h5M12 10h4M12 15h2" })] })
 			});
 		}
-		function AssistantHistory({ Original, browser, rows, activeId, onOpen, onRename, onRemove, onNew, historyStatus, ready }) {
+		function AssistantHistory({ Original, browser, rows, activeId, onOpen, onRename, onRemove, onNew, onFork, historyStatus, ready }) {
 			const capabilities = (0, react.useSyncExternalStore)(capabilityClient.subscribe, capabilityClient.getSnapshot);
 			const roles = capabilities.data?.state.roles ?? [];
 			const list = browser.useSessions((value) => value);
@@ -23246,6 +23247,7 @@ window.__ModuleLoader__.load({
 			const fork = async (id) => {
 				const row = all.find((r) => r.id === id);
 				if (row?.nativeId) await browser.forkSession(row.nativeId);
+				else await onFork(id);
 			};
 			const archive = async (id) => {
 				const row = all.find((r) => r.id === id);
@@ -23264,6 +23266,7 @@ window.__ModuleLoader__.load({
 				hideTypeBadge: true,
 				query: search ? query : "",
 				onFork: fork,
+				canFork: () => true,
 				onArchive: archive,
 				stackedMeta: true,
 				rowTitle: title,
@@ -23344,6 +23347,8 @@ window.__ModuleLoader__.load({
 										onOpen,
 										onRemove,
 										onRename,
+										onFork: fork,
+										canFork: () => true,
 										onArchive: archive,
 										fallbackLabel: "自由聊天"
 									})]
@@ -23571,6 +23576,19 @@ window.__ModuleLoader__.load({
 				update(snapshot.items.map((row) => row.id === id ? next : row));
 			};
 			return {
+				addFork: (source, id, patch = {}) => {
+					const row = {
+						...structuredClone(source),
+						...patch,
+						id,
+						customTitle: true,
+						title: (source.title || "对话").slice(0, 110) + " · 分叉",
+						createdAt: Date.now(),
+						updatedAt: Date.now()
+					};
+					update([row, ...snapshot.items.filter((r) => r.id !== id)], id);
+					return row;
+				},
 				restoreMeetings: (rows) => {
 					const known = new Set(snapshot.items.map((row) => row.meeting?.jobId).filter(Boolean));
 					const added = rows.filter((row) => {
@@ -24658,6 +24676,67 @@ window.__ModuleLoader__.load({
 				leaveRecording();
 				openLocalConversation((draft ?? localConversations.start(id)).id);
 			};
+			const pendingForks = /* @__PURE__ */ new Map();
+			const forkRequests = /* @__PURE__ */ new Map();
+			const forkLocalConversation = (id) => {
+				const pending = pendingForks.get(id);
+				if (pending) return pending;
+				const work = (async () => {
+					const local = localConversations.getSnapshot().items.find((r) => r.id === id);
+					const kind = documents.getSnapshot().rows.some((r) => r.id === id) ? "documents" : searches.getSnapshot().rows.some((r) => r.id === id) ? "file-search" : recordings.getSnapshot().rows.some((r) => r.id === id) ? "recording" : requirementHistory.getSnapshot().items.some((r) => r.id === id) ? "requirements" : developerHistory.getSnapshot().items.some((r) => r.id === id) ? "developer" : local?.codeTaskId ? "code" : (local?.meeting)?.jobId ? "meeting" : "local";
+					const target = forkRequests.get(id) ?? crypto.randomUUID();
+					forkRequests.set(id, target);
+					if (kind === "local") {
+						if (!local) throw Error("对话不存在");
+						localConversations.addFork(local, target);
+						openLocalConversation(target);
+					} else {
+						const source = kind === "code" ? local.codeTaskId : kind === "meeting" ? local.meeting.jobId : id;
+						const response = await fetch("/api/capabilities/conversations/fork", {
+							method: "POST",
+							credentials: "same-origin",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								kind,
+								id: source,
+								requestId: target
+							})
+						});
+						const result = await response.json();
+						if (!response.ok) throw Error(result.error || "分叉失败，请重试");
+						if (kind === "code" || kind === "meeting") {
+							const patch = kind === "code" ? { codeTaskId: result.id } : { meeting: {
+								...structuredClone(local.meeting),
+								jobId: result.id,
+								phase: "ready"
+							} };
+							localConversations.addFork(local, kind === "meeting" ? "meeting-" + result.id : target, patch);
+							openLocalConversation(kind === "meeting" ? "meeting-" + result.id : target);
+						} else {
+							if (kind === "recording") {
+								const raw = localStorage.getItem("recording-followup:" + id);
+								if (raw) {
+									const saved = JSON.parse(raw);
+									if (saved.state) {
+										saved.state.jobId = target;
+										saved.state.phase = "ready";
+									}
+									localStorage.setItem("recording-followup:" + target, JSON.stringify(saved));
+								}
+								await recordings.refresh();
+							} else if (kind === "documents") await documents.refresh();
+							else if (kind === "file-search") await searches.refresh();
+							else if (kind === "requirements") requirementHistory.upsert(summarizeRequirementTask(result));
+							else if (kind === "developer") developerHistory.upsert(result, false);
+							openLocalConversation(result.id);
+						}
+					}
+					forkRequests.delete(id);
+				})();
+				pendingForks.set(id, work);
+				work.finally(() => pendingForks.delete(id)).catch(() => {});
+				return work;
+			};
 			const renameLocalConversation = async (id, title) => {
 				if (documents.getSnapshot().rows.some((r) => r.id === id)) {
 					await documents.command(id, "rename", title);
@@ -25190,6 +25269,7 @@ window.__ModuleLoader__.load({
 					activeId: activeDocument ?? activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId,
 					onOpen: openLocalConversation,
 					onRemove: removeLocalConversation,
+					onFork: forkLocalConversation,
 					onRename: renameLocalConversation,
 					onNew: startFreshChat,
 					ready: historyReady,

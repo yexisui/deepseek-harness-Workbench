@@ -209,6 +209,34 @@ export function apply(ctx: Context): void {
     leaveSearch(); leaveRecording()
     openLocalConversation((draft ?? localConversations.start(id)).id)
   }
+  const pendingForks=new Map<string,Promise<void>>()
+  const forkRequests=new Map<string,string>()
+  const forkLocalConversation=(id:string):Promise<void>=>{
+    const pending=pendingForks.get(id);if(pending)return pending
+    const work=(async()=>{
+      const local=localConversations.getSnapshot().items.find(r=>r.id===id)
+      const kind=documents.getSnapshot().rows.some(r=>r.id===id)?'documents':searches.getSnapshot().rows.some(r=>r.id===id)?'file-search':recordings.getSnapshot().rows.some(r=>r.id===id)?'recording':requirementHistory.getSnapshot().items.some(r=>r.id===id)?'requirements':developerHistory.getSnapshot().items.some(r=>r.id===id)?'developer':local?.codeTaskId?'code':(local?.meeting as {jobId?:string})?.jobId?'meeting':'local'
+      const target=forkRequests.get(id)??crypto.randomUUID();forkRequests.set(id,target)
+      if(kind==='local'){if(!local)throw Error('对话不存在');localConversations.addFork(local,target);openLocalConversation(target)}
+      else{
+        const source=kind==='code'?local!.codeTaskId:kind==='meeting'?(local!.meeting as {jobId:string}).jobId:id
+        const response=await fetch('/api/capabilities/conversations/fork',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,id:source,requestId:target})})
+        const result=await response.json();if(!response.ok)throw Error(result.error||'分叉失败，请重试')
+        if(kind==='code'||kind==='meeting'){
+          const patch=kind==='code'?{codeTaskId:result.id}:{meeting:{...(structuredClone(local!.meeting) as object),jobId:result.id,phase:'ready'}}
+          localConversations.addFork(local!,kind==='meeting'?'meeting-'+result.id:target,patch);openLocalConversation(kind==='meeting'?'meeting-'+result.id:target)
+        }else{
+          if(kind==='recording'){const raw=localStorage.getItem('recording-followup:'+id);if(raw){const saved=JSON.parse(raw);if(saved.state){saved.state.jobId=target;saved.state.phase='ready'}localStorage.setItem('recording-followup:'+target,JSON.stringify(saved))}await recordings.refresh()}
+          else if(kind==='documents')await documents.refresh()
+          else if(kind==='file-search')await searches.refresh()
+          else if(kind==='requirements')requirementHistory.upsert(summarizeRequirementTask(result))
+          else if(kind==='developer')developerHistory.upsert(result,false)
+          openLocalConversation(result.id)
+        }
+      }
+      forkRequests.delete(id)
+    })();pendingForks.set(id,work);void work.finally(()=>pendingForks.delete(id)).catch(()=>{});return work
+  }
   const renameLocalConversation = async (id: string, title: string) => {
     if(documents.getSnapshot().rows.some(r=>r.id===id)){await documents.command(id,'rename',title);return}
     if(searches.getSnapshot().rows.some(r=>r.id===id)){await searches.command(id,'rename',{title});return}
@@ -454,7 +482,7 @@ export function apply(ctx: Context): void {
     const open = (id: string) => { leaveSearch();leaveRecording(); start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
     const historyReady = historyInitialLoaded && !developers.loading && !meetings.loading && !meetings.hasMore && !meetings.error && !requirements.loading && !requirements.hasMore && !requirements.error && !developers.error && !recorded.error && !searched.error && !documentRows.error
     return <>
-      <AssistantHistory Original={Original} browser={{ ...props, open }} rows={historyRows} activeId={activeDocument ?? activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onOpen={openLocalConversation} onRemove={removeLocalConversation} onRename={renameLocalConversation} onNew={startFreshChat} ready={historyReady} historyStatus={<>
+      <AssistantHistory Original={Original} browser={{ ...props, open }} rows={historyRows} activeId={activeDocument ?? activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onOpen={openLocalConversation} onRemove={removeLocalConversation} onFork={forkLocalConversation} onRename={renameLocalConversation} onNew={startFreshChat} ready={historyReady} historyStatus={<>
         {(meetings.loading || requirements.loading || meetings.hasMore || requirements.hasMore) && <p role="status">正在读取历史对话…</p>}
         {meetings.error && <p role="alert">{meetings.error}<button onClick={() => { void meetingHistory.load(meetings.hasMore) }}>重试会议记录</button></p>}
         {requirements.error && <p role="alert">{requirements.error}<button onClick={() => { void requirementHistory.load(requirements.hasMore) }}>重试需求记录</button></p>}

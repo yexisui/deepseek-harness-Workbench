@@ -10,9 +10,9 @@ const PREFS = 'workbench-sidebar-preferences-v1', NUMBERS = 'workbench-sidebar-n
 function Icon({ kind }: { kind: 'search' | 'clear' | 'time' | 'number' | 'asc' | 'desc' | 'plus' | 'chevron' }) {
   return <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{kind === 'search' ? <><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></> : kind === 'clear' ? <path d="m5 5 10 10M15 5 5 15"/> : kind === 'time' ? <><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2"/></> : kind === 'number' ? <><path d="M9 5h8M9 10h8M9 15h8M3 3h1v5M3 12c2-2 3 0 1 2l-1 2h2"/></> : kind === 'plus' ? <path d="M10 4v12M4 10h12"/> : kind === 'chevron' ? <path d="m7 5 5 5-5 5"/> : <><path d={kind === 'asc' ? 'M6 16V4m-3 3 3-3 3 3' : 'M6 4v12m-3-3 3 3 3-3'}/><path d="M12 5h5M12 10h4M12 15h2"/></>}</svg>
 }
-export function AssistantHistory({ Original, browser, rows, activeId, onOpen, onRename, onRemove, onNew, historyStatus, ready }: {
+export function AssistantHistory({ Original, browser, rows, activeId, onOpen, onRename, onRemove, onNew, onFork, historyStatus, ready }: {
   Original: ComponentType<any>; browser: any; rows: ConversationHistoryRow[]; activeId: string | null
-  onOpen: (id: string) => void; onRename: (id: string, title: string) => Promise<void>; onRemove: (id: string) => void; onNew: (role?: string) => void; historyStatus?: ReactNode; ready: boolean
+  onFork: (id:string) => Promise<void>; onOpen: (id: string) => void; onRename: (id: string, title: string) => Promise<void>; onRemove: (id: string) => void; onNew: (role?: string) => void; historyStatus?: ReactNode; ready: boolean
 }) {
   const capabilities = useSyncExternalStore(capabilityClient.subscribe, capabilityClient.getSnapshot)
   const roles = capabilities.data?.state.roles ?? []
@@ -70,9 +70,9 @@ export function AssistantHistory({ Original, browser, rows, activeId, onOpen, on
   const title = (row: ConversationHistoryRow) => [row.title, row.workspace, Number.isFinite(row.updatedAt) ? new Date(row.updatedAt).toLocaleString('zh-CN') : ''].filter(Boolean).join('\n')
   const open = (id: string) => { const row = all.find(r => r.id === id); row?.nativeId ? browser.open(row.nativeId) : onOpen(id) }
   const rename = async (id: string, name: string) => { const row = all.find(r => r.id === id); if (row?.nativeId) await browser.renameSession(row.nativeId, name); else await onRename(id, name) }
-  const fork = async (id: string) => { const row = all.find(r => r.id === id); if (row?.nativeId) await browser.forkSession(row.nativeId) }
+  const fork = async (id: string) => { const row = all.find(r => r.id === id); if (row?.nativeId) await browser.forkSession(row.nativeId); else await onFork(id) }
   const archive = async (id: string) => { const row = all.find(r => r.id === id); if (row?.nativeId) await browser.archiveSession(row.nativeId); else setArchive(id, true) }
-  const renderRows = (items: ConversationHistoryRow[], search = false) => <LocalConversationRows host={null} label="" rows={items} activeId={current} onOpen={open} onRename={rename} onRemove={onRemove} inline hideTypeBadge query={search ? query : ''} onFork={fork} onArchive={archive}
+  const renderRows = (items: ConversationHistoryRow[], search = false) => <LocalConversationRows host={null} label="" rows={items} activeId={current} onOpen={open} onRename={rename} onRemove={onRemove} inline hideTypeBadge query={search ? query : ''} onFork={fork} canFork={() => true} onArchive={archive}
     stackedMeta rowTitle={title} rowLeading={row => row.kind !== 'draft' ? <span className={s.number}>{numbers[row.role]?.[row.id] ? `${numbers[row.role][row.id]}.` : '—'}</span> : null}
     rowMeta={row => search ? [historyRole(row.role, roles, all).name, row.workspace, shortHistoryTime(row.updatedAt)].filter(Boolean).join(' · ') : row.kind === 'draft' ? row.draft.trim() ? '草稿' : '临时' : shortHistoryTime(row.updatedAt)} searchResult={search}/>
   const ungroupedLabel = browser.t('actions.newSession.aria', { name: '自由聊天' })
@@ -86,7 +86,7 @@ export function AssistantHistory({ Original, browser, rows, activeId, onOpen, on
           if (!button || button.getAttribute('aria-label') !== ungroupedLabel) return
           event.preventDefault(); event.stopPropagation(); onNew('chat')
           const group = button.closest('[role="treeitem"]'); if (group?.getAttribute('aria-expanded') === 'false') (group as HTMLElement).click()
-        }}><Original {...browser} useSessions={useFreeSessions} t={(key: string, ...args: unknown[]) => key === 'group.ungrouped' ? '自由聊天' : browser.t(key, ...args)}/><LocalConversationRows host={host} label={ungroupedLabel} rows={visibleRows.filter(row => row.role === 'chat')} activeId={activeId} onOpen={onOpen} onRemove={onRemove} onRename={onRename} onArchive={archive} fallbackLabel="自由聊天"/></div>
+        }}><Original {...browser} useSessions={useFreeSessions} t={(key: string, ...args: unknown[]) => key === 'group.ungrouped' ? '自由聊天' : browser.t(key, ...args)}/><LocalConversationRows host={host} label={ungroupedLabel} rows={visibleRows.filter(row => row.role === 'chat')} activeId={activeId} onOpen={onOpen} onRemove={onRemove} onRename={onRename} onFork={fork} canFork={() => true} onArchive={archive} fallbackLabel="自由聊天"/></div>
         <div className={s.heading}><span>助手专区</span><div className={s.actions}>
           <button type="button" title={`当前按${preferences.sort === 'time' ? '时间' : '序号'}排序，点击切换`} aria-label={`排序方式：${preferences.sort === 'time' ? '时间' : '序号'}`} onClick={() => setPreferences(p => ({ ...p, sort: p.sort === 'time' ? 'number' : 'time' }))}><Icon kind={preferences.sort === 'time' ? 'time' : 'number'}/></button>
           <button type="button" title={preferences.sort === 'time' ? preferences.direction === 'desc' ? '最新在前，点击切换' : '最早在前，点击切换' : preferences.direction === 'desc' ? '大号在前，点击切换' : '小号在前，点击切换'} aria-label={`排序方向：${preferences.direction === 'desc' ? '降序' : '升序'}`} onClick={() => setPreferences(p => ({ ...p, direction: p.direction === 'desc' ? 'asc' : 'desc' }))}><Icon kind={preferences.direction}/></button>

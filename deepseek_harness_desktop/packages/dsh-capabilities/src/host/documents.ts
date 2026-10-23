@@ -1,3 +1,4 @@
+import { forkIdentity } from './conversation-fork.ts'
 import {noDocumentKnowledge,type DocumentKnowledgeAdapter} from '../core/document-knowledge.ts'
 import {DocumentAI,type DocumentModel} from './document-ai.ts'
 import {randomUUID} from 'node:crypto'
@@ -17,6 +18,14 @@ export class DocumentsService {
  private rows:DocumentRecord[]=[]
  readonly ai:DocumentAI
  constructor(readonly root:string,readonly state:()=>State,model:DocumentModel=async()=>{throw Error('模型服务尚未就绪')},readonly knowledge:()=>DocumentKnowledgeAdapter|undefined=()=>undefined){this.ai=new DocumentAI(root,id=>this.get(id),()=>this.exclusive(()=>this.persist()),(row,revise)=>this.authorize(row.roleId,row.roleVersion,revise?'revise-document':'ask-document'),model,(id,revision)=>this.exclusive(async()=>{if(this.get(id).revision!==revision)throw new InputError('工作副本已更新，请重新生成建议',409);return this.bytes(id)}),knowledge)}
+ async fork(id:string,target:string){return this.exclusive(async()=>{
+   const row=forkIdentity(this.get(id),target),existing=this.rows.find(r=>r.id===target) as (DocumentRecord&{forkedFrom?:string})|undefined
+   if(existing){if(existing.forkedFrom!==id)throw new InputError('分叉标识已占用');return structuredClone(existing)}
+   row.conversationId=target;for(const m of row.messages)if(m.status==='running')m.status='stopped'
+   const bytes=await this.bytes(id);const directory=join(this.root,target)
+   try{await mkdir(directory);await writeFile(join(directory,'revision-'+row.revision+'.docx'),bytes);this.rows.push(row);await this.persist()}catch(e){this.rows=this.rows.filter(r=>r.id!==target);await import('node:fs/promises').then(fs=>fs.rm(directory,{recursive:true,force:true}));throw e}return structuredClone(row)
+ })}
+
  async init(){await mkdir(this.root,{recursive:true});try{this.rows=JSON.parse(await readFile(join(this.root,'index.json'),'utf8'))}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e}await this.ai.init(this.rows)}
  list(){return structuredClone(this.rows.filter(r=>!r.removedAt))}
  get(id:string){const row=this.rows.find(r=>r.id===id&&!r.removedAt);if(!row||!uuid.test(id))throw new InputError('文档会话不存在',404);return row}

@@ -68,6 +68,10 @@ export function createLocalConversations(mint: () => string = () => `local-${cry
     update(snapshot.items.map(row => row.id === id ? next : row))
   }
   return {
+    addFork: (source: LocalConversation, id: string, patch: Partial<LocalConversation> = {}) => {
+      const row = {...structuredClone(source), ...patch, id, customTitle:true, title:(source.title||'对话').slice(0,110)+' · 分叉',createdAt:Date.now(),updatedAt:Date.now()}
+      update([row,...snapshot.items.filter(r=>r.id!==id)],id);return row
+    },
     restoreMeetings: (rows: LocalConversation[]) => {
       const known = new Set(snapshot.items.map(row => (row.meeting as { jobId?: string } | undefined)?.jobId).filter(Boolean))
       const added = rows.filter(row => { const id = (row.meeting as { jobId?: string })?.jobId; if (!id || known.has(id)) return false; known.add(id); return true })
