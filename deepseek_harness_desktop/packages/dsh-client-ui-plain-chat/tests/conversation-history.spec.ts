@@ -1,16 +1,16 @@
-import { describe, expect, it } from 'vitest'
-import { allocateHistoryNumbers, nativeHistoryRows, roleForPreset, searchHistory, sortHistory, type HistoryRole } from '../src/client/conversation-history.ts'
+import { describe, expect, it, vi } from 'vitest'
+import { allocateHistoryNumbers, nativeHistoryRows, roleForPreset, searchHistory, shortHistoryTime, sortHistory, type HistoryRole } from '../src/client/conversation-history.ts'
 import type { ConversationHistoryRow } from '../src/client/LocalConversationRows.tsx'
 const roles: HistoryRole[] = [{ id: 'meeting', enabled: true, draft: { name: '会议助手', color: '#456' }, versions: [{ name: '会议助手', color: '#456', preset: 'workbench-role-meeting-v1' }] }]
 const row = (id: string, updatedAt: number, extra: Partial<ConversationHistoryRow> = {}): ConversationHistoryRow => ({ id, title: id, role: 'meeting', kind: 'demo', draft: '', updatedAt, ...extra })
 describe('assistant conversation ordering and lookup', () => {
-  it('keeps allocated numbers when time, title, direction or visible records change', () => {
+  it('keeps allocated numbers when time, title or direction changes and a record is deleted', () => {
     const rows = [row('a', 20, { createdAt: 1 }), row('b', 10, { createdAt: 2 })]
     const numbers = allocateHistoryNumbers({}, rows)
     expect(numbers.meeting).toEqual({ a: 1, b: 2 })
     const renamed = [row('b', 99, { title: '改名' }), row('c', 100, { createdAt: 3 })]
     const next = allocateHistoryNumbers(numbers, renamed)
-    expect(next.meeting).toEqual({ a: 1, b: 2, c: 3 })
+    expect(next.meeting).toEqual({ b: 2, c: 3 })
     expect(sortHistory(rows, { sort: 'time', direction: 'desc' }, numbers).map(r => r.id)).toEqual(['a', 'b'])
     expect(sortHistory(rows, { sort: 'number', direction: 'desc' }, numbers).map(r => r.id)).toEqual(['b', 'a'])
     expect(sortHistory(rows, { sort: 'number', direction: 'asc' }, numbers).map(r => r.id)).toEqual(['a', 'b'])
@@ -39,4 +39,28 @@ describe('assistant conversation ordering and lookup', () => {
     expect(searchHistory(rows, '自由聊天', roles)).toEqual([rows[1]])
     expect(searchHistory(rows, '没有这个词', roles)).toEqual([])
   })
+})
+
+it('reuses a deleted highest number, leaves middle gaps and restarts an empty assistant at one', () => {
+  const original = ['a', 'b', 'c', 'd'].map((id, i) => row(id, i, { createdAt: i }))
+  const numbered = allocateHistoryNumbers({}, original)
+  const middleDeleted = allocateHistoryNumbers(numbered, [original[0], original[2], original[3]])
+  expect(middleDeleted.meeting).toEqual({ a: 1, c: 3, d: 4 })
+  expect(allocateHistoryNumbers(middleDeleted, [original[0], original[2], original[3], row('e', 5)]).meeting).toEqual({ a: 1, c: 3, d: 4, e: 5 })
+  // Start from the remaining 1, 3, 4 without having created 5.
+  const highestDeleted = allocateHistoryNumbers(middleDeleted, [original[0], original[2]])
+  expect(allocateHistoryNumbers(highestDeleted, [row('new', 5, { createdAt: -1 }), original[0], original[2]]).meeting).toEqual({ a: 1, c: 3, new: 4 })
+  const empty = allocateHistoryNumbers(numbered, [])
+  expect(empty).toEqual({})
+  expect(allocateHistoryNumbers(empty, [row('new', 6)]).meeting).toEqual({ new: 1 })
+  expect(numbered.meeting).toEqual({ a: 1, b: 2, c: 3, d: 4 })
+})
+it('shows month/day and hour/minute for today and earlier dates, adding the year across years', () => {
+  vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 9, 23, 18, 0))
+  try {
+    expect(shortHistoryTime(new Date(2026, 9, 23, 14, 35).getTime())).toBe('10/23 14:35')
+    expect(shortHistoryTime(new Date(2026, 9, 22, 9, 5).getTime())).toBe('10/22 09:05')
+    expect(shortHistoryTime(new Date(2025, 9, 22, 0, 5).getTime())).toBe('2025/10/22 00:05')
+    expect(shortHistoryTime(NaN)).toBe('')
+  } finally { vi.useRealTimers() }
 })

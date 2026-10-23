@@ -28,12 +28,14 @@ export function AssistantHistory({ Original, browser, rows, activeId, onOpen, on
   const [numbers, setNumbers] = useState<NumberLedger>(() => readHistoryStorage(NUMBERS, {}))
   const [host, setHost] = useState<HTMLDivElement | null>(null)
   const searchInput = useRef<HTMLInputElement>(null)
-  const native = useMemo(() => nativeHistoryRows(list, workspaces.items, workspaces.archivedSessionIds, roles).map(row => ({ ...row, pendingInteraction: ({ approval: '等待审批', 'plan-review': '等待确认方案', question: '等待回答' } as Record<string, string>)[pendingInteractions?.get(row.nativeId)?.kind] })), [list, workspaces, roles, pendingInteractions])
+  const nativeSaved = useMemo(() => nativeHistoryRows(list, workspaces.items, [], roles), [list, workspaces, roles])
+  const native = useMemo(() => nativeSaved.filter(row => !workspaces.archivedSessionIds.includes(row.nativeId)).map(row => ({ ...row, pendingInteraction: ({ approval: '等待审批', 'plan-review': '等待确认方案', question: '等待回答' } as Record<string, string>)[pendingInteractions?.get(row.nativeId)?.kind] })), [nativeSaved, workspaces, pendingInteractions])
   const all = useMemo(() => [...rows, ...native], [rows, native])
   const assistantRows = all.filter(row => row.role !== 'chat')
   const current = activeId ?? (list.current ? `session:${list.current}` : null)
   const selectedRole = all.find(row => row.id === current)?.role
-  useEffect(() => { if (ready && (!list.phase || list.phase === 'ready')) setNumbers(previous => allocateHistoryNumbers(previous, all)) }, [all, ready, list.phase])
+  // Archive hides a row without deleting it; numbering must include the full saved inventory.
+  useEffect(() => { if (ready && capabilities.data && (!list.phase || list.phase === 'ready')) setNumbers(previous => allocateHistoryNumbers(previous, [...rows, ...nativeSaved])) }, [rows, nativeSaved, ready, list.phase, capabilities.data])
   useEffect(() => { saveHistoryStorage(NUMBERS, numbers) }, [numbers])
   useEffect(() => { saveHistoryStorage(PREFS, preferences) }, [preferences])
   useEffect(() => {
@@ -63,8 +65,8 @@ export function AssistantHistory({ Original, browser, rows, activeId, onOpen, on
   const rename = async (id: string, name: string) => { const row = all.find(r => r.id === id); if (row?.nativeId) await browser.renameSession(row.nativeId, name); else await onRename(id, name) }
   const remove = (id: string) => { const row = all.find(r => r.id === id); if (row?.nativeId) window.dispatchEvent(new CustomEvent(REMOVE_SESSION_EVENT, { detail: { id: row.nativeId, title: row.title } })); else onRemove(id) }
   const renderRows = (items: ConversationHistoryRow[], search = false) => <LocalConversationRows host={null} label="" rows={items} activeId={current} onOpen={open} onRename={rename} onRemove={remove} inline hideTypeBadge query={search ? query : ''} onFork={browser.forkSession} onArchive={browser.archiveSession}
-    rowTitle={title} rowLeading={row => !search && preferences.sort === 'number' && row.kind !== 'draft' ? <span className={s.number}>{numbers[row.role]?.[row.id]?.toString().padStart(3, '0') ?? '—'}</span> : null}
-    rowMeta={row => search ? [historyRole(row.role, roles, all).name, row.workspace, shortHistoryTime(row.updatedAt)].filter(Boolean).join(' · ') : row.kind === 'draft' ? row.draft.trim() ? '草稿' : '临时' : preferences.sort === 'time' ? shortHistoryTime(row.updatedAt) : ''} searchResult={search}/>
+    stackedMeta rowTitle={title} rowLeading={row => row.kind !== 'draft' ? <span className={s.number}>{numbers[row.role]?.[row.id] ? `${numbers[row.role][row.id]}.` : '—'}</span> : null}
+    rowMeta={row => search ? [historyRole(row.role, roles, all).name, row.workspace, shortHistoryTime(row.updatedAt)].filter(Boolean).join(' · ') : row.kind === 'draft' ? row.draft.trim() ? '草稿' : '临时' : shortHistoryTime(row.updatedAt)} searchResult={search}/>
   const ungroupedLabel = browser.t('actions.newSession.aria', { name: '自由聊天' })
   if (browser.wide === false) return <Original {...browser}/>
   return <section className={s.root} aria-label="对话导航" data-history-ready={ready && list.phase === 'ready' && Boolean(capabilities.data)}>

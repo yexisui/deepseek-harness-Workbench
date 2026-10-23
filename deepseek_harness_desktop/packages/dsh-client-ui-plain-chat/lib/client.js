@@ -22479,7 +22479,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/LocalConversationRows.module.css.mjs
-		const css$2 = ".z58OfW_rows{flex-direction:column;gap:2px;display:flex}.z58OfW_fallbackHeading{color:var(--dsw-alias-label-secondary,#65769a);padding:12px 16px 6px;font-size:12px;font-weight:600}.z58OfW_row{min-width:0;height:32px;color:var(--dsw-alias-label-primary,#202938);border-radius:8px;align-items:center;margin:0 8px;display:flex}.z58OfW_row:hover,.z58OfW_active{background:var(--dsw-alias-interactive-bg-hover,#e9eff9)}.z58OfW_open{min-width:0;height:100%;color:inherit;text-align:left;cursor:pointer;font:inherit;background:0 0;border:0;flex:1;align-items:center;gap:4px;padding:0 4px 0 24px;display:flex}.z58OfW_icon{width:16px;color:var(--dsw-alias-label-tertiary,#8995aa);flex:none;font-size:15px}.z58OfW_title{text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;font-size:14px;line-height:20px;overflow:hidden}.z58OfW_open small{color:var(--dsw-alias-label-tertiary,#8995aa);flex:none;font-size:11px}.z58OfW_menuTrigger{width:25px;height:25px;color:var(--dsw-alias-label-tertiary,#8995aa);cursor:pointer;opacity:0;background:0 0;border:0;border-radius:6px;place-items:center;margin-right:3px;display:grid}.z58OfW_row:hover .z58OfW_menuTrigger,.z58OfW_menuTrigger:focus-visible,.z58OfW_menuTrigger[aria-expanded=true]{opacity:1}.z58OfW_menuTrigger:hover{background:color-mix(in srgb,var(--dsw-alias-label-tertiary,#8995aa) 12%,transparent)}.z58OfW_open:focus-visible,.z58OfW_menuTrigger:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#4e6bb3);outline-offset:-2px}.z58OfW_menu{z-index:10000;box-sizing:border-box;border:1px solid var(--dsw-alias-border-default,#d7deeb);background:var(--dsw-alias-bg-surface,#fff);border-radius:12px;min-width:214px;padding:6px;position:fixed;box-shadow:0 8px 24px #16243c24}.z58OfW_menu button{width:100%;color:var(--dsw-alias-label-primary,#202938);text-align:left;cursor:pointer;font:inherit;background:0 0;border:0;border-radius:7px;align-items:center;gap:12px;padding:9px 10px;font-size:13px;display:flex}.z58OfW_menu button svg{color:var(--dsw-alias-label-secondary,#65769a);flex:none}.z58OfW_menu button:hover,.z58OfW_menu button:focus-visible{background:var(--dsw-alias-interactive-bg-hover,#e9eff9);outline:none}@media (hover:none){.z58OfW_menuTrigger{opacity:1}}.z58OfW_renameForm{gap:16px;padding:20px;display:grid}.z58OfW_renameForm label{gap:8px;display:grid}.z58OfW_renameForm input{box-sizing:border-box;border:1px solid var(--dsw-alias-border-default,#d7deeb);width:100%;color:inherit;background:var(--dsw-alias-bg-surface,#fff);font:inherit;border-radius:8px;padding:10px 12px}.z58OfW_renameForm>div{justify-content:flex-end;gap:8px;display:flex}.z58OfW_renameForm button{border:1px solid var(--dsw-alias-border-default,#d7deeb);background:var(--dsw-alias-bg-surface,#fff);color:inherit;cursor:pointer;font:inherit;border-radius:8px;padding:8px 18px}.z58OfW_renameForm button[type=submit]{background:var(--dsw-alias-state-business-primary,#4e6bb3);color:#fff}.z58OfW_renameForm button:disabled{opacity:.5;cursor:default}.z58OfW_renameForm p{color:var(--dsw-alias-state-error-primary,#b54747);margin:0}.z58OfW_text{flex-direction:column;flex:1;gap:2px;min-width:0;display:flex}.z58OfW_text .z58OfW_title{flex:none}.z58OfW_searchResult{height:48px}.z58OfW_searchResult .z58OfW_open{gap:7px;padding-left:8px}.z58OfW_text small{text-overflow:ellipsis;white-space:nowrap;font-size:11px;overflow:hidden}.z58OfW_text mark{background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4e6bb3) 18%,transparent);color:inherit}.z58OfW_running,.z58OfW_completed{background:var(--dsw-alias-state-business-primary,#6683bd);border-radius:50%;flex:none;width:6px;height:6px}.z58OfW_completed{background:#38a579}";
+		const css$2 = ".z58OfW_rows{flex-direction:column;gap:2px;display:flex}.z58OfW_fallbackHeading{color:var(--dsw-alias-label-secondary,#65769a);padding:12px 16px 6px;font-size:12px;font-weight:600}.z58OfW_row{min-width:0;height:32px;color:var(--dsw-alias-label-primary,#202938);border-radius:8px;align-items:center;margin:0 8px;display:flex}.z58OfW_row:hover,.z58OfW_active{background:var(--dsw-alias-interactive-bg-hover,#e9eff9)}.z58OfW_open{min-width:0;height:100%;color:inherit;text-align:left;cursor:pointer;font:inherit;background:0 0;border:0;flex:1;align-items:center;gap:4px;padding:0 4px 0 24px;display:flex}.z58OfW_icon{width:16px;color:var(--dsw-alias-label-tertiary,#8995aa);flex:none;font-size:15px}.z58OfW_title{text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;font-size:14px;line-height:20px;overflow:hidden}.z58OfW_open small{color:var(--dsw-alias-label-tertiary,#8995aa);flex:none;font-size:11px}.z58OfW_menuTrigger{width:25px;height:25px;color:var(--dsw-alias-label-tertiary,#8995aa);cursor:pointer;opacity:0;background:0 0;border:0;border-radius:6px;place-items:center;margin-right:3px;display:grid}.z58OfW_row:hover .z58OfW_menuTrigger,.z58OfW_menuTrigger:focus-visible,.z58OfW_menuTrigger[aria-expanded=true]{opacity:1}.z58OfW_menuTrigger:hover{background:color-mix(in srgb,var(--dsw-alias-label-tertiary,#8995aa) 12%,transparent)}.z58OfW_open:focus-visible,.z58OfW_menuTrigger:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#4e6bb3);outline-offset:-2px}.z58OfW_menu{z-index:10000;box-sizing:border-box;border:1px solid var(--dsw-alias-border-default,#d7deeb);background:var(--dsw-alias-bg-surface,#fff);border-radius:12px;min-width:214px;padding:6px;position:fixed;box-shadow:0 8px 24px #16243c24}.z58OfW_menu button{width:100%;color:var(--dsw-alias-label-primary,#202938);text-align:left;cursor:pointer;font:inherit;background:0 0;border:0;border-radius:7px;align-items:center;gap:12px;padding:9px 10px;font-size:13px;display:flex}.z58OfW_menu button svg{color:var(--dsw-alias-label-secondary,#65769a);flex:none}.z58OfW_menu button:hover,.z58OfW_menu button:focus-visible{background:var(--dsw-alias-interactive-bg-hover,#e9eff9);outline:none}@media (hover:none){.z58OfW_menuTrigger{opacity:1}}.z58OfW_renameForm{gap:16px;padding:20px;display:grid}.z58OfW_renameForm label{gap:8px;display:grid}.z58OfW_renameForm input{box-sizing:border-box;border:1px solid var(--dsw-alias-border-default,#d7deeb);width:100%;color:inherit;background:var(--dsw-alias-bg-surface,#fff);font:inherit;border-radius:8px;padding:10px 12px}.z58OfW_renameForm>div{justify-content:flex-end;gap:8px;display:flex}.z58OfW_renameForm button{border:1px solid var(--dsw-alias-border-default,#d7deeb);background:var(--dsw-alias-bg-surface,#fff);color:inherit;cursor:pointer;font:inherit;border-radius:8px;padding:8px 18px}.z58OfW_renameForm button[type=submit]{background:var(--dsw-alias-state-business-primary,#4e6bb3);color:#fff}.z58OfW_renameForm button:disabled{opacity:.5;cursor:default}.z58OfW_renameForm p{color:var(--dsw-alias-state-error-primary,#b54747);margin:0}.z58OfW_text{flex-direction:column;flex:1;gap:2px;min-width:0;display:flex}.z58OfW_titleLine{align-items:center;gap:4px;min-width:0;display:flex}.z58OfW_stackedMeta,.z58OfW_searchResult{height:48px}.z58OfW_searchResult .z58OfW_open{gap:7px;padding-left:8px}.z58OfW_text small{text-overflow:ellipsis;white-space:nowrap;font-size:11px;overflow:hidden}.z58OfW_text mark{background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4e6bb3) 18%,transparent);color:inherit}.z58OfW_running,.z58OfW_completed{background:var(--dsw-alias-state-business-primary,#6683bd);border-radius:50%;flex:none;width:6px;height:6px}.z58OfW_completed{background:#38a579}";
 		const tagId$2 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/LocalConversationRows.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$2) + "]") === null) {
 			const tag = document.createElement("style");
@@ -22501,13 +22501,15 @@ window.__ModuleLoader__.load({
 			"rows": "z58OfW_rows",
 			"running": "z58OfW_running",
 			"searchResult": "z58OfW_searchResult",
+			"stackedMeta": "z58OfW_stackedMeta",
 			"text": "z58OfW_text",
-			"title": "z58OfW_title"
+			"title": "z58OfW_title",
+			"titleLine": "z58OfW_titleLine"
 		};
 		//#endregion
 		//#region src/client/LocalConversationRows.tsx
 		/** Share the native Chat group when present; saved records also need a home in an empty tree. */
-		function LocalConversationRows({ host, label, rows, activeId, onOpen, onRemove, onRename, onLoadMore, loading, error, historyExtras, fallbackLabel = "聊天记录", inline = false, hideTypeBadge = false, rowLeading, rowMeta, rowTitle, searchResult = false, query = "", onFork, onArchive }) {
+		function LocalConversationRows({ host, label, rows, activeId, onOpen, onRemove, onRename, onLoadMore, loading, error, historyExtras, fallbackLabel = "聊天记录", inline = false, hideTypeBadge = false, rowLeading, rowMeta, rowTitle, stackedMeta = false, searchResult = false, query = "", onFork, onArchive }) {
 			const [target, setTarget] = (0, react.useState)(null);
 			const [standalone, setStandalone] = (0, react.useState)(false);
 			const [menu, setMenu] = (0, react.useState)(null);
@@ -22677,7 +22679,7 @@ window.__ModuleLoader__.load({
 						children: fallbackLabel
 					}),
 					rows.map((row) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-						className: `${LocalConversationRows_module_css_default.row} ${searchResult ? LocalConversationRows_module_css_default.searchResult : ""} ${activeId === row.id ? LocalConversationRows_module_css_default.active : ""}`,
+						className: `${LocalConversationRows_module_css_default.row} ${stackedMeta ? LocalConversationRows_module_css_default.stackedMeta : ""} ${searchResult ? LocalConversationRows_module_css_default.searchResult : ""} ${activeId === row.id ? LocalConversationRows_module_css_default.active : ""}`,
 						"data-conversation-id": row.id,
 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
 							type: "button",
@@ -22687,17 +22689,20 @@ window.__ModuleLoader__.load({
 							"aria-current": activeId === row.id ? "page" : void 0,
 							title: rowTitle?.(row),
 							children: [
-								rowLeading?.(row) ?? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+								!stackedMeta && (rowLeading?.(row) ?? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 									className: LocalConversationRows_module_css_default.icon,
 									"aria-hidden": "true",
 									children: row.codeTaskId || row.kind === "developer" ? "⌘" : row.kind === "requirements" ? "▧" : row.kind === "demo" ? "▤" : "◌"
-								}),
+								})),
 								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
 									className: LocalConversationRows_module_css_default.text,
-									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										className: LocalConversationRows_module_css_default.title,
-										children: highlight(row.title)
-									}), searchResult && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: rowMeta?.(row) })]
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("span", {
+										className: LocalConversationRows_module_css_default.titleLine,
+										children: [stackedMeta && rowLeading?.(row), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+											className: LocalConversationRows_module_css_default.title,
+											children: highlight(row.title)
+										})]
+									}), (searchResult || stackedMeta) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: rowMeta?.(row) })]
 								}),
 								row.pendingInteraction && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", {
 									role: "status",
@@ -22712,7 +22717,7 @@ window.__ModuleLoader__.load({
 									className: LocalConversationRows_module_css_default.completed,
 									"aria-label": "执行完成"
 								}),
-								!searchResult && (rowMeta ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: rowMeta(row) }) : !hideTypeBadge && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: row.codeTaskId ? "代码" : row.searchId ? "搜索" : row.recordingId ? "录音" : row.kind === "developer" ? "开发" : row.kind === "requirements" ? "需求" : row.kind === "demo" ? "会议" : row.draft.trim() ? "草稿" : "临时" }))
+								!searchResult && !stackedMeta && (rowMeta ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: rowMeta(row) }) : !hideTypeBadge && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: row.codeTaskId ? "代码" : row.searchId ? "搜索" : row.recordingId ? "录音" : row.kind === "developer" ? "开发" : row.kind === "requirements" ? "需求" : row.kind === "demo" ? "会议" : row.draft.trim() ? "草稿" : "临时" }))
 							]
 						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
 							type: "button",
@@ -23149,22 +23154,24 @@ window.__ModuleLoader__.load({
 				}];
 			});
 		}
-		/** Allocate once after all paginated sources arrive; gaps remain after removal. */
+		/** Reconcile the complete saved history, then append after the highest remaining number. */
 		function allocateHistoryNumbers(previous, rows) {
-			let next = previous;
-			for (const row of [...rows].filter((r) => r.kind !== "draft").sort((a, b) => (a.createdAt ?? Infinity) - (b.createdAt ?? Infinity) || a.id.localeCompare(b.id))) {
-				if (Number.isSafeInteger(next[row.role]?.[row.id]) && next[row.role][row.id] > 0) continue;
-				const group = next[row.role] ?? {};
-				const number = Math.max(0, ...Object.values(group).filter((n) => Number.isSafeInteger(n) && n > 0)) + 1;
-				next = {
-					...next,
-					[row.role]: {
-						...group,
-						[row.id]: number
-					}
-				};
+			const saved = rows.filter((row) => row.kind !== "draft");
+			const next = {};
+			const maximum = /* @__PURE__ */ new Map();
+			for (const row of saved) {
+				const number = previous[row.role]?.[row.id];
+				if (!Number.isSafeInteger(number) || number <= 0) continue;
+				(next[row.role] ??= {})[row.id] = number;
+				maximum.set(row.role, Math.max(maximum.get(row.role) ?? 0, number));
 			}
-			return next;
+			for (const row of [...saved].sort((a, b) => (a.createdAt ?? Infinity) - (b.createdAt ?? Infinity) || a.id.localeCompare(b.id))) {
+				if (next[row.role]?.[row.id]) continue;
+				const number = (maximum.get(row.role) ?? 0) + 1;
+				(next[row.role] ??= {})[row.id] = number;
+				maximum.set(row.role, number);
+			}
+			return Object.keys(previous).length === Object.keys(next).length && Object.entries(next).every(([role, group]) => Object.keys(previous[role] ?? {}).length === Object.keys(group).length && Object.entries(group).every(([id, number]) => previous[role]?.[id] === number)) ? previous : next;
 		}
 		function sortHistory(rows, preferences, ledger) {
 			const value = (r) => preferences.sort === "number" ? ledger[r.role]?.[r.id] : r.updatedAt;
@@ -23189,18 +23196,19 @@ window.__ModuleLoader__.load({
 		function shortHistoryTime(time) {
 			if (!Number.isFinite(time)) return "";
 			const date = new Date(time), now = /* @__PURE__ */ new Date();
-			return date.toDateString() === now.toDateString() ? date.toLocaleTimeString("zh-CN", {
-				hour: "2-digit",
-				minute: "2-digit"
-			}) : date.toLocaleDateString("zh-CN", {
+			return `${date.toLocaleDateString("zh-CN", {
 				...date.getFullYear() === now.getFullYear() ? {} : { year: "numeric" },
 				month: "2-digit",
 				day: "2-digit"
-			});
+			})} ${date.toLocaleTimeString("zh-CN", {
+				hour: "2-digit",
+				minute: "2-digit",
+				hour12: false
+			})}`;
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/AssistantHistory.module.css.mjs
-		const css = ".QHAfFW_root{min-width:0;min-height:0;color:var(--dsw-alias-label-primary,#202938);flex-direction:column;flex:1;display:flex}.QHAfFW_search{border:1px solid var(--dsw-alias-border-l4,#d7deeb);min-height:34px;color:var(--dsw-alias-label-tertiary,#8995aa);background:var(--dsw-alias-button-elevated-fill,#ffffff85);border-radius:9px;flex:none;align-items:center;gap:8px;margin:8px 12px 10px;padding:0 10px;display:flex}.QHAfFW_search:focus-within{border-color:var(--dsw-alias-state-business-primary,#6683bd)}.QHAfFW_search input{width:100%;min-width:0;color:var(--dsw-alias-label-primary,#202938);font:inherit;background:0 0;border:0;outline:0;padding:7px 0;font-size:13px}.QHAfFW_search input::placeholder{color:var(--dsw-alias-label-tertiary,#8995aa)}.QHAfFW_search input:focus-visible{box-shadow:none;outline:none}.QHAfFW_search>svg{flex:none}.QHAfFW_search button,.QHAfFW_actions button,.QHAfFW_add{width:26px;height:26px;color:var(--dsw-alias-label-secondary,#65769a);cursor:pointer;background:0 0;border:0;border-radius:6px;flex:none;place-items:center;display:grid}.QHAfFW_search button:hover,.QHAfFW_actions button:hover,.QHAfFW_add:hover{background:var(--dsw-alias-interactive-bg-hover,#e9eff9)}.QHAfFW_scroll{scrollbar-width:thin;flex:1;min-height:0;padding-bottom:12px;overflow:auto}.QHAfFW_normal[hidden]{display:none}.QHAfFW_workspace>div{flex:none;min-height:0;overflow:visible}.QHAfFW_workspace [class*=_treeBody],.QHAfFW_workspace [class*=_list]{flex:none;max-height:none;overflow:visible}.QHAfFW_workspace [class*=_searchSlot],.QHAfFW_workspace [class*=_fade]{display:none}.QHAfFW_workspace [class*=_sectionLabel]{margin-right:auto}.QHAfFW_workspace [class*=_sectionHeader]{padding-left:12px}.QHAfFW_heading{color:var(--dsw-alias-label-tertiary,#8995aa);justify-content:space-between;align-items:center;gap:8px;margin:12px 12px 6px;font-size:13px;display:flex}.QHAfFW_actions{gap:2px;display:flex}.QHAfFW_group{margin:2px 0 6px}.QHAfFW_groupHeader{border-radius:8px;align-items:center;min-width:0;margin:0 8px;display:flex}.QHAfFW_groupHeader:hover{background:var(--dsw-alias-interactive-bg-hover,#e9eff9)}.QHAfFW_groupToggle{min-width:0;color:inherit;font:inherit;cursor:pointer;text-align:left;background:0 0;border:0;border-radius:8px;flex:1;align-items:center;gap:6px;padding:7px 6px;font-size:14px;display:flex}.QHAfFW_groupName{text-overflow:ellipsis;white-space:nowrap;min-width:0;overflow:hidden}.QHAfFW_groupToggle small{color:var(--dsw-alias-label-tertiary,#8995aa);margin-left:auto;font-size:11px}.QHAfFW_chevron{color:var(--dsw-alias-label-tertiary,#8995aa);transition:transform .15s;display:flex}.QHAfFW_expanded{transform:rotate(90deg)}.QHAfFW_roleIcon{flex:none;width:18px;height:18px}.QHAfFW_add{opacity:0}.QHAfFW_groupHeader:hover .QHAfFW_add,.QHAfFW_add:focus-visible{opacity:1}.QHAfFW_number{color:var(--dsw-alias-label-tertiary,#8995aa);font-variant-numeric:tabular-nums;min-width:25px;font-size:11px}.QHAfFW_root button:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#6683bd);outline-offset:-2px}.QHAfFW_empty,.QHAfFW_resultCount,.QHAfFW_status{color:var(--dsw-alias-label-secondary,#65769a);margin:6px 16px;font-size:12px;line-height:1.6}.QHAfFW_status p{margin:4px 0}.QHAfFW_status button{color:inherit;cursor:pointer;background:0 0;border:0;text-decoration:underline}@media (hover:none){.QHAfFW_add{opacity:1}}@media (prefers-reduced-motion:reduce){.QHAfFW_chevron{transition:none}}";
+		const css = ".QHAfFW_root{min-width:0;min-height:0;color:var(--dsw-alias-label-primary,#202938);flex-direction:column;flex:1;display:flex}.QHAfFW_search{border:1px solid var(--dsw-alias-border-l4,#d7deeb);min-height:34px;color:var(--dsw-alias-label-tertiary,#8995aa);background:var(--dsw-alias-button-elevated-fill,#ffffff85);border-radius:9px;flex:none;align-items:center;gap:8px;margin:8px 12px 10px;padding:0 10px;display:flex}.QHAfFW_search:focus-within{border-color:var(--dsw-alias-state-business-primary,#6683bd)}.QHAfFW_search input{width:100%;min-width:0;color:var(--dsw-alias-label-primary,#202938);font:inherit;background:0 0;border:0;outline:0;padding:7px 0;font-size:13px}.QHAfFW_search input::placeholder{color:var(--dsw-alias-label-tertiary,#8995aa)}.QHAfFW_search input:focus-visible{box-shadow:none;outline:none}.QHAfFW_search>svg{flex:none}.QHAfFW_search button,.QHAfFW_actions button,.QHAfFW_add{width:26px;height:26px;color:var(--dsw-alias-label-secondary,#65769a);cursor:pointer;background:0 0;border:0;border-radius:6px;flex:none;place-items:center;display:grid}.QHAfFW_search button:hover,.QHAfFW_actions button:hover,.QHAfFW_add:hover{background:var(--dsw-alias-interactive-bg-hover,#e9eff9)}.QHAfFW_scroll{scrollbar-width:thin;flex:1;min-height:0;padding-bottom:12px;overflow:auto}.QHAfFW_normal[hidden]{display:none}.QHAfFW_workspace>div{flex:none;min-height:0;overflow:visible}.QHAfFW_workspace [class*=_treeBody],.QHAfFW_workspace [class*=_list]{flex:none;max-height:none;overflow:visible}.QHAfFW_workspace [class*=_searchSlot],.QHAfFW_workspace [class*=_fade]{display:none}.QHAfFW_workspace [class*=_sectionLabel]{margin-right:auto}.QHAfFW_workspace [class*=_sectionHeader]{padding-left:12px}.QHAfFW_heading{color:var(--dsw-alias-label-tertiary,#8995aa);justify-content:space-between;align-items:center;gap:8px;margin:12px 12px 6px;font-size:13px;display:flex}.QHAfFW_actions{gap:2px;display:flex}.QHAfFW_group{margin:2px 0 6px}.QHAfFW_groupHeader{border-radius:8px;align-items:center;min-width:0;margin:0 8px;display:flex}.QHAfFW_groupHeader:hover{background:var(--dsw-alias-interactive-bg-hover,#e9eff9)}.QHAfFW_groupToggle{min-width:0;color:inherit;font:inherit;cursor:pointer;text-align:left;background:0 0;border:0;border-radius:8px;flex:1;align-items:center;gap:6px;padding:7px 6px;font-size:14px;display:flex}.QHAfFW_groupName{text-overflow:ellipsis;white-space:nowrap;min-width:0;overflow:hidden}.QHAfFW_groupToggle small{color:var(--dsw-alias-label-tertiary,#8995aa);margin-left:auto;font-size:11px}.QHAfFW_chevron{color:var(--dsw-alias-label-tertiary,#8995aa);transition:transform .15s;display:flex}.QHAfFW_expanded{transform:rotate(90deg)}.QHAfFW_roleIcon{flex:none;width:18px;height:18px}.QHAfFW_add{opacity:0}.QHAfFW_groupHeader:hover .QHAfFW_add,.QHAfFW_add:focus-visible{opacity:1}.QHAfFW_number{color:var(--dsw-alias-label-secondary,#65769a);font-variant-numeric:tabular-nums;flex:none;font-size:13px;line-height:20px}.QHAfFW_root button:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary,#6683bd);outline-offset:-2px}.QHAfFW_empty,.QHAfFW_resultCount,.QHAfFW_status{color:var(--dsw-alias-label-secondary,#65769a);margin:6px 16px;font-size:12px;line-height:1.6}.QHAfFW_status p{margin:4px 0}.QHAfFW_status button{color:inherit;cursor:pointer;background:0 0;border:0;text-decoration:underline}@media (hover:none){.QHAfFW_add{opacity:1}}@media (prefers-reduced-motion:reduce){.QHAfFW_chevron{transition:none}}";
 		const tagId = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/AssistantHistory.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 			const tag = document.createElement("style");
@@ -23281,7 +23289,12 @@ window.__ModuleLoader__.load({
 			const [numbers, setNumbers] = (0, react.useState)(() => readHistoryStorage(NUMBERS, {}));
 			const [host, setHost] = (0, react.useState)(null);
 			const searchInput = (0, react.useRef)(null);
-			const native = (0, react.useMemo)(() => nativeHistoryRows(list, workspaces.items, workspaces.archivedSessionIds, roles).map((row) => ({
+			const nativeSaved = (0, react.useMemo)(() => nativeHistoryRows(list, workspaces.items, [], roles), [
+				list,
+				workspaces,
+				roles
+			]);
+			const native = (0, react.useMemo)(() => nativeSaved.filter((row) => !workspaces.archivedSessionIds.includes(row.nativeId)).map((row) => ({
 				...row,
 				pendingInteraction: {
 					approval: "等待审批",
@@ -23289,9 +23302,8 @@ window.__ModuleLoader__.load({
 					question: "等待回答"
 				}[pendingInteractions?.get(row.nativeId)?.kind]
 			})), [
-				list,
+				nativeSaved,
 				workspaces,
-				roles,
 				pendingInteractions
 			]);
 			const all = (0, react.useMemo)(() => [...rows, ...native], [rows, native]);
@@ -23299,11 +23311,13 @@ window.__ModuleLoader__.load({
 			const current = activeId ?? (list.current ? `session:${list.current}` : null);
 			const selectedRole = all.find((row) => row.id === current)?.role;
 			(0, react.useEffect)(() => {
-				if (ready && (!list.phase || list.phase === "ready")) setNumbers((previous) => allocateHistoryNumbers(previous, all));
+				if (ready && capabilities.data && (!list.phase || list.phase === "ready")) setNumbers((previous) => allocateHistoryNumbers(previous, [...rows, ...nativeSaved]));
 			}, [
-				all,
+				rows,
+				nativeSaved,
 				ready,
-				list.phase
+				list.phase,
+				capabilities.data
 			]);
 			(0, react.useEffect)(() => {
 				saveHistoryStorage(NUMBERS, numbers);
@@ -23408,16 +23422,17 @@ window.__ModuleLoader__.load({
 				query: search ? query : "",
 				onFork: browser.forkSession,
 				onArchive: browser.archiveSession,
+				stackedMeta: true,
 				rowTitle: title,
-				rowLeading: (row) => !search && preferences.sort === "number" && row.kind !== "draft" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+				rowLeading: (row) => row.kind !== "draft" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 					className: AssistantHistory_module_css_default.number,
-					children: numbers[row.role]?.[row.id]?.toString().padStart(3, "0") ?? "—"
+					children: numbers[row.role]?.[row.id] ? `${numbers[row.role][row.id]}.` : "—"
 				}) : null,
 				rowMeta: (row) => search ? [
 					historyRole(row.role, roles, all).name,
 					row.workspace,
 					shortHistoryTime(row.updatedAt)
-				].filter(Boolean).join(" · ") : row.kind === "draft" ? row.draft.trim() ? "草稿" : "临时" : preferences.sort === "time" ? shortHistoryTime(row.updatedAt) : "",
+				].filter(Boolean).join(" · ") : row.kind === "draft" ? row.draft.trim() ? "草稿" : "临时" : shortHistoryTime(row.updatedAt),
 				searchResult: search
 			});
 			const ungroupedLabel = browser.t("actions.newSession.aria", { name: "自由聊天" });

@@ -53,3 +53,39 @@ it('switches sort modes and directions, persists them, and keeps native menu act
   await act(async () => { const button = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')).find(el => el.textContent === '归档'); button!.click() })
   expect(app.archive).toHaveBeenCalledWith('native')
 })
+
+it('keeps prefixes and full timestamps in both sort modes, search and after remount', async () => {
+  const app = setup(), time = new Date(new Date().getFullYear(), 9, 23, 14, 35).getTime()
+  app.props.rows[0].updatedAt = time
+  await act(async () => root.render(<AssistantHistory {...app.props}/>))
+  const local = () => container.querySelector('[data-assistant-group] [data-conversation-id="local"] button')!
+  expect(local().textContent).toBe('1.录音摘要10/23 14:35')
+  expect(local().querySelector('small')?.parentElement?.textContent).toContain('录音摘要')
+  await click('button[aria-label="排序方式：时间"]')
+  expect(local().textContent).toBe('1.录音摘要10/23 14:35')
+  await input('录音摘要')
+  expect(container.querySelector('[aria-label="对话搜索结果"] [data-conversation-id="local"] button')?.textContent).toBe('1.录音摘要测试会议助手 · 10/23 14:35')
+  await act(async () => root.unmount()); root = createRoot(container)
+  await act(async () => root.render(<AssistantHistory {...app.props}/>))
+  expect(local().textContent).toBe('1.录音摘要10/23 14:35')
+})
+it('waits for complete history before reconciling deleted numbers and ignores search filtering', async () => {
+  const app = setup(), numberKey = 'workbench-sidebar-numbers-v1'
+  const original = { 'test-meeting': { local: 1, 'session:native': 3, deleted: 4 } }
+  localStorage.setItem(numberKey, JSON.stringify(original))
+  await act(async () => root.render(<AssistantHistory {...app.props} ready={false}/>))
+  expect(JSON.parse(localStorage.getItem(numberKey)!)).toEqual(original)
+  await act(async () => root.render(<AssistantHistory {...app.props}/>))
+  expect(JSON.parse(localStorage.getItem(numberKey)!)['test-meeting']).toEqual({ local: 1, 'session:native': 3 })
+  await input('录音摘要')
+  await act(async () => root.render(<AssistantHistory {...app.props} rows={[...app.props.rows, { ...app.props.rows[0], id: 'new', title: '新记录', createdAt: 2 }]}/>))
+  expect(JSON.parse(localStorage.getItem(numberKey)!)['test-meeting']).toEqual({ local: 1, 'session:native': 3, new: 4 })
+})
+it('counts archived native sessions as existing records when allocating the next number', async () => {
+  const app = setup(), numberKey = 'workbench-sidebar-numbers-v1'
+  localStorage.setItem(numberKey, JSON.stringify({ 'test-meeting': { local: 1, 'session:native': 4 } }))
+  app.props.browser.useWorkspaces = fn => fn({ items: [], archivedSessionIds: ['native'] })
+  await act(async () => root.render(<AssistantHistory {...app.props} rows={[...app.props.rows, { ...app.props.rows[0], id: 'new', title: '新记录', createdAt: 2 }]}/>))
+  expect(container.querySelector('[data-assistant-group] [data-conversation-id="session:native"]')).toBeNull()
+  expect(JSON.parse(localStorage.getItem(numberKey)!)['test-meeting']).toEqual({ local: 1, 'session:native': 4, new: 5 })
+})

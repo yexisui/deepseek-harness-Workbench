@@ -6,8 +6,8 @@ import { Modal } from './PreviewModal.tsx'
 import s from './LocalConversationRows.module.css'
 
 /** Share the native Chat group when present; saved records also need a home in an empty tree. */
-export function LocalConversationRows({ host, label, rows, activeId, onOpen, onRemove, onRename, onLoadMore, loading, error, historyExtras, fallbackLabel = '聊天记录', inline = false, hideTypeBadge = false, rowLeading, rowMeta, rowTitle, searchResult = false, query = '', onFork, onArchive }: {
-  inline?: boolean; hideTypeBadge?: boolean; rowLeading?: (row: ConversationHistoryRow) => ReactNode; rowMeta?: (row: ConversationHistoryRow) => ReactNode; rowTitle?: (row: ConversationHistoryRow) => string; searchResult?: boolean; query?: string; onFork?: (id: string) => void; onArchive?: (id: string) => Promise<void>
+export function LocalConversationRows({ host, label, rows, activeId, onOpen, onRemove, onRename, onLoadMore, loading, error, historyExtras, fallbackLabel = '聊天记录', inline = false, hideTypeBadge = false, rowLeading, rowMeta, rowTitle, stackedMeta = false, searchResult = false, query = '', onFork, onArchive }: {
+  stackedMeta?: boolean; inline?: boolean; hideTypeBadge?: boolean; rowLeading?: (row: ConversationHistoryRow) => ReactNode; rowMeta?: (row: ConversationHistoryRow) => ReactNode; rowTitle?: (row: ConversationHistoryRow) => string; searchResult?: boolean; query?: string; onFork?: (id: string) => void; onArchive?: (id: string) => Promise<void>
   historyExtras?: ReactNode; host: HTMLDivElement | null; label: string; rows: ConversationHistoryRow[]; activeId: string | null
   onOpen: (id: string) => void; onRemove: (id: string) => void; onRename?: (id: string, title: string) => Promise<void>; onLoadMore?: () => void; loading?: boolean; error?: string; fallbackLabel?: string
 }) {
@@ -123,13 +123,13 @@ export function LocalConversationRows({ host, label, rows, activeId, onOpen, onR
   const content = <div className={s.rows} data-local-conversations="true">
     {actionError && <p role="alert">{actionError}</p>}
     {standalone && <div className={s.fallbackHeading}>{fallbackLabel}</div>}
-    {rows.map(row => <div className={`${s.row} ${searchResult ? s.searchResult : ''} ${activeId === row.id ? s.active : ''}`} key={row.id} data-conversation-id={row.id}>
+    {rows.map(row => <div className={`${s.row} ${stackedMeta ? s.stackedMeta : ''} ${searchResult ? s.searchResult : ''} ${activeId === row.id ? s.active : ''}`} key={row.id} data-conversation-id={row.id}>
       <button type="button" className={s.open} onClick={() => onOpen(row.id)} aria-label={`打开本地会话：${row.title}`} aria-current={activeId === row.id ? 'page' : undefined} title={rowTitle?.(row)}>
-        {rowLeading?.(row) ?? <span className={s.icon} aria-hidden="true">{row.codeTaskId || row.kind === 'developer' ? '⌘' : row.kind === 'requirements' ? '▧' : row.kind === 'demo' ? '▤' : '◌'}</span>}
-        <span className={s.text}><span className={s.title}>{highlight(row.title)}</span>{searchResult && <small>{rowMeta?.(row)}</small>}</span>
+        {!stackedMeta && (rowLeading?.(row) ?? <span className={s.icon} aria-hidden="true">{row.codeTaskId || row.kind === 'developer' ? '⌘' : row.kind === 'requirements' ? '▧' : row.kind === 'demo' ? '▤' : '◌'}</span>)}
+        <span className={s.text}><span className={s.titleLine}>{stackedMeta && rowLeading?.(row)}<span className={s.title}>{highlight(row.title)}</span></span>{(searchResult || stackedMeta) && <small>{rowMeta?.(row)}</small>}</span>
         {row.pendingInteraction && <small role="status">{row.pendingInteraction}</small>}
         {row.running && <span className={s.running} role="status" aria-label="正在执行"/>}{row.completed && !row.running && <span className={s.completed} aria-label="执行完成"/>}
-        {!searchResult && (rowMeta ? <small>{rowMeta(row)}</small> : !hideTypeBadge && <small>{row.codeTaskId ? '代码' : row.searchId ? '搜索' : row.recordingId ? '录音' : row.kind === 'developer' ? '开发' : row.kind === 'requirements' ? '需求' : row.kind === 'demo' ? '会议' : row.draft.trim() ? '草稿' : '临时'}</small>)}
+        {!searchResult && !stackedMeta && (rowMeta ? <small>{rowMeta(row)}</small> : !hideTypeBadge && <small>{row.codeTaskId ? '代码' : row.searchId ? '搜索' : row.recordingId ? '录音' : row.kind === 'developer' ? '开发' : row.kind === 'requirements' ? '需求' : row.kind === 'demo' ? '会议' : row.draft.trim() ? '草稿' : '临时'}</small>)}
 
       </button>
       <button type="button" className={s.menuTrigger} onClick={event => openMenu(row.id, event.currentTarget)} aria-label={`会话操作：${row.title}`} aria-haspopup="menu" aria-expanded={menu?.id === row.id}>

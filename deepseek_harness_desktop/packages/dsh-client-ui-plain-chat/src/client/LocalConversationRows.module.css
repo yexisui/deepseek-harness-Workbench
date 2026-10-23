@@ -26,8 +26,8 @@
 .renameForm p { margin:0; color:var(--dsw-alias-state-error-primary,#b54747); }
 
 .text { display:flex; flex-direction:column; flex:1; min-width:0; gap:2px; }
-.text .title { flex:none; }
-.searchResult { height:48px; }
+.titleLine { display:flex; align-items:center; gap:4px; min-width:0; }
+.stackedMeta,.searchResult { height:48px; }
 .searchResult .open { padding-left:8px; gap:7px; }
 .text small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
 .text mark { background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4e6bb3) 18%,transparent); color:inherit; }

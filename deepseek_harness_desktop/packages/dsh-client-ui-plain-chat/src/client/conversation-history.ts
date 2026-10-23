@@ -31,16 +31,27 @@ export function nativeHistoryRows(list: any, workspaces: any[], archived: readon
     return [{ id: `session:${id}`, nativeId: id, title: row.title || (row.blank ? '新会话' : row.displayTitle) || '未命名对话', role: roleForPreset(row.projectionValues?.agentPreset, roles), kind: row.blank ? 'draft' as const : 'demo' as const, draft: '', updatedAt: row.updatedAt, workspace: workspace?.title ?? workspace?.path?.split(/[\\/]/).pop(), running: row.running, completed: row.completed }]
   })
 }
-/** Allocate once after all paginated sources arrive; gaps remain after removal. */
+/** Reconcile the complete saved history, then append after the highest remaining number. */
 export function allocateHistoryNumbers(previous: NumberLedger, rows: ConversationHistoryRow[]): NumberLedger {
-  let next = previous
-  for (const row of [...rows].filter(r => r.kind !== 'draft').sort((a, b) => (a.createdAt ?? Infinity) - (b.createdAt ?? Infinity) || a.id.localeCompare(b.id))) {
-    if (Number.isSafeInteger(next[row.role]?.[row.id]) && next[row.role][row.id] > 0) continue
-    const group = next[row.role] ?? {}
-    const number = Math.max(0, ...Object.values(group).filter(n => Number.isSafeInteger(n) && n > 0)) + 1
-    next = { ...next, [row.role]: { ...group, [row.id]: number } }
+  const saved = rows.filter(row => row.kind !== 'draft')
+  const next: NumberLedger = {}
+  const maximum = new Map<string, number>()
+  // Keep existing identities before allocating any new rows. Missing rows have been deleted.
+  for (const row of saved) {
+    const number = previous[row.role]?.[row.id]
+    if (!Number.isSafeInteger(number) || number <= 0) continue
+    ;(next[row.role] ??= {})[row.id] = number
+    maximum.set(row.role, Math.max(maximum.get(row.role) ?? 0, number))
   }
-  return next
+  for (const row of [...saved].sort((a, b) => (a.createdAt ?? Infinity) - (b.createdAt ?? Infinity) || a.id.localeCompare(b.id))) {
+    if (next[row.role]?.[row.id]) continue
+    const number = (maximum.get(row.role) ?? 0) + 1
+    ;(next[row.role] ??= {})[row.id] = number
+    maximum.set(row.role, number)
+  }
+  const unchanged = Object.keys(previous).length === Object.keys(next).length && Object.entries(next).every(([role, group]) =>
+    Object.keys(previous[role] ?? {}).length === Object.keys(group).length && Object.entries(group).every(([id, number]) => previous[role]?.[id] === number))
+  return unchanged ? previous : next
 }
 export function sortHistory(rows: ConversationHistoryRow[], preferences: Pick<HistoryPreferences, 'sort' | 'direction'>, ledger: NumberLedger) {
   const value = (r: ConversationHistoryRow) => preferences.sort === 'number' ? ledger[r.role]?.[r.id] : r.updatedAt
@@ -61,5 +72,6 @@ export function searchHistory(rows: ConversationHistoryRow[], query: string, rol
 export function shortHistoryTime(time: number) {
   if (!Number.isFinite(time)) return ''
   const date = new Date(time), now = new Date()
-  return date.toDateString() === now.toDateString() ? date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : date.toLocaleDateString('zh-CN', { ...(date.getFullYear() === now.getFullYear() ? {} : { year: 'numeric' }), month: '2-digit', day: '2-digit' })
+  const day = date.toLocaleDateString('zh-CN', { ...(date.getFullYear() === now.getFullYear() ? {} : { year: 'numeric' }), month: '2-digit', day: '2-digit' })
+  return `${day} ${date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })}`
 }

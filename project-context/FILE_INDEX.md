@@ -241,7 +241,7 @@
 | [requirements/auto/A011-配件落位动效与侧栏收起恢复.md](<requirements/auto/A011-配件落位动效与侧栏收起恢复.md>) | A011-配件落位动效与侧栏收起恢复 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A012-插件分层分类与离线管理.md](<requirements/auto/A012-插件分层分类与离线管理.md>) | A012-插件分层分类与离线管理 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A013-BrowserSkill实际接入执行方案.md](<requirements/auto/A013-BrowserSkill实际接入执行方案.md>) | A013-BrowserSkill实际接入执行方案 | 事项现状见台账；原有历史记录保留 |
-| [requirements/auto/A014-会议纪要助手界面嵌入.md](<requirements/auto/A014-会议纪要助手界面嵌入.md>) | 会议界面历史；2026-10-23助手专区分组、排序和搜索的方案与实施证据 | 第一版已同步，历史记录保留，测试限制及用户待验收状态见T021 |
+| [requirements/auto/A014-会议纪要助手界面嵌入.md](<requirements/auto/A014-会议纪要助手界面嵌入.md>) | 会议界面历史；助手分组、搜索、完整时间与固定前缀的方案、纠正及实施证据 | 最新续号规则已实施并同步；67项回归和实际操作验证通过，保留类型限制，待用户验收，状态见T021 |
 | [requirements/auto/A015-桌面启动过期能力锁修复.md](<requirements/auto/A015-桌面启动过期能力锁修复.md>) | A015-桌面启动过期能力锁修复 | 事项现状见台账；原有历史记录保留 |
 | [requirements/auto/A016-会议纪要助手真实录音接入.md](<requirements/auto/A016-会议纪要助手真实录音接入.md>) | A016-会议纪要助手真实录音接入 | 包含录音保存、宠物入口、岗位归属及独立录音后续处理能力的实施与实测；事项现状见台账 |
 | [requirements/auto/A017-需求分析助手拓展基础方案.md](<requirements/auto/A017-需求分析助手拓展基础方案.md>) | A017-需求分析助手拓展基础方案 | 事项现状见台账；原有历史记录保留 |
