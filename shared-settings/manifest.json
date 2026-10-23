@@ -14,12 +14,12 @@
     {
       "path": "capabilities/state.json",
       "format": "structured",
-      "sha256": "8019ec673caccc7cecbe4b2b5380a1464f17914f37396286db2255cd46fffeba"
+      "sha256": "d47d61c5fad665a5b8cbdea5369eb8e4709fb8f9d70ef054209032734937b752"
     },
     {
       "path": "pet.json",
       "format": "structured",
-      "sha256": "13801351caa618a4513b5620449b6a030d2e0666dcff23fd3249ef52fe0b0421"
+      "sha256": "eef18598d6ac13113d6b709152e889d0fe2ea4d5068ab5ebf4aa4ebd2e965b46"
     },
     {
       "path": "plugin-management/classification.json",
@@ -34,7 +34,7 @@
     {
       "path": "settings.yaml",
       "format": "structured",
-      "sha256": "7a359c9061b0e86d01d9ab2e9f788ba6ed7cefc769a885b57ac3c3df6863d69c"
+      "sha256": "2084a2ef0d839fd386d5b7f4398ed6891dc8e2a16d2f56214fbed2dec0d4b301"
     },
     {
       "path": "skill-management/state.json",
@@ -72,6 +72,11 @@
       "sha256": "e54bd31559025de402a2f01622bc78df3c83159b884af0e1047a1f00e96e351d"
     },
     {
+      "path": "skill-management/versions/a4cf4915a33ee16c3d69bd0f7e023c5290a0294c7fbf9235d2c34b516de85011/SKILL.md",
+      "format": "text",
+      "sha256": "efc50b4ec4b19475974d0f184336307e5d7b384ed1e544d0564170c862a0624d"
+    },
+    {
       "path": "skill-management/versions/bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a/SKILL.md",
       "format": "text",
       "sha256": "ae495fea150102a49e5dbc62324fe60b7e64440082fb54160280f4c95e9303f5"
@@ -100,6 +105,11 @@
       "path": "skills/requirement-review/references/review-template.md",
       "format": "text",
       "sha256": "e54bd31559025de402a2f01622bc78df3c83159b884af0e1047a1f00e96e351d"
+    },
+    {
+      "path": "skills/webpage-archive/SKILL.md",
+      "format": "text",
+      "sha256": "7b78c06da79879683b276ab1b967f98798c82e5d1ed787d6e78d37f0eaf5aa78"
     },
     {
       "path": "skills/workload-estimator/SKILL.md",
@@ -185,16 +195,6 @@
       "path": "skins/furina/skin.json",
       "format": "structured",
       "sha256": "eaac87525cf305e6a7d78b5257705301fa3818e696c3ccbba205bd72a135f108"
-    },
-    {
-      "path": "skill-management/versions/a4cf4915a33ee16c3d69bd0f7e023c5290a0294c7fbf9235d2c34b516de85011/SKILL.md",
-      "format": "text",
-      "sha256": "efc50b4ec4b19475974d0f184336307e5d7b384ed1e544d0564170c862a0624d"
-    },
-    {
-      "path": "skills/webpage-archive/SKILL.md",
-      "format": "text",
-      "sha256": "7b78c06da79879683b276ab1b967f98798c82e5d1ed787d6e78d37f0eaf5aa78"
     }
   ]
 }

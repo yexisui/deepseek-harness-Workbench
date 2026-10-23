@@ -3,8 +3,8 @@ ui-onboarding:
 pet:
   visible: true
   size: 160
-  right: 6
-  bottom: 70
+  right: 411
+  bottom: 779
   petId: ouo-neko
   enabled: true
 ui-theme:
@@ -14,7 +14,7 @@ skin-custom-theme:
 agent-default-model:
   provider: deepseek-official
   model: deepseek-flash
-  reasoningEffort: low
+  reasoningEffort: high
 ui-chat:
   transcriptView: normal
 agent-presets:
