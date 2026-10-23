@@ -16,13 +16,22 @@ a=p.parse_args();donor=Path(a.donor).resolve();source=Path(a.source).resolve();o
 if os.name == 'nt':
     donor=Path('\\\\?\\'+str(donor)) if not str(donor).startswith('\\\\?\\') else donor
     source=Path('\\\\?\\'+str(source)) if not str(source).startswith('\\\\?\\') else source
+# Validate and whitelist profile metadata before building a large payload.
+donor_profile=json.loads((donor/'dsh-data/profiles/web/package.json').read_text('utf-8-sig'))
+bundles=donor_profile.get('dsh',{}).get('profile',{}).get('bundles')
+if not isinstance(bundles,list) or not bundles or not all(isinstance(x,str) and x for x in bundles):
+    raise SystemExit('Clean donor must include dsh.profile.bundles registrations')
+if not isinstance(donor_profile.get('dependencies'),dict) or not donor_profile['dependencies']:
+    raise SystemExit('Clean donor must include installed profile dependencies')
+profile={'name':'dsh-profile-web','private':True,'dependencies':donor_profile['dependencies'],
+         'dsh':{'profile':{'bundles':bundles,'patchReload':'live'}}}
 # Fail before building a large payload if shared records would have no executable files.
 capability_files=release_files(source/'shared-settings/files/capabilities/state.json',
     Path(a.capability_releases) if a.capability_releases else donor/'dsh-data/capabilities/packages/releases')
 out.mkdir(parents=True,exist_ok=True)
 if any(out.iterdir()): raise SystemExit('Output must be empty; refusing to overwrite a release')
 offline=out/'offline';offline.mkdir()
-release='2026.10.22-r13-win-x64'
+release='2026.10.23-r14-win-x64'
 files=[]; seen=set()
 def digest(f):
     h=hashlib.sha256()
@@ -83,7 +92,6 @@ with zipfile.ZipFile(archive,'w',zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64
         if name in seen:raise RuntimeError('Duplicate '+name)
         seen.add(name);z.write(f,name)
         files.append({'path':name,'size':f.stat().st_size,'sha256':digest(f)})
-profile=json.loads((donor/'dsh-data/profiles/web/package.json').read_text('utf-8-sig'))
 for name in profile['dependencies']:
     installed=donor/'dsh-data/profiles/web/node_modules'/name/'package.json'
     profile['dependencies'][name]=json.loads(installed.read_text('utf-8-sig'))['version']

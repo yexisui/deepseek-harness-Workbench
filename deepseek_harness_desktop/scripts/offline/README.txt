@@ -22,3 +22,5 @@ prepare-offline.ps1只提取ZIP内offline/内容，兼容2026.10.11旧交付包�
 干净 donor 不含发布文件时，给原制作命令追加 --capability-releases <已校验的 releases 目录>。该参数只选择共享定义引用的 capability.json 与 runtime/resources/docs 文件，不读取用户会话、录音、任务或凭据。程序文件进入 payload 校验清单，仍不提交 Git；不恢复已移入回收站的能力。
 专项回归：python -m unittest discover -s deepseek_harness_desktop/scripts/offline -p test_capability_releases.py
 该命令使用临时包验证引用收集、缺失/损坏拒绝、私人文件保护与身份一致性；完整发布仍须执行隔离安装、Check、损坏修复和实际宿主/界面验证。
+
+制作前必须保留干净 donor 的 profile package.json 中 dependencies 与 dsh.profile.bundles 注册字段；制作脚本只导出这类运行元数据，缺项会在生成大包前停止。回归：python -m unittest discover -s deepseek_harness_desktop/scripts/offline -p test_profile_template.py。

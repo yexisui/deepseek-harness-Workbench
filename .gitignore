@@ -93,13 +93,12 @@ Desktop.ini
 # Local credential file: never include in source control.
 /ai_key.txt
 
-# BEGIN PROJECT CONTEXT (remove this block when retiring collaboration docs)
-!/AGENTS.MD
-!/CLAUDE.md
-!/project-context/AGENTS.MD
-!/project-context/PEFR_PLAN.MD
-/project-context/archive/local-only/
-# END PROJECT CONTEXT
+# Local collaboration material is preserved on disk, not distributed.
+/project-context/
+/AGENTS.MD
+/CLAUDE.md
+/test/
+
 
 # Offline release payload and local repair state (scripts remain tracked).
 /offline/

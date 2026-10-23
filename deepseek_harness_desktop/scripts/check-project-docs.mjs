@@ -6,7 +6,11 @@ import { fileURLToPath } from 'node:url'
 const root = fileURLToPath(new URL('..', import.meta.url))
 const errors = []
 // This is user-facing documentation shipped inside the runnable capability example.
-const runtimeGuides = new Set(['packages/dsh-capabilities/examples/text-tool/docs/README.txt'])
+const runtimeGuides = new Set([
+  'packages/dsh-capabilities/examples/text-tool/docs/README.txt',
+  'packages/dsh-code-assistant/README.txt',
+  'scripts/offline/README.txt',
+])
 for (const name of ['.agents', '.github', 'docs', 'market']) {
   if (fs.existsSync(path.join(root, name))) errors.push('Archived directory remains: ' + name)
 }
@@ -21,7 +25,7 @@ function inspect(dir) {
     if (entry.name !== 'package.json') continue
     const manifest = JSON.parse(fs.readFileSync(file, 'utf8'))
     for (const item of manifest.files ?? []) {
-      if (/(?:^|\/)(?:README(?:\.[^/]*)?|AGENTS(?:\.[^/]*)?|docs)(?:\/|$)/i.test(item)) errors.push(relative + ': obsolete packaging entry ' + item)
+      if (!runtimeGuides.has(path.relative(root, path.join(dir, item)).split(path.sep).join('/')) && /(?:^|\/)(?:README(?:\.[^/]*)?|AGENTS(?:\.[^/]*)?|docs)(?:\/|$)/i.test(item)) errors.push(relative + ': obsolete packaging entry ' + item)
     }
     for (const [name, command] of Object.entries(manifest.scripts ?? {})) {
       for (const match of command.matchAll(/\bnode\s+(scripts\/[\w./-]+)/g)) {
