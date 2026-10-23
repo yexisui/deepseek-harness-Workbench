@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExtern
 import { LocalConversationRows, type ConversationHistoryRow } from './LocalConversationRows.tsx'
 import { RoleAppearanceIcon } from './RoleAppearance.tsx'
 import { capabilityClient } from './capability-client.ts'
-import { REMOVE_SESSION_EVENT } from './NativeConversationRemoval.tsx'
+import { Modal } from './PreviewModal.tsx'
 import { allocateHistoryNumbers, defaultHistoryPreferences, historyRole, nativeHistoryRows, readHistoryStorage, saveHistoryStorage, searchHistory, shortHistoryTime, sortHistory, type HistoryPreferences, type NumberLedger } from './conversation-history.ts'
 import s from './AssistantHistory.module.css'
 
@@ -20,6 +20,13 @@ export function AssistantHistory({ Original, browser, rows, activeId, onOpen, on
   const pendingInteractions = browser.useSessionPendingInteraction?.((value: any) => value)
   const workspaces = browser.useWorkspaces?.((value: any) => value) ?? { items: [], archivedSessionIds: [] }
   const [query, setQuery] = useState('')
+  const [archived, setArchived] = useState<Record<string, boolean>>(() => readHistoryStorage('workbench-special-archives-v1', {}))
+  const [showArchived, setShowArchived] = useState(false)
+  const setArchive = (id: string, value: boolean) => {
+    const next = { ...archived }; if (value) next[id] = true; else delete next[id]
+    localStorage.setItem('workbench-special-archives-v1', JSON.stringify(next)); setArchived(next)
+  }
+  const visibleRows = rows.filter(row => !archived[row.id])
   const [contentHits, setContentHits] = useState<{ query: string; items: { sessionId: string; snippet: string }[]; pending?: boolean; hasMore?: boolean; error?: boolean }>({ query: '', items: [] })
   const [preferences, setPreferences] = useState<HistoryPreferences>(() => {
     const saved = readHistoryStorage(PREFS, defaultHistoryPreferences)
@@ -30,7 +37,7 @@ export function AssistantHistory({ Original, browser, rows, activeId, onOpen, on
   const searchInput = useRef<HTMLInputElement>(null)
   const nativeSaved = useMemo(() => nativeHistoryRows(list, workspaces.items, [], roles), [list, workspaces, roles])
   const native = useMemo(() => nativeSaved.filter(row => !workspaces.archivedSessionIds.includes(row.nativeId)).map(row => ({ ...row, pendingInteraction: ({ approval: '等待审批', 'plan-review': '等待确认方案', question: '等待回答' } as Record<string, string>)[pendingInteractions?.get(row.nativeId)?.kind] })), [nativeSaved, workspaces, pendingInteractions])
-  const all = useMemo(() => [...rows, ...native], [rows, native])
+  const all = useMemo(() => [...visibleRows, ...native], [rows, native, archived])
   const assistantRows = all.filter(row => row.role !== 'chat')
   const current = activeId ?? (list.current ? `session:${list.current}` : null)
   const selectedRole = all.find(row => row.id === current)?.role
@@ -63,8 +70,9 @@ export function AssistantHistory({ Original, browser, rows, activeId, onOpen, on
   const title = (row: ConversationHistoryRow) => [row.title, row.workspace, Number.isFinite(row.updatedAt) ? new Date(row.updatedAt).toLocaleString('zh-CN') : ''].filter(Boolean).join('\n')
   const open = (id: string) => { const row = all.find(r => r.id === id); row?.nativeId ? browser.open(row.nativeId) : onOpen(id) }
   const rename = async (id: string, name: string) => { const row = all.find(r => r.id === id); if (row?.nativeId) await browser.renameSession(row.nativeId, name); else await onRename(id, name) }
-  const remove = (id: string) => { const row = all.find(r => r.id === id); if (row?.nativeId) window.dispatchEvent(new CustomEvent(REMOVE_SESSION_EVENT, { detail: { id: row.nativeId, title: row.title } })); else onRemove(id) }
-  const renderRows = (items: ConversationHistoryRow[], search = false) => <LocalConversationRows host={null} label="" rows={items} activeId={current} onOpen={open} onRename={rename} onRemove={remove} inline hideTypeBadge query={search ? query : ''} onFork={browser.forkSession} onArchive={browser.archiveSession}
+  const fork = async (id: string) => { const row = all.find(r => r.id === id); if (row?.nativeId) await browser.forkSession(row.nativeId) }
+  const archive = async (id: string) => { const row = all.find(r => r.id === id); if (row?.nativeId) await browser.archiveSession(row.nativeId); else setArchive(id, true) }
+  const renderRows = (items: ConversationHistoryRow[], search = false) => <LocalConversationRows host={null} label="" rows={items} activeId={current} onOpen={open} onRename={rename} onRemove={onRemove} inline hideTypeBadge query={search ? query : ''} onFork={fork} onArchive={archive}
     stackedMeta rowTitle={title} rowLeading={row => row.kind !== 'draft' ? <span className={s.number}>{numbers[row.role]?.[row.id] ? `${numbers[row.role][row.id]}.` : '—'}</span> : null}
     rowMeta={row => search ? [historyRole(row.role, roles, all).name, row.workspace, shortHistoryTime(row.updatedAt)].filter(Boolean).join(' · ') : row.kind === 'draft' ? row.draft.trim() ? '草稿' : '临时' : shortHistoryTime(row.updatedAt)} searchResult={search}/>
   const ungroupedLabel = browser.t('actions.newSession.aria', { name: '自由聊天' })
@@ -78,7 +86,7 @@ export function AssistantHistory({ Original, browser, rows, activeId, onOpen, on
           if (!button || button.getAttribute('aria-label') !== ungroupedLabel) return
           event.preventDefault(); event.stopPropagation(); onNew('chat')
           const group = button.closest('[role="treeitem"]'); if (group?.getAttribute('aria-expanded') === 'false') (group as HTMLElement).click()
-        }}><Original {...browser} useSessions={useFreeSessions} t={(key: string, ...args: unknown[]) => key === 'group.ungrouped' ? '自由聊天' : browser.t(key, ...args)}/><LocalConversationRows host={host} label={ungroupedLabel} rows={rows.filter(row => row.role === 'chat')} activeId={activeId} onOpen={onOpen} onRemove={onRemove} onRename={onRename} fallbackLabel="自由聊天"/></div>
+        }}><Original {...browser} useSessions={useFreeSessions} t={(key: string, ...args: unknown[]) => key === 'group.ungrouped' ? '自由聊天' : browser.t(key, ...args)}/><LocalConversationRows host={host} label={ungroupedLabel} rows={visibleRows.filter(row => row.role === 'chat')} activeId={activeId} onOpen={onOpen} onRemove={onRemove} onRename={onRename} onArchive={archive} fallbackLabel="自由聊天"/></div>
         <div className={s.heading}><span>助手专区</span><div className={s.actions}>
           <button type="button" title={`当前按${preferences.sort === 'time' ? '时间' : '序号'}排序，点击切换`} aria-label={`排序方式：${preferences.sort === 'time' ? '时间' : '序号'}`} onClick={() => setPreferences(p => ({ ...p, sort: p.sort === 'time' ? 'number' : 'time' }))}><Icon kind={preferences.sort === 'time' ? 'time' : 'number'}/></button>
           <button type="button" title={preferences.sort === 'time' ? preferences.direction === 'desc' ? '最新在前，点击切换' : '最早在前，点击切换' : preferences.direction === 'desc' ? '大号在前，点击切换' : '小号在前，点击切换'} aria-label={`排序方向：${preferences.direction === 'desc' ? '降序' : '升序'}`} onClick={() => setPreferences(p => ({ ...p, direction: p.direction === 'desc' ? 'asc' : 'desc' }))}><Icon kind={preferences.direction}/></button>
@@ -96,6 +104,8 @@ export function AssistantHistory({ Original, browser, rows, activeId, onOpen, on
         })}
       </div>
       {searching && <section aria-label="对话搜索结果" className={s.results}><p className={s.resultCount} role="status">{ready ? `找到 ${hits.length} 条对话` : `已找到 ${hits.length} 条（历史尚未完整读取）`}</p>{renderRows(hits, true)}{contentHits.pending && <p className={s.empty}>正在搜索普通会话正文…</p>}{contentHits.error && <p className={s.empty}>正文搜索暂不可用，已显示名称匹配结果。</p>}{contentHits.hasMore && <p className={s.empty}>正文匹配较多，请缩小搜索范围。</p>}{!hits.length && ready && !contentHits.pending && <p className={s.empty}>未找到匹配对话</p>}</section>}
+      {rows.some(row => archived[row.id]) && <button type="button" onClick={() => setShowArchived(true)}>已归档的专用记录（{rows.filter(row => archived[row.id]).length}）</button>}
+      {showArchived && <Modal title="已归档的专用记录" closeLabel="关闭" onClose={() => setShowArchived(false)}><div style={{padding:20}}>{rows.filter(row => archived[row.id]).map(row => <div key={row.id} style={{display:'flex',gap:12,marginBottom:12}}><span style={{flex:1}}>{row.title}</span><button onClick={() => setArchive(row.id, false)}>恢复</button></div>)}<p>归档保留原记录；此列表保存在当前浏览器中。</p></div></Modal>}
       {historyStatus && <div className={s.status}>{historyStatus}</div>}
     </div>
   </section>

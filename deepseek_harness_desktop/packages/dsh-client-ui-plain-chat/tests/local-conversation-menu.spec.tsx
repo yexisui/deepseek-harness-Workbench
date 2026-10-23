@@ -29,18 +29,13 @@ afterEach(async () => {
   onRemove.mockClear()
 })
 
-it('opens a conversation menu before removing the row', async () => {
-  const trigger = document.querySelector<HTMLButtonElement>('button[aria-label="会话操作：新对话"]')!
-  expect(trigger).toBeTruthy()
-  expect(document.querySelector('[role="menu"]')).toBeNull()
-  await act(async () => trigger.click())
+it('always shows exactly three actions and never offers deletion', async () => {
+  const trigger=document.querySelector<HTMLButtonElement>('button[aria-label="会话操作：新对话"]')!
+  await act(async()=>trigger.click())
+  const items=Array.from(document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'))
+  expect(items.map(b=>b.textContent?.trim())).toEqual(['重命名','分叉','归档'])
+  expect(items.every(b=>b.disabled)).toBe(true)
   expect(onRemove).not.toHaveBeenCalled()
-  expect(trigger.getAttribute('aria-expanded')).toBe('true')
-  const remove = document.querySelector<HTMLButtonElement>('[role="menuitem"]')!
-  expect(remove.textContent).toContain('移除对话')
-  await act(async () => remove.click())
-  expect(onRemove).toHaveBeenCalledExactlyOnceWith('draft-1')
-  expect(document.querySelector('[role="menu"]')).toBeNull()
 })
 
 it('dismisses the menu with Escape without removing the row', async () => {
@@ -113,7 +108,7 @@ it('renames from a shared dialog, trims the name, and keeps failures editable', 
   await act(async () => root.render(<LocalConversationRows host={host} label="聊天中新建会话" rows={[{ id:'draft-1', role:'chat', kind:'draft', title:'原名称', draft:'', updatedAt:1 }]} activeId="draft-1" onOpen={onOpen} onRemove={onRemove} onRename={rename}/>))
   await act(async () => document.querySelector<HTMLButtonElement>('button[aria-label="会话操作：原名称"]')!.click())
   const menu = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'))
-  expect(menu.map(b => b.textContent?.trim())).toEqual(['重命名','移除对话'])
+  expect(menu.map(b => b.textContent?.trim())).toEqual(['重命名','分叉','归档'])
   await act(async () => menu[0]!.click())
   const input = document.querySelector<HTMLInputElement>('dialog input')!
   expect(input.value).toBe('原名称'); expect(document.activeElement).toBe(input)

@@ -6,8 +6,8 @@ import { Modal } from './PreviewModal.tsx'
 import s from './LocalConversationRows.module.css'
 
 /** Share the native Chat group when present; saved records also need a home in an empty tree. */
-export function LocalConversationRows({ host, label, rows, activeId, onOpen, onRemove, onRename, onLoadMore, loading, error, historyExtras, fallbackLabel = '聊天记录', inline = false, hideTypeBadge = false, rowLeading, rowMeta, rowTitle, stackedMeta = false, searchResult = false, query = '', onFork, onArchive }: {
-  stackedMeta?: boolean; inline?: boolean; hideTypeBadge?: boolean; rowLeading?: (row: ConversationHistoryRow) => ReactNode; rowMeta?: (row: ConversationHistoryRow) => ReactNode; rowTitle?: (row: ConversationHistoryRow) => string; searchResult?: boolean; query?: string; onFork?: (id: string) => void; onArchive?: (id: string) => Promise<void>
+export function LocalConversationRows({ host, label, rows, activeId, onOpen, onRemove, onRename, onLoadMore, loading, error, historyExtras, fallbackLabel = '聊天记录', inline = false, hideTypeBadge = false, rowLeading, rowMeta, rowTitle, stackedMeta = false, searchResult = false, query = '', onFork, onArchive, canFork }: {
+  stackedMeta?: boolean; inline?: boolean; hideTypeBadge?: boolean; rowLeading?: (row: ConversationHistoryRow) => ReactNode; rowMeta?: (row: ConversationHistoryRow) => ReactNode; rowTitle?: (row: ConversationHistoryRow) => string; searchResult?: boolean; query?: string; canFork?: (row: ConversationHistoryRow) => boolean; onFork?: (id: string) => void | Promise<void>; onArchive?: (id: string) => Promise<void>
   historyExtras?: ReactNode; host: HTMLDivElement | null; label: string; rows: ConversationHistoryRow[]; activeId: string | null
   onOpen: (id: string) => void; onRemove: (id: string) => void; onRename?: (id: string, title: string) => Promise<void>; onLoadMore?: () => void; loading?: boolean; error?: string; fallbackLabel?: string
 }) {
@@ -112,7 +112,7 @@ export function LocalConversationRows({ host, label, rows, activeId, onOpen, onR
     setActionError('')
     const width = 214
     const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8))
-    const menuHeight = (onRename ? 96 : 54) + (rows.find(r => r.id === id)?.nativeId ? 80 : 0)
+    const menuHeight = 132
     const top = rect.bottom + 6 + menuHeight > window.innerHeight ? Math.max(8, rect.top - menuHeight - 6) : rect.bottom + 6
     setMenu({ id, left, top })
   }
@@ -142,16 +142,14 @@ export function LocalConversationRows({ host, label, rows, activeId, onOpen, onR
     {onLoadMore && <button type="button" className={s.open} disabled={loading} onClick={onLoadMore}>{error ? "重试读取需求记录" : "加载更多需求记录"}</button>}
   </div>
   return <>{inline ? content : createPortal(content, target!)}{menu && createPortal(<div className={s.menu} role="menu" aria-label="会话操作" style={{ left: menu.left, top: menu.top }}>
-    {onRename && <button ref={menuItem} type="button" role="menuitem" onClick={() => { const row = rows.find(row => row.id === menu.id); setMenu(null); if (row) { setRenameError(''); setRenaming({ id: row.id, title: row.title }) } }}>
+    <button disabled={!onRename} ref={menuItem} type="button" role="menuitem" onClick={() => { const row = rows.find(row => row.id === menu.id); setMenu(null); if (row) { setRenameError(''); setRenaming({ id: row.id, title: row.title }) } }}>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m10 3 3 3M3 10l7-7a2.1 2.1 0 0 1 3 3l-7 7-4 1 1-4Z"/></svg>重命名
-    </button>}
-    {rows.find(row => row.id === menu.id)?.nativeId && <>
-      {onFork && <button type="button" role="menuitem" onClick={() => { const row = rows.find(r => r.id === menu.id); setMenu(null); if (row?.nativeId) { try { onFork(row.nativeId) } catch (e) { setActionError(String(e)) } } }}>分叉</button>}
-      {onArchive && <button type="button" role="menuitem" onClick={() => { const row = rows.find(r => r.id === menu.id); setMenu(null); if (row?.nativeId) void onArchive(row.nativeId).catch(e => setActionError(e.message)) }}>归档</button>}
-    </>}
-    <button ref={onRename ? undefined : menuItem} type="button" role="menuitem" onClick={() => { const id = menu.id; setMenu(null); onRemove(id) }}>
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 4.5h10M6 4.5V3h4v1.5M4.5 4.5l.6 8h5.8l.6-8M6.5 7v3.5M9.5 7v3.5"/></svg>
-      移除对话
+    </button>
+    <button type="button" role="menuitem" disabled={!onFork || !(canFork?.(rows.find(row => row.id === menu.id)!) ?? Boolean(rows.find(row => row.id === menu.id)?.nativeId))} title={!(canFork?.(rows.find(row => row.id === menu.id)!) ?? Boolean(rows.find(row => row.id === menu.id)?.nativeId)) ? '此类专用记录暂不支持分叉' : undefined} onClick={() => { const id = menu.id; setMenu(null); void Promise.resolve().then(() => onFork?.(id)).catch(e => setActionError(String(e))) }}>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 3v10M4 9c6 0 8-2 8-6"/><circle cx="4" cy="2" r="1"/><circle cx="12" cy="2" r="1"/><circle cx="4" cy="14" r="1"/></svg>分叉
+    </button>
+    <button type="button" role="menuitem" disabled={!onArchive} onClick={() => { const id = menu.id; setMenu(null); void onArchive?.(id).catch(e => setActionError(String(e))) }}>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M3 5v8h10V5M2 2h12v3H2zM6 8h4"/></svg>归档
     </button>
   </div>, document.body)}{renaming && <Modal title="重命名会话" closeLabel="关闭重命名" onClose={closeRename}>
     <form className={s.renameForm} onSubmit={event => { event.preventDefault(); void saveRename() }}>

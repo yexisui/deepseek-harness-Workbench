@@ -33,3 +33,5 @@
 .text mark { background:color-mix(in srgb,var(--dsw-alias-state-business-primary,#4e6bb3) 18%,transparent); color:inherit; }
 .running,.completed { width:6px; height:6px; border-radius:50%; flex:none; background:var(--dsw-alias-state-business-primary,#6683bd); }
 .completed { background:#38a579; }
+
+.menu button:disabled { opacity:.45; cursor:not-allowed; }

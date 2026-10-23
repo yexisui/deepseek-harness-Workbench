@@ -14,6 +14,7 @@ beforeEach(async () => {
   await capabilityClient.refresh()
   ;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+  HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
   container = document.createElement('div'); document.body.append(container); root = createRoot(container)
 })
 afterEach(async () => { await act(async () => root.unmount()); container.remove(); vi.unstubAllGlobals() })
@@ -49,7 +50,7 @@ it('switches sort modes and directions, persists them, and keeps native menu act
   await click('button[aria-label="排序方式：时间"]')
   expect(JSON.parse(localStorage.getItem('workbench-sidebar-preferences-v1')!)).toMatchObject({ sort: 'number', direction: 'asc' })
   await click('button[aria-label="会话操作：原生助手对话"]')
-  expect(Array.from(document.querySelectorAll('[role="menuitem"]')).map(el => el.textContent)).toEqual(['重命名', '分叉', '归档', '移除对话'])
+  expect(Array.from(document.querySelectorAll('[role="menuitem"]')).map(el => el.textContent)).toEqual(['重命名', '分叉', '归档'])
   await act(async () => { const button = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')).find(el => el.textContent === '归档'); button!.click() })
   expect(app.archive).toHaveBeenCalledWith('native')
 })
@@ -88,4 +89,22 @@ it('counts archived native sessions as existing records when allocating the next
   await act(async () => root.render(<AssistantHistory {...app.props} rows={[...app.props.rows, { ...app.props.rows[0], id: 'new', title: '新记录', createdAt: 2 }]}/>))
   expect(container.querySelector('[data-assistant-group] [data-conversation-id="session:native"]')).toBeNull()
   expect(JSON.parse(localStorage.getItem(numberKey)!)['test-meeting']).toEqual({ local: 1, 'session:native': 4, new: 5 })
+})
+
+it('archives special records without deleting them, retains numbering and restores after reload', async () => {
+  const app=setup();await act(async()=>root.render(<AssistantHistory {...app.props}/>))
+  const numbers=localStorage.getItem('workbench-sidebar-numbers-v1')
+  await click('button[aria-label="会话操作：录音摘要"]')
+  const menu=Array.from(document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'))
+  expect(menu.map(b=>b.textContent?.trim())).toEqual(['重命名','分叉','归档'])
+  expect(menu[1]!.disabled).toBe(true)
+  await act(async()=>menu[2]!.click())
+  expect(container.querySelector('[data-conversation-id="local"]')).toBeNull()
+  expect(app.props.onRemove).not.toHaveBeenCalled()
+  expect(localStorage.getItem('workbench-sidebar-numbers-v1')).toBe(numbers)
+  await act(async()=>root.render(<AssistantHistory key="reload" {...app.props}/>))
+  expect(container.querySelector('[data-conversation-id="local"]')).toBeNull()
+  await act(async()=>Array.from(container.querySelectorAll('button')).find(b=>b.textContent?.startsWith('已归档的专用记录'))!.click())
+  await act(async()=>Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='恢复')!.dispatchEvent(new MouseEvent('click',{bubbles:true})))
+  expect(container.querySelector('[data-conversation-id="local"]')).toBeTruthy()
 })

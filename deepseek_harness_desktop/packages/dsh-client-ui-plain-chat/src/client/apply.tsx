@@ -34,7 +34,6 @@ import { createRequirementHistory } from './requirement-history.ts'
 import { usesRequirements } from './requirements-routing.ts'
 import { MeetingDemo } from './MeetingDemo.tsx'
 import { AssistantHistory } from './AssistantHistory.tsx'
-import { NativeConversationRemoval } from './NativeConversationRemoval.tsx'
 import { createLocalConversations } from './local-conversations.ts'
 import { removeMeetingConversation } from './meeting-removal.ts'
 import { createMeetingHistory } from './meeting-history.ts'
@@ -463,7 +462,7 @@ export function apply(ctx: Context): void {
         {developers.error && <p role="alert">{developers.error}<button onClick={() => { void developerHistory.load() }}>重试开发记录</button></p>}
         {recorded.error && <p role="status">{recorded.error}</p>}{searched.error && <p role="status">{searched.error}</p>}{documentRows.error && <p role="status">{documentRows.error}</p>}
       </>}/>
-      <NativeConversationRemoval sessions={sessions}/>
+
     </>
   }), 'plain-chat: history label')
   ctx.effect(() => () => { start.reset(); listeners.clear() }, 'plain-chat: cleanup')
