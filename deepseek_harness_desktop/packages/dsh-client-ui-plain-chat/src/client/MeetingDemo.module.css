@@ -97,13 +97,19 @@
 @media(prefers-reduced-motion:reduce) { .modes button { transition:none; }.modes button:hover { transform:none; }.progressTrack i { animation:none; } }
 
 .progressAction { align-self:center; flex:none; margin:4px 0; padding:7px 14px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--accent); font-size:12px!important; }
-.workflow { flex:none; padding:8px 28px; border-bottom:1px solid var(--border); max-height:40%; overflow:auto; }
-.workflowSteps { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
-.workflowSteps button { min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border:1px solid var(--border); border-radius:8px; padding:5px 8px; background:var(--surface); color:var(--accent); font-size:12px; }
-.workflowSteps small { color:var(--muted); font-size:11px; }
-.selectionEditor { padding:12px 0 4px; font-size:13px; }
+
+.answerLine { display:flex; align-items:flex-start; gap:8px; }
+.answerLine>span { flex:1; min-width:0; }
+.root .resetChoice { display:inline-flex; align-items:center; justify-content:center; flex:none; width:24px; height:24px; margin:-1px -4px 0 0; padding:4px; border:0; border-radius:6px; background:transparent; color:var(--muted); }
+.root .resetChoice:hover,.root .resetChoice[aria-expanded="true"] { color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,transparent); }
+.root .resetChoice:disabled { opacity:.4; cursor:default; }
+.userMessage>.editingBubble { width:min(440px,100%); max-width:100%; }
+.selectionEditor { padding-top:12px; margin-top:8px; border-top:1px solid var(--border); font-size:12px; }
 .selectionEditor p { margin:8px 0; color:var(--muted); }
-.selectionEditor input { box-sizing:border-box; width:min(440px,100%); margin-top:10px; padding:7px 9px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; }
 .selectionEditor [aria-pressed="true"] { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,var(--surface)); }
-.workflow button:disabled { opacity:.5; cursor:not-allowed; }
-@media(max-width:660px) { .workflow { padding:8px 15px; } .workflowSteps button { font-size:11px; } }
+.customChoice { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.customChoice input { box-sizing:border-box; flex:1; min-width:120px; width:0; padding:7px 9px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--ink); font:inherit; }
+.customChoice button,.selectionContinue button { border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--accent); padding:6px 9px; font:inherit; font-size:12px; }
+.selectionContinue { border-top:1px solid var(--border); margin-top:10px; padding-top:9px; }
+.selectionContinue button { margin-top:6px; }
+.selectionEditor button:disabled,.selectionContinue button:disabled { opacity:.5; cursor:default; }

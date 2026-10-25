@@ -2397,6 +2397,70 @@ window.__ModuleLoader__.load({
 			});
 		}
 		//#endregion
+		//#region src/client/meeting-choices.ts
+		const selectionLabels = {
+			mode: "生成方式",
+			audience: "纪要用途",
+			focus: "整理重点",
+			audio: "录音"
+		};
+		const modeLabel = (mode) => mode === "quick" ? "快速生成" : "引导整理";
+		const choiceMessage = (messages, step) => messages.filter((message) => message.choiceStep === step).at(-1);
+		/** Older snapshots recorded choices as plain chat messages. Recover only workflow answers. */
+		function recoverChoices(messages, values) {
+			let awaiting;
+			const result = messages.map((message, index) => {
+				if (message.kind === "intro") awaiting = "mode";
+				if (message.kind === "assistant") awaiting = message.text?.startsWith("先选择") ? "audience" : message.text === "这次希望重点突出什么？" ? "focus" : void 0;
+				if (message.kind === "upload") return {
+					...message,
+					choiceStep: "audio"
+				};
+				if (message.kind !== "user") return message;
+				const next = messages[index + 1];
+				const following = next?.kind === "assistant" ? next.text : void 0;
+				const inferred = following === "这次希望重点突出什么？" ? "audience" : following?.startsWith("准备好了") ? "focus" : ["快速生成", "引导整理"].includes(message.text ?? "") && (awaiting === "mode" || following?.startsWith("先选择") || following?.startsWith("上传录音后")) ? "mode" : awaiting === "audience" || awaiting === "focus" ? awaiting : void 0;
+				awaiting = void 0;
+				return message.choiceStep || !inferred ? message : {
+					...message,
+					choiceStep: inferred
+				};
+			});
+			const steps = [
+				"mode",
+				"audience",
+				"focus",
+				"audio"
+			];
+			let nextId = Math.max(0, ...result.map((message) => message.id)) + 1;
+			for (const step of steps.slice(0, 3)) {
+				const value = step === "mode" ? values.mode && modeLabel(values.mode) : values[step];
+				if (!value) continue;
+				const existing = choiceMessage(result, step);
+				if (existing) {
+					if (existing.text !== value) result[result.indexOf(existing)] = {
+						...existing,
+						text: value,
+						createdAt: void 0
+					};
+					continue;
+				}
+				const index = result.findIndex((message) => message.choiceStep && steps.indexOf(message.choiceStep) > steps.indexOf(step) || [
+					"upload",
+					"transcript",
+					"minutes"
+				].includes(message.kind));
+				const insertAt = index >= 0 ? index : result.at(-1)?.kind === "assistant" ? result.length - 1 : result.length;
+				result.splice(insertAt, 0, {
+					id: nextId++,
+					kind: "user",
+					text: value,
+					choiceStep: step
+				});
+			}
+			return result;
+		}
+		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/ExecutionProcess.module.css.mjs
 		const css$17 = ".pXaNbW_round{min-width:0;color:inherit;margin:12px 0}.pXaNbW_input{background:var(--dsw-alias-bg-layer-2,#fff);border-left:3px solid var(--dsw-alias-button-primary-fill,#4d68ad);border-radius:8px;margin-bottom:8px;padding:8px 12px}.pXaNbW_input p{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0}.pXaNbW_input small,.pXaNbW_meta{opacity:.7;font-size:12px}.pXaNbW_process{border:1px solid var(--dsw-alias-border-l2,#dce3ef);background:var(--dsw-alias-bg-layer-2,#fff);border-radius:12px;padding:10px 14px}.pXaNbW_process summary{cursor:pointer;flex-wrap:wrap;align-items:center;gap:8px;list-style:none;display:flex}.pXaNbW_process summary:before{content:\"▸\";transition:transform .15s}.pXaNbW_process[open]>summary:before{transform:rotate(90deg)}.pXaNbW_process summary:focus-visible{outline:2px solid var(--dsw-alias-button-primary-fill,#4d68ad);outline-offset:4px}.pXaNbW_process summary strong{font-size:13px;font-weight:500}.pXaNbW_process summary small{opacity:.7;margin-left:auto}.pXaNbW_process ol{margin:12px 0;padding:0;list-style:none}.pXaNbW_process li{border-left:2px solid var(--dsw-alias-border-l2,#dce3ef);margin-left:4px;padding:0 0 12px 12px}.pXaNbW_process li>div{flex-wrap:wrap;gap:8px;font-size:13px;display:flex}.pXaNbW_process li>div span{opacity:.7}.pXaNbW_process li p{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0;font-size:13px}.pXaNbW_process li[data-status=running]{border-color:var(--dsw-alias-button-primary-fill,#4d68ad)}.pXaNbW_process li[data-status=failed],.pXaNbW_process li[data-status=review]{border-color:#bf8744}.pXaNbW_outcome{background:var(--dsw-alias-bg-layer-2,#fff);white-space:pre-wrap;overflow-wrap:anywhere;border-radius:8px;margin:8px 2px;padding:8px;font-size:13px}.pXaNbW_result{margin:8px 0;font-size:13px}.pXaNbW_result summary{cursor:pointer}.pXaNbW_result pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;font:inherit;border:1px solid var(--dsw-alias-border-l2,#dce3ef);border-radius:8px;padding:12px;overflow:auto}@media (prefers-reduced-motion:reduce){.pXaNbW_process summary:before{transition:none}}";
 		const tagId$17 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/ExecutionProcess.module.css";
@@ -15084,7 +15148,7 @@ window.__ModuleLoader__.load({
 		}
 		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/MeetingDemo.module.css.mjs
-		const css$9 = ".oLleaW_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#4d68ad);width:100%;height:100%;min-height:0;color:var(--ink);font:inherit;flex-direction:column;display:flex}.oLleaW_root button{font:inherit;cursor:pointer}.oLleaW_root button:focus-visible,.oLleaW_root textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.oLleaW_heading{border-bottom:1px solid var(--border);justify-content:space-between;align-items:center;gap:16px;min-height:60px;padding:0 28px;display:flex}.oLleaW_heading>div{align-items:center;gap:13px;display:flex}.oLleaW_heading>div:first-child span{color:var(--muted)}.oLleaW_heading strong{font-size:16px;font-weight:650}.oLleaW_heading button{color:var(--muted);background:0 0;border:0;font-size:12px}.oLleaW_heading button:hover{color:var(--accent)}.oLleaW_demoBadge{border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:4px 8px;font-size:11px}.oLleaW_tabs{border-bottom:1px solid var(--border);flex:none;gap:30px;height:44px;padding:0 28px;display:flex}.oLleaW_tabs button{color:var(--muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:0 2px;font-size:14px}.oLleaW_tabs button[aria-selected=true]{border-color:var(--accent);color:var(--ink);font-weight:650}.oLleaW_scroll{overscroll-behavior:contain;flex:1;min-height:0;overflow:auto}.oLleaW_messages{width:min(900px,100% - 64px);margin:0 auto;padding:28px 0 40px}.oLleaW_message{align-items:flex-start;gap:12px;margin:0 0 28px;display:flex}.oLleaW_message>span:first-child{border-radius:10px;width:32px;height:32px}.oLleaW_messageBody{flex:1;min-width:0;max-width:810px;font-size:14px;line-height:1.75}.oLleaW_messageBody>p{margin:0 0 12px}.oLleaW_messageBody .oLleaW_lead{margin:0 0 9px;font-size:19px;font-weight:650}.oLleaW_messageBody .oLleaW_muted{color:var(--muted);margin-top:13px;font-size:12px}.oLleaW_byline{margin:2px 0 10px;font-size:12px;font-weight:700}.oLleaW_byline span{color:var(--muted);margin-left:7px;font-size:10px;font-weight:400}.oLleaW_userMessage{justify-content:flex-end;margin:0 0 24px;display:flex}.oLleaW_userMessage>div{border:1px solid color-mix(in srgb,var(--accent) 23%,var(--border));background:color-mix(in srgb,var(--accent) 8%,var(--surface));overflow-wrap:anywhere;border-radius:16px 16px 4px;max-width:min(560px,85%);padding:10px 14px;font-size:13px;line-height:1.6}.oLleaW_userMessage small{color:var(--muted);font-size:10px;display:block}.oLleaW_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:710px;margin:17px 0 4px;display:grid}.oLleaW_modes button{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--surface);min-height:132px;color:var(--ink);text-align:left;border-radius:12px;flex-direction:column;align-items:flex-start;padding:16px;transition:transform .16s,border-color .16s;display:flex}.oLleaW_modes button:hover{border-color:var(--accent);transform:translateY(-2px)}.oLleaW_modes b{font-size:15px}.oLleaW_modes span{color:var(--muted);margin-top:7px;font-size:12px}.oLleaW_modes em{color:var(--accent);margin-top:auto;font-size:11px;font-style:normal;font-weight:650}.oLleaW_selectedMode{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:8px 11px;font-size:12px;display:inline-block}.oLleaW_choices{flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;display:flex}.oLleaW_choices>span{color:var(--muted);font-size:12px}.oLleaW_choices button,.oLleaW_cardFooter button,.oLleaW_uploadPrompt>button:not(.oLleaW_primary){border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 10px;font-size:12px}.oLleaW_choices button:hover,.oLleaW_cardFooter button:hover,.oLleaW_uploadPrompt>button:hover{border-color:var(--accent)}.oLleaW_uploadPrompt{border:1px dashed color-mix(in srgb,var(--accent) 50%,var(--border));background:var(--surface);border-radius:11px;flex-wrap:wrap;align-items:center;gap:11px;max-width:680px;padding:13px;display:flex}.oLleaW_uploadPrompt>span{background:color-mix(in srgb,var(--accent) 12%,var(--surface));width:36px;height:36px;color:var(--accent);border-radius:9px;place-items:center;font-size:22px;display:grid}.oLleaW_uploadPrompt>div{flex:1;min-width:160px}.oLleaW_uploadPrompt strong,.oLleaW_uploadPrompt small{display:block}.oLleaW_uploadPrompt strong{font-size:12px}.oLleaW_uploadPrompt small{color:var(--muted);font-size:10px}.oLleaW_modelControl{color:var(--muted);flex-wrap:wrap;align-items:center;gap:8px;margin-top:9px;font-size:11px;display:flex}.oLleaW_modelControl select{border:1px solid var(--border);background:var(--surface);min-width:180px;max-width:100%;color:var(--ink);font:inherit;border-radius:7px;padding:6px 9px}.oLleaW_modelRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:0 18px 13px;display:flex}.oLleaW_modelRow button{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 10px;font-size:11px}.oLleaW_primary{border-radius:8px;padding:8px 12px;font-size:12px;background:var(--accent)!important;color:#fff!important;border:0!important}.oLleaW_primary:disabled{opacity:.5;cursor:not-allowed}.oLleaW_progress{border:1px solid var(--border);background:var(--surface);border-radius:11px;align-items:center;gap:13px;max-width:570px;padding:15px;display:flex}.oLleaW_progress>span{color:var(--accent);font-size:27px}.oLleaW_progress>div{flex:1}.oLleaW_progress strong,.oLleaW_progress small{display:block}.oLleaW_progress strong{font-size:12px}.oLleaW_progress small{color:var(--muted);font-size:10px}.oLleaW_progressTrack{background:var(--border);border-radius:9px;height:5px;margin-top:8px;overflow:hidden}.oLleaW_progressTrack i{background:var(--accent);border-radius:9px;width:72%;height:100%;animation:1.5s ease-in-out infinite oLleaW_progress;display:block}@keyframes oLleaW_progress{0%{transform:translate(-110%)}to{transform:translate(150%)}}.oLleaW_resultCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;max-width:760px;overflow:hidden;box-shadow:0 4px 18px #182c500b}.oLleaW_audioBar{border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;gap:8px;padding:9px 18px;display:flex}.oLleaW_audioBar audio{width:min(420px,100%);height:36px}.oLleaW_audioBar small{color:var(--muted);font-size:10px}.oLleaW_cardHead{border-bottom:1px solid var(--border);justify-content:space-between;align-items:center;gap:10px;padding:15px 18px;display:flex}.oLleaW_cardHead small{color:var(--accent);font-size:10px;font-weight:700;display:block}.oLleaW_cardHead h3{margin:2px 0 0;font-size:15px}.oLleaW_cardHead>span{white-space:nowrap;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 7px;font-size:10px}.oLleaW_transcriptRows{padding:0 18px}.oLleaW_transcriptRow{border-bottom:1px solid var(--border);grid-template-columns:48px minmax(0,1fr);gap:12px;padding:13px 0;display:grid}.oLleaW_transcriptRow:last-child{border-bottom:0}.oLleaW_transcriptRow time{color:var(--accent);font-size:11px}.oLleaW_transcriptRow strong{font-size:11px}.oLleaW_transcriptRow p{margin:4px 0 0;font-size:12px;line-height:1.7}.oLleaW_transcriptRow textarea{box-sizing:border-box;resize:vertical;border:1px solid var(--border);background:var(--surface);width:100%;min-height:58px;color:var(--ink);font:inherit;border-radius:7px;margin-top:6px;padding:8px;font-size:12px;line-height:1.6;display:block}.oLleaW_speakerInput{border:1px solid var(--border);background:var(--surface);max-width:180px;color:var(--ink);font:inherit;border-radius:6px;padding:4px 6px;font-size:11px;display:block}.oLleaW_cardFooter{border-top:1px solid var(--border);flex-wrap:wrap;align-items:center;gap:8px;padding:12px 18px;display:flex}.oLleaW_cardFooter span{min-width:180px;color:var(--muted);flex:1;font-size:10px}.oLleaW_minutes{padding:4px 20px 19px}.oLleaW_minutes section{margin-top:13px}.oLleaW_minutes h4{margin:0 0 5px;font-size:12px}.oLleaW_minutes p{margin:0;font-size:12px;line-height:1.75}.oLleaW_minutes small{color:var(--muted);font-size:10px}.oLleaW_actionLine{border:1px solid var(--border);border-radius:7px;flex-wrap:wrap;justify-content:space-between;gap:5px 12px;margin:6px 0;padding:8px 10px;font-size:11px;display:flex}.oLleaW_actionLine span{color:var(--muted)}.oLleaW_sourceLink{color:var(--accent);background:0 0;border:0;padding:0;font-size:10px}.oLleaW_sourceLink:hover{text-decoration:underline}.oLleaW_highlight{background:color-mix(in srgb,#d8a254 8%,var(--surface));border-left:3px solid #d8a254;margin-left:-8px;padding-left:8px}.oLleaW_trace{border:1px solid var(--border);background:var(--surface);border-radius:12px;width:min(760px,100% - 64px);margin:30px auto;padding:22px}.oLleaW_trace h2{margin:0 0 5px;font-size:18px}.oLleaW_trace p{color:var(--muted);font-size:12px}.oLleaW_trace ol{margin:20px 0 0;padding:0;list-style:none}.oLleaW_trace li{border-top:1px solid var(--border);gap:13px;padding:10px 0;font-size:12px;display:flex}.oLleaW_trace li span{color:var(--accent)}.oLleaW_composerWrap{flex:none;width:min(970px,100% - 48px);margin:0 auto;padding:10px 0 14px}.oLleaW_composer{border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5014}.oLleaW_composer textarea{resize:vertical;box-sizing:border-box;width:100%;min-height:65px;max-height:160px;color:var(--ink);font:inherit;background:0 0;border:0;outline:0;font-size:15px;line-height:1.5;display:block}.oLleaW_composer textarea::placeholder{color:var(--muted)}.oLleaW_composerTools,.oLleaW_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.oLleaW_composerTools>div span{color:var(--muted);font-size:11px}.oLleaW_composerTools button{color:var(--accent);background:0 0;border:0;font-size:24px}.oLleaW_composerTools button:disabled{opacity:.35;cursor:default}.oLleaW_composerTools .oLleaW_send{background:var(--accent);color:#fff;border-radius:50%;width:38px;height:38px;line-height:1}.oLleaW_notice{color:var(--accent);text-align:center;margin:5px 0 0;font-size:11px}@media (width<=660px){.oLleaW_heading{min-height:52px;padding:0 15px}.oLleaW_heading>div{gap:7px}.oLleaW_heading strong{font-size:13px}.oLleaW_tabs{padding:0 15px}.oLleaW_messages{width:calc(100% - 28px);padding-top:17px}.oLleaW_message{gap:8px}.oLleaW_message>span:first-child{width:27px;height:27px}.oLleaW_messageBody{font-size:13px}.oLleaW_modes{grid-template-columns:1fr}.oLleaW_modes button{min-height:100px}.oLleaW_uploadPrompt>button{flex:1}.oLleaW_composerWrap{width:calc(100% - 18px);padding-bottom:6px}.oLleaW_composer{border-radius:16px}.oLleaW_composerTools>div span{font-size:9px}.oLleaW_trace{box-sizing:border-box;width:calc(100% - 26px)}}@media (prefers-reduced-motion:reduce){.oLleaW_modes button{transition:none}.oLleaW_modes button:hover{transform:none}.oLleaW_progressTrack i{animation:none}}.oLleaW_progressAction{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;flex:none;align-self:center;margin:4px 0;padding:7px 14px;font-size:12px!important}.oLleaW_workflow{border-bottom:1px solid var(--border);flex:none;max-height:40%;padding:8px 28px;overflow:auto}.oLleaW_workflowSteps{flex-wrap:wrap;align-items:center;gap:6px;display:flex}.oLleaW_workflowSteps button{text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--border);background:var(--surface);min-width:0;max-width:100%;color:var(--accent);border-radius:8px;padding:5px 8px;font-size:12px;overflow:hidden}.oLleaW_workflowSteps small{color:var(--muted);font-size:11px}.oLleaW_selectionEditor{padding:12px 0 4px;font-size:13px}.oLleaW_selectionEditor p{color:var(--muted);margin:8px 0}.oLleaW_selectionEditor input{box-sizing:border-box;border:1px solid var(--border);background:var(--surface);width:min(440px,100%);color:var(--ink);font:inherit;border-radius:8px;margin-top:10px;padding:7px 9px}.oLleaW_selectionEditor [aria-pressed=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))}.oLleaW_workflow button:disabled{opacity:.5;cursor:not-allowed}@media (width<=660px){.oLleaW_workflow{padding:8px 15px}.oLleaW_workflowSteps button{font-size:11px}}";
+		const css$9 = ".oLleaW_root{--ink:var(--dsw-alias-label-primary,#202938);--muted:var(--dsw-alias-label-secondary,#758095);--border:var(--dsw-alias-border-l2,#dce3ef);--surface:var(--dsw-alias-bg-layer-2,#fff);--accent:var(--dsw-alias-button-primary-fill,#4d68ad);width:100%;height:100%;min-height:0;color:var(--ink);font:inherit;flex-direction:column;display:flex}.oLleaW_root button{font:inherit;cursor:pointer}.oLleaW_root button:focus-visible,.oLleaW_root textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.oLleaW_heading{border-bottom:1px solid var(--border);justify-content:space-between;align-items:center;gap:16px;min-height:60px;padding:0 28px;display:flex}.oLleaW_heading>div{align-items:center;gap:13px;display:flex}.oLleaW_heading>div:first-child span{color:var(--muted)}.oLleaW_heading strong{font-size:16px;font-weight:650}.oLleaW_heading button{color:var(--muted);background:0 0;border:0;font-size:12px}.oLleaW_heading button:hover{color:var(--accent)}.oLleaW_demoBadge{border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:4px 8px;font-size:11px}.oLleaW_tabs{border-bottom:1px solid var(--border);flex:none;gap:30px;height:44px;padding:0 28px;display:flex}.oLleaW_tabs button{color:var(--muted);background:0 0;border:0;border-bottom:2px solid #0000;padding:0 2px;font-size:14px}.oLleaW_tabs button[aria-selected=true]{border-color:var(--accent);color:var(--ink);font-weight:650}.oLleaW_scroll{overscroll-behavior:contain;flex:1;min-height:0;overflow:auto}.oLleaW_messages{width:min(900px,100% - 64px);margin:0 auto;padding:28px 0 40px}.oLleaW_message{align-items:flex-start;gap:12px;margin:0 0 28px;display:flex}.oLleaW_message>span:first-child{border-radius:10px;width:32px;height:32px}.oLleaW_messageBody{flex:1;min-width:0;max-width:810px;font-size:14px;line-height:1.75}.oLleaW_messageBody>p{margin:0 0 12px}.oLleaW_messageBody .oLleaW_lead{margin:0 0 9px;font-size:19px;font-weight:650}.oLleaW_messageBody .oLleaW_muted{color:var(--muted);margin-top:13px;font-size:12px}.oLleaW_byline{margin:2px 0 10px;font-size:12px;font-weight:700}.oLleaW_byline span{color:var(--muted);margin-left:7px;font-size:10px;font-weight:400}.oLleaW_userMessage{justify-content:flex-end;margin:0 0 24px;display:flex}.oLleaW_userMessage>div{border:1px solid color-mix(in srgb,var(--accent) 23%,var(--border));background:color-mix(in srgb,var(--accent) 8%,var(--surface));overflow-wrap:anywhere;border-radius:16px 16px 4px;max-width:min(560px,85%);padding:10px 14px;font-size:13px;line-height:1.6}.oLleaW_userMessage small{color:var(--muted);font-size:10px;display:block}.oLleaW_modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:710px;margin:17px 0 4px;display:grid}.oLleaW_modes button{border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border));background:var(--surface);min-height:132px;color:var(--ink);text-align:left;border-radius:12px;flex-direction:column;align-items:flex-start;padding:16px;transition:transform .16s,border-color .16s;display:flex}.oLleaW_modes button:hover{border-color:var(--accent);transform:translateY(-2px)}.oLleaW_modes b{font-size:15px}.oLleaW_modes span{color:var(--muted);margin-top:7px;font-size:12px}.oLleaW_modes em{color:var(--accent);margin-top:auto;font-size:11px;font-style:normal;font-weight:650}.oLleaW_selectedMode{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:8px 11px;font-size:12px;display:inline-block}.oLleaW_choices{flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;display:flex}.oLleaW_choices>span{color:var(--muted);font-size:12px}.oLleaW_choices button,.oLleaW_cardFooter button,.oLleaW_uploadPrompt>button:not(.oLleaW_primary){border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 10px;font-size:12px}.oLleaW_choices button:hover,.oLleaW_cardFooter button:hover,.oLleaW_uploadPrompt>button:hover{border-color:var(--accent)}.oLleaW_uploadPrompt{border:1px dashed color-mix(in srgb,var(--accent) 50%,var(--border));background:var(--surface);border-radius:11px;flex-wrap:wrap;align-items:center;gap:11px;max-width:680px;padding:13px;display:flex}.oLleaW_uploadPrompt>span{background:color-mix(in srgb,var(--accent) 12%,var(--surface));width:36px;height:36px;color:var(--accent);border-radius:9px;place-items:center;font-size:22px;display:grid}.oLleaW_uploadPrompt>div{flex:1;min-width:160px}.oLleaW_uploadPrompt strong,.oLleaW_uploadPrompt small{display:block}.oLleaW_uploadPrompt strong{font-size:12px}.oLleaW_uploadPrompt small{color:var(--muted);font-size:10px}.oLleaW_modelControl{color:var(--muted);flex-wrap:wrap;align-items:center;gap:8px;margin-top:9px;font-size:11px;display:flex}.oLleaW_modelControl select{border:1px solid var(--border);background:var(--surface);min-width:180px;max-width:100%;color:var(--ink);font:inherit;border-radius:7px;padding:6px 9px}.oLleaW_modelRow{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:0 18px 13px;display:flex}.oLleaW_modelRow button{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 10px;font-size:11px}.oLleaW_primary{border-radius:8px;padding:8px 12px;font-size:12px;background:var(--accent)!important;color:#fff!important;border:0!important}.oLleaW_primary:disabled{opacity:.5;cursor:not-allowed}.oLleaW_progress{border:1px solid var(--border);background:var(--surface);border-radius:11px;align-items:center;gap:13px;max-width:570px;padding:15px;display:flex}.oLleaW_progress>span{color:var(--accent);font-size:27px}.oLleaW_progress>div{flex:1}.oLleaW_progress strong,.oLleaW_progress small{display:block}.oLleaW_progress strong{font-size:12px}.oLleaW_progress small{color:var(--muted);font-size:10px}.oLleaW_progressTrack{background:var(--border);border-radius:9px;height:5px;margin-top:8px;overflow:hidden}.oLleaW_progressTrack i{background:var(--accent);border-radius:9px;width:72%;height:100%;animation:1.5s ease-in-out infinite oLleaW_progress;display:block}@keyframes oLleaW_progress{0%{transform:translate(-110%)}to{transform:translate(150%)}}.oLleaW_resultCard{border:1px solid var(--border);background:var(--surface);border-radius:12px;max-width:760px;overflow:hidden;box-shadow:0 4px 18px #182c500b}.oLleaW_audioBar{border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;gap:8px;padding:9px 18px;display:flex}.oLleaW_audioBar audio{width:min(420px,100%);height:36px}.oLleaW_audioBar small{color:var(--muted);font-size:10px}.oLleaW_cardHead{border-bottom:1px solid var(--border);justify-content:space-between;align-items:center;gap:10px;padding:15px 18px;display:flex}.oLleaW_cardHead small{color:var(--accent);font-size:10px;font-weight:700;display:block}.oLleaW_cardHead h3{margin:2px 0 0;font-size:15px}.oLleaW_cardHead>span{white-space:nowrap;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 7px;font-size:10px}.oLleaW_transcriptRows{padding:0 18px}.oLleaW_transcriptRow{border-bottom:1px solid var(--border);grid-template-columns:48px minmax(0,1fr);gap:12px;padding:13px 0;display:grid}.oLleaW_transcriptRow:last-child{border-bottom:0}.oLleaW_transcriptRow time{color:var(--accent);font-size:11px}.oLleaW_transcriptRow strong{font-size:11px}.oLleaW_transcriptRow p{margin:4px 0 0;font-size:12px;line-height:1.7}.oLleaW_transcriptRow textarea{box-sizing:border-box;resize:vertical;border:1px solid var(--border);background:var(--surface);width:100%;min-height:58px;color:var(--ink);font:inherit;border-radius:7px;margin-top:6px;padding:8px;font-size:12px;line-height:1.6;display:block}.oLleaW_speakerInput{border:1px solid var(--border);background:var(--surface);max-width:180px;color:var(--ink);font:inherit;border-radius:6px;padding:4px 6px;font-size:11px;display:block}.oLleaW_cardFooter{border-top:1px solid var(--border);flex-wrap:wrap;align-items:center;gap:8px;padding:12px 18px;display:flex}.oLleaW_cardFooter span{min-width:180px;color:var(--muted);flex:1;font-size:10px}.oLleaW_minutes{padding:4px 20px 19px}.oLleaW_minutes section{margin-top:13px}.oLleaW_minutes h4{margin:0 0 5px;font-size:12px}.oLleaW_minutes p{margin:0;font-size:12px;line-height:1.75}.oLleaW_minutes small{color:var(--muted);font-size:10px}.oLleaW_actionLine{border:1px solid var(--border);border-radius:7px;flex-wrap:wrap;justify-content:space-between;gap:5px 12px;margin:6px 0;padding:8px 10px;font-size:11px;display:flex}.oLleaW_actionLine span{color:var(--muted)}.oLleaW_sourceLink{color:var(--accent);background:0 0;border:0;padding:0;font-size:10px}.oLleaW_sourceLink:hover{text-decoration:underline}.oLleaW_highlight{background:color-mix(in srgb,#d8a254 8%,var(--surface));border-left:3px solid #d8a254;margin-left:-8px;padding-left:8px}.oLleaW_trace{border:1px solid var(--border);background:var(--surface);border-radius:12px;width:min(760px,100% - 64px);margin:30px auto;padding:22px}.oLleaW_trace h2{margin:0 0 5px;font-size:18px}.oLleaW_trace p{color:var(--muted);font-size:12px}.oLleaW_trace ol{margin:20px 0 0;padding:0;list-style:none}.oLleaW_trace li{border-top:1px solid var(--border);gap:13px;padding:10px 0;font-size:12px;display:flex}.oLleaW_trace li span{color:var(--accent)}.oLleaW_composerWrap{flex:none;width:min(970px,100% - 48px);margin:0 auto;padding:10px 0 14px}.oLleaW_composer{border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:12px 15px 10px;box-shadow:0 4px 22px #182c5014}.oLleaW_composer textarea{resize:vertical;box-sizing:border-box;width:100%;min-height:65px;max-height:160px;color:var(--ink);font:inherit;background:0 0;border:0;outline:0;font-size:15px;line-height:1.5;display:block}.oLleaW_composer textarea::placeholder{color:var(--muted)}.oLleaW_composerTools,.oLleaW_composerTools>div{justify-content:space-between;align-items:center;gap:10px;display:flex}.oLleaW_composerTools>div span{color:var(--muted);font-size:11px}.oLleaW_composerTools button{color:var(--accent);background:0 0;border:0;font-size:24px}.oLleaW_composerTools button:disabled{opacity:.35;cursor:default}.oLleaW_composerTools .oLleaW_send{background:var(--accent);color:#fff;border-radius:50%;width:38px;height:38px;line-height:1}.oLleaW_notice{color:var(--accent);text-align:center;margin:5px 0 0;font-size:11px}@media (width<=660px){.oLleaW_heading{min-height:52px;padding:0 15px}.oLleaW_heading>div{gap:7px}.oLleaW_heading strong{font-size:13px}.oLleaW_tabs{padding:0 15px}.oLleaW_messages{width:calc(100% - 28px);padding-top:17px}.oLleaW_message{gap:8px}.oLleaW_message>span:first-child{width:27px;height:27px}.oLleaW_messageBody{font-size:13px}.oLleaW_modes{grid-template-columns:1fr}.oLleaW_modes button{min-height:100px}.oLleaW_uploadPrompt>button{flex:1}.oLleaW_composerWrap{width:calc(100% - 18px);padding-bottom:6px}.oLleaW_composer{border-radius:16px}.oLleaW_composerTools>div span{font-size:9px}.oLleaW_trace{box-sizing:border-box;width:calc(100% - 26px)}}@media (prefers-reduced-motion:reduce){.oLleaW_modes button{transition:none}.oLleaW_modes button:hover{transform:none}.oLleaW_progressTrack i{animation:none}}.oLleaW_progressAction{border:1px solid var(--border);background:var(--surface);color:var(--accent);border-radius:8px;flex:none;align-self:center;margin:4px 0;padding:7px 14px;font-size:12px!important}.oLleaW_answerLine{align-items:flex-start;gap:8px;display:flex}.oLleaW_answerLine>span{flex:1;min-width:0}.oLleaW_root .oLleaW_resetChoice{width:24px;height:24px;color:var(--muted);background:0 0;border:0;border-radius:6px;flex:none;justify-content:center;align-items:center;margin:-1px -4px 0 0;padding:4px;display:inline-flex}.oLleaW_root .oLleaW_resetChoice:hover,.oLleaW_root .oLleaW_resetChoice[aria-expanded=true]{color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}.oLleaW_root .oLleaW_resetChoice:disabled{opacity:.4;cursor:default}.oLleaW_userMessage>.oLleaW_editingBubble{width:min(440px,100%);max-width:100%}.oLleaW_selectionEditor{border-top:1px solid var(--border);margin-top:8px;padding-top:12px;font-size:12px}.oLleaW_selectionEditor p{color:var(--muted);margin:8px 0}.oLleaW_selectionEditor [aria-pressed=true]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))}.oLleaW_customChoice{flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px;display:flex}.oLleaW_customChoice input{box-sizing:border-box;border:1px solid var(--border);background:var(--surface);width:0;min-width:120px;color:var(--ink);font:inherit;border-radius:8px;flex:1;padding:7px 9px}.oLleaW_customChoice button,.oLleaW_selectionContinue button{border:1px solid var(--border);background:var(--surface);color:var(--accent);font:inherit;border-radius:8px;padding:6px 9px;font-size:12px}.oLleaW_selectionContinue{border-top:1px solid var(--border);margin-top:10px;padding-top:9px}.oLleaW_selectionContinue button{margin-top:6px}.oLleaW_selectionEditor button:disabled,.oLleaW_selectionContinue button:disabled{opacity:.5;cursor:default}";
 		const tagId$9 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/MeetingDemo.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId$9) + "]") === null) {
 			const tag = document.createElement("style");
@@ -15095,6 +15159,7 @@ window.__ModuleLoader__.load({
 		}
 		var MeetingDemo_module_css_default = {
 			"actionLine": "oLleaW_actionLine",
+			"answerLine": "oLleaW_answerLine",
 			"audioBar": "oLleaW_audioBar",
 			"byline": "oLleaW_byline",
 			"cardFooter": "oLleaW_cardFooter",
@@ -15103,7 +15168,9 @@ window.__ModuleLoader__.load({
 			"composer": "oLleaW_composer",
 			"composerTools": "oLleaW_composerTools",
 			"composerWrap": "oLleaW_composerWrap",
+			"customChoice": "oLleaW_customChoice",
 			"demoBadge": "oLleaW_demoBadge",
+			"editingBubble": "oLleaW_editingBubble",
 			"heading": "oLleaW_heading",
 			"highlight": "oLleaW_highlight",
 			"lead": "oLleaW_lead",
@@ -15120,10 +15187,12 @@ window.__ModuleLoader__.load({
 			"progress": "oLleaW_progress",
 			"progressAction": "oLleaW_progressAction",
 			"progressTrack": "oLleaW_progressTrack",
+			"resetChoice": "oLleaW_resetChoice",
 			"resultCard": "oLleaW_resultCard",
 			"root": "oLleaW_root",
 			"scroll": "oLleaW_scroll",
 			"selectedMode": "oLleaW_selectedMode",
+			"selectionContinue": "oLleaW_selectionContinue",
 			"selectionEditor": "oLleaW_selectionEditor",
 			"send": "oLleaW_send",
 			"sourceLink": "oLleaW_sourceLink",
@@ -15133,9 +15202,7 @@ window.__ModuleLoader__.load({
 			"transcriptRow": "oLleaW_transcriptRow",
 			"transcriptRows": "oLleaW_transcriptRows",
 			"uploadPrompt": "oLleaW_uploadPrompt",
-			"userMessage": "oLleaW_userMessage",
-			"workflow": "oLleaW_workflow",
-			"workflowSteps": "oLleaW_workflowSteps"
+			"userMessage": "oLleaW_userMessage"
 		};
 		//#endregion
 		//#region src/client/MeetingDemo.tsx
@@ -15232,11 +15299,15 @@ window.__ModuleLoader__.load({
 			const [focus, setFocus] = (0, react.useState)(initial.current?.focus ?? "");
 			const [summaryModel, setSummaryModel] = (0, react.useState)(initial.current?.summaryModel ?? "");
 			const [models, setModels] = (0, react.useState)([]);
-			const [messages, setMessages] = (0, react.useState)(initial.current?.messages ?? [{
+			const [messages, setMessages] = (0, react.useState)(() => recoverChoices(initial.current?.messages ?? [{
 				id: 0,
 				kind: "intro",
 				createdAt: (/* @__PURE__ */ new Date()).toISOString()
-			}]);
+			}], {
+				mode,
+				audience,
+				focus
+			}));
 			const [trace, setTrace] = (0, react.useState)(initial.current?.trace ?? ["打开会议纪要助手"]);
 			const [tab, setTab] = (0, react.useState)(initial.current?.tab === "trace" ? "trace" : "chat");
 			const [draft, setDraft] = (0, react.useState)(initial.current?.draft ?? "");
@@ -15247,14 +15318,22 @@ window.__ModuleLoader__.load({
 			const [availability, setAvailability] = (0, react.useState)(null);
 			const [notice, setNotice] = (0, react.useState)("");
 			const [busy, setBusy] = (0, react.useState)(false);
-			const [selectionEdit, setSelectionEdit] = (0, react.useState)(initial.current?.selectionEdit ?? null);
+			const [selectionEdit, setSelectionEdit] = (0, react.useState)(() => {
+				const edit = initial.current?.selectionEdit;
+				return edit ? {
+					...edit,
+					messageId: choiceMessage(messages, edit.step)?.id
+				} : null;
+			});
+			const [continueAt, setContinueAt] = (0, react.useState)(initial.current?.continueAt);
+			const selectionPhase = continueAt !== void 0 && mode === "guided" && !audience ? "audience" : continueAt !== void 0 && mode === "guided" && !focus ? "focus" : phase;
 			const mutation = (0, react.useRef)(0);
 			const editing = (0, react.useRef)(false);
 			const [sourceRequest, setSourceRequest] = (0, react.useState)(null);
 			const [timingConfirm, setTimingConfirm] = (0, react.useState)(false);
 			const input = (0, react.useRef)(null);
 			const player = (0, react.useRef)(null);
-			const pinned = (0, react.useRef)(true);
+			const pinned = (0, react.useRef)(!initial.current?.selectionEdit);
 			const [newProgress, setNewProgress] = (0, react.useState)(false);
 			const scroll = (0, react.useRef)(null);
 			const nextId = (0, react.useRef)(Math.max(0, ...messages.map((message) => message.id)) + 1);
@@ -15262,6 +15341,7 @@ window.__ModuleLoader__.load({
 			snapshotCallback.current = onSnapshot;
 			(0, react.useEffect)(() => {
 				snapshotCallback.current?.({
+					continueAt,
 					selectionEdit,
 					transcriptDraft: segments,
 					mode,
@@ -15279,6 +15359,7 @@ window.__ModuleLoader__.load({
 					tab
 				});
 			}, [
+				continueAt,
 				selectionEdit,
 				segments,
 				mode,
@@ -15316,6 +15397,13 @@ window.__ModuleLoader__.load({
 						const next = await api$1(`/job/${jobId}`);
 						if (!active || editing.current || revision !== mutation.current) return;
 						setJob(next);
+						if (!recordingSource && next.fileName) setMessages((current) => choiceMessage(current, "audio") ? current : [...current, {
+							id: nextId.current++,
+							kind: "upload",
+							choiceStep: "audio",
+							file: next.fileName,
+							createdAt: next.createdAt
+						}]);
 						if (next.status === "transcribed") {
 							setPhase("transcript");
 							setSegments((current) => current.length ? current : next.segments);
@@ -15394,6 +15482,7 @@ window.__ModuleLoader__.load({
 				setMode(value);
 				add({
 					kind: "user",
+					choiceStep: "mode",
 					text: value === "quick" ? "快速生成" : "引导整理"
 				}, {
 					kind: "assistant",
@@ -15403,11 +15492,21 @@ window.__ModuleLoader__.load({
 				log(`选择${value === "quick" ? "快速生成" : "引导整理"}`);
 			};
 			const chooseAudience = (value) => {
-				if (phase !== "audience" || selectionEdit) return;
+				if (selectionPhase !== "audience" || selectionEdit) return;
+				if (jobId) {
+					saveSelection({
+						step: "audience",
+						mode: mode ?? "guided",
+						audience: value,
+						focus
+					});
+					return;
+				}
 				setAudience(value);
 				setPhase("focus");
 				add({
 					kind: "user",
+					choiceStep: "audience",
 					text: value
 				}, {
 					kind: "assistant",
@@ -15416,17 +15515,28 @@ window.__ModuleLoader__.load({
 				log(`纪要用途：${value}`);
 			};
 			const chooseFocus = (value) => {
-				if (phase !== "focus" || selectionEdit) return;
+				if (selectionPhase !== "focus" || selectionEdit) return;
+				if (jobId) {
+					saveSelection({
+						step: "focus",
+						mode: mode ?? "guided",
+						audience,
+						focus: value
+					});
+					return;
+				}
 				setFocus(value);
+				add({
+					kind: "user",
+					choiceStep: "focus",
+					text: value
+				});
 				if (recordingSource) {
 					beginRecording(value);
 					return;
 				}
 				setPhase("upload");
 				add({
-					kind: "user",
-					text: value
-				}, {
 					kind: "assistant",
 					text: "准备好了，请上传录音。"
 				});
@@ -15481,10 +15591,7 @@ window.__ModuleLoader__.load({
 					focus
 				};
 				if (selected.mode === "guided" && (!selected.audience.trim() || !selected.focus.trim())) {
-					setSelectionEdit({
-						...selected,
-						step: !selected.audience.trim() ? "audience" : "focus"
-					});
+					openSelection(!selected.audience.trim() ? "audience" : "focus");
 					setNotice("请先补齐用途和重点，再选择录音");
 					if (input.current) input.current.value = "";
 					return;
@@ -15523,13 +15630,22 @@ window.__ModuleLoader__.load({
 					setSourceRequest(null);
 					setTimingConfirm(false);
 					setSelectionEdit(null);
+					setContinueAt(void 0);
 					setJob(uploaded);
 					setPhase("processing");
 					setMode(selected.mode);
 					setAudience(selected.audience);
 					setFocus(selected.focus);
-					add({
+					const audioAnswer = choiceMessage(messages, "audio");
+					if (audioAnswer) setMessages((current) => current.map((message) => message.id === audioAnswer.id ? {
+						...message,
+						file: file.name,
+						createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+						choiceStep: "audio"
+					} : message));
+					else add({
 						kind: "upload",
+						choiceStep: "audio",
 						file: file.name
 					});
 					log(`${replacing ? "更换" : "上传"}录音：${file.name}`);
@@ -15591,7 +15707,7 @@ window.__ModuleLoader__.load({
 					await post$1("/generate", {
 						id: jobId,
 						summaryModel,
-						...instruction ? { instruction } : mode === "guided" ? { segments } : {}
+						...instruction ? { instruction } : segments.length ? { segments } : {}
 					});
 					setJob((current) => current ? {
 						...current,
@@ -15606,8 +15722,9 @@ window.__ModuleLoader__.load({
 					setBusy(false);
 				}
 			};
-			const openSelection = async (step) => {
+			const openSelection = async (step, messageId = choiceMessage(messages, step)?.id) => {
 				if (busy || !canProcess || jobId && !job) return;
+				pinned.current = false;
 				setBusy(true);
 				editing.current = true;
 				mutation.current++;
@@ -15619,11 +15736,18 @@ window.__ModuleLoader__.load({
 						log("停止本轮，返回修改选择");
 						setNotice("本轮已停止，可以重新选择后继续");
 					}
-					setSelectionEdit((current) => current ? {
-						...current,
-						step
-					} : {
+					if (messageId === void 0) {
+						messageId = nextId.current++;
+						setMessages((current) => [...current, {
+							id: messageId,
+							kind: step === "audio" ? "upload" : "user",
+							choiceStep: step,
+							...step === "audio" ? { file: job?.fileName } : { text: step === "mode" ? modeLabel(mode ?? "guided") : step === "audience" ? audience || "通用" : focus || "结论与待办" }
+						}]);
+					}
+					setSelectionEdit({
 						step,
+						messageId,
 						mode: mode ?? "guided",
 						audience,
 						focus
@@ -15637,93 +15761,95 @@ window.__ModuleLoader__.load({
 					setBusy(false);
 				}
 			};
-			const saveSelection = async () => {
-				if (!selectionEdit || busy) return;
+			const cancelSelection = () => {
+				const id = selectionEdit?.messageId;
+				setSelectionEdit(null);
+				window.requestAnimationFrame(() => document.getElementById("meeting-reset-" + id)?.focus({ preventScroll: true }));
+			};
+			(0, react.useEffect)(() => {
+				if (!selectionEdit || tab !== "chat") return;
+				const editor = document.getElementById("meeting-choice-" + selectionEdit.messageId);
+				(editor?.closest("article") ?? editor)?.scrollIntoView?.({
+					block: "nearest",
+					behavior: "auto"
+				});
+				editor?.querySelector("button[aria-pressed=\"true\"]")?.focus({ preventScroll: true });
+			}, [
+				selectionEdit?.messageId,
+				selectionEdit?.step,
+				tab,
+				newProgress
+			]);
+			const saveSelection = async (replacement = selectionEdit) => {
+				if (!replacement || busy) return;
 				const selected = {
-					...selectionEdit,
-					audience: selectionEdit.audience.trim(),
-					focus: selectionEdit.focus.trim()
+					...replacement,
+					audience: replacement.audience.trim(),
+					focus: replacement.focus.trim()
 				};
-				if (selected.mode === "guided" && !selected.audience) {
-					setSelectionEdit({
-						...selected,
-						step: "audience"
-					});
-					return;
-				}
-				if (selected.mode === "guided" && !selected.focus) {
-					setSelectionEdit({
-						...selected,
-						step: "focus"
-					});
+				if (selected.step === "audience" && !selected.audience || selected.step === "focus" && !selected.focus) {
+					setNotice("请输入要采用的选项");
 					return;
 				}
 				setBusy(true);
 				editing.current = true;
 				mutation.current++;
 				try {
-					let next = jobId ? await post$1("/options", {
+					const next = jobId ? await post$1("/options", {
 						id: jobId,
 						mode: selected.mode,
 						audience: selected.audience,
 						focus: selected.focus,
 						summaryModel
 					}) : null;
+					const previous = selected.step === "mode" ? modeLabel(mode ?? "guided") : selected.step === "audience" ? audience : focus;
+					const value = selected.step === "mode" ? modeLabel(selected.mode) : selected.step === "audience" ? selected.audience : selected.focus;
+					if (selected.messageId === void 0) {
+						selected.messageId = nextId.current++;
+						setMessages((current) => [...current, {
+							id: selected.messageId,
+							kind: "user",
+							text: value,
+							choiceStep: selected.step,
+							createdAt: (/* @__PURE__ */ new Date()).toISOString()
+						}]);
+					}
 					setMode(selected.mode);
 					setAudience(selected.audience);
 					setFocus(selected.focus);
-					if (!next && recordingSource) {
-						next = (await recordingApi("followup/start", {
-							id: recordingSource.id,
-							operation: recordingSource.operation,
-							audience: selected.audience,
-							focus: selected.focus,
-							summaryModel
-						})).job;
-						setJobId(next.id);
-					}
+					setMessages((current) => current.map((message) => message.id === selected.messageId ? {
+						...message,
+						text: value,
+						choiceStep: selected.step,
+						createdAt: previous === value ? message.createdAt : (/* @__PURE__ */ new Date()).toISOString()
+					} : message));
+					if (previous !== value) log("重新选择" + selectionLabels[selected.step] + "：" + (previous || "默认") + " → " + value);
 					setSelectionEdit(null);
-					add({
-						kind: "assistant",
-						text: "已更新本次选择：" + (selected.mode === "quick" ? "快速生成" : "引导整理") + "；用途：" + (selected.audience || "通用") + "；重点：" + (selected.focus || "结论与待办") + "。"
-					});
-					log("修改选择：" + selected.mode + " / " + selected.audience + " / " + selected.focus);
-					if (!next || !next.size) {
-						setPhase("upload");
-						add({
+					if (next) {
+						setJob(next);
+						if (selected.mode === "guided" && (!selected.audience || !selected.focus)) add({
 							kind: "assistant",
-							text: "准备好了，请上传录音。"
+							text: !selected.audience ? "先选择纪要用途和关注重点。" : "这次希望重点突出什么？"
 						});
-						return;
-					}
-					setJob(next);
-					if (next.status === "ready" && !next.needsRegeneration) {
-						setPhase("ready");
-						return;
-					}
-					if (next.segments.length) if (selected.mode === "guided") {
-						setSegments((current) => current.length ? current : next.segments);
-						setPhase("transcript");
-						setMessages((current) => current.some((message) => message.kind === "transcript") ? current : [...current, {
-							id: nextId.current++,
-							kind: "transcript",
-							createdAt: next.transcribedAt
-						}]);
+						if (next.status === "ready" && !next.needsRegeneration) {
+							setPhase("ready");
+							setContinueAt(void 0);
+						} else {
+							setContinueAt(selected.messageId);
+							setPhase(next.segments.length ? "transcript" : "upload");
+						}
 					} else {
-						if (!canGenerate) throw new Error("此岗位的纪要生成已停用，转写已保留");
-						const generated = await post$1("/generate", {
-							id: next.id,
-							summaryModel,
-							segments: segments.length ? segments : next.segments
-						});
-						setJob(generated);
-						setPhase("processing");
+						const nextPhase = selected.mode === "quick" ? "upload" : !selected.audience ? "audience" : !selected.focus ? "focus" : "upload";
+						setPhase(nextPhase);
+						if (recordingSource && nextPhase === "upload") setContinueAt(selected.messageId);
+						else {
+							const prompt = nextPhase === "audience" ? "先选择纪要用途和关注重点。" : nextPhase === "focus" ? "这次希望重点突出什么？" : "准备好了，请上传录音。";
+							if ([...messages].reverse().find((message) => message.kind === "assistant")?.text !== prompt) add({
+								kind: "assistant",
+								text: prompt
+							});
+						}
 					}
-					else if (next.status === "error") {
-						const resumed = await post$1("/retry", { id: next.id });
-						setJob(resumed);
-						setPhase("processing");
-					} else setPhase("processing");
 				} catch (error) {
 					setNotice(error instanceof Error ? error.message : String(error));
 				} finally {
@@ -15731,6 +15857,27 @@ window.__ModuleLoader__.load({
 					mutation.current++;
 					setBusy(false);
 				}
+			};
+			const continueSelection = async () => {
+				if (busy || selectionEdit) return;
+				if (selectionPhase === "audience" || selectionPhase === "focus") {
+					setNotice("请先补齐纪要用途和重点");
+					return;
+				}
+				setContinueAt(void 0);
+				if (!jobId && recordingSource) {
+					await beginRecording();
+					return;
+				}
+				if (job?.segments.length) if (mode === "guided" && !job.minutes) {
+					setPhase("transcript");
+					setMessages((current) => current.some((message) => message.kind === "transcript") ? current : [...current, {
+						id: nextId.current++,
+						kind: "transcript",
+						createdAt: job.transcribedAt
+					}]);
+				} else await generate();
+				else await retry();
 			};
 			const revise = (value) => {
 				if (phase !== "ready" || !value.trim()) return;
@@ -15756,8 +15903,8 @@ window.__ModuleLoader__.load({
 				const value = draft.trim();
 				if (!value) return;
 				setDraft("");
-				if (phase === "audience") return chooseAudience(value);
-				if (phase === "focus") return chooseFocus(value);
+				if (selectionPhase === "audience") return chooseAudience(value);
+				if (selectionPhase === "focus") return chooseFocus(value);
 				if (phase === "ready") return revise(value);
 				if (recordingSource && phase === "transcript" && [
 					"生成纪要",
@@ -16072,6 +16219,101 @@ window.__ModuleLoader__.load({
 					]
 				})]
 			}, key);
+			const selectionEditor = (message) => selectionEdit?.messageId !== message.id ? null : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+				className: MeetingDemo_module_css_default.selectionEditor,
+				id: "meeting-choice-" + message.id,
+				role: "group",
+				"aria-label": "重新选择当前步骤",
+				onKeyDown: (event) => {
+					if (event.key === "Escape" && !busy) {
+						event.stopPropagation();
+						cancelSelection();
+					}
+				},
+				children: [
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("strong", { children: ["重新选择", selectionLabels[selectionEdit.step]] }),
+					selectionEdit.step === "mode" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: MeetingDemo_module_css_default.choices,
+						children: ["quick", "guided"].map((value) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy,
+							"aria-pressed": selectionEdit.mode === value,
+							onClick: () => void saveSelection({
+								...selectionEdit,
+								mode: value
+							}),
+							children: modeLabel(value)
+						}, value))
+					}),
+					(selectionEdit.step === "audience" || selectionEdit.step === "focus") && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+						className: MeetingDemo_module_css_default.choices,
+						children: (selectionEdit.step === "audience" ? [
+							"团队同步",
+							"领导汇报",
+							"客户沟通"
+						] : [
+							"结论与待办",
+							"风险与问题",
+							"完整讨论"
+						]).map((value) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy,
+							"aria-pressed": selectionEdit[selectionEdit.step] === value,
+							onClick: () => void saveSelection({
+								...selectionEdit,
+								[selectionEdit.step]: value
+							}),
+							children: value
+						}, value))
+					}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.customChoice,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
+							"aria-label": selectionEdit.step === "audience" ? "新的纪要用途" : "新的整理重点",
+							maxLength: 100,
+							disabled: busy,
+							value: selectionEdit[selectionEdit.step],
+							onChange: (event) => setSelectionEdit({
+								...selectionEdit,
+								[selectionEdit.step]: event.target.value
+							}),
+							onKeyDown: (event) => {
+								if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+									event.preventDefault();
+									saveSelection();
+								}
+							}
+						}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy,
+							onClick: () => void saveSelection(),
+							children: "采用"
+						})]
+					})] }),
+					selectionEdit.step === "audio" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: job?.size ? "当前录音：" + job.fileName + "。更换后重新转写，其他选择保留。" : "选择录音，已有用途和重点会保留。" }), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.choices,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy || !availability?.ready,
+							onClick: () => input.current?.click(),
+							children: job?.size ? "选择其他录音" : "选择录音"
+						}), !!job?.size && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy,
+							onClick: () => {
+								setSelectionEdit(null);
+								setContinueAt(message.id);
+							},
+							children: "保留录音"
+						})]
+					})] }),
+					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+						className: MeetingDemo_module_css_default.choices,
+						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+							disabled: busy,
+							onClick: cancelSelection,
+							children: "取消"
+						}), busy && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+							role: "status",
+							children: "正在保存…"
+						})]
+					})
+				]
+			});
 			const activePromptId = [...messages].reverse().find((message) => message.kind === "assistant")?.id;
 			const renderMessage = (message) => {
 				const activePrompt = !selectionEdit && message.id === activePromptId;
@@ -16080,14 +16322,58 @@ window.__ModuleLoader__.load({
 					value: value ?? (message.kind === "minutes" ? job?.updatedAt : void 0),
 					label: !value && message.kind === "minutes" ? "任务最后更新：" : ""
 				});
-				if (message.kind === "user" || message.kind === "upload") return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("article", {
-					className: MeetingDemo_module_css_default.userMessage,
-					children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [message.kind === "upload" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
-						"♫　",
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: message.file }),
-						/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "会议录音" })
-					] }) : message.text, stamp] })
-				}, message.id);
+				if (message.kind === "user" || message.kind === "upload") {
+					const step = message.choiceStep;
+					const resettable = step && choiceMessage(messages, step)?.id === message.id && canProcess && !(recordingSource && (step === "audio" || step === "mode"));
+					return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("article", {
+						className: MeetingDemo_module_css_default.userMessage,
+						"data-choice-step": step,
+						"data-message-id": message.id,
+						children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+							className: selectionEdit?.messageId === message.id ? MeetingDemo_module_css_default.editingBubble : void 0,
+							children: [
+								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: MeetingDemo_module_css_default.answerLine,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", { children: message.kind === "upload" ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
+										"♫　",
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: message.file }),
+										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: "会议录音" })
+									] }) : message.text }), resettable && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										id: "meeting-reset-" + message.id,
+										className: MeetingDemo_module_css_default.resetChoice,
+										title: "重新选择" + selectionLabels[step],
+										"aria-label": "重新选择" + selectionLabels[step],
+										"aria-expanded": selectionEdit?.messageId === message.id,
+										disabled: busy || !!jobId && !job || !!selectionEdit && selectionEdit.messageId !== message.id,
+										onClick: () => void openSelection(step, message.id),
+										children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("svg", {
+											viewBox: "0 0 24 24",
+											width: "16",
+											height: "16",
+											fill: "none",
+											stroke: "currentColor",
+											strokeWidth: "1.7",
+											strokeLinecap: "round",
+											strokeLinejoin: "round",
+											"aria-hidden": "true",
+											children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 10a9 9 0 1 1 2.8 8.5" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M3 4v6h6" })]
+										})
+									})]
+								}),
+								stamp,
+								selectionEditor(message),
+								continueAt === message.id && !selectionEdit && selectionPhase !== "audience" && selectionPhase !== "focus" && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+									className: MeetingDemo_module_css_default.selectionContinue,
+									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: job?.minutes ? "选择已更新，原纪要保留。" : "已有录音和校对内容保留。" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+										disabled: busy || !canProcess || !!job?.segments.length && !canGenerate,
+										onClick: () => void continueSelection(),
+										children: job?.minutes || mode === "quick" && !!job?.segments.length ? "按新选择继续生成" : "继续处理"
+									})]
+								})
+							]
+						})
+					}, message.id);
+				}
 				if (message.kind === "intro") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
 						className: MeetingDemo_module_css_default.lead,
@@ -16130,7 +16416,7 @@ window.__ModuleLoader__.load({
 				] }), message.id, stamp);
 				if (message.kind === "assistant") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: message.text }),
-					activePrompt && phase === "audience" && message.text?.startsWith("先选择") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					activePrompt && selectionPhase === "audience" && message.text?.startsWith("先选择") && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 						className: MeetingDemo_module_css_default.choices,
 						children: [
 							"团队同步",
@@ -16141,7 +16427,7 @@ window.__ModuleLoader__.load({
 							children: value
 						}, value))
 					}),
-					activePrompt && phase === "focus" && message.text === "这次希望重点突出什么？" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+					activePrompt && selectionPhase === "focus" && message.text === "这次希望重点突出什么？" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 						className: MeetingDemo_module_css_default.choices,
 						children: [
 							"结论与待办",
@@ -16178,7 +16464,7 @@ window.__ModuleLoader__.load({
 						]
 					}), modelControl] })
 				] }), message.id, stamp);
-				if (message.kind === "transcript" && phase !== "transcript") return null;
+				if (message.kind === "transcript" && selectionPhase !== "transcript") return null;
 				if (message.kind === "transcript") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "转写已完成。请核对说话人和关键内容，确认后生成纪要。" }), transcriptCard(true)] }), message.id, stamp);
 				if (message.kind === "minutes") return assistantMessage(/* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "纪要已生成。你可以继续在下方对话框提出修改。" }),
@@ -16226,119 +16512,6 @@ window.__ModuleLoader__.load({
 							"aria-selected": tab === "trace",
 							onClick: () => setTab("trace"),
 							children: "轨迹"
-						})]
-					}),
-					mode && canProcess && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {
-						className: MeetingDemo_module_css_default.workflow,
-						"aria-label": "本次处理步骤",
-						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							className: MeetingDemo_module_css_default.workflowSteps,
-							children: [
-								!recordingSource && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-									disabled: busy || !!jobId && !job,
-									"aria-label": "修改生成方式",
-									onClick: () => void openSelection("mode"),
-									children: ["方式：", mode === "quick" ? "快速生成" : "引导整理"]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-									disabled: busy || !!jobId && !job,
-									"aria-label": "修改纪要用途",
-									onClick: () => void openSelection("audience"),
-									children: ["用途：", audience || (mode === "guided" ? "待选择" : "通用")]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-									disabled: busy || !!jobId && !job,
-									"aria-label": "修改整理重点",
-									onClick: () => void openSelection("focus"),
-									children: ["重点：", focus || (mode === "guided" ? "待选择" : "结论与待办")]
-								}),
-								!recordingSource && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-									disabled: busy || !!jobId && !job,
-									"aria-label": "修改录音",
-									onClick: () => void openSelection("audio"),
-									children: ["录音：", job?.fileName || "待上传"]
-								}),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("small", { children: job && (["transcribing", "generating"].includes(job.status) || job.timingStatus === "processing") ? "点击步骤可停止本轮并修改" : "点击步骤可重新选择" })
-							]
-						}), selectionEdit && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-							className: MeetingDemo_module_css_default.selectionEditor,
-							role: "group",
-							"aria-label": "重新选择当前步骤",
-							children: [
-								/* @__PURE__ */ (0, react_jsx_runtime.jsx)("strong", { children: {
-									mode: "重新选择生成方式",
-									audience: "重新选择纪要用途",
-									focus: "重新选择整理重点",
-									audio: "重新选择录音"
-								}[selectionEdit.step] }),
-								selectionEdit.step === "mode" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-									className: MeetingDemo_module_css_default.choices,
-									children: ["quick", "guided"].map((value) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										disabled: busy,
-										"aria-pressed": selectionEdit.mode === value,
-										onClick: () => setSelectionEdit({
-											...selectionEdit,
-											mode: value
-										}),
-										children: value === "quick" ? "快速生成" : "引导整理"
-									}, value))
-								}),
-								(selectionEdit.step === "audience" || selectionEdit.step === "focus") && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
-									className: MeetingDemo_module_css_default.choices,
-									children: (selectionEdit.step === "audience" ? [
-										"团队同步",
-										"领导汇报",
-										"客户沟通"
-									] : [
-										"结论与待办",
-										"风险与问题",
-										"完整讨论"
-									]).map((value) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										disabled: busy,
-										"aria-pressed": selectionEdit[selectionEdit.step] === value,
-										onClick: () => setSelectionEdit({
-											...selectionEdit,
-											[selectionEdit.step]: value
-										}),
-										children: value
-									}, value))
-								}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("input", {
-									"aria-label": selectionEdit.step === "audience" ? "新的纪要用途" : "新的整理重点",
-									maxLength: 100,
-									disabled: busy,
-									value: selectionEdit[selectionEdit.step],
-									onChange: (event) => setSelectionEdit({
-										...selectionEdit,
-										[selectionEdit.step]: event.target.value
-									})
-								})] }),
-								selectionEdit.step === "audio" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: job?.size ? "当前录音：" + job.fileName + "。可保留并继续，或更换文件后重新转写。" : "选择要处理的录音，已选用途和重点会保留。" }),
-								/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									className: MeetingDemo_module_css_default.choices,
-									children: [
-										selectionEdit.step === "audio" && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											disabled: busy || !availability?.ready,
-											onClick: () => input.current?.click(),
-											children: job?.size ? "选择其他录音" : "选择录音"
-										}),
-										(selectionEdit.step !== "audio" || !!job?.size) && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											className: MeetingDemo_module_css_default.primary,
-											disabled: busy,
-											onClick: () => void saveSelection(),
-											children: selectionEdit.step === "audio" ? "保留录音并继续" : "保存并继续"
-										}),
-										/* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-											disabled: busy,
-											onClick: () => setSelectionEdit(null),
-											children: "取消修改"
-										})
-									]
-								}),
-								busy && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
-									role: "status",
-									children: "正在保存并继续处理…"
-								})
-							]
 						})]
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
