@@ -30,6 +30,304 @@ window.__ModuleLoader__.load({
 		let react = require("react");
 		react = __toESM(react, 1);
 		let react_jsx_runtime = require("react/jsx-runtime");
+		//#region src/client/assistant-archive-client.ts
+		const LEGACY_ARCHIVES = "workbench-special-archives-v1";
+		const endpoint$2 = "/api/capabilities/assistant-archives";
+		function createAssistantArchives(request = async (body) => {
+			const res = await fetch(endpoint$2, {
+				credentials: "same-origin",
+				...body ? {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(body)
+				} : {}
+			});
+			const value = await res.json();
+			if (!res.ok) throw Error(value.error || "归档读取失败");
+			return value;
+		}) {
+			let state = {
+				revision: -1,
+				entries: {},
+				ready: false,
+				error: ""
+			}, pending = false;
+			const listeners = /* @__PURE__ */ new Set(), emit = () => listeners.forEach((fn) => fn());
+			const accept = (value) => {
+				if (value.revision >= state.revision) {
+					state = {
+						...value,
+						ready: true,
+						error: ""
+					};
+					emit();
+				}
+			};
+			const legacy = () => {
+				try {
+					return JSON.parse(localStorage.getItem("workbench-special-archives-v1") || "{}");
+				} catch {
+					return {};
+				}
+			};
+			const entryFor = (id, row) => {
+				const job = (row?.meeting)?.jobId, key = row?.codeTaskId ? "code:" + row.codeTaskId : job ? "meeting:" + job : void 0;
+				return state.entries[id] ?? (key ? Object.values(state.entries).find((entry) => entry.sourceKey === key) : void 0);
+			};
+			const refresh = async () => {
+				try {
+					accept(await request());
+				} catch (e) {
+					state = {
+						...state,
+						error: String(e)
+					};
+					emit();
+				}
+			};
+			const change = async (entry, migrate = false) => {
+				const value = await request({
+					...entry,
+					migrate
+				});
+				accept(value);
+				try {
+					localStorage.setItem("workbench-archive-notify", String(Date.now()) + Math.random());
+				} catch {}
+			};
+			return {
+				getSnapshot: () => state,
+				subscribe: (fn) => {
+					listeners.add(fn);
+					return () => {
+						listeners.delete(fn);
+					};
+				},
+				refresh,
+				change,
+				entryFor,
+				hidden: (id, row) => entryFor(id, row)?.removed || (entryFor(id, row)?.archived ?? Boolean(legacy()[id])),
+				async migrate(rows) {
+					if (pending || !state.ready) return;
+					pending = true;
+					try {
+						for (const row of rows) {
+							if (!legacy()[row.id]) continue;
+							await change({
+								id: row.id,
+								title: row.title,
+								role: row.role,
+								localSnapshot: row.localSnapshot,
+								archived: true
+							}, true);
+							const remaining = legacy();
+							delete remaining[row.id];
+							localStorage.setItem(LEGACY_ARCHIVES, JSON.stringify(remaining));
+						}
+					} catch (e) {
+						state = {
+							...state,
+							error: "旧归档记录尚未迁移：" + String(e)
+						};
+						emit();
+					} finally {
+						pending = false;
+					}
+				},
+				start() {
+					refresh();
+					const update = () => void refresh(), storage = (e) => {
+						if (e.key === "workbench-special-archives-v1" || e.key === "workbench-archive-notify") update();
+					};
+					window.addEventListener("focus", update);
+					window.addEventListener("storage", storage);
+					const timer = setInterval(update, 5e3);
+					return () => {
+						clearInterval(timer);
+						window.removeEventListener("focus", update);
+						window.removeEventListener("storage", storage);
+					};
+				}
+			};
+		}
+		//#endregion
+		//#region ../dsh-session-archive/src/client/api.ts
+		const DEFAULT_TIMEOUT_MS = 3e4;
+		/** Batch deletes of thousands of sessions can take a while server-side. */
+		const BATCH_TIMEOUT_MS = 3e5;
+		var ArchiveApiError = class extends Error {
+			status;
+			body;
+			constructor(status, body) {
+				super(`archive api failed (${status})${typeof body === "string" ? `: ${body}` : ""}`);
+				this.status = status;
+				this.body = body;
+			}
+		};
+		async function request$4(path, init, timeoutMs) {
+			const response = await fetch(path, {
+				...init,
+				headers: {
+					"content-type": "application/json",
+					...init?.headers
+				},
+				signal: AbortSignal.timeout(timeoutMs)
+			});
+			const body = await response.json().catch(() => void 0);
+			if (!response.ok) {
+				const detail = typeof body === "object" && body !== null && "error" in body && typeof body.error === "string" ? body.error : void 0;
+				throw new ArchiveApiError(response.status, detail === void 0 ? body : `${response.status}: ${detail}`);
+			}
+			return body;
+		}
+		function post$2(ids, extra) {
+			return {
+				method: "POST",
+				body: JSON.stringify({
+					ids,
+					...extra
+				})
+			};
+		}
+		function createArchiveApi() {
+			const prefix = "/api/dsh-session-archive";
+			return {
+				inventory: () => request$4(`${prefix}/inventory`, void 0, DEFAULT_TIMEOUT_MS),
+				preview: (id) => request$4(`${prefix}/preview?id=${encodeURIComponent(id)}`, void 0, DEFAULT_TIMEOUT_MS),
+				archive: (ids, currentSessionId) => request$4(`${prefix}/archive`, post$2(ids, currentSessionId === void 0 ? {} : { currentSessionId }), BATCH_TIMEOUT_MS),
+				unarchive: (ids) => request$4(`${prefix}/unarchive`, post$2(ids, {}), BATCH_TIMEOUT_MS),
+				deleteSessions: (ids, currentSessionId, expectedTotal) => request$4(`${prefix}/delete`, post$2(ids, {
+					...currentSessionId === void 0 ? {} : { currentSessionId },
+					expectedTotal
+				}), BATCH_TIMEOUT_MS),
+				autoPreview: () => request$4(`${prefix}/auto/preview`, void 0, DEFAULT_TIMEOUT_MS),
+				autoRun: (kind, currentSessionId) => request$4(`${prefix}/auto/run`, {
+					method: "POST",
+					body: JSON.stringify({
+						kind,
+						...currentSessionId === void 0 ? {} : { currentSessionId }
+					})
+				}, BATCH_TIMEOUT_MS)
+			};
+		}
+		//#endregion
+		//#region src/client/assistant-archive-adapter.ts
+		/** Adapt data and commands; the original settings component and store own all UI. */
+		function createAssistantArchiveApi(ports, native = createArchiveApi()) {
+			const rows = () => new Map(ports.rows().map((row) => [row.id, row]));
+			const known = (id) => Boolean(rows().has(id) || ports.archives.getSnapshot().entries[id]);
+			const batch = async (kind, ids, current, expectedTotal) => {
+				const special = ids.filter(known), ordinary = ids.filter((id) => !known(id));
+				const results = [];
+				let freedBytes = 0;
+				if (ordinary.length) try {
+					const result = kind === "archive" ? await native.archive(ordinary, current) : kind === "unarchive" ? await native.unarchive(ordinary) : await native.deleteSessions(ordinary, current, (expectedTotal ?? ids.length) - special.length);
+					results.push(...result.results);
+					freedBytes = result.freedBytes;
+				} catch (error) {
+					results.push(...ordinary.map((id) => ({
+						id,
+						status: "failed",
+						reason: "error",
+						detail: String(error)
+					})));
+				}
+				for (const id of special) try {
+					const row = rows().get(id), entry = ports.archives.getSnapshot().entries[id];
+					if (kind === "delete" && (id === ports.current() || row?.running)) {
+						results.push({
+							id,
+							status: "skipped",
+							reason: row?.running ? "running" : "current"
+						});
+						continue;
+					}
+					if (kind === "archive") {
+						if (row) await ports.archive(row);
+						else if (entry) await ports.archives.change({
+							id,
+							archived: true
+						});
+					} else if (kind === "unarchive") {
+						if (entry?.archived) await ports.restore(entry);
+					} else {
+						await ports.remove(id);
+						await ports.archives.change({
+							id,
+							title: row?.title ?? entry?.title,
+							role: row?.role ?? entry?.role,
+							archived: false,
+							removed: true
+						});
+					}
+					results.push({
+						id,
+						status: "ok"
+					});
+				} catch (error) {
+					results.push({
+						id,
+						status: "failed",
+						reason: "error",
+						detail: String(error)
+					});
+				}
+				return {
+					results: ids.flatMap((id) => results.filter((result) => result.id === id)),
+					freedBytes
+				};
+			};
+			return {
+				...native,
+				async inventory() {
+					const [inventory] = await Promise.all([native.inventory(), ports.archives.refresh()]);
+					const entries = ports.archives.getSnapshot().entries, source = rows();
+					const special = [];
+					for (const id of /* @__PURE__ */ new Set([...source.keys(), ...Object.keys(entries)])) {
+						const entry = entries[id], row = source.get(id) ?? entry?.localSnapshot;
+						if (entry?.removed || !row && !entry?.archived) continue;
+						special.push({
+							id,
+							title: row?.title ?? entry?.title,
+							archived: ports.archives.hidden(id, entry?.localSnapshot),
+							archivedAt: entry?.archived ? Date.parse(entry.archivedAt) : void 0,
+							createdAt: row?.createdAt,
+							lastActivityAt: row?.updatedAt,
+							lastActivityReliable: Number.isFinite(row?.updatedAt),
+							running: source.get(id)?.running ?? false,
+							blank: row?.kind === "draft" && !row.draft && !row.meeting && !row.codeTaskId,
+							workspaceIds: [],
+							childIds: [],
+							childCount: 0,
+							issues: []
+						});
+					}
+					const nativeIds = new Set(inventory.rows.map((row) => row.id));
+					const added = special.filter((row) => !nativeIds.has(row.id));
+					return {
+						...inventory,
+						rows: [...inventory.rows, ...added],
+						archivedSessionIds: [...inventory.archivedSessionIds, ...added.filter((row) => row.archived).map((row) => row.id)]
+					};
+				},
+				preview: (id) => known(id) ? ports.preview(id) : native.preview(id),
+				archive: (ids, current) => batch("archive", ids, current),
+				unarchive: (ids) => batch("unarchive", ids),
+				deleteSessions: (ids, current, total) => batch("delete", ids, current, total)
+			};
+		}
+		function adaptAssistantArchiveController(original, ports, refresh) {
+			const Controller = original.constructor;
+			return new Controller({
+				store: original.store,
+				api: createAssistantArchiveApi(ports),
+				sessions: {
+					list: { getSnapshot: () => ({ current: ports.current() ?? original.getCurrentSessionId() }) },
+					refresh
+				}
+			});
+		}
+		//#endregion
 		//#region \0dsh-css:packages/dsh-client-ui-plain-chat/src/client/FlowchartLayouts.module.css.mjs
 		const css$22 = ".cxAnPW_message{min-width:0;position:relative}.cxAnPW_anchor{pointer-events:none;position:absolute;container-type:inline-size}.cxAnPW_control{pointer-events:auto;color:var(--dsw-alias-label-primary,#26364f);font:14px/1.5 Microsoft YaHei,sans-serif;position:absolute;bottom:10px;right:10px}.cxAnPW_toggle{border:1px solid var(--dsw-alias-border-l2,#cdd8ea);background:var(--dsw-alias-bg-layer-2,#fff);color:inherit;font:inherit;cursor:pointer;border-radius:24px;align-items:center;gap:8px;padding:9px 14px;display:flex;box-shadow:0 4px 20px #20345320}.cxAnPW_toggle>span{color:#7b8caa;margin-left:5px}.cxAnPW_panel{pointer-events:auto;color:var(--dsw-alias-label-primary,#26364f);box-sizing:border-box;border:1px solid var(--dsw-alias-border-l2,#d9e1ef);background:var(--dsw-alias-bg-layer-2,#fff);background:rgb(from var(--dsw-alias-bg-layer-2,#fff) r g b / .98);backdrop-filter:blur(16px);z-index:1000;border-radius:18px;max-height:min(560px,100vh - 24px);padding:16px;font:14px/1.5 Microsoft YaHei,sans-serif;position:fixed;overflow:auto;box-shadow:0 14px 50px #1c315a2b}.cxAnPW_heading{justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px;display:flex}.cxAnPW_heading strong{font-size:16px}.cxAnPW_heading small{color:var(--dsw-alias-label-secondary,#75849c);margin-top:4px;font-size:12px;display:block}.cxAnPW_heading button{color:inherit;cursor:pointer;background:0 0;border:0;padding:0 6px;font-size:22px}.cxAnPW_grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;display:grid}.cxAnPW_option{border:1px solid var(--dsw-alias-border-l2,#dce3ef);color:inherit;text-align:left;cursor:pointer;min-width:0;font:inherit;background:0 0;border-radius:12px;padding:8px}.cxAnPW_option[aria-pressed=true]{background:#6080ce1a;border-color:#6080ce;box-shadow:0 0 0 1px #6080ce}.cxAnPW_option img{background:#f8fafc;border-radius:6px;object-fit:contain!important;width:100%!important;height:96px!important;max-height:96px!important;margin:0!important;display:block!important}.cxAnPW_option strong{justify-content:space-between;margin:7px 0 3px;font-size:13px;display:flex}.cxAnPW_option strong span{color:#577cc9}.cxAnPW_option small{color:var(--dsw-alias-label-secondary,#75849c);font-size:11px;line-height:1.5;display:block}.cxAnPW_option:disabled{cursor:default;opacity:.55}.cxAnPW_unavailable{background:#7788991a;border-radius:6px;place-items:center;height:96px;font-size:11px;display:grid}.cxAnPW_footer{border-top:1px solid var(--dsw-alias-border-l2,#dce3ef);flex-wrap:wrap;gap:8px 16px;margin-top:12px;padding-top:12px;font-size:12px;display:flex}.cxAnPW_footer a{color:var(--dsw-alias-button-primary-fill,#466abb)}.cxAnPW_error{color:var(--dsw-alias-state-error-primary,#b73242);font-size:12px}.cxAnPW_error button{color:inherit;cursor:pointer;background:0 0;border:0;text-decoration:underline}.cxAnPW_panel button:focus-visible,.cxAnPW_control button:focus-visible,.cxAnPW_footer a:focus-visible{outline-offset:3px;outline:2px solid #6689da}@container (width<=320px){.cxAnPW_panel{padding:10px}.cxAnPW_grid{gap:7px}.cxAnPW_option img,.cxAnPW_unavailable{height:75px!important}.cxAnPW_heading small{font-size:11px}}";
 		const tagId$22 = "@linxin666/dsh-client-ui-plain-chat/packages/dsh-client-ui-plain-chat/src/client/FlowchartLayouts.module.css";
@@ -23093,7 +23391,7 @@ window.__ModuleLoader__.load({
 				}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M10 6v4l3 2" })] }) : kind === "number" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M9 5h8M9 10h8M9 15h8M3 3h1v5M3 12c2-2 3 0 1 2l-1 2h2" }) }) : kind === "plus" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M10 4v12M4 10h12" }) : kind === "chevron" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "m7 5 5 5-5 5" }) : /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: kind === "asc" ? "M6 16V4m-3 3 3-3 3 3" : "M6 4v12m-3-3 3 3 3-3" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("path", { d: "M12 5h5M12 10h4M12 15h2" })] })
 			});
 		}
-		function AssistantHistory({ Original, browser, rows, activeId, onOpen, onRename, onRemove, onNew, onFork, historyStatus, ready }) {
+		function AssistantHistory({ Original, browser, rows, activeId, onOpen, onRename, onRemove, onNew, onFork, archives, onArchive, historyStatus, ready }) {
 			const capabilities = (0, react.useSyncExternalStore)(capabilityClient.subscribe, capabilityClient.getSnapshot);
 			const roles = capabilities.data?.state.roles ?? [];
 			const list = browser.useSessions((value) => value);
@@ -23103,16 +23401,11 @@ window.__ModuleLoader__.load({
 				archivedSessionIds: []
 			};
 			const [query, setQuery] = (0, react.useState)("");
-			const [archived, setArchived] = (0, react.useState)(() => readHistoryStorage("workbench-special-archives-v1", {}));
-			const [showArchived, setShowArchived] = (0, react.useState)(false);
-			const setArchive = (id, value) => {
-				const next = { ...archived };
-				if (value) next[id] = true;
-				else delete next[id];
-				localStorage.setItem("workbench-special-archives-v1", JSON.stringify(next));
-				setArchived(next);
-			};
-			const visibleRows = rows.filter((row) => !archived[row.id]);
+			const archiveState = (0, react.useSyncExternalStore)(archives.subscribe, archives.getSnapshot);
+			(0, react.useEffect)(() => {
+				archives.migrate(rows);
+			}, [rows, archiveState.ready]);
+			const visibleRows = archiveState.ready || archiveState.error ? rows.filter((row) => !archives.hidden(row.id, row)) : [];
 			const [contentHits, setContentHits] = (0, react.useState)({
 				query: "",
 				items: []
@@ -23148,7 +23441,7 @@ window.__ModuleLoader__.load({
 			const all = (0, react.useMemo)(() => [...visibleRows, ...native], [
 				rows,
 				native,
-				archived
+				archiveState
 			]);
 			const assistantRows = all.filter((row) => row.role !== "chat");
 			const current = activeId ?? (list.current ? `session:${list.current}` : null);
@@ -23252,7 +23545,7 @@ window.__ModuleLoader__.load({
 			const archive = async (id) => {
 				const row = all.find((r) => r.id === id);
 				if (row?.nativeId) await browser.archiveSession(row.nativeId);
-				else setArchive(id, true);
+				else if (row) await onArchive(row);
 			};
 			const renderRows = (items, search = false) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(LocalConversationRows, {
 				host: null,
@@ -23459,36 +23752,17 @@ window.__ModuleLoader__.load({
 								})
 							]
 						}),
-						rows.some((row) => archived[row.id]) && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
-							type: "button",
-							onClick: () => setShowArchived(true),
-							children: [
-								"已归档的专用记录（",
-								rows.filter((row) => archived[row.id]).length,
-								"）"
-							]
+						!archiveState.ready && !archiveState.error && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", {
+							className: AssistantHistory_module_css_default.status,
+							children: "正在读取归档状态…"
 						}),
-						showArchived && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Modal$1, {
-							title: "已归档的专用记录",
-							closeLabel: "关闭",
-							onClose: () => setShowArchived(false),
-							children: /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-								style: { padding: 20 },
-								children: [rows.filter((row) => archived[row.id]).map((row) => /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
-									style: {
-										display: "flex",
-										gap: 12,
-										marginBottom: 12
-									},
-									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
-										style: { flex: 1 },
-										children: row.title
-									}), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
-										onClick: () => setArchive(row.id, false),
-										children: "恢复"
-									})]
-								}, row.id)), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("p", { children: "归档保留原记录；此列表保存在当前浏览器中。" })]
-							})
+						archiveState.error && /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
+							className: AssistantHistory_module_css_default.status,
+							role: "alert",
+							children: [archiveState.error, /* @__PURE__ */ (0, react_jsx_runtime.jsx)("button", {
+								onClick: () => void archives.refresh(),
+								children: "重试"
+							})]
 						}),
 						historyStatus && /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
 							className: AssistantHistory_module_css_default.status,
@@ -23545,11 +23819,11 @@ window.__ModuleLoader__.load({
 			const active = () => snapshot.items.find((row) => row.id === snapshot.activeId);
 			const leave = () => {
 				const current = active();
-				update(snapshot.items.filter((row) => row !== current || row.kind === "demo" || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean(row.meeting?.mode)), null);
+				update(snapshot.items.filter((row) => row !== current || row.retained || row.kind === "demo" || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean(row.meeting?.mode)), null);
 			};
 			const start = (role = "chat", workMode) => {
 				const current = active();
-				const retained = snapshot.items.filter((row) => row !== current || row.kind === "demo" || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean(row.meeting?.mode));
+				const retained = snapshot.items.filter((row) => row !== current || row.retained || row.kind === "demo" || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean(row.meeting?.mode));
 				const now = Date.now();
 				const row = {
 					id: mint(),
@@ -23576,6 +23850,15 @@ window.__ModuleLoader__.load({
 				update(snapshot.items.map((row) => row.id === id ? next : row));
 			};
 			return {
+				restoreArchived: (row) => {
+					const same = (item) => item.id === row.id || Boolean(row.codeTaskId && item.codeTaskId === row.codeTaskId) || Boolean(row.meeting?.jobId && item.meeting?.jobId === row.meeting.jobId);
+					const existing = snapshot.items.find(same), next = {
+						...structuredClone(existing ?? row),
+						id: row.id,
+						retained: true
+					};
+					update([next, ...snapshot.items.filter((item) => !same(item))], existing?.id === snapshot.activeId ? row.id : snapshot.activeId);
+				},
 				addFork: (source, id, patch = {}) => {
 					const row = {
 						...structuredClone(source),
@@ -24458,6 +24741,17 @@ window.__ModuleLoader__.load({
 				revision++;
 				listeners.forEach((fn) => fn());
 			});
+			const assistantArchives = createAssistantArchives();
+			ctx.effect(() => assistantArchives.start(), "plain-chat: assistant archive synchronization");
+			const commitLocalChat = (id) => {
+				localConversations.commitChat(id);
+				const entry = assistantArchives.getSnapshot().entries[id];
+				if (entry && !entry.removed) assistantArchives.change({
+					id,
+					archived: false,
+					removed: true
+				}).catch(documents.fail);
+			};
 			const meetingHistory = createMeetingHistory(localConversations);
 			ctx.effect(() => {
 				meetingHistory.load();
@@ -24505,7 +24799,7 @@ window.__ModuleLoader__.load({
 					created.add(id);
 					clearSavedDraft();
 					const local = localConversations.active();
-					if (local?.kind === "draft") localConversations.commitChat(local.id);
+					if (local?.kind === "draft") commitLocalChat(local.id);
 					sessions.open(binding.sessionId);
 					layout.selectPanel(null);
 					input.submit();
@@ -24670,12 +24964,123 @@ window.__ModuleLoader__.load({
 				layout.selectPanel(null);
 			};
 			const switchAssistant = (id) => {
-				const draft = localConversations.getSnapshot().items.find((row) => row.role === id && row.kind === "draft");
+				const draft = localConversations.getSnapshot().items.find((row) => row.role === id && row.kind === "draft" && !assistantArchives.hidden(row.id, row));
 				localConversations.leave();
 				leaveSearch();
 				leaveRecording();
 				openLocalConversation((draft ?? localConversations.start(id)).id);
 			};
+			const archiveRows = () => {
+				const rows = [
+					...documents.getSnapshot().rows.map((row) => ({
+						id: row.id,
+						role: row.roleId,
+						kind: "demo",
+						title: row.title,
+						draft: "",
+						createdAt: Date.parse(row.createdAt),
+						updatedAt: Date.parse(row.updatedAt),
+						documentId: row.id,
+						running: row.messages.some((m) => m.status === "running")
+					})),
+					...searches.getSnapshot().rows.map((row) => ({
+						id: row.id,
+						role: row.roleId,
+						kind: "demo",
+						title: row.title,
+						draft: "",
+						createdAt: Date.parse(row.createdAt),
+						updatedAt: Date.parse(row.updatedAt),
+						searchId: row.id
+					})),
+					...recordings.getSnapshot().rows.map((row) => ({
+						id: row.id,
+						role: row.roleId,
+						kind: "demo",
+						title: row.title,
+						draft: "",
+						roleName: row.roleName,
+						createdAt: Date.parse(row.createdAt),
+						updatedAt: Date.parse(row.updatedAt),
+						recordingId: row.id,
+						running: ["recording", "paused"].includes(row.status)
+					})),
+					...localConversations.getSnapshot().items.map((row) => ({
+						...row,
+						localSnapshot: row
+					})),
+					...developerHistory.getSnapshot().items.map((item) => ({
+						id: item.id,
+						role: item.roleId,
+						kind: "developer",
+						title: item.title,
+						workspace: item.cwd?.split(/[\\/]/).pop(),
+						running: item.running,
+						draft: "",
+						updatedAt: Date.parse(item.updatedAt)
+					})),
+					...requirementHistory.getSnapshot().items.map((item) => ({
+						id: item.id,
+						role: item.roleId,
+						kind: "requirements",
+						title: item.title,
+						draft: "",
+						running: item.running,
+						updatedAt: Date.parse(item.updatedAt)
+					}))
+				].sort((a, b) => b.updatedAt - a.updatedAt);
+				const entries = assistantArchives.getSnapshot().entries;
+				for (const entry of Object.values(entries)) if (entry.localSnapshot && !entry.removed && !rows.some((row) => row.id === entry.id)) rows.push({
+					...entry.localSnapshot,
+					localSnapshot: entry.localSnapshot
+				});
+				return rows.filter((row) => !assistantArchives.entryFor(row.id, row.localSnapshot)?.removed);
+			};
+			const archiveConversation = async (row) => {
+				if (activeDocument === row.id) await documents.flush();
+				const local = localConversations.getSnapshot().items.find((item) => item.id === row.id) ?? row.localSnapshot;
+				await assistantArchives.change({
+					id: row.id,
+					title: row.title,
+					role: row.role,
+					archived: true,
+					...local ? { localSnapshot: local } : {}
+				});
+				if (local) localConversations.restoreArchived(local);
+				if ((activeDocument ?? activeSearch ?? activeRecording ?? developerHistory.getSnapshot().activeId ?? requirementHistory.getSnapshot().activeId ?? localConversations.getSnapshot().activeId) === row.id) startFreshChat(row.role);
+			};
+			const restoreConversation = async (entry) => {
+				if (entry.localSnapshot) localConversations.restoreArchived(entry.localSnapshot);
+				await assistantArchives.change({
+					id: entry.id,
+					archived: false
+				});
+			};
+			ctx.effect(() => {
+				let previous = assistantArchives.getSnapshot().entries, closing = false;
+				return assistantArchives.subscribe(() => {
+					const entries = assistantArchives.getSnapshot().entries;
+					for (const entry of Object.values(entries)) if (!entry.removed && (!previous[entry.id] || previous[entry.id]?.archived !== entry.archived) && entry.localSnapshot) localConversations.restoreArchived(entry.localSnapshot);
+					for (const row of localConversations.getSnapshot().items) if (assistantArchives.entryFor(row.id, row)?.removed) localConversations.remove(row.id);
+					previous = entries;
+					const current = () => activeDocument ?? activeSearch ?? activeRecording ?? developerHistory.getSnapshot().activeId ?? requirementHistory.getSnapshot().activeId ?? localConversations.getSnapshot().activeId;
+					const id = current(), entry = id ? entries[id] : void 0;
+					if (!entry?.archived || closing) return;
+					closing = true;
+					(async () => {
+						try {
+							if (activeDocument === id) await documents.flush();
+							if (current() !== id) return;
+							if (entry.localSnapshot) localConversations.restoreArchived(entry.localSnapshot);
+							startFreshChat(entry.role);
+						} catch (error) {
+							documents.fail(error);
+						} finally {
+							closing = false;
+						}
+					})();
+				});
+			}, "plain-chat: archived conversation navigation");
 			const pendingForks = /* @__PURE__ */ new Map();
 			const forkRequests = /* @__PURE__ */ new Map();
 			const forkLocalConversation = (id) => {
@@ -24787,60 +25192,66 @@ window.__ModuleLoader__.load({
 				}
 				localConversations.rename(id, title);
 			};
-			const removeLocalConversation = (id) => {
-				if (documents.getSnapshot().rows.some((r) => r.id === id)) {
-					documents.command(id, "remove").then(() => {
-						if (activeDocument === id) startFreshChat();
-					}).catch(documents.fail);
-					return;
-				}
-				if (searches.getSnapshot().rows.some((r) => r.id === id)) {
-					searches.command(id, "delete").then(() => {
-						if (activeSearch === id) startFreshChat();
-					}).catch((e) => window.alert(e.message));
-					return;
-				}
-				if (recordings.getSnapshot().rows.some((r) => r.id === id)) {
-					if (!window.confirm("移除此录音会话及其录音文件？")) return;
-					recordings.command(id, "delete").then(() => {
-						if (activeRecording === id) startFreshChat();
-					}).catch((e) => window.alert(e.message));
-					return;
-				}
-				const developer = developerHistory.getSnapshot().items.find((item) => item.id === id);
-				if (developer) {
-					if (!window.confirm(`移除“${developer.title}”的开发记录？代码、提交和工作目录保留；此对话和运行记录将被删除。`)) return;
-					const active = developerHistory.getSnapshot().activeId === id, navigation = developerViewKey;
-					developerHistory.remove(id).then(() => {
-						if (active && navigation === developerViewKey) startFreshChat();
-					}).catch((error) => window.alert(error instanceof Error ? error.message : String(error)));
-					return;
-				}
-				const requirement = requirementHistory.getSnapshot().items.find((item) => item.id === id);
-				if (requirement) {
-					if (!window.confirm(`移除“${requirement.title}”？这将删除此需求分析的资料、对话、需求条目和确认版本，无法撤销。`)) return;
-					const active = requirementHistory.getSnapshot().activeId === id;
-					const navigation = requirementViewKey;
-					requirementHistory.remove(id).then(() => {
-						if (active && navigation === requirementViewKey && sessions.list.getSnapshot().current === void 0) startFreshChat();
-					}).catch((error) => window.alert(error instanceof Error ? error.message : String(error)));
-					return;
-				}
-				const row = localConversations.getSnapshot().items.find((item) => item.id === id);
-				const meetingId = row?.meeting && typeof row.meeting === "object" ? row.meeting.jobId : void 0;
-				const remove = () => {
-					const active = localConversations.getSnapshot().activeId === id;
-					if (typeof meetingId === "string") meetingHistory.forget(meetingId);
+			const removeLocalConversation = async (id, confirmed = false) => {
+				if (!confirmed && !window.confirm("移除此对话及其保存内容？此操作无法撤销。")) return;
+				if (documents.getSnapshot().rows.some((r) => r.id === id)) await documents.command(id, "remove");
+				else if (searches.getSnapshot().rows.some((r) => r.id === id)) await searches.command(id, "delete");
+				else if (recordings.getSnapshot().rows.some((r) => r.id === id)) await recordings.command(id, "delete");
+				else if (developerHistory.getSnapshot().items.some((r) => r.id === id)) await developerHistory.remove(id);
+				else if (requirementHistory.getSnapshot().items.some((r) => r.id === id)) await requirementHistory.remove(id);
+				else {
+					const row = localConversations.getSnapshot().items.find((r) => r.id === id) ?? assistantArchives.getSnapshot().entries[id]?.localSnapshot;
+					if (!row) throw Error("未能读取此对话，请刷新后重试");
+					const jobId = row.meeting?.jobId;
+					if (row.codeTaskId) {
+						const response = await fetch("/api/capabilities/code-assistant/task?id=" + encodeURIComponent(row.codeTaskId), {
+							method: "DELETE",
+							credentials: "same-origin"
+						});
+						if (!response.ok) {
+							const body = await response.json();
+							throw Error(body.error || "代码对话删除失败");
+						}
+					}
+					if (jobId) await removeMeetingConversation(jobId, row.title, () => meetingHistory.forget(jobId), () => true);
 					localConversations.remove(id);
-					if (!active || sessions.list.getSnapshot().current !== void 0) return;
-					start.reset();
-					clearSavedDraft();
-					roleSelection.select("chat");
-					revision++;
-					listeners.forEach((fn) => fn());
+				}
+			};
+			const previewArchivedConversation = async (id) => {
+				const row = archiveRows().find((r) => r.id === id);
+				if (!row) throw Error("未能读取此对话，请刷新后重试");
+				let data = documents.getSnapshot().rows.find((r) => r.id === id) ?? searches.getSnapshot().rows.find((r) => r.id === id) ?? recordings.getSnapshot().rows.find((r) => r.id === id) ?? row.meeting;
+				const jobId = row.meeting?.jobId;
+				if (row.kind === "requirements") data = await getRequirementTask(id);
+				else if (row.kind === "developer") data = await developerApi("task", { id });
+				else if (jobId || row.codeTaskId) {
+					const response = await fetch(jobId ? "/api/capabilities/meeting/job/" + encodeURIComponent(jobId) : "/api/capabilities/code-assistant/task?id=" + encodeURIComponent(row.codeTaskId), { credentials: "same-origin" });
+					data = await response.json();
+					if (!response.ok) throw Error(data.error || "对话预览读取失败");
+				}
+				const excerpt = [];
+				const append = (role, value) => {
+					if (typeof value === "string" && value.trim()) excerpt.push({
+						role,
+						text: value.slice(0, 4e3)
+					});
 				};
-				if (typeof meetingId === "string") removeMeetingConversation(meetingId, row?.title ?? "会议", remove).catch((error) => window.alert(error instanceof Error ? error.message : String(error)));
-				else if (window.confirm("移除此对话及未发送内容？此操作无法撤销。")) remove();
+				for (const message of data?.messages ?? []) append(message.role ?? message.info?.role ?? "assistant", message.text ?? message.parts?.filter((part) => part.type === "text").map((part) => part.text).join("\n"));
+				for (const note of data?.notes ?? []) append("user", note.text);
+				for (const segment of data?.segments ?? []) append("user", segment.text);
+				if (data?.minutes) append("assistant", JSON.stringify(data.minutes, null, 2));
+				if (data?.query) {
+					append("user", data.query);
+					append("assistant", data.items?.map((item) => item.path).join("\n"));
+				}
+				if (row.draft) append("user", row.draft);
+				return {
+					id,
+					title: row.title,
+					createdAt: row.createdAt,
+					messageCount: excerpt.length,
+					excerpt: excerpt.slice(0, 20)
+				};
 			};
 			ctx.effect(() => {
 				return sessions.list.subscribe(() => {
@@ -24882,6 +25293,23 @@ window.__ModuleLoader__.load({
 				};
 			}, "plain-chat: file search navigation");
 			const registry = ctx.slots;
+			ctx.effect(() => decorateSlot(registry, "settings.section", "SessionArchiveCard", (Original) => function AssistantArchivesSettings(props) {
+				const controller = (0, react.useMemo)(() => adaptAssistantArchiveController(props.controller, {
+					archives: assistantArchives,
+					rows: archiveRows,
+					current: () => activeDocument ?? activeSearch ?? activeRecording ?? developerHistory.getSnapshot().activeId ?? requirementHistory.getSnapshot().activeId ?? localConversations.getSnapshot().activeId ?? void 0,
+					archive: archiveConversation,
+					restore: restoreConversation,
+					remove: (id) => removeLocalConversation(id, true),
+					preview: previewArchivedConversation
+				}, async () => {
+					await sessions.refresh();
+				}), [props.controller]);
+				return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, {
+					...props,
+					controller
+				});
+			}), "plain-chat: existing archive list data adapter");
 			ctx.effect(() => decorateSlot(registry, "conversation.chat.node", "AssistantNodeView", (Original) => function FlowchartMessage(props) {
 				return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(FlowchartLayouts, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(Original, { ...props }) });
 			}), "plain-chat: flowchart layout controls");
@@ -25017,7 +25445,7 @@ window.__ModuleLoader__.load({
 								clearSavedDraft();
 							}
 						}
-						if (binding && local?.kind === "draft") localConversations.commitChat(local.id);
+						if (binding && local?.kind === "draft") commitLocalChat(local.id);
 					};
 					return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 						className: Chat_module_css_default.conversationShell,
@@ -25104,7 +25532,7 @@ window.__ModuleLoader__.load({
 									onCommit: (task) => {
 										const current = developerKey === developerViewKey && sessions.list.getSnapshot().current === void 0 && roleSelection.getSnapshot() === effectiveRole;
 										const origin = local && localConversations.getSnapshot().items.find((row) => row.id === local.id);
-										if (current && origin?.kind === "draft") localConversations.commitChat(origin.id);
+										if (current && origin?.kind === "draft") commitLocalChat(origin.id);
 										developerHistory.upsert(task, current);
 									}
 								}, developerKey) : noSession && requirementSnapshot.activeId && !requirement ? /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("p", {
@@ -25141,7 +25569,7 @@ window.__ModuleLoader__.load({
 										const current = analysisViewKey === requirementViewKey && sessions.list.getSnapshot().current === void 0 && (requirement ? activeId === requirement.id : revision === draftKey && roleSelection.getSnapshot() === effectiveRole && (!activeId || activeId === task.id));
 										const origin = localSnapshot.items.find((row) => row.id === local?.id);
 										const retained = origin && localConversations.getSnapshot().items.find((row) => row.id === origin.id);
-										if (retained?.kind === "draft" && retained.role === effectiveRole && (current || retained.draft === origin?.draft)) localConversations.commitChat(retained.id);
+										if (retained?.kind === "draft" && retained.role === effectiveRole && (current || retained.draft === origin?.draft)) commitLocalChat(retained.id);
 										requirementHistory.upsert(task, current);
 									}
 								}, analysisViewKey) : noSession && workMode === "meeting" ? /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MeetingDemo, {
@@ -25196,58 +25624,7 @@ window.__ModuleLoader__.load({
 				(0, react.useEffect)(() => {
 					if (requirements.hasMore && !requirements.loading && !requirements.error) requirementHistory.load(true);
 				}, [requirements]);
-				const historyRows = [
-					...documentRows.rows.map((row) => ({
-						id: row.id,
-						role: row.roleId,
-						kind: "demo",
-						title: row.title,
-						draft: "",
-						createdAt: Date.parse(row.createdAt),
-						updatedAt: Date.parse(row.updatedAt),
-						documentId: row.id
-					})),
-					...searched.rows.map((row) => ({
-						id: row.id,
-						role: row.roleId,
-						kind: "demo",
-						title: row.title,
-						draft: "",
-						createdAt: Date.parse(row.createdAt),
-						updatedAt: Date.parse(row.updatedAt),
-						searchId: row.id
-					})),
-					...recorded.rows.map((row) => ({
-						id: row.id,
-						role: row.roleId,
-						kind: "demo",
-						title: row.title,
-						draft: "",
-						roleName: row.roleName,
-						createdAt: Date.parse(row.createdAt),
-						updatedAt: Date.parse(row.updatedAt),
-						recordingId: row.id
-					})),
-					...local.items,
-					...developers.items.map((item) => ({
-						id: item.id,
-						role: item.roleId,
-						kind: "developer",
-						title: item.title,
-						workspace: item.cwd?.split(/[\\/]/).pop(),
-						running: item.running,
-						draft: "",
-						updatedAt: Date.parse(item.updatedAt)
-					})),
-					...requirements.items.map((item) => ({
-						id: item.id,
-						role: item.roleId,
-						kind: "requirements",
-						title: item.title,
-						draft: "",
-						updatedAt: Date.parse(item.updatedAt)
-					}))
-				].sort((a, b) => b.updatedAt - a.updatedAt);
+				const historyRows = archiveRows();
 				const open = (id) => {
 					leaveSearch();
 					leaveRecording();
@@ -25260,6 +25637,8 @@ window.__ModuleLoader__.load({
 				};
 				const historyReady = historyInitialLoaded && !developers.loading && !meetings.loading && !meetings.hasMore && !meetings.error && !requirements.loading && !requirements.hasMore && !requirements.error && !developers.error && !recorded.error && !searched.error && !documentRows.error;
 				return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(AssistantHistory, {
+					archives: assistantArchives,
+					onArchive: archiveConversation,
 					Original,
 					browser: {
 						...props,

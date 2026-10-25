@@ -125,6 +125,7 @@ describe('ordinary chat UI integration', () => {
     const definition = { ...emptyRole(), name: '网页助手', capabilities: [{ capabilityId: 'browser', version: 1, enabled: true }] }
     state.roles.push({ id: 'reader', enabled: true, draft: definition, versions: [{ ...definition, version: 1, preset: 'workbench-role-reader-v1', createdAt: state.updatedAt }] })
     vi.stubGlobal('fetch', vi.fn(async (url: string | URL | Request) => {
+      if(String(url).includes('/assistant-archives'))return {ok:true,json:async()=>({revision:0,entries:{}})}
       if (/\/capabilities\/(recording|file-search|documents)\/list/.test(String(url))) return { ok: true, json: async () => [] }
       if (String(url).includes('/developer/tasks?')) return { ok: true, json: async () => ({ items: [] }) }
       if (String(url).includes('/meeting/jobs?')) return { ok: true, json: async () => ({ items: [], total: 0, unreadableCount: 0 }) }

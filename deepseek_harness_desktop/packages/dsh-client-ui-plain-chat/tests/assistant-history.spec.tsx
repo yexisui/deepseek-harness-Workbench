@@ -1,3 +1,4 @@
+import {createAssistantArchives} from '../src/client/assistant-archive-client.ts'
 // @vitest-environment jsdom
 import React, { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
@@ -23,7 +24,9 @@ function setup() {
   const list = { phase: 'ready', current: undefined, ids: ['native', 'free'], byId: { native: { title: '原生助手对话', updatedAt: 200, projectionValues: { agentPreset: 'workbench-role-test-meeting-v1' } }, free: { title: '普通聊天', updatedAt: 250, projectionValues: { agentPreset: 'workbench-chat' } } } }
   const workspaces = { items: [{ title: '项目甲', sessionIds: ['native', 'free'] }], archivedSessionIds: [] }
   const Original = (props: any) => <div data-original>{props.useSessions((s: any) => s.ids).map((id: string) => <span data-native={id} key={id}>{list.byId[id as keyof typeof list.byId].title}</span>)}</div>
-  const props = { Original, browser: { wide: true, useSessions: (fn: any) => fn(list), useWorkspaces: (fn: any) => fn(workspaces), t: (key: string) => key, open, renameSession: rename, archiveSession: archive, forkSession: fork }, rows: [{ id: 'local', title: '录音摘要', role: 'test-meeting', kind: 'demo' as const, draft: '', updatedAt: 100, createdAt: 1 }], activeId: null, onOpen, onNew, onRename: vi.fn(async () => {}), onRemove: vi.fn(), onFork: vi.fn(async () => {}), ready: true }
+  let saved:any={revision:0,entries:{}}
+  const archives=createAssistantArchives(async(body:any)=>{if(body){saved={revision:saved.revision+1,entries:{...saved.entries,[body.id]:{...saved.entries[body.id],...body}}}}return structuredClone(saved)});void archives.refresh()
+  const props = { archives,onArchive:async(row:any)=>{await archives.change({...row,archived:true})}, Original, browser: { wide: true, useSessions: (fn: any) => fn(list), useWorkspaces: (fn: any) => fn(workspaces), t: (key: string) => key, open, renameSession: rename, archiveSession: archive, forkSession: fork }, rows: [{ id: 'local', title: '录音摘要', role: 'test-meeting', kind: 'demo' as const, draft: '', updatedAt: 100, createdAt: 1 }], activeId: null, onOpen, onNew, onRename: vi.fn(async () => {}), onRemove: vi.fn(), onFork: vi.fn(async () => {}), ready: true }
   return { props, open, onOpen, onNew, rename, archive, fork }
 }
 const click = async (selector: string) => { const button = container.querySelector<HTMLButtonElement>(selector); expect(button).toBeTruthy(); await act(async () => button!.click()) }
@@ -104,8 +107,8 @@ it('archives special records without deleting them, retains numbering and restor
   expect(localStorage.getItem('workbench-sidebar-numbers-v1')).toBe(numbers)
   await act(async()=>root.render(<AssistantHistory key="reload" {...app.props}/>))
   expect(container.querySelector('[data-conversation-id="local"]')).toBeNull()
-  await act(async()=>Array.from(container.querySelectorAll('button')).find(b=>b.textContent?.startsWith('已归档的专用记录'))!.click())
-  await act(async()=>Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='恢复')!.dispatchEvent(new MouseEvent('click',{bubbles:true})))
+  expect(container.textContent).not.toContain('已归档的专用记录')
+  await act(async()=>app.props.archives.change({id:'local',archived:false}))
   expect(container.querySelector('[data-conversation-id="local"]')).toBeTruthy()
 })
 

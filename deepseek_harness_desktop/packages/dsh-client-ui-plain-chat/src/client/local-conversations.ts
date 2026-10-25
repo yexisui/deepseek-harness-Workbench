@@ -1,5 +1,6 @@
 /** Local rows that exist before the host creates a real chat Session. */
 export type LocalConversation = {
+  retained?: boolean
   id: string
   workMode?: import('./role-capability-modes.ts').CapabilityMode
   role: string
@@ -50,11 +51,11 @@ export function createLocalConversations(mint: () => string = () => `local-${cry
   const active = () => snapshot.items.find(row => row.id === snapshot.activeId)
   const leave = () => {
     const current = active()
-    update(snapshot.items.filter(row => row !== current || row.kind === 'demo' || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode)), null)
+    update(snapshot.items.filter(row => row !== current || row.retained || row.kind === 'demo' || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode)), null)
   }
   const start = (role = 'chat', workMode?: LocalConversation['workMode']) => {
     const current = active()
-    const retained = snapshot.items.filter(row => row !== current || row.kind === 'demo' || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode))
+    const retained = snapshot.items.filter(row => row !== current || row.retained || row.kind === 'demo' || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode))
     const now = Date.now()
     const row: LocalConversation = { id: mint(), role, workMode, kind: 'draft', title: '新对话', draft: '', createdAt: now, updatedAt: now }
     update([row, ...retained], row.id)
@@ -68,6 +69,11 @@ export function createLocalConversations(mint: () => string = () => `local-${cry
     update(snapshot.items.map(row => row.id === id ? next : row))
   }
   return {
+    restoreArchived: (row:LocalConversation) => {
+      const same=(item:LocalConversation)=>item.id===row.id||Boolean(row.codeTaskId&&item.codeTaskId===row.codeTaskId)||Boolean((row.meeting as {jobId?:string})?.jobId&&(item.meeting as {jobId?:string})?.jobId===(row.meeting as {jobId:string}).jobId)
+      const existing=snapshot.items.find(same),next={...structuredClone(existing??row),id:row.id,retained:true}
+      update([next,...snapshot.items.filter(item=>!same(item))],existing?.id===snapshot.activeId?row.id:snapshot.activeId)
+    },
     addFork: (source: LocalConversation, id: string, patch: Partial<LocalConversation> = {}) => {
       const row = {...structuredClone(source), ...patch, id, customTitle:true, title:(source.title||'对话').slice(0,110)+' · 分叉',createdAt:Date.now(),updatedAt:Date.now()}
       update([row,...snapshot.items.filter(r=>r.id!==id)],id);return row

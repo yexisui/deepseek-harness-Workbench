@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import { cp, link, lstat, mkdir, mkdtemp, open, readFile, readdir, realpath, rename, rm, stat, unlink, writeFile } from "node:fs/promises";
-import { createHash, randomBytes, randomUUID } from "node:crypto";
 import path, { basename, dirname, extname, isAbsolute, join, relative, resolve, win32 } from "node:path";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { execFile, spawn, spawnSync } from "node:child_process";
 import fs, { createReadStream, existsSync, lstatSync, mkdirSync, openAsBlob, readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -855,6 +855,74 @@ function issues(definition, capabilityId, catalog = components) {
 function roleCompositionIssues(value) {
 	return [];
 }
+//#endregion
+//#region src/host/assistant-archives.ts
+function sourceKey$1(row) {
+	const meeting = row?.meeting;
+	return typeof row?.codeTaskId === "string" ? "code:" + row.codeTaskId : typeof meeting?.jobId === "string" ? "meeting:" + meeting.jobId : void 0;
+}
+var AssistantArchives = class {
+	root;
+	state = {
+		revision: 0,
+		entries: {}
+	};
+	tail = Promise.resolve();
+	constructor(root) {
+		this.root = root;
+	}
+	async init() {
+		await mkdir(this.root, { recursive: true });
+		try {
+			this.state = JSON.parse(await readFile(join(this.root, "assistant-archives.json"), "utf8"));
+		} catch (e) {
+			if (e.code !== "ENOENT") throw e;
+		}
+	}
+	snapshot() {
+		return structuredClone(this.state);
+	}
+	change(input) {
+		const run = this.tail.then(async () => {
+			const body = object(input), requestedId = text$3(body.id, "对话", 160, true), key = sourceKey$1(body.localSnapshot === void 0 ? void 0 : object(body.localSnapshot));
+			const id = (key ? Object.values(this.state.entries).find((entry) => (entry.sourceKey ?? sourceKey$1(entry.localSnapshot)) === key)?.id : void 0) ?? requestedId;
+			if (!/^[\w-]+$/.test(id)) throw new InputError("对话标识无效");
+			const old = this.state.entries[id];
+			if (body.migrate === true && old) return this.snapshot();
+			if (typeof body.archived !== "boolean") throw new InputError("归档状态无效");
+			if (old?.removed) throw new InputError("对话已删除", 404);
+			if (!body.archived && !body.removed && !old) throw new InputError("归档记录不存在", 404);
+			const snapshot = body.removed ? void 0 : body.localSnapshot === void 0 ? old?.localSnapshot : object(body.localSnapshot);
+			if (snapshot && (![id, requestedId].includes(String(snapshot.id)) || !["draft", "demo"].includes(String(snapshot.kind)))) throw new InputError("对话副本不匹配");
+			const entry = {
+				id,
+				sourceKey: key ?? old?.sourceKey,
+				title: text$3(body.title ?? old?.title, "名称", 240, true),
+				role: text$3(body.role ?? old?.role, "助手", 160, true),
+				archived: body.removed ? false : body.archived,
+				archivedAt: body.archived ? (/* @__PURE__ */ new Date()).toISOString() : old?.archivedAt ?? (/* @__PURE__ */ new Date()).toISOString(),
+				...body.removed ? { removed: true } : {},
+				...snapshot ? { localSnapshot: {
+					...structuredClone(snapshot),
+					id
+				} } : {}
+			};
+			const next = {
+				revision: this.state.revision + 1,
+				entries: {
+					...this.state.entries,
+					[id]: entry
+				}
+			}, file = join(this.root, "assistant-archives.json");
+			await writeFile(file + ".tmp", JSON.stringify(next));
+			await rename(file + ".tmp", file);
+			this.state = next;
+			return this.snapshot();
+		});
+		this.tail = run.catch(() => {});
+		return run;
+	}
+};
 //#endregion
 //#region src/host/conversation-fork.ts
 function forkIdentity(source, id) {
@@ -25659,6 +25727,13 @@ const inject = [
 async function apply(ctx, config$1 = {}) {
 	const home = dshHome(), store = new CapabilityStore(join(home, "capabilities"));
 	await store.init();
+	const assistantArchives = new AssistantArchives(join(home, "capabilities"));
+	let assistantArchiveError = "";
+	try {
+		await assistantArchives.init();
+	} catch (error) {
+		assistantArchiveError = String(error);
+	}
 	const documents = new DocumentsService(join(home, "capabilities", "documents"), () => store.snapshot(), (prompt, model, system, signal, onDelta) => workbenchText(ctx, prompt, model, system, void 0, signal, 18e4, onDelta), () => {
 		try {
 			return ctx.get("documentKnowledge");
@@ -25928,6 +26003,12 @@ async function apply(ctx, config$1 = {}) {
 				fence(req, req.method === "PUT" && (route.startsWith("/api/capabilities/meeting/upload/") || route.startsWith("/api/capabilities/packages/upload/") || route === "/api/capabilities/recording/chunk"));
 				const rejection = ctx.connection.requestRejection(req);
 				if (rejection !== void 0) return json(res, rejection, { error: rejection === 401 ? "请从工作台入口重新连接后重试" : "不允许访问此接口" });
+				if (route === "/api/capabilities/assistant-archives") {
+					if (assistantArchiveError) throw new InputError("归档存储暂不可用：" + assistantArchiveError, 503);
+					if (req.method === "GET") return json(res, 200, assistantArchives.snapshot());
+					if (req.method === "POST") return json(res, 200, await assistantArchives.change(await readBody(req)));
+					throw new InputError("接口不存在", 404);
+				}
 				if (route === "/api/capabilities/conversations/fork" && req.method === "POST") {
 					const body = await readBody(req);
 					return json(res, 200, await forks.fork(text$3(body.kind, "对话类型", 40, true), text$3(body.id, "对话", 120, true), text$3(body.requestId, "请求标识", 36, true)));

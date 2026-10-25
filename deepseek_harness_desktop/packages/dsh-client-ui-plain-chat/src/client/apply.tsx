@@ -1,3 +1,7 @@
+import {createAssistantArchives,type ArchiveEntry} from './assistant-archive-client.ts'
+import {adaptAssistantArchiveController} from './assistant-archive-adapter.ts'
+import type {SessionPreviewView} from '../../../dsh-session-archive/src/core/types.ts'
+import type {ConversationHistoryRow} from './LocalConversationRows.tsx'
 import { FlowchartLayouts } from './FlowchartLayouts.tsx'
 import { documentsClient } from '../../../../shared/client/documents-client.ts'
 import { DocumentAssistant } from './DocumentAssistant.tsx'
@@ -86,6 +90,15 @@ export function apply(ctx: Context): void {
   const leaveRecording = () => {activeRecording=null;sessionStorage.removeItem('workbench-recording-active')}
   const recordingsLoaded = recordings.refresh()
   void Promise.allSettled([documentsLoaded, searchesLoaded, recordingsLoaded]).then(() => { historyInitialLoaded = true; revision++; listeners.forEach(fn => fn()) })
+  const assistantArchives=createAssistantArchives()
+  ctx.effect(()=>assistantArchives.start(),'plain-chat: assistant archive synchronization')
+  const commitLocalChat=(id:string)=>{
+    localConversations.commitChat(id)
+    const entry=assistantArchives.getSnapshot().entries[id]
+    // A restored draft is consumed when its real conversation is created.
+    // Do not hydrate its old archive snapshot again on the next application start.
+    if(entry&&!entry.removed)void assistantArchives.change({id,archived:false,removed:true}).catch(documents.fail)
+  }
   const meetingHistory = createMeetingHistory(localConversations)
   ctx.effect(() => { void meetingHistory.load(); const refresh = () => { void meetingHistory.load() }; window.addEventListener('focus', refresh); return () => window.removeEventListener('focus', refresh) }, 'plain-chat: meeting history')
   const requirementHistory = createRequirementHistory()
@@ -112,7 +125,7 @@ export function apply(ctx: Context): void {
       created.add(id)
       clearSavedDraft()
       const local = localConversations.active()
-      if (local?.kind === 'draft') localConversations.commitChat(local.id)
+      if (local?.kind === 'draft') commitLocalChat(local.id)
       sessions.open(binding.sessionId)
       layout.selectPanel(null)
       input.submit()
@@ -204,11 +217,48 @@ export function apply(ctx: Context): void {
   }
   // Switch the visible assistant without rebinding or stopping the previous session.
   const switchAssistant = (id: string) => {
-    const draft = localConversations.getSnapshot().items.find(row => row.role === id && row.kind === 'draft')
+    const draft = localConversations.getSnapshot().items.find(row => row.role === id && row.kind === 'draft' && !assistantArchives.hidden(row.id,row))
     localConversations.leave()
     leaveSearch(); leaveRecording()
     openLocalConversation((draft ?? localConversations.start(id)).id)
   }
+  const archiveRows=():ConversationHistoryRow[]=>{
+    const rows:ConversationHistoryRow[]=[...documents.getSnapshot().rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',createdAt:Date.parse(row.createdAt),updatedAt:Date.parse(row.updatedAt),documentId:row.id,running:row.messages.some(m=>m.status==='running')})),...searches.getSnapshot().rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',createdAt:Date.parse(row.createdAt),updatedAt:Date.parse(row.updatedAt),searchId:row.id})),...recordings.getSnapshot().rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',roleName:row.roleName,createdAt:Date.parse(row.createdAt),updatedAt:Date.parse(row.updatedAt),recordingId:row.id,running:['recording','paused'].includes(row.status)})),...localConversations.getSnapshot().items.map(row=>({...row,localSnapshot:row})), ...developerHistory.getSnapshot().items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, workspace: item.cwd?.split(/[\\/]/).pop(), running: item.running, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirementHistory.getSnapshot().items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', running:item.running, updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
+    const entries=assistantArchives.getSnapshot().entries
+    for(const entry of Object.values(entries))if(entry.localSnapshot&&!entry.removed&&!rows.some(row=>row.id===entry.id))rows.push({...entry.localSnapshot,localSnapshot:entry.localSnapshot})
+    return rows.filter(row=>!assistantArchives.entryFor(row.id,row.localSnapshot)?.removed)
+  }
+  const archiveConversation=async(row:ConversationHistoryRow)=>{
+    if(activeDocument===row.id)await documents.flush()
+    const local=localConversations.getSnapshot().items.find(item=>item.id===row.id)??row.localSnapshot
+    await assistantArchives.change({id:row.id,title:row.title,role:row.role,archived:true,...(local?{localSnapshot:local}:{})})
+    if(local)localConversations.restoreArchived(local)
+    const active=activeDocument??activeSearch??activeRecording??developerHistory.getSnapshot().activeId??requirementHistory.getSnapshot().activeId??localConversations.getSnapshot().activeId
+    if(active===row.id)startFreshChat(row.role)
+  }
+  const restoreConversation=async(entry:ArchiveEntry)=>{
+    if(entry.localSnapshot)localConversations.restoreArchived(entry.localSnapshot)
+    await assistantArchives.change({id:entry.id,archived:false})
+  }
+  ctx.effect(()=>{
+    let previous=assistantArchives.getSnapshot().entries,closing=false
+    return assistantArchives.subscribe(()=>{
+      const entries=assistantArchives.getSnapshot().entries
+      for(const entry of Object.values(entries))if(!entry.removed&&(!previous[entry.id]||previous[entry.id]?.archived!==entry.archived)&&entry.localSnapshot)localConversations.restoreArchived(entry.localSnapshot)
+      for(const row of localConversations.getSnapshot().items)if(assistantArchives.entryFor(row.id,row)?.removed)localConversations.remove(row.id)
+      previous=entries
+      const current=()=>activeDocument??activeSearch??activeRecording??developerHistory.getSnapshot().activeId??requirementHistory.getSnapshot().activeId??localConversations.getSnapshot().activeId
+      const id=current(),entry=id?entries[id]:undefined
+      if(!entry?.archived||closing)return
+      closing=true
+      void (async()=>{try{
+        if(activeDocument===id)await documents.flush()
+        if(current()!==id)return
+        if(entry.localSnapshot)localConversations.restoreArchived(entry.localSnapshot)
+        startFreshChat(entry.role)
+      }catch(error){documents.fail(error)}finally{closing=false}})()
+    })
+  },'plain-chat: archived conversation navigation')
   const pendingForks=new Map<string,Promise<void>>()
   const forkRequests=new Map<string,string>()
   const forkLocalConversation=(id:string):Promise<void>=>{
@@ -265,38 +315,42 @@ export function apply(ctx: Context): void {
     }
     localConversations.rename(id, title)
   }
-  const removeLocalConversation = (id: string) => {
-    if(documents.getSnapshot().rows.some(r=>r.id===id)){void documents.command(id,'remove').then(()=>{if(activeDocument===id)startFreshChat()}).catch(documents.fail);return}
-    if(searches.getSnapshot().rows.some(r=>r.id===id)){void searches.command(id,'delete').then(()=>{if(activeSearch===id)startFreshChat()}).catch(e=>window.alert(e.message));return}
-    if(recordings.getSnapshot().rows.some(r=>r.id===id)){if(!window.confirm('移除此录音会话及其录音文件？'))return;void recordings.command(id,'delete').then(()=>{if(activeRecording===id)startFreshChat()}).catch(e=>window.alert(e.message));return}
-    const developer = developerHistory.getSnapshot().items.find(item => item.id === id)
-    if (developer) {
-      if (!window.confirm(`移除“${developer.title}”的开发记录？代码、提交和工作目录保留；此对话和运行记录将被删除。`)) return
-      const active = developerHistory.getSnapshot().activeId === id, navigation = developerViewKey
-      void developerHistory.remove(id).then(() => { if (active && navigation === developerViewKey) startFreshChat() }).catch(error => window.alert(error instanceof Error ? error.message : String(error)))
-      return
-    }
-    const requirement = requirementHistory.getSnapshot().items.find(item => item.id === id)
-    if (requirement) {
-      if (!window.confirm(`移除“${requirement.title}”？这将删除此需求分析的资料、对话、需求条目和确认版本，无法撤销。`)) return
-      const active = requirementHistory.getSnapshot().activeId === id
-      const navigation = requirementViewKey
-      void requirementHistory.remove(id).then(() => { if (active && navigation === requirementViewKey && sessions.list.getSnapshot().current === undefined) startFreshChat() }).catch(error => window.alert(error instanceof Error ? error.message : String(error)))
-      return
-    }
-    const row = localConversations.getSnapshot().items.find(item => item.id === id)
-    const meetingId = row?.meeting && typeof row.meeting === 'object' ? (row.meeting as { jobId?: unknown }).jobId : undefined
-    const remove = () => {
-      const active = localConversations.getSnapshot().activeId === id
-      if (typeof meetingId === 'string') meetingHistory.forget(meetingId)
+  const removeLocalConversation = async (id:string, confirmed=false) => {
+    if(!confirmed&&!window.confirm('移除此对话及其保存内容？此操作无法撤销。'))return
+    if(documents.getSnapshot().rows.some(r=>r.id===id))await documents.command(id,'remove')
+    else if(searches.getSnapshot().rows.some(r=>r.id===id))await searches.command(id,'delete')
+    else if(recordings.getSnapshot().rows.some(r=>r.id===id))await recordings.command(id,'delete')
+    else if(developerHistory.getSnapshot().items.some(r=>r.id===id))await developerHistory.remove(id)
+    else if(requirementHistory.getSnapshot().items.some(r=>r.id===id))await requirementHistory.remove(id)
+    else {
+      const row=localConversations.getSnapshot().items.find(r=>r.id===id)??assistantArchives.getSnapshot().entries[id]?.localSnapshot
+      if(!row)throw Error('未能读取此对话，请刷新后重试')
+      const jobId=(row.meeting as {jobId?:string})?.jobId
+      if(row.codeTaskId){const response=await fetch('/api/capabilities/code-assistant/task?id='+encodeURIComponent(row.codeTaskId),{method:'DELETE',credentials:'same-origin'});if(!response.ok){const body=await response.json();throw Error(body.error||'代码对话删除失败')}}
+      if(jobId)await removeMeetingConversation(jobId,row.title,()=>meetingHistory.forget(jobId),()=>true)
       localConversations.remove(id)
-      if (!active || sessions.list.getSnapshot().current !== undefined) return
-      start.reset(); clearSavedDraft(); roleSelection.select('chat')
-      revision++; listeners.forEach(fn => fn())
     }
-    if (typeof meetingId === 'string') {
-      void removeMeetingConversation(meetingId, row?.title ?? '会议', remove).catch(error => window.alert(error instanceof Error ? error.message : String(error)))
-    } else if (window.confirm('移除此对话及未发送内容？此操作无法撤销。')) remove()
+  }
+  const previewArchivedConversation=async(id:string):Promise<SessionPreviewView>=>{
+    const row=archiveRows().find(r=>r.id===id)
+    if(!row)throw Error('未能读取此对话，请刷新后重试')
+    let data:any=documents.getSnapshot().rows.find(r=>r.id===id)??searches.getSnapshot().rows.find(r=>r.id===id)??recordings.getSnapshot().rows.find(r=>r.id===id)??row.meeting
+    const jobId=(row.meeting as {jobId?:string})?.jobId
+    if(row.kind==='requirements')data=await getRequirementTask(id)
+    else if(row.kind==='developer')data=await developerApi('task',{id})
+    else if(jobId||row.codeTaskId){
+      const response=await fetch(jobId?'/api/capabilities/meeting/job/'+encodeURIComponent(jobId):'/api/capabilities/code-assistant/task?id='+encodeURIComponent(row.codeTaskId!),{credentials:'same-origin'})
+      data=await response.json();if(!response.ok)throw Error(data.error||'对话预览读取失败')
+    }
+    const excerpt:{role:string;text:string}[]=[]
+    const append=(role:string,value:unknown)=>{if(typeof value==='string'&&value.trim())excerpt.push({role,text:value.slice(0,4000)})}
+    for(const message of data?.messages??[])append(message.role??message.info?.role??'assistant',message.text??message.parts?.filter((part:any)=>part.type==='text').map((part:any)=>part.text).join('\n'))
+    for(const note of data?.notes??[])append('user',note.text)
+    for(const segment of data?.segments??[])append('user',segment.text)
+    if(data?.minutes)append('assistant',JSON.stringify(data.minutes,null,2))
+    if(data?.query){append('user',data.query);append('assistant',data.items?.map((item:any)=>item.path).join('\n'))}
+    if(row.draft)append('user',row.draft)
+    return {id,title:row.title,createdAt:row.createdAt,messageCount:excerpt.length,excerpt:excerpt.slice(0,20)}
   }
   ctx.effect(() => {
     const unsubscribe = sessions.list.subscribe(() => {
@@ -318,6 +372,14 @@ export function apply(ctx: Context): void {
     return()=>{window.removeEventListener('workbench-file-search-open',open);window.removeEventListener('focus',refresh)}
   },'plain-chat: file search navigation')
   const registry = ctx.slots as unknown as Registry
+  ctx.effect(()=>decorateSlot(registry,'settings.section','SessionArchiveCard',Original=>function AssistantArchivesSettings(props:any){
+    const controller=useMemo(()=>adaptAssistantArchiveController(props.controller,{
+      archives:assistantArchives,rows:archiveRows,
+      current:()=>activeDocument??activeSearch??activeRecording??developerHistory.getSnapshot().activeId??requirementHistory.getSnapshot().activeId??localConversations.getSnapshot().activeId??undefined,
+      archive:archiveConversation,restore:restoreConversation,remove:id=>removeLocalConversation(id,true),preview:previewArchivedConversation,
+    },async()=>{await sessions.refresh()}),[props.controller])
+    return <Original {...props} controller={controller}/>
+  }), 'plain-chat: existing archive list data adapter')
   ctx.effect(()=>decorateSlot(registry,'conversation.chat.node','AssistantNodeView',Original=>function FlowchartMessage(props:any){return <FlowchartLayouts><Original {...props}/></FlowchartLayouts>}), 'plain-chat: flowchart layout controls')
   ctx.effect(() => registerComponentInventory(registry), 'plain-chat: shared component inventory compatibility')
   ctx.effect(()=>decorateSlot(registry,'conversation.composer.bar','InputBar',Original=>function RecordingCommands(props:any){
@@ -414,7 +476,7 @@ export function apply(ctx: Context): void {
           const input = ctx.conversation.input.for(binding.ctx)
           if (!input.state.getSnapshot().draft) { input.setDraft(draft); clearSavedDraft() }
         }
-        if (binding && local?.kind === 'draft') localConversations.commitChat(local.id)
+        if (binding && local?.kind === 'draft') commitLocalChat(local.id)
       }
       return <div className={styles.conversationShell}>
         <div className={styles.assistantToolbar}><ManagedRolePicker t={t} selected={displayedRole} onSelect={id => { if (id !== displayedRole) switchAssistant(id) }} current={{ preset: noSession && search ? originRole?.versions.find(v=>v.version===search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset }} onManage={settingsNavigation.openPresets} /></div>
@@ -430,7 +492,7 @@ export function apply(ctx: Context): void {
           }} onCommit={task => {
             const current = developerKey === developerViewKey && sessions.list.getSnapshot().current === undefined && roleSelection.getSnapshot() === effectiveRole
             const origin = local && localConversations.getSnapshot().items.find(row => row.id === local.id)
-            if (current && origin?.kind === 'draft') localConversations.commitChat(origin.id)
+            if (current && origin?.kind === 'draft') commitLocalChat(origin.id)
             developerHistory.upsert(task, current)
           }}/>
           : noSession && requirementSnapshot.activeId && !requirement ? <p role="status">{requirementSnapshot.error || '正在恢复需求分析…'}<button onClick={() => { void requirementHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showRequirements
@@ -443,7 +505,7 @@ export function apply(ctx: Context): void {
             const current = analysisViewKey === requirementViewKey && sessions.list.getSnapshot().current === undefined && (requirement ? activeId === requirement.id : revision === draftKey && roleSelection.getSnapshot() === effectiveRole && (!activeId || activeId === task.id))
             const origin = localSnapshot.items.find(row => row.id === local?.id)
             const retained = origin && localConversations.getSnapshot().items.find(row => row.id === origin.id)
-            if (retained?.kind === 'draft' && retained.role === effectiveRole && (current || retained.draft === origin?.draft)) localConversations.commitChat(retained.id)
+            if (retained?.kind === 'draft' && retained.role === effectiveRole && (current || retained.draft === origin?.draft)) commitLocalChat(retained.id)
             requirementHistory.upsert(task, current)
           }}/>
           : noSession && workMode === 'meeting'
@@ -478,11 +540,11 @@ export function apply(ctx: Context): void {
     useSyncExternalStore(subscribe, snapshot)
     useEffect(() => { if (meetings.hasMore && !meetings.loading && !meetings.error) void meetingHistory.load(true) }, [meetings])
     useEffect(() => { if (requirements.hasMore && !requirements.loading && !requirements.error) void requirementHistory.load(true) }, [requirements])
-    const historyRows = [...documentRows.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',createdAt:Date.parse(row.createdAt),updatedAt:Date.parse(row.updatedAt),documentId:row.id})),...searched.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',createdAt:Date.parse(row.createdAt),updatedAt:Date.parse(row.updatedAt),searchId:row.id})),...recorded.rows.map(row=>({id:row.id,role:row.roleId,kind:'demo' as const,title:row.title,draft:'',roleName:row.roleName,createdAt:Date.parse(row.createdAt),updatedAt:Date.parse(row.updatedAt),recordingId:row.id})),...local.items, ...developers.items.map(item => ({ id: item.id, role: item.roleId, kind: 'developer' as const, title: item.title, workspace: item.cwd?.split(/[\\/]/).pop(), running: item.running, draft: '', updatedAt: Date.parse(item.updatedAt) })),  ...requirements.items.map(item => ({ id: item.id, role: item.roleId, kind: 'requirements' as const, title: item.title, draft: '', updatedAt: Date.parse(item.updatedAt) }))].sort((a, b) => b.updatedAt - a.updatedAt)
+    const historyRows = archiveRows()
     const open = (id: string) => { leaveSearch();leaveRecording(); start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
     const historyReady = historyInitialLoaded && !developers.loading && !meetings.loading && !meetings.hasMore && !meetings.error && !requirements.loading && !requirements.hasMore && !requirements.error && !developers.error && !recorded.error && !searched.error && !documentRows.error
     return <>
-      <AssistantHistory Original={Original} browser={{ ...props, open }} rows={historyRows} activeId={activeDocument ?? activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onOpen={openLocalConversation} onRemove={removeLocalConversation} onFork={forkLocalConversation} onRename={renameLocalConversation} onNew={startFreshChat} ready={historyReady} historyStatus={<>
+      <AssistantHistory archives={assistantArchives} onArchive={archiveConversation} Original={Original} browser={{ ...props, open }} rows={historyRows} activeId={activeDocument ?? activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onOpen={openLocalConversation} onRemove={removeLocalConversation} onFork={forkLocalConversation} onRename={renameLocalConversation} onNew={startFreshChat} ready={historyReady} historyStatus={<>
         {(meetings.loading || requirements.loading || meetings.hasMore || requirements.hasMore) && <p role="status">正在读取历史对话…</p>}
         {meetings.error && <p role="alert">{meetings.error}<button onClick={() => { void meetingHistory.load(meetings.hasMore) }}>重试会议记录</button></p>}
         {requirements.error && <p role="alert">{requirements.error}<button onClick={() => { void requirementHistory.load(requirements.hasMore) }}>重试需求记录</button></p>}

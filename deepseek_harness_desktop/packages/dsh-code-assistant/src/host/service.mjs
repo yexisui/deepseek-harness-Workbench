@@ -1,5 +1,5 @@
 import { randomUUID, randomBytes } from 'node:crypto'
-import { mkdir, readFile, readdir, rename, writeFile, stat } from 'node:fs/promises'
+import { mkdir, readFile, readdir, rename, writeFile, stat, rm } from 'node:fs/promises'
 import { join, dirname, resolve, relative, extname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { OpenCodeEngine, ENGINE_VERSION } from './engine.mjs'
@@ -55,6 +55,13 @@ export class CodeAssistantService {
     const task={...structuredClone(source),id:target,forkedFrom:id,title:source.title.slice(0,90)+' · 分叉',createdAt:now(),updatedAt:now(),status:'idle',permissions:[],requests:[],sessionId:'',error:''}
     try{if(source.sessionId){await assertIsolatedProject(source.cwd);await this.engine.start();const fork=await this.engine.request('/session/'+source.sessionId+'/fork',{},source.cwd);task.sessionId=fork.id;await this.refresh(task);task.permissions=[]}
     await this.save(task);this.tasks.set(target,task)}catch(e){if(task.sessionId)await this.engine.request('/session/'+task.sessionId,undefined,task.cwd,true,{method:'DELETE'}).catch(()=>{});throw e}return this.view(task)
+  }) }
+  async remove(id) { return this.serialize(async()=>{
+    if(!idPattern.test(id))throw Error('对话标识无效')
+    const task=this.tasks.get(id);if(!task)return {deleted:id}
+    if(this.active?.task.id===id||task.status==='running')throw Error('此对话正在运行，请等待完成后再删除')
+    if(task.sessionId){await assertIsolatedProject(task.cwd);await this.engine.start();await this.engine.request('/session/'+task.sessionId,undefined,task.cwd,true,{method:'DELETE'})}
+    await rm(join(this.root,'tasks',id+'.json'),{force:true});this.tasks.delete(id);return {deleted:id}
   }) }
   async ensureSession(task) {
     await assertIsolatedProject(task.cwd)
@@ -165,6 +172,7 @@ export class CodeAssistantService {
       if (route === 'diff') return json(await this.workspace.diff(cwd, params.path, params.scope === 'staged' ? 'staged' : 'unstaged'))
       if (route === 'preview') return json(await this.workspace.preview(cwd))
     }
+    if (req.method === 'DELETE' && route === 'task') return json(await this.remove(params.id))
     if (req.method !== 'POST') throw new Error('不支持的操作')
     const chunks = []; let size = 0
     for await (const chunk of req) { size += chunk.length; if (size > 1024 * 1024) throw new Error('请求过大'); chunks.push(chunk) }

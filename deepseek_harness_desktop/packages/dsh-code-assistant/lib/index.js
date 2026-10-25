@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
-import { access, cp, mkdir, readFile, readdir, realpath, rename, stat, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, readFile, readdir, realpath, rename, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
@@ -735,6 +735,22 @@ var CodeAssistantService = class {
 			return this.view(task);
 		});
 	}
+	async remove(id) {
+		return this.serialize(async () => {
+			if (!idPattern.test(id)) throw Error("对话标识无效");
+			const task = this.tasks.get(id);
+			if (!task) return { deleted: id };
+			if (this.active?.task.id === id || task.status === "running") throw Error("此对话正在运行，请等待完成后再删除");
+			if (task.sessionId) {
+				await assertIsolatedProject(task.cwd);
+				await this.engine.start();
+				await this.engine.request("/session/" + task.sessionId, void 0, task.cwd, true, { method: "DELETE" });
+			}
+			await rm(join(this.root, "tasks", id + ".json"), { force: true });
+			this.tasks.delete(id);
+			return { deleted: id };
+		});
+	}
 	async ensureSession(task) {
 		await assertIsolatedProject(task.cwd);
 		await this.engine.start();
@@ -945,6 +961,7 @@ var CodeAssistantService = class {
 			if (route === "diff") return json(await this.workspace.diff(cwd, params.path, params.scope === "staged" ? "staged" : "unstaged"));
 			if (route === "preview") return json(await this.workspace.preview(cwd));
 		}
+		if (req.method === "DELETE" && route === "task") return json(await this.remove(params.id));
 		if (req.method !== "POST") throw new Error("不支持的操作");
 		const chunks = [];
 		let size = 0;

@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { LocalConversation } from './local-conversations.ts'
-export type ConversationHistoryRow = Omit<LocalConversation, 'kind'> & { kind: LocalConversation['kind'] | 'requirements' | 'developer'; nativeId?: string; createdAt?: number; workspace?: string; roleName?: string; running?: boolean; completed?: boolean; pendingInteraction?: string }
+export type ConversationHistoryRow = Omit<LocalConversation, 'kind'> & { kind: LocalConversation['kind'] | 'requirements' | 'developer'; localSnapshot?: LocalConversation; nativeId?: string; createdAt?: number; workspace?: string; roleName?: string; running?: boolean; completed?: boolean; pendingInteraction?: string }
 import { Modal } from './PreviewModal.tsx'
 import s from './LocalConversationRows.module.css'
 
