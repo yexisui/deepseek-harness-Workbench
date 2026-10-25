@@ -1,3 +1,4 @@
+import type {TemplateWorkspace,TemplateCommand} from './requirement-template.ts'
 /** Persisted requirements contracts. Pure data and rendering, shared by host and UI. */
 export const REQUIREMENTS_CAPABILITY_ID = 'requirements-analysis'
 export const REQUIREMENTS_COMPONENT_ID = 'requirements-service'
@@ -22,7 +23,7 @@ export type RequirementMessage = { runId?: string; id: string; role: 'user' | 'a
 export type RequirementEvent = { runId?: string; id: string; at: string; kind: 'material' | 'analysis' | 'change' | 'confirm' | 'export' | 'version'; text: string; objectId?: string }
 export type ProposalItem = { id: string; kind: 'requirement' | 'flow' | 'rule' | 'question' | 'overview'; targetId?: string; value: Requirement | RequirementFlow | RequirementRule | RequirementQuestion | RequirementOverview; accepted?: boolean; rejected?: boolean }
 export type RequirementProposal = { sections?: {id:string;content:string}[]; id: string; baseRevision: number; summary: string; items: ProposalItem[]; createdAt: string }
-export type RequirementRun = { id: string; operation: 'analyze' | 'clarify' | 'check' | 'revise' | 'document'; status: 'running' | 'ready' | 'error' | 'stopped' | 'interrupted'; startedAt: string; finishedAt?: string; error?: string; model: string; instruction: string; context?: string; baseRevision: number }
+export type RequirementRun = { templateAction?: 'generate'|'revise'|'ask'; id: string; operation: 'analyze' | 'clarify' | 'check' | 'revise' | 'document'; status: 'running' | 'ready' | 'error' | 'stopped' | 'interrupted'; startedAt: string; finishedAt?: string; error?: string; model: string; instruction: string; context?: string; baseRevision: number }
 export type RequirementVersion = { id: string; number: number; title: string; note: string; createdAt: string; selectedIds: string[]; data: RequirementData; materials: RequirementMaterial[]; settings: RequirementSettings; markdown: string }
 export type RequirementDocument = { markdown: string; dataRevision: number; depth: RequirementSettings['depth']; selectedIds: string[]; createdAt: string }
 export type RequirementSection = { id: string; title: string; guidance: string; enabled: boolean; content: string; contentSet?: boolean }
@@ -44,7 +45,7 @@ export function requirementSectionContent(section: RequirementSection, task: Req
   return fallback[section.id]??''
 }
 export type RequirementTask = RequirementData & {
-  sections?: RequirementSection[]; project?: RequirementProject; revisions?: RequirementRevision[]
+  template?: TemplateWorkspace; sections?: RequirementSection[]; project?: RequirementProject; revisions?: RequirementRevision[]
 
   schema: 1; id: string; revision: number; dataRevision: number; title: string; mode: 'quick' | 'guided'
   roleId: string; roleVersion: number; capabilityId: string; capabilityVersion: number; authorityAt: number
@@ -56,7 +57,7 @@ export type RequirementTask = RequirementData & {
 export type RequirementSummary = Pick<RequirementTask, 'id' | 'title' | 'mode' | 'updatedAt' | 'roleId' | 'roleVersion'> & { confirmed: number; total: number; openQuestions: number; running: boolean }
 export type RequirementDefaults = Pick<RequirementSettings, 'depth' | 'questionStyle' | 'model'>
 export type RequirementAvailability = { ready: boolean; message: string; modelConfigured: boolean; defaults: RequirementDefaults; revision: number; maxTextChars: number }
-export type RequirementCommand =
+export type RequirementCommand = TemplateCommand
   | { type: 'sections.save'; sections: RequirementSection[]; baseDataRevision?: number }
   | { type: 'revision.restore'; id: string }
   | { type: 'project.attach'; path: string; ledger: boolean }

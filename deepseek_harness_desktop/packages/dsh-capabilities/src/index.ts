@@ -182,6 +182,16 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (route.startsWith('/api/capabilities/packages/')) return await packageRoutes(packages, packageRunner, req, res)
       if (route.startsWith('/api/capabilities/code-assistant/')) { if (!codeAssistant) throw new InputError('代码助手模块尚未就绪，请检查开发能力和 Git 插件', 503); return await codeAssistant.routes(req, res) }
       if (route.startsWith('/api/capabilities/developer/')) return await developerRoutes(developerContext ?? ctx, developer, req, res)
+      if(route.startsWith('/api/capabilities/requirements/document/')){
+        const url=new URL(req.url!,'http://localhost'),id=route.slice('/api/capabilities/requirements/document/'.length)
+        if(req.method==='PUT'){
+          if(!/^application\/octet-stream(?:;|$)/i.test(req.headers['content-type']??''))throw new InputError('需要文档文件',415)
+          const chunks:Buffer[]=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>40*1024*1024)throw new InputError('文件超过40 MB',413);chunks.push(Buffer.from(chunk))}
+          return json(res,200,await requirements.importDocument(id,Number(url.searchParams.get('revision')),url.searchParams.get('name')??'',url.searchParams.get('kind') as 'template'|'source',Buffer.concat(chunks)))
+        }
+        if(req.method==='GET'){const bytes=await requirements.exportDocument(id,url.searchParams.get('version')??undefined);res.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.wordprocessingml.document');res.setHeader('Content-Disposition',"attachment; filename=\"requirements.docx\"");res.setHeader('Cache-Control','no-store');res.end(bytes);return}
+        throw new InputError('文档接口不存在',404)
+      }
       if (req.method === 'GET' && route === '/api/capabilities/requirements/config') return json(res, 200, requirements.availability(new URL(req.url ?? '/', 'http://localhost').searchParams.get('roleId') ?? undefined))
       if (req.method === 'GET' && route === '/api/capabilities/requirements/tasks') {
         const query = new URL(req.url ?? '/', 'http://localhost').searchParams

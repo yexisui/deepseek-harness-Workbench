@@ -2,7 +2,7 @@
 import React, { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { RequirementsAssistant } from '../src/client/RequirementsAssistant.tsx'
+import { LegacyRequirementsAssistant as RequirementsAssistant } from '../src/client/RequirementsAssistant.tsx'
 import { defaultRequirementSections, defaultRequirementSettings, emptyRequirement, emptyRequirementOverview, requirementMarkdown, type RequirementCommand, type RequirementTask } from '../../dsh-capabilities/src/core/requirements-model.ts'
 import { getRequirementTask, listRequirementTasks, sourceText } from '../src/client/requirements-client.ts'
 

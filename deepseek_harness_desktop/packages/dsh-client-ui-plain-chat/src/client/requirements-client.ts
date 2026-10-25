@@ -15,7 +15,7 @@ export const getRequirementConfig = (roleId: string) => request<RequirementAvail
 export const getRequirementTask = (id: string) => request<RequirementTask>(`/task/${encodeURIComponent(id)}`)
 export const listRequirementTasks = ({ offset = 0, limit = 40 }: { offset?: number; limit?: number } = {}) => request<{ items: RequirementSummary[]; total: number }>(`/tasks?offset=${offset}&limit=${limit}`)
 export const deleteRequirementTask = (id: string) => request<{ ok: boolean }>(`/task/${encodeURIComponent(id)}`, { method: 'DELETE' })
-export const createRequirementTask = (body: { roleId: string; roleVersion?: number; mode: 'quick' | 'guided'; title: string; settings?: RequirementSettings; requestId?: string; draft?: string }) => post<RequirementTask>('/create', body)
+export const createRequirementTask = (body: { roleId: string; roleVersion?: number; mode: 'quick' | 'guided'; title: string; settings?: RequirementSettings; requestId?: string; draft?: string; workflow?: 'template' }) => post<RequirementTask>('/create', body)
 export const commandRequirementTask = (id: string, revision: number, command: RequirementCommand) => post<RequirementTask>('/command', { id, revision, command })
 export const summarizeRequirementTask = (task: RequirementTask): RequirementSummary => ({ id: task.id, title: task.title, mode: task.mode, updatedAt: task.updatedAt, roleId: task.roleId, roleVersion: task.roleVersion, confirmed: task.requirements.filter(r => !r.removed && r.status === 'confirmed').length, total: task.requirements.filter(r => !r.removed).length, openQuestions: task.questions.filter(q => !['resolved', 'dismissed'].includes(q.status)).length, running: task.run?.status === 'running' })
 
@@ -30,3 +30,6 @@ export function sourceText(task: RequirementTask, source: { materialId?: string;
   const message = task.messages.find(m => m.id === source.messageId)
   return { title: message ? `对话依据 · ${new Date(message.createdAt).toLocaleString()}` : '引用片段', text: message?.text ?? source.quote }
 }
+
+export const importRequirementDocument=(task:RequirementTask,file:File,kind:'template'|'source')=>request<RequirementTask>(`/document/${encodeURIComponent(task.id)}?revision=${task.revision}&kind=${kind}&name=${encodeURIComponent(file.name)}`,{method:'PUT',headers:{'Content-Type':'application/octet-stream'},body:file})
+export async function exportRequirementDocument(task:RequirementTask,version?:string){const response=await fetch(`${endpoint}/document/${encodeURIComponent(task.id)}${version?'?version='+encodeURIComponent(version):''}`,{credentials:'same-origin'});if(!response.ok){const body=await response.json();throw new RequirementsApiError(body.error||'导出失败',response.status)}const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=((task.template?.product||task.title).replace(/[<>:"/\\|?*\x00-\x1f]/g,'_')||'需求文档')+'.docx';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000)}

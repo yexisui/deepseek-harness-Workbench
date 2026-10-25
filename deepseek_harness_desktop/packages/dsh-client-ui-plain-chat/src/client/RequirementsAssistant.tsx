@@ -1,3 +1,5 @@
+import {RequirementsWorkspace} from './RequirementsWorkspace.tsx'
+import {RequirementsTabBar as TabBar,RequirementsModal as Modal} from './RequirementsUI.tsx'
 import { fileSearchCommand } from '../../../../shared/client/file-search-client.ts'
 import { recordingCommand } from '../../../../shared/client/recording-client.ts'
 import { ExecutionProcessCard, useExecutionHistory } from './ExecutionProcess.tsx'
@@ -13,7 +15,7 @@ import { RoleAppearanceIcon } from './RoleAppearance.tsx'
 import { commandRequirementTask, createRequirementTask, getRequirementConfig, getRequirementTask, RequirementsApiError, sourceText, summarizeRequirementTask } from './requirements-client.ts'
 import s from './RequirementsAssistant.module.css'
 
-type Props = { initialTitle?: string; taskId?: string; draftKey?: string; initialDraft?: string; roleId: string; roleVersion?: number; assistant?: Pick<RoleDefinition, 'name' | 'color' | 'icon'>; loadModels?: () => Promise<Array<{ id: string; name: string }>>; onCommit?: (task: RequirementSummary) => void; onDraftChange?: (draft: string) => void }
+export type RequirementsProps = { initialTitle?: string; taskId?: string; draftKey?: string; initialDraft?: string; roleId: string; roleVersion?: number; assistant?: Pick<RoleDefinition, 'name' | 'color' | 'icon'>; loadModels?: () => Promise<Array<{ id: string; name: string }>>; onCommit?: (task: RequirementSummary) => void; onDraftChange?: (draft: string) => void }
 type MainTab = 'chat' | 'workspace' | 'trace'
 type WorkspaceTab = 'overview' | 'materials' | 'requirements' | 'flows' | 'questions' | 'document'
 type EditorKind = 'overview' | 'settings' | 'material' | 'requirement' | 'flow' | 'rule' | 'question' | 'split' | 'merge' | 'version'
@@ -30,30 +32,14 @@ const id = () => crypto.randomUUID()
 const time = (value: string) => new Date(value).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 function restoreLocal(key: string): LocalDraft { try { return JSON.parse(sessionStorage.getItem(key) ?? '{}') as LocalDraft } catch { return {} } }
 function rememberLocal(key: string, value: LocalDraft) { try { sessionStorage.setItem(key, JSON.stringify(value)) } catch { /* Server draft saving remains available when browser storage is full. */ } }
-function TabBar<T extends string>({ items, value, label, onChange }: { items: readonly (readonly [T, string])[]; value: T; label: string; onChange: (value: T) => void }) {
-  return <div className={s.tabs} role="tablist" aria-label={label}>{items.map(([key, name], index) => <button type="button" key={key} role="tab" aria-selected={value === key} tabIndex={value === key ? 0 : -1} onClick={() => onChange(key)} onKeyDown={event => {
-    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return
-    event.preventDefault(); const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + items.length) % items.length
-    onChange(items[next][0]); (event.currentTarget.parentElement?.children[next] as HTMLButtonElement)?.focus()
-  }}>{name}</button>)}</div>
-}
 function Empty({ title, children }: { title: string; children?: React.ReactNode }) { return <div className={s.empty}><span aria-hidden="true">▤</span><h3>{title}</h3><div>{children}</div></div> }
 function Field({ label, value, onChange, multiline = false, placeholder, required = false }: { label: string; value: string; onChange: (value: string) => void; multiline?: boolean; placeholder?: string; required?: boolean }) {
   return <label className={s.field}><span>{label}{required && <small> 必填</small>}</span>{multiline ? <textarea aria-label={label} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={3}/> : <input aria-label={label} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}/>}</label>
 }
 function SelectField({ label, value, options, onChange }: { label: string; value: string; options: readonly (readonly [string, string])[]; onChange: (value: string) => void }) { return <label className={s.field}><span>{label}</span><select aria-label={label} value={value} onChange={e => onChange(e.target.value)}>{options.map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label> }
-function Modal({ title, children, footer, onClose }: { title: string; children: React.ReactNode; footer?: React.ReactNode; onClose: () => void }) {
-  const dialog = useRef<HTMLDivElement>(null)
-  const close = useRef(onClose); close.current = onClose
-  useEffect(() => { const previous = document.activeElement as HTMLElement | null; dialog.current?.focus(); return () => { if (previous?.isConnected) previous.focus() } }, [])
-  return <div className={s.overlay} onMouseDown={e => { if (e.target === e.currentTarget) close.current() }}><div ref={dialog} className={s.dialog} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} onKeyDown={e => {
-    if (e.key === 'Escape') { e.stopPropagation(); close.current() }
-    if (e.key === 'Tab') { const focusable = Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]') ?? []); const first = focusable[0], last = focusable.at(-1); if (e.shiftKey && (document.activeElement === first || document.activeElement === dialog.current)) { e.preventDefault(); last?.focus() } else if (!e.shiftKey && (document.activeElement === last || document.activeElement === dialog.current)) { e.preventDefault(); first?.focus() } }
-  }}><header><h2>{title}</h2><button type="button" onClick={onClose} aria-label="关闭面板">×</button></header><div className={s.dialogBody}>{children}</div>{footer && <footer>{footer}</footer>}</div></div>
-}
 function DocumentPreview({ text }: { text: string }) { return <div className={s.document}>{text.split('\n').map((line, i) => line.startsWith('### ') ? <h3 key={i}>{line.slice(4)}</h3> : line.startsWith('## ') ? <h2 key={i}>{line.slice(3)}</h2> : line.startsWith('# ') ? <h1 key={i}>{line.slice(2)}</h1> : line ? <p key={i}>{line}</p> : <div className={s.docGap} key={i}/>)}</div> }
 
-export function RequirementsAssistant({ initialTitle, taskId, draftKey, initialDraft, roleId, roleVersion, assistant, loadModels, onCommit, onDraftChange }: Props) {
+export function LegacyRequirementsAssistant({ initialTitle, taskId, draftKey, initialDraft, roleId, roleVersion, assistant, loadModels, onCommit, onDraftChange }: RequirementsProps) {
   const instanceId = useRef(draftKey ?? id())
   const storageKey = useRef(`workbench-requirement-edit:${taskId || `new:${instanceId.current}`}`)
   const initial = useRef(restoreLocal(storageKey.current))
@@ -361,4 +347,15 @@ export function RequirementsAssistant({ initialTitle, taskId, draftKey, initialD
     {source && task && <Modal title="查看原始依据" onClose={() => setSource(undefined)}><h3>{sourceText(task, source).title}</h3><blockquote>{source.quote}</blockquote><h4>完整原文</h4><pre className={s.rawText}>{sourceText(task, source).text}</pre></Modal>}
     {confirm && <Modal title={confirm.title} onClose={() => setConfirm(undefined)} footer={<><button onClick={() => setConfirm(undefined)}>取消</button><button className={s.primary} disabled={busy} onClick={async () => { if (await command(confirm.command, '操作已保存。')) setConfirm(undefined) }}>{busy ? '正在保存…' : '确认'}</button></>}><p>{confirm.detail}</p>{error && <p className={s.error} role="alert">{error}</p>}</Modal>}
   </div>
+}
+
+
+/** Existing tasks open in their original view; new conversations start with the document workflow. */
+export function RequirementsAssistant(props:RequirementsProps){
+ const [view,setView]=useState<'loading'|'legacy'|'template'>(props.taskId?'loading':'template'),[error,setError]=useState(''),[taskId,setTaskId]=useState(props.taskId)
+ useEffect(()=>{let current=true;if(props.taskId)void getRequirementTask(props.taskId).then(task=>{if(current){setTaskId(task.id);setView(task.template?'template':'legacy')}}).catch(e=>{if(current)setError(String(e.message??e))});return()=>{current=false}},[props.taskId])
+ const common={...props,taskId,onCommit:(task:RequirementSummary)=>{setTaskId(task.id);props.onCommit?.(task)}}
+ if(view==='loading')return <div className={s.root}><div className={s.empty}>{error||'正在读取需求任务…'}{error&&<button onClick={()=>{setError('');void getRequirementTask(props.taskId!).then(task=>{setTaskId(task.id);setView(task.template?'template':'legacy')}).catch(e=>setError(String(e.message??e)))}}>重新读取</button>}</div></div>
+ if(view==='legacy')return <div style={{height:'100%',minHeight:0,display:'flex',flexDirection:'column'}}><div className={s.toolbar} style={{padding:'8px 16px',flex:'none'}}><button onClick={()=>setView('template')}>模板文档与资料问答</button><small>原需求整理内容继续保留</small></div><div style={{flex:1,minHeight:0}}><LegacyRequirementsAssistant {...common}/></div></div>
+ return <RequirementsWorkspace {...common} onLegacy={()=>setView('legacy')}/>
 }

@@ -1,3 +1,6 @@
+import {workspace,editTemplate,validateTemplateRun,runTemplate,templateVersion} from './requirement-template-work.ts'
+import {inspectDocx,storeDocx,renderTemplate} from './requirement-docx.ts'
+import {emptyTemplateWorkspace} from '../core/requirement-template.ts'
 import { forkIdentity, existingFork, writeFork } from './conversation-fork.ts'
 import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import { attachRequirementProject, projectFiles, projectFile, syncRequirementLedger } from './requirements-project.ts'
@@ -158,9 +161,27 @@ export class RequirementsService {
       const settings = this.settings({ ...defaultRequirementSettings(), ...this.configuration.defaults, ...object(d.settings ?? {}) })
       const task: RequirementTask = { schema:1,id:requestId ?? randomUUID(),revision:0,dataRevision:0,title:str(d.title,'名称',120) || '新需求分析', mode:enumValue(d.mode,['quick','guided'],'quick'), roleId,roleVersion:role.version,capabilityId:binding.capabilityId,capabilityVersion:binding.version,authorityAt:Date.now(),roleGuidance:{name:role.name,duties:role.duties,requirements:role.requirements,format:role.format},createdAt:now(),updatedAt:now(),settings,draft:str(d.draft,'输入草稿',MAX_TEXT),overview:emptyRequirementOverview(),requirements:[],sections:defaultRequirementSections(),revisions:[],materials:[],flows:[],rules:[],questions:[],messages:[],events:[],versions:[] }
       this.event(task,'change',`创建${task.mode === 'quick' ? '简易模式' : '常规模式'}任务`)
+      if(d.workflow==='template')task.template=emptyTemplateWorkspace()
       await this.atomic(this.path(task.id),task); return task
     })
   }
+  async importDocument(id:string,revision:number,name:string,kind:'template'|'source',bytes:Buffer){return this.serialized(async()=>{
+    const task=await this.get(id);this.authorize(task)
+    if(task.revision!==revision)throw new InputError('资料已变化，请刷新后重新导入',409)
+    if(task.run?.status==='running')throw new InputError('请等待生成完成后再添加资料',409)
+    const w=workspace(task),filename=text(name,'文件名称',240,true)
+    if(!['template','source'].includes(kind))throw new InputError('资料类型无效')
+    if(kind==='template'&&w.template)throw new InputError('本次模板已确定；更换模板请新建对话，原任务保留',409)
+    if(kind==='template'&&!filename.toLowerCase().endsWith('.docx'))throw new InputError('模板请选择DOCX文件')
+    if(w.sources.length>=20)throw new InputError('单个任务最多20份参考资料')
+    let source:import('../core/requirement-template.ts').TemplateSource
+    if(filename.toLowerCase().endsWith('.docx')){const slots=inspectDocx(bytes);source={id:randomUUID(),name:filename,kind:'docx',asset:await storeDocx(this.root,bytes),slots,enabled:true}}
+    else {if(!/\.(txt|md|markdown)$/i.test(filename))throw new InputError('参考资料支持DOCX、TXT和Markdown');const content=text(bytes.toString('utf8'),'参考资料',60000,true);if(content.includes('\0')||content.includes('�'))throw new InputError('请将文字资料另存为UTF-8');source={id:randomUUID(),name:filename,kind:'text',enabled:true,slots:[{id:'text#0',part:'text',index:0,text:content,style:'',heading:false,image:false,editable:false}]}}
+    if([...w.sources,...(w.template?[w.template]:[]),source].reduce((n,s)=>n+s.slots.reduce((a,p)=>a+p.text.length,0),0)>180000)throw new InputError('本次资料超过180000字，请拆分任务')
+    if(kind==='template'){w.template=source;templateVersion(w,'原始模板');if(task.title==='新需求分析')task.title=filename.replace(/\.docx$/i,'').slice(0,120)}else w.sources.push(source)
+    this.event(task,'material','载入'+(kind==='template'?'模板：':'参考资料：')+filename);return this.write(task,true)
+  })}
+  async exportDocument(id:string,versionId?:string){const task=await this.get(id),w=workspace(task),version=versionId?w.versions.find(v=>v.id===versionId):undefined;if(versionId&&!version)throw new InputError('版本不存在',404);return renderTemplate(this.root,w,version)}
   async get(id: string): Promise<RequirementTask> {
     try {
       const task = JSON.parse(await readFile(this.path(id),'utf8')) as RequirementTask
@@ -247,10 +268,25 @@ export class RequirementsService {
     return this.serialized(async()=>{
       const task=await this.get(id), c=object(raw) as unknown as RequirementCommand
       // A repeated operation token returns the existing run without another charge.
-      if(c.type==='run' && (task.run?.id===c.requestId||task.messages.some(m=>m.runId===c.requestId))) return task
+      if((c.type==='run'||c.type==='template.run') && (task.run?.id===c.requestId||task.messages.some(m=>m.runId===c.requestId))) return task
       if(integer(revision)!==task.revision) throw new InputError('分析记录已更新，请刷新后核对再保存；当前输入请保留',409)
       let changed=true, launch=false
       switch(c.type) {
+        case 'template.save':case 'template.source':case 'template.review':case 'template.edit':case 'template.note':case 'template.version':case 'template.restore': {
+          this.authorize(task);editTemplate(task,c);this.event(task,'change','文档工作区：'+c.type);break
+        }
+        case 'template.run': {
+          if(this.closed)throw new InputError('需求分析服务正在关闭',503)
+          this.authorize(task)
+          if(task.run?.status==='running')throw new InputError('当前任务仍在处理，请等待或停止后再运行',409)
+          if(!UUID.test(c.requestId))throw new InputError('运行标识无效')
+          const instruction=text(c.instruction,'本次要求',20000,true),selected=this.modelRoute(c.model??task.settings.model)
+          if(!selected)throw new InputError('请先在工作台配置或选择模型')
+          validateTemplateRun(task,c.action,instruction)
+          task.run={id:c.requestId,operation:c.action==='generate'?'document':c.action==='ask'?'analyze':'revise',templateAction:c.action,status:'running',startedAt:now(),model:selected,instruction,baseRevision:task.dataRevision}
+          task.messages.push({id:randomUUID(),role:'user',runId:c.requestId,text:instruction,createdAt:now()})
+          this.event(task,'analysis',c.action==='ask'?'开始资料问答':'开始按模板编写文档');changed=false;launch=true;break
+        }
         case 'sections.save': {
           if(c.baseDataRevision!==undefined&&c.baseDataRevision!==task.dataRevision)throw new InputError('编辑期间需求已更新，本地内容保留，请重新打开当前结果后调整',409)
           this.snapshot(task,'调整整理栏目与内容')
@@ -455,14 +491,32 @@ export class RequirementsService {
     return {sections,id:randomUUID(),baseRevision:task.run!.baseRevision,summary:text(d.summary,'分析说明',12000,true),items,createdAt:now()}
   }
   private async execute(snapshot:RequirementTask,controller:AbortController) {
-    await this.executions.run(snapshot.id,{id:snapshot.run!.id,operation:({analyze:'整理需求',clarify:'引导澄清',check:'检查需求',revise:'修改需求',document:'整理文档'})[snapshot.run!.operation],input:snapshot.run!.instruction,inputKind:'user',model:snapshot.run!.model,roleVersion:snapshot.roleVersion,mode:snapshot.mode},async()=>{
+    await this.executions.run(snapshot.id,{id:snapshot.run!.id,operation:snapshot.run!.templateAction?({generate:'按模板生成文档',revise:'修改模板文档',ask:'资料问答'})[snapshot.run!.templateAction]:({analyze:'整理需求',clarify:'引导澄清',check:'检查需求',revise:'修改需求',document:'整理文档'})[snapshot.run!.operation],input:snapshot.run!.instruction,inputKind:'user',model:snapshot.run!.model,roleVersion:snapshot.roleVersion,mode:snapshot.mode},async()=>{
       step('materials','读取分析资料','done',snapshot.materials.filter(m=>!m.removed).length+' 份资料；分析栏目：'+(snapshot.sections??[]).filter(s=>s.enabled).map(s=>s.title).join('、'))
       return controller.signal.aborted?snapshot:(await this.executeWork(snapshot,controller))??snapshot
-    },task=>({status:task.run?.status==='ready'?'done':controller.signal.aborted?'stopped':'failed',summary:task.run?.status==='ready'?'需求结果已保存':task.run?.error||'本轮已停止，原结果保留',result:task.run?.status==='ready'?{kind:'requirements',text:(task.proposal?.summary??'需求已更新')+'\n\n'+requirementMarkdown(task)}:undefined}))
+    },task=>({status:task.run?.status==='ready'?'done':controller.signal.aborted?'stopped':'failed',summary:task.run?.status==='ready'?'需求结果已保存':task.run?.error||'本轮已停止，原结果保留',result:task.run?.status==='ready'?{kind:'requirements',text:task.run?.templateAction?(task.messages.at(-1)?.text??'文档处理完成'):(task.proposal?.summary??'需求已更新')+'\n\n'+requirementMarkdown(task)}:undefined}))
   }
   private async executeWork(snapshot:RequirementTask,controller:AbortController) {
     const runId=snapshot.run!.id
     try {
+      if(snapshot.run?.templateAction){
+        const output=await runTemplate(snapshot,this.model,controller.signal)
+        if(snapshot.run.templateAction!=='ask'){
+          const candidate=structuredClone(output.workspace),proposal=candidate.proposals.at(-1)
+          for(const group of proposal?.groups??[])for(const change of group.changes)candidate.values[change.id]=change.after
+          if(Object.values(candidate.values).reduce((n,v)=>n+v.length,0)>240000)throw new InputError('生成内容过长，请缩小本次范围')
+          await renderTemplate(this.root,candidate)
+        }
+        return await this.serialized(async()=>{
+          const task=await this.get(snapshot.id);if(task.run?.id!==runId||task.run.status!=='running'||controller.signal.aborted)return
+          this.authorize(task)
+          if(task.dataRevision!==snapshot.run!.baseRevision)throw new InputError('生成期间资料或文档已改变，保留你的修改，请重新生成',409)
+          task.template=output.workspace;task.run.status='ready';task.run.finishedAt=now()
+          task.messages.push({id:randomUUID(),role:'assistant',runId,text:output.summary,createdAt:now()})
+          this.event(task,'analysis',snapshot.run!.templateAction==='ask'?'资料回答已保存；正文保持':'文档候选已生成，等待审阅采用')
+          return this.write(task,true)
+        })
+      }
       const prompt=this.prompt(snapshot)
       const response=await this.model(prompt,snapshot.run!.model,controller.signal)
       if(controller.signal.aborted)return

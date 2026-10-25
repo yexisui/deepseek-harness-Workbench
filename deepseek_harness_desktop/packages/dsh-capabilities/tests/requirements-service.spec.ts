@@ -192,7 +192,7 @@ describe('persistent requirements workflow',()=>{
   it('keeps authority tied to the published version even when an incomplete capability draft is saved',async()=>{
     const env=await setup();env.state.capabilities.find(c=>c.id===REQUIREMENTS_CAPABILITY_ID)!.draft.components=[]
     const t=await env.command(env.task,{type:'run',operation:'clarify',instruction:'需要报销系统',requestId:randomUUID()})
-    expect((await finished(env.service,t.id)).run?.status).toBe('ready')
+    const completed=await finished(env.service,t.id);expect(completed.run?.status,completed.run?.error).toBe('ready')
   })
   it('recovers interrupted runs and rejects traversal and oversized material without model calls',async()=>{
     const env=await setup(async()=>await new Promise<string>(()=>{}))
