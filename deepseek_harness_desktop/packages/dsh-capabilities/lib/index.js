@@ -3309,6 +3309,7 @@ var MeetingService = class {
 	executions;
 	stopped = /* @__PURE__ */ new Set();
 	generating = /* @__PURE__ */ new Set();
+	changing = /* @__PURE__ */ new Set();
 	timingRunning = /* @__PURE__ */ new Set();
 	running = /* @__PURE__ */ new Set();
 	deleted = /* @__PURE__ */ new Set();
@@ -3617,18 +3618,81 @@ var MeetingService = class {
 		}
 		return this.upload(id, stream);
 	}
-	async upload(id, req) {
+	async updateOptions(id, input) {
+		if (this.changing.has(id) || this.uploads.has(id) || this.controllers.has(id) || this.generating.has(id) || this.running.has(id)) throw new InputError("当前会议仍在处理，请先停止再修改选择", 409);
+		this.changing.add(id);
+		try {
+			return await this.track(id, async () => {
+				const job = await this.get(id);
+				this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
+				if (["transcribing", "generating"].includes(job.status) || job.timingStatus === "processing") throw new InputError("当前会议仍在处理，请先停止再修改选择", 409);
+				const data = input && typeof input === "object" ? input : {};
+				if (data.mode !== "quick" && data.mode !== "guided") throw new InputError("请选择快速生成或引导整理");
+				if (job.sourceRecordingId) this.authorizeSource(job.sourceRecordingId, data.mode === "quick" ? "generate" : "transcribe");
+				const values = {
+					mode: data.mode,
+					audience: string$1(data.audience, 100),
+					focus: string$1(data.focus, 100),
+					summaryModel: string$1(data.summaryModel, 200)
+				};
+				if (Object.entries(values).some(([key, value]) => job[key] !== value)) {
+					Object.assign(job, values);
+					if (job.segments.length) {
+						job.status = "transcribed";
+						delete job.error;
+					}
+					if (job.minutes) job.needsRegeneration = true;
+					await this.save(job);
+				}
+				return job;
+			});
+		} finally {
+			this.changing.delete(id);
+		}
+	}
+	async upload(id, req, replacementName, replacementOptions) {
+		if (this.uploads.has(id) || this.changing.has(id) || this.controllers.has(id) || this.generating.has(id) || this.running.has(id)) throw new InputError("当前会议仍在处理，请先停止再更换录音", 409);
 		this.uploads.set(id, req);
 		try {
-			return await this.track(id, () => this.uploadAudio(id, req));
+			return await this.track(id, () => this.uploadAudio(id, req, replacementName, replacementOptions));
 		} finally {
 			if (this.uploads.get(id) === req) this.uploads.delete(id);
 		}
 	}
-	async uploadAudio(id, req) {
-		const job = await this.get(id);
+	async uploadAudio(id, req, replacementName, replacementOptions) {
+		const original = await this.get(id);
+		let job = original;
 		this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
-		if (job.status !== "uploading") throw new InputError("此任务无法重复上传", 409);
+		if (replacementName !== void 0) {
+			if (job.sourceRecordingId) throw new InputError("此录音来自已保存的录音会话，请在原录音会话中管理", 409);
+			if (["transcribing", "generating"].includes(job.status) || job.timingStatus === "processing") throw new InputError("当前会议仍在处理，请先停止再更换录音", 409);
+			const fileName = string$1(replacementName, 200).replace(/[\\/]/g, "_");
+			const extension = /\.[a-z0-9]+$/i.exec(fileName)?.[0].toLowerCase() ?? "";
+			if (!ALLOWED.has(extension)) throw new InputError("不支持此录音格式；请使用 MP3、M4A、WAV 等常见格式");
+			job = {
+				...original,
+				fileName,
+				extension,
+				segments: []
+			};
+			const values = replacementOptions && typeof replacementOptions === "object" ? replacementOptions : {};
+			if (values.mode !== void 0) {
+				if (values.mode !== "quick" && values.mode !== "guided") throw new InputError("请选择快速生成或引导整理");
+				job.mode = values.mode;
+			}
+			if (values.audience !== void 0) job.audience = string$1(values.audience, 100);
+			if (values.focus !== void 0) job.focus = string$1(values.focus, 100);
+			if (values.summaryModel !== void 0) job.summaryModel = string$1(values.summaryModel, 200);
+			for (const key of [
+				"minutes",
+				"transcribedAt",
+				"minutesGeneratedAt",
+				"timing",
+				"timingStatus",
+				"timingError",
+				"needsRegeneration"
+			]) delete job[key];
+		} else if (job.status !== "uploading") throw new InputError("此任务无法重复上传", 409);
 		const path = this.audio(job), temp = `${path}.upload`;
 		const handle = await import("node:fs").then((fs) => fs.createWriteStream(temp, { flags: "wx" }));
 		let bytes = 0;
@@ -3648,27 +3712,36 @@ var MeetingService = class {
 			job.status = "transcribing";
 			delete job.error;
 			await this.save(job);
+			if (replacementName !== void 0 && this.audio(original) !== path) await rm(this.audio(original), { force: true }).catch(() => {});
 			this.track(job.id, () => this.transcribe(job.id)).catch(() => {});
 			return job;
 		} catch (error) {
 			handle.destroy();
 			await rm(temp, { force: true });
-			job.status = "error";
-			job.error = errorText$1(error);
-			await this.save(job);
+			if (replacementName === void 0) {
+				job.status = "error";
+				job.error = errorText$1(error);
+				await this.save(job);
+			}
 			throw error;
 		}
 	}
 	async retry(id) {
-		const job = await this.get(id);
-		this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
-		if (job.status !== "error") throw new InputError("只有失败的任务可以重试", 409);
-		if (!job.size) throw new InputError("请重新选择录音上传", 409);
-		job.status = job.segments.length ? "transcribed" : "transcribing";
-		delete job.error;
-		await this.save(job);
-		if (!job.segments.length) this.track(id, () => this.transcribe(id)).catch(() => {});
-		return job;
+		if (this.changing.has(id) || this.uploads.has(id) || this.controllers.has(id) || this.generating.has(id) || this.running.has(id)) throw new InputError("当前会议仍在处理，请稍后继续", 409);
+		this.changing.add(id);
+		try {
+			const job = await this.get(id);
+			this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id);
+			if (job.status !== "error") throw new InputError("只有失败的任务可以重试", 409);
+			if (!job.size) throw new InputError("请重新选择录音上传", 409);
+			job.status = job.segments.length ? "transcribed" : "transcribing";
+			delete job.error;
+			await this.save(job);
+			if (!job.segments.length) this.track(id, () => this.transcribe(id)).catch(() => {});
+			return job;
+		} finally {
+			this.changing.delete(id);
+		}
 	}
 	async transcribe(id) {
 		const initial = await this.get(id);
@@ -3759,7 +3832,7 @@ var MeetingService = class {
 	async generate(id, edited, instruction, summaryModel) {
 		const sourceJob = await this.get(id);
 		if (sourceJob.sourceRecordingId) this.authorizeSource(sourceJob.sourceRecordingId, "generate");
-		if (this.controllers.has(id) || this.generating.has(id)) throw new InputError("当前会议仍在处理，请等待或停止", 409);
+		if (this.controllers.has(id) || this.generating.has(id) || this.changing.has(id) || this.uploads.has(id)) throw new InputError("当前会议仍在处理，请等待或停止", 409);
 		this.generating.add(id);
 		try {
 			return await this.track(id, () => this.startGenerate(id, edited, instruction, summaryModel));
@@ -3836,6 +3909,7 @@ var MeetingService = class {
 			delete job.timing;
 			delete job.timingStatus;
 			delete job.timingError;
+			delete job.needsRegeneration;
 			job.minutes = minutes;
 			job.minutesGeneratedAt = (/* @__PURE__ */ new Date()).toISOString();
 			job.status = "ready";
@@ -3849,7 +3923,7 @@ var MeetingService = class {
 		}
 	}
 	async repairTiming(id) {
-		if (this.running.has(id)) throw new InputError("此会议正在处理，请稍后重试", 409);
+		if (this.running.has(id) || this.changing.has(id) || this.uploads.has(id) || this.generating.has(id)) throw new InputError("此会议正在处理，请稍后重试", 409);
 		this.running.add(id);
 		this.timingRunning.add(id);
 		try {
@@ -4938,7 +5012,7 @@ var require_Node = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.NodeBase = NodeBase;
 }));
 //#endregion
-//#region ../../../../../runtime/node_modules/yaml/dist/nodes/Alias.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
 var require_Alias = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var anchors = require_anchors();
 	var visit = require_visit();
@@ -4973,31 +5047,29 @@ var require_Alias = /* @__PURE__ */ __commonJSMin(((exports) => {
 				if (node === this) break;
 				if (node.anchor === this.source) found = node;
 			}
-			if (found && ctx) {
-				const { anchors, doc, maxAliasCount } = ctx;
-				let data = anchors.get(found);
-				if (!data) {
-					toJS.toJS(found, null, ctx);
-					data = anchors.get(found);
-				}
-				/* istanbul ignore if */
-				if (data?.res === void 0) throw new ReferenceError("This should not happen: Alias anchor was not resolved?");
-				if (maxAliasCount >= 0) {
-					data.count += 1;
-					if (data.aliasCount === 0) data.aliasCount = getAliasCount(doc, found, anchors);
-					if (data.count * data.aliasCount > maxAliasCount) throw new ReferenceError("Excessive alias count indicates a resource exhaustion attack");
-				}
-			}
 			return found;
 		}
 		toJSON(_arg, ctx) {
 			if (!ctx) return { source: this.source };
-			const source = this.resolve(ctx.doc, ctx);
+			const { anchors, doc, maxAliasCount } = ctx;
+			const source = this.resolve(doc, ctx);
 			if (!source) {
 				const msg = `Unresolved alias (the anchor must be set before the alias): ${this.source}`;
 				throw new ReferenceError(msg);
 			}
-			return ctx.anchors.get(source).res;
+			let data = anchors.get(source);
+			if (!data) {
+				toJS.toJS(source, null, ctx);
+				data = anchors.get(source);
+			}
+			/* istanbul ignore if */
+			if (data?.res === void 0) throw new ReferenceError("This should not happen: Alias anchor was not resolved?");
+			if (maxAliasCount >= 0) {
+				data.count += 1;
+				if (data.aliasCount === 0) data.aliasCount = getAliasCount(doc, source, anchors);
+				if (data.count * data.aliasCount > maxAliasCount) throw new ReferenceError("Excessive alias count indicates a resource exhaustion attack");
+			}
+			return data.res;
 		}
 		toString(ctx, _onComment, _onChompKeep) {
 			const src = `*${this.source}`;
@@ -8286,7 +8358,7 @@ var require_resolve_block_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.resolveBlockScalar = resolveBlockScalar;
 }));
 //#endregion
-//#region ../../../../../runtime/node_modules/yaml/dist/compose/resolve-flow-scalar.js
+//#region ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
 var require_resolve_flow_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var Scalar = require_Scalar();
 	var resolveEnd = require_resolve_end();
@@ -8358,40 +8430,39 @@ var require_resolve_flow_scalar = /* @__PURE__ */ __commonJSMin(((exports) => {
 				break;
 		}
 		if (badChar) onError(0, "BAD_SCALAR_START", `Plain value cannot start with ${badChar}`);
-		return unfoldLines(source);
+		return foldLines(source);
 	}
 	function singleQuotedValue(source, onError) {
 		if (source[source.length - 1] !== "'" || source.length === 1) onError(source.length, "MISSING_CHAR", "Missing closing 'quote");
-		return unfoldLines(source.slice(1, -1)).replace(/''/g, "'");
+		return foldLines(source.slice(1, -1)).replace(/''/g, "'");
 	}
-	function unfoldLines(source) {
-		const line = /(.*?)\r?\n/sy;
-		let match = line.exec(source);
-		if (!match) return source;
+	function foldLines(source) {
 		/**
-		* The negative lookbehinds in these RegExps are to
+		* The negative lookbehind here and in the `re` RegExp is to
 		* prevent causing a polynomial search time in certain cases.
 		*
-		* The try-catch is for Safari < 16.4 and other old browsers:
+		* The try-catch is for Safari, which doesn't support this yet:
 		* https://caniuse.com/js-regexp-lookbehind
 		*/
-		let trimEnd, trimBoth;
+		let first, line;
 		try {
-			trimEnd = /* @__PURE__ */ new RegExp("(?<![ 	])[ 	]+$");
-			trimBoth = /* @__PURE__ */ new RegExp("^[ 	]+|(?<![ 	])[ 	]+$", "g");
+			first = /* @__PURE__ */ new RegExp("(.*?)(?<![ 	])[ 	]*\r?\n", "sy");
+			line = /* @__PURE__ */ new RegExp("[ 	]*(.*?)(?:(?<![ 	])[ 	]*)?\r?\n", "sy");
 		} catch {
-			trimEnd = /[ \t]+$/;
-			trimBoth = /^[ \t]+|[ \t]+$/g;
+			first = /(.*?)[ \t]*\r?\n/sy;
+			line = /[ \t]*(.*?)[ \t]*\r?\n/sy;
 		}
-		let res = match[1].replace(trimEnd, "");
+		let match = first.exec(source);
+		if (!match) return source;
+		let res = match[1];
 		let sep = " ";
-		let pos = line.lastIndex;
+		let pos = first.lastIndex;
+		line.lastIndex = pos;
 		while (match = line.exec(source)) {
-			const lm = match[1].replace(trimBoth, "");
-			if (lm === "") if (sep === "\n") res += sep;
+			if (match[1] === "") if (sep === "\n") res += sep;
 			else sep = "\n";
 			else {
-				res += sep + lm;
+				res += sep + match[1];
 				sep = " ";
 			}
 			pos = line.lastIndex;
@@ -26066,7 +26137,15 @@ async function apply(ctx, config$1 = {}) {
 					await meeting.remove(route.slice(30));
 					return json(res, 200, { ok: true });
 				}
-				if (req.method === "PUT" && route.startsWith("/api/capabilities/meeting/upload/")) return json(res, 202, await meeting.upload(route.slice(33), req));
+				if (req.method === "PUT" && route.startsWith("/api/capabilities/meeting/upload/")) {
+					const query = new URL(req.url, "http://localhost").searchParams;
+					return json(res, 202, await meeting.upload(route.slice(33), req, query.get("replace") ?? void 0, {
+						mode: query.get("mode") ?? void 0,
+						audience: query.get("audience") ?? void 0,
+						focus: query.get("focus") ?? void 0,
+						summaryModel: query.get("summaryModel") ?? void 0
+					}));
+				}
 				if (req.method === "GET" && route === "/api/capabilities/state") {
 					const state = store.snapshot();
 					return json(res, 200, {
@@ -26209,6 +26288,7 @@ async function apply(ctx, config$1 = {}) {
 				if (route === "/api/capabilities/meeting/stop") return json(res, 200, await meeting.stop(text$3(body.id, "任务标识", 36)));
 				if (route === "/api/capabilities/meeting/rename") return json(res, 200, await meeting.rename(text$3(body.id, "任务标识", 36), text$3(body.title, "会话名称", 120, true)));
 				if (route === "/api/capabilities/meeting/create") return json(res, 201, await meeting.create(body));
+				if (route === "/api/capabilities/meeting/options") return json(res, 200, await meeting.updateOptions(text$3(body.id, "任务标识", 36), body));
 				if (route === "/api/capabilities/meeting/timing") return json(res, 202, await meeting.repairTiming(text$3(body.id, "任务标识", 36)));
 				if (route === "/api/capabilities/meeting/retry") return json(res, 202, await meeting.retry(text$3(body.id, "任务标识", 36)));
 				if (route === "/api/capabilities/meeting/generate") {

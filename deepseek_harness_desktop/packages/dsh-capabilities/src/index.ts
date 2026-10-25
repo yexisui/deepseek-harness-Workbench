@@ -208,7 +208,10 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (req.method === 'GET' && route.startsWith('/api/capabilities/meeting/job/')) return json(res, 200, await meeting.get(route.slice('/api/capabilities/meeting/job/'.length)))
       if (req.method === 'GET' && route.startsWith('/api/capabilities/meeting/audio/')) return await meeting.serveAudio(route.slice('/api/capabilities/meeting/audio/'.length), req, res)
       if (req.method === 'DELETE' && route.startsWith('/api/capabilities/meeting/job/')) { await meeting.remove(route.slice('/api/capabilities/meeting/job/'.length)); return json(res, 200, { ok: true }) }
-      if (req.method === 'PUT' && route.startsWith('/api/capabilities/meeting/upload/')) return json(res, 202, await meeting.upload(route.slice('/api/capabilities/meeting/upload/'.length), req))
+      if (req.method === 'PUT' && route.startsWith('/api/capabilities/meeting/upload/')) {
+        const query = new URL(req.url!, 'http://localhost').searchParams
+        return json(res, 202, await meeting.upload(route.slice('/api/capabilities/meeting/upload/'.length), req, query.get('replace') ?? undefined, { mode: query.get('mode') ?? undefined, audience: query.get('audience') ?? undefined, focus: query.get('focus') ?? undefined, summaryModel: query.get('summaryModel') ?? undefined }))
+      }
       if (req.method === 'GET' && route === '/api/capabilities/state') { const state = store.snapshot(); return json(res, 200, { compositionVersion: 2, presetIssues, packages: packages.health(state), state, components: registryCatalog(registry.snapshot(), catalogFor(state)), registry: registry.snapshot(), componentActivities: await activities(state), health: runtime.health, tasks: runtime.tasks(), dependencies: runtime.dependencies() }) }
       if (req.method === 'GET' && route.startsWith('/api/capabilities/icons/')) {
         const image = await store.icons.read(route.slice('/api/capabilities/icons/'.length))
@@ -268,6 +271,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (route === '/api/capabilities/meeting/stop') return json(res, 200, await meeting.stop(text(body.id, '任务标识', 36)))
       if (route === '/api/capabilities/meeting/rename') return json(res, 200, await meeting.rename(text(body.id, '任务标识', 36), text(body.title, '会话名称', 120, true)))
       if (route === '/api/capabilities/meeting/create') return json(res, 201, await meeting.create(body))
+      if (route === '/api/capabilities/meeting/options') return json(res, 200, await meeting.updateOptions(text(body.id, '任务标识', 36), body))
       if (route === '/api/capabilities/meeting/timing') return json(res, 202, await meeting.repairTiming(text(body.id, '任务标识', 36)))
       if (route === '/api/capabilities/meeting/retry') return json(res, 202, await meeting.retry(text(body.id, '任务标识', 36)))
       if (route === '/api/capabilities/meeting/generate') {

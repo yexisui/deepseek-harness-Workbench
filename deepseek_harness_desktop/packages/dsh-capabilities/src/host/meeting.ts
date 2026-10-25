@@ -25,7 +25,7 @@ export type MeetingJob = { sourceRecordingId?: string; authorityAt?: string;
   role?: MeetingRole
   status: 'uploading' | 'transcribing' | 'transcribed' | 'generating' | 'ready' | 'error'
   timingStatus?: 'processing' | 'ready' | 'error'; timingError?: string; timing?: { segments: MeetingSegment[]; links: Record<string, string[]> };
-  error?: string; segments: MeetingSegment[]; minutes?: MeetingMinutes
+  error?: string; segments: MeetingSegment[]; minutes?: MeetingMinutes; needsRegeneration?: boolean
 }
 export type MeetingSummary = Pick<MeetingJob, 'id' | 'mode' | 'audience' | 'focus' | 'summaryModel' | 'status' | 'updatedAt' | 'createdAt'> & { title: string; customTitle?: boolean; roleId?: string; roleVersion?: number }
 
@@ -74,6 +74,7 @@ export class MeetingService {
   readonly executions: ExecutionStore
   private stopped = new Set<string>()
   private generating = new Set<string>()
+  private changing = new Set<string>()
 
   private timingRunning = new Set<string>()
   private running = new Set<string>()
@@ -247,15 +248,53 @@ export class MeetingService {
     if(job.status==='error'&&!job.size){job.status='uploading';delete job.error;await this.save(job)}
     return this.upload(id,stream)
   }
-  async upload(id: string, req: IncomingMessage) {
+  async updateOptions(id: string, input: unknown) {
+    if (this.changing.has(id) || this.uploads.has(id) || this.controllers.has(id) || this.generating.has(id) || this.running.has(id)) throw new InputError('当前会议仍在处理，请先停止再修改选择', 409)
+    this.changing.add(id)
+    try { return await this.track(id, async () => {
+      const job = await this.get(id)
+      this.role(job.role?.version, job.authorityAt ?? job.createdAt, job.role?.id)
+      if (['transcribing', 'generating'].includes(job.status) || job.timingStatus === 'processing') throw new InputError('当前会议仍在处理，请先停止再修改选择', 409)
+      const data = input && typeof input === 'object' ? input as Record<string, unknown> : {}
+      if (data.mode !== 'quick' && data.mode !== 'guided') throw new InputError('请选择快速生成或引导整理')
+      if (job.sourceRecordingId) this.authorizeSource(job.sourceRecordingId, data.mode === 'quick' ? 'generate' : 'transcribe')
+      const values = { mode: data.mode as MeetingJob['mode'], audience: string(data.audience, 100), focus: string(data.focus, 100), summaryModel: string(data.summaryModel, 200) }
+      if (Object.entries(values).some(([key, value]) => job[key as keyof MeetingJob] !== value)) {
+        Object.assign(job, values)
+        if (job.segments.length) { job.status = 'transcribed'; delete job.error }
+        if (job.minutes) job.needsRegeneration = true
+        await this.save(job)
+      }
+      return job
+    }) } finally { this.changing.delete(id) }
+  }
+  async upload(id: string, req: IncomingMessage, replacementName?: string, replacementOptions?: unknown) {
+    if (this.uploads.has(id) || this.changing.has(id) || this.controllers.has(id) || this.generating.has(id) || this.running.has(id)) throw new InputError('当前会议仍在处理，请先停止再更换录音', 409)
     this.uploads.set(id, req)
-    try { return await this.track(id, () => this.uploadAudio(id, req)) }
+    try { return await this.track(id, () => this.uploadAudio(id, req, replacementName, replacementOptions)) }
     finally { if (this.uploads.get(id) === req) this.uploads.delete(id) }
   }
-  private async uploadAudio(id: string, req: IncomingMessage) {
-    const job = await this.get(id)
+  private async uploadAudio(id: string, req: IncomingMessage, replacementName?: string, replacementOptions?: unknown) {
+    const original = await this.get(id)
+    let job = original
     this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id)
-    if (job.status !== 'uploading') throw new InputError('此任务无法重复上传', 409)
+    if (replacementName !== undefined) {
+      if (job.sourceRecordingId) throw new InputError('此录音来自已保存的录音会话，请在原录音会话中管理', 409)
+      if (['transcribing', 'generating'].includes(job.status) || job.timingStatus === 'processing') throw new InputError('当前会议仍在处理，请先停止再更换录音', 409)
+      const fileName = string(replacementName, 200).replace(/[\\/]/g, '_')
+      const extension = /\.[a-z0-9]+$/i.exec(fileName)?.[0].toLowerCase() ?? ''
+      if (!ALLOWED.has(extension)) throw new InputError('不支持此录音格式；请使用 MP3、M4A、WAV 等常见格式')
+      job = { ...original, fileName, extension, segments: [] }
+      const values = replacementOptions && typeof replacementOptions === 'object' ? replacementOptions as Record<string, unknown> : {}
+      if (values.mode !== undefined) {
+        if (values.mode !== 'quick' && values.mode !== 'guided') throw new InputError('请选择快速生成或引导整理')
+        job.mode = values.mode
+      }
+      if (values.audience !== undefined) job.audience = string(values.audience, 100)
+      if (values.focus !== undefined) job.focus = string(values.focus, 100)
+      if (values.summaryModel !== undefined) job.summaryModel = string(values.summaryModel, 200)
+      for (const key of ['minutes', 'transcribedAt', 'minutesGeneratedAt', 'timing', 'timingStatus', 'timingError', 'needsRegeneration'] as const) delete job[key]
+    } else if (job.status !== 'uploading') throw new InputError('此任务无法重复上传', 409)
     const path = this.audio(job), temp = `${path}.upload`
     const handle = await import('node:fs').then(fs => fs.createWriteStream(temp, { flags: 'wx' }))
     let bytes = 0
@@ -273,11 +312,15 @@ export class MeetingService {
       await rename(temp, path)
       job.size = bytes; job.status = 'transcribing'; delete job.error
       await this.save(job)
+      if (replacementName !== undefined && this.audio(original) !== path) await rm(this.audio(original), { force: true }).catch(() => {})
       void this.track(job.id, () => this.transcribe(job.id)).catch(() => {})
       return job
-    } catch (error) { handle.destroy(); await rm(temp, { force: true }); job.status = 'error'; job.error = errorText(error); await this.save(job); throw error }
+    } catch (error) { handle.destroy(); await rm(temp, { force: true }); if (replacementName === undefined) { job.status = 'error'; job.error = errorText(error); await this.save(job) }; throw error }
   }
   async retry(id: string) {
+    if (this.changing.has(id) || this.uploads.has(id) || this.controllers.has(id) || this.generating.has(id) || this.running.has(id)) throw new InputError('当前会议仍在处理，请稍后继续', 409)
+    this.changing.add(id)
+    try {
     const job = await this.get(id)
     this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id)
     if (job.status !== 'error') throw new InputError('只有失败的任务可以重试', 409)
@@ -285,6 +328,7 @@ export class MeetingService {
     job.status = job.segments.length ? 'transcribed' : 'transcribing'; delete job.error; await this.save(job)
     if (!job.segments.length) void this.track(id, () => this.transcribe(id)).catch(() => {})
     return job
+    } finally { this.changing.delete(id) }
   }
   private async transcribe(id: string) {
     const initial=await this.get(id);this.stopped.delete(id)
@@ -330,7 +374,7 @@ export class MeetingService {
   private transcriptText(rows: MeetingSegment[]) { return rows.map(row => `[${row.id} ${hasTiming(row) ? Math.floor(row.start / 1000) + '秒' : '时间未知'} ${row.speaker}] ${row.text}`).join('\n') }
   async generate(id: string, edited?: MeetingSegment[], instruction?: string, summaryModel?: string) {
     const sourceJob=await this.get(id);if(sourceJob.sourceRecordingId)this.authorizeSource(sourceJob.sourceRecordingId,'generate')
-    if(this.controllers.has(id)||this.generating.has(id))throw new InputError('当前会议仍在处理，请等待或停止',409)
+    if(this.controllers.has(id)||this.generating.has(id)||this.changing.has(id)||this.uploads.has(id))throw new InputError('当前会议仍在处理，请等待或停止',409)
     this.generating.add(id)
     try{return await this.track(id, () => this.startGenerate(id, edited, instruction, summaryModel))}finally{this.generating.delete(id)}
   }
@@ -375,11 +419,11 @@ export class MeetingService {
       const minutes = parseMinutes(await this.ask(prompt, job.summaryModel, controller.signal), job.segments)
       controller.signal.throwIfAborted(); this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id)
       step('sources','纪要结构与来源ID检查','done','只核对结构和来源ID有效性，不代表逐条事实已人工确认')
-      delete job.timing; delete job.timingStatus; delete job.timingError; job.minutes = minutes; job.minutesGeneratedAt = new Date().toISOString(); job.status = 'ready'; await this.save(job)
+      delete job.timing; delete job.timingStatus; delete job.timingError; delete job.needsRegeneration; job.minutes = minutes; job.minutesGeneratedAt = new Date().toISOString(); job.status = 'ready'; await this.save(job)
     } catch (error) { job.status = 'error'; job.error = controller.signal.aborted ? (this.stopped.has(job.id) ? '本轮已停止，历史结果保留' : '组件已停用，本次处理已停止；历史结果保留') : errorText(error); await this.save(job) } finally { if (this.controllers.get(job.id) === controller) this.controllers.delete(job.id) }
   }
   async repairTiming(id: string) {
-    if (this.running.has(id)) throw new InputError('此会议正在处理，请稍后重试', 409)
+    if (this.running.has(id) || this.changing.has(id) || this.uploads.has(id) || this.generating.has(id)) throw new InputError('此会议正在处理，请稍后重试', 409)
     this.running.add(id); this.timingRunning.add(id)
     try {
       const job = await this.get(id)
