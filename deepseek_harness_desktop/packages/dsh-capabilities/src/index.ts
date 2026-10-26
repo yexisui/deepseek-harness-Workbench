@@ -229,6 +229,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (route.startsWith('/api/capabilities/developer/')) return await developerRoutes(developerContext ?? ctx, developer, req, res)
       if(route.startsWith('/api/capabilities/requirements/document/')){
         const url=new URL(req.url!,'http://localhost'),id=route.slice('/api/capabilities/requirements/document/'.length)
+        if(req.method==='GET'&&url.searchParams.get('preview')==='1'){res.setHeader('Cache-Control','no-store');return json(res,200,await requirements.previewDocument(id))}
         if(req.method==='PUT'){
           if(!/^application\/octet-stream(?:;|$)/i.test(req.headers['content-type']??''))throw new InputError('需要文档文件',415)
           const chunks:Buffer[]=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>40*1024*1024)throw new InputError('文件超过40 MB',413);chunks.push(Buffer.from(chunk))}

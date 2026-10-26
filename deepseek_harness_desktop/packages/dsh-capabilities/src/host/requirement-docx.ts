@@ -32,7 +32,7 @@ function spans(xml:string,part:string):Span[]{
  if(paragraphs.length)throw new InputError('Word段落结构不完整')
  return found.sort((a,b)=>a.start-b.start)
 }
-function open(bytes:Buffer):Zip{
+export function openDocx(bytes:Buffer):Zip{
  if(bytes.length>40*1024*1024)throw new InputError('Word文件超过40 MB',413)
  let zip:Zip;try{zip=new PizZip(bytes)}catch{throw new InputError('无法读取DOCX，请选择有效的Word文件')}
  if(!zip.file('word/document.xml'))throw new InputError('未找到Word正文')
@@ -40,7 +40,7 @@ function open(bytes:Buffer):Zip{
  return zip
 }
 export function inspectDocx(bytes:Buffer):TemplateSlot[]{
- const zip=open(bytes),parts=Object.keys(zip.files).filter(n=>/^word\/(document|header\d+|footer\d+)\.xml$/.test(n)).sort((a,b)=>a==='word/document.xml'?-1:b==='word/document.xml'?1:a.localeCompare(b))
+ const zip=openDocx(bytes),parts=Object.keys(zip.files).filter(n=>/^word\/(document|header\d+|footer\d+)\.xml$/.test(n)).sort((a,b)=>a==='word/document.xml'?-1:b==='word/document.xml'?1:a.localeCompare(b))
  const slots=parts.flatMap(part=>spans(zip.file(part)!.asText(),part).filter(p=>p.text.trim()||p.image).map(({start,end,xml,...slot})=>slot))
  if(!slots.length)throw new InputError('文档没有可读取的文字')
  if(slots.reduce((n,p)=>n+p.text.length,0)>180000||slots.length>4000)throw new InputError('文档超过180000字或4000个内容块，请按章节拆分')
@@ -63,7 +63,7 @@ export async function renderTemplate(root:string,workspace:TemplateWorkspace,ver
  const template=workspace.template;if(!template?.asset)throw new InputError('请先选择Word模板')
  const bytes=await readAsset(root,template.asset),values=version?.values??workspace.values,note=version?.note??workspace.note
  if(!Object.keys(values).length&&!note)return bytes
- const zip=open(bytes)
+ const zip=openDocx(bytes)
  for(const part of new Set(template.slots.map(s=>s.part))){let xml=zip.file(part)!.asText();const paragraphs=spans(xml,part)
   for(const p of [...paragraphs].reverse()){if(values[p.id]===undefined||values[p.id]===p.text)continue;xml=xml.slice(0,p.start)+rewriteParagraph(p,values[p.id]!)+xml.slice(p.end)}
   if(part==='word/document.xml'&&note){if(/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(note))throw new InputError('备注含无效控制字符');const content='<w:p><w:r><w:t xml:space="preserve">'+escape(note).replace(/\r?\n/g,'</w:t><w:br/><w:t xml:space="preserve">')+'</w:t></w:r></w:p>';const at=xml.lastIndexOf('<w:sectPr');xml=at<0||at<xml.lastIndexOf('</w:p>')?xml.replace('</w:body>',content+'</w:body>'):xml.slice(0,at)+content+xml.slice(at)}

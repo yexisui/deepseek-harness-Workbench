@@ -1,3 +1,5 @@
+import {buildRequirementPreview} from './requirement-preview.ts'
+import {readAsset} from './requirement-docx.ts'
 import {convertRequirementDocument,storePdf,readPdfAsset,validatePdf} from './requirement-pdf.ts'
 import {syncRequirementQuestionRun} from '../core/requirement-question-history.ts'
 import type { KnowledgeAccess } from './knowledge-access.ts'
@@ -212,6 +214,7 @@ export class RequirementsService {
     if(kind==='template'){const previousName=w.template?.name.replace(/\.(docx|pdf)$/i,'');detachTemplate(w);w.template=source;templateVersion(w,'原始模板');if(task.title==='新需求分析'||task.title===previousName)task.title=filename.replace(/\.(docx|pdf)$/i,'').slice(0,120);if(task.run?.templateAction!=='ask')delete task.run}else w.sources.push(source)
     this.event(task,'material','载入'+(kind==='template'?'模板：':'参考资料：')+filename);return this.write(task,true)
   })}
+  async previewDocument(id:string){const task=await this.get(id);this.authorize(task,'edit');const source=workspace(task).template;if(!source?.asset)throw new InputError('请先选择模板');return buildRequirementPreview(await readAsset(this.root,source.asset),source.asset,source.slots)}
   async exportDocument(id:string,versionId?:string,format:'docx'|'pdf'='docx'){
     if(!['docx','pdf'].includes(format))throw new InputError('导出格式请选择Word或PDF')
     const task=await this.get(id);this.authorize(task,'edit');const w=workspace(task),version=versionId?w.versions.find(v=>v.id===versionId):undefined
