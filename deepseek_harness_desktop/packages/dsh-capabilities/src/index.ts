@@ -43,6 +43,10 @@ import { KnowledgeService } from './host/knowledge.ts'
 import { fence, json, readBody } from './host/http.ts'
 import { MeetingService, config as resolveAsrConfig, type MeetingAsrConfig, type MeetingSegment } from './host/meeting.ts'
 
+import {KnowledgeConnection, KNOWLEDGE_NAMESPACE, emptyConnection, type KnowledgeConnectionConfig} from './host/knowledge-http.ts'
+
+const KnowledgeSchema: z<KnowledgeConnectionConfig> = z.object({name: z.string(), baseUrl: z.string(), apiKey: z.string().role('secret')})
+
 const ASR_NAMESPACE = 'meeting-asr'
 const AsrSchema: z<MeetingAsrConfig> = z.object({
   modelRef: z.string().default(''), endpoint: z.string(), model: z.string(), apiKey: z.string().role('secret'),
@@ -57,7 +61,14 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   await store.init()
   const assistantArchives=new AssistantArchives(join(home,'capabilities'));let assistantArchiveError='';try{await assistantArchives.init()}catch(error){assistantArchiveError=String(error)}
   const optionalService = (name: string) => { try { return ctx.get(name as never) } catch { return undefined } }
-  const provider = new KnowledgeService(() => optionalService('knowledgeProvider') as import('./core/knowledge.ts').KnowledgeProvider | undefined, () => optionalService('documentKnowledge') as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter | undefined)
+  let knowledgeSettings: SettingsProvider | undefined
+  let currentKnowledge = () => emptyConnection
+  ctx.inject(['settings'], settingsCtx => {
+    knowledgeSettings = settingsCtx.settings
+    knowledgeSettings.installSection(ctx, KNOWLEDGE_NAMESPACE, KnowledgeSchema, emptyConnection, {setSource: source => {currentKnowledge = source}, onChange: () => {}})
+  })
+  const connection = new KnowledgeConnection(() => knowledgeSettings, () => currentKnowledge())
+  const provider = new KnowledgeService(() => connection.provider() ?? optionalService('knowledgeProvider') as import('./core/knowledge.ts').KnowledgeProvider | undefined, () => optionalService('documentKnowledge') as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter | undefined)
   const knowledge = new KnowledgeAccess(join(home,'capabilities','knowledge'),()=>store.snapshot(),provider)
   ctx.effect(()=>store.subscribe(()=>knowledge.reconcile()),'knowledge authorization')
   ctx.effect(()=>()=>knowledge.close(),'knowledge lifecycle')
@@ -181,6 +192,9 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       // A named webServer route bypasses Connection's /api route; reuse its public authentication check explicitly.
       const rejection = ctx.connection.requestRejection(req)
       if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
+      if(route==='/api/capabilities/knowledge/config' && req.method==='GET') return json(res,200,connection.view())
+      if(route==='/api/capabilities/knowledge/config' && req.method==='POST') return json(res,200,await connection.save(await readBody(req)))
+      if(route==='/api/capabilities/knowledge/check' && req.method==='POST') return json(res,200,await connection.check(await readBody(req)))
       if(route==='/api/capabilities/knowledge/status' && req.method==='GET') return json(res,200,await knowledge.status())
       if(route==='/api/capabilities/knowledge/history'&&req.method==='GET'){const id=new URL(req.url!,'http://localhost').searchParams.get('taskId');return json(res,200,id?await knowledge.history(text(id,'任务',150,true)):await knowledge.recent())}
       if(route==='/api/capabilities/knowledge/search'&&req.method==='POST'){const body=await readBody(req),controller=new AbortController();const cancel=()=>{if(!res.writableEnded)controller.abort()};res.once('close',cancel);try{return json(res,200,await knowledge.trial(text(body.query,'检索问题',20000,true),parseKnowledgeScope(body.scope),controller.signal))}finally{res.off('close',cancel)}}
