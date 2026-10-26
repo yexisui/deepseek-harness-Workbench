@@ -48,12 +48,12 @@ it('offers pause and resume with saved batch progress and expands the new execut
  task.run!.baseRevision=0;task.run!.templateAction='generate';task.run!.templateProgress={plan:[['p1'],['p2']],batches:{0:{changes:[],summary:'',questions:[],evidence:[]}},retrieval:{}}
  await start();expect(host.textContent).toContain('已完成 1/2 批')
  await act(async()=>Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent==='暂停生成')!.click())
- expect(host.textContent).toContain('已保留 1/2 批');expect(outer().open).toBe(false)
- await act(async()=>Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent==='继续生成')!.click())
+ expect(host.textContent).toContain('草稿已保存');expect(outer().open).toBe(false)
+ await act(async()=>Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent==='继续补全')!.click())
  expect(task.run!.status).toBe('running');expect(Object.keys(task.run!.templateProgress!.batches)).toEqual(['0']);expect(outer().open).toBe(true)
 })
 it('keeps saved progress visible but does not resume across changed document content',async()=>{
  task.run!.status='stopped';task.run!.baseRevision=0;task.dataRevision=1;await start()
- expect(Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent==='继续生成')!.disabled).toBe(true)
+ expect(Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent==='继续回答')!.disabled).toBe(true)
  expect(host.textContent).toContain('资料或正文已修改，请按当前内容重新生成')
 })

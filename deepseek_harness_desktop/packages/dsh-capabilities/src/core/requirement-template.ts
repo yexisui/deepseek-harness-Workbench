@@ -5,16 +5,19 @@ export type TemplateCitation = { sourceId:string; blockId:string; name:string; q
 export type TemplateChange = { id:string; before:string; after:string; sources?:TemplateCitation[] }
 export type TemplateGroup = { id:string; title:string; reason:string; changes:TemplateChange[]; status:'pending'|'accepted'|'rejected'|'reverted' }
 export type TemplateProposal = { evidence?:import('./knowledge.ts').KnowledgeEvidence[]; id:string; instruction:string; summary:string; questions:string[]; groups:TemplateGroup[]; createdAt:string }
-/** Completed batches are checkpoints, not adopted document edits. */
+/** Valid returned blocks survive partial responses and restarts; publication needs full coverage. */
 export type TemplateProgress = {
   plan:string[][]
-  batches:Record<string,{changes:(TemplateChange & {reason:string})[];summary:string;questions:string[];evidence:import('./knowledge.ts').KnowledgeEvidence[]}>
+  baseValues?:Record<string,string>
+  baseNote?:string
+  newProduct?:boolean
+  batches:Record<string,{received?:string[];complete?:boolean;changes:(TemplateChange & {reason:string})[];summary:string;questions:string[];evidence:import('./knowledge.ts').KnowledgeEvidence[]}>
   retrieval:Record<string,import('./knowledge.ts').KnowledgeEvidence[]>
 }
-export type TemplateVersion = { evidenceGroups?:{proposalId:string;groupId:string}[]; id:string; number:number; label:string; at:string; values:Record<string,string>; note:string }
+export type TemplateVersion = { title?:string; fileError?:string; evidenceGroups?:{proposalId:string;groupId:string}[]; id:string; number:number; label:string; at:string; values:Record<string,string>; note:string }
 export type TemplateAnswer = { runId?:string; evidence?:import('./knowledge.ts').KnowledgeEvidence[]; id:string; question:string; answer:string; at:string; sources:{sourceId:string; blockId:string; name:string; quote:string}[] }
 export type TemplateDocumentArchive = {id:string;at:string;template:TemplateSource;values:Record<string,string>;note:string;proposals:TemplateProposal[];versions:TemplateVersion[]}
-export type TemplateWorkspace = { knowledge?:import('./knowledge.ts').KnowledgeScope; documents?:TemplateDocumentArchive[];
+export type TemplateWorkspace = { draftRun?:import('./requirements-model.ts').RequirementRun; knowledge?:import('./knowledge.ts').KnowledgeScope; documents?:TemplateDocumentArchive[];
   product:string; brief:string; intent:'new-product'|'revise'; template?:TemplateSource; sources:TemplateSource[]
   values:Record<string,string>; note:string; proposals:TemplateProposal[]; versions:TemplateVersion[]; answers:TemplateAnswer[]
 }
@@ -31,4 +34,15 @@ export type TemplateCommand =
  | {type:'template.note'; note:string}
  | {type:'template.version'; label?:string}
  | {type:'template.restore'; id:string}
- | {type:'template.run'; action:'generate'|'revise'|'ask'; instruction:string; model?:string; requestId:string}
+ | {type:'template.run'; action:'generate'|'revise'|'ask'; instruction:string; model?:string; requestId:string; versionId?:string}
+
+export function templateDraft(w:TemplateWorkspace,progress:TemplateProgress,newProduct=false){
+ const values={...(progress.baseValues??w.values)},done=new Set<string>()
+ for(const [index,batch] of Object.entries(progress.batches)){
+  for(const id of batch.received??(batch.complete!==false?progress.plan[Number(index)]??[]:[]))done.add(id)
+  for(const c of batch.changes)values[c.id]=c.after
+ }
+ const pending=progress.plan.flat().filter(id=>!done.has(id))
+ if(progress.newProduct??newProduct)for(const id of pending)values[id]='待补全：此处尚未生成新产品内容。'
+ return {values,note:progress.baseNote??w.note,pending,completed:done.size,total:progress.plan.flat().length}
+}

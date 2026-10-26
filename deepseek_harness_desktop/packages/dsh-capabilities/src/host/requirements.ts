@@ -1,3 +1,4 @@
+import {saveRequirementOutput,requirementOutputFolder,openRequirementOutput} from './requirement-output.ts'
 import {buildRequirementPreview} from './requirement-preview.ts'
 import {readAsset} from './requirement-docx.ts'
 import {convertRequirementDocument,storePdf,readPdfAsset,validatePdf} from './requirement-pdf.ts'
@@ -60,7 +61,7 @@ export class RequirementsService {
   private configuration = { revision: 0, defaults: { depth: 'standard', questionStyle: 'short', model: '' } as RequirementDefaults }
   private running = new Map<string, { controller: AbortController; promise?: Promise<void> }>()
   private closed = false
-  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly knowledge: Pick<KnowledgeService,'status'|'search'> & Partial<Pick<KnowledgeAccess,'generate'|'assert'>> = new KnowledgeService()) { this.executions = new ExecutionStore(join(root,'_executions')) }
+  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly knowledge: Pick<KnowledgeService,'status'|'search'> & Partial<Pick<KnowledgeAccess,'generate'|'assert'>> = new KnowledgeService(), private readonly outputRoot=join(root,'_outputs')) { this.executions = new ExecutionStore(join(root,'_executions')) }
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private path(id: string) { if (!UUID.test(id)) throw new InputError('需求任务标识无效'); return join(this.root, `${id}.json`) }
   private async atomic(file: string, value: unknown) {
@@ -215,14 +216,29 @@ export class RequirementsService {
     this.event(task,'material','载入'+(kind==='template'?'模板：':'参考资料：')+filename);return this.write(task,true)
   })}
   async previewDocument(id:string){const task=await this.get(id);this.authorize(task,'edit');const source=workspace(task).template;if(!source?.asset)throw new InputError('请先选择模板');return buildRequirementPreview(await readAsset(this.root,source.asset),source.asset,source.slots)}
+  private async saveVersionFile(task:RequirementTask,version:import('../core/requirement-template.ts').TemplateVersion){
+    try{await saveRequirementOutput(this.outputRoot,task,version,'docx',await renderTemplate(this.root,workspace(task),version));delete version.fileError}
+    catch(error){version.fileError='文档版本已保存，Word文件写入失败：'+errorMessage(error)}
+  }
+  async openDocument(id:string,action:unknown,versionId?:string){
+    const task=await this.get(id);this.authorize(task,'edit');const w=workspace(task)
+    if(!w.template)throw new InputError('请先选择模板')
+    if(action==='folder'){const path=requirementOutputFolder(this.outputRoot,task);await mkdir(path,{recursive:true});await openRequirementOutput(path);return {path}}
+    if(action!=='open')throw new InputError('文档操作无效')
+    const version=w.versions.find(v=>v.id===versionId);if(!version)throw new InputError('请选择已保存版本',404)
+    const path=await saveRequirementOutput(this.outputRoot,task,version,'docx',await renderTemplate(this.root,w,version))
+    await openRequirementOutput(path)
+    if(version.fileError)await this.serialized(async()=>{const fresh=await this.get(id),saved=fresh.template?.versions.find(v=>v.id===versionId);if(saved?.fileError){delete saved.fileError;await this.write(fresh)}})
+    return {path}
+  }
   async exportDocument(id:string,versionId?:string,format:'docx'|'pdf'='docx'){
     if(!['docx','pdf'].includes(format))throw new InputError('导出格式请选择Word或PDF')
     const task=await this.get(id);this.authorize(task,'edit');const w=workspace(task),version=versionId?w.versions.find(v=>v.id===versionId):undefined
     if(versionId&&!version)throw new InputError('版本不存在',404)
     const bytes=await renderTemplate(this.root,w,version)
-    if(format==='docx')return bytes
-    if(w.template?.originalAsset&&!Object.keys(version?.values??w.values).length&&!(version?.note??w.note))return readPdfAsset(this.root,w.template.originalAsset)
-    return convertRequirementDocument(bytes,'docx','pdf')
+    const output=format==='docx'?bytes:w.template?.originalAsset&&!Object.keys(version?.values??w.values).length&&!(version?.note??w.note)?await readPdfAsset(this.root,w.template.originalAsset):await convertRequirementDocument(bytes,'docx','pdf')
+    if(version)await saveRequirementOutput(this.outputRoot,task,version,format,output)
+    return output
   }
   async get(id: string): Promise<RequirementTask> {
     try {
@@ -314,6 +330,7 @@ export class RequirementsService {
       // A stop targets an exact run, so background checkpoint writes cannot make it stale.
       const exactStop=c.type==='run.stop'&&!!c.runId&&c.runId===task.run?.id
       if(!exactStop&&integer(revision)!==task.revision) throw new InputError('分析记录已更新，请刷新后核对再保存；当前输入请保留',409)
+      const versionIds=new Set(task.template?.versions.map(v=>v.id)??[])
       let changed=true, launch=false
       switch(c.type) {
         case 'template.knowledge': {
@@ -342,8 +359,11 @@ export class RequirementsService {
           const instruction=text(c.instruction,'本次要求',20000,true),selected=this.modelRoute(c.model??task.settings.model)
           if(!selected)throw new InputError('请先在工作台配置或选择模型')
           validateTemplateRun(task,c.action,instruction)
+          if(c.versionId&&(!workspace(task).versions.some(v=>v.id===c.versionId)||c.action==='ask'))throw new InputError('所选文档版本不存在')
+          if(c.action==='ask'&&task.run?.templateProgress)workspace(task).draftRun=structuredClone(task.run)
+          if(c.action!=='ask'){delete workspace(task).draftRun;if(c.versionId)templateVersion(workspace(task),'手动修改')}
           syncRequirementQuestionRun(task)
-          task.run={id:c.requestId,operation:c.action==='generate'?'document':c.action==='ask'?'analyze':'revise',templateAction:c.action,status:'running',startedAt:now(),model:selected,instruction,baseRevision:task.dataRevision}
+          task.run={templateVersionId:c.versionId,id:c.requestId,operation:c.action==='generate'?'document':c.action==='ask'?'analyze':'revise',templateAction:c.action,status:'running',startedAt:now(),model:selected,instruction,baseRevision:task.dataRevision}
           const message: import('../core/requirements-model.ts').RequirementMessage={id:randomUUID(),role:'user',runId:c.requestId,text:instruction,createdAt:task.run.startedAt}
           if(c.action==='ask'){
             const w=workspace(task),scope=w.knowledge,status=scope?await this.knowledge.status().catch(()=>undefined):undefined
@@ -354,12 +374,14 @@ export class RequirementsService {
         }
         case 'run.resume': {
           if(this.closed)throw new InputError('需求分析服务正在关闭',503)
-          const previous=task.run
+          if(task.run?.status==='running')throw new InputError('当前任务仍在处理，请先暂停后再继续',409)
+          const previous=task.run?.id===c.runId?task.run:workspace(task).draftRun
           if(!previous?.templateAction||previous.id!==c.runId||!['stopped','interrupted','error'].includes(previous.status))throw new InputError('当前没有可继续的文档任务',409)
           if(!UUID.test(c.requestId))throw new InputError('运行标识无效')
           this.authorizeTemplateRun(task,previous.templateAction)
           if(task.dataRevision!==previous.baseRevision)throw new InputError('暂停后资料或正文已修改，请按当前内容重新生成；已保存正文保留',409)
           syncRequirementQuestionRun(task)
+          delete workspace(task).draftRun
           task.run={...previous,id:c.requestId,resumedFrom:previous.id,status:'running',startedAt:now(),finishedAt:undefined,error:undefined}
           const message:import('../core/requirements-model.ts').RequirementMessage={id:randomUUID(),role:'user',runId:c.requestId,text:previous.instruction,createdAt:task.run.startedAt}
           if(previous.templateAction==='ask'){
@@ -533,6 +555,7 @@ export class RequirementsService {
         default: throw new InputError('不支持的需求分析操作')
       }
       if(task.requirements.length>1000||task.questions.length>500||task.flows.length>500||task.rules.length>500)throw new InputError('本次分析条目过多，请拆分任务')
+      for(const version of task.template?.versions??[])if(!versionIds.has(version.id))await this.saveVersionFile(task,version)
       const saved=await this.write(task,changed)
       if(launch){const controller=new AbortController(),run={controller} as {controller:AbortController;promise?:Promise<void>};this.running.set(id,run);run.promise=this.execute(saved,controller).catch(()=>{}).finally(()=>{if(this.running.get(id)===run)this.running.delete(id)})}
       return saved
@@ -577,7 +600,7 @@ export class RequirementsService {
     await this.executions.run(snapshot.id,{id:snapshot.run!.id,operation:snapshot.run!.templateAction?({generate:'按模板生成文档',revise:'修改模板文档',ask:'资料问答'})[snapshot.run!.templateAction]:({analyze:'整理需求',clarify:'引导澄清',check:'检查需求',revise:'修改需求',document:'整理文档'})[snapshot.run!.operation],input:snapshot.run!.instruction,inputKind:'user',model:snapshot.run!.model,roleVersion:snapshot.roleVersion,mode:snapshot.mode},async()=>{
       step('materials','读取分析资料','done',snapshot.materials.filter(m=>!m.removed).length+' 份资料；分析栏目：'+(snapshot.sections??[]).filter(s=>s.enabled).map(s=>s.title).join('、'))
       return controller.signal.aborted?snapshot:(await this.executeWork(snapshot,controller))??snapshot
-    },task=>({status:task.run?.status==='ready'?'done':controller.signal.aborted?'stopped':'failed',summary:task.run?.status==='ready'?'需求结果已保存':task.run?.error||(task.run?.templateAction?'本轮已暂停，可继续；完成的批次保留':'本轮已停止，原结果保留'),result:task.run?.status==='ready'?{kind:'requirements',text:task.run?.templateAction?(task.messages.at(-1)?.text??'文档处理完成'):(task.proposal?.summary??'需求已更新')+'\n\n'+requirementMarkdown(task)}:undefined}))
+    },task=>({status:task.run?.status==='ready'?'done':controller.signal.aborted||task.run?.status==='stopped'?'stopped':'failed',summary:task.run?.status==='ready'?'需求结果已保存':task.run?.error||(task.run?.templateAction?'本轮已暂停，可继续；完成的批次保留':'本轮已停止，原结果保留'),result:task.run?.status==='ready'?{kind:'requirements',text:task.run?.templateAction?(task.messages.at(-1)?.text??'文档处理完成'):(task.proposal?.summary??'需求已更新')+'\n\n'+requirementMarkdown(task)}:undefined}))
   }
   private async executeWork(snapshot:RequirementTask,controller:AbortController) {
     const runId=snapshot.run!.id
@@ -591,20 +614,29 @@ export class RequirementsService {
           // Progress is not a document revision; keep open edits and the pause button valid.
           await this.atomic(this.path(task.id),task)
         }))
+        if(output.incomplete)return await this.serialized(async()=>{
+          const task=await this.get(snapshot.id);if(task.run?.id!==runId||task.run.status!=='running'||controller.signal.aborted)return
+          task.run.status='stopped';task.run.finishedAt=now();task.run.error=output.summary
+          this.event(task,'analysis',output.summary);return this.write(task)
+        })
         if(snapshot.run.templateAction!=='ask'){
           const candidate=structuredClone(output.workspace),proposal=candidate.proposals.at(-1)
           for(const group of proposal?.groups??[])for(const change of group.changes)candidate.values[change.id]=change.after
           if(Object.values(candidate.values).reduce((n,v)=>n+v.length,0)>240000)throw new InputError('生成内容过长，请缩小本次范围')
-          // The batch writer already checked positions and citations. Render only for an actual export.
+          for(const group of proposal?.groups??[])group.status='accepted'
+          output.workspace=candidate
+          templateVersion(candidate,snapshot.run.templateAction==='generate'?'生成初稿':'按要求修改')
         }
         return await this.serialized(async()=>{
           const task=await this.get(snapshot.id);if(task.run?.id!==runId||task.run.status!=='running'||controller.signal.aborted)return
           this.authorizeTemplateRun(task,snapshot.run!.templateAction!)
           if(task.dataRevision!==snapshot.run!.baseRevision)throw new InputError('生成期间资料或文档已改变，保留你的修改，请重新生成',409)
+          const oldVersions=new Set(task.template?.versions.map(v=>v.id)??[])
           task.template=output.workspace;task.run.status='ready';task.run.finishedAt=now();delete task.run.templateProgress
+          for(const version of task.template.versions)if(!oldVersions.has(version.id))await this.saveVersionFile(task,version)
           task.messages.push({id:randomUUID(),role:'assistant',runId,text:output.summary,createdAt:now()})
-          this.event(task,'analysis',snapshot.run!.templateAction==='ask'?'资料回答已保存；正文保持':'文档候选已生成，等待审阅采用')
-          return this.write(task,true)
+          this.event(task,'analysis',snapshot.run!.templateAction==='ask'?'资料回答已保存；正文保持':'文档已生成并保存新版本，可直接打开查看')
+          return this.write(task,snapshot.run!.templateAction!=='ask')
         })
       }
       const prompt=this.prompt(snapshot)
