@@ -31,7 +31,7 @@ capability_files=release_files(source/'shared-settings/files/capabilities/state.
 out.mkdir(parents=True,exist_ok=True)
 if any(out.iterdir()): raise SystemExit('Output must be empty; refusing to overwrite a release')
 offline=out/'offline';offline.mkdir()
-release='2026.10.26-r15-win-x64'
+release='2026.10.26-r16-win-x64'
 files=[]; seen=set()
 def digest(f):
     h=hashlib.sha256()

@@ -7,6 +7,7 @@ import type {Embeddings} from './knowledge-embedding.ts'
 async function dispatchLibraryRoute(libraries:KnowledgeLibraries,embeddings:Embeddings,req:IncomingMessage,res:ServerResponse){
  const url=new URL(req.url!,'http://localhost'),action=url.pathname.slice('/api/capabilities/knowledge/libraries'.length)
  if(req.method==='GET'&&action==='')return json(res,200,{...libraries.view(),models:await embeddings.choices()})
+ if(req.method==='GET'&&action==='/document')return json(res,200,await libraries.previewDocument(url.searchParams.get('id'),url.searchParams.get('documentId'),Number(url.searchParams.get('offset')||0)))
  if(req.method==='PUT'&&action==='/upload'){
   const chunks:Buffer[]=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>40*1024*1024)throw new InputError('资料超过40 MB',413);chunks.push(Buffer.from(chunk))}
   const id=url.searchParams.get('id'),name=text(url.searchParams.get('name'),'文件名',500,true),bytes=Buffer.concat(chunks)

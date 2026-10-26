@@ -2,3 +2,4 @@ export type LibraryDocument={id:string;name:string;hash:string;status:'pending'|
 export type LibraryJob={state:'running'|'done'|'failed'|'cancelled'|'interrupted';total:number;completed:number;message:string;startedAt:string}
 export type Library={id:string;name:string;kind:'local'|'milvus';modelRef:string;activeModel?:string;fingerprint?:string;dimension?:number;collection?:string;documents:LibraryDocument[];directories:string[];chunkSize:number;overlap:number;createdAt:string;updatedAt:string;job?:LibraryJob;remote?:{collection:string;vector:string;text:string;source:string;metric:string};error?:string}
 export type RemoteConnection={id:string;uri:string;token:string;database:string}
+export type DocumentPreview={name:string;status:LibraryDocument['status'];storedVectors:number;dimension?:number;pendingUpdate:boolean;total:number;offset:number;parts:{locator:string;text:string;truncated:boolean}[]}

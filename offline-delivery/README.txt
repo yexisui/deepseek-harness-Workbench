@@ -10,7 +10,7 @@ ZIP、校验文件、解压文件、缓存及子文件夹均不提交。
 新版交付ZIP仅包含offline目录，不包含第二套部署或启动入口。始终使用Git项目根的一键部署.cmd。
 
 完整获取、安装、启动和修复步骤见项目根 README.md。
-本机当前版本：2026.10.26-r15-win-x64（含Milvus Lite、便携Python及知识库功能；尚未发布远端Release）
+本机当前版本：2026.10.26-r16-win-x64（含Milvus Lite、便携Python、知识库列表与Word解析预览；尚未发布远端Release）
 历史公开版本：2026.10.23-r14-win-x64
 下载：https://github.com/yexisui/deepseek-harness-Workbench/releases/tag/offline-2026.10.23-r14
 同时下载ZIP及同名.sha256校验文件。

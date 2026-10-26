@@ -2,7 +2,7 @@ import {createHash,randomUUID} from 'node:crypto'
 import {mkdir,readFile,writeFile,readdir,realpath,stat,lstat,unlink} from 'node:fs/promises'
 import {join,extname,relative,isAbsolute,basename} from 'node:path'
 import type {KnowledgeProvider,KnowledgeRequest} from '../core/knowledge.ts'
-import type {Library,LibraryDocument,RemoteConnection} from '../core/knowledge-library.ts'
+import type {Library,LibraryDocument,RemoteConnection,DocumentPreview} from '../core/knowledge-library.ts'
 import type {EmbeddingProfile,Embeddings} from './knowledge-embedding.ts'
 import type {VectorEngine} from './knowledge-milvus.ts'
 import {inspectDocx} from './requirement-docx.ts'
@@ -17,7 +17,7 @@ const supported=new Set(['.md','.txt','.docx','.pdf'])
 export function splitKnowledge(parts:Chunk[],size=900,overlap=100):Chunk[]{
  const chunks:Chunk[]=[]
  for(const part of parts){const value=part.text.trim();let heading=part.locator
-  for(const block of value.split(/\n(?=#{1,6}\s)/)){const title=block.match(/^#{1,6}\s+([^\n]+)/)?.[1];if(title)heading=title.slice(0,240)
+  for(const block of value.split(/\n(?=#{1,6}\s)/)){const title=block.match(/^#{1,6}\s+([^\n]+)/)?.[1];if(title)heading=title.trim().slice(0,240)
    for(let i=0;i<block.length;i+=size-overlap){const text=block.slice(i,i+size).trim();if(text)chunks.push({text,locator:heading});if(i+size>=block.length)break}
   }
  }return chunks
@@ -45,7 +45,18 @@ export class KnowledgeLibraries implements KnowledgeProvider {
  private async parse(name:string,bytes:Buffer):Promise<Chunk[]>{
   const ext=extname(name).toLowerCase();if(!supported.has(ext))throw new InputError('请选择MD、TXT、DOCX或含文本PDF文件')
   if(bytes.length>40*1024*1024)throw new InputError('单个资料超过40 MB，请拆分后导入',413)
-  if(ext==='.docx')return inspectDocx(bytes).filter(s=>s.text.trim()).map(s=>({text:s.text,locator:s.heading?s.text.slice(0,200):`第 ${s.index+1} 段`}))
+  if(ext==='.docx'){
+   const slots=inspectDocx(bytes).filter(s=>s.text.trim()),parts:Chunk[]=[],rows=new Map<string,{cells:Map<number,string[]>;table:string;locator:string}>();let heading='Word正文'
+   for(const s of slots){
+    if(s.heading)heading=s.text.trim().slice(0,200)
+    const part=s.part==='word/document.xml'?'正文':/header/.test(s.part)?'页眉':'页脚'
+    if(s.table){const table=s.part+':'+s.table,key=table+':'+s.row;let row=rows.get(key);if(!row){row={cells:new Map(),table,locator:`${heading} · ${part}表${s.table}第${s.row}行`};rows.set(key,row)}const cell=row.cells.get(s.cell!)||[];cell.push(s.text);row.cells.set(s.cell!,cell)}
+    else parts.push({text:s.text,locator:`${heading} · ${part}第${s.index+1}段`})
+   }
+   const headers=new Map<string,string>()
+   for(const row of rows.values()){const body=[...row.cells.values()].map(lines=>lines.join('；')).join(' | '),header=headers.get(row.table);if(!header)headers.set(row.table,body);parts.push({text:header?'表格首行：'+header+'\n本行：'+body:body,locator:row.locator})}
+   return parts
+  }
   if(ext==='.pdf')return this.engine.call<Chunk[]>({op:'pdf',data:bytes.toString('base64')})
   const value=new TextDecoder('utf-8',{fatal:true}).decode(bytes).replace(/^\uFEFF/,'');if(value.includes('\0'))throw new InputError('文件不是有效的文本资料');return [{text:value,locator:name}]
  }
@@ -56,6 +67,13 @@ export class KnowledgeLibraries implements KnowledgeProvider {
   if(!Number.isInteger(chunkSize)||chunkSize<200||chunkSize>2000||!Number.isInteger(overlap)||overlap<0||overlap>=chunkSize/2)throw new InputError('分段设置无效：长度200—2000，重叠小于一半')
   const l:Library={id:'lib-'+randomUUID(),name,kind:'local',modelRef,documents:[],directories:[],chunkSize,overlap,createdAt:now(),updatedAt:now()}
   this.state.libraries.push(l);await this.changed();return structuredClone(l)
+ }
+ async previewDocument(id:unknown,documentId:unknown,start=0):Promise<DocumentPreview>{
+  const l=this.library(id),d=l.documents.find(v=>v.id===documentId)
+  if(!d||l.kind!=='local')throw new InputError('本地资料不存在',404)
+  const offset=Number(start);if(!Number.isInteger(offset)||offset<0)throw new InputError('内容页码无效')
+  const parts:Chunk[]=JSON.parse(await readFile(join(this.root,'texts',d.hash+'.json'),'utf8'))
+  return {name:d.name,status:d.status,storedVectors:d.revision?d.chunks:0,dimension:l.dimension,pendingUpdate:d.hash!==d.activeHash,total:parts.length,offset,parts:parts.slice(offset,offset+20).map(p=>({locator:p.locator,text:p.text.slice(0,8000),truncated:p.text.length>8000}))}
  }
  async edit(body:Record<string,unknown>){const l=this.library(body.id);this.idle(l);if(body.revision!==this.state.revision)throw new InputError('知识库已更新，请刷新后重试',409);const modelRef=text(body.modelRef??l.modelRef,'向量模型',300,true);await this.embeddings.profile(modelRef);l.modelRef=modelRef;l.name=text(body.name??l.name,'名称',120,true);l.updatedAt=now();await this.changed();return this.view()}
  async upload(id:unknown,name:string,bytes:Buffer,folder?:string){
@@ -95,13 +113,14 @@ export class KnowledgeLibraries implements KnowledgeProvider {
   const rebuild=l.fingerprint!==profile.fingerprint,collection='kb_'+l.id.slice(4).replace(/-/g,'')+'_'+profile.fingerprint.slice(0,12),staged:LibraryDocument[]=[],oldCollection=l.collection;let failures=0
   try{
    for(const d of l.documents){signal.throwIfAborted();if(!rebuild&&d.hash===d.activeHash&&d.status==='ready'){l.job!.completed++;continue}
-    l.job!.message='正在处理：'+d.name;await this.changed()
+    l.job!.message='正在分段并向量化：'+d.name;await this.changed()
     try{const parts:Chunk[]=JSON.parse(await readFile(join(this.root,'texts',d.hash+'.json'),'utf8')),chunks=splitKnowledge(parts,l.chunkSize,l.overlap),vectors:number[][]=[]
      await mkdir(join(this.root,'embedding-cache'),{recursive:true})
      const pending:{index:number;key:string}[]=[]
      for(let i=0;i<chunks.length;i++){const key=digest(profile.fingerprint+'\n'+chunks[i]!.text);try{vectors[i]=JSON.parse(await readFile(join(this.root,'embedding-cache',key+'.json'),'utf8'))}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;pending.push({index:i,key})}}
      for(let start=0;start<pending.length;start+=16){signal.throwIfAborted();const batch=pending.slice(start,start+16),found=await this.embeddings.embed(profile,batch.map(x=>chunks[x.index]!.text),signal);for(let i=0;i<batch.length;i++){vectors[batch[i]!.index]=found[i]!;await writeFile(join(this.root,'embedding-cache',batch[i]!.key+'.json'),JSON.stringify(found[i]),'utf8')}}
      signal.throwIfAborted();const dimension=vectors[0]?.length;if(!dimension||vectors.some(v=>v.length!==dimension)||(!rebuild&&l.dimension&&dimension!==l.dimension))throw new InputError('模型向量维度发生变化，请更换配置后重新建立索引')
+     l.job!.message='正在存入Milvus：'+d.name;await this.changed()
      await this.engine.call({op:'ensure',connection:this.connection(),collection,dimension},signal)
      const revision=randomUUID(),rows=chunks.map((c,i)=>({id:digest(revision+':'+i),document:d.id,revision,text:c.text,locator:c.locator,vector:vectors[i]}))
      for(let i=0;i<rows.length;i+=64)await this.engine.call({op:'insert',connection:this.connection(),collection,rows:rows.slice(i,i+64)},signal)
