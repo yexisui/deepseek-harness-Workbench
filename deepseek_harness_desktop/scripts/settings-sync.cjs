@@ -171,11 +171,29 @@ function mergeCapabilities(local, incoming) {
   result.revision = Math.max(local.revision ?? 0, incoming.revision ?? 0) + 1;
   return { state: result, presets };
 }
+function settingsOwners(root, processes, lock, selfPid = process.pid) {
+  const prefix = path.win32.resolve(root).toLowerCase().replace(/\\+$/, '') + '\\';
+  const lockedAt = Date.parse(lock?.startedAt);
+  return processes.filter(p => {
+    if (p.pid === selfPid) return false;
+    // Auxiliary RAG/build processes also use portable Node. They do not own settings.
+    const desktop = String(p.name).toLowerCase() === 'electron.exe' && p.exe &&
+      path.win32.resolve(p.exe).toLowerCase().startsWith(prefix);
+    const started = Date.parse(p.startedAt);
+    const writer = p.pid === lock?.pid && Number.isFinite(lockedAt) &&
+      (!Number.isFinite(started) || started <= lockedAt + 5000);
+    return desktop || writer;
+  });
+}
 function assertStopped(root) {
   if (process.platform !== 'win32') return;
-  const command = "$r=$env:DSH_SETTINGS_CHECK_ROOT.TrimEnd('\\')+'\\'; $p=Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object { $_.ProcessId -ne [int]$env:DSH_SETTINGS_CHECK_PID -and $_.Name -in @('node.exe','electron.exe') -and $_.ExecutablePath -and $_.ExecutablePath.StartsWith($r,[StringComparison]::OrdinalIgnoreCase) }; if($p){'running'}";
-  const output = execFileSync('powershell.exe', ['-NoProfile', '-Command', command], {windowsHide: true, encoding: 'utf8', env:{...process.env, PSModulePath:'', DSH_SETTINGS_CHECK_ROOT:root, DSH_SETTINGS_CHECK_PID:String(process.pid)}});
-  if (output.trim()) throw Error('Close this workbench before applying updated shared settings.');
+  const command = "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); $p=@(Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object { $_.Name -in @('node.exe','electron.exe') } | ForEach-Object { @{pid=[int]$_.ProcessId;name=$_.Name;exe=$_.ExecutablePath;startedAt=if($_.CreationDate){$_.CreationDate.ToUniversalTime().ToString('o')}else{''}} }); ConvertTo-Json -InputObject $p -Compress";
+  const output = execFileSync('powershell.exe', ['-NoProfile', '-Command', command], {windowsHide: true, encoding: 'utf8', env:{...process.env, PSModulePath:''}});
+  let lock;
+  try { lock = JSON.parse(fs.readFileSync(path.join(root, 'dsh-data/capabilities/writer.lock'), 'utf8')); }
+  catch (error) { if (error.code !== 'ENOENT') throw Error('无法核对工作台写入锁，请先关闭工作台后重试。'); }
+  const owners = settingsOwners(root, JSON.parse(output), lock);
+  if (owners.length) throw Error('工作台仍在运行（进程 ' + owners.map(p => p.pid).join('、') + '）。请关闭工作台窗口后重新启动，以应用共享设置。');
 }
 function applySettings(root) {
   const shared = path.join(root, 'shared-settings');
@@ -236,7 +254,7 @@ function applySettings(root) {
   }
   return {applied: changes.length};
 }
-module.exports = { exportSettings, applySettings, mergeCapabilities, allowed };
+module.exports = { exportSettings, applySettings, mergeCapabilities, allowed, settingsOwners };
 if (require.main === module) {
   try {
     const [mode, rootArg] = process.argv.slice(2), root = path.resolve(rootArg || path.join(__dirname, '../..'));

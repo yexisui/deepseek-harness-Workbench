@@ -1,8 +1,22 @@
 'use strict';
 const {test} = require('node:test'), assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), os = require('node:os');
-const {exportSettings, applySettings, mergeCapabilities, allowed} = require('./settings-sync.cjs');
+const {exportSettings, applySettings, mergeCapabilities, allowed, settingsOwners} = require('./settings-sync.cjs');
 const yamlPath = process.env.SETTINGS_TEST_YAML;
+test('auxiliary RAG using portable Node does not prevent settings sync, while this desktop does', () => {
+  const root='C:\\用户\\工作台', rag={pid:12,name:'node.exe',exe:root+'\\runtime-node\\node.exe'};
+  assert.deepEqual(settingsOwners(root,[rag],undefined,99),[]);
+  const desktop={pid:13,name:'electron.exe',exe:root+'\\runtime-desktop\\electron.exe'};
+  const other={pid:14,name:'electron.exe',exe:root+'副本\\runtime-desktop\\electron.exe'};
+  assert.deepEqual(settingsOwners(root,[rag,desktop,other],undefined,99),[desktop]);
+});
+test('a live settings writer is protected even with system Node, but a recycled PID is ignored', () => {
+  const root='C:\\用户\\工作台', lock={pid:12,startedAt:'2026-10-26T03:00:00Z'};
+  const writer={pid:12,name:'node.exe',exe:'C:\\Program Files\\nodejs\\node.exe',startedAt:'2026-10-26T02:59:59Z'};
+  assert.deepEqual(settingsOwners(root,[writer],lock,99),[writer]);
+  assert.deepEqual(settingsOwners(root,[{...writer,startedAt:'2026-10-26T04:00:00Z'}],lock,99),[]);
+  assert.deepEqual(settingsOwners(root,[writer],lock,12),[]);
+});
 function copy(from, to) {
   fs.mkdirSync(to,{recursive:true});
   for (const entry of fs.readdirSync(from,{withFileTypes:true})) {
