@@ -24,7 +24,7 @@ export type RequirementMessage = { questionRun?: RequirementQuestionRun; runId?:
 export type RequirementEvent = { runId?: string; id: string; at: string; kind: 'material' | 'analysis' | 'change' | 'confirm' | 'export' | 'version'; text: string; objectId?: string }
 export type ProposalItem = { id: string; kind: 'requirement' | 'flow' | 'rule' | 'question' | 'overview'; targetId?: string; value: Requirement | RequirementFlow | RequirementRule | RequirementQuestion | RequirementOverview; accepted?: boolean; rejected?: boolean }
 export type RequirementProposal = { sections?: {id:string;content:string}[]; id: string; baseRevision: number; summary: string; items: ProposalItem[]; createdAt: string }
-export type RequirementRun = { templateAction?: 'generate'|'revise'|'ask'; id: string; operation: 'analyze' | 'clarify' | 'check' | 'revise' | 'document'; status: 'running' | 'ready' | 'error' | 'stopped' | 'interrupted'; startedAt: string; finishedAt?: string; error?: string; model: string; instruction: string; context?: string; baseRevision: number }
+export type RequirementRun = { templateProgress?:import('./requirement-template.ts').TemplateProgress; resumedFrom?:string; templateAction?: 'generate'|'revise'|'ask'; id: string; operation: 'analyze' | 'clarify' | 'check' | 'revise' | 'document'; status: 'running' | 'ready' | 'error' | 'stopped' | 'interrupted'; startedAt: string; finishedAt?: string; error?: string; model: string; instruction: string; context?: string; baseRevision: number }
 export type RequirementVersion = { id: string; number: number; title: string; note: string; createdAt: string; selectedIds: string[]; data: RequirementData; materials: RequirementMaterial[]; settings: RequirementSettings; markdown: string }
 export type RequirementDocument = { markdown: string; dataRevision: number; depth: RequirementSettings['depth']; selectedIds: string[]; createdAt: string }
 export type RequirementSection = { id: string; title: string; guidance: string; enabled: boolean; content: string; contentSet?: boolean }
@@ -86,7 +86,8 @@ export type RequirementCommand = TemplateCommand
   | { type: 'proposal.apply'; proposalId: string; ids: string[] }
   | { type: 'proposal.reject'; proposalId: string; ids: string[] }
   | { type: 'run'; operation: RequirementRun['operation']; instruction: string; context?: string; model?: string; requestId: string }
-  | { type: 'run.stop' }
+  | { type: 'run.stop'; runId?:string }
+  | { type: 'run.resume'; runId:string; requestId:string }
   | { type: 'document.generate'; depth: RequirementSettings['depth']; selectedIds?: string[] }
   | { type: 'version.create'; selectedIds: string[]; note: string }
   | { type: 'version.restore'; id: string }

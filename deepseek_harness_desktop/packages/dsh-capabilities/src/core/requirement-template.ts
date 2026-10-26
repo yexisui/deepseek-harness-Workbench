@@ -5,6 +5,12 @@ export type TemplateCitation = { sourceId:string; blockId:string; name:string; q
 export type TemplateChange = { id:string; before:string; after:string; sources?:TemplateCitation[] }
 export type TemplateGroup = { id:string; title:string; reason:string; changes:TemplateChange[]; status:'pending'|'accepted'|'rejected'|'reverted' }
 export type TemplateProposal = { evidence?:import('./knowledge.ts').KnowledgeEvidence[]; id:string; instruction:string; summary:string; questions:string[]; groups:TemplateGroup[]; createdAt:string }
+/** Completed batches are checkpoints, not adopted document edits. */
+export type TemplateProgress = {
+  plan:string[][]
+  batches:Record<string,{changes:(TemplateChange & {reason:string})[];summary:string;questions:string[];evidence:import('./knowledge.ts').KnowledgeEvidence[]}>
+  retrieval:Record<string,import('./knowledge.ts').KnowledgeEvidence[]>
+}
 export type TemplateVersion = { evidenceGroups?:{proposalId:string;groupId:string}[]; id:string; number:number; label:string; at:string; values:Record<string,string>; note:string }
 export type TemplateAnswer = { runId?:string; evidence?:import('./knowledge.ts').KnowledgeEvidence[]; id:string; question:string; answer:string; at:string; sources:{sourceId:string; blockId:string; name:string; quote:string}[] }
 export type TemplateDocumentArchive = {id:string;at:string;template:TemplateSource;values:Record<string,string>;note:string;proposals:TemplateProposal[];versions:TemplateVersion[]}

@@ -21,7 +21,7 @@ beforeEach(()=>{
   if(url.endsWith('/knowledge/status'))return json({available:false,collections:[]})
   if(url.includes('/task/'))return json(task)
   if(url.includes('/executions?')){const q=new URL(url,'http://test').searchParams;return json(q.get('runId')?(q.get('runId')==='old'?previous:current()):{items:[current(),previous].map(({events,...r})=>r),total:2})}
-  if(url.endsWith('/command')){const body=JSON.parse(String(init?.body));if(body.command.type==='template.run'){task.run={...task.run!,id:body.command.requestId,status:'running'};task.revision++}return json(task)}
+  if(url.endsWith('/command')){const body=JSON.parse(String(init?.body));if(body.command.type==='template.run'||body.command.type==='run.resume'){task.run={...task.run!,id:body.command.requestId,status:'running'};task.revision++}if(body.command.type==='run.stop'){expect(body.command.runId).toBe(task.run!.id);task.run!.status='stopped';task.revision++}return json(task)}
   throw Error(url)
  }))
 })
@@ -43,4 +43,17 @@ it('starts a new question expanded after the previous completed process was coll
  await act(async()=>{const input=host.querySelector<HTMLTextAreaElement>('[aria-label="资料问题"]')!;Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')!.set!.call(input,'再问一次');input.dispatchEvent(new Event('input',{bubbles:true}))})
  await act(async()=>Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent==='发送问题')!.click());expect(outer().open).toBe(true)
  await advance();expect(outer().querySelector<HTMLDetailsElement>('[data-execution-run="'+task.run!.id+'"] details')?.open).toBe(true)
+})
+it('offers pause and resume with saved batch progress and expands the new execution',async()=>{
+ task.run!.baseRevision=0;task.run!.templateAction='generate';task.run!.templateProgress={plan:[['p1'],['p2']],batches:{0:{changes:[],summary:'',questions:[],evidence:[]}},retrieval:{}}
+ await start();expect(host.textContent).toContain('已完成 1/2 批')
+ await act(async()=>Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent==='暂停生成')!.click())
+ expect(host.textContent).toContain('已保留 1/2 批');expect(outer().open).toBe(false)
+ await act(async()=>Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent==='继续生成')!.click())
+ expect(task.run!.status).toBe('running');expect(Object.keys(task.run!.templateProgress!.batches)).toEqual(['0']);expect(outer().open).toBe(true)
+})
+it('keeps saved progress visible but does not resume across changed document content',async()=>{
+ task.run!.status='stopped';task.run!.baseRevision=0;task.dataRevision=1;await start()
+ expect(Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent==='继续生成')!.disabled).toBe(true)
+ expect(host.textContent).toContain('资料或正文已修改，请按当前内容重新生成')
 })

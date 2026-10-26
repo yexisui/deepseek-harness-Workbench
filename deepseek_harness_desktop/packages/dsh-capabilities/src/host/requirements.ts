@@ -310,8 +310,10 @@ export class RequirementsService {
     return this.serialized(async()=>{
       const task=await this.get(id), c=object(raw) as unknown as RequirementCommand
       // A repeated operation token returns the existing run without another charge.
-      if((c.type==='run'||c.type==='template.run') && (task.run?.id===c.requestId||task.messages.some(m=>m.runId===c.requestId))) return task
-      if(integer(revision)!==task.revision) throw new InputError('分析记录已更新，请刷新后核对再保存；当前输入请保留',409)
+      if((c.type==='run'||c.type==='template.run'||c.type==='run.resume') && (task.run?.id===c.requestId||task.messages.some(m=>m.runId===c.requestId))) return task
+      // A stop targets an exact run, so background checkpoint writes cannot make it stale.
+      const exactStop=c.type==='run.stop'&&!!c.runId&&c.runId===task.run?.id
+      if(!exactStop&&integer(revision)!==task.revision) throw new InputError('分析记录已更新，请刷新后核对再保存；当前输入请保留',409)
       let changed=true, launch=false
       switch(c.type) {
         case 'template.knowledge': {
@@ -349,6 +351,23 @@ export class RequirementsService {
           }
           task.messages.push(message)
           this.event(task,'analysis',c.action==='ask'?'开始资料问答':'开始按模板编写文档');changed=false;launch=true;break
+        }
+        case 'run.resume': {
+          if(this.closed)throw new InputError('需求分析服务正在关闭',503)
+          const previous=task.run
+          if(!previous?.templateAction||previous.id!==c.runId||!['stopped','interrupted','error'].includes(previous.status))throw new InputError('当前没有可继续的文档任务',409)
+          if(!UUID.test(c.requestId))throw new InputError('运行标识无效')
+          this.authorizeTemplateRun(task,previous.templateAction)
+          if(task.dataRevision!==previous.baseRevision)throw new InputError('暂停后资料或正文已修改，请按当前内容重新生成；已保存正文保留',409)
+          syncRequirementQuestionRun(task)
+          task.run={...previous,id:c.requestId,resumedFrom:previous.id,status:'running',startedAt:now(),finishedAt:undefined,error:undefined}
+          const message:import('../core/requirements-model.ts').RequirementMessage={id:randomUUID(),role:'user',runId:c.requestId,text:previous.instruction,createdAt:task.run.startedAt}
+          if(previous.templateAction==='ask'){
+            const sources=task.messages.find(m=>m.runId===previous.id&&m.role==='user')?.questionRun?.sources
+            message.questionRun={status:'running',sources:structuredClone(sources??{libraries:[],files:[]})}
+          }
+          task.messages.push(message)
+          this.event(task,'analysis',previous.templateAction==='ask'?'继续回答原问题':'继续编写，沿用已保存的批次');changed=false;launch=true;break
         }
         case 'sections.save': {
           if(c.baseDataRevision!==undefined&&c.baseDataRevision!==task.dataRevision)throw new InputError('编辑期间需求已更新，本地内容保留，请重新打开当前结果后调整',409)
@@ -507,8 +526,9 @@ export class RequirementsService {
           changed=false;launch=true;break
         }
         case 'run.stop': {
+          if(c.runId&&c.runId!==task.run?.id)throw new InputError('任务已切换，未暂停新的任务',409)
           if(task.run?.status!=='running')throw new InputError('当前没有进行中的分析')
-          this.running.get(id)?.controller.abort();this.running.delete(id);task.run.status='stopped';task.run.finishedAt=now();this.event(task,'analysis','已停止接收本次分析结果，已保存的内容保留');changed=false;break
+          this.running.get(id)?.controller.abort();this.running.delete(id);task.run.status='stopped';task.run.finishedAt=now();this.event(task,'analysis',task.run.templateAction?'已暂停，完成的批次已保存，可继续生成':'已停止接收本次分析结果，已保存的内容保留');changed=false;break
         }
         default: throw new InputError('不支持的需求分析操作')
       }
@@ -557,25 +577,31 @@ export class RequirementsService {
     await this.executions.run(snapshot.id,{id:snapshot.run!.id,operation:snapshot.run!.templateAction?({generate:'按模板生成文档',revise:'修改模板文档',ask:'资料问答'})[snapshot.run!.templateAction]:({analyze:'整理需求',clarify:'引导澄清',check:'检查需求',revise:'修改需求',document:'整理文档'})[snapshot.run!.operation],input:snapshot.run!.instruction,inputKind:'user',model:snapshot.run!.model,roleVersion:snapshot.roleVersion,mode:snapshot.mode},async()=>{
       step('materials','读取分析资料','done',snapshot.materials.filter(m=>!m.removed).length+' 份资料；分析栏目：'+(snapshot.sections??[]).filter(s=>s.enabled).map(s=>s.title).join('、'))
       return controller.signal.aborted?snapshot:(await this.executeWork(snapshot,controller))??snapshot
-    },task=>({status:task.run?.status==='ready'?'done':controller.signal.aborted?'stopped':'failed',summary:task.run?.status==='ready'?'需求结果已保存':task.run?.error||'本轮已停止，原结果保留',result:task.run?.status==='ready'?{kind:'requirements',text:task.run?.templateAction?(task.messages.at(-1)?.text??'文档处理完成'):(task.proposal?.summary??'需求已更新')+'\n\n'+requirementMarkdown(task)}:undefined}))
+    },task=>({status:task.run?.status==='ready'?'done':controller.signal.aborted?'stopped':'failed',summary:task.run?.status==='ready'?'需求结果已保存':task.run?.error||(task.run?.templateAction?'本轮已暂停，可继续；完成的批次保留':'本轮已停止，原结果保留'),result:task.run?.status==='ready'?{kind:'requirements',text:task.run?.templateAction?(task.messages.at(-1)?.text??'文档处理完成'):(task.proposal?.summary??'需求已更新')+'\n\n'+requirementMarkdown(task)}:undefined}))
   }
   private async executeWork(snapshot:RequirementTask,controller:AbortController) {
     const runId=snapshot.run!.id
     try {
       if(snapshot.run?.templateAction){
         this.authorizeTemplateRun(snapshot,snapshot.run.templateAction)
-        const output=await runTemplate(snapshot,this.model,controller.signal,this.knowledge)
+        const output=await runTemplate(snapshot,this.model,controller.signal,this.knowledge,progress=>this.serialized(async()=>{
+          const task=await this.get(snapshot.id)
+          if(task.run?.id!==runId||task.run.status!=='running'||controller.signal.aborted)return
+          task.run.templateProgress=progress
+          // Progress is not a document revision; keep open edits and the pause button valid.
+          await this.atomic(this.path(task.id),task)
+        }))
         if(snapshot.run.templateAction!=='ask'){
           const candidate=structuredClone(output.workspace),proposal=candidate.proposals.at(-1)
           for(const group of proposal?.groups??[])for(const change of group.changes)candidate.values[change.id]=change.after
           if(Object.values(candidate.values).reduce((n,v)=>n+v.length,0)>240000)throw new InputError('生成内容过长，请缩小本次范围')
-          await renderTemplate(this.root,candidate)
+          // The batch writer already checked positions and citations. Render only for an actual export.
         }
         return await this.serialized(async()=>{
           const task=await this.get(snapshot.id);if(task.run?.id!==runId||task.run.status!=='running'||controller.signal.aborted)return
           this.authorizeTemplateRun(task,snapshot.run!.templateAction!)
           if(task.dataRevision!==snapshot.run!.baseRevision)throw new InputError('生成期间资料或文档已改变，保留你的修改，请重新生成',409)
-          task.template=output.workspace;task.run.status='ready';task.run.finishedAt=now()
+          task.template=output.workspace;task.run.status='ready';task.run.finishedAt=now();delete task.run.templateProgress
           task.messages.push({id:randomUUID(),role:'assistant',runId,text:output.summary,createdAt:now()})
           this.event(task,'analysis',snapshot.run!.templateAction==='ask'?'资料回答已保存；正文保持':'文档候选已生成，等待审阅采用')
           return this.write(task,true)

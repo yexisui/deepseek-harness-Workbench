@@ -38,6 +38,36 @@ it('table batches keep existing edit authorization and cannot overwrite a newer 
 })
 async function finished(service:RequirementsService,id:string){for(let i=0;i<200;i++){const t=await service.get(id);if(t.run?.status!=='running')return t;await new Promise(r=>setTimeout(r,5))}throw Error('Model did not settle')}
 async function revision(e:Awaited<ReturnType<typeof setup>>,t=e.task){await cmd(e,t,{type:'template.run',action:'revise',instruction:'调整功能',requestId:randomUUID()});return finished(e.service,t.id)}
+it('persists completed batches across pause and restart, then resumes without duplicate generation',async()=>{
+ const called:number[]=[],model=async(prompt:string,_model:string,signal?:AbortSignal)=>{
+  const p=JSON.parse(prompt.slice(prompt.indexOf('\n')+1));called.push(p.part)
+  if(p.part!==1)return new Promise<string>((_resolve,reject)=>{if(signal!.aborted)reject(signal!.reason);else signal!.addEventListener('abort',()=>reject(signal!.reason),{once:true})})
+  return JSON.stringify({items:p.document.map((x:any)=>({id:x.id,after:'新业务 '+x.id}))})
+ }
+ const e=await setup(model),zip=new Zip(fixture());zip.file('word/document.xml','<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+Array.from({length:100},(_,i)=>'<w:p><w:r><w:t>内容'+i+'</w:t></w:r></w:p>').join('')+'</w:body></w:document>')
+ let t=await e.service.importDocument(e.task.id,e.task.revision,'大模板.docx','template',zip.generate({type:'nodebuffer'}),e.task.template!.template!.id)
+ t=await cmd(e,t,{type:'template.run',action:'revise',instruction:'修改所有内容',requestId:randomUUID()});const originalRevision=t.revision
+ for(let i=0;i<200;i++){const current=await e.service.get(t.id);if(current.run?.templateProgress?.batches[0])break;await new Promise(r=>setTimeout(r,5))}
+ const before=await e.service.get(t.id);expect(before.run?.templateProgress?.batches[0]).toBeDefined();expect(before.revision).toBe(originalRevision)
+ t=await cmd(e,t,{type:'run.stop',runId:t.run!.id});expect(t.template!.proposals).toHaveLength(0);expect(t.run?.templateProgress?.batches[0]).toBeDefined()
+ await e.service.close()
+ const resumedCalls:number[]=[],service=new RequirementsService(e.root,async prompt=>{const p=JSON.parse(prompt.slice(prompt.indexOf('\n')+1));resumedCalls.push(p.part);return JSON.stringify({items:p.document.map((x:any)=>({id:x.id,after:'新业务 '+x.id}))})},()=>e.state,()=> 'test/model');services.push(service);await service.init()
+ const requestId=randomUUID(),previous=t;await service.command(t.id,t.revision,{type:'run.resume',runId:t.run!.id,requestId});t=await finished(service,t.id)
+ expect(t.run?.status,t.run?.error).toBe('ready');expect(resumedCalls).toEqual([2,3]);expect(t.template!.proposals[0]!.groups.flatMap(g=>g.changes)).toHaveLength(101)
+ expect(t.template!.values).toEqual({});expect(t.run!.templateProgress).toBeUndefined()
+ await service.command(previous.id,previous.revision,{type:'run.resume',runId:previous.run!.id,requestId});expect(resumedCalls).toEqual([2,3])
+})
+it('does not resume over edits or with revoked access, and ignores a stale stop for another run',async()=>{
+ const e=await setup(async(_p,_m,signal)=>new Promise((_resolve,reject)=>signal!.addEventListener('abort',()=>reject(Error('paused')),{once:true})))
+ let t=await cmd(e,e.task,{type:'template.run',action:'revise',instruction:'修改',requestId:randomUUID()})
+ t=await cmd(e,t,{type:'run.stop',runId:t.run!.id});const paused=t
+ t=await cmd(e,t,{type:'template.note',note:'人工编辑'})
+ await expect(cmd(e,t,{type:'run.resume',runId:paused.run!.id,requestId:randomUUID()})).rejects.toThrow('暂停后资料或正文已修改')
+ await expect(cmd(e,t,{type:'run.stop',runId:randomUUID()})).rejects.toThrow('任务已切换')
+ expect((await e.service.get(t.id)).template!.note).toBe('人工编辑')
+ e.state.roles.find(r=>r.id===REQUIREMENTS_ROLE_ID)!.enabled=false
+ await expect(cmd(e,t,{type:'run.resume',runId:paused.run!.id,requestId:randomUUID()})).rejects.toThrow()
+})
 it('reads body/table/header and protects fields without touching the original bytes',async()=>{const e=await setup();expect(e.task.template?.template?.slots).toHaveLength(7);expect(e.task.template?.template?.slots[3]).toMatchObject({table:1,row:1,cell:2,text:'99%'});expect(e.task.template?.template?.slots.find(s=>s.index===5&&s.part==='word/document.xml')?.editable).toBe(false);expect(await e.service.exportDocument(e.task.id)).toEqual(fixture())})
 it('stages real model changes, preserves all other ZIP parts, and restores only the adopted group',async()=>{const e=await setup();let t=await revision(e);expect(t.run?.status,t.run?.error).toBe('ready');expect(t.template?.values).toEqual({});const p=t.template!.proposals[0]!,g=p.groups[0]!;t=await cmd(e,t,{type:'template.review',proposalId:p.id,groupIds:[g.id],action:'accept'});t=await cmd(e,t,{type:'template.note',note:'人工备注'});t=await cmd(e,t,{type:'template.version'});const output=new Zip(await e.service.exportDocument(t.id)),original=new Zip(fixture());for(const n of Object.keys(original.files).filter(n=>n!=='word/document.xml'))expect(output.file(n).asNodeBuffer()).toEqual(original.file(n).asNodeBuffer());expect(output.file('word/document.xml').asText()).toContain('<w:rPr><w:b/></w:rPr>');t=await cmd(e,t,{type:'template.review',proposalId:p.id,groupIds:[g.id],action:'revert'});expect(t.template?.values[g.changes[0]!.id]).toBe('原功能');expect(t.template?.note).toBe('人工备注');expect(t.template?.versions).toHaveLength(2)})
 it('rejects local rollback after a human edits the same paragraph and keeps their work',async()=>{const e=await setup();let t=await revision(e);const p=t.template!.proposals[0]!,g=p.groups[0]!;t=await cmd(e,t,{type:'template.review',proposalId:p.id,groupIds:[g.id],action:'accept'});t=await cmd(e,t,{type:'template.edit',id:'word/document.xml#1',before:'新功能',after:'人工确认功能'});await expect(cmd(e,t,{type:'template.review',proposalId:p.id,groupIds:[g.id],action:'revert'})).rejects.toMatchObject({status:409});expect((await e.service.get(t.id)).template?.values['word/document.xml#1']).toBe('人工确认功能')})

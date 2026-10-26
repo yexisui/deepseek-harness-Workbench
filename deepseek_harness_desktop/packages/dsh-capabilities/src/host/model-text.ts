@@ -31,6 +31,6 @@ export async function workbenchText(ctx: Context, prompt: string, selectedModel:
     if(chunk.type==='finish'&&chunk.reason?.kind==='error')throw new Error(chunk.reason.failure?.message||'工作台模型处理失败')
   }
   if(!result.trim())throw new Error('工作台模型没有返回内容')
-  step(progressId,'模型生成','done','正文接收完成；等待业务校验',{model:route})
+  step(progressId,'模型生成','done','本批内容已接收',{model:route})
   return result
 }
