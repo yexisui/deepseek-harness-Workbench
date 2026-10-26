@@ -133,7 +133,7 @@ export class KnowledgeLibraries implements KnowledgeProvider {
    }
    signal.throwIfAborted()
    if(rebuild&&failures===0){const dimension=(staged[0] as LibraryDocument&{dimension?:number})?.dimension;if(!dimension||staged.some(d=>(d as any).dimension!==dimension))throw new InputError('向量维度不一致，新索引未采用');l.documents=staged.map(({...d})=>{delete (d as any).dimension;return d});l.collection=collection;l.dimension=dimension;l.activeModel=profile.ref;l.fingerprint=profile.fingerprint;await this.changed();if(oldCollection&&oldCollection!==collection)await this.engine.call({op:'drop',connection:this.connection(),collection:oldCollection}).catch(()=>{})}
-   l.job!.state=failures?'failed':'done';l.job!.message=failures?`${failures} 份资料处理失败，可重试；旧索引保留。`:'索引已更新，可以检索并关联助手。';l.updatedAt=now()
+   l.job!.state=failures?'failed':'done';l.job!.message=failures?`${failures} 份资料处理失败，可点击更新索引重试；${l.collection?'已有索引保留。':'文档已保留，尚未完成入库。'}`:'索引已更新，可以检索并关联助手。';l.updatedAt=now()
   }catch(e){l.job!.state=signal.aborted?'cancelled':'failed';l.job!.message=signal.aborted?'处理已取消，已完成的向量化缓存保留，可继续更新。':e instanceof InputError?e.message:'索引处理失败，已有资料保留'}finally{await this.changed()}
  }
  private publicLegacyId(provider:KnowledgeProvider,id:string){return provider.id===this.state.legacyId?id:'remote:'+digest(provider.id).slice(0,16)+':'+id}
