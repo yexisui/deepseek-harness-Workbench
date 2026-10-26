@@ -30,7 +30,7 @@ beforeEach(async()=>{
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.restoreAllMocks();vi.unstubAllGlobals();editorDrafts.clear()})
 
 it('offers only two persistent list tabs and moves removal and recycle operations out of the list',async()=>{
- await render();expect(rows()).toHaveLength(4)
+ await render();expect(rows()).toHaveLength(5)
  expect(Array.from(host.querySelectorAll('[aria-label="能力列表"] button')).map(n=>n.textContent)).toEqual(['全部','收藏'])
  expect(button('组件中心 ↗')).toBeUndefined();expect(button('回收站')).toBeTruthy();expect(button('导入能力')).toBeTruthy();expect(button('导出能力')).toBeTruthy();expect(button('＋ 创建能力')).toBeUndefined();expect(button('移除能力：浏览器操作')).toBeUndefined()
  expect(host.textContent).not.toContain('内置能力');expect(host.textContent).not.toContain('已收藏');expect(host.textContent).not.toContain('录音会发送')
@@ -46,7 +46,7 @@ it('pins without opening details and combines search, favourites and independent
 it('keeps unknown states separate from missing configuration and retains project-specific detection',async()=>{
  data.health.state='unknown';failRequirements=true;await capabilityClient.refresh();await render()
  expect(host.querySelector('[data-managed-capability="requirements-analysis"]')?.textContent).toContain('状态未知')
- await click('筛选');await check('需要配置或连接');expect(rows()).toEqual(['meeting-transcription'])
+ await click('筛选');await check('需要配置或连接');expect(rows()).toEqual(['meeting-transcription','external-knowledge'])
  await check('需要配置或连接');await check('检测中或状态未知');expect(rows()).toEqual(['browser','requirements-analysis'])
  await check('检测中或状态未知');await check('项目内检测');expect(rows()).toEqual(['developer-workspace'])
 })

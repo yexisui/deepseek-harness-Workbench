@@ -1,4 +1,4 @@
-import { KnowledgeSettings } from './KnowledgeSettings.tsx'
+import { KnowledgeLink } from './KnowledgeSettings.tsx'
 import { useLeaveGuard, openWorkbenchLink } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
 import React, { useCallback, useEffect, useState } from 'react'
 import type { RequirementAvailability, RequirementDefaults } from '../../../dsh-capabilities/src/core/requirements-model.ts'
@@ -50,6 +50,6 @@ export function RequirementsSettings({ status, onSaved, disabled = false, onEdit
     </div>{draft && <div className={s.confirmActions}><button className={s.button} onClick={() => { setDraft(null); setMessage('') }}>取消修改</button><button className={`${s.button} ${s.primary}`} onClick={() => void save()}>保存默认配置</button></div>}</fieldset>
     {draft && revision !== status.revision && <p className={s.error}>配置已被更新，请取消修改后重新核对；当前输入仍保留。</p>}
     {message && <p role="status">{message}</p>}
-    <KnowledgeSettings/>
+    <KnowledgeLink/>
   </section>
 }

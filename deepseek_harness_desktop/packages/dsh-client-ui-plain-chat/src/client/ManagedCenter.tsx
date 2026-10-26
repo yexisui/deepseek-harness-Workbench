@@ -72,7 +72,7 @@ export function ManagedCenter({ initialId, embedded = false, restore, management
   const { data, error } = useCapabilities()
   const { status: meetingStatus, refresh: refreshMeeting } = useMeetingAvailability(data?.state.revision)
   const { status: requirementsStatus, availability: requirementsAvailability, refresh: refreshRequirements, error: requirementsError, accept: acceptRequirementsConfig } = useRequirementAvailability(data?.state.revision)
-  const [selected, setSelected] = useState<string | null>(saved.selected ?? initialId ?? entry?.capabilityId ?? null)
+  const [selected, setSelected] = useState<string | null>((saved.tab??entry?.tab)==='config:knowledge'?'external-knowledge':saved.selected ?? initialId ?? entry?.capabilityId ?? null)
   const [tab,setTab] = useState<string>(saved.tab ?? entry?.tab ?? 'settings'), [query,setQuery] = useState<string>(saved.query ?? '')
   const [filter,setFilter] = useState<string>(saved.filter==='pinned'||saved.filter==='removed'?saved.filter:'all')
   const [filters,setFilters] = useState(()=>restoreListFilters(saved)), [recycleQuery,setRecycleQuery] = useState<string>(saved.recycleQuery ?? '')
@@ -100,7 +100,7 @@ export function ManagedCenter({ initialId, embedded = false, restore, management
   useEffect(()=>{if(embedded)return;const open=(event:Event)=>{
     const link=(event as CustomEvent<CapabilityLink>).detail;if(link.section!=='capability-center')return
     const frame=restoredFrame(link.restore,'capabilities'),next=frame?.view??{}
-    setOrigin(frame?.origin??legacyOrigin(link));setRestoration(link.restore);setSelected(next.selected??link.capabilityId??null);setTab(next.tab??link.tab??'settings')
+    setOrigin(frame?.origin??legacyOrigin(link));setRestoration(link.restore);setSelected((next.tab??link.tab)==='config:knowledge'?'external-knowledge':next.selected??link.capabilityId??null);setTab(next.tab??link.tab??'settings')
     setQuery(next.query??'');setFilter(next.filter==='pinned'||next.filter==='removed'?next.filter:'all');setFilters(restoreListFilters(next));setRecycleQuery(next.recycleQuery??'');setListFilter(next.listFilter??'all');scrollMemory.current=next.scroll??{}
     setRole(next.role??null);setCompositionReturn(next.compositionReturn??null);    setEditor(next.editor??(link.edit?{id:link.capabilityId,compositionFocus:true,requestedComponentId:link.addComponent?link.componentId:undefined}:null));consumeNavigation(link)
   };window.addEventListener('workbench-capability-link',open);return()=>window.removeEventListener('workbench-capability-link',open)},[embedded])

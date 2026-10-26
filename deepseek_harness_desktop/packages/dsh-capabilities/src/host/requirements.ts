@@ -1,3 +1,4 @@
+import type { KnowledgeAccess } from './knowledge-access.ts'
 import { KnowledgeService } from './knowledge.ts'
 import { requirementActions, requirementAccess, type RequirementOperation } from '../core/requirements-components.ts'
 import {workspace,editTemplate,validateTemplateRun,runTemplate,templateVersion} from './requirement-template-work.ts'
@@ -7,7 +8,8 @@ import { forkIdentity, existingFork, writeFork } from './conversation-fork.ts'
 import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import { attachRequirementProject, projectFiles, projectFile, syncRequirementLedger } from './requirements-project.ts'
 import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, readdir, open, rename, unlink } from 'node:fs/promises'
+import { mkdir, readFile, readdir, open, unlink } from 'node:fs/promises'
+import { replaceFile } from './replace-file.ts'
 import { join } from 'node:path'
 import { actionsOf, latest, type State, type RoleVersion } from '../core/model.ts'
 import { allowedActions, wasRevoked } from '../core/policy.ts'
@@ -54,13 +56,13 @@ export class RequirementsService {
   private configuration = { revision: 0, defaults: { depth: 'standard', questionStyle: 'short', model: '' } as RequirementDefaults }
   private running = new Map<string, { controller: AbortController; promise?: Promise<void> }>()
   private closed = false
-  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly knowledge = new KnowledgeService()) { this.executions = new ExecutionStore(join(root,'_executions')) }
+  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly knowledge: Pick<KnowledgeService,'status'|'search'> & Partial<Pick<KnowledgeAccess,'generate'|'assert'>> = new KnowledgeService()) { this.executions = new ExecutionStore(join(root,'_executions')) }
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private path(id: string) { if (!UUID.test(id)) throw new InputError('需求任务标识无效'); return join(this.root, `${id}.json`) }
   private async atomic(file: string, value: unknown) {
     const tmp = `${file}.${randomUUID()}.tmp`, handle = await open(tmp, 'wx')
     try { await handle.writeFile(JSON.stringify(value)); await handle.sync() } finally { await handle.close() }
-    try { await rename(tmp, file) } catch (error) { await unlink(tmp).catch(() => {}); throw error }
+    try { await replaceFile(tmp, file) } catch (error) { await unlink(tmp).catch(() => {}); throw error }
   }
   private async write(task: RequirementTask, changed = false) {
     task.revision++; if (changed) task.dataRevision++
@@ -110,6 +112,7 @@ export class RequirementsService {
     const access = requirementAccess(allowedActions(this.state(), task.roleId, role))[operation]
     const relevant: Record<RequirementOperation,string[]> = { legacy:['requirements-service'], importTemplate:['requirement-document'], importSource:[], edit:['requirement-document'], write:['requirement-document','requirement-writing','requirement-review'], ask:['requirement-questions'], review:['requirement-document','requirement-review'], retrieve:['knowledge-retrieval'] }
     if (relevant[operation].some(id=>(this.state().componentRestrictions?.[id]?.revokedAt??-1)>=task.authorityAt)) throw new InputError('此操作的执行授权已撤销；已有结果保留，请新建任务继续',409)
+    if(operation==='retrieve')this.knowledge.assert?.({taskId:task.id,roleId:task.roleId,roleVersion:task.roleVersion,authorityAt:task.authorityAt})
     if (!access.allowed) throw new InputError(access.message + '；请在能力中心检查', 409)
     return role
   }
@@ -179,7 +182,7 @@ export class RequirementsService {
       const settings = this.settings({ ...defaultRequirementSettings(), ...this.configuration.defaults, ...object(d.settings ?? {}) })
       const task: RequirementTask = { schema:1,id:requestId ?? randomUUID(),revision:0,dataRevision:0,title:str(d.title,'名称',120) || '新需求分析', mode:enumValue(d.mode,['quick','guided'],'quick'), roleId,roleVersion:role.version,capabilityId:binding.capabilityId,capabilityVersion:binding.version,authorityAt:Date.now(),roleGuidance:{name:role.name,duties:role.duties,requirements:role.requirements,format:role.format},createdAt:now(),updatedAt:now(),settings,draft:str(d.draft,'输入草稿',MAX_TEXT),overview:emptyRequirementOverview(),requirements:[],sections:defaultRequirementSections(),revisions:[],materials:[],flows:[],rules:[],questions:[],messages:[],events:[],versions:[] }
       this.event(task,'change',`创建${task.mode === 'quick' ? '简易模式' : '常规模式'}任务`)
-      if(d.workflow==='template')task.template=emptyTemplateWorkspace()
+      if(d.workflow==='template'){task.template=emptyTemplateWorkspace();const scope=role.capabilities.find(b=>b.capabilityId==='external-knowledge'&&b.enabled)?.knowledgeScope;if(scope&&allowedActions(this.state(),roleId,role).includes('search-knowledge'))task.template.knowledge=structuredClone(scope)}
       await this.atomic(this.path(task.id),task); return task
     })
   }
@@ -296,7 +299,7 @@ export class RequirementsService {
             const scope = object(c.scope), collectionIds = array(scope.collectionIds, 20).map(v => text(v, '资料集', 240, true))
             const status = await this.knowledge.status()
             if (!status.available || !status.configured || !collectionIds.length || collectionIds.some(id => !status.collections.some(c => c.id === id))) throw new InputError('外部知识库尚未接入或所选资料集不可用', 409)
-            workspace(task).knowledge = { collectionIds: [...new Set(collectionIds)], product: str(scope.product, '产品范围', 240), project: str(scope.project, '项目范围', 240) }
+            workspace(task).knowledge = { providerId:status.providerId, collectionIds: [...new Set(collectionIds)], product: str(scope.product, '产品范围', 240), project: str(scope.project, '项目范围', 240) }
           } else delete workspace(task).knowledge
           this.event(task, 'material', c.scope ? '更新本次知识库范围' : '改用本次上传资料'); break
         }
@@ -547,7 +550,7 @@ export class RequirementsService {
         })
       }
       const prompt=this.prompt(snapshot)
-      const response=await this.model(prompt,snapshot.run!.model,controller.signal)
+      const response=this.knowledge.generate?await this.knowledge.generate(prompt,{taskId:snapshot.id,roleId:snapshot.roleId,roleVersion:snapshot.roleVersion,authorityAt:Date.parse(snapshot.createdAt),kind:'requirements'},controller.signal,(input,signal)=>this.model(input,snapshot.run!.model,signal),snapshot.run!.instruction):await this.model(prompt,snapshot.run!.model,controller.signal)
       if(controller.signal.aborted)return
       step('parse','解析并校验需求结构与来源','running')
       const proposal=this.proposal(response,snapshot)

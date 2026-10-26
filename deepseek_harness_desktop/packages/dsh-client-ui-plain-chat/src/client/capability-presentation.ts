@@ -32,6 +32,7 @@ export function capabilityPresentation(data: Snapshot, capability: Capability, v
   if (problems.length) return status('组件待完善',problems.join('；'),'pending')
   if (descriptors.some(value => !value?.auxiliary && value?.management !== management)) return status('分项检测','此能力包含不同服务，请在组件中心分别检查。','unknown')
   if (management === 'package') return packageStatus?.ready ? status('已启用',packageStatus.message,'ready') : status('待检测','正在读取执行组件状态','unknown')
+  if(management==='knowledge'){const k=data.knowledge;return status(k?.configured?'已配置':'待接入',k?.message??'外部知识库独立管理，关联岗位后按选定范围检索。',k?.configured?'context':'pending')}
   if (management === 'smart-document') return status('岗位内使用','在智能文档岗位中打开 Word；AI 连接沿用工作台模型，实际请求时验证。','context')
   if (management === 'file-search') return status('已启用','在设置中检测 Everything，并选择搜索归属岗位。','context')
   if (management === 'recording-followup') return status('按岗位使用','录音保存后显示已启用的后续操作，目标能力需绑定同一岗位。','context')

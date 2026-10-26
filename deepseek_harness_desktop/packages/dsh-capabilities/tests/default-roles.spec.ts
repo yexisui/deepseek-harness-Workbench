@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { initialState, type State } from '../src/core/model.ts'
+import { initialState as productInitialState, type State } from '../src/core/model.ts'
 import { MEETING_CAPABILITY_ID, MEETING_ROLE_ID } from '../src/core/default-roles.ts'
 import { REQUIREMENTS_CAPABILITY_ID, REQUIREMENTS_ROLE_ID } from '../src/core/requirements-model.ts'
 import { DEVELOPER_CAPABILITY_ID, DEVELOPER_ROLE_ID } from '../src/core/developer-model.ts'
@@ -10,6 +10,7 @@ import { allowedActions, browserActions } from '../src/core/policy.ts'
 import { CapabilityStore } from '../src/host/store.ts'
 import { writePresets } from '../src/host/presets.ts'
 
+const initialState=()=>({...productInitialState(),recordingCapabilityVersion:1 as const,recordingFollowupVersion:1 as const,documentCapabilityVersion:1 as const,fileSearchCapabilityVersion:1 as const})
 const stores: CapabilityStore[] = []
 afterEach(async () => { for (const store of stores.splice(0)) await store.close() })
 async function open(directory: string) {
@@ -41,7 +42,7 @@ describe('restoring managed role assistants', () => {
     await store.close(); expect((await open(directory)).snapshot()).toEqual(migrated)
   })
   it('creates usable published defaults with original copy and colors and without granting tools', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'dsh-role-defaults-')), store = await open(directory), state = store.snapshot()
+    const directory = await mkdtemp(join(tmpdir(), 'dsh-role-defaults-')); await writeFile(join(directory,'state.json'),JSON.stringify(initialState())); const store = await open(directory), state = store.snapshot()
     expect(state.roles.map(r => [r.draft.name, r.draft.color])).toEqual([
       ['需求分析助手', '#4F73E8'], ['市场部助手', '#E58A32'], ['项目经理助手', '#9A62D8'], ['开发助手', '#22A58B'], ['会议纪要助手', '#6683bd'],
     ])

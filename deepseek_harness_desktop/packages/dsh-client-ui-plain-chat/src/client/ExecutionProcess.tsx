@@ -1,3 +1,4 @@
+import { KnowledgeHistory } from './KnowledgeEvidence.tsx'
 import React, { useEffect, useRef, useState } from 'react'
 import type { ExecutionRecord, ExecutionPage, ExecutionStatus } from '../../../../shared/types/execution.ts'
 import { MessageTime } from './MessageTime.tsx'
@@ -51,4 +52,4 @@ export function ExecutionProcessCard({run,showInput=false}:{run:ExecutionRecord;
     {run.result&&<details className={s.result}><summary>查看本轮保存的{run.result.kind==='minutes'?'纪要':run.result.kind==='transcript'?'转写':run.result.kind==='check'?'验证输出':'结果'}</summary><pre>{resultText(run)}</pre><MessageTime value={run.finishedAt}/></details>}
   </section>
 }
-export function ExecutionHistory({kind,id,active=false}:{kind:string;id?:string|null;active?:boolean}){const history=useExecutionHistory(kind,id,active);if(!id)return null;return <div aria-label="执行过程记录">{history.error&&<p role="status">{history.error}；已显示内容保留。</p>}{history.hasMore&&<button onClick={history.more}>查看更早的执行过程</button>}{!history.runs.length&&!history.error&&!active&&<p className={s.meta}>此历史任务未记录完整执行过程，原结果保留。</p>}{history.runs.map(run=><ExecutionProcessCard key={run.id} run={run} showInput/>)}</div>}
+export function ExecutionHistory({kind,id,active=false}:{kind:string;id?:string|null;active?:boolean}){const history=useExecutionHistory(kind,id,active);if(!id)return null;return <div aria-label="执行过程记录"><KnowledgeHistory taskId={id} active={active}/>{history.error&&<p role="status">{history.error}；已显示内容保留。</p>}{history.hasMore&&<button onClick={history.more}>查看更早的执行过程</button>}{!history.runs.length&&!history.error&&!active&&<p className={s.meta}>此历史任务未记录完整执行过程，原结果保留。</p>}{history.runs.map(run=><ExecutionProcessCard key={run.id} run={run} showInput/>)}</div>}

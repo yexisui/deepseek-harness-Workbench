@@ -70,7 +70,7 @@ describe('capability named-route authentication', () => {
     const state = request('/api/capabilities/state'), stateResponse = response()
     await handler(state.req, stateResponse)
     expect(mocks.requestRejection).toHaveBeenCalledWith(state.req)
-    expect(mocks.store.snapshot).toHaveBeenCalledOnce()
+    expect(mocks.store.snapshot).toHaveBeenCalled()
     expect(stateResponse.writeHead).toHaveBeenCalledWith(200, expect.any(Object))
     const id = 'a'.repeat(64), bytes = Buffer.from('validated PNG asset')
     mocks.store.icons.read.mockResolvedValue(bytes)

@@ -48,4 +48,6 @@ export function useCapabilities() {
 }
 export const editorDrafts = new Map<string, { value: unknown; revision: number }>()
 export type { WorkbenchLink as CapabilityLink } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
-export { openWorkbenchLink as openCapabilityLink, pendingNavigation as lastCapabilityLink } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
+import { openWorkbenchLink, type WorkbenchLink } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
+export { pendingNavigation as lastCapabilityLink } from '../../../dsh-plugin-manager/src/client/workbench-navigation.ts'
+export function openCapabilityLink(link:WorkbenchLink){return openWorkbenchLink(link.section==='capability-center'&&link.tab==='config:knowledge'?{...link,capabilityId:'external-knowledge'}:link)}

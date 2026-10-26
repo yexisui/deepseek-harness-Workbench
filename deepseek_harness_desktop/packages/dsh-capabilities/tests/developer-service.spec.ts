@@ -9,6 +9,8 @@ import { DeveloperService } from '../src/host/developer.ts'
 import { initialState } from '../src/core/model.ts'
 import { GitService, type GitRunner } from '../../dsh-git-graph/src/host/git-service.ts'
 import { CapabilityStore } from '../src/host/store.ts'
+import { KnowledgeAccess } from '../src/host/knowledge-access.ts'
+import { KnowledgeService } from '../src/host/knowledge.ts'
 const exec = promisify(execFile)
 let root: string, repo: string, service: DeveloperService, state: ReturnType<typeof initialState>, git: GitService
 let model: (prompt: string, signal: AbortSignal) => Promise<string>
@@ -28,6 +30,11 @@ async function done(id: string) {
   for (let i = 0; i < 300; i++) { const task = await service.get(id); if (![...task.rounds, ...task.checks].some(r => r.status === 'running')) return task; await new Promise(resolve => setTimeout(resolve, 30)) }
   throw Error('Job did not finish')
 }
+it('uses the shared role knowledge scope during a real developer analysis without modifying files',async()=>{
+ const role=state.roles.find(r=>r.id==='builtin-developer')!;role.versions[0].capabilities.find(b=>b.capabilityId==='external-knowledge')!.knowledgeScope={providerId:'test',collectionIds:['b']}
+ const knowledge=new KnowledgeAccess(join(root,'knowledge'),()=>state,new KnowledgeService(()=>({id:'test',status:async()=>({configured:true,verified:false,label:'测试',message:'合成资料',collections:[{id:'b',name:'B'}]}),search:async()=>({sources:[{id:'p1',documentId:'b',chunkId:'p1',title:'产品B手册',text:'支持离线盘点',collectionId:'b'}]})})));service.knowledge=knowledge
+ try{model=async prompt=>{expect(prompt).toContain('产品B手册');expect(prompt).toContain('K1');return JSON.stringify({action:'finish',message:'已依据资料分析 [K1]'})};const task=await create();await service.send(task.id,{requestId:randomUUID(),message:'依据资料解释盘点'});const result=await done(task.id);expect(result.rounds.at(-1)?.status).toBe('done');expect(await knowledge.history(task.id)).toHaveLength(1);expect(await readFile(join(repo,'main.ts'),'utf8')).toBe('original\n')}finally{await knowledge.close()}
+},30000)
 it('creates idempotently, binds immutable directory, and persists exact role and dirty baseline', async () => {
   await writeFile(join(repo, 'main.ts'), 'before task\n')
   const task = await create(), same = await service.create({ requestId: task.id, cwd: repo })

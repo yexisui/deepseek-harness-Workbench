@@ -2,7 +2,7 @@
 import React, { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { DeveloperAssistant } from '../src/client/DeveloperAssistant.tsx'
+import { LegacyDeveloperAssistant as DeveloperAssistant } from '../src/client/DeveloperAssistant.tsx'
 import { createDeveloperHistory, usesDeveloper } from '../src/client/developer-client.ts'
 import { initialState } from '../../dsh-capabilities/src/core/model.ts'
 let root: Root, host: HTMLDivElement

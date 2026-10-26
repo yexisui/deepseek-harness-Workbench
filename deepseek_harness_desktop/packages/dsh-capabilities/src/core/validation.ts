@@ -1,3 +1,4 @@
+import { parseKnowledgeScope } from './knowledge-module.ts'
 import { components, type Component, type Definition, type RoleDefinition, type State } from './model.ts'
 import { compatibilityIssues, dependencyName, missingAssociations, supportDependencies } from './composition.ts'
 import { roleIconIds, roleIconAssetIdPattern, type RoleIconSpec } from './appearance.ts'
@@ -70,7 +71,7 @@ export function roleDefinition(value: unknown, state: State): RoleDefinition {
       if (!available.has(a as any)) throw new InputError('岗位覆盖只能缩小权限')
       return a as typeof cap.components[number]['actions'][number]
     })
-    return { capabilityId, version, enabled: bool(binding.enabled), ...(actions === undefined ? {} : { actions: [...new Set(actions)] }) }
+    return { capabilityId, version, ...(binding.knowledgeScope === undefined ? {} : { knowledgeScope: parseKnowledgeScope(binding.knowledgeScope) }), enabled: bool(binding.enabled), ...(actions === undefined ? {} : { actions: [...new Set(actions)] }) }
   }),...(data.skills===undefined?{}:{skills:skillBindings(data.skills)}) }
 }
 export function issues(definition: Definition, capabilityId?: string, catalog: readonly Component[] = components): string[] {

@@ -10,6 +10,8 @@ import { catalogFor, packageActionId, packageComponentId } from '../src/core/dis
 import { emptyRole, latest } from '../src/core/model.ts'
 import { allowedActions } from '../src/core/policy.ts'
 import { CapabilityRuntime } from '../src/host/runtime.ts'
+import { KnowledgeAccess } from '../src/host/knowledge-access.ts'
+import { KnowledgeService } from '../src/host/knowledge.ts'
 
 const cleanups:Array<()=>Promise<unknown>>=[]
 afterEach(async()=>{for(const cleanup of cleanups.splice(0).reverse())await cleanup()})
@@ -30,6 +32,15 @@ async function install(env:Awaited<ReturnType<typeof environment>>,version='1.0.
 const action=packageActionId('org.example.text','text','convert')
 
 describe('portable capability distribution',()=>{
+  it('adds shared knowledge to the real worker model call only with a role scope',async()=>{
+    const env=await environment(),installed=await install(env,'1.0.0',"exports.execute=async({input,api})=>api.model(input)",true)
+    await env.packs.configure(installed.id,'local/model',env.store.snapshot().revision,true)
+    const knowledge=new KnowledgeAccess(join(env.root,'knowledge'),()=>env.store.snapshot(),new KnowledgeService(()=>({id:'test',status:async()=>({configured:true,verified:false,label:'测试',message:'合成',collections:[{id:'b',name:'B'}]}),search:async()=>({sources:[{id:'one',title:'产品B手册',documentId:'b',chunkId:'1',collectionId:'b',text:'支持离线盘点'}]})})));env.runner.knowledge=knowledge;cleanups.push(()=>knowledge.close())
+    const saved=await env.store.command(env.store.snapshot().revision,{type:'role.save',definition:{...emptyRole(),name:'新建组合岗位',capabilities:[{capabilityId:installed.id,version:1,enabled:true},{capabilityId:'external-knowledge',version:1,enabled:true,knowledgeScope:{providerId:'test',collectionIds:['b']}}]},publish:true})
+    const role=env.store.snapshot().roles.find(r=>r.id===saved.id)!,task=await env.runner.start(installed.id,1,action,'查询B',{role:{roleId:role.id,version:role.versions[0],sessionCreatedAt:Date.now()}})
+    expect(await task.done).toContain('产品B手册');expect(await knowledge.history(task.job.id)).toHaveLength(1)
+    expect(await(await env.runner.start(installed.id,1,action,'管理试用')).done).toBe('MODEL:管理试用')
+  })
   it('imports Windows ZIP separators, a wrapper directory and a UTF-8 BOM',async()=>{
     const env=await environment(),pack=await fixture(env.root)
     const files=new Map([...pack.files].map(([p,b])=>['delivery/'+p,p==='capability.json'?Buffer.concat([Buffer.from([239,187,191]),b]):b]))

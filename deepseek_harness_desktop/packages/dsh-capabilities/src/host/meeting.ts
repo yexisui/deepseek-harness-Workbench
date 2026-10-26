@@ -1,3 +1,4 @@
+import type { KnowledgeAccess } from './knowledge-access.ts'
 import { forkIdentity, existingFork, writeFork } from './conversation-fork.ts'
 import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import type { MeetingSegmenter } from './meeting-segments.ts'
@@ -95,6 +96,7 @@ export class MeetingService {
     void task.finally(() => { pending.delete(task); if (!pending.size && this.pending.get(id) === pending) this.pending.delete(id) }).catch(() => {})
     return task
   }
+  knowledge?: KnowledgeAccess
   constructor(private readonly root: string, private readonly workbenchText: (prompt: string, modelRoute: string, signal?: AbortSignal) => Promise<string>, private readonly currentRole?: () => Role | undefined, private readonly currentState?: () => State, private readonly asrSettings?: () => Partial<MeetingAsrConfig> | undefined, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly resolveAsr?: () => Promise<MeetingAsrConfig>, private readonly segmenter?: MeetingSegmenter) { this.executions = new ExecutionStore(join(root,'_executions')) }
   authorizeSource: (id:string,action:string)=>void = () => {}
   private config() { return config(this.asrSettings?.()) }
@@ -416,7 +418,9 @@ export class MeetingService {
       const previous = job.minutes ? `\n现有纪要：${JSON.stringify(job.minutes)}` : ''
       const roleGuidance = job.role ? `岗位：${job.role.name}。职责：${job.role.duties}。工作要求：${job.role.requirements}。输出偏好：${job.role.format}。\n` : ''
       const prompt = `${roleGuidance}${job.role?this.skillGuidance?.(job.role.id ?? MEETING_ROLE_ID,job.role.version,undefined,Date.parse(job.authorityAt??job.createdAt))??'':''}用途：${job.audience || '通用会议纪要'}；重点：${job.focus || '结论与待办'}。${instruction ? `用户修改要求：${string(instruction, 1000)}。` : ''}\n请输出 JSON 对象，字段 title、overview、decisions（{text,sourceIds}数组）、actions（{text,owner,deadline,sourceIds}数组）、unknown（{text,sourceIds}数组）。sourceIds 只能取转写中的 s编号。没有依据的事项不要编造；缺少负责人或期限留空并放入待确认。${previous}\n转写内容：\n${source}`
-      const minutes = parseMinutes(await this.ask(prompt, job.summaryModel, controller.signal), job.segments)
+      const context={taskId:job.id,roleId:job.role?.id??MEETING_ROLE_ID,roleVersion:job.role?.version??0,authorityAt:Date.parse(job.authorityAt??job.createdAt),kind:'meeting'}
+      const response=this.knowledge&&job.role?await this.knowledge.generate(prompt,context,controller.signal,(input,signal)=>this.ask(input,job.summaryModel,signal),[job.title,job.audience,job.focus,instruction,source.slice(0,8000)].filter(Boolean).join('\n')):await this.ask(prompt,job.summaryModel,controller.signal)
+      const minutes = parseMinutes(response, job.segments)
       controller.signal.throwIfAborted(); this.role(job.role?.version, job.authorityAt??job.createdAt, job.role?.id)
       step('sources','纪要结构与来源ID检查','done','只核对结构和来源ID有效性，不代表逐条事实已人工确认')
       delete job.timing; delete job.timingStatus; delete job.timingError; delete job.needsRegeneration; job.minutes = minutes; job.minutesGeneratedAt = new Date().toISOString(); job.status = 'ready'; await this.save(job)

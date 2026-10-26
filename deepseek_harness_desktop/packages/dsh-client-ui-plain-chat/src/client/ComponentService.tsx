@@ -1,4 +1,4 @@
-import { KnowledgeSettings } from './KnowledgeSettings.tsx'
+import { KnowledgeLink } from './KnowledgeSettings.tsx'
 import React from 'react'
 import { actionNames, type Component, type Snapshot } from '../../../dsh-capabilities/src/core/model.ts'
 import type { MeetingAvailability } from './meeting-capability-status.ts'
@@ -47,6 +47,6 @@ export function componentService(component: Component, context: Context): Presen
 }
 export function ComponentEnvironment({ component, data, meetingStatus, requirementsStatus, onConfigure, disabled = false }: Context & { component: Component; onConfigure?: (target?:string) => void; disabled?: boolean }) {
   const info = componentService(component, { data, meetingStatus, requirementsStatus })
-  if(component.management==='knowledge')return <KnowledgeSettings/>
+  if(component.management==='knowledge')return <KnowledgeLink/>
   return <div data-component-environment={component.management}><h4>{info.title}</h4><div className={s.row}><div><strong>{info.name}</strong><small>{info.status}</small><small>{info.detail}</small></div>{info.configuration && onConfigure && <button className={s.button} disabled={disabled} onClick={()=>onConfigure?.(component.configurationTarget)}>{info.configuration}</button>}</div></div>
 }

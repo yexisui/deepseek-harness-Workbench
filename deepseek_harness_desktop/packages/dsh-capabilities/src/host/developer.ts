@@ -1,3 +1,4 @@
+import type { KnowledgeAccess } from './knowledge-access.ts'
 import { forkIdentity, existingFork, writeFork } from './conversation-fork.ts'
 import { ExecutionStore, execution, step } from '../../../../shared/host/execution.ts'
 import { randomUUID, createHash } from 'node:crypto'
@@ -24,6 +25,7 @@ export class DeveloperService {
   private tail: Promise<unknown> = Promise.resolve()
   private running = new Map<string, { cwd: string; controller: AbortController; promise?: Promise<void> }>()
   private closed = false
+  knowledge?: KnowledgeAccess
   constructor(readonly root: string, readonly git: GitService, private model: Model, private run: Run, private state: () => State, private skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) { this.executions = new ExecutionStore(join(root,'_executions')) }
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private path(id: string, sub = '') { if (!UUID.test(id)) throw new InputError('开发任务标识无效'); return join(this.root, sub, id + '.json') }
@@ -249,7 +251,7 @@ export class DeveloperService {
       for (let step = 0; step < 24; step++) {
         signal.throwIfAborted(); task = await this.get(id); const role = this.authorize(task)
         const prompt = JSON.stringify({ project: task.cwd, permission: task.permission, role: { duties: role.duties, requirements: role.requirements, format: role.format, skills: this.skillGuidance?.(task.roleId,task.roleVersion,task.cwd,Date.parse(task.createdAt)) }, files: listing.files.slice(0, 2500), conversation: task.messages.slice(-16), operations: evidence.slice(-24) })
-        const output = await this.model(prompt, task.model, signal); signal.throwIfAborted()
+        const output = this.knowledge?await this.knowledge.generate(prompt,{taskId:task.id,roleId:task.roleId,roleVersion:task.roleVersion,authorityAt:task.authorityAt,kind:'developer'},signal,(input,signal)=>this.model(input,task.model,signal),JSON.stringify(task.messages.slice(-3))):await this.model(prompt, task.model, signal); signal.throwIfAborted()
         let command: Record<string, unknown>
         try { command = object(JSON.parse(output.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, ''))) }
         catch {

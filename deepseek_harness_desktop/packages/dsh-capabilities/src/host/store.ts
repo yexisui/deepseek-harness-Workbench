@@ -1,3 +1,4 @@
+import { migrateKnowledgeModule } from '../core/knowledge-module.ts'
 import { migrateRequirementComponents } from '../core/requirements-components.ts'
 import { documentCapability, documentRole } from '../core/documents-model.ts'
 import { recordingFollowupCapability, fileSearchCapability, recordingCapability } from '../core/model.ts'
@@ -47,6 +48,7 @@ export class CapabilityStore {
         if (raw.defaultRolesVersion !== undefined && raw.defaultRolesVersion !== 1 && raw.defaultRolesVersion !== 2) throw new Error('Unsupported default role migration')
         if (raw.meetingCapabilityVersion !== undefined && raw.meetingCapabilityVersion !== 1) throw new Error('Unsupported meeting capability migration')
         if (raw.requirementsCapabilityVersion !== undefined && raw.requirementsCapabilityVersion !== 1) throw new Error('Unsupported requirements capability migration')
+        if (raw.knowledgeModuleVersion !== undefined && raw.knowledgeModuleVersion !== 1) throw new Error('Unsupported knowledge module migration')
         if (raw.requirementsComponentsVersion !== undefined && raw.requirementsComponentsVersion !== 1) throw new Error('Unsupported requirements components migration')
         if (raw.developerCapabilityVersion !== undefined && raw.developerCapabilityVersion !== 1) throw new Error('Unsupported developer capability migration')
         if (raw.stoppedSessions !== undefined && (!Array.isArray(raw.stoppedSessions) || raw.stoppedSessions.some((value: unknown) => typeof value !== 'string' || !value || value.length > 150))) throw new Error('Invalid stopped session data')
@@ -160,6 +162,7 @@ export class CapabilityStore {
         }
         next.fileSearchCapabilityVersion=1;next.revision++;next.updatedAt=now;await this.persist(next);this.state=next
       }
+      { const next=this.mutableSnapshot(); if(migrateKnowledgeModule(next)){next.revision++;next.updatedAt=new Date().toISOString();await this.persist(next);this.state=next} }
     } catch (error) { await this.close(); throw error }
   }
   componentRestrictions: () => NonNullable<State['componentRestrictions']> = () => ({})

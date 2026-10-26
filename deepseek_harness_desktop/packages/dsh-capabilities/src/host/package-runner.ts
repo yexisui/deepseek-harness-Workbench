@@ -1,3 +1,4 @@
+import type { KnowledgeAccess } from './knowledge-access.ts'
 import { Worker } from 'node:worker_threads'
 import { randomUUID } from 'node:crypto'
 import { open, readFile, readdir, rename, unlink } from 'node:fs/promises'
@@ -25,6 +26,7 @@ export class PackageRunner {
   private active = new Map<string,{controller:AbortController;done:Promise<unknown>;allowed:()=>boolean}>()
   private unsubscribe?:()=>void
   private closed = false
+  knowledge?: KnowledgeAccess
   constructor(readonly packages:CapabilityPackages, private modelCall:(prompt:string,model:string,signal:AbortSignal)=>Promise<string>) {}
   private get directory(){return join(this.packages.store.directory,'package-tasks')}
   async init(){
@@ -78,7 +80,7 @@ export class PackageRunner {
         if(sourceId&&(!prior||!sameScope(prior)))throw new Error('此流程图不属于当前会话，或尚未生成成功')
         // Only pass previous structured content, never rendered image bytes or another conversation's result.
         const previous=prior?{id:prior.id,output:prior.output&&typeof prior.output==='object'?{...prior.output as Record<string,unknown>,svg:undefined}:prior.output}:undefined
-        job.output=await this.executeWorker({entry:join(root,part.entry),resourceRoot:join(root,'resources'),action:declared.id,input,previous},signal,release.manifest.permissions.includes('model'),this.packages.model(capabilityId),allowed)
+        job.output=await this.executeWorker({entry:join(root,part.entry),resourceRoot:join(root,'resources'),action:declared.id,input,previous},signal,release.manifest.permissions.includes('model'),this.packages.model(capabilityId),allowed,options.role?{taskId:job.id,roleId:options.role.roleId,roleVersion:options.role.version.version,authorityAt:options.role.sessionCreatedAt,kind:'package'}:undefined)
         if(signal.aborted||!allowed())throw new Error('任务已停止或权限已撤销')
         job.status='done'
       }catch(e){job.status=signal.aborted||!allowed()?'stopped':'error';job.error=e instanceof Error?e.message:String(e);delete job.output}
@@ -90,7 +92,7 @@ export class PackageRunner {
     void done.catch(()=>{})
     return {job:structuredClone(job),done}
   }
-  private executeWorker(data:{entry:string;resourceRoot:string;action:string;input:unknown;previous?:unknown},signal:AbortSignal,allowModel:boolean,model:string,allowed:()=>boolean):Promise<unknown>{
+  private executeWorker(data:{entry:string;resourceRoot:string;action:string;input:unknown;previous?:unknown},signal:AbortSignal,allowModel:boolean,model:string,allowed:()=>boolean,context?:import('../core/knowledge.ts').KnowledgeContext):Promise<unknown>{
     return new Promise((resolve,reject)=>{
       const worker=new Worker(workerSource,{eval:true,workerData:data,env:{},stdout:true,stderr:true,resourceLimits:{maxOldGenerationSizeMb:128,maxYoungGenerationSizeMb:32,stackSizeMb:4}})
       let finished=false,calls=0,inflight=false,logBytes=0
@@ -113,7 +115,7 @@ export class PackageRunner {
           if(!model)throw new Error('请先配置工作台模型')
           if(inflight||++calls>10)throw new Error('每个动作最多顺序调用模型 10 次')
           const prompt=text(message.prompt,'模型输入',32000,true);inflight=true
-          const value=await this.modelCall(prompt,model,combined)
+          const value=this.knowledge&&context?await this.knowledge.generate(prompt,context,combined,(input,signal)=>this.modelCall(input,model,signal)):await this.modelCall(prompt,model,combined)
           if(!finished&&allowed()&&!signal.aborted)worker.postMessage({id:message.id,value})
         }catch(e){if(!finished)worker.postMessage({id:message.id,error:e instanceof Error?e.message:String(e)})}
         finally{inflight=false}

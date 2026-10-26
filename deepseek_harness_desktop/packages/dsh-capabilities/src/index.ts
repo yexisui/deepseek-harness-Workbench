@@ -36,6 +36,9 @@ import { CapabilityStore } from './host/store.ts'
 import { CapabilityRuntime } from './host/runtime.ts'
 import { protectManagedCopy, protectManagedDeletion } from './host/native-preset-adapter.ts'
 import { preparePresets, writePresets } from './host/presets.ts'
+import { noKnowledge as importNoKnowledge } from './core/knowledge.ts'
+import { KnowledgeAccess } from './host/knowledge-access.ts'
+import { parseKnowledgeScope } from './core/knowledge-module.ts'
 import { KnowledgeService } from './host/knowledge.ts'
 import { fence, json, readBody } from './host/http.ts'
 import { MeetingService, config as resolveAsrConfig, type MeetingAsrConfig, type MeetingSegment } from './host/meeting.ts'
@@ -54,7 +57,10 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   await store.init()
   const assistantArchives=new AssistantArchives(join(home,'capabilities'));let assistantArchiveError='';try{await assistantArchives.init()}catch(error){assistantArchiveError=String(error)}
   const optionalService = (name: string) => { try { return ctx.get(name as never) } catch { return undefined } }
-  const knowledge = new KnowledgeService(() => optionalService('knowledgeProvider') as import('./core/knowledge.ts').KnowledgeProvider | undefined, () => optionalService('documentKnowledge') as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter | undefined)
+  const provider = new KnowledgeService(() => optionalService('knowledgeProvider') as import('./core/knowledge.ts').KnowledgeProvider | undefined, () => optionalService('documentKnowledge') as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter | undefined)
+  const knowledge = new KnowledgeAccess(join(home,'capabilities','knowledge'),()=>store.snapshot(),provider)
+  ctx.effect(()=>store.subscribe(()=>knowledge.reconcile()),'knowledge authorization')
+  ctx.effect(()=>()=>knowledge.close(),'knowledge lifecycle')
   const documents=new DocumentsService(join(home,'capabilities','documents'),()=>store.snapshot(),(prompt,model,system,signal,onDelta)=>workbenchText(ctx,prompt,model,system,undefined,signal,180_000,onDelta),()=>knowledge)
   let documentError = ''
   try { await documents.init() } catch (error) { documentError = error instanceof Error ? error.message : '文档存储不可用' }
@@ -88,8 +94,8 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
         const timer = setInterval(drain, 300)
         try { const result = await handle.done; drain(); return result.exitCode } finally { clearInterval(timer) }
       }, () => store.snapshot(), skillGuidance)
-    await service.init(); developer = service; developerContext = active
-    const coding = await createCodeAssistant(active, home, store, active.workbenchGit); codeAssistant = coding
+    service.knowledge=knowledge; await service.init(); developer = service; developerContext = active
+    const coding = await createCodeAssistant(active, home, store, active.workbenchGit, knowledge); codeAssistant = coding
     active.effect(() => async () => { if (codeAssistant === coding) codeAssistant = undefined; await coding.close() }, "code assistant module lifecycle")
     active.effect(() => async () => { if (developer === service) { developer = undefined; developerContext = undefined }; await service.close() }, 'developer workspace lifecycle')
   })
@@ -141,9 +147,10 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
     () => store.snapshot(), route => resolveWorkbenchModel(ctx, route), skillGuidance, knowledge)
   const runtime = new CapabilityRuntime(ctx, store, { bskPath: config.bskPath ?? process.env.DSH_BSK_PATH ?? '', bskHome: config.bskHome ?? join(home, 'browser-runtime'), port: config.port ?? 52800 })
   runtime.packageRunner = packageRunner
+  runtime.knowledge=knowledge; meeting.knowledge=knowledge; packageRunner.knowledge=knowledge
   const activities = async (state = store.snapshot()) => {
     const browser = runtime.tasks().filter(t => t.browserSessions.length || ['running', 'stopping'].includes(t.status)).map(t => ({ id: t.sessionId, roleId: t.roleId, roleVersion: t.roleVersion, name: t.name, status: t.status, kind: 'browser', componentIds: [...new Set(state.roles.find(r => r.id === t.roleId)?.versions.find(v => v.version === t.roleVersion)?.capabilities.filter(b => b.enabled).flatMap(b => resolveBinding(state, b)?.components.map(p => p.componentId) ?? []) ?? [])] }))
-    return [...browser, ...documents.ai.activities(), ...recording.activities(), ...fileSearch.activities(), ...packageRunner.activities(), ...await requirements.componentActivities(), ...await meeting.componentActivities(), ...await developer?.componentActivities() ?? [], ...codeAssistant?.activities() ?? []].sort((a,b) => a.id.localeCompare(b.id))
+    return [...knowledge.activities(), ...browser, ...documents.ai.activities(), ...recording.activities(), ...fileSearch.activities(), ...packageRunner.activities(), ...await requirements.componentActivities(), ...await meeting.componentActivities(), ...await developer?.componentActivities() ?? [], ...codeAssistant?.activities() ?? []].sort((a,b) => a.id.localeCompare(b.id))
   }
   runtime.componentActivities = activities
   const registry = new ComponentRegistryStore(join(home, 'capabilities'), () => store.snapshot(), activities)
@@ -175,8 +182,10 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       const rejection = ctx.connection.requestRejection(req)
       if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
       if(route==='/api/capabilities/knowledge/status' && req.method==='GET') return json(res,200,await knowledge.status())
+      if(route==='/api/capabilities/knowledge/history'&&req.method==='GET'){const id=new URL(req.url!,'http://localhost').searchParams.get('taskId');return json(res,200,id?await knowledge.history(text(id,'任务',150,true)):await knowledge.recent())}
+      if(route==='/api/capabilities/knowledge/search'&&req.method==='POST'){const body=await readBody(req),controller=new AbortController();const cancel=()=>{if(!res.writableEnded)controller.abort()};res.once('close',cancel);try{return json(res,200,await knowledge.trial(text(body.query,'检索问题',20000,true),parseKnowledgeScope(body.scope),controller.signal))}finally{res.off('close',cancel)}}
       if(route==='/api/capabilities/assistant-archives'){if(assistantArchiveError)throw new InputError('归档存储暂不可用：'+assistantArchiveError,503);if(req.method==='GET')return json(res,200,assistantArchives.snapshot());if(req.method==='POST')return json(res,200,await assistantArchives.change(await readBody(req)));throw new InputError('接口不存在',404)}
-      if(route==='/api/capabilities/conversations/fork'&&req.method==='POST'){const body=await readBody(req);return json(res,200,await forks.fork(text(body.kind,'对话类型',40,true),text(body.id,'对话',120,true),text(body.requestId,'请求标识',36,true)))}
+      if(route==='/api/capabilities/conversations/fork'&&req.method==='POST'){const body=await readBody(req);const id=text(body.id,'对话',120,true),result=await forks.fork(text(body.kind,'对话类型',40,true),id,text(body.requestId,'请求标识',36,true));await knowledge.forkHistory(id,result.id);return json(res,200,result)}
       if (route.startsWith('/api/capabilities/browser-archives/')) return await runtime.archives.serve(route.slice('/api/capabilities/browser-archives/'.length), req, res)
       if (route.startsWith('/api/capabilities/documents/')) { if(documentError)throw new InputError('文档存储不可用：'+documentError,503);return await documents.routes(req,res) }
       if (route.startsWith('/api/capabilities/file-search/')) { if(searchError)throw new InputError('搜索存储不可用：'+searchError,503);return await fileSearchRoutes(fileSearch,req,res) }
@@ -226,7 +235,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
         const query = new URL(req.url!, 'http://localhost').searchParams
         return json(res, 202, await meeting.upload(route.slice('/api/capabilities/meeting/upload/'.length), req, query.get('replace') ?? undefined, { mode: query.get('mode') ?? undefined, audience: query.get('audience') ?? undefined, focus: query.get('focus') ?? undefined, summaryModel: query.get('summaryModel') ?? undefined }))
       }
-      if (req.method === 'GET' && route === '/api/capabilities/state') { const state = store.snapshot(); return json(res, 200, { compositionVersion: 2, presetIssues, packages: packages.health(state), state, components: registryCatalog(registry.snapshot(), catalogFor(state)), registry: registry.snapshot(), componentActivities: await activities(state), health: runtime.health, tasks: runtime.tasks(), dependencies: runtime.dependencies() }) }
+      if (req.method === 'GET' && route === '/api/capabilities/state') { const state = store.snapshot(); return json(res, 200, { knowledge: await knowledge.status().catch(()=>({...importNoKnowledge,message:'知识库状态暂不可读，请到独立模块刷新'})), compositionVersion: 2, presetIssues, packages: packages.health(state), state, components: registryCatalog(registry.snapshot(), catalogFor(state)), registry: registry.snapshot(), componentActivities: await activities(state), health: runtime.health, tasks: runtime.tasks(), dependencies: runtime.dependencies() }) }
       if (req.method === 'GET' && route.startsWith('/api/capabilities/icons/')) {
         const image = await store.icons.read(route.slice('/api/capabilities/icons/'.length))
         res.writeHead(200, { 'content-type': 'image/png', 'content-length': image.length, 'cache-control': 'private, max-age=31536000, immutable', 'x-content-type-options': 'nosniff' }); res.end(image); return

@@ -1,3 +1,4 @@
+import { RoleKnowledgeScope } from './KnowledgeScopeFields.tsx'
 import React from 'react'
 import { actionsOf,actionNames,type Capability,type RoleDefinition,type Version } from '../../../dsh-capabilities/src/core/model.ts'
 import { EnableSwitch } from '../../../../shared/client/EnableSwitch.tsx'
@@ -19,6 +20,7 @@ export function RoleCapabilityInspector({capability,binding,version,allowActionS
       <label className={s.check}>为此岗位缩小动作范围 <EnableSwitch label="为此岗位缩小动作范围" checked={binding.actions!==undefined} onChange={enabled=>onChange({actions:enabled?actionsOf(version):undefined})}/></label>
       {binding.actions!==undefined?<ActionFields value={binding.actions} available={actionsOf(version)} onChange={actions=>onChange({actions})}/>:<p className={s.muted}>使用能力默认动作：{actionsOf(version).map(a=>actionNames[a]).join('、')}</p>}
     </>}
+    {binding&&capability.id==='external-knowledge'&&<RoleKnowledgeScope value={binding.knowledgeScope} onChange={knowledgeScope=>onChange({knowledgeScope})}/>}
     {message&&<p className={s.muted}>{message}</p>}
     <button className={s.button} onClick={onManage}>{manageLabel} ↗</button>
   </RoleAccessoryInspector>

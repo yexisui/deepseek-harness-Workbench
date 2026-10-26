@@ -79,6 +79,11 @@ describe('managed capability card actions', () => {
   }
 
 
+  it('redirects an old knowledge settings event to the independent module',async()=>{
+    await render();await act(async()=>{window.dispatchEvent(new CustomEvent('workbench-capability-link',{detail:{section:'capability-center',capabilityId:'requirements-analysis',tab:'config:knowledge'}}))})
+    expect(container.querySelector('[data-workflow-capability-detail="external-knowledge"]')).toBeTruthy()
+    expect(container.querySelector('[aria-label="外部知识库设置"]')).toBeTruthy()
+  })
   it('shows the same complete catalog in the center and every role, including unpublished records', async () => {
     await send({type:'capability.save',definition:{...store.snapshot().capabilities[0]!.draft,name:'尚未发布能力'},publish:false})
     await capabilityClient.refresh(); await render()

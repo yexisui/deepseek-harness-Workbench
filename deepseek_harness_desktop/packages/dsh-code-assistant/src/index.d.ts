@@ -3,7 +3,7 @@ export type CodeAssistantHost = {
   root: string; toolsRoot: string; assets: string; workspace: any;
   projects: () => { path: string; name: string }[]; addProject: (path: string) => Promise<void>;
   authorize: (task: any, action: any) => void; resolveModel: (selected: string) => string;
-  stream: (options: unknown) => AsyncIterable<unknown>; guidance?: (task: any) => string | Promise<string>;
+  stream: (options: unknown) => AsyncIterable<unknown>; releaseGuidance?: (task: any) => void; guidance?: (task: any, context?: {message:string;signal:AbortSignal}) => string | Promise<string>;
 }
 export class CodeAssistantService {
   constructor(host: CodeAssistantHost)
