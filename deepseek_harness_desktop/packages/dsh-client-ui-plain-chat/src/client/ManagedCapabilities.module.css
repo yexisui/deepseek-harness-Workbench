@@ -134,6 +134,24 @@
 .importButtons { display:flex; flex-wrap:wrap; gap:8px; }
 
 /* Opt-in compact forms share the existing controls and theme tokens. */
+.knowledgeTrial { display:flex; flex-direction:column; gap:12px; min-width:0; border-top:1px solid var(--role-border); padding-top:16px; }
+.knowledgeTrial h4,.knowledgeTrial p { margin:0; }
+.knowledgeTrial h4 + p { margin-top:5px; }
+.knowledgeTrial .field { gap:6px; min-width:0; }
+.knowledgeTrial .field select,.knowledgeTrial .field textarea { width:100%; min-width:0; box-sizing:border-box; padding:9px 10px; }
+.knowledgeTrial .field textarea { resize:vertical; min-height:74px; }
+.trialToolbar { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+.trialToolbar .primary,.trialToolbar .button { font:inherit; font-size:13px; }
+.trialOptions,.trialSources { min-width:0; font-size:12px; overflow-wrap:anywhere; }
+.trialOptions > summary,.trialSources > summary { color:var(--role-muted); cursor:pointer; padding:4px 0; }
+.trialOptions[open] > summary,.trialSources[open] > summary { margin-bottom:10px; }
+.trialOptions .compositionFieldset { margin:8px 0 12px; }
+.trialResult { display:flex; flex-direction:column; gap:10px; font-size:13px; min-width:0; }
+.trialAnswer { padding:14px; border:1px solid var(--role-border); border-radius:9px; background:var(--role-bg); }
+.trialAnswer p { margin-top:8px; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7; }
+.trialSources article { margin:12px 0; }
+.trialSources blockquote { border-left:2px solid var(--role-border); margin:8px 0; padding:2px 0 2px 10px; line-height:1.6; white-space:pre-wrap; color:var(--role-muted); }
+.trialOptions details p { white-space:pre-wrap; line-height:1.6; }
 .compactDialog { width:600px; overflow:hidden; }
 .compactDialog > div:first-child { padding:16px 20px; }
 .formBody { min-height:0; overflow:auto; padding:16px 20px; }

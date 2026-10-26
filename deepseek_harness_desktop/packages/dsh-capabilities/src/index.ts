@@ -1,3 +1,4 @@
+import {answerKnowledge} from './host/knowledge-answer.ts'
 import { AssistantArchives } from './host/assistant-archives.ts'
 import { ConversationForks } from './host/conversation-fork.ts'
 import { DocumentsService } from './host/documents.ts'
@@ -214,6 +215,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if(route==='/api/capabilities/knowledge/status' && req.method==='GET') return json(res,200,await knowledge.status())
       if(route==='/api/capabilities/knowledge/history'&&req.method==='GET'){const id=new URL(req.url!,'http://localhost').searchParams.get('taskId');return json(res,200,id?await knowledge.history(text(id,'任务',150,true)):await knowledge.recent())}
       if(route==='/api/capabilities/knowledge/search'&&req.method==='POST'){const body=await readBody(req),controller=new AbortController();const cancel=()=>{if(!res.writableEnded)controller.abort()};res.once('close',cancel);try{return json(res,200,await knowledge.trial(text(body.query,'检索问题',20000,true),parseKnowledgeScope(body.scope),controller.signal))}finally{res.off('close',cancel)}}
+      if(route==='/api/capabilities/knowledge/ask'&&req.method==='POST'){const body=await readBody(req),query=text(body.query,'问题',20000,true),controller=new AbortController();const cancel=()=>{if(!res.writableEnded)controller.abort()};res.once('close',cancel);try{return json(res,200,await knowledge.trial(query,parseKnowledgeScope(body.scope),controller.signal,(sources,signal)=>answerKnowledge(query,sources,(prompt,system)=>workbenchText(ctx,prompt,'',system,3000,signal),signal)))}finally{res.off('close',cancel)}}
       if(route==='/api/capabilities/assistant-archives'){if(assistantArchiveError)throw new InputError('归档存储暂不可用：'+assistantArchiveError,503);if(req.method==='GET')return json(res,200,assistantArchives.snapshot());if(req.method==='POST')return json(res,200,await assistantArchives.change(await readBody(req)));throw new InputError('接口不存在',404)}
       if(route==='/api/capabilities/conversations/fork'&&req.method==='POST'){const body=await readBody(req);const id=text(body.id,'对话',120,true),result=await forks.fork(text(body.kind,'对话类型',40,true),id,text(body.requestId,'请求标识',36,true));await knowledge.forkHistory(id,result.id);return json(res,200,result)}
       if (route.startsWith('/api/capabilities/browser-archives/')) return await runtime.archives.serve(route.slice('/api/capabilities/browser-archives/'.length), req, res)

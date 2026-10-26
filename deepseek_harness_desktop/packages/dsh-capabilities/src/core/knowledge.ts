@@ -17,3 +17,6 @@ export interface KnowledgeProvider {
   search(request: KnowledgeRequest, signal: AbortSignal): Promise<{ sources: Omit<KnowledgeEvidence, 'providerId' | 'hash' | 'retrievedAt'>[] }>
 }
 export const noKnowledge: KnowledgeStatus = { available: false, configured: false, verified: false, label: '外部知识库', message: '接口已预留，暂未接入服务。其他助手功能可继续使用。', collections: [] }
+
+export type KnowledgeAnswer = {text:string;answerable:boolean;citations:{reference:string;sourceId:string;quote:string}[]}
+export type KnowledgeTrialResult = {sources:KnowledgeEvidence[];answer?:KnowledgeAnswer;answerError?:string;model?:string}

@@ -3,7 +3,7 @@ import { mkdir, readFile, readdir, writeFile, unlink } from 'node:fs/promises'
 import { replaceFile } from './replace-file.ts'
 import { join } from 'node:path'
 import type { State } from '../core/model.ts'
-import type { KnowledgeContext, KnowledgeEvidence, KnowledgeRequest, KnowledgeScope } from '../core/knowledge.ts'
+import type { KnowledgeAnswer, KnowledgeContext, KnowledgeEvidence, KnowledgeRequest, KnowledgeScope, KnowledgeTrialResult } from '../core/knowledge.ts'
 import { KNOWLEDGE_CAPABILITY_ID, parseKnowledgeScope } from '../core/knowledge-module.ts'
 import { allowedActions, wasRevoked } from '../core/policy.ts'
 import { InputError } from '../core/validation.ts'
@@ -59,12 +59,17 @@ export class KnowledgeAccess {
     const id=randomUUID(),controller=new AbortController(),combined=AbortSignal.any([signal,controller.signal]);this.active.set(id,{context,controller})
     try{const input=await this.augment(prompt,context,combined,query);combined.throwIfAborted();this.assert(context);const output=await abortable(model(input,combined),combined);combined.throwIfAborted();this.assert(context);return output}finally{this.active.delete(id)}
   }
-  async trial(query:string,scope:KnowledgeScope,signal:AbortSignal){
+  async trial(query:string,scope:KnowledgeScope,signal:AbortSignal,respond?:(sources:KnowledgeEvidence[],signal:AbortSignal)=>Promise<KnowledgeAnswer>):Promise<KnowledgeTrialResult>{
     if(!this.moduleEnabled())throw new InputError('请先启用外部知识库及检索组件',409)
     const context={taskId:'knowledge-trial',roleId:'',roleVersion:0,kind:'knowledge-trial'},controller=new AbortController(),id=randomUUID()
     this.active.set(id,{context,controller})
-    const combined=AbortSignal.any([signal,controller.signal,AbortSignal.timeout(60_000)])
-    try{const result=await this.service.search({query,limit:8,scope:parseKnowledgeScope(scope)},combined);combined.throwIfAborted();if(!this.moduleEnabled())throw new InputError('外部知识库已停用',409);await this.save({id,taskId:context.taskId,query,scope,sources:result.sources,createdAt:new Date().toISOString()});combined.throwIfAborted();return result}finally{this.active.delete(id)}
+    const combined=AbortSignal.any([signal,controller.signal,AbortSignal.timeout(respond?180_000:60_000)])
+    try{const result=await this.service.search({query,limit:8,scope:parseKnowledgeScope(scope)},combined);combined.throwIfAborted();if(!this.moduleEnabled())throw new InputError('外部知识库已停用',409);await this.save({id,taskId:context.taskId,query,scope,sources:result.sources,createdAt:new Date().toISOString()});combined.throwIfAborted();if(!respond)return result
+      let answer:KnowledgeAnswer|undefined,answerError:string|undefined
+      try{answer=await abortable(respond(result.sources,combined),combined)}catch(e){combined.throwIfAborted();answerError=e instanceof InputError?e.message:'AI回答未生成，请检查工作台默认对话模型后重试；也可先查看原文。'}
+      combined.throwIfAborted();if(!this.moduleEnabled())throw new InputError('外部知识库已停用',409)
+      return {...result,...(answer?{answer}:{}),...(answerError?{answerError}:{})}
+    }finally{this.active.delete(id)}
   }
   activities(){return [...this.active.values()].map(({context})=>({id:context.taskId,roleId:context.roleId,roleVersion:context.roleVersion,name:'外部知识库检索',status:'running',kind:'knowledge',componentIds:['knowledge-retrieval']}))}
   reconcile(){for(const {context,controller}of this.active.values())if(context.roleId?!this.enabled(context):!this.moduleEnabled())controller.abort(new Error('知识库检索授权已撤销'))}
