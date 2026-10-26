@@ -11,7 +11,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 function post<T>(path: string, body: unknown) { return request<T>(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) }
-export const getRequirementConfig = (roleId: string,taskId?:string) => request<RequirementAvailability>(`/config?roleId=${encodeURIComponent(roleId)}${taskId?'&taskId='+encodeURIComponent(taskId):''}`)
+export const getRequirementConfig = (roleId: string,taskId?:string,roleVersion?:number) => request<RequirementAvailability>(`/config?roleId=${encodeURIComponent(roleId)}${taskId?'&taskId='+encodeURIComponent(taskId):roleVersion!==undefined?'&roleVersion='+roleVersion:''}`)
 export const getRequirementTask = (id: string) => request<RequirementTask>(`/task/${encodeURIComponent(id)}`)
 export const listRequirementTasks = ({ offset = 0, limit = 40 }: { offset?: number; limit?: number } = {}) => request<{ items: RequirementSummary[]; total: number }>(`/tasks?offset=${offset}&limit=${limit}`)
 export const deleteRequirementTask = (id: string) => request<{ ok: boolean }>(`/task/${encodeURIComponent(id)}`, { method: 'DELETE' })

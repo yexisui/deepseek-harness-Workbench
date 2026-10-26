@@ -120,11 +120,12 @@ export class RequirementsService {
     this.authorize(task, action === 'ask' ? 'ask' : 'write')
     if (task.template?.knowledge) this.authorize(task, 'retrieve')
   }
-  availability(roleId?: string, task?: RequirementTask): RequirementAvailability {
+  availability(roleId?: string, task?: RequirementTask, roleVersion?: number): RequirementAvailability {
     let message = '需求分析已就绪', ready = true, modelConfigured = false
     let actions: import('../core/model.ts').Action[] = []
+    let role: RoleVersion | undefined
     try {
-      if (roleId) actions = allowedActions(this.state(), roleId, this.role(roleId, task?.roleVersion, task?.authorityAt))
+      if (roleId) { role = this.role(roleId, task?.roleVersion ?? roleVersion, task?.authorityAt); actions = allowedActions(this.state(), roleId, role) }
       else {
         const capability = this.state().capabilities.find(c => c.id === REQUIREMENTS_CAPABILITY_ID)
         actions = actionsOf(capability && latest(capability.versions) && { ...latest(capability.versions)!, components: latest(capability.versions)!.components.filter(p => this.state().componentRestrictions?.[p.componentId]?.enabled !== false) })
@@ -138,7 +139,10 @@ export class RequirementsService {
     else if (ready) message = '已选择工作台模型，实际连接以运行结果为准'
     const operations = requirementAccess(ready ? actions : [])
     if(task)for(const key of Object.keys(operations) as RequirementOperation[]){try{this.authorize(task,key)}catch(error){operations[key]={allowed:false,message:errorMessage(error)}}}
-    return { operations, ready, message, modelConfigured, ...structuredClone(this.configuration), maxTextChars: MAX_TEXT }
+    else if(roleId&&role&&operations.retrieve.allowed){try{this.knowledge.assert?.({taskId:'requirements-preview',roleId,roleVersion:role.version,authorityAt:Date.now()})}catch(error){operations.retrieve={allowed:false,message:errorMessage(error)}}}
+    // Preview the same role snapshot used by create(), without creating an empty task.
+    const knowledgeScope = !task && operations.retrieve.allowed ? role?.capabilities.find(b => b.capabilityId === 'external-knowledge' && b.enabled)?.knowledgeScope : undefined
+    return { operations, ready, message, modelConfigured, roleVersion: role?.version, ...(knowledgeScope ? {knowledgeScope: structuredClone(knowledgeScope)} : {}), ...structuredClone(this.configuration), maxTextChars: MAX_TEXT }
   }
   private defaults(raw: unknown): RequirementDefaults {
     const d = object(raw)

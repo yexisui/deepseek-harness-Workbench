@@ -42,3 +42,24 @@ it('uses the shared scoped retrieval for generation, revision and QA and persist
 it('does not publish out-of-scope evidence, empty retrieval or invented quotes',async()=>{for(const mode of ['scope','empty','quote']){const p=provider(),search=p.search;if(mode==='scope')p.search=async(r,s)=>({sources:(await search(r,s)).sources.map(v=>({...v,collectionId:'other'}))});if(mode==='empty')p.search=async()=>({sources:[]});const e=await setup({external:p,model:async prompt=>{const v=JSON.parse(prompt.slice(prompt.indexOf('\n')+1)),s=v.sources.find((s:any)=>s.name.includes('产品B规格'));return JSON.stringify({answer:'错误答案',sources:[{sourceId:s.id,blockId:s.blocks[0].id,quote:'不存在的依据'}]})}});let t=await command(e,e.task,{type:'template.knowledge',scope:{collectionIds:['b']}});await command(e,t,{type:'template.run',action:'ask',instruction:'问题',requestId:randomUUID()});t=await finished(e);expect(t.run?.status).toBe('error');expect(t.template!.answers).toEqual([]);expect(t.template!.values).toEqual({})}})
 it('does not grant external retrieval to the default role and no-change settings save keeps the revision',async()=>{const e=await setup();await expect(command(e,e.task,{type:'template.knowledge',scope:{collectionIds:['b']}})).rejects.toThrow('授权');const before=e.service.availability();expect((await e.service.configure(before.revision,before.defaults)).revision).toBe(before.revision)})
 it('only stops a run for its actual component and rejects output after QA is revoked',async()=>{let release!:(v:string)=>void;const e=await setup({model:async()=>new Promise<string>(r=>release=r)});await command(e,e.task,{type:'template.run',action:'ask',instruction:'问题',requestId:randomUUID()});for(let i=0;i<100&&!release;i++)await new Promise(r=>setTimeout(r,10));await e.service.stopComponents(['requirement-writing']);expect((await e.service.get(e.task.id)).run?.status).toBe('running');e.state.componentRestrictions={'requirement-questions':{enabled:false,revokedAt:Date.now()+1}};release(JSON.stringify({answer:'延迟答案',sources:[]}));const t=await finished(e);expect(t.run?.status).toBe('error');expect(t.template!.answers).toEqual([])})
+it('previews the selected role scope without creating tasks and uses the same snapshot for first QA',async()=>{
+ const e=await setup({external:provider(),template:false}),role=e.state.roles.find(r=>r.id===REQUIREMENTS_ROLE_ID)!,binding=role.versions[0].capabilities.find(b=>b.capabilityId==='external-knowledge')!
+ binding.knowledgeScope={providerId:'test-only',collectionIds:['b']}
+ const before=await e.service.list(),info=e.service.availability(REQUIREMENTS_ROLE_ID,undefined,1)
+ expect(info.knowledgeScope).toEqual(binding.knowledgeScope);expect(info.roleVersion).toBe(1);expect(await e.service.list()).toEqual(before)
+ info.knowledgeScope!.collectionIds.push('mutated');expect(binding.knowledgeScope.collectionIds).toEqual(['b'])
+ role.versions.push({...structuredClone(role.versions[0]),version:2});role.versions[1].capabilities.find(b=>b.capabilityId==='external-knowledge')!.knowledgeScope!.collectionIds.push('c')
+ expect(e.service.availability(REQUIREMENTS_ROLE_ID).knowledgeScope?.collectionIds).toEqual(['b','c']);expect(e.service.availability(REQUIREMENTS_ROLE_ID,undefined,1).knowledgeScope?.collectionIds).toEqual(['b'])
+ const task=await e.service.create({roleId:REQUIREMENTS_ROLE_ID,roleVersion:1,workflow:'template'});expect(task.template?.knowledge).toEqual(binding.knowledgeScope)
+ await command(e,task,{type:'template.run',action:'ask',instruction:'支持离线吗',requestId:randomUUID()});e.task=task;const answer=await finished(e);expect(answer.run?.status,answer.run?.error).toBe('ready');expect(answer.template?.answers[0].answer).toContain('离线盘点')
+ delete role.versions[1].capabilities.find(b=>b.capabilityId==='external-knowledge')!.knowledgeScope
+ expect(e.service.availability(REQUIREMENTS_ROLE_ID,undefined,1).knowledgeScope).toBeUndefined();expect(e.service.availability(REQUIREMENTS_ROLE_ID,undefined,1).operations?.retrieve.allowed).toBe(false)
+})
+it('does not preview revoked knowledge grants or repopulate an intentionally cleared task scope',async()=>{
+ const e=await setup({external:provider(),template:false}),role=e.state.roles.find(r=>r.id===REQUIREMENTS_ROLE_ID)!
+ role.versions[0].capabilities.find(b=>b.capabilityId==='external-knowledge')!.knowledgeScope={collectionIds:['b']}
+ let t=await e.service.create({roleId:REQUIREMENTS_ROLE_ID,workflow:'template'});t=await command(e,t,{type:'template.knowledge'})
+ expect(e.service.availability(t.roleId,t).knowledgeScope).toBeUndefined();expect((await e.service.get(t.id)).template?.knowledge).toBeUndefined()
+ e.state.capabilities.find(c=>c.id==='external-knowledge')!.enabled=false
+ expect(e.service.availability(REQUIREMENTS_ROLE_ID).knowledgeScope).toBeUndefined();expect(e.service.availability(REQUIREMENTS_ROLE_ID).operations?.retrieve.allowed).toBe(false)
+})

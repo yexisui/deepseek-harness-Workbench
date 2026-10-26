@@ -1,0 +1,17 @@
+.root{color:var(--ink,var(--dsw-alias-label-primary,#202938));border-top:1px solid var(--border,var(--dsw-alias-border-l2,#dce3ef));margin-top:20px;padding-top:16px;min-width:0}
+.root .header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.root .header h3{margin:0;padding:0;border:0;font-size:12px;color:inherit;line-height:1.6}
+.root button.add{padding:4px 6px;font-size:11px;white-space:nowrap;flex:none}
+.add::before{content:'＋';margin-right:2px}
+.root .meta{font-size:11px;color:var(--muted,var(--dsw-alias-label-secondary,#647086));margin:8px 0}
+.list{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:7px}
+.row{display:flex;align-items:center;gap:7px;padding:7px 6px 7px 9px;min-width:0;border:1px solid var(--border,var(--dsw-alias-border-l2,#dce3ef));border-radius:8px;background:var(--surface,var(--dsw-alias-bg-layer-2,#fff))}
+.row>span[aria-hidden]{width:22px;height:26px;flex:none;background:transparent;padding:0}
+.row>span[aria-hidden] svg{width:19px;height:19px}
+.name{font-size:12px;line-height:1.55;overflow-wrap:anywhere;min-width:0;flex:1}
+.root button.remove{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;padding:5px;border-color:transparent;background:transparent;color:var(--muted,var(--dsw-alias-label-secondary,#647086))}
+.root button.remove:hover:not(:disabled){border-color:var(--border,var(--dsw-alias-border-l2,#dce3ef));background:var(--soft,var(--dsw-alias-bg-layer-3,#eef2fa));color:var(--ink,var(--dsw-alias-label-primary,#202938))}
+.root button.settings{font-size:11px;padding:6px 9px}
+.root .hint,.root .empty,.root .feedback{font-size:10px;line-height:1.7;color:var(--muted,var(--dsw-alias-label-secondary,#647086));margin:8px 0 0}
+.root .empty{border:1px dashed var(--border,var(--dsw-alias-border-l2,#dce3ef));border-radius:8px;padding:12px;margin:0 0 10px}
+.root .feedback button{padding:1px 5px;margin-left:4px;font-size:11px;color:var(--accent-text,var(--dsw-alias-brand-primary,#4264cf));border:0;background:transparent}

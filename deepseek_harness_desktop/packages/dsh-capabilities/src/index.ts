@@ -32,7 +32,7 @@ import type {} from '@deepseek-ai/dsh-workspace'
 import type {} from '@deepseek-ai/dsh-subprocess'
 import { workbenchText, resolveWorkbenchModel } from './host/model-text.ts'
 import { MEETING_ROLE_ID } from './core/default-roles.ts'
-import { InputError, object, text } from './core/validation.ts'
+import { InputError, object, text, integer } from './core/validation.ts'
 import { CapabilityStore } from './host/store.ts'
 import { CapabilityRuntime } from './host/runtime.ts'
 import { protectManagedCopy, protectManagedDeletion } from './host/native-preset-adapter.ts'
@@ -237,7 +237,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
         if(req.method==='GET'){const bytes=await requirements.exportDocument(id,url.searchParams.get('version')??undefined);res.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.wordprocessingml.document');res.setHeader('Content-Disposition',"attachment; filename=\"requirements.docx\"");res.setHeader('Cache-Control','no-store');res.end(bytes);return}
         throw new InputError('文档接口不存在',404)
       }
-      if (req.method === 'GET' && route === '/api/capabilities/requirements/config') { const query=new URL(req.url ?? '/', 'http://localhost').searchParams, task=query.get('taskId')?await requirements.get(query.get('taskId')!):undefined; return json(res, 200, requirements.availability(task?.roleId ?? query.get('roleId') ?? undefined,task)) }
+      if (req.method === 'GET' && route === '/api/capabilities/requirements/config') { const query=new URL(req.url ?? '/', 'http://localhost').searchParams, task=query.get('taskId')?await requirements.get(query.get('taskId')!):undefined; return json(res, 200, requirements.availability(task?.roleId ?? query.get('roleId') ?? undefined,task,!task && query.has('roleVersion') ? integer(Number(query.get('roleVersion'))) : undefined)) }
       if (req.method === 'GET' && route === '/api/capabilities/requirements/tasks') {
         const query = new URL(req.url ?? '/', 'http://localhost').searchParams
         return json(res, 200, await requirements.list(Number(query.get('offset') ?? 0), Number(query.get('limit') ?? 30)))
