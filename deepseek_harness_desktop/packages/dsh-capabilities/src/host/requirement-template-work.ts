@@ -16,9 +16,26 @@ export function templateVersion(w:TemplateWorkspace,label='保存文档',evidenc
  const last=w.versions.at(-1);if(last&&JSON.stringify(last.values)===JSON.stringify(w.values)&&last.note===w.note)return
  w.versions.push({id:randomUUID(),number:w.versions.length,label,at:stamp(),values:structuredClone(w.values),note:w.note,evidenceGroups:structuredClone(evidenceGroups)})
 }
+export function detachTemplate(w:TemplateWorkspace){
+ if(w.template)(w.documents??=[]).push({id:randomUUID(),at:stamp(),template:structuredClone(w.template),values:structuredClone(w.values),note:w.note,proposals:structuredClone(w.proposals),versions:structuredClone(w.versions)})
+ delete w.template;w.values={};w.note='';w.proposals=[];w.versions=[]
+}
 export function editTemplate(task:RequirementTask,c:Exclude<TemplateCommand,{type:'template.run'}>){
  const w=workspace(task)
  switch(c.type){
+  case 'template.remove':{
+   if(task.run?.status==='running')throw new InputError('请先停止生成，再移除资料',409)
+   if(w.template?.id===c.id)detachTemplate(w)
+   else {const index=w.sources.findIndex(s=>s.id===c.id);if(index<0)throw new InputError('资料不存在');w.sources.splice(index,1)}
+   break
+  }
+  case 'template.document.restore':{
+   if(task.run?.status==='running')throw new InputError('请先停止生成，再恢复文档',409)
+   const entry=w.documents?.find(d=>d.id===c.id);if(!entry)throw new InputError('历史文档不存在')
+   detachTemplate(w);w.documents=w.documents!.filter(d=>d.id!==c.id)
+   w.template=structuredClone(entry.template);w.values=structuredClone(entry.values);w.note=entry.note;w.proposals=structuredClone(entry.proposals);w.versions=structuredClone(entry.versions)
+   break
+  }
   case 'template.save':w.product=str(c.product,'新产品名称',160);w.brief=str(c.brief,'产品资料',60000);if(!['new-product','revise'].includes(c.intent))throw new InputError('任务方式无效');w.intent=c.intent;break
   case 'template.source':{const s=w.sources.find(s=>s.id===c.id);if(!s)throw new InputError('资料不存在');s.enabled=c.enabled===true;break}
   case 'template.edit':{const p=w.template?.slots.find(p=>p.id===c.id&&p.editable);if(!p)throw new InputError('此内容不能直接编辑');if(current(w,p)!==c.before)throw new InputError('内容已改变，请重新查看后保存；本地输入保留',409);w.values[p.id]=str(c.after,'正文');break}

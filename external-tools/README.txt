@@ -56,3 +56,11 @@ Windows中文路径通过工作进程中的FAISS字节序列化适配处理，�
 Git仅保存清单、安装器、工作进程与说明；Python、wheel、数据库、下载包和离线ZIP均忽略。
 完整离线包包含此存储环境；使用在线Embedding仍需网络和用户自己的API配置。
 来源：https://github.com/milvus-io/milvus-lite （Apache-2.0）、https://www.python.org/ （PSF）。
+
+
+需求文档PDF导出（2026-10-26）
+DOCX导入/导出与含文字PDF导入使用项目已有的dsh-office-toolkit、PDF.js及docx，无新增安装包。
+编辑后的需求文档导出PDF为Windows可选功能，使用本机已安装、已激活的Microsoft Word COM渲染；WPS不等同于该组件。
+Word由用户自行安装和授权，不属于tools.json自动安装工具，不打入Git或离线ZIP；普通启动和Deploy不安装或探测Word。
+仅点击导出PDF时调用；没有Word或转换失败会说明原因，DOCX导出仍可用。转换使用只读临时副本，不改原模板。
+PDF输入重建文字、标题和简单表格，原图与复杂排版不会原样保留；扫描PDF需先OCR。优先用Word输入保留模板格式。

@@ -1,8 +1,9 @@
+import {convertRequirementDocument,storePdf,readPdfAsset,validatePdf} from './requirement-pdf.ts'
 import {syncRequirementQuestionRun} from '../core/requirement-question-history.ts'
 import type { KnowledgeAccess } from './knowledge-access.ts'
 import { KnowledgeService } from './knowledge.ts'
 import { requirementActions, requirementAccess, type RequirementOperation } from '../core/requirements-components.ts'
-import {workspace,editTemplate,validateTemplateRun,runTemplate,templateVersion} from './requirement-template-work.ts'
+import {workspace,editTemplate,validateTemplateRun,runTemplate,templateVersion,detachTemplate} from './requirement-template-work.ts'
 import {inspectDocx,storeDocx,renderTemplate} from './requirement-docx.ts'
 import {emptyTemplateWorkspace} from '../core/requirement-template.ts'
 import { forkIdentity, existingFork, writeFork } from './conversation-fork.ts'
@@ -193,23 +194,33 @@ export class RequirementsService {
       await this.atomic(this.path(task.id),task); return task
     })
   }
-  async importDocument(id:string,revision:number,name:string,kind:'template'|'source',bytes:Buffer){return this.serialized(async()=>{
+  async importDocument(id:string,revision:number,name:string,kind:'template'|'source',bytes:Buffer,replaceId?:string){return this.serialized(async()=>{
     const task=await this.get(id);this.authorize(task,kind==='template'?'importTemplate':'importSource')
     if(task.revision!==revision)throw new InputError('资料已变化，请刷新后重新导入',409)
     if(task.run?.status==='running')throw new InputError('请等待生成完成后再添加资料',409)
     const w=workspace(task),filename=text(name,'文件名称',240,true)
     if(!['template','source'].includes(kind))throw new InputError('资料类型无效')
-    if(kind==='template'&&w.template)throw new InputError('本次模板已确定；更换模板请新建对话，原任务保留',409)
-    if(kind==='template'&&!filename.toLowerCase().endsWith('.docx'))throw new InputError('模板请选择DOCX文件')
-    if(w.sources.length>=20)throw new InputError('单个任务最多20份参考资料')
+    if(kind==='template'&&w.template&&replaceId!==w.template.id)throw new InputError('请选择更换模板并确认，原文档将保留在版本记录中',409)
+    if(kind==='template'&&!/\.(docx|pdf)$/i.test(filename))throw new InputError('模板请选择Word（DOCX）或PDF文件')
+    if(bytes.length>40*1024*1024)throw new InputError('文件超过40 MB',413)
+    if(kind==='source'&&w.sources.length>=20)throw new InputError('单个任务最多20份参考资料')
     let source:import('../core/requirement-template.ts').TemplateSource
     if(filename.toLowerCase().endsWith('.docx')){const slots=inspectDocx(bytes);source={id:randomUUID(),name:filename,kind:'docx',asset:await storeDocx(this.root,bytes),slots,enabled:true}}
-    else {if(!/\.(txt|md|markdown)$/i.test(filename))throw new InputError('参考资料支持DOCX、TXT和Markdown');const content=text(bytes.toString('utf8'),'参考资料',60000,true);if(content.includes('\0')||content.includes('�'))throw new InputError('请将文字资料另存为UTF-8');source={id:randomUUID(),name:filename,kind:'text',enabled:true,slots:[{id:'text#0',part:'text',index:0,text:content,style:'',heading:false,image:false,editable:false}]}}
-    if([...w.sources,...(w.template?[w.template]:[]),source].reduce((n,s)=>n+s.slots.reduce((a,p)=>a+p.text.length,0),0)>180000)throw new InputError('本次资料超过180000字，请拆分任务')
-    if(kind==='template'){w.template=source;templateVersion(w,'原始模板');if(task.title==='新需求分析')task.title=filename.replace(/\.docx$/i,'').slice(0,120)}else w.sources.push(source)
+    else if(/\.pdf$/i.test(filename)){validatePdf(bytes);const converted=await convertRequirementDocument(bytes,'pdf','docx'),slots=inspectDocx(converted);if(!slots.some(p=>p.text.trim()))throw new InputError('此PDF没有可读取的文字，请先进行OCR或使用Word版');source={id:randomUUID(),name:filename,kind:'pdf',asset:await storeDocx(this.root,converted),originalAsset:await storePdf(this.root,bytes),slots,enabled:true}}
+    else {if(!/\.(txt|md|markdown)$/i.test(filename))throw new InputError('参考资料支持DOCX、PDF、TXT和Markdown');const content=text(bytes.toString('utf8'),'参考资料',60000,true);if(content.includes('\0')||content.includes('�'))throw new InputError('请将文字资料另存为UTF-8');source={id:randomUUID(),name:filename,kind:'text',enabled:true,slots:[{id:'text#0',part:'text',index:0,text:content,style:'',heading:false,image:false,editable:false}]}}
+    if([...w.sources,...(kind==='source'&&w.template?[w.template]:[]),source].reduce((n,s)=>n+s.slots.reduce((a,p)=>a+p.text.length,0),0)>180000)throw new InputError('本次资料超过180000字，请拆分任务')
+    if(kind==='template'){const previousName=w.template?.name.replace(/\.(docx|pdf)$/i,'');detachTemplate(w);w.template=source;templateVersion(w,'原始模板');if(task.title==='新需求分析'||task.title===previousName)task.title=filename.replace(/\.(docx|pdf)$/i,'').slice(0,120);if(task.run?.templateAction!=='ask')delete task.run}else w.sources.push(source)
     this.event(task,'material','载入'+(kind==='template'?'模板：':'参考资料：')+filename);return this.write(task,true)
   })}
-  async exportDocument(id:string,versionId?:string){const task=await this.get(id);this.authorize(task,'edit');const w=workspace(task),version=versionId?w.versions.find(v=>v.id===versionId):undefined;if(versionId&&!version)throw new InputError('版本不存在',404);return renderTemplate(this.root,w,version)}
+  async exportDocument(id:string,versionId?:string,format:'docx'|'pdf'='docx'){
+    if(!['docx','pdf'].includes(format))throw new InputError('导出格式请选择Word或PDF')
+    const task=await this.get(id);this.authorize(task,'edit');const w=workspace(task),version=versionId?w.versions.find(v=>v.id===versionId):undefined
+    if(versionId&&!version)throw new InputError('版本不存在',404)
+    const bytes=await renderTemplate(this.root,w,version)
+    if(format==='docx')return bytes
+    if(w.template?.originalAsset&&!Object.keys(version?.values??w.values).length&&!(version?.note??w.note))return readPdfAsset(this.root,w.template.originalAsset)
+    return convertRequirementDocument(bytes,'docx','pdf')
+  }
   async get(id: string): Promise<RequirementTask> {
     try {
       const task = JSON.parse(await readFile(this.path(id),'utf8')) as RequirementTask
@@ -309,6 +320,11 @@ export class RequirementsService {
             workspace(task).knowledge = { providerId:status.providerId, collectionIds: [...new Set(collectionIds)], product: str(scope.product, '产品范围', 240), project: str(scope.project, '项目范围', 240) }
           } else delete workspace(task).knowledge
           this.event(task, 'material', c.scope ? '更新本次知识库范围' : '改用本次上传资料'); break
+        }
+        case 'template.remove':case 'template.document.restore': {
+          this.authorize(task,c.type==='template.document.restore'?'review':workspace(task).template?.id===c.id?'importTemplate':'importSource')
+          editTemplate(task,c);if(task.run?.status!=='running'&&task.run?.templateAction!=='ask')delete task.run
+          this.event(task,'material',c.type==='template.remove'?'移除本次资料；原文档和问答记录保留':'恢复历史文档；当前文档已保留');break
         }
         case 'template.save':case 'template.source':case 'template.review':case 'template.edit':case 'template.note':case 'template.version':case 'template.restore': {
           this.authorize(task,c.type==='template.source'?'importSource':['template.review','template.version','template.restore'].includes(c.type)?'review':'edit');editTemplate(task,c);this.event(task,'change','文档工作区：'+c.type);break

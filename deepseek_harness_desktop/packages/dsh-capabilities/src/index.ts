@@ -232,9 +232,9 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
         if(req.method==='PUT'){
           if(!/^application\/octet-stream(?:;|$)/i.test(req.headers['content-type']??''))throw new InputError('需要文档文件',415)
           const chunks:Buffer[]=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>40*1024*1024)throw new InputError('文件超过40 MB',413);chunks.push(Buffer.from(chunk))}
-          return json(res,200,await requirements.importDocument(id,Number(url.searchParams.get('revision')),url.searchParams.get('name')??'',url.searchParams.get('kind') as 'template'|'source',Buffer.concat(chunks)))
+          return json(res,200,await requirements.importDocument(id,Number(url.searchParams.get('revision')),url.searchParams.get('name')??'',url.searchParams.get('kind') as 'template'|'source',Buffer.concat(chunks),url.searchParams.get('replace')??undefined))
         }
-        if(req.method==='GET'){const bytes=await requirements.exportDocument(id,url.searchParams.get('version')??undefined);res.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.wordprocessingml.document');res.setHeader('Content-Disposition',"attachment; filename=\"requirements.docx\"");res.setHeader('Cache-Control','no-store');res.end(bytes);return}
+        if(req.method==='GET'){const format=url.searchParams.get('format')??'docx';if(format!=='docx'&&format!=='pdf')throw new InputError('导出格式请选择Word或PDF');const bytes=await requirements.exportDocument(id,url.searchParams.get('version')??undefined,format);res.setHeader('Content-Type',format==='pdf'?'application/pdf':'application/vnd.openxmlformats-officedocument.wordprocessingml.document');res.setHeader('Content-Disposition',`attachment; filename="requirements.${format}"`);res.setHeader('Cache-Control','no-store');res.end(bytes);return}
         throw new InputError('文档接口不存在',404)
       }
       if (req.method === 'GET' && route === '/api/capabilities/requirements/config') { const query=new URL(req.url ?? '/', 'http://localhost').searchParams, task=query.get('taskId')?await requirements.get(query.get('taskId')!):undefined; return json(res, 200, requirements.availability(task?.roleId ?? query.get('roleId') ?? undefined,task,!task && query.has('roleVersion') ? integer(Number(query.get('roleVersion'))) : undefined)) }

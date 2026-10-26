@@ -6,3 +6,5 @@
 @media(prefers-reduced-motion:reduce){.root *{scroll-behavior:auto!important;transition:none!important}}
 
 .qaHeading{display:flex;align-items:center;justify-content:space-between;gap:12px}.qaHeading h2{margin:0}
+
+.sourceRow{display:flex;align-items:flex-start;gap:6px}.sourceRow .sourceName{flex:1;min-width:0;text-align:left;overflow-wrap:anywhere}.sourceRow .removeFile{flex:none;width:30px;height:30px;padding:6px;display:flex;align-items:center;justify-content:center}.removeFile svg{width:16px;height:16px}
