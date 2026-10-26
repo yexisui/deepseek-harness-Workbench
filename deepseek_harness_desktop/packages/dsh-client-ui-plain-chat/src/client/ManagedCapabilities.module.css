@@ -132,3 +132,33 @@
 .importDrop[data-dragging] { border-color:var(--role-accent,#5863b0); background:var(--role-selected,#5863b015); }
 .importFile { overflow-wrap:anywhere; margin:0 0 16px; }
 .importButtons { display:flex; flex-wrap:wrap; gap:8px; }
+
+/* Opt-in compact forms share the existing controls and theme tokens. */
+.compactDialog { width:600px; overflow:hidden; }
+.compactDialog > div:first-child { padding:16px 20px; }
+.formBody { min-height:0; overflow:auto; padding:16px 20px; }
+.compactFields { display:flex; flex-direction:column; gap:14px; min-width:0; margin:0; padding:0; border:0; }
+.compactFields p { margin:0; line-height:1.55; }
+.compactFields .field { gap:6px; min-width:0; }
+.compactFields .field small { font-weight:400; line-height:1.5; }
+.compactFields .field input,.compactFields .field select { padding:8px 10px; min-width:0; }
+.compactFields .button { font:inherit; font-size:13px; white-space:nowrap; }
+.compactFields .choice { margin:0; }
+.fieldRow { display:flex; align-items:center; gap:8px; min-width:0; }
+.fieldRow select { flex:1; min-width:0; }
+.fieldRow .button { flex-shrink:0; }
+.fieldHeader { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:13px; }
+.fieldGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr)); gap:12px; }
+.sourcePicker { display:flex; flex-direction:column; gap:10px; border:1px solid var(--role-border); border-radius:9px; padding:12px; }
+.sourceList { list-style:none; padding:0; margin:0; max-height:148px; overflow:auto; font-size:12px; }
+.sourceList li { display:flex; gap:8px; align-items:center; justify-content:space-between; border-bottom:1px solid var(--role-border); }
+.sourceList li:last-child { border-bottom:0; }
+.sourceList span,.pathText { min-width:0; overflow-wrap:anywhere; flex:1; }
+.formDetails { margin:0; padding:10px 12px; }
+.formDetails[open] summary { margin-bottom:10px; }
+.formDetails .fieldGrid { margin-top:10px; }
+.formFooter { display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; border-top:1px solid var(--role-border); padding:12px 20px; flex-shrink:0; }
+.formFooter .button { min-width:76px; font:inherit; font-size:13px; }
+.formBody > .error,.formBody > .notice { margin:12px 0 0; overflow-wrap:anywhere; font-size:12px; }
+.inlineFormFooter { padding:12px 0 0; }
+@media(max-width:480px) { .formBody { padding:14px; } .formFooter { padding:12px 14px; } .compactDialog > div:first-child { padding:14px; } }
