@@ -21,6 +21,7 @@ export type TemplateCommand =
  | {type:'template.source'; id:string; enabled:boolean}
  | {type:'template.review'; proposalId:string; groupIds:string[]; action:'accept'|'reject'|'revert'}
  | {type:'template.edit'; id:string; before:string; after:string}
+ | {type:'template.editMany'; changes:TemplateChange[]}
  | {type:'template.note'; note:string}
  | {type:'template.version'; label?:string}
  | {type:'template.restore'; id:string}

@@ -1,0 +1,12 @@
+.hint{font:12px/1.6 "Microsoft YaHei",sans-serif;color:var(--muted,#758095);margin:0 0 12px}
+.editor{min-width:0;font:13px/1.5 "Microsoft YaHei",sans-serif}
+.scroll{max-width:100%;overflow-x:auto}
+.table{width:100%;border-collapse:collapse;table-layout:fixed}
+.table td{border:1px solid var(--border,#cbd3df);padding:3px;vertical-align:top}
+.editor textarea{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:36px!important;max-height:240px;margin:0;resize:vertical;overflow-y:auto;border:1px solid transparent!important;border-radius:4px;padding:7px!important;background:transparent!important;color:var(--ink,#202938)!important;font:inherit!important;line-height:1.5!important}
+.editor textarea:hover{border-color:var(--border,#cbd3df)!important}
+.editor textarea:focus{outline:2px solid var(--accent,#546da9);outline-offset:-2px;background:var(--surface,#fff)!important}
+.editor textarea[data-modified]{background:color-mix(in srgb,var(--accent,#546da9) 9%,transparent)!important}
+.readonly{padding:7px;white-space:pre-wrap;overflow-wrap:anywhere}.readonly img{max-width:100%;height:auto}
+.error{padding:10px;border:1px solid #b64d42;border-radius:6px;color:var(--ink,#202938);font:12px/1.6 "Microsoft YaHei",sans-serif}
+.primary{color:white!important;background:var(--accent,#546da9)!important;border-color:var(--accent,#546da9)!important}

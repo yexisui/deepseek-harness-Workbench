@@ -17,6 +17,25 @@ async function setup(model:(prompt:string,model:string,signal?:AbortSignal)=>Pro
  task=await service.importDocument(task.id,task.revision,'参考.docx','template',fixture());return {root,state,service,task}
 }
 const cmd=(e:Awaited<ReturnType<typeof setup>>,t:RequirementTask,c:RequirementCommand)=>e.service.command(t.id,t.revision,c)
+it('saves a table in one revision, exports all changed cells and restores the saved version',async()=>{
+ const e=await setup(),changes=[{id:'word/document.xml#2',before:'指标',after:'预约月份'},{id:'word/document.xml#3',before:'99%',after:'1200'}]
+ let t=await cmd(e,e.task,{type:'template.editMany',changes});expect(t.revision).toBe(e.task.revision+1)
+ const exported=inspectDocx(await e.service.exportDocument(t.id));for(const c of changes)expect(exported.find(p=>p.id===c.id)?.text).toBe(c.after)
+ expect(new Zip(await e.service.exportDocument(t.id)).file('word/styles.xml').asText()).toBe(new Zip(fixture()).file('word/styles.xml').asText())
+ t=await cmd(e,t,{type:'template.version'});expect(t.template?.versions.at(-1)?.values).toMatchObject(Object.fromEntries(changes.map(c=>[c.id,c.after])))
+ t=await cmd(e,t,{type:'template.restore',id:t.template!.versions[0]!.id});expect(t.template?.values).toEqual({})
+})
+it('never partially saves a table on stale cells, invalid targets or duplicate entries',async()=>{
+ const e=await setup(),valid={id:'word/document.xml#2',before:'指标',after:'新标题'},before=await e.service.get(e.task.id)
+ for(const bad of [{id:'word/document.xml#3',before:'过期内容',after:'100%'},{id:'word/document.xml#1',before:'原功能',after:'非表格'},{...valid}]){
+  await expect(cmd(e,e.task,{type:'template.editMany',changes:[valid,bad]})).rejects.toThrow();expect(await e.service.get(e.task.id)).toEqual(before)
+ }
+})
+it('table batches keep existing edit authorization and cannot overwrite a newer task revision',async()=>{
+ const e=await setup(),changes=[{id:'word/document.xml#2',before:'指标',after:'新标题'}],t=await cmd(e,e.task,{type:'template.note',note:'后续编辑'})
+ await expect(cmd(e,e.task,{type:'template.editMany',changes})).rejects.toMatchObject({status:409})
+ e.state.roles.find(r=>r.id===REQUIREMENTS_ROLE_ID)!.enabled=false;await expect(cmd(e,t,{type:'template.editMany',changes})).rejects.toThrow();expect((await e.service.get(t.id)).template?.values).toEqual({})
+})
 async function finished(service:RequirementsService,id:string){for(let i=0;i<200;i++){const t=await service.get(id);if(t.run?.status!=='running')return t;await new Promise(r=>setTimeout(r,5))}throw Error('Model did not settle')}
 async function revision(e:Awaited<ReturnType<typeof setup>>,t=e.task){await cmd(e,t,{type:'template.run',action:'revise',instruction:'调整功能',requestId:randomUUID()});return finished(e.service,t.id)}
 it('reads body/table/header and protects fields without touching the original bytes',async()=>{const e=await setup();expect(e.task.template?.template?.slots).toHaveLength(7);expect(e.task.template?.template?.slots[3]).toMatchObject({table:1,row:1,cell:2,text:'99%'});expect(e.task.template?.template?.slots.find(s=>s.index===5&&s.part==='word/document.xml')?.editable).toBe(false);expect(await e.service.exportDocument(e.task.id)).toEqual(fixture())})

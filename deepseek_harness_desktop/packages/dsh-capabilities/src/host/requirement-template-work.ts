@@ -39,6 +39,18 @@ export function editTemplate(task:RequirementTask,c:Exclude<TemplateCommand,{typ
   case 'template.save':w.product=str(c.product,'新产品名称',160);w.brief=str(c.brief,'产品资料',60000);if(!['new-product','revise'].includes(c.intent))throw new InputError('任务方式无效');w.intent=c.intent;break
   case 'template.source':{const s=w.sources.find(s=>s.id===c.id);if(!s)throw new InputError('资料不存在');s.enabled=c.enabled===true;break}
   case 'template.edit':{const p=w.template?.slots.find(p=>p.id===c.id&&p.editable);if(!p)throw new InputError('此内容不能直接编辑');if(current(w,p)!==c.before)throw new InputError('内容已改变，请重新查看后保存；本地输入保留',409);w.values[p.id]=str(c.after,'正文');break}
+  case 'template.editMany':{
+   if(!Array.isArray(c.changes)||!c.changes.length||c.changes.length>(w.template?.slots.length??0))throw new InputError('请选择要修改的表格内容')
+   const seen=new Set<string>(),changes=c.changes.map(value=>{
+    const change=object(value),id=text(change.id,'内容位置',240,true),p=w.template?.slots.find(p=>p.id===id&&p.editable&&p.table)
+    if(!p||seen.has(id))throw new InputError('表格内容位置无效，请重新打开表格');seen.add(id)
+    if(current(w,p)!==change.before)throw new InputError('表格内容已改变，本次修改尚未保存；请保留输入并重新核对',409)
+    return {id,after:str(change.after,'表格内容')}
+   })
+   // Validate every cell before writing any, so a conflict cannot partially save a table.
+   for(const change of changes)w.values[change.id]=change.after
+   break
+  }
   case 'template.note':w.note=str(c.note,'文档备注',8000);break
   case 'template.version':if(!w.template)throw new InputError('请先选择Word模板');templateVersion(w,str(c.label,'版本名称',160)||'保存文档');break
   case 'template.restore':{const v=w.versions.find(v=>v.id===c.id);if(!v)throw new InputError('文档版本不存在');w.values=structuredClone(v.values);w.note=v.note;templateVersion(w,'从 V'+v.number+' 恢复',v.evidenceGroups??[]);break}

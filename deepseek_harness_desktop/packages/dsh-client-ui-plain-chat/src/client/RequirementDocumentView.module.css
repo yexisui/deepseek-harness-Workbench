@@ -16,6 +16,9 @@
 .table .text{margin:2pt 0;line-height:1.45;text-indent:0}
 .table .heading .text{font-size:inherit}
 .table .tableScroll{margin:4px 0}
+.tableGroup{margin:10pt 0}.tableGroup>.tableScroll{margin:0}
+.tableActions{display:flex;justify-content:flex-end;margin-bottom:4px;font:12px/1.4 "Microsoft YaHei",sans-serif}
+.tableActions button{font:inherit!important;padding:4px 9px!important;color:#4264cf!important;border:1px solid #ccd6eb!important;background:#fff!important;border-radius:5px}
 .header,.footer{font-size:9pt;color:#616a75}
 .header{margin-bottom:18px;border-bottom:1px solid #dce3ef;padding-bottom:8px}
 .footer{margin-top:20px;border-top:1px solid #dce3ef;padding-top:8px}

@@ -329,7 +329,7 @@ export class RequirementsService {
           editTemplate(task,c);if(task.run?.status!=='running'&&task.run?.templateAction!=='ask')delete task.run
           this.event(task,'material',c.type==='template.remove'?'移除本次资料；原文档和问答记录保留':'恢复历史文档；当前文档已保留');break
         }
-        case 'template.save':case 'template.source':case 'template.review':case 'template.edit':case 'template.note':case 'template.version':case 'template.restore': {
+        case 'template.save':case 'template.source':case 'template.review':case 'template.edit':case 'template.editMany':case 'template.note':case 'template.version':case 'template.restore': {
           this.authorize(task,c.type==='template.source'?'importSource':['template.review','template.version','template.restore'].includes(c.type)?'review':'edit');editTemplate(task,c);this.event(task,'change','文档工作区：'+c.type);break
         }
         case 'template.run': {
