@@ -1,3 +1,4 @@
+import { KnowledgeSettings } from './KnowledgeSettings.tsx'
 import React from 'react'
 import { actionNames, type Component, type Snapshot } from '../../../dsh-capabilities/src/core/model.ts'
 import type { MeetingAvailability } from './meeting-capability-status.ts'
@@ -7,17 +8,25 @@ import type { RequirementAvailability } from '../../../dsh-capabilities/src/core
 type Context = { component?: Component; data: Snapshot; meetingStatus?: MeetingAvailability | null; requirementsStatus?: RequirementAvailability | null }
 type Presentation = { description: string; summary?: string; status: string; title: string; name: string; detail: string; configuration?: string }
 /** Module differences live here; shared composition views never assume a browser environment. */
+const requirementInfo: Record<string,{description:string;detail:string;operation?:'edit'|'write'|'ask'|'review'|'legacy'}> = {
+ 'requirement-document':{description:'导入模板、编辑既有内容并按原Word结构导出。',detail:'原文件保留；当前支持既有段落与表格单元格文字。',operation:'edit'},
+ 'requirement-writing':{description:'根据新产品资料编写初稿或按描述提出修改。',detail:'使用工作台模型；需要模板文档处理与审阅组件，候选采用后更新正文。',operation:'write'},
+ 'requirement-questions':{description:'根据本次资料回答问题并展示原文出处。',detail:'可独立使用；未接外部知识库时继续使用本次文件。',operation:'ask'},
+ 'requirement-review':{description:'审阅差异、选择采用、局部撤回并管理文档版本。',detail:'文档版本与能力配置分开；保留人工修改和历史结果。',operation:'review'},
+ 'requirements-service':{description:'保留旧会话的需求澄清与条目整理。',detail:'整理深度、提问节奏只影响旧整理流程；模型账号在工作台管理。',operation:'legacy'}
+}
 const adapters: Record<Component['management'], (context: Context) => Presentation> = {
+  knowledge:()=>({description:'为编写、修改和问答提供有出处的外部资料片段。',status:'连接情况见配置与状态',title:'外部知识库检索',name:'共享检索接口',detail:'接口预留，真实提供方后续接入。'}),
   'smart-document':()=>({description:'本机打开、编辑和保存 DOCX，选区问答与修改建议使用工作台模型。',status:'文档在本机处理；AI 按所选模型连接',title:'智能文档服务',name:'本机 DOCX 引擎与工作台模型',detail:'支持 DOCX 原生编辑；模型账号在工作台模型设置维护。知识库接口预留，暂未接入。',configuration:'文档设置'}),
   'file-search':()=>({description:'使用 Everything 本地索引按名称和路径查找文件。',status:'索引与引擎状态在搜索设置中检测',title:'文件搜索服务',name:'Everything 与本地搜索记录',detail:'支持部分文件名、多关键词及通配符；查询不读取文件正文。',configuration:'搜索设置'}),
   'recording-followup': () => ({description:'把已保存录音衔接到当前岗位的转写与纪要能力。',status:'按岗位绑定提供后续操作',title:'录音后续处理',name:'会议转写与纪要适配器',detail:'复用已保存音频与现有模型配置，在原会话保留结果。'}),
   recording:()=>({description:'使用默认麦克风录音并分批保存，可供多个岗位绑定。',status:'开始时请求麦克风权限',title:'录音服务',name:'麦克风与本地录音存储',detail:'宠物和对话共用录音状态；完成后保存，暂停不新建会话。',configuration:'录音归属岗位'}),
   package: ({data,component}) => ({description:'能力包自带的执行组件，动作使用当前设置运行。',status:data.packages?.find(h=>component?.capabilityIds?.includes(h.capabilityId))?.message??'正在读取能力包状态',title:'能力包执行器',name:'本机 Node.js 组件',detail:'构建文件随能力分发，工作台模型账号留在本机。可在设置页配置、运行或停止。',configuration:'能力设置',publishNotice:'草稿不影响现有任务；缩小动作范围或停用会撤销后续调用。已有岗位保持固定版本。'}),
   developer: () => ({ description: '在开发工作区读取项目、按任务授权编辑、查看真实 Git 差异并运行已确认的检查。', status: '项目和服务可用性在开发工作区实际检测', title: '开发工作区服务', name: '项目文件、共享 Git 服务与验证进程', detail: '模型沿用工作台账户。验证命令、编辑器在每个项目的“项目设置”统一保存；每个开发任务默认只读。' }),
-  requirements: ({ requirementsStatus }) => ({
-    description: '在需求工作区澄清问题、整理来源与条目、整理内容并生成需求文档。可由多个岗位引用同一能力；暂不支持复制或与浏览器执行能力混用。',
-    status: requirementsStatus?.message ?? '正在读取需求分析配置…', title: '需求分析服务', name: '工作台模型与需求存储',
-    detail: '整理深度、提问节奏和默认模型在同一配置入口保存。配置存在不代表模型实际调用已经通过。', configuration: '配置服务',
+  requirements: ({ requirementsStatus,component }) => ({
+    description: requirementInfo[component?.id??'requirements-service']?.description??'需求文档服务',
+    status: requirementsStatus?.operations?.[requirementInfo[component?.id??'requirements-service']?.operation??'legacy']?.message || requirementsStatus?.message || '正在读取需求分析配置…', title: component?.name??'需求分析服务', name: '工作台模型与需求存储',
+    detail: requirementInfo[component?.id??'requirements-service']?.detail??'使用统一配置入口。', configuration: '配置服务',
   }),
   browser: ({ data }) => ({
     description: '通过 BrowserSkill 在独立浏览器窗口中执行已授权的网页动作。',
@@ -36,7 +45,8 @@ export function componentService(component: Component, context: Context): Presen
   const presentation = adapters[component.management]({...context,component})
   return { ...presentation, summary: component.actions.length ? component.actions.map(action => component.actionLabels?.[action] ?? actionNames[action] ?? action).join('、') : presentation.description }
 }
-export function ComponentEnvironment({ component, data, meetingStatus, requirementsStatus, onConfigure, disabled = false }: Context & { component: Component; onConfigure?: () => void; disabled?: boolean }) {
+export function ComponentEnvironment({ component, data, meetingStatus, requirementsStatus, onConfigure, disabled = false }: Context & { component: Component; onConfigure?: (target?:string) => void; disabled?: boolean }) {
   const info = componentService(component, { data, meetingStatus, requirementsStatus })
-  return <div data-component-environment={component.management}><h4>{info.title}</h4><div className={s.row}><div><strong>{info.name}</strong><small>{info.status}</small><small>{info.detail}</small></div>{info.configuration && onConfigure && <button className={s.button} disabled={disabled} onClick={onConfigure}>{info.configuration}</button>}</div></div>
+  if(component.management==='knowledge')return <KnowledgeSettings/>
+  return <div data-component-environment={component.management}><h4>{info.title}</h4><div className={s.row}><div><strong>{info.name}</strong><small>{info.status}</small><small>{info.detail}</small></div>{info.configuration && onConfigure && <button className={s.button} disabled={disabled} onClick={()=>onConfigure?.(component.configurationTarget)}>{info.configuration}</button>}</div></div>
 }

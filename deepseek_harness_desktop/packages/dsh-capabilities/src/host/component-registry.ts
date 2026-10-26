@@ -1,3 +1,4 @@
+import { requirementParts } from '../core/requirements-components.ts'
 import { catalogFor } from '../core/distribution.ts'
 import { createHash, randomUUID } from 'node:crypto'
 import { mkdir, open, readFile, rename, unlink } from 'node:fs/promises'
@@ -17,6 +18,11 @@ export class ComponentRegistryStore {
       if (value.schema !== 1 || !Number.isInteger(value.revision) || !value.metadata || !Array.isArray(value.candidates) || !Array.isArray(value.events) || !Array.isArray(value.operations)) throw new Error('组件登记格式不受支持')
       this.value = value
     } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error }
+    if(this.value.requirementsComponentsVersion!==1){
+      const old=this.value.metadata['requirements-service']
+      if(old)for(const part of requirementParts)if(!this.value.metadata[part.componentId])this.value.metadata[part.componentId]={...(old.enabled===false?{enabled:false}:{}),...(old.revokedAt!==undefined?{revokedAt:old.revokedAt}:{}),...(old.retiredAt?{retiredAt:old.retiredAt}:{})}
+      this.value.requirementsComponentsVersion=1;if(old&&(old.enabled===false||old.revokedAt!==undefined||old.retiredAt))this.value.revision++;await this.persist(this.value)
+    }
   }
   snapshot() { return structuredClone(this.value) }
   async preview(id: string, action: string) {

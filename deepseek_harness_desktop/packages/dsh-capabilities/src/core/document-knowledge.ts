@@ -2,7 +2,7 @@
 export type KnowledgeSource={id:string;title:string;text:string;url?:string}
 export interface DocumentKnowledgeAdapter {
  status():Promise<{configured:boolean;verified:boolean;label:string;message:string}>
- search(request:{query:string;limit:number},signal:AbortSignal):Promise<{sources:KnowledgeSource[]}>
+ search(request:{query:string;limit:number;context?:import('./knowledge.ts').KnowledgeContext},signal:AbortSignal):Promise<{sources:KnowledgeSource[]}>
 }
 export const noDocumentKnowledge={configured:false,verified:false,label:'外部资料库',message:'接口已预留，暂未接入服务。'} as const
 export function knowledgeSources(sources:KnowledgeSource[]):KnowledgeSource[]{

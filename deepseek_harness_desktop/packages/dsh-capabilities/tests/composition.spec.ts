@@ -29,7 +29,7 @@ describe('component associations', () => {
     expect(missingDependencies(removed)).toEqual([session])
     expect(compositionIds(removed)).not.toContain(session)
     expect(missingDependencies(addAssociation(removed, 'browserskill'))).toEqual([session])
-    expect(issues(removed)[0]).toContain('补回后才能发布')
+    expect(issues(removed)[0]).toContain('补回后可使用')
     expect(actionsOf(removed)).toEqual([])
     expect(issues(addAssociation(removed, session))).toEqual([])
     expect(actionsOf(addAssociation(removed, session))).toEqual(actionsOf(value))

@@ -29,7 +29,7 @@ export type ComponentMetadata = { name?: string; description?: string; category?
 export type Candidate = ComponentMetadata & { id: string; name: string; description: string; category: string; provider: string; createdAt: string }
 export type ComponentActivity = { roleId?: string; roleVersion?: number; id: string; componentIds: string[]; name: string; status: string; kind: string }
 export type RegistryEvent = { id: string; at: string; componentId: string; action: string }
-export type ComponentRegistry = { schema: 1; revision: number; metadata: Record<string, ComponentMetadata>; candidates: Candidate[]; events: RegistryEvent[]; operations: string[] }
+export type ComponentRegistry = { requirementsComponentsVersion?: 1; schema: 1; revision: number; metadata: Record<string, ComponentMetadata>; candidates: Candidate[]; events: RegistryEvent[]; operations: string[] }
 export const emptyRegistry = (): ComponentRegistry => ({ schema: 1, revision: 0, metadata: {}, candidates: [], events: [], operations: [] })
 export function registryCatalog(registry: ComponentRegistry, catalog: readonly Component[] = components) { return catalog.map(c => ({ ...c, name: registry.metadata[c.id]?.name || c.name })) }
 export function componentPublishIssues(state: State, registry: ComponentRegistry, ids: string[]) {

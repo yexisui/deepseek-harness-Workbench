@@ -1,3 +1,4 @@
+import { migrateRequirementComponents } from '../core/requirements-components.ts'
 import { documentCapability, documentRole } from '../core/documents-model.ts'
 import { recordingFollowupCapability, fileSearchCapability, recordingCapability } from '../core/model.ts'
 import { applyCapabilitySettings, saveRoleSettings } from '../core/current-settings.ts'
@@ -46,6 +47,7 @@ export class CapabilityStore {
         if (raw.defaultRolesVersion !== undefined && raw.defaultRolesVersion !== 1 && raw.defaultRolesVersion !== 2) throw new Error('Unsupported default role migration')
         if (raw.meetingCapabilityVersion !== undefined && raw.meetingCapabilityVersion !== 1) throw new Error('Unsupported meeting capability migration')
         if (raw.requirementsCapabilityVersion !== undefined && raw.requirementsCapabilityVersion !== 1) throw new Error('Unsupported requirements capability migration')
+        if (raw.requirementsComponentsVersion !== undefined && raw.requirementsComponentsVersion !== 1) throw new Error('Unsupported requirements components migration')
         if (raw.developerCapabilityVersion !== undefined && raw.developerCapabilityVersion !== 1) throw new Error('Unsupported developer capability migration')
         if (raw.stoppedSessions !== undefined && (!Array.isArray(raw.stoppedSessions) || raw.stoppedSessions.some((value: unknown) => typeof value !== 'string' || !value || value.length > 150))) throw new Error('Invalid stopped session data')
         if (raw.revokedAt !== undefined && Object.entries(object(raw.revokedAt)).some(([key, value]) => !/^(role|capability):[a-z][a-z0-9-]*$/.test(key) || !Number.isSafeInteger(value) || Number(value) < 0)) throw new Error('Invalid revocation data')
@@ -91,6 +93,11 @@ export class CapabilityStore {
         next.requirementsCapabilityVersion = 1; next.revision++; next.updatedAt = now
         const backup = await open(join(this.directory, 'state-before-requirements-capability-v1.json'), 'wx').catch(error => { if (error.code !== 'EEXIST') throw error; return undefined })
         if (backup) { try { await backup.writeFile(JSON.stringify(this.state, null, 2)); await backup.sync() } finally { await backup.close() } }
+        await this.persist(next); this.state = next
+      }
+      if (this.state.requirementsComponentsVersion !== 1) {
+        const next = this.mutableSnapshot()
+        migrateRequirementComponents(next); next.revision++; next.updatedAt = new Date().toISOString()
         await this.persist(next); this.state = next
       }
       if (this.state.developerCapabilityVersion !== 1) {

@@ -1,3 +1,4 @@
+import { requirementActions } from '../../../dsh-capabilities/src/core/requirements-components.ts'
 import { actionsOf, type RoleVersion, type State } from '../../../dsh-capabilities/src/core/model.ts'
 export type CapabilityMode = 'document' | 'chat' | 'file-search' | 'meeting' | 'requirements' | 'developer'
 export function roleCapabilityModes(state?: State, version?: RoleVersion): { mode: CapabilityMode; label: string }[] {
@@ -6,7 +7,7 @@ export function roleCapabilityModes(state?: State, version?: RoleVersion): { mod
     if (!binding.enabled) continue
     const cap = state?.capabilities.find(c => c.id === binding.capabilityId), published = cap?.versions.find(v => v.version === binding.version)
     const actions = binding.actions ?? actionsOf(published)
-    const mode: CapabilityMode = actions.includes('edit-document') ? 'document' : actions.includes('search-files') ? 'file-search' : actions.includes('transcribe') ? 'meeting' : actions.includes('analyze-requirements') ? 'requirements' : actions.includes('develop') ? 'developer' : 'chat'
+    const mode: CapabilityMode = actions.includes('edit-document') ? 'document' : actions.includes('search-files') ? 'file-search' : actions.includes('transcribe') ? 'meeting' : actions.some(action=>requirementActions.includes(action)) ? 'requirements' : actions.includes('develop') ? 'developer' : 'chat'
     if (mode !== 'chat' && !result.some(r => r.mode === mode)) result.push({mode,label:published?.name ?? cap?.draft.name ?? mode})
   }
   return result

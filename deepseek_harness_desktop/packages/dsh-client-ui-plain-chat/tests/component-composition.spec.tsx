@@ -26,6 +26,8 @@ describe('editable component relationships', () => {
     HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
     Element.prototype.animate = vi.fn(() => ({ cancel: vi.fn() })) as any
     vi.stubGlobal('fetch', vi.fn(async (url: string, options?: RequestInit) => {
+      if (url.endsWith('/knowledge/status')) return { ok: true, json: async () => ({available:false,configured:false,verified:false,label:'外部知识库',message:'接口已预留，暂未接入服务',collections:[]}) }
+      if (url.endsWith('/models')) return {ok:true,json:async()=>({models:[]})}
       if (url.endsWith('/state')) return { ok: true, json: async () => snapshot() }
       if (url.endsWith('/meeting/config')) return { ok: true, json: async () => ({ ready: false, state: 'unconfigured', message: '请配置识别接口', editable: true, hasKey: true, keySource: 'saved', configSource: 'saved', revision: 1 }) }
       if (url.endsWith('/requirements/config')) return { ok: true, json: async () => ({ ready: true, modelConfigured: true, message: '模型已配置，实际调用待验证', revision: 0, maxTextChars: 160000, defaults: { depth: 'standard', questionStyle: 'short', model: '' } }) }
@@ -53,26 +55,26 @@ describe('editable component relationships', () => {
   const openMeeting = async (key = 'meeting') => act(async () => root.render(<ManagedCenter key={key} initialId={MEETING_CAPABILITY_ID}/>))
   const meetingDraft = () => editorDrafts.get(`capability:${MEETING_CAPABILITY_ID}`)!.value as Snapshot['state']['capabilities'][number]['draft']
 
-  it('uses the same editor and configuration roundtrip for requirement service while isolating published authority', async () => {
+  it('keeps split requirement modules in the shared editor and preserves a removed component across save, reopen and configuration return', async () => {
     await act(async () => root.render(<ManagedCenter key="requirements" initialId="requirements-analysis"/>))
     await click('组件')
-    expect(container.querySelector('[data-component-environment="requirements"]')).not.toBeNull()
-    expect(container.textContent).not.toContain('浏览器未连接')
-    await click('移除关联：需求分析服务'); await click('移除关联')
-    await click('保存')
-    expect(store.snapshot().capabilities.find(c => c.id === 'requirements-analysis')!.draft.components).toHaveLength(0)
-    expect(store.snapshot().capabilities.find(c => c.id === 'requirements-analysis')!.versions.at(-1)!.components).toHaveLength(0)
+    expect(container.querySelectorAll('[data-component-environment="requirements"]')).toHaveLength(1)
+    await click('移除关联：AI需求编写'); await click('移除关联'); await click('保存')
+    const cap=()=>store.snapshot().capabilities.find(c=>c.id==='requirements-analysis')!
+    expect(cap().draft.components.map(c=>c.componentId)).not.toContain('requirement-writing')
+    expect(cap().draft.components).toHaveLength(4)
     await act(async () => root.render(<ManagedCenter key="requirements-reopen" initialId="requirements-analysis"/>))
-    await click('组件'); expect(container.textContent).toContain('当前缺少 1 个必需组件')
-    await click('编辑组件组合')
-    expect(button('检查并发布')).toBeUndefined(); expect(button('保存').disabled).toBe(false)
-    await click('添加 需求分析服务')
-    expect(document.querySelectorAll('[data-composition-row="requirements-service"]')).toHaveLength(1)
+    await click('组件'); await click('编辑组件组合'); await click('添加 AI需求编写')
+    expect(document.querySelectorAll('[data-composition-row="requirement-writing"]')).toHaveLength(1)
     await click('配置服务', document.querySelector('dialog')!)
-    expect(container.textContent).toContain('默认整理深度')
+    expect(container.querySelector('[data-configuration-target="writing"]')).not.toBeNull()
+    expect(container.textContent).toContain('接口已预留，暂未接入服务')
     await click('← 返回组件组合')
-    expect(document.querySelectorAll('[data-composition-row="requirements-service"]')).toHaveLength(1)
-    expect(button('检查并发布')).toBeUndefined(); expect(button('保存').disabled).toBe(false)
+    expect(document.querySelectorAll('[data-composition-row="requirement-writing"]')).toHaveLength(1)
+    expect(cap().draft.components).toHaveLength(4)
+    await click('保存')
+    expect(cap().draft.components).toHaveLength(5)
+    expect(cap().versions.at(-1)!.components).toHaveLength(5)
   })
 
   it('uses the shared component list for meeting service, with real details and required removal confirmation', async () => {

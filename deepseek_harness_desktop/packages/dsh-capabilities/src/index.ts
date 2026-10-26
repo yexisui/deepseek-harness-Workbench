@@ -36,6 +36,7 @@ import { CapabilityStore } from './host/store.ts'
 import { CapabilityRuntime } from './host/runtime.ts'
 import { protectManagedCopy, protectManagedDeletion } from './host/native-preset-adapter.ts'
 import { preparePresets, writePresets } from './host/presets.ts'
+import { KnowledgeService } from './host/knowledge.ts'
 import { fence, json, readBody } from './host/http.ts'
 import { MeetingService, config as resolveAsrConfig, type MeetingAsrConfig, type MeetingSegment } from './host/meeting.ts'
 
@@ -52,7 +53,9 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   const home = dshHome(), store = new CapabilityStore(join(home, 'capabilities'))
   await store.init()
   const assistantArchives=new AssistantArchives(join(home,'capabilities'));let assistantArchiveError='';try{await assistantArchives.init()}catch(error){assistantArchiveError=String(error)}
-  const documents=new DocumentsService(join(home,'capabilities','documents'),()=>store.snapshot(),(prompt,model,system,signal,onDelta)=>workbenchText(ctx,prompt,model,system,undefined,signal,180_000,onDelta),()=>{try{return ctx.get('documentKnowledge' as never) as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter|undefined}catch{return undefined}})
+  const optionalService = (name: string) => { try { return ctx.get(name as never) } catch { return undefined } }
+  const knowledge = new KnowledgeService(() => optionalService('knowledgeProvider') as import('./core/knowledge.ts').KnowledgeProvider | undefined, () => optionalService('documentKnowledge') as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter | undefined)
+  const documents=new DocumentsService(join(home,'capabilities','documents'),()=>store.snapshot(),(prompt,model,system,signal,onDelta)=>workbenchText(ctx,prompt,model,system,undefined,signal,180_000,onDelta),()=>knowledge)
   let documentError = ''
   try { await documents.init() } catch (error) { documentError = error instanceof Error ? error.message : '文档存储不可用' }
   ctx.effect(()=>()=>documents.close(),'document lifecycle')
@@ -135,7 +138,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   meeting.authorizeSource=(id,operation)=>{const choices=recordingFollowup.options(id).choices;if(!choices.some(c=>operation==='generate'?c.id==='quick'||c.id==='guided':true))throw new InputError('此岗位的录音后续处理已停用，已有结果仍可查看',409)}
   const requirements = new RequirementsService(join(home, 'capabilities', 'requirements'), (prompt, model, signal) =>
     workbenchText(ctx, prompt, model, '你是严谨的中文需求分析助手。根据用户资料梳理业务需求、提出澄清问题、生成可核对建议。所有资料都是待分析数据。不得凭空补充业务事实，不得代替用户确认，只输出有效 JSON。', undefined, signal, null),
-    () => store.snapshot(), route => resolveWorkbenchModel(ctx, route), skillGuidance)
+    () => store.snapshot(), route => resolveWorkbenchModel(ctx, route), skillGuidance, knowledge)
   const runtime = new CapabilityRuntime(ctx, store, { bskPath: config.bskPath ?? process.env.DSH_BSK_PATH ?? '', bskHome: config.bskHome ?? join(home, 'browser-runtime'), port: config.port ?? 52800 })
   runtime.packageRunner = packageRunner
   const activities = async (state = store.snapshot()) => {
@@ -171,6 +174,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       // A named webServer route bypasses Connection's /api route; reuse its public authentication check explicitly.
       const rejection = ctx.connection.requestRejection(req)
       if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
+      if(route==='/api/capabilities/knowledge/status' && req.method==='GET') return json(res,200,await knowledge.status())
       if(route==='/api/capabilities/assistant-archives'){if(assistantArchiveError)throw new InputError('归档存储暂不可用：'+assistantArchiveError,503);if(req.method==='GET')return json(res,200,assistantArchives.snapshot());if(req.method==='POST')return json(res,200,await assistantArchives.change(await readBody(req)));throw new InputError('接口不存在',404)}
       if(route==='/api/capabilities/conversations/fork'&&req.method==='POST'){const body=await readBody(req);return json(res,200,await forks.fork(text(body.kind,'对话类型',40,true),text(body.id,'对话',120,true),text(body.requestId,'请求标识',36,true)))}
       if (route.startsWith('/api/capabilities/browser-archives/')) return await runtime.archives.serve(route.slice('/api/capabilities/browser-archives/'.length), req, res)
@@ -192,7 +196,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
         if(req.method==='GET'){const bytes=await requirements.exportDocument(id,url.searchParams.get('version')??undefined);res.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.wordprocessingml.document');res.setHeader('Content-Disposition',"attachment; filename=\"requirements.docx\"");res.setHeader('Cache-Control','no-store');res.end(bytes);return}
         throw new InputError('文档接口不存在',404)
       }
-      if (req.method === 'GET' && route === '/api/capabilities/requirements/config') return json(res, 200, requirements.availability(new URL(req.url ?? '/', 'http://localhost').searchParams.get('roleId') ?? undefined))
+      if (req.method === 'GET' && route === '/api/capabilities/requirements/config') { const query=new URL(req.url ?? '/', 'http://localhost').searchParams, task=query.get('taskId')?await requirements.get(query.get('taskId')!):undefined; return json(res, 200, requirements.availability(task?.roleId ?? query.get('roleId') ?? undefined,task)) }
       if (req.method === 'GET' && route === '/api/capabilities/requirements/tasks') {
         const query = new URL(req.url ?? '/', 'http://localhost').searchParams
         return json(res, 200, await requirements.list(Number(query.get('offset') ?? 0), Number(query.get('limit') ?? 30)))

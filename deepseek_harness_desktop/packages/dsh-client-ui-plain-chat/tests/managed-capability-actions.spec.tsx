@@ -140,19 +140,19 @@ describe('managed capability card actions', () => {
     const before = store.snapshot(), dialog = document.querySelector('dialog')!
     expect(dialog.textContent).toContain('此能力已被其他页面永久删除。关闭后可继续管理其他能力。')
     expect(button('确认移除', dialog)).toBeUndefined()
-    expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace'])
+    expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace', 'audio-recording', 'recording-followup', 'smart-document', 'local-file-search'])
     await click('关闭', dialog)
     expect(document.querySelector('dialog')).toBeNull()
     expect(commands).toEqual([])
     expect(store.snapshot()).toEqual(before)
-    expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace'])
+    expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace', 'audio-recording', 'recording-followup', 'smart-document', 'local-file-search'])
   })
 
   it('moves removed capabilities into a recoverable list and restores them without enabling or discarding history', async () => {
     await render()
     const before = store.snapshot().capabilities.find(c => c.id === secondId)!
     await click('管理能力：自定义采集'); await click('移除能力：自定义采集'); await click('确认移除', document.querySelector('dialog')!)
-    expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace'])
+    expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace', 'audio-recording', 'recording-followup', 'smart-document', 'local-file-search'])
      await click('回收站 1')
     expect(cardIds()).toEqual([secondId])
     const removedCard = container.querySelector(`[data-managed-capability="${secondId}"]`)!
@@ -180,7 +180,7 @@ describe('managed capability card actions', () => {
     expect(pinned.textContent).not.toMatch(/[★☆]/)
     expect(button('收藏能力：自定义采集')!.getAttribute('aria-pressed')).toBe('false')
     await click('取消收藏：浏览器操作'); await click('收藏能力：自定义采集')
-    expect(cardIds()).toEqual([secondId, 'browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace'])
+    expect(cardIds()).toEqual([secondId, 'browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace', 'audio-recording', 'recording-followup', 'smart-document', 'local-file-search'])
     expect(button('取消收藏：自定义采集')!.getAttribute('aria-pressed')).toBe('true')
     await click('收藏')
     expect(cardIds()).toEqual([secondId])
@@ -312,7 +312,7 @@ describe('managed capability card actions', () => {
     expect(container.textContent).toContain('已恢复 2 项能力，当前保持停用')
     expect(container.textContent).toContain('回收站为空')
     await click('← 返回能力列表')
-    expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace', secondId])
+    expect(cardIds()).toEqual(['browser', 'meeting-transcription', 'requirements-analysis', 'developer-workspace', 'audio-recording', 'recording-followup', 'smart-document', 'local-file-search', secondId])
     expect(container.querySelector(`[data-managed-capability="${secondId}"]`)!.textContent).toContain('已停用')
   })
 
@@ -354,22 +354,21 @@ describe('managed capability card actions', () => {
     expect(commands).toEqual([{ type: 'capability.purge', ids: [secondId] }])
     expect(store.snapshot().capabilities).toEqual(before.capabilities.filter(cap => cap.id !== secondId))
     expect(store.snapshot().roles).toEqual(before.roles)
-    expect(container.textContent).toContain('1 项因岗位或历史版本引用而保留')
+    expect(container.textContent).toContain('1 项因当前岗位使用而保留')
     expect(cardIds()).toEqual([])
     await search('')
     expect(cardIds()).toEqual(['browser'])
   })
 
-  it('protects capabilities referenced only by an old role version and disables permanent deletion', async () => {
+  it('allows deletion after current-role unlink while leaving historical versions intact', async () => {
     const result = await makeRole('历史配置岗位'), role = result.state.roles.find(role => role.id === result.id)!
     await send({ type: 'role.save', id: role.id, definition: { ...role.draft, capabilities: [] }, publish: true })
     await openRecycleBin(['browser'])
     const before = store.snapshot()
     await select('选择能力：浏览器操作'); await click('删除选中')
     const dialog = document.querySelector('dialog')!
-    expect(dialog.textContent).toContain('历史配置岗位')
-    expect(dialog.textContent).toContain('仅从当前岗位拆下也不会删除历史版本中的引用')
-    expect(button('永久删除 0 项', dialog)!.disabled).toBe(true)
+    expect(dialog.textContent).toContain('可永久删除 1 项，保留 0 项')
+    expect(button('永久删除 1 项', dialog)!.disabled).toBe(false)
     expect(commands).toEqual([])
     await click('取消', dialog)
     expect(store.snapshot()).toEqual(before)
@@ -427,7 +426,7 @@ describe('managed capability card actions', () => {
     await click('已核对，更新操作基准', dialog)
     expect(button('永久删除 2 项', dialog)!.disabled).toBe(false)
     await click('永久删除 2 项', dialog)
-    expect(store.snapshot().capabilities.map(cap => cap.id)).toEqual(['meeting-transcription', 'requirements-analysis', 'developer-workspace', later.id])
+    expect(store.snapshot().capabilities.map(cap => cap.id)).toEqual(['meeting-transcription', 'requirements-analysis', 'developer-workspace', 'audio-recording', 'recording-followup', 'smart-document', 'local-file-search', later.id])
     expect(cardIds()).toEqual([later.id])
     expect(commands).toHaveLength(2)
     for (const command of commands) expect(command).toMatchObject({ type: 'capability.purge', ids: expect.arrayContaining(['browser', secondId]) })

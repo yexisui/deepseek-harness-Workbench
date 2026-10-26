@@ -1,3 +1,5 @@
+import { KnowledgeService } from './knowledge.ts'
+import { requirementActions, requirementAccess, type RequirementOperation } from '../core/requirements-components.ts'
 import {workspace,editTemplate,validateTemplateRun,runTemplate,templateVersion} from './requirement-template-work.ts'
 import {inspectDocx,storeDocx,renderTemplate} from './requirement-docx.ts'
 import {emptyTemplateWorkspace} from '../core/requirement-template.ts'
@@ -52,7 +54,7 @@ export class RequirementsService {
   private configuration = { revision: 0, defaults: { depth: 'standard', questionStyle: 'short', model: '' } as RequirementDefaults }
   private running = new Map<string, { controller: AbortController; promise?: Promise<void> }>()
   private closed = false
-  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string) { this.executions = new ExecutionStore(join(root,'_executions')) }
+  constructor(readonly root: string, private readonly model: Model, private readonly state: () => State, private readonly modelRoute: ModelRoute = route => route, private readonly skillGuidance?: (roleId:string,version:number,cwd?:string,createdAt?:number)=>string, private readonly knowledge = new KnowledgeService()) { this.executions = new ExecutionStore(join(root,'_executions')) }
   private serialized<T>(fn: () => Promise<T>): Promise<T> { const next = this.tail.then(fn); this.tail = next.catch(() => {}); return next }
   private path(id: string) { if (!UUID.test(id)) throw new InputError('需求任务标识无效'); return join(this.root, `${id}.json`) }
   private async atomic(file: string, value: unknown) {
@@ -99,18 +101,31 @@ export class RequirementsService {
   private role(roleId: string, roleVersion?: number, createdAt?: number): RoleVersion {
     const state = this.state(), role = state.roles.find(r => r.id === roleId)
     const version = roleVersion === undefined ? role?.versions.at(-1) : role?.versions.find(v => v.version === roleVersion)
-    if (!role || !version || !allowedActions(state, roleId, version).includes('analyze-requirements')) throw new InputError('岗位未发布可用的需求分析动作，或需求分析能力已停用；请在能力中心检查', 409)
-    if (createdAt !== undefined && wasRevoked(state, roleId, { ...version, capabilities: version.capabilities.filter(b => b.capabilityId === REQUIREMENTS_CAPABILITY_ID) }, createdAt)) throw new InputError('此分析的执行授权已撤销；历史结果保留，请新建分析继续使用', 409)
+    if (!role || !version || !allowedActions(state, roleId, version).some(a => requirementActions.includes(a))) throw new InputError('岗位未发布可用的需求分析动作，或需求分析能力已停用；请在能力中心检查', 409)
+    if (createdAt !== undefined && wasRevoked({ ...state, componentRestrictions: undefined }, roleId, { ...version, capabilities: version.capabilities.filter(b => b.capabilityId === REQUIREMENTS_CAPABILITY_ID) }, createdAt)) throw new InputError('此分析的执行授权已撤销；历史结果保留，请新建分析继续使用', 409)
     return version
   }
-  private authorize(task: RequirementTask) { return this.role(task.roleId, task.roleVersion, task.authorityAt) }
-  availability(roleId?: string): RequirementAvailability {
+  private authorize(task: RequirementTask, operation: RequirementOperation = 'legacy') {
+    const role = this.role(task.roleId, task.roleVersion, task.authorityAt)
+    const access = requirementAccess(allowedActions(this.state(), task.roleId, role))[operation]
+    const relevant: Record<RequirementOperation,string[]> = { legacy:['requirements-service'], importTemplate:['requirement-document'], importSource:[], edit:['requirement-document'], write:['requirement-document','requirement-writing','requirement-review'], ask:['requirement-questions'], review:['requirement-document','requirement-review'], retrieve:['knowledge-retrieval'] }
+    if (relevant[operation].some(id=>(this.state().componentRestrictions?.[id]?.revokedAt??-1)>=task.authorityAt)) throw new InputError('此操作的执行授权已撤销；已有结果保留，请新建任务继续',409)
+    if (!access.allowed) throw new InputError(access.message + '；请在能力中心检查', 409)
+    return role
+  }
+  private authorizeTemplateRun(task: RequirementTask, action: string) {
+    this.authorize(task, action === 'ask' ? 'ask' : 'write')
+    if (task.template?.knowledge) this.authorize(task, 'retrieve')
+  }
+  availability(roleId?: string, task?: RequirementTask): RequirementAvailability {
     let message = '需求分析已就绪', ready = true, modelConfigured = false
+    let actions: import('../core/model.ts').Action[] = []
     try {
-      if (roleId) this.role(roleId)
+      if (roleId) actions = allowedActions(this.state(), roleId, this.role(roleId, task?.roleVersion, task?.authorityAt))
       else {
         const capability = this.state().capabilities.find(c => c.id === REQUIREMENTS_CAPABILITY_ID)
-        if (this.state().componentRestrictions?.['requirements-service']?.enabled === false || !capability?.enabled || capability.removedAt || !actionsOf(latest(capability.versions)).includes('analyze-requirements')) {
+        actions = actionsOf(capability && latest(capability.versions) && { ...latest(capability.versions)!, components: latest(capability.versions)!.components.filter(p => this.state().componentRestrictions?.[p.componentId]?.enabled !== false) })
+        if (!capability?.enabled || capability.removedAt || !actions.some(a => requirementActions.includes(a))) {
           throw new InputError('需求分析能力未发布可用动作或已停用；请在能力中心检查', 409)
         }
       }
@@ -118,7 +133,9 @@ export class RequirementsService {
     try { modelConfigured = Boolean(this.modelRoute(this.configuration.defaults.model)) } catch { /* Configuration presence is not a connection test. */ }
     if (ready && !modelConfigured) message = '可手工整理需求；请在工作台选择模型后使用智能分析'
     else if (ready) message = '已选择工作台模型，实际连接以运行结果为准'
-    return { ready, message, modelConfigured, ...structuredClone(this.configuration), maxTextChars: MAX_TEXT }
+    const operations = requirementAccess(ready ? actions : [])
+    if(task)for(const key of Object.keys(operations) as RequirementOperation[]){try{this.authorize(task,key)}catch(error){operations[key]={allowed:false,message:errorMessage(error)}}}
+    return { operations, ready, message, modelConfigured, ...structuredClone(this.configuration), maxTextChars: MAX_TEXT }
   }
   private defaults(raw: unknown): RequirementDefaults {
     const d = object(raw)
@@ -127,7 +144,8 @@ export class RequirementsService {
   async configure(revision: unknown, defaults: unknown) {
     return this.serialized(async () => {
       if (integer(revision) !== this.configuration.revision) throw new InputError('默认配置已改变，请刷新后重试',409)
-      const next = { revision: this.configuration.revision + 1, defaults: this.defaults(defaults) }
+      const value=this.defaults(defaults);if(JSON.stringify(value)===JSON.stringify(this.configuration.defaults))return this.availability()
+      const next = { revision: this.configuration.revision + 1, defaults: value }
       await this.atomic(join(this.root,'config.json'),next); this.configuration = next
       return this.availability()
     })
@@ -153,7 +171,7 @@ export class RequirementsService {
         try { existing = await this.get(requestId) } catch (error) { if (!(error instanceof InputError && error.status === 404)) throw error }
         if (existing) {
           if (existing.roleId !== roleId || existing.roleVersion !== role.version) throw new InputError('此草稿已关联另一岗位版本，请打开已保存的需求记录继续',409)
-          this.authorize(existing)
+          this.role(existing.roleId, existing.roleVersion, existing.authorityAt)
           return existing
         }
       }
@@ -166,7 +184,7 @@ export class RequirementsService {
     })
   }
   async importDocument(id:string,revision:number,name:string,kind:'template'|'source',bytes:Buffer){return this.serialized(async()=>{
-    const task=await this.get(id);this.authorize(task)
+    const task=await this.get(id);this.authorize(task,kind==='template'?'importTemplate':'importSource')
     if(task.revision!==revision)throw new InputError('资料已变化，请刷新后重新导入',409)
     if(task.run?.status==='running')throw new InputError('请等待生成完成后再添加资料',409)
     const w=workspace(task),filename=text(name,'文件名称',240,true)
@@ -181,7 +199,7 @@ export class RequirementsService {
     if(kind==='template'){w.template=source;templateVersion(w,'原始模板');if(task.title==='新需求分析')task.title=filename.replace(/\.docx$/i,'').slice(0,120)}else w.sources.push(source)
     this.event(task,'material','载入'+(kind==='template'?'模板：':'参考资料：')+filename);return this.write(task,true)
   })}
-  async exportDocument(id:string,versionId?:string){const task=await this.get(id),w=workspace(task),version=versionId?w.versions.find(v=>v.id===versionId):undefined;if(versionId&&!version)throw new InputError('版本不存在',404);return renderTemplate(this.root,w,version)}
+  async exportDocument(id:string,versionId?:string){const task=await this.get(id);this.authorize(task,'edit');const w=workspace(task),version=versionId?w.versions.find(v=>v.id===versionId):undefined;if(versionId&&!version)throw new InputError('版本不存在',404);return renderTemplate(this.root,w,version)}
   async get(id: string): Promise<RequirementTask> {
     try {
       const task = JSON.parse(await readFile(this.path(id),'utf8')) as RequirementTask
@@ -272,12 +290,22 @@ export class RequirementsService {
       if(integer(revision)!==task.revision) throw new InputError('分析记录已更新，请刷新后核对再保存；当前输入请保留',409)
       let changed=true, launch=false
       switch(c.type) {
+        case 'template.knowledge': {
+          this.authorize(task, c.scope ? 'retrieve' : 'importSource')
+          if (c.scope) {
+            const scope = object(c.scope), collectionIds = array(scope.collectionIds, 20).map(v => text(v, '资料集', 240, true))
+            const status = await this.knowledge.status()
+            if (!status.available || !status.configured || !collectionIds.length || collectionIds.some(id => !status.collections.some(c => c.id === id))) throw new InputError('外部知识库尚未接入或所选资料集不可用', 409)
+            workspace(task).knowledge = { collectionIds: [...new Set(collectionIds)], product: str(scope.product, '产品范围', 240), project: str(scope.project, '项目范围', 240) }
+          } else delete workspace(task).knowledge
+          this.event(task, 'material', c.scope ? '更新本次知识库范围' : '改用本次上传资料'); break
+        }
         case 'template.save':case 'template.source':case 'template.review':case 'template.edit':case 'template.note':case 'template.version':case 'template.restore': {
-          this.authorize(task);editTemplate(task,c);this.event(task,'change','文档工作区：'+c.type);break
+          this.authorize(task,c.type==='template.source'?'importSource':['template.review','template.version','template.restore'].includes(c.type)?'review':'edit');editTemplate(task,c);this.event(task,'change','文档工作区：'+c.type);break
         }
         case 'template.run': {
           if(this.closed)throw new InputError('需求分析服务正在关闭',503)
-          this.authorize(task)
+          this.authorizeTemplateRun(task,c.action)
           if(task.run?.status==='running')throw new InputError('当前任务仍在处理，请等待或停止后再运行',409)
           if(!UUID.test(c.requestId))throw new InputError('运行标识无效')
           const instruction=text(c.instruction,'本次要求',20000,true),selected=this.modelRoute(c.model??task.settings.model)
@@ -500,7 +528,8 @@ export class RequirementsService {
     const runId=snapshot.run!.id
     try {
       if(snapshot.run?.templateAction){
-        const output=await runTemplate(snapshot,this.model,controller.signal)
+        this.authorizeTemplateRun(snapshot,snapshot.run.templateAction)
+        const output=await runTemplate(snapshot,this.model,controller.signal,this.knowledge)
         if(snapshot.run.templateAction!=='ask'){
           const candidate=structuredClone(output.workspace),proposal=candidate.proposals.at(-1)
           for(const group of proposal?.groups??[])for(const change of group.changes)candidate.values[change.id]=change.after
@@ -509,7 +538,7 @@ export class RequirementsService {
         }
         return await this.serialized(async()=>{
           const task=await this.get(snapshot.id);if(task.run?.id!==runId||task.run.status!=='running'||controller.signal.aborted)return
-          this.authorize(task)
+          this.authorizeTemplateRun(task,snapshot.run!.templateAction!)
           if(task.dataRevision!==snapshot.run!.baseRevision)throw new InputError('生成期间资料或文档已改变，保留你的修改，请重新生成',409)
           task.template=output.workspace;task.run.status='ready';task.run.finishedAt=now()
           task.messages.push({id:randomUUID(),role:'assistant',runId,text:output.summary,createdAt:now()})
@@ -545,7 +574,8 @@ export class RequirementsService {
       })
     }
   }
-  async componentActivities() { return Promise.all([...this.running.keys()].map(async id => { const task = await this.get(id); return { id, roleId: task.roleId, roleVersion: task.roleVersion, name: task.title, kind: 'requirements', status: 'running', componentIds: ['requirements-service'] } })) }
-  async stopComponents(ids: string[]) { if (!ids.includes('requirements-service')) return; await this.serialized(async () => { for (const [id, run] of this.running) { run.controller.abort(); const task = await this.get(id); if (task.run?.status === 'running') { task.run.status = 'stopped'; task.run.finishedAt = now(); this.event(task, 'analysis', '组件已全局停用，已停止接收本次分析结果'); await this.write(task) } }; this.running.clear() }) }
+  async componentActivities() { return Promise.all([...this.running.keys()].map(async id => { const task = await this.get(id); return { id, roleId: task.roleId, roleVersion: task.roleVersion, name: task.title, kind: 'requirements', status: 'running', componentIds: this.runComponents(task) } })) }
+  private runComponents(task: RequirementTask) { return task.run?.templateAction ? [...(task.run.templateAction === 'ask' ? ['requirement-questions'] : ['requirement-document','requirement-writing','requirement-review']), ...(task.template?.knowledge ? ['knowledge-retrieval'] : [])] : ['requirements-service'] }
+  async stopComponents(ids: string[]) { await this.serialized(async () => { for (const [id, run] of this.running) { const task = await this.get(id); if (!this.runComponents(task).some(c => ids.includes(c))) continue; run.controller.abort(); this.running.delete(id); if (task.run?.status === 'running') { task.run.status = 'stopped'; task.run.finishedAt = now(); this.event(task, 'analysis', '组件已全局停用，已停止接收本次分析结果'); await this.write(task) } } }) }
   async close() { this.closed=true;for(const run of this.running.values())run.controller.abort();await this.executions.drain();await this.tail;this.running.clear() }
 }

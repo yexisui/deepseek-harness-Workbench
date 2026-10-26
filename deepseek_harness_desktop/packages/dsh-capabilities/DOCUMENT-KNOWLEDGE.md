@@ -12,3 +12,8 @@
 文档服务通过现有认证的 `/api/capabilities/documents/knowledge` 读取状态；没有适配器时明确返回未配置、未验证。用户启用检索后，仅将问题发送给适配器，最多接收 8 个来源，并以 K1…K8 与文档 P1…Pn 分开引用。检索失败或无结果不伪装成已连接或已有依据。
 
 接入一个具体产品时，应为其协议补实现与真实联调，不能仅填地址就宣称支持该产品。
+
+
+## 2026年10月26日共享接口
+
+需求助手与智能文档现共用 `KnowledgeService`，新接入优先实现 `knowledgeProvider`，详见[共享提供方契约](KNOWLEDGE-PROVIDER.md)。旧 `documentKnowledge` 继续兼容智能文档；检索请求增加可选的服务端任务上下文。外部调用还需岗位允许 `search-knowledge` 动作，默认不自动授予。统一设置页读取 `/api/capabilities/knowledge/status`；旧文档状态地址保留。当前仍没有实际提供方，未宣称连接验证通过。

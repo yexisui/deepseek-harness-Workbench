@@ -29,13 +29,13 @@ describe('durable capability definitions', () => {
     const values = await Promise.allSettled([store.command(rev, { type: 'capability.pin', id: 'browser', pinned: false }), store.command(rev, { type: 'capability.toggle', id: 'browser', enabled: false })])
     expect(values.map(v => v.status)).toEqual(['fulfilled', 'rejected'])
     expect(store.snapshot().capabilities[0]!.enabled).toBe(true)
-    expect(store.snapshot().revision).toBe(1)
+    expect(store.snapshot().revision).toBe(rev + 1)
   })
   it('keeps unavailable drafts but rejects unadapted plugins, nested composition and expanded role overrides', async () => {
     const store = await setup(), base = store.snapshot().capabilities[0]!.draft
-    await store.command(0, { type: 'capability.save', definition: { ...base, components: [] }, publish: false })
-    await expect(store.command(1, { type: 'capability.save', definition: { ...base, components: [{ componentId: 'random-plugin', actions: ['read'] }] }, publish: false })).rejects.toThrow('尚未适配')
-    await expect(store.command(1, { type: 'role.save', definition: { ...emptyRole(), name: 'bad', capabilities: [{ capabilityId: 'browser', version: 1, enabled: true, actions: ['submit'] }] }, publish: true })).rejects.toThrow('缩小权限')
+    await store.command(store.snapshot().revision, { type: 'capability.save', definition: { ...base, components: [] }, publish: false })
+    await expect(store.command(store.snapshot().revision, { type: 'capability.save', definition: { ...base, components: [{ componentId: 'random-plugin', actions: ['read'] }] }, publish: false })).rejects.toThrow('尚未适配')
+    await expect(store.command(store.snapshot().revision, { type: 'role.save', definition: { ...emptyRole(), name: 'bad', capabilities: [{ capabilityId: 'browser', version: 1, enabled: true, actions: ['submit'] }] }, publish: true })).rejects.toThrow('缩小权限')
   })
   it('copies only a draft and never overwrites the original or silently adopts a new version', async () => {
     const store = await setup(), saved = await role(store)
@@ -56,8 +56,8 @@ describe('durable capability definitions', () => {
 describe('monotonic role authorization', () => {
   it('keeps unloaded historical sessions revoked after disable and re-enable while allowing a new conversation', async () => {
     const store = await setup(), result = await role(store), snapshot = result.state.roles.find(r => r.id === result.id)!.versions[0]!
-    await store.command(1, { type: 'capability.toggle', id: 'browser', enabled: false })
-    await store.command(2, { type: 'capability.toggle', id: 'browser', enabled: true })
+    await store.command(store.snapshot().revision, { type: 'capability.toggle', id: 'browser', enabled: false })
+    await store.command(store.snapshot().revision, { type: 'capability.toggle', id: 'browser', enabled: true })
     const revokedAt = store.snapshot().revokedAt!['capability:browser']!
     expect(wasRevoked(store.snapshot(), result.id, snapshot, revokedAt - 100)).toBe(true)
     expect(wasRevoked(store.snapshot(), result.id, snapshot, revokedAt + 100)).toBe(false)
@@ -65,8 +65,8 @@ describe('monotonic role authorization', () => {
   it('persists explicit stops and never restores permissions to old snapshots after a revoke and re-grant', async () => {
     const store = await setup(), result = await role(store), snapshot = result.state.roles.find(r => r.id === result.id)!.versions[0]!, base = result.state.capabilities[0]!.draft
     await store.revokeSession('qa-stopped')
-    await store.command(1, { type: 'capability.save', id: 'browser', definition: { ...base, components: [{ componentId: 'browserskill', actions: ['read'] }] }, publish: true })
-    await store.command(2, { type: 'capability.save', id: 'browser', definition: base, publish: true })
+    await store.command(store.snapshot().revision, { type: 'capability.save', id: 'browser', definition: { ...base, components: [{ componentId: 'browserskill', actions: ['read'] }] }, publish: true })
+    await store.command(store.snapshot().revision, { type: 'capability.save', id: 'browser', definition: base, publish: true })
     expect(allowedActions(store.snapshot(), result.id, snapshot)).toEqual(['read'])
     await store.close()
     const restored = new CapabilityStore(store.directory); await restored.init(); stores.push(restored)
@@ -76,9 +76,9 @@ describe('monotonic role authorization', () => {
   it('revokes existing sessions immediately and does not grant newly published actions to old roles', async () => {
     const store = await setup(), result = await role(store), old = result.state.roles.find(r => r.id === result.id)!.versions[0]!
     const base = result.state.capabilities[0]!.draft
-    await store.command(1, { type: 'capability.save', id: 'browser', definition: { ...base, components: [{ componentId: 'browserskill', actions: ['read'] }] }, publish: true })
+    await store.command(store.snapshot().revision, { type: 'capability.save', id: 'browser', definition: { ...base, components: [{ componentId: 'browserskill', actions: ['read'] }] }, publish: true })
     expect(allowedActions(store.snapshot(), result.id, old)).toEqual(['read'])
-    await store.command(2, { type: 'capability.toggle', id: 'browser', enabled: false })
+    await store.command(store.snapshot().revision, { type: 'capability.toggle', id: 'browser', enabled: false })
     expect(allowedActions(store.snapshot(), result.id, old)).toEqual([])
     expect(store.snapshot().roles.find(r => r.id === result.id)!.versions).toHaveLength(1)
   })

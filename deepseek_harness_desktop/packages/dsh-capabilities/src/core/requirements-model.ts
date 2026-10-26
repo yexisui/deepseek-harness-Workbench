@@ -56,7 +56,7 @@ export type RequirementTask = RequirementData & {
 }
 export type RequirementSummary = Pick<RequirementTask, 'id' | 'title' | 'mode' | 'updatedAt' | 'roleId' | 'roleVersion'> & { confirmed: number; total: number; openQuestions: number; running: boolean }
 export type RequirementDefaults = Pick<RequirementSettings, 'depth' | 'questionStyle' | 'model'>
-export type RequirementAvailability = { ready: boolean; message: string; modelConfigured: boolean; defaults: RequirementDefaults; revision: number; maxTextChars: number }
+export type RequirementAvailability = { operations?: import('./requirements-components.ts').RequirementAccess; ready: boolean; message: string; modelConfigured: boolean; defaults: RequirementDefaults; revision: number; maxTextChars: number }
 export type RequirementCommand = TemplateCommand
   | { type: 'sections.save'; sections: RequirementSection[]; baseDataRevision?: number }
   | { type: 'revision.restore'; id: string }

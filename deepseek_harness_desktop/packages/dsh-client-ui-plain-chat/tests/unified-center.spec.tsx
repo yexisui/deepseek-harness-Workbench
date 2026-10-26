@@ -63,7 +63,7 @@ it('opens the component library from the same center and restores the ability se
   await fill(host.querySelector<HTMLInputElement>('[aria-label="搜索能力"]')!, '开发')
    await click('组件库')
   expect(host.querySelector('h2')?.textContent).toBe('组件库')
-  expect(host.querySelectorAll('[role="listitem"]')).toHaveLength(6)
+  expect(host.querySelectorAll('[role="listitem"]')).toHaveLength(15)
   await click('← 返回能力中心')
   expect(host.querySelector<HTMLInputElement>('[aria-label="搜索能力"]')?.value).toBe('开发')
   expect(lastCapabilityLink()).toBeUndefined()

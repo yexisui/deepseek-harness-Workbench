@@ -53,8 +53,8 @@ it('keeps unknown states separate from missing configuration and retains project
 it('shows the published name and status separately from a missing-component draft',async()=>{
  const cap=data.state.capabilities[0]!;cap.draft={...cap.draft,name:'尚未发布的名称',components:[]};data.health.state='ready'
  await capabilityClient.refresh();await render();const row=host.querySelector('[data-managed-capability="browser"]')!
- expect(row.textContent).toContain('浏览器操作');expect(row.textContent).toContain('有未发布修改');expect(row.textContent).toContain('可使用');expect(row.textContent).not.toContain('尚未发布的名称')
- await input('尚未发布的名称');expect(rows()).toEqual(['browser']);await click('管理能力：浏览器操作');expect(host.textContent).toContain('当前展示已发布版本')
+ expect(row.textContent).toContain('浏览器操作');expect(row.textContent).toContain('有待保存修改');expect(row.textContent).toContain('可使用');expect(row.textContent).not.toContain('尚未发布的名称')
+ await input('尚未发布的名称');expect(rows()).toEqual(['browser']);await click('管理能力：浏览器操作');expect(host.textContent).toContain('有之前尚未生效的修改，进入编辑后点击保存即可应用。')
  expect(data.state.capabilities[0]!.draft.components).toEqual([])
 })
 it('maps old defaults links using service descriptors and opens old instructions links',async()=>{
@@ -76,7 +76,7 @@ it('restores list search and filters after a separate recycle search and detail 
 })
 it('labels draft-only role references without inventing a published role version',async()=>{
  const role=data.state.roles[0]!;role.versions=[];role.draft.capabilities=[{capabilityId:'browser',version:1,enabled:true}]
- await capabilityClient.refresh();await render('browser');await click('使用情况');expect(host.textContent).toContain('仅草稿关联');expect(host.textContent).not.toContain('已发布岗位 v1')
+ await capabilityClient.refresh();await render('browser');await click('使用情况');expect(host.textContent).toContain('待保存关联');expect(host.textContent).not.toContain('已发布岗位 v1')
 })
 it('applies lifecycle and component precedence before service health',()=>{
  const cap=structuredClone(data.state.capabilities[0]!);data.health.state='ready';cap.versions=[]

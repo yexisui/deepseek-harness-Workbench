@@ -1,10 +1,12 @@
+import { availableComponents } from '../../../dsh-capabilities/src/core/composition.ts'
 import { latest, type Capability, type Definition, type Snapshot, type Version } from '../../../dsh-capabilities/src/core/model.ts'
 import { issues } from '../../../dsh-capabilities/src/core/validation.ts'
 export type Availability = { ready?: boolean; state?: string; message?: string; error?: string } | null | undefined
 export type CapabilityStatusGroup = 'ready' | 'pending' | 'draft' | 'disabled' | 'unknown' | 'context'
 export function capabilityManagement(data: Snapshot, capability: Capability, editing?: Definition) {
   const parts = (editing ?? latest(capability.versions) ?? capability.draft).components
-  const kinds = parts.map(part => data.components.find(c => c.id === part.componentId)?.management)
+  const descriptors = parts.map(part => data.components.find(c => c.id === part.componentId)).filter(c => !c?.auxiliary)
+  const kinds = (descriptors.length ? descriptors : availableComponents(capability.id,data.components).filter(c=>!c.auxiliary)).map(c=>c?.management)
   return kinds.length && kinds.every(kind => kind && kind === kinds[0]) ? kinds[0] : undefined
 }
 export function capabilityHasUnpublishedChanges(capability: Capability) {
@@ -16,7 +18,7 @@ export function capabilityDisplayDefinition(capability: Capability): Definition 
 export function capabilityPresentation(data: Snapshot, capability: Capability, version: Version | undefined = latest(capability.versions), meeting?: Availability, requirements?: Availability) {
   const parts = version?.components ?? capability.draft.components
   const descriptors = parts.map(part => data.components.find(component => component.id === part.componentId))
-  const management = descriptors[0]?.management
+  const management = capabilityManagement(data,capability,version)
   const icon = descriptors[0]?.icon ?? 'document'
   const status = (label: string, message: string, group: CapabilityStatusGroup) => ({icon,label,message,group})
   if (capability.removedAt) return status('已移除','能力已移除，请在能力中心恢复。','disabled')
@@ -25,10 +27,10 @@ export function capabilityPresentation(data: Snapshot, capability: Capability, v
   if (!capability.enabled) return status('已停用','能力已停用，请在能力中心启用。','disabled')
   if (!version) return status('待保存','进入编辑后保存即可使用。','draft')
   if (!parts.length || descriptors.some(value => !value)) return status('组件待适配','部分组件尚未适配，请在组件中心检查。','pending')
-  if (parts.some(part => data.state.componentRestrictions?.[part.componentId]?.enabled === false)) return status('组件已停用','关联组件已全局停用，请在组件中心检查。','pending')
+  if (parts.some(part => data.state.componentRestrictions?.[part.componentId]?.enabled === false)) return parts.every(part=>data.state.componentRestrictions?.[part.componentId]?.enabled===false)?status('组件已停用','关联组件已全局停用，请在组件中心检查。','pending'):status('部分功能受限','部分组件已停用；各操作按所需组件执行，已有结果保留。','context')
   const problems = issues(version,capability.id,data.components)
   if (problems.length) return status('组件待完善',problems.join('；'),'pending')
-  if (descriptors.some(value => value?.management !== management)) return status('分项检测','此能力包含不同服务，请在组件中心分别检查。','unknown')
+  if (descriptors.some(value => !value?.auxiliary && value?.management !== management)) return status('分项检测','此能力包含不同服务，请在组件中心分别检查。','unknown')
   if (management === 'package') return packageStatus?.ready ? status('已启用',packageStatus.message,'ready') : status('待检测','正在读取执行组件状态','unknown')
   if (management === 'smart-document') return status('岗位内使用','在智能文档岗位中打开 Word；AI 连接沿用工作台模型，实际请求时验证。','context')
   if (management === 'file-search') return status('已启用','在设置中检测 Everything，并选择搜索归属岗位。','context')

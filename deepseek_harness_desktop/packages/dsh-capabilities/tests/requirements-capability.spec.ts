@@ -36,7 +36,7 @@ it('saves an incomplete requirement capability draft without changing execution;
   await store.command(state.revision, { type: 'capability.save', id: capabilityId, definition: missing, publish: false })
   state = store.snapshot()
   expect(allowedActions(state, roleId, latest(state.roles.find(r => r.id === roleId)!.versions)!)).toContain('analyze-requirements')
-  await expect(store.command(state.revision, { type: 'capability.save', id: capabilityId, definition: missing, publish: true })).rejects.toThrow('缺少必需组件')
+  await expect(store.command(state.revision, { type: 'capability.save', id: capabilityId, definition: missing, publish: true })).rejects.toThrow('尚未添加组件')
   await store.command(state.revision, { type: 'capability.save', id: capabilityId, definition: cap.draft, publish: true })
   expect(latest(store.snapshot().capabilities.find(c => c.id === capabilityId)!.versions)!.version).toBe(2)
 })
@@ -46,7 +46,7 @@ it('publishes custom requirements roles combined with other capabilities', async
   value.name = '自定义需求岗位'
   const created = await store.command(state.revision, { type: 'role.save', definition: value, publish: true })
   state = store.snapshot()
-  expect(allowedActions(state, created.id, latest(state.roles.find(r => r.id === created.id)!.versions)!)).toEqual(['analyze-requirements'])
+  expect(allowedActions(state, created.id, latest(state.roles.find(r => r.id === created.id)!.versions)!)).toEqual(['analyze-requirements','edit-requirement-document','write-requirement-document','ask-requirement-sources','review-requirement-document'])
   value.capabilities.push({ capabilityId: 'browser', version: 1, enabled: true })
   await store.command(state.revision, { type: 'role.save', id: created.id, definition: value, publish: false })
   await expect(store.command(store.snapshot().revision, { type: 'role.save', id: created.id, definition: value, publish: true })).resolves.toBeDefined()
