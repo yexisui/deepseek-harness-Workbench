@@ -14,6 +14,23 @@ it('defaults to collapsed, exposes failure outside, and preserves expansion over
  await act(async()=>{details.open=true;details.dispatchEvent(new Event('toggle'))});await act(async()=>root.render(<ExecutionProcessCard run={{...run,summary:'结果仍然保留'}} showInput/>));expect(details.open).toBe(true)
  await act(async()=>root.unmount());root=createRoot(host);await act(async()=>root.render(<ExecutionProcessCard run={run}/>));expect(host.querySelector('details')!.open).toBe(true);expect(host.querySelector('time')?.dateTime).toBe('2026-10-09T02:00:05.000Z')
 })
+it('automatically opens a running round, honors manual collapse while polling and closes on completion',async()=>{
+ setup();const active={...run,status:'running' as const,finishedAt:undefined};const render=(value:ExecutionRecord)=>root.render(<ExecutionProcessCard run={value} autoExpand/>)
+ await act(async()=>render(active));const details=host.querySelector('details')!;expect(details.open).toBe(true)
+ await act(async()=>{details.open=false;details.dispatchEvent(new Event('toggle'))});await act(async()=>render({...active,seq:2,summary:'新进度'}));expect(details.open).toBe(false)
+ await act(async()=>{details.open=true;details.dispatchEvent(new Event('toggle'))});await act(async()=>render({...run,status:'done'}));expect(details.open).toBe(false)
+ await act(async()=>{details.open=true;details.dispatchEvent(new Event('toggle'))});await act(async()=>render({...run,status:'done',seq:3}));expect(details.open).toBe(true)
+ await act(async()=>render({...active,id:'run-2'}));expect(details.open).toBe(true)
+})
+it.each(['failed','stopped','interrupted'] as const)('closes an automatic round on %s and can be reopened manually',async status=>{
+ setup();await act(async()=>root.render(<ExecutionProcessCard run={{...run,status:'running',finishedAt:undefined}} autoExpand/>));const details=host.querySelector('details')!;expect(details.open).toBe(true)
+ await act(async()=>root.render(<ExecutionProcessCard run={{...run,status}} autoExpand/>));expect(details.open).toBe(false);await act(async()=>{details.open=true;details.dispatchEvent(new Event('toggle'))});expect(details.open).toBe(true)
+})
+it('reopened finished rounds ignore an expansion saved during running, but retain a later manual choice',async()=>{
+ setup();const storage='execution-open-'+run.taskId+'-'+run.id+'-phase';sessionStorage.setItem(storage,JSON.stringify({phase:'running',open:true}))
+ await act(async()=>root.render(<ExecutionProcessCard run={{...run,status:'done'}} autoExpand/>));const details=host.querySelector('details')!;expect(details.open).toBe(false)
+ await act(async()=>{details.open=true;details.dispatchEvent(new Event('toggle'))});await act(async()=>root.unmount());root=createRoot(host);await act(async()=>root.render(<ExecutionProcessCard run={{...run,status:'done'}} autoExpand/>));expect(host.querySelector('details')!.open).toBe(true)
+})
 it('pages beyond fifty rounds with stable identities',async()=>{
  setup();const rows=Array.from({length:65},(_,i)=>({...run,id:'run-'+i,status:'done',input:'输入 '+i}))
  vi.stubGlobal('fetch',vi.fn(async(url:string)=>{const q=new URL(url,'http://fixture').searchParams,one=q.get('runId');if(one)return new Response(JSON.stringify(rows.find(r=>r.id===one)));const offset=Number(q.get('offset')??0),limit=Number(q.get('limit')??10);return new Response(JSON.stringify({items:rows.slice(offset,offset+limit).map(({events,...r})=>r),total:65,...(offset+limit<65?{nextOffset:offset+limit}:{})}))}))

@@ -11,6 +11,7 @@ import {PillCheckbox} from '../../../../shared/client/PillCheckbox.tsx'
 import {RoleAppearanceIcon} from './RoleAppearance.tsx'
 import {MessageTime} from './MessageTime.tsx'
 import {ExecutionProcessCard,useExecutionHistory} from './ExecutionProcess.tsx'
+import {useExecutionDisclosure} from './useExecutionDisclosure.ts'
 import {RequirementsTabBar,RequirementsModal} from './RequirementsUI.tsx'
 import {getRequirementTask,getRequirementConfig,createRequirementTask,commandRequirementTask,importRequirementDocument,exportRequirementDocument,summarizeRequirementTask,RequirementsApiError} from './requirements-client.ts'
 import type {RequirementsProps} from './RequirementsAssistant.tsx'
@@ -30,6 +31,9 @@ export function RequirementsWorkspace(props:RequirementsProps&{onLegacy:()=>void
  const can=(op:RequirementOperation)=>access?.[op].allowed??ready
  const fileTemplate=useRef<HTMLInputElement>(null),fileSources=useRef<HTMLInputElement>(null),documentScroll=useRef<HTMLDivElement>(null)
  const w=task?.template??emptyTemplateWorkspace(),running=task?.run?.status==='running',disabled=busy||loading,executionHistory=useExecutionHistory('requirements',task?.id,!!running)
+ const currentExecution=task?.run?executionHistory.runs.find(r=>r.id===task.run!.id):executionHistory.runs.at(-1)
+ const olderExecutions=executionHistory.runs.filter(r=>r.id!==currentExecution?.id).slice().reverse()
+ const processDisclosure=useExecutionDisclosure('requirement-process-'+(task?.id||key.current)+'-'+(task?.run?.id||currentExecution?.id||'none'),!!running)
  // Persisted tasks own their scope, including an intentional empty selection.
  const knowledge=task?w.knowledge:!props.taskId?defaultKnowledge:undefined
  const local=useRef<Draft>({});local.current={creationId:creationId.current,product,brief,intent,instruction,question,model,note,mode,edit}
@@ -66,7 +70,7 @@ export function RequirementsWorkspace(props:RequirementsProps&{onLegacy:()=>void
  const hasQuestionSources=activeSources.some(source=>source.enabled)||!!knowledge?.collectionIds.length
  const progress=<>
     {running&&<div className={s.running} role="status"><span>{task?.run?.templateAction==='ask'?'正在根据本次资料回答…':'AI正在处理，已保存内容保持。'}</span><button disabled={disabled} onClick={()=>void perform(()=>command({type:'run.stop'}))}>停止生成</button></div>}
-    {task&&executionHistory.runs.length>0&&<details className={s.execution}><summary>查看执行过程</summary>{executionHistory.runs.map(run=><ExecutionProcessCard key={run.id} run={run}/>)}</details>}
+    {task&&(running||executionHistory.runs.length>0||executionHistory.error)&&<details className={s.execution} aria-label="本轮执行过程" {...processDisclosure}><summary>查看执行过程 <span>{running?'执行中':task.run?.status==='ready'?'已完成':task.run?.status==='error'?'执行失败':task.run?.status==='stopped'?'已停止':'历史记录'}</span></summary><div className={s.executionBody}>{executionHistory.error&&<p role="status">{executionHistory.error}</p>}{currentExecution?<ExecutionProcessCard key={currentExecution.id} run={currentExecution} autoExpand/>:running?<p role="status">正在准备执行过程…</p>:null}{(olderExecutions.length>0||executionHistory.hasMore)&&<details className={s.olderExecutions}><summary>更早的执行记录</summary>{olderExecutions.map(run=><ExecutionProcessCard key={run.id} run={run}/>)}{executionHistory.hasMore&&<button onClick={executionHistory.more}>查看更早的执行过程</button>}</details>}</div></details>}
  </>
  return <div className={s.root} data-template-workspace="true" data-mode={mode} data-sources={sourcesOpen?'open':'closed'}>
   <header className={s.heading}><div className={s.identity}><RoleAppearanceIcon roleId={props.roleId} icon={props.assistant?.icon} color={props.assistant?.color??'#4F73E8'}/><div><strong>{props.assistant?.name||'需求分析助手'}</strong><small>{task?'已保存 · '+time(task.updatedAt):'选择模板，描述新产品，开始编写'}</small></div></div><div className={s.actions}><button onClick={()=>setHelp(true)}>使用说明</button><button disabled={!can('legacy')} title={access?.legacy.message} onClick={()=>{remember();props.onLegacy()}}>需求整理</button></div></header>
