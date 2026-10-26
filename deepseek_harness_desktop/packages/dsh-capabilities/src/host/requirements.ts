@@ -1,3 +1,4 @@
+import {syncRequirementQuestionRun} from '../core/requirement-question-history.ts'
 import type { KnowledgeAccess } from './knowledge-access.ts'
 import { KnowledgeService } from './knowledge.ts'
 import { requirementActions, requirementAccess, type RequirementOperation } from '../core/requirements-components.ts'
@@ -65,6 +66,7 @@ export class RequirementsService {
     try { await replaceFile(tmp, file) } catch (error) { await unlink(tmp).catch(() => {}); throw error }
   }
   private async write(task: RequirementTask, changed = false) {
+    syncRequirementQuestionRun(task)
     task.revision++; if (changed) task.dataRevision++
     task.updatedAt = now()
     if(changed && task.sections) task.document={markdown:requirementMarkdown(task),depth:task.settings.depth,selectedIds:activeRequirements(task).map(r=>r.id),dataRevision:task.dataRevision,createdAt:now()}
@@ -79,6 +81,7 @@ export class RequirementsService {
   async fork(id:string,target:string){return this.serialized(async()=>{
     const source=await this.get(id),row=forkIdentity(source,target),file=this.path(target),existing=await existingFork<RequirementTask>(file,id);if(existing)return existing
     if(row.run?.status==='running'){row.run.status='interrupted';row.run.finishedAt=now();row.run.error='分叉保留已保存内容，不继续原任务'}
+    syncRequirementQuestionRun(row)
     // The project directory is shared, but writing the source requirement ledger is not.
     if(row.project)row.project.ledger=false
     try{await this.executions.fork(id,target);await writeFork(file,row)}catch(e){await this.executions.remove(target);throw e}return row
@@ -318,8 +321,14 @@ export class RequirementsService {
           const instruction=text(c.instruction,'本次要求',20000,true),selected=this.modelRoute(c.model??task.settings.model)
           if(!selected)throw new InputError('请先在工作台配置或选择模型')
           validateTemplateRun(task,c.action,instruction)
+          syncRequirementQuestionRun(task)
           task.run={id:c.requestId,operation:c.action==='generate'?'document':c.action==='ask'?'analyze':'revise',templateAction:c.action,status:'running',startedAt:now(),model:selected,instruction,baseRevision:task.dataRevision}
-          task.messages.push({id:randomUUID(),role:'user',runId:c.requestId,text:instruction,createdAt:now()})
+          const message: import('../core/requirements-model.ts').RequirementMessage={id:randomUUID(),role:'user',runId:c.requestId,text:instruction,createdAt:task.run.startedAt}
+          if(c.action==='ask'){
+            const w=workspace(task),scope=w.knowledge,status=scope?await this.knowledge.status().catch(()=>undefined):undefined
+            message.questionRun={status:'running',sources:{libraries:(scope?.collectionIds??[]).map(id=>({id,name:status?.collections.find(c=>c.id===id)?.name??id})),files:[...(w.template?[w.template]:[]),...w.sources.filter(s=>s.enabled)].map(s=>s.name)}}
+          }
+          task.messages.push(message)
           this.event(task,'analysis',c.action==='ask'?'开始资料问答':'开始按模板编写文档');changed=false;launch=true;break
         }
         case 'sections.save': {

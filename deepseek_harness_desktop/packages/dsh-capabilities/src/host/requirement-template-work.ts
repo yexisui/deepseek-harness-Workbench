@@ -70,7 +70,7 @@ export async function runTemplate(task:RequirementTask,model:(prompt:string,mode
   if(prompt.length>180000)throw new InputError('问答资料过长，请减少本次引用范围')
   const result=parse(await model(prompt,run.model,signal));signal.throwIfAborted();const answer=text(result.answer,'回答',30000,true)
   const refs=citations(result.sources,sourceList)
-  w.answers.push({id:randomUUID(),question:run.instruction,answer,at:stamp(),sources:refs,evidence:external.evidence});return {workspace:w,summary:answer}
+  w.answers.push({id:randomUUID(),runId:run.id,question:run.instruction,answer,at:stamp(),sources:refs,evidence:external.evidence});return {workspace:w,summary:answer}
  }
  const template=w.template!,slots=template.slots.filter(p=>p.editable&&(p.text.trim()||p.image))
  if(!slots.length)throw new InputError('模板没有可自动编辑的正文')

@@ -6,7 +6,7 @@ export type TemplateChange = { id:string; before:string; after:string; sources?:
 export type TemplateGroup = { id:string; title:string; reason:string; changes:TemplateChange[]; status:'pending'|'accepted'|'rejected'|'reverted' }
 export type TemplateProposal = { evidence?:import('./knowledge.ts').KnowledgeEvidence[]; id:string; instruction:string; summary:string; questions:string[]; groups:TemplateGroup[]; createdAt:string }
 export type TemplateVersion = { evidenceGroups?:{proposalId:string;groupId:string}[]; id:string; number:number; label:string; at:string; values:Record<string,string>; note:string }
-export type TemplateAnswer = { evidence?:import('./knowledge.ts').KnowledgeEvidence[]; id:string; question:string; answer:string; at:string; sources:{sourceId:string; blockId:string; name:string; quote:string}[] }
+export type TemplateAnswer = { runId?:string; evidence?:import('./knowledge.ts').KnowledgeEvidence[]; id:string; question:string; answer:string; at:string; sources:{sourceId:string; blockId:string; name:string; quote:string}[] }
 export type TemplateWorkspace = { knowledge?:import('./knowledge.ts').KnowledgeScope;
   product:string; brief:string; intent:'new-product'|'revise'; template?:TemplateSource; sources:TemplateSource[]
   values:Record<string,string>; note:string; proposals:TemplateProposal[]; versions:TemplateVersion[]; answers:TemplateAnswer[]

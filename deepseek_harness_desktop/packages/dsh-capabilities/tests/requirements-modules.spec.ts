@@ -1,3 +1,4 @@
+import {requirementQuestionHistory} from '../src/core/requirement-question-history.ts'
 import { afterEach, expect, it } from 'vitest'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -53,7 +54,7 @@ it('previews the selected role scope without creating tasks and uses the same sn
  const task=await e.service.create({roleId:REQUIREMENTS_ROLE_ID,roleVersion:1,workflow:'template'});expect(task.template?.knowledge).toEqual(binding.knowledgeScope)
  await command(e,task,{type:'template.run',action:'ask',instruction:'支持离线吗',requestId:randomUUID()});e.task=task;const answer=await finished(e);expect(answer.run?.status,answer.run?.error).toBe('ready');expect(answer.template?.answers[0].answer).toContain('离线盘点')
  delete role.versions[1].capabilities.find(b=>b.capabilityId==='external-knowledge')!.knowledgeScope
- expect(e.service.availability(REQUIREMENTS_ROLE_ID,undefined,1).knowledgeScope).toBeUndefined();expect(e.service.availability(REQUIREMENTS_ROLE_ID,undefined,1).operations?.retrieve.allowed).toBe(false)
+ expect(e.service.availability(REQUIREMENTS_ROLE_ID,undefined,1).knowledgeScope?.collectionIds).toEqual(['b']);expect(e.service.availability(REQUIREMENTS_ROLE_ID,undefined,1).operations?.retrieve.allowed).toBe(true)
 })
 it('does not preview revoked knowledge grants or repopulate an intentionally cleared task scope',async()=>{
  const e=await setup({external:provider(),template:false}),role=e.state.roles.find(r=>r.id===REQUIREMENTS_ROLE_ID)!
@@ -62,4 +63,25 @@ it('does not preview revoked knowledge grants or repopulate an intentionally cle
  expect(e.service.availability(t.roleId,t).knowledgeScope).toBeUndefined();expect((await e.service.get(t.id)).template?.knowledge).toBeUndefined()
  e.state.capabilities.find(c=>c.id==='external-knowledge')!.enabled=false
  expect(e.service.availability(REQUIREMENTS_ROLE_ID).knowledgeScope).toBeUndefined();expect(e.service.availability(REQUIREMENTS_ROLE_ID).operations?.retrieve.allowed).toBe(false)
+})
+
+it('answers with both task libraries outside the role default and retains failed and successful questions across reopen',async()=>{
+ const requests:KnowledgeRequest[]=[],p=provider(requests),originalStatus=p.status
+ p.status=async()=>({...await originalStatus(),collections:[{id:'b',name:'产品B资料'},{id:'word',name:'Word报告测试'}]})
+ let fail=true
+ const e=await setup({external:p,template:false,model:async prompt=>{if(fail)throw Error('测试模型暂未响应');const v=JSON.parse(prompt.slice(prompt.indexOf('\n')+1)),source=v.sources[0];return JSON.stringify({answer:'产品B支持离线盘点。',sources:[{sourceId:source.id,blockId:source.blocks[0].id,quote:'产品B支持离线盘点。'}]})}})
+ e.state.roles.find(r=>r.id===REQUIREMENTS_ROLE_ID)!.versions[0].capabilities.find(b=>b.capabilityId==='external-knowledge')!.knowledgeScope={collectionIds:['b']}
+ let t=await command(e,e.task,{type:'template.knowledge',scope:{collectionIds:['word','b']}}),first=randomUUID()
+ await command(e,t,{type:'template.run',action:'ask',instruction:'第一次提问',requestId:first});t=await finished(e)
+ expect(t.run?.status).toBe('error');expect(t.run?.error).toBe('测试模型暂未响应');expect(requirementQuestionHistory(t)).toMatchObject([{id:first,question:'第一次提问',status:'error',sources:{libraries:[{id:'word',name:'Word报告测试'},{id:'b',name:'产品B资料'}]}}])
+ fail=false;const second=randomUUID();await command(e,t,{type:'template.run',action:'ask',instruction:'第二次提问',requestId:second});t=await finished(e)
+ expect(t.run?.status,t.run?.error).toBe('ready');expect(t.template?.answers[0].runId).toBe(second);expect(requests.map(r=>r.scope?.collectionIds)).toEqual([['word','b'],['word','b']])
+ t=await command(e,t,{type:'template.knowledge',scope:{collectionIds:['b']}})
+ const rows=requirementQuestionHistory(t);expect(rows).toHaveLength(2);expect(rows.map(r=>r.status)).toEqual(['ready','error']);expect(rows[0].sources?.libraries).toHaveLength(2)
+ const reopened=new RequirementsService(e.root,async()=>'',()=>e.state);services.push(reopened);await reopened.init();expect(requirementQuestionHistory(await reopened.get(t.id))).toEqual(rows)
+})
+it('keeps a stopped question and original references in history without an invented answer',async()=>{
+ let release!:(value:string)=>void;const e=await setup({external:provider(),template:false,model:async()=>new Promise<string>(resolve=>release=resolve)});let t=await command(e,e.task,{type:'template.knowledge',scope:{collectionIds:['b']}})
+ t=await command(e,t,{type:'template.run',action:'ask',instruction:'正在处理的问题',requestId:randomUUID()});for(let i=0;i<100&&!release;i++)await new Promise(r=>setTimeout(r,10));t=await command(e,t,{type:'run.stop'});release?.(JSON.stringify({answer:'停止后返回的答案',sources:[]}))
+ expect(requirementQuestionHistory(t)).toMatchObject([{question:'正在处理的问题',status:'stopped',sources:{libraries:[{id:'b',name:'产品B资料'}]}}]);expect(requirementQuestionHistory(t)[0].answer).toBeUndefined()
 })

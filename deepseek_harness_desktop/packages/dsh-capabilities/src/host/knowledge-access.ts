@@ -21,7 +21,6 @@ export class KnowledgeAccess {
   assert(context:KnowledgeContext){
     const s=this.state(),v=this.version(context),binding=v.capabilities.find(b=>b.capabilityId===KNOWLEDGE_CAPABILITY_ID)
     if(!this.moduleEnabled(false)||!binding||!allowedActions(s,context.roleId,v).includes('search-knowledge')||wasRevoked(s,context.roleId,{...v,capabilities:[binding]},context.authorityAt??Date.parse(v.createdAt)))throw new InputError('此岗位的外部知识库授权已停用或撤销',403)
-    if(binding.knowledgeScope){const versions=s.roles.find(r=>r.id===context.roleId)!.versions.filter(next=>next.version>v.version);if(versions.some(next=>{const b=next.capabilities.find(b=>b.capabilityId===KNOWLEDGE_CAPABILITY_ID);return !b?.enabled||binding.knowledgeScope!.collectionIds.some(id=>!b.knowledgeScope?.collectionIds.includes(id))}))throw new InputError('此对话的知识库范围曾被解除，请使用当前岗位配置新建对话',403)}
   }
   scope(context:KnowledgeContext){return this.version(context).capabilities.find(b=>b.capabilityId===KNOWLEDGE_CAPABILITY_ID)?.knowledgeScope}
   enabled(context:KnowledgeContext){try{this.assert(context);return true}catch{return false}}
@@ -36,14 +35,14 @@ export class KnowledgeAccess {
   async search(request:KnowledgeRequest,signal:AbortSignal):Promise<{sources:KnowledgeEvidence[]}>{
     const context=request.context;if(!context)throw new InputError('检索缺少服务端任务上下文',403)
     this.assert(context)
-    const ceiling=this.scope(context),scope=request.scope?parseKnowledgeScope(request.scope):ceiling
+    // A role scope is a default selection, not a ceiling for explicit task references.
+    const scope=request.scope?parseKnowledgeScope(request.scope):this.scope(context)
     const controller=new AbortController(),id=randomUUID(),combined=AbortSignal.any([signal,controller.signal,AbortSignal.timeout(60_000)])
     this.active.set(id,{context,controller})
     try{
     const status=await this.service.status(AbortSignal.any([combined,AbortSignal.timeout(8_000)]))
     if(!scope&&status.providerId!=='legacy-document')throw new InputError('请在岗位外部知识库设置或本次任务中选择资料范围',409)
     if(scope?.providerId&&scope.providerId!==status.providerId)throw new InputError('知识库提供方已改变，请重新选择资料范围',409)
-    if(ceiling&&(!scope||scope.collectionIds.some(id=>!ceiling.collectionIds.includes(id))||(ceiling.product&&scope.product!==ceiling.product)||(ceiling.project&&scope.project!==ceiling.project)||(ceiling.providerId&&status.providerId!==ceiling.providerId)))throw new InputError('本次资料范围超出岗位设置',403)
       const result=await this.service.search({...request,scope},combined);combined.throwIfAborted();this.assert(context)
       await this.save({id,taskId:context.taskId,roleId:context.roleId,roleVersion:context.roleVersion,query:request.query,scope,sources:result.sources,createdAt:new Date().toISOString()})
       combined.throwIfAborted();this.assert(context);return result
