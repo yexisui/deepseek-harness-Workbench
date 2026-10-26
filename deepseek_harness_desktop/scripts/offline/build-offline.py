@@ -31,7 +31,7 @@ capability_files=release_files(source/'shared-settings/files/capabilities/state.
 out.mkdir(parents=True,exist_ok=True)
 if any(out.iterdir()): raise SystemExit('Output must be empty; refusing to overwrite a release')
 offline=out/'offline';offline.mkdir()
-release='2026.10.23-r14-win-x64'
+release='2026.10.26-r15-win-x64'
 files=[]; seen=set()
 def digest(f):
     h=hashlib.sha256()
@@ -45,7 +45,7 @@ def walk(src,rel):
     if not (resolved.is_relative_to(donor) or resolved.is_relative_to(source)):raise RuntimeError('External link: '+str(src))
     if src.is_dir():
         for child in sorted(src.iterdir()):
-            if child.name in {'.cache','.pnpm','.modules.yaml','.package-lock.json','.pnpm-workspace-state-v1.json'}:continue
+            if child.name in {'__pycache__','.cache','.pnpm','.modules.yaml','.package-lock.json','.pnpm-workspace-state-v1.json'}:continue
             yield from walk(child,rel+'/'+child.name)
     else:yield src,rel
 trees=[
@@ -63,7 +63,7 @@ for tool in json.loads((source/'external-tools/tools.json').read_text('utf-8-sig
     if tool['id'] == 'ffmpeg':continue
     toolroot=source/'external-tools'/tool['id']
     trees.extend([(toolroot/'releases','external-tools/'+tool['id']+'/releases'),(toolroot/'current.json','external-tools/'+tool['id']+'/current.json')])
-for name in ['install.ps1','search-service.ps1','everything-LICENSE.txt','es-LICENSE.txt','opencode-LICENSE.txt']:
+for name in ['install.ps1','search-service.ps1','everything-LICENSE.txt','es-LICENSE.txt','opencode-LICENSE.txt','install-milvus.ps1','milvus-lock.json','milvus-worker.py']:
     trees.append((source/'external-tools'/name,'external-tools/'+name))
 # Legacy portable BrowserSkill is already maintained separately from the npm plugin.
 bsk=donor/'runtime/browserskill/0.3.0'
@@ -124,6 +124,7 @@ readme='''Windows x64 离线安装包
 
 包内不包含 API Key、聊天记录或原电脑的个人设置。第一次使用请配置模型。
 离线安装不代表在线模型/搜索能离线工作；内网应配置可访问的服务。
+已包含Milvus Lite、便携Python与存储依赖；不包含本地Embedding模型。知识库建库和语义检索使用用户配置的外部Embedding API。
 浏览器插件不自动安装。可选包为offline/capability-packages/BrowserSkill-0.3.0-offline.zip。
 需要时关闭工作台，将该ZIP解压到工作台根目录；再在Chrome/Edge扩展管理中启用开发者模式，加载runtime/browserskill/0.3.0/extension。它不是能力导入ZIP。
 共享能力记录引用的发布文件已包含在安装与修复清单中（含历史版本）；安装后保留原能力标识与岗位关联。

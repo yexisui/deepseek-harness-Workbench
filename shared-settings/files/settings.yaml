@@ -3,8 +3,8 @@ ui-onboarding:
 pet:
   visible: true
   size: 160
-  right: 411
-  bottom: 779
+  right: 14
+  bottom: 0
   petId: ouo-neko
   enabled: true
 ui-theme:
@@ -14,7 +14,7 @@ skin-custom-theme:
 agent-default-model:
   provider: deepseek-official
   model: deepseek-flash
-  reasoningEffort: high
+  reasoningEffort: low
 ui-chat:
   transcriptView: normal
 agent-presets:
@@ -35,3 +35,11 @@ llm-pi-ai:
       models:
         - id: FunAudioLLM/SenseVoiceSmall
           name: SenseVoice 语音识别
+    siliconflow-embedding:
+      displayName: Qwen/Qwen3-VL-Embedding-8B
+      apiKeyEnv: SILICONFLOW_EMBEDDING_API_KEY
+      api: openai-completions
+      baseURL: https://api.siliconflow.cn/v1
+      models:
+        - id: Qwen/Qwen3-VL-Embedding-8B
+          name: Qwen/Qwen3-VL-Embedding-8B

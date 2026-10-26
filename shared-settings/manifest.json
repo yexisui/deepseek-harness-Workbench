@@ -14,12 +14,12 @@
     {
       "path": "capabilities/state.json",
       "format": "structured",
-      "sha256": "603a84a71b250be183774b2f177c602d22658a280b71f1c9f1a6b6df7711a13b"
+      "sha256": "0a6568de91da47dcc826864dd764346f56c503e8ed2f8daedb1a9a017d1eff39"
     },
     {
       "path": "pet.json",
       "format": "structured",
-      "sha256": "eef18598d6ac13113d6b709152e889d0fe2ea4d5068ab5ebf4aa4ebd2e965b46"
+      "sha256": "d99d38b7896352b00a2f4d08f7f3b6c26ef70852f0686b304291ad1b6d4f3f23"
     },
     {
       "path": "plugin-management/classification.json",
@@ -34,12 +34,12 @@
     {
       "path": "settings.yaml",
       "format": "structured",
-      "sha256": "2084a2ef0d839fd386d5b7f4398ed6891dc8e2a16d2f56214fbed2dec0d4b301"
+      "sha256": "c16178e85da67bf4c7f1c29ce0197f92448d251d17fb79f1b08f0ad8850d0daa"
     },
     {
       "path": "skill-management/state.json",
       "format": "structured",
-      "sha256": "4a0db615f7996538e00283cf464ac50d28c6314298d08d389729f043cf020640"
+      "sha256": "9eb7db72a4c1643e300507d7896edd91510cbab20e08d3a34fc34e8f2113655e"
     },
     {
       "path": "skill-management/versions/0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522/SKILL.md",

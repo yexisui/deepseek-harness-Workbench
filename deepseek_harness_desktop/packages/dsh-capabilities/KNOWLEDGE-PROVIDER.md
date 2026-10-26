@@ -104,3 +104,23 @@ POST `<baseUrl>/v1/search` 请求：
 只使用工作台现有Node运行环境，不安装依赖或下载模型。默认监听127.0.0.1:18766，拒绝带Origin的浏览器直连。工作台宿主通过HTTP请求，示例不对外网开放。修改资料后重启服务重建索引。启动方式：`node server.mjs <知识库根目录> [端口]`；根目录需有资料目录.json及所引用资料。
 
 本机示例、启动脚本、使用说明和真实问答结果位于用户指定的 `test/需求分析助手/蟹黄堡知识库/`，不作为工作台运行必需目录，不加入源码Git。
+
+## 文档建库与 Milvus（V0.6，2026-10-26）
+
+入口仍为能力中心的独立外部知识库。默认流程：新建知识库、选用已有外部Embedding模型、添加MD/TXT/DOCX/含文本PDF或目录、自动索引、检索试用、关联助手。高级分段参数折叠；本地建库不填写数据库地址。管理模型往返在当前页面会话中保留表单及文件选择，不保存密钥或草稿到磁盘。
+
+`KnowledgeLibraries` 聚合本地和已有Milvus及原HTTP服务；所有助手继续经过 `KnowledgeService/KnowledgeAccess`，不直接连接数据库。稳定库ID与原HTTP提供方映射防止连接更换后复用旧范围。未启用模块时禁止新的建库操作，并取消正在索引的任务。解除岗位的库关联会撤销旧任务对应引用权限，新授权不会扩大旧任务范围。
+
+`WorkbenchEmbeddings` 读取既有模型设置及服务端凭据，首期支持OpenAI兼容 `/embeddings` 文本请求、float数组、批量16条、有限限流重试和取消。模型空间指纹包括提供方/模型/API端点/编码及输入模式，Key更换不要求重建。远端集合维度相同仍须用户选择原模型；无法自动证明不同模型相容。
+
+`MilvusEngine` 通过 external-tools 当前便携Python启动 milvus-worker.py。程序不包含在功能包中；本地库路径为 `dsh-data/capabilities/knowledge/vectors.db`。Windows中文路径通过FAISS序列化适配，已验证索引保存、进程退出后重新检索。
+
+索引按文档分批，内容哈希和模型指纹复用向量化缓存；显式更新才重新扫描目录。取消/中断后可点击更新继续。更新失败保留旧可检索版本，更换模型的完整重建成功后再切换。移除文档立即从可检索版本排除，原目录及历史证据保留。所有管理变更通过宿主认证与来源检查，多窗口写操作串行；无需公开另一个管理端口。
+
+管理API在 `/api/capabilities/knowledge/libraries` 下，GET读取库和可用模型，PUT `/upload` 导入文件，其余POST包括create/edit/directory/build/cancel/remove-document/remove、embedding-check、remote-check/remote-create及export。凭据只存在服务端 `knowledge-milvus` secret设置；普通响应和导出不含密钥。
+
+已有向量资料包支持工作台JSON，或JSON/Parquet中的 `modelRef` 与 `vector/text/source/locator` 行；向量必须保留原模型和正文出处，导入时仅用短文本验证模型维度，不重新向量化文档。最多40 MB、10000片段，原生Milvus备份/.db需先按其版本恢复到服务再接入。
+
+已有Milvus服务按地址、凭据、database、collection及向量/正文/来源字段映射接入；默认只读，支持FLOAT_VECTOR以及COSINE/IP/L2。外部服务尚需在实际生产环境联调。HTTP检索服务保持原协议，移到折叠区域，不需要工作台额外Embedding。文档模板仍由原DOCX引擎保存格式，知识库负责内容与出处。
+
+真实蟹黄堡资料验证包括6份文档、22片段、4096维外部Embedding、语义检索、中文路径持久化重开和向量包往返。原TF-IDF例子保留为历史示例，不能混同真实语义索引。

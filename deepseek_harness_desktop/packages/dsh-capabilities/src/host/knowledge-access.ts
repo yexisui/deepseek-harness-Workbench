@@ -16,11 +16,12 @@ export class KnowledgeAccess {
   private tail:Promise<unknown>=Promise.resolve()
   constructor(private root:string,private state:()=>State,private service:KnowledgeService){}
   async status(){const value=await this.service.status();const enabled=this.moduleEnabled();return {...value,moduleEnabled:enabled,...(!enabled?{message:'外部知识库模块或检索组件已停用'}:{})}}
-  private moduleEnabled(current=true){const s=this.state(),cap=s.capabilities.find(c=>c.id===KNOWLEDGE_CAPABILITY_ID);return !!cap?.enabled&&!cap.removedAt&&s.componentRestrictions?.['knowledge-retrieval']?.enabled!==false&&(!current||!!cap.versions.at(-1)?.components.some(p=>p.componentId==='knowledge-retrieval'&&p.actions.includes('search-knowledge')))}
+  moduleEnabled(current=true){const s=this.state(),cap=s.capabilities.find(c=>c.id===KNOWLEDGE_CAPABILITY_ID);return !!cap?.enabled&&!cap.removedAt&&s.componentRestrictions?.['knowledge-retrieval']?.enabled!==false&&(!current||!!cap.versions.at(-1)?.components.some(p=>p.componentId==='knowledge-retrieval'&&p.actions.includes('search-knowledge')))}
   private version(context:KnowledgeContext){const role=this.state().roles.find(r=>r.id===context.roleId);if(!role||role.removedAt||role.archivedAt)throw new InputError('岗位不可用',403);const version=role.versions.find(v=>v.version===context.roleVersion);if(!version)throw new InputError('岗位配置不存在',403);return version}
   assert(context:KnowledgeContext){
     const s=this.state(),v=this.version(context),binding=v.capabilities.find(b=>b.capabilityId===KNOWLEDGE_CAPABILITY_ID)
     if(!this.moduleEnabled(false)||!binding||!allowedActions(s,context.roleId,v).includes('search-knowledge')||wasRevoked(s,context.roleId,{...v,capabilities:[binding]},context.authorityAt??Date.parse(v.createdAt)))throw new InputError('此岗位的外部知识库授权已停用或撤销',403)
+    if(binding.knowledgeScope){const versions=s.roles.find(r=>r.id===context.roleId)!.versions.filter(next=>next.version>v.version);if(versions.some(next=>{const b=next.capabilities.find(b=>b.capabilityId===KNOWLEDGE_CAPABILITY_ID);return !b?.enabled||binding.knowledgeScope!.collectionIds.some(id=>!b.knowledgeScope?.collectionIds.includes(id))}))throw new InputError('此对话的知识库范围曾被解除，请使用当前岗位配置新建对话',403)}
   }
   scope(context:KnowledgeContext){return this.version(context).capabilities.find(b=>b.capabilityId===KNOWLEDGE_CAPABILITY_ID)?.knowledgeScope}
   enabled(context:KnowledgeContext){try{this.assert(context);return true}catch{return false}}

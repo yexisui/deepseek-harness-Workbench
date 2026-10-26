@@ -65,6 +65,7 @@ export type Command =
   | { type: 'capability.restoreMany'; ids: string[] }
   | { type: 'capability.purge'; ids: string[] }
   | { type: 'role.skills'; skillId:string; roleIds:string[] }
+  | { type: 'role.knowledge'; libraryId:string; providerId:string; roleIds:string[] }
   | { type: 'role.save'; id?: string; definition: RoleDefinition; publish: boolean; directSave?: boolean }
   | { type: 'role.archive' | 'role.restore' | 'role.remove'; id: string }
   | { type: 'role.copy'; id: string }

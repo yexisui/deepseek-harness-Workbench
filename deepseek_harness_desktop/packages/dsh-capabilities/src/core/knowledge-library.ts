@@ -1,0 +1,4 @@
+export type LibraryDocument={id:string;name:string;hash:string;status:'pending'|'ready'|'failed';error?:string;chunks:number;revision?:string;activeHash?:string;folder?:string}
+export type LibraryJob={state:'running'|'done'|'failed'|'cancelled'|'interrupted';total:number;completed:number;message:string;startedAt:string}
+export type Library={id:string;name:string;kind:'local'|'milvus';modelRef:string;activeModel?:string;fingerprint?:string;dimension?:number;collection?:string;documents:LibraryDocument[];directories:string[];chunkSize:number;overlap:number;createdAt:string;updatedAt:string;job?:LibraryJob;remote?:{collection:string;vector:string;text:string;source:string;metric:string};error?:string}
+export type RemoteConnection={id:string;uri:string;token:string;database:string}

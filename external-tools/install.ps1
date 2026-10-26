@@ -8,6 +8,7 @@ $manifest = Get-Content -LiteralPath (Join-Path $root 'tools.json') -Raw -Encodi
 foreach ($entry in $manifest.tools) {
     $tool = $entry
     if ($PSBoundParameters.ContainsKey('Only') -and $tool.id -notin $PSBoundParameters['Only']) { continue }
+    if ($tool.runtimeManifest) { & (Join-Path $root 'install-milvus.ps1') -Check:$Check; continue }
     $toolRoot = Join-Path $root $tool.id
     $release = Join-Path $toolRoot ('releases\' + $tool.directory)
     $ready = $true

@@ -57,6 +57,16 @@
       "executables": {
         "opencode": "opencode.exe"
       }
+    },
+    {
+      "id": "milvus",
+      "version": "3.2.2",
+      "directory": "milvus-3.2.2-python-3.12.10-win-x64",
+      "runtimeManifest": "milvus-lock.json",
+      "license": "Apache-2.0; bundled dependencies retain their dist-info licenses; Python PSF license",
+      "executables": {
+        "python": "python.exe"
+      }
     }
   ]
 }

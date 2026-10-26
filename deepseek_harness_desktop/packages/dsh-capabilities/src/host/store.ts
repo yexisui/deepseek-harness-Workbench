@@ -322,6 +322,24 @@ export class CapabilityStore {
           saveRoleSettings(role, current ? { ...current, skills: update(current.skills ?? []) } : role.draft, now)
         }
         target=row.id;
+      } else if (command.type === 'role.knowledge') {
+        const libraryId=text(command.libraryId,'知识库',240,true),providerId=text(command.providerId,'提供方',240,true),cap=next.capabilities.find(c=>c.id==='external-knowledge'&&!c.removedAt),version=cap&&latest(cap.versions)
+        if(!version)throw new InputError('请先恢复外部知识库能力')
+        if(!Array.isArray(command.roleIds)||command.roleIds.some(id=>typeof id!=='string'||!next.roles.some(r=>r.id===id&&!r.archivedAt&&!r.removedAt)))throw new InputError('岗位已改变，请刷新后重试')
+        const selected=new Set(command.roleIds)
+        for(const role of next.roles.filter(r=>!r.archivedAt&&!r.removedAt)){
+          const update=(bindings:RoleDefinition['capabilities'])=>{
+            const old=bindings.find(b=>b.capabilityId==='external-knowledge'),scope=old?.knowledgeScope,include=selected.has(role.id)
+            if(include&&scope&&(scope.providerId&&scope.providerId!==providerId||scope.product||scope.project))throw new InputError('此岗位已有其他提供方或产品范围，请到岗位编辑中选择知识库，原范围保持')
+            const ids=(scope?.collectionIds||[]).filter(v=>v!==libraryId);if(include)ids.push(libraryId)
+            if(!include&&!scope?.collectionIds.includes(libraryId))return bindings
+            const others=bindings.filter(b=>b!==old)
+            return ids.length?[...others,{...(old||{capabilityId:'external-knowledge',version:version.version,enabled:true}),enabled:include?true:old!.enabled,knowledgeScope:{...scope,providerId,collectionIds:ids}}]:others
+          }
+          const current=latest(role.versions);role.draft.capabilities=update(role.draft.capabilities)
+          if(current)saveRoleSettings(role,{...current,capabilities:update(current.capabilities)},now)
+        }
+        target=libraryId
       } else if (command.type === 'role.save') {
         const directSave = command.directSave === undefined ? false : bool(command.directSave)
         const value = roleDefinition(command.definition, next), publish = directSave || bool(command.publish)

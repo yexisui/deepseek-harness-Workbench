@@ -1,5 +1,5 @@
 {
-  "revision": 18,
+  "revision": 21,
   "skills": [
     {
       "id": "e5163661-906f-4075-976d-159db1281ad4",
@@ -15,7 +15,8 @@
       "warnings": [],
       "updatedAt": "2026-10-07T04:25:45.638Z",
       "tags": [],
-      "usage": "all"
+      "usage": "all",
+      "pinned": true
     },
     {
       "id": "96518f70-e180-421d-a62b-c3a849d21ee9",
@@ -42,7 +43,8 @@
       ],
       "hashes": [
         "0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522"
-      ]
+      ],
+      "pinned": true
     },
     {
       "id": "6683e8a6-b1b7-425f-a98b-ce08e43a8eb4",
@@ -67,7 +69,8 @@
       ],
       "hashes": [
         "bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a"
-      ]
+      ],
+      "pinned": true
     },
     {
       "id": "91356269-7957-486a-89ba-56ed961c2b6b",

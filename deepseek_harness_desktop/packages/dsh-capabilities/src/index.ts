@@ -44,6 +44,11 @@ import { fence, json, readBody } from './host/http.ts'
 import { MeetingService, config as resolveAsrConfig, type MeetingAsrConfig, type MeetingSegment } from './host/meeting.ts'
 
 import {KnowledgeConnection, KNOWLEDGE_NAMESPACE, emptyConnection, type KnowledgeConnectionConfig} from './host/knowledge-http.ts'
+import {MilvusEngine} from './host/knowledge-milvus.ts'
+import {WorkbenchEmbeddings} from './host/knowledge-embedding.ts'
+import {KnowledgeLibraries} from './host/knowledge-libraries.ts'
+import {libraryRoutes} from './host/knowledge-library-routes.ts'
+import type {RemoteConnection} from './core/knowledge-library.ts'
 
 const KnowledgeSchema: z<KnowledgeConnectionConfig> = z.object({name: z.string(), baseUrl: z.string(), apiKey: z.string().role('secret')})
 
@@ -68,10 +73,20 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
     knowledgeSettings.installSection(ctx, KNOWLEDGE_NAMESPACE, KnowledgeSchema, emptyConnection, {setSource: source => {currentKnowledge = source}, onChange: () => {}})
   })
   const connection = new KnowledgeConnection(() => knowledgeSettings, () => currentKnowledge())
-  const provider = new KnowledgeService(() => connection.provider() ?? optionalService('knowledgeProvider') as import('./core/knowledge.ts').KnowledgeProvider | undefined, () => optionalService('documentKnowledge') as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter | undefined)
+  let currentMilvus=():{connections:RemoteConnection[]}=>({connections:[]})
+  ctx.inject(['settings'],active=>{
+    active.settings.installSection(ctx,'knowledge-milvus',z.object({connections:z.array(z.object({id:z.string(),uri:z.string(),token:z.string().role('secret'),database:z.string()}))}),{connections:[]},{setSource:source=>{currentMilvus=source},onChange:()=>{}})
+  })
+  const embeddings=new WorkbenchEmbeddings(ctx)
+  const libraries=new KnowledgeLibraries(join(home,'capabilities','knowledge'),new MilvusEngine(join(home,'..','external-tools')),embeddings,()=>connection.provider()??optionalService('knowledgeProvider') as import('./core/knowledge.ts').KnowledgeProvider|undefined,()=>currentMilvus().connections,async connections=>{
+    const settings=ctx.get('settings'),section=settings?.describe().find(s=>s.ns==='knowledge-milvus');if(!settings?.writable||!section)throw new InputError('连接配置当前不可写',503)
+    await settings.replace('knowledge-milvus',{connections},section.revision)
+  })
+  await libraries.init()
+  const provider = new KnowledgeService(() => libraries.hasLibraries||connection.provider()||optionalService('knowledgeProvider')||!optionalService('documentKnowledge')?libraries:undefined, () => optionalService('documentKnowledge') as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter | undefined)
   const knowledge = new KnowledgeAccess(join(home,'capabilities','knowledge'),()=>store.snapshot(),provider)
-  ctx.effect(()=>store.subscribe(()=>knowledge.reconcile()),'knowledge authorization')
-  ctx.effect(()=>()=>knowledge.close(),'knowledge lifecycle')
+  ctx.effect(()=>store.subscribe(()=>{knowledge.reconcile();if(!knowledge.moduleEnabled())libraries.cancelAll()}),'knowledge authorization')
+  ctx.effect(()=>()=>Promise.all([knowledge.close(),libraries.close()]),'knowledge lifecycle')
   const documents=new DocumentsService(join(home,'capabilities','documents'),()=>store.snapshot(),(prompt,model,system,signal,onDelta)=>workbenchText(ctx,prompt,model,system,undefined,signal,180_000,onDelta),()=>knowledge)
   let documentError = ''
   try { await documents.init() } catch (error) { documentError = error instanceof Error ? error.message : '文档存储不可用' }
@@ -188,10 +203,11 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/api/capabilities', handler: async (req, res) => {
     try {
       const route = new URL(req.url ?? '/', 'http://localhost').pathname
-      fence(req, req.method === 'PUT' && (route.startsWith('/api/capabilities/meeting/upload/') || route.startsWith('/api/capabilities/packages/upload/') || route === '/api/capabilities/recording/chunk'))
+      fence(req, req.method === 'PUT' && (route.startsWith('/api/capabilities/meeting/upload/') || route.startsWith('/api/capabilities/packages/upload/') || route === '/api/capabilities/recording/chunk' || route === '/api/capabilities/knowledge/libraries/upload'))
       // A named webServer route bypasses Connection's /api route; reuse its public authentication check explicitly.
       const rejection = ctx.connection.requestRejection(req)
       if (rejection !== undefined) return json(res, rejection, { error: rejection === 401 ? '请从工作台入口重新连接后重试' : '不允许访问此接口' })
+      if(route.startsWith('/api/capabilities/knowledge/libraries')) {if(req.method!=='GET'&&!route.endsWith('/cancel')&&!knowledge.moduleEnabled())throw new InputError('请先启用外部知识库及检索组件',409);return libraryRoutes(libraries,embeddings,req,res)}
       if(route==='/api/capabilities/knowledge/config' && req.method==='GET') return json(res,200,connection.view())
       if(route==='/api/capabilities/knowledge/config' && req.method==='POST') return json(res,200,await connection.save(await readBody(req)))
       if(route==='/api/capabilities/knowledge/check' && req.method==='POST') return json(res,200,await connection.check(await readBody(req)))

@@ -44,3 +44,15 @@ Everything 与 ES
 搜索记录、索引和用户路径不入 Git；删除搜索记录不删除原文件。源码测试使用自建中文、空格和通配符样本。
 
 OpenCode 1.19.3：代码助手本地引擎，MIT。通过 Tools/Deploy 安装，Check 只读验证；普通启动不下载。插件启动依赖和 Monaco 编辑器随 dsh-code-assistant 模块打包。
+
+Milvus Lite 3.2.2（2026-10-26）
+外部知识库通过便携 Python 3.12.10、PyMilvus 3.0.2 与 Milvus Lite 在本机保存向量；无需系统 Python，不修改 PATH。
+依赖版本、官方下载URL与SHA256见 milvus-lock.json；install-milvus.ps1 安装已锁定的Windows x64 wheel，保留各包许可证。
+Tools/Deploy 自动处理；Check 仅验证。已有相同版本直接复用。普通启动不会安装或下载任何依赖。
+运行时放在 external-tools/milvus/releases；current.json 提供相对Python入口。运行时约269 MiB，不含本地Embedding模型。
+数据库、文档文本和缓存另存 dsh-data/capabilities/knowledge；资料由用户已配置的外部Embedding API向量化。
+milvus-worker.py 由宿主后台启动，通过标准输入输出通信；Milvus Lite内部服务绑定回环地址，关闭宿主后随工作进程退出。
+Windows中文路径通过工作进程中的FAISS字节序列化适配处理，不修改上游依赖文件。
+Git仅保存清单、安装器、工作进程与说明；Python、wheel、数据库、下载包和离线ZIP均忽略。
+完整离线包包含此存储环境；使用在线Embedding仍需网络和用户自己的API配置。
+来源：https://github.com/milvus-io/milvus-lite （Apache-2.0）、https://www.python.org/ （PSF）。
