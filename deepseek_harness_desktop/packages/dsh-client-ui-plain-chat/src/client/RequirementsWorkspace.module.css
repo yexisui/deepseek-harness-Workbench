@@ -27,11 +27,29 @@
 .root[data-mode=qa] .panelRail{display:none}
 .root .panelCollapse{flex:none;width:26px;height:26px;padding:0;font-size:20px;line-height:1}
 .assistantHeading{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);flex:none}
-.panelToolbar{display:flex;justify-content:space-between;gap:8px;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex:none}
-.panelToolbar button{font-size:11px;padding:4px 8px;color:var(--muted)}
+
 .changeToolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;background:var(--soft);border-bottom:1px solid var(--border);font-size:12px;flex:none}
 .changeToolbar label{display:flex;align-items:center;gap:6px}.changeToolbar select{width:auto!important;max-width:150px;padding:4px!important}.changeToolbar button{padding:4px 8px;font-size:11px}.changeToolbar small{flex-basis:100%}.changeDot{color:var(--accent-text);font-size:10px}
 @container requirements (max-width:1200px){.root[data-mode=document] .workspace{--source-width:190px;--assistant-width:310px}}
-@container requirements (max-width:960px){.root .workspace>.panelRail,.root .panelCollapse,.assistantHeading{display:none}.root[data-mode=document][data-assistant=closed] .workspace[data-mobile=assistant]>.assistant{display:flex}.root[data-sources=closed] .workspace[data-mobile=sources]>.sources{display:block}.panelToolbar{display:none}.changeToolbar{padding:7px 12px;gap:6px}.readingbar{flex-wrap:wrap}}
+@container requirements (max-width:960px){.root .workspace>.panelRail,.root .panelCollapse,.assistantHeading{display:none}.root[data-mode=document][data-assistant=closed] .workspace[data-mobile=assistant]>.assistant{display:flex}.root[data-sources=closed] .workspace[data-mobile=sources]>.sources{display:block}.changeToolbar{padding:7px 12px;gap:6px}.readingbar{flex-wrap:wrap}}
 
 .sources>.panelHeading{position:sticky;top:0;z-index:2;background:var(--surface);padding:5px 0}
+
+/* Keep document controls together; expanded guidance stays mounted to preserve inputs. */
+.root>[hidden]{display:none!important}
+.root>.toolbar{padding:9px 14px;gap:10px;flex-wrap:nowrap;position:relative;z-index:5}
+.toolbar .documentTitle{min-width:0}.toolbar .documentTitle strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toolbar .actions{flex:none;flex-wrap:nowrap}.toolbar button{white-space:nowrap}
+.root .panelEntry{display:flex;align-items:center;justify-content:center;padding:7px;flex:none;width:32px;height:32px}
+.panelEntry svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5}
+.root[data-tools=closed]>.toolbar .documentTitle{display:flex;align-items:center;gap:10px}
+.root[data-tools=closed]>.toolbar small{flex:none;margin:0;max-width:220px}
+.toolbar small[data-unsaved=true]{color:var(--accent-text);font-weight:600}
+.root .mobileWord{display:none}.moreMenu{min-width:150px;max-height:60vh;overflow:auto}
+.root>.changeToolbar{gap:8px;padding:6px 14px;min-height:40px}.changeToolbar>small{flex-basis:auto}
+.compareInfo{position:relative;margin-left:auto;flex:none}.compareInfo summary{list-style:none;font-size:15px;line-height:1.4;color:var(--muted);padding:3px 5px}.compareInfo summary::-webkit-details-marker{display:none}.compareInfo small{position:absolute;right:0;top:100%;z-index:6;width:235px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px #0002}
+@container requirements (max-width:1100px){.root[data-tools=closed]>.toolbar .documentTitle{display:block}.root[data-tools=closed]>.toolbar small{margin-top:2px}}
+@container requirements (max-width:760px){.root .openWord{display:none}.root .mobileWord{display:block}.root>.toolbar{gap:7px;padding:8px 10px;flex-wrap:wrap}.toolbar .documentTitle{flex:1;min-width:150px}.toolbar .actions{order:3;width:100%;margin:0;justify-content:flex-end;gap:5px}.toolbar .panelEntry:last-child{margin-left:auto}.root>.changeToolbar{gap:6px;padding:6px 10px}.comparedVersion{display:none}.changeToolbar select{max-width:95px}.changeToolbar>span[role=status]{font-size:11px}.changeToolbar button{font-size:10px;padding:4px 6px}.compareInfo{margin-left:0}.compareInfo small{right:auto;left:0}.root[data-tools=closed]>.toolbar small{max-width:none}}
+@container requirements (max-width:400px){.root>.toolbar .actions{justify-content:space-between}.toolbar .actions button{font-size:10px;padding:5px 7px}.toolbar .documentTitle{min-width:120px}.toolbar .documentTitle strong{font-size:11px}.changeToolbar label{gap:3px;font-size:11px}.changeToolbar select{max-width:80px}.root>.changeToolbar{gap:5px}.compareInfo small{left:auto;right:0}}
+
+.root[data-tools=closed]>.toolbar small:not([data-unsaved=true]){white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
