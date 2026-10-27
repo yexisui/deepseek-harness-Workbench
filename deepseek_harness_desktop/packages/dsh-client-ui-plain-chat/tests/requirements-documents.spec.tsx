@@ -61,6 +61,14 @@ it.each(['stopped','interrupted','error'] as const)('keeps the %s draft resume a
  await click('暂停生成');expect(footer.querySelector('button')?.textContent).toBe('继续补全');expect(host.querySelector('[role=tab][aria-selected=true]')?.textContent).toBeTruthy();expect(host.querySelector('[aria-label="文档生成操作"]')?.textContent).toContain('新开一版')
 })
 
+it.each([false,true])('distinguishes failed generation from pause and reports actual saved content (%s)',async(saved)=>{
+ task.run={id:'failed',templateAction:'generate',operation:'document',status:'error',instruction:'沿用格式改写',model:'test/chat',startedAt:at,baseRevision:1,templateProgress:{plan:[['p1']],batches:saved?{'0':{received:['p1'],complete:true,changes:[{id:'p1',before:'旧内容',after:'新内容',reason:'改写'}],summary:'完成',questions:[],evidence:[]}}:{},retrieval:{},newProduct:true}}
+ await render()
+ const footer=host.querySelector('[aria-label="文档生成状态"]')!,sidebar=host.querySelector('[aria-label="文档生成操作"]')!
+ for(const region of [footer,sidebar]){expect(region.textContent).toContain('生成未完成');expect(region.textContent).not.toContain('已暂停');expect(region.textContent).toContain(saved?'已完成 1/1 批，草稿已保存':'暂无已保存正文')}
+ expect(button('继续补全').disabled).toBe(false)
+})
+
 it('resumes the saved document draft after a separate question without starting a new document',async()=>{
  task.template!.draftRun={id:'document-draft',templateAction:'generate',operation:'document',status:'stopped',instruction:'继续写文档',model:'test/chat',startedAt:at,baseRevision:1,templateProgress:{plan:[['p1']],batches:{},retrieval:{},newProduct:true}}
  task.run={id:'later-question',templateAction:'ask',operation:'document',status:'ready',instruction:'怎么入园',model:'test/chat',startedAt:at,baseRevision:1}

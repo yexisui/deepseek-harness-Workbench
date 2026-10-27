@@ -90,14 +90,39 @@ export function validateTemplateRun(task:RequirementTask,action:string,instructi
 function citations(raw:unknown,sources:TemplateSource[]):TemplateCitation[]{
  return list(raw??[],30).map(v=>{const c=object(v),source=sources.find(s=>s.id===c.sourceId),block=source?.slots.find(p=>p.id===c.blockId),quote=text(c.quote,'引用原文',4000,true);if(!source||!block||!block.text.includes(quote))throw new InputError('引用与本次证据原文不符，未保存该结果，请重试');return {sourceId:source.id,blockId:block.id,name:source.name,quote}})
 }
+function writingReferences(sources:TemplateSource[]){
+ const links=new Map<string,TemplateCitation>()
+ const references=sources.map(source=>({id:source.id,name:source.name,content:source.slots.filter(p=>p.text.trim()).map(block=>{
+  const ref='R'+(links.size+1)
+  links.set(ref,{sourceId:source.id,blockId:block.id,name:source.name,quote:block.text.slice(0,4000)})
+  return {id:block.id,ref,text:block.text}
+ })}))
+ return {references,links}
+}
+// The model selects evidence; the host supplies its original text. Optional citation
+// metadata must not discard successfully generated document content.
+function writingCitations(raw:unknown,links:Map<string,TemplateCitation>,sources:TemplateSource[]){
+ const result:TemplateCitation[]=[],seen=new Set<string>();let unresolved=0
+ if(raw===undefined||raw===null)return {sources:result,unresolved}
+ if(!Array.isArray(raw))return {sources:result,unresolved:1}
+ for(const value of raw.slice(0,30)){
+  const c=value&&typeof value==='object'&&!Array.isArray(value)?value as Record<string,unknown>:undefined
+  let found=links.get(typeof value==='string'?value:typeof c?.ref==='string'?c.ref:'')
+  // Accept the former response format without requiring the model to copy quotes.
+  if(!found&&c){const source=sources.find(s=>s.id===c.sourceId),block=source?.slots.find(p=>p.id===c.blockId);if(source&&block?.text.trim())found={sourceId:source.id,blockId:block.id,name:source.name,quote:typeof c.quote==='string'&&c.quote.trim()&&c.quote.length<=4000&&block.text.includes(c.quote)?c.quote:block.text.slice(0,4000)}}
+  if(!found){unresolved++;continue}
+  const key=JSON.stringify([found.sourceId,found.blockId]);if(!seen.has(key)){result.push({...found});seen.add(key)}
+ }
+ return {sources:result,unresolved:unresolved+Math.max(0,raw.length-30)}
+}
 function evidenceSources(evidence:KnowledgeEvidence[]):TemplateSource[]{
  return evidence.map(e=>({id:e.id,name:e.title+(e.locator?' · '+e.locator:''),kind:'text',enabled:true,slots:[{id:e.chunkId,part:'knowledge',index:0,text:e.text,style:'',heading:false,image:false,editable:false}]}))
 }
-async function retrieved(task:RequirementTask,w:TemplateWorkspace,query:string,signal:AbortSignal,knowledge:Pick<KnowledgeService,'status'|'search'>,key='knowledge'){
+async function retrieved(task:RequirementTask,w:TemplateWorkspace,query:string,signal:AbortSignal,knowledge:Pick<KnowledgeService,'status'|'search'>,key='knowledge',allowEmpty=false){
  if(!w.knowledge)return {evidence:[] as KnowledgeEvidence[],sources:[] as TemplateSource[]}
  const {sources:evidence}=await knowledge.search({query:query.slice(0,20000),limit:8,scope:w.knowledge,context:{taskId:task.id,roleId:task.roleId,roleVersion:task.roleVersion,authorityAt:task.authorityAt,kind:'requirements'}},signal)
- if(!evidence.length)throw new InputError('知识库未找到所选范围的相关资料；可补充资料或明确改用本次文件',409)
- step(key,'检索外部知识库','done',evidence.length+' 个证据片段')
+ if(!evidence.length&&!allowEmpty)throw new InputError('知识库未找到所选范围的相关资料；可补充资料或明确改用本次文件',409)
+ step(key,'检索外部知识库','done',evidence.length?evidence.length+' 个证据片段':'未找到相关资料，按本次描述编写，缺少的信息标为待确认')
  return {evidence,sources:evidenceSources(evidence)}
 }
 export async function runTemplate(task:RequirementTask,model:(prompt:string,model:string,signal?:AbortSignal)=>Promise<string>,signal:AbortSignal,knowledge:Pick<KnowledgeService,'status'|'search'>=new KnowledgeService(),saveProgress?:(value:TemplateProgress)=>Promise<void>):Promise<{workspace:TemplateWorkspace;summary:string;incomplete?:boolean}>{
@@ -125,43 +150,47 @@ export async function runTemplate(task:RequirementTask,model:(prompt:string,mode
  const planned=progress.plan.map(ids=>ids.map(id=>{const p=byId.get(id);if(!p)throw new InputError('模板已变化，请按当前内容重新生成');return p}))
  const outline=template.slots.filter(p=>p.heading).map(p=>p.text).slice(0,100)
  const local=new AbortController(),activeSignal=AbortSignal.any([signal,local.signal])
- const searches=new Map<string,Promise<{evidence:KnowledgeEvidence[];sources:TemplateSource[]}>>()
  const checkpoint=()=>saveProgress?.(structuredClone(progress))??Promise.resolve()
  await checkpoint()
+ // Retrieve for the new product once, not for each chapter of the old template.
+ // Save evidence before requesting text so a failed or paused first batch can reuse it.
+ const query=[w.product,w.brief.slice(0,4000),run.instruction].join('\n').slice(0,20000)
+ const cacheKey=createHash('sha256').update(JSON.stringify({query,scope:w.knowledge})).digest('hex')
+ const unfinished=planned.some((_,i)=>!progress.batches[i]||progress.batches[i]!.complete===false)
+ let evidence=progress.retrieval[cacheKey]
+ if(evidence===undefined&&unfinished){
+  evidence=(await retrieved(task,w,query,activeSignal,knowledge,'knowledge',true)).evidence
+  activeSignal.throwIfAborted();progress.retrieval[cacheKey]=evidence;await checkpoint()
+ }
+ const external={evidence:evidence??[],sources:evidenceSources(evidence??[])}
+ const batchSources=[...sourceList,...external.sources]
+ const {references,links}=writingReferences([...w.sources.filter(s=>s.enabled),...external.sources])
+ const noEvidence=w.knowledge&&!external.evidence.length?'知识库未找到相关资料；已按本次描述编写，缺少的业务信息仍需确认。':''
  for(const key of Object.keys(progress.batches).filter(key=>progress.batches[key]!.complete!==false))step('template-'+key,'编写模板内容 '+(+key+1)+'/'+planned.length,'done','沿用已保存内容，无需再次生成')
  async function batch(index:number){
   const rows=planned[index]!;activeSignal.throwIfAborted();step('template-'+index,'编写模板内容 '+(index+1)+'/'+planned.length,'running')
-  const query=[w.product,w.brief.slice(0,4000),run.instruction,...rows.filter(p=>p.heading).map(p=>p.text)].join('\n').slice(0,20000)
-  const cacheKey=createHash('sha256').update(query).digest('hex')
-  let lookup=searches.get(cacheKey)
-  if(!lookup){
-   const cached=progress.retrieval[cacheKey]
-   lookup=cached?Promise.resolve({evidence:cached,sources:evidenceSources(cached)}):retrieved(task,w,query,activeSignal,knowledge,'knowledge-'+cacheKey.slice(0,12)).then(value=>{progress.retrieval[cacheKey]=value.evidence;return value})
-   searches.set(cacheKey,lookup)
-  }
-  const external=await lookup
-  activeSignal.throwIfAborted()
-  const batchSources=[...sourceList,...external.sources]
   const previous=progress.batches[index]
   const received=new Set(previous?.received??(previous&&previous.complete!==false?rows.map(p=>p.id):[]))
-  const collected=structuredClone(previous??{changes:[],summary:'',questions:[],evidence:external.evidence})
+  const collected=structuredClone(previous??{changes:[],summary:'',questions:noEvidence?[noEvidence]:[],evidence:external.evidence})
   // One automatic repair asks only for omitted blocks; a second omission remains resumable.
   for(let attempt=0;attempt<2;attempt++){
   const requested=rows.filter(p=>!received.has(p.id))
   if(!requested.length)break
   const document=requested.map(p=>({id:p.id,style:p.style,heading:p.heading,image:p.image,text:current(w,p),table:p.table,row:p.row,cell:p.cell}))
   const instruction=action==='generate'&&w.intent==='new-product'?'为新产品逐项编写每个内容块，沿用模板的章节组织、写作语气、粒度与表格用途。每个输入块都返回一个items项；通用标题可保留。旧产品专属内容必须重新编写；不适用于新产品的旧表格指标写“不适用”或“待确认”。未提供新图片时，用“待补充：新产品对应示意图”替代旧图片，不能把旧图当新产品事实。':'按用户指令修改涉及的块，可只返回有变化的items；保持其余文字、数字、表格和图片。不要扩展无关修改。'
-  const prompt=common+instruction+'内容按原段落位置写入Word，保留样式；只输出纯文本，禁止Markdown表格或标题标记，不改变块id。不要把多个不同章节合入一段。对来自资料的事实附sources逐字引用，无资料依据的待确认内容可省略sources。summary用一句话，不逐块重复解释修改理由。返回 {"summary":"简明说明","questions":["待确认信息"],"items":[{"id":"输入块id","after":"该块完整新文字","sources":[{"sourceId":"参考资料id","blockId":"内容块id","quote":"逐字原文"}]}]}。\n'+JSON.stringify({...input,references:[...refs,...external.sources.map(s=>({id:s.id,name:s.name,content:s.slots.map(p=>({id:p.id,text:p.text}))}))],outline,part:index+1,parts:planned.length,document})
+  const prompt=common+instruction+'内容按原段落位置写入Word，保留样式；只输出纯文本，禁止Markdown表格或标题标记，不改变块id。不要把多个不同章节合入一段。来自资料的事实在sources填写对应内容的ref编号（如R1），不要抄写引文；原文由系统附上。没有资料依据时省略sources并标明待确认，不虚构编号。summary用一句话，不逐块重复解释修改理由。返回 {"summary":"简明说明","questions":["待确认信息"],"items":[{"id":"输入块id","after":"该块完整新文字","sources":["R1"]}]}。\n'+JSON.stringify({...input,references,outline,part:index+1,parts:planned.length,document})
   if(prompt.length>180000)throw new InputError('生成上下文过长，请精简参考资料')
-  const result=parse(await model(prompt,run.model,activeSignal));activeSignal.throwIfAborted();const seen=new Set<string>(),changes:TemplateProgress['batches'][string]['changes']=[]
+  const result=parse(await model(prompt,run.model,activeSignal));activeSignal.throwIfAborted();const seen=new Set<string>(),changes:TemplateProgress['batches'][string]['changes']=[];let unresolved=0
   for(const raw of list(result.items??[],requested.length)){const v=object(raw),id=text(v.id,'内容块',250,true),p=requested.find(p=>p.id===id);if(!p||seen.has(id))throw new InputError('模型返回了不存在或重复的内容块，请重试');seen.add(id)
    let after=str(v.after,'新正文');const before=current(w,p)
    if(/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(after))throw new InputError('正文含无效控制字符，请重试')
    if(action==='generate'&&w.intent==='new-product'&&p.image)after='待补充：'+w.product+'对应示意图。'
    if(after===before)continue
-   changes.push({id,before,after,reason:str(v.reason,'修改理由',2000)||'按本次要求调整',sources:citations(v.sources,batchSources)})
+   const resolved=writingCitations(v.sources,links,batchSources);unresolved+=resolved.unresolved
+   changes.push({id,before,after,reason:str(v.reason,'修改理由',2000)||'按本次要求调整',sources:resolved.sources})
   }
   const questions=list(result.questions??[],40).map(q=>str(q,'待确认信息',1000)).filter(Boolean)
+  if(unresolved){questions.push('部分资料引用未能定位，已保留正文并略过无效出处；相关内容请核对。');step('citations-'+index,'整理资料出处','done',`${unresolved} 处引用未能定位，正文继续保存；未将无效引用标为已核实`)}
   for(const id of seen)received.add(id)
   collected.changes.push(...changes);collected.questions=[...new Set([...collected.questions,...questions])]
   collected.summary=str(result.summary,'修改说明',3000)||collected.summary
