@@ -28,3 +28,17 @@
 @media(hover:none){.paragraph:focus-within>.tools{opacity:1;pointer-events:auto}.tools{position:static;opacity:1;pointer-events:auto;justify-content:flex-end;background:transparent}.tools button{opacity:.8}}
 @container requirements (max-width:1200px){.root{padding:24px}}
 @container requirements (max-width:560px){.root{padding:16px 12px}.table th,.table td{padding:4px}.root .text{font-size:10pt}}
+
+.paragraph[data-diff-kind]{padding:3px 7px;box-shadow:inset 3px 0 #d3ad4a;background:#fffbef}
+.paragraph[data-diff-kind=added]{box-shadow:inset 3px 0 #52a279;background:#f1fbf4}
+.paragraph[data-diff-kind=deleted]{box-shadow:inset 3px 0 #c77d7d;background:#fff5f5}
+.root [data-active-change=true]{outline:2px solid #5874c7;outline-offset:3px;scroll-margin:30px}
+.addedText{color:#205f38;background:#d6f2de}.modifiedText{color:#664914;background:#fff0ad}
+.deletedText{display:inline-block;font:11px/1.6 "Microsoft YaHei",sans-serif;color:#973f3f;background:#fbe2e2;border-radius:3px;padding:0 5px;text-indent:0;margin:0 3px}
+.root .changeDetail{font:11px/1.6 "Microsoft YaHei",sans-serif;color:#795e1f;text-indent:0;margin:4px 0 6px;white-space:normal}
+.changeDetail[data-kind=added]{color:#27663d}.changeDetail[data-kind=deleted]{color:#973f3f}
+.root .changeDetail>summary{font:inherit;cursor:pointer;outline-offset:2px;list-style-position:inside}
+.changeDetail>div{border:1px solid #d8dfeb;background:#f8faff;color:#202938;padding:8px;border-radius:5px;margin-top:5px}
+.changeDetail section{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.changeDetail section+section{border-top:1px solid #d8dfeb;padding-top:8px;margin-top:8px}
+.root .changeDetail p{font:12px/1.7 "Microsoft YaHei",sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;margin:4px 0;text-indent:0;text-align:left}.changeDetail del{color:#8b4242;text-decoration-thickness:1px}.table .changeDetail section{grid-template-columns:minmax(0,1fr)}
+@container requirements (max-width:560px){.changeDetail section{grid-template-columns:minmax(0,1fr)}}

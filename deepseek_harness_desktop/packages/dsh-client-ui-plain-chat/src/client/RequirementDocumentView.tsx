@@ -3,9 +3,12 @@ import type {PreviewStyle,PreviewNode,PreviewParagraph,RequirementPreview} from 
 import type {TemplateSource,TemplateSlot,TemplateChange} from '../../../dsh-capabilities/src/core/requirement-template.ts'
 import {RequirementTableEditor,tableParagraphs,type DocumentTable} from './RequirementTableEditor.tsx'
 import {getRequirementPreview} from './requirements-client.ts'
+import {NOTE_BLOCK,textChangeSpan,type DocumentChanges,type TextChange,type DocumentChange} from './requirement-changes.ts'
 import s from './RequirementDocumentView.module.css'
+function ChangeText({change}:{change:TextChange}){const text=textChangeSpan(change.before,change.after);return <>{text.prefix}{text.added&&<mark className={change.kind==='added'?s.addedText:s.modifiedText}>{text.added}</mark>}{text.removed&&!text.added&&<span className={s.deletedText}>已删除</span>}{text.suffix}</>}
+function ChangeDetail({group}:{group:DocumentChange}){const kind=group.changes.every(c=>c.kind===group.changes[0]!.kind)?group.changes[0]!.kind:'modified';return <details className={s.changeDetail} data-kind={kind}><summary>{kind==='added'?'新增':kind==='deleted'?'已删除':'修改'} · 查看前后内容</summary><div>{group.changes.map(c=><section key={c.id}><div><b>修改前</b><p>{c.before?<del>{c.before}</del>:'（空）'}</p></div><div><b>修改后</b><p>{c.after||'（已删除）'}</p></div></section>)}</div></details>}
 
-type Props={endedDraftId?:string;readOnly?:boolean;highlightChanges?:boolean;taskId?:string;template:TemplateSource;slots:TemplateSlot[];values:Record<string,string>;original:boolean;note:string;disabled:boolean;pendingIds:string[];onEdit:(slot:TemplateSlot)=>void;onCompare:(id:string)=>void;onEditTable?:(changes:TemplateChange[])=>Promise<void>}
+type Props={changes?:DocumentChanges;activeChangeId?:string;endedDraftId?:string;readOnly?:boolean;highlightChanges?:boolean;taskId?:string;template:TemplateSource;slots:TemplateSlot[];values:Record<string,string>;original:boolean;note:string;disabled:boolean;pendingIds:string[];onEdit:(slot:TemplateSlot)=>void;onCompare:(id:string)=>void;onEditTable?:(changes:TemplateChange[])=>Promise<void>}
 function css(p:PreviewStyle):CSSProperties{return {fontFamily:p.font?`"${p.font}",SimSun,serif`:undefined,fontSize:p.size?`${p.size}pt`:undefined,fontWeight:p.bold?'bold':p.bold===false?'normal':undefined,fontStyle:p.italic?'italic':undefined,textDecoration:p.underline?'underline':undefined,color:p.color,backgroundColor:p.background,textAlign:p.align,marginTop:p.before===undefined?undefined:`${p.before}pt`,marginBottom:p.after===undefined?undefined:`${p.after}pt`,textIndent:p.indent===undefined?undefined:`${p.indent}pt`,lineHeight:p.line}}
 /** Legacy/synthetic records still have a readable table view if full layout is unavailable. */
 export function basicRequirementPreview(source:TemplateSource):RequirementPreview{
@@ -34,10 +37,12 @@ export function RequirementDocumentView(props:Props){
  function paragraph(p:PreviewParagraph,wholeTable=false){
   if(!wholeTable&&!shown.has(p.id))return null
   const slot=byId.get(p.id),replacement=props.original?undefined:props.values[p.id],changed=replacement!==undefined&&replacement!==slot?.text,isPending=!props.original&&pending.has(p.id),editable=slot?.editable&&!props.original&&!props.readOnly
+  const difference=props.original?undefined:props.changes?.byId.get(p.id),anchor=difference?.group.id===p.id
   const hasContent=p.runs.some(r=>r.image||r.text?.trim())||!!replacement
-  return <div key={p.id} data-block-id={p.id} data-changed={changed&&props.highlightChanges!==false||undefined} data-pending={isPending||undefined} className={`${s.paragraph} ${p.heading?s.heading:''} ${p.pageBreak?s.pageBreak:''}`}>
-   <p className={hasContent?s.text:s.blank} style={css(p.style)}>{changed?<span style={css(p.runs.find(r=>r.text)?.style??p.style)}>{replacement||'\u00a0'}</span>:p.runs.map((r,i)=>r.image?<img key={i} src={doc.images[r.image]} alt={r.alt||'文档插图'} loading="lazy" style={{width:r.width?Math.min(1200,r.width):undefined,maxWidth:'100%',height:'auto'}}/>:<span key={i} style={css(r.style)}>{r.text}</span>)}</p>
-   {(editable||changed||isPending)&&<div className={s.tools}>{isPending&&<span className={s.pending}>待审</span>}{changed&&!props.readOnly&&<button type="button" aria-label="查看此处修改" onClick={()=>props.onCompare(p.id)}>已修改</button>}{editable&&<button type="button" disabled={props.disabled} aria-label={'编辑：'+(slot.text.slice(0,35)||'图片说明')} onClick={()=>props.onEdit(slot)}>编辑</button>}</div>}
+  return <div key={p.id} data-block-id={p.id} data-change-id={anchor?p.id:undefined} data-active-change={difference&&props.activeChangeId===difference.group.id||undefined} data-diff-kind={difference?.change.kind} data-changed={changed&&props.highlightChanges!==false||undefined} data-pending={isPending||undefined} className={`${s.paragraph} ${p.heading?s.heading:''} ${p.pageBreak?s.pageBreak:''}`}>
+   <p className={hasContent?s.text:s.blank} style={css(p.style)}>{difference?<span style={css(p.runs.find(r=>r.text)?.style??p.style)}><ChangeText change={difference.change}/></span>:changed?<span style={css(p.runs.find(r=>r.text)?.style??p.style)}>{replacement||'\u00a0'}</span>:p.runs.map((r,i)=>r.image?<img key={i} src={doc.images[r.image]} alt={r.alt||'文档插图'} loading="lazy" style={{width:r.width?Math.min(1200,r.width):undefined,maxWidth:'100%',height:'auto'}}/>:<span key={i} style={css(r.style)}>{r.text}</span>)}</p>
+   {(editable||changed||isPending)&&<div className={s.tools}>{isPending&&<span className={s.pending}>待审</span>}{changed&&!props.readOnly&&props.highlightChanges!==false&&!props.changes&&<button type="button" aria-label="查看此处修改" onClick={()=>props.onCompare(p.id)}>已修改</button>}{editable&&<button type="button" disabled={props.disabled} aria-label={'编辑：'+(slot.text.slice(0,35)||'图片说明')} onClick={()=>props.onEdit(slot)}>编辑</button>}</div>}
+   {anchor&&difference&&<ChangeDetail key={JSON.stringify(difference.group.changes)} group={difference.group}/>}
   </div>
  }
  function node(n:PreviewNode,wholeTable=false):React.ReactNode{
@@ -51,7 +56,7 @@ export function RequirementDocumentView(props:Props){
   {error&&<div className={s.status} role="alert">完整排版暂未载入，当前显示基础正文。{error}<button onClick={()=>setRetry(n=>n+1)}>重新载入</button></div>}
   {doc.headers.some(visible)&&<div className={s.header} aria-label="文档页眉">{doc.headers.map(n=>node(n))}</div>}
   {doc.body.map(n=>node(n))}
-  {!props.original&&props.note&&<p className={s.note}>{props.note}</p>}
+  {!props.original&&(props.note||props.changes?.byId.has(NOTE_BLOCK))&&<div data-block-id={NOTE_BLOCK} data-change-id={props.changes?.byId.has(NOTE_BLOCK)?NOTE_BLOCK:undefined} data-active-change={props.activeChangeId===NOTE_BLOCK||undefined} className={s.note}><p>{props.changes?.byId.has(NOTE_BLOCK)?<ChangeText change={props.changes.byId.get(NOTE_BLOCK)!.change}/>:props.note}</p>{props.changes?.byId.has(NOTE_BLOCK)&&<ChangeDetail key={JSON.stringify(props.changes.byId.get(NOTE_BLOCK)!.group)} group={props.changes.byId.get(NOTE_BLOCK)!.group}/>}</div>}
   {doc.footers.some(visible)&&<div className={s.footer} aria-label="文档页脚">{doc.footers.map(n=>node(n))}</div>}
  </div>{editingTable&&props.onEditTable&&<RequirementTableEditor key={template.id+editingTable.id} table={editingTable} slots={template.slots} values={props.values} images={doc.images} disabled={props.disabled} onSave={props.onEditTable} onClose={()=>setEditingTable(undefined)}/>}</>
 }

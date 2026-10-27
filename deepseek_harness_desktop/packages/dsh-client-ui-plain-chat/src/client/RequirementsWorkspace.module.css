@@ -16,3 +16,22 @@
 .composer>.running{padding:0;border:0;flex-direction:column;align-items:stretch;gap:10px;font-size:12px}.composer>.running>button{width:100%;padding:9px 12px;font-size:12px}
 
 .runActions{display:flex;gap:8px;flex-wrap:wrap}.runActions>button{white-space:nowrap}.composer>.running>.runActions>button{flex:1;padding:9px 12px;font-size:12px}
+
+/* Independent document panels; compact mode continues to use the existing tabs. */
+.root[data-mode=document] .workspace{--source-width:216px;--assistant-width:350px;grid-template-columns:var(--source-width) minmax(0,1fr) var(--assistant-width)}
+.root[data-mode=document][data-sources=closed] .workspace{--source-width:32px}
+.root[data-mode=document][data-assistant=closed] .workspace{--assistant-width:32px}
+.root[data-mode=document][data-assistant=closed] .assistant{display:none}
+.root .panelRail{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:12px;padding:12px 4px;border:0;border-radius:0;background:var(--soft);color:var(--muted);font-size:12px;min-width:0}
+.panelRail>span:last-child{writing-mode:vertical-rl;letter-spacing:3px}
+.root[data-mode=qa] .panelRail{display:none}
+.root .panelCollapse{flex:none;width:26px;height:26px;padding:0;font-size:20px;line-height:1}
+.assistantHeading{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);flex:none}
+.panelToolbar{display:flex;justify-content:space-between;gap:8px;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex:none}
+.panelToolbar button{font-size:11px;padding:4px 8px;color:var(--muted)}
+.changeToolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;background:var(--soft);border-bottom:1px solid var(--border);font-size:12px;flex:none}
+.changeToolbar label{display:flex;align-items:center;gap:6px}.changeToolbar select{width:auto!important;max-width:150px;padding:4px!important}.changeToolbar button{padding:4px 8px;font-size:11px}.changeToolbar small{flex-basis:100%}.changeDot{color:var(--accent-text);font-size:10px}
+@container requirements (max-width:1200px){.root[data-mode=document] .workspace{--source-width:190px;--assistant-width:310px}}
+@container requirements (max-width:960px){.root .workspace>.panelRail,.root .panelCollapse,.assistantHeading{display:none}.root[data-mode=document][data-assistant=closed] .workspace[data-mobile=assistant]>.assistant{display:flex}.root[data-sources=closed] .workspace[data-mobile=sources]>.sources{display:block}.panelToolbar{display:none}.changeToolbar{padding:7px 12px;gap:6px}.readingbar{flex-wrap:wrap}}
+
+.sources>.panelHeading{position:sticky;top:0;z-index:2;background:var(--surface);padding:5px 0}
