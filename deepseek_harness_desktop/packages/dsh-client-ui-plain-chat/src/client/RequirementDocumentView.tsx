@@ -5,7 +5,7 @@ import {RequirementTableEditor,tableParagraphs,type DocumentTable} from './Requi
 import {getRequirementPreview} from './requirements-client.ts'
 import s from './RequirementDocumentView.module.css'
 
-type Props={readOnly?:boolean;highlightChanges?:boolean;taskId?:string;template:TemplateSource;slots:TemplateSlot[];values:Record<string,string>;original:boolean;note:string;disabled:boolean;pendingIds:string[];onEdit:(slot:TemplateSlot)=>void;onCompare:(id:string)=>void;onEditTable?:(changes:TemplateChange[])=>Promise<void>}
+type Props={endedDraftId?:string;readOnly?:boolean;highlightChanges?:boolean;taskId?:string;template:TemplateSource;slots:TemplateSlot[];values:Record<string,string>;original:boolean;note:string;disabled:boolean;pendingIds:string[];onEdit:(slot:TemplateSlot)=>void;onCompare:(id:string)=>void;onEditTable?:(changes:TemplateChange[])=>Promise<void>}
 function css(p:PreviewStyle):CSSProperties{return {fontFamily:p.font?`"${p.font}",SimSun,serif`:undefined,fontSize:p.size?`${p.size}pt`:undefined,fontWeight:p.bold?'bold':p.bold===false?'normal':undefined,fontStyle:p.italic?'italic':undefined,textDecoration:p.underline?'underline':undefined,color:p.color,backgroundColor:p.background,textAlign:p.align,marginTop:p.before===undefined?undefined:`${p.before}pt`,marginBottom:p.after===undefined?undefined:`${p.after}pt`,textIndent:p.indent===undefined?undefined:`${p.indent}pt`,lineHeight:p.line}}
 /** Legacy/synthetic records still have a readable table view if full layout is unavailable. */
 export function basicRequirementPreview(source:TemplateSource):RequirementPreview{
@@ -26,9 +26,9 @@ export function RequirementDocumentView(props:Props){
  useEffect(()=>setEditingTable(undefined),[template.id,template.asset])
  const base=useMemo(()=>basicRequirementPreview(template),[template.id,template.asset]),shown=useMemo(()=>new Set(props.slots.map(p=>p.id)),[props.slots]),byId=useMemo(()=>new Map(template.slots.map(p=>[p.id,p])),[template]),pending=new Set(props.pendingIds)
  useEffect(()=>{let alive=true;const controller=new AbortController();setLayout(undefined);setError('');setLoading(false)
-  if(props.taskId&&template.asset){setLoading(true);void getRequirementPreview(props.taskId,controller.signal).then(data=>{if(alive){if(data.asset!==template.asset)throw Error('模板已更新，请重新载入预览');setLayout(data)}}).catch(e=>{if(alive)setError(e instanceof Error?e.message:String(e))}).finally(()=>{if(alive)setLoading(false)})}
+  if(props.taskId&&template.asset){setLoading(true);void getRequirementPreview(props.taskId,controller.signal,props.endedDraftId).then(data=>{if(alive){if(data.asset!==template.asset)throw Error('模板已更新，请重新载入预览');setLayout(data)}}).catch(e=>{if(alive)setError(e instanceof Error?e.message:String(e))}).finally(()=>{if(alive)setLoading(false)})}
   return()=>{alive=false;controller.abort()}
- },[props.taskId,template.id,template.asset,retry])
+ },[props.taskId,props.endedDraftId,template.id,template.asset,retry])
  const doc=layout&&layout.asset===template.asset?layout:base
  function visible(n:PreviewNode):boolean{return n.type==='paragraph'?shown.has(n.id):n.rows.some(r=>r.cells.some(c=>c.nodes.some(visible)))}
  function paragraph(p:PreviewParagraph,wholeTable=false){

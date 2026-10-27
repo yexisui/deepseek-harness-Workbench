@@ -60,3 +60,38 @@ it('keeps an unfinished document across an intervening question and resumes it a
  complete=true;await e.service.command(t.id,t.revision,{type:'run.resume',runId:paused.id,requestId:randomUUID()});t=await finish(e.service,t.id)
  expect(t.run!.status,t.run!.error).toBe('ready');expect(t.template!.versions).toHaveLength(2);expect(t.template!.answers).toHaveLength(1);expect(t.template!.draftRun).toBeUndefined()
 })
+
+it('ends a draft atomically, preserves it after restart and template changes, and starts fresh without old progress',async()=>{
+ const e=await setup(async p=>{const q=input(p);return JSON.stringify({items:q.document.length===46?[]:q.document.filter((_:any,i:number)=>i===0).map((r:any)=>({id:r.id,after:'旧草稿已写内容'}))})},46)
+ // Keep the model partial even during the single missing-block repair.
+ let t=await run(e);const old=t.run!;expect(old.status).toBe('stopped')
+ const versions=structuredClone(t.template!.versions),values=structuredClone(t.template!.values),source=structuredClone(t.template!.template)
+ t=await e.service.command(t.id,t.revision,{type:'template.draft.new',runId:old.id})
+ const snapshot=structuredClone(t.template!.endedDrafts![0]!)
+ expect(snapshot.values['word/document.xml#0']).toBe('旧草稿已写内容');expect(snapshot.values['word/document.xml#2']).toContain('待补全')
+ expect(t.run).toBeUndefined();expect(t.template!.draftRun).toBeUndefined();expect(t.template!.newDraft).toBeTruthy();expect(t.template!.versions).toEqual(versions);expect(t.template!.values).toEqual(values);expect(t.template!.template).toEqual(source)
+ // A repeated click/retry cannot duplicate archives or end a newer run.
+ expect((await e.service.command(t.id,t.revision-1,{type:'template.draft.new',runId:old.id})).template!.endedDrafts).toHaveLength(1)
+ await e.service.close();const requested:string[][]=[],s=new RequirementsService(e.root,async p=>{const q=input(p);requested.push(q.document.map((r:any)=>r.id));return response(q)},()=>e.state,()=> 'test/chat');services.push(s);await s.init();t=await s.get(t.id)
+ expect(t.template!.newDraft).toBeTruthy();await expect(s.command(t.id,t.revision,{type:'run.resume',runId:old.id,requestId:randomUUID()})).rejects.toThrow('当前没有可继续')
+ await s.command(t.id,t.revision,{type:'template.run',action:'generate',instruction:'改成自动审批',requestId:randomUUID()});t=await finish(s,t.id)
+ expect(t.run!.status,t.run!.error).toBe('ready');expect(requested.flat()).toHaveLength(46);expect(t.run!.resumedFrom).toBeUndefined();expect(t.template!.newDraft).toBeUndefined();expect(t.template!.endedDrafts![0]).toEqual(snapshot);expect(t.template!.versions).toHaveLength(2)
+ t=await s.command(t.id,t.revision,{type:'template.remove',id:source!.id});expect((await s.previewDocument(t.id,old.id)).asset).toBe(source!.asset)
+ await expect(s.previewDocument(t.id,'../unknown')).rejects.toThrow('草稿不存在');expect((await s.get(t.id)).template!.endedDrafts![0]).toEqual(snapshot)
+})
+it('ends the saved document behind a later question without deleting the question, its answer, or its sources',async()=>{
+ const e=await setup(async p=>{const q=input(p);return q.sources?JSON.stringify({answer:'请按资料预约',sources:[]}):JSON.stringify({items:[]})})
+ let t=await run(e),old=t.run!;t=await run(e,'ask');const question=structuredClone(t.run),answers=structuredClone(t.template!.answers)
+ t=await e.service.command(t.id,t.revision,{type:'template.draft.new',runId:old.id})
+ expect(t.run).toEqual(question);expect(t.template!.answers).toEqual(answers);expect(t.template!.draftRun).toBeUndefined();expect(t.template!.endedDrafts).toHaveLength(1)
+ await expect(e.service.command(t.id,t.revision,{type:'template.draft.new',runId:question!.id})).rejects.toThrow('当前没有可结束')
+ await expect(e.service.command(t.id,t.revision,{type:'run.resume',runId:old.id,requestId:randomUUID()})).rejects.toThrow('当前没有可继续')
+})
+it('does not end a running document or a completed version',async()=>{
+ const e=await setup(),t=await run(e)
+ await expect(e.service.command(t.id,t.revision,{type:'template.draft.new',runId:t.run!.id})).rejects.toThrow('当前没有可结束')
+ let release:(()=>void)|undefined;const gate=await setup(async p=>new Promise<string>(resolve=>{release=()=>resolve(response(input(p)))}));const active=await gate.service.command(gate.task.id,gate.task.revision,{type:'template.run',action:'generate',instruction:'写初稿',requestId:randomUUID()})
+ while(!release)await new Promise(r=>setTimeout(r,5))
+ await expect(gate.service.command(active.id,(await gate.service.get(active.id)).revision,{type:'template.draft.new',runId:active.run!.id})).rejects.toThrow('请先暂停')
+ release();await finish(gate.service,active.id)
+})

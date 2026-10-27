@@ -229,7 +229,7 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
       if (route.startsWith('/api/capabilities/developer/')) return await developerRoutes(developerContext ?? ctx, developer, req, res)
       if(route.startsWith('/api/capabilities/requirements/document/')){
         const url=new URL(req.url!,'http://localhost'),id=route.slice('/api/capabilities/requirements/document/'.length)
-        if(req.method==='GET'&&url.searchParams.get('preview')==='1'){res.setHeader('Cache-Control','no-store');return json(res,200,await requirements.previewDocument(id))}
+        if(req.method==='GET'&&url.searchParams.get('preview')==='1'){res.setHeader('Cache-Control','no-store');return json(res,200,await requirements.previewDocument(id,url.searchParams.get('endedDraftId')||undefined))}
         if(req.method==='POST'){const body=object(await readBody(req));return json(res,200,await requirements.openDocument(id,body.action,typeof body.versionId==='string'?body.versionId:undefined))}
         if(req.method==='PUT'){
           if(!/^application\/octet-stream(?:;|$)/i.test(req.headers['content-type']??''))throw new InputError('需要文档文件',415)

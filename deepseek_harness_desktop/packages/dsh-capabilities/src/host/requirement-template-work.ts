@@ -3,7 +3,7 @@ import type { KnowledgeEvidence } from '../core/knowledge.ts'
 import type { TemplateCitation } from '../core/requirement-template.ts'
 import {randomUUID,createHash} from 'node:crypto'
 import type {RequirementTask} from '../core/requirements-model.ts'
-import {emptyTemplateWorkspace,type TemplateCommand,type TemplateWorkspace,type TemplateSource,type TemplateSlot,type TemplateProposal,type TemplateProgress} from '../core/requirement-template.ts'
+import {emptyTemplateWorkspace,templateDraft,type TemplateCommand,type TemplateWorkspace,type TemplateSource,type TemplateSlot,type TemplateProposal,type TemplateProgress} from '../core/requirement-template.ts'
 import {InputError,object,text} from '../core/validation.ts'
 import {step} from '../../../../shared/host/execution.ts'
 export const workspace=(task:RequirementTask)=>task.template??=emptyTemplateWorkspace()
@@ -18,11 +18,22 @@ export function templateVersion(w:TemplateWorkspace,label='保存文档',evidenc
 }
 export function detachTemplate(w:TemplateWorkspace){
  if(w.template)(w.documents??=[]).push({id:randomUUID(),at:stamp(),template:structuredClone(w.template),values:structuredClone(w.values),note:w.note,proposals:structuredClone(w.proposals),versions:structuredClone(w.versions)})
- delete w.template;delete w.draftRun;w.values={};w.note='';w.proposals=[];w.versions=[]
+ delete w.template;delete w.draftRun;delete w.newDraft;w.values={};w.note='';w.proposals=[];w.versions=[]
 }
 export function editTemplate(task:RequirementTask,c:Exclude<TemplateCommand,{type:'template.run'}>){
  const w=workspace(task)
  switch(c.type){
+  case 'template.draft.new':{
+   if(task.run?.status==='running')throw new InputError('请先暂停生成，再新开一版',409)
+   const previous=task.run?.id===c.runId?task.run:w.draftRun
+   if(!w.template||!previous||previous.id!==c.runId||!previous.templateAction||previous.templateAction==='ask'||!['stopped','interrupted','error'].includes(previous.status))throw new InputError('当前没有可结束的文档草稿',409)
+   const progress=previous.templateProgress??{plan:[w.template.slots.filter(p=>p.editable&&(p.text.trim()||p.image)).map(p=>p.id)],batches:{},retrieval:{}}
+   const snapshot=templateDraft(w,progress,previous.templateAction==='generate'&&w.intent==='new-product')
+   ;(w.endedDrafts??=[]).push({id:previous.id,at:stamp(),title:w.product||w.template.name,instruction:previous.instruction,model:previous.model,template:structuredClone(w.template),values:snapshot.values,note:snapshot.note,completedBatches:Object.values(progress.batches).filter(b=>b.complete!==false).length,totalBatches:progress.plan.length})
+   if(task.run?.id===previous.id)delete task.run
+   delete w.draftRun;w.newDraft={id:randomUUID()}
+   break
+  }
   case 'template.remove':{
    if(task.run?.status==='running')throw new InputError('请先停止生成，再移除资料',409)
    if(w.template?.id===c.id)detachTemplate(w)

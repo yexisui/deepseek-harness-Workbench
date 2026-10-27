@@ -215,7 +215,7 @@ export class RequirementsService {
     if(kind==='template'){const previousName=w.template?.name.replace(/\.(docx|pdf)$/i,'');detachTemplate(w);w.template=source;templateVersion(w,'原始模板');if(task.title==='新需求分析'||task.title===previousName)task.title=filename.replace(/\.(docx|pdf)$/i,'').slice(0,120);if(task.run?.templateAction!=='ask')delete task.run}else w.sources.push(source)
     this.event(task,'material','载入'+(kind==='template'?'模板：':'参考资料：')+filename);return this.write(task,true)
   })}
-  async previewDocument(id:string){const task=await this.get(id);this.authorize(task,'edit');const source=workspace(task).template;if(!source?.asset)throw new InputError('请先选择模板');return buildRequirementPreview(await readAsset(this.root,source.asset),source.asset,source.slots)}
+  async previewDocument(id:string,endedDraftId?:string){const task=await this.get(id);this.authorize(task,'edit');const w=workspace(task),source=endedDraftId?w.endedDrafts?.find(d=>d.id===endedDraftId)?.template:w.template;if(endedDraftId&&!source)throw new InputError('草稿不存在');if(!source?.asset)throw new InputError('请先选择模板');return buildRequirementPreview(await readAsset(this.root,source.asset),source.asset,source.slots)}
   private async saveVersionFile(task:RequirementTask,version:import('../core/requirement-template.ts').TemplateVersion){
     try{await saveRequirementOutput(this.outputRoot,task,version,'docx',await renderTemplate(this.root,workspace(task),version));delete version.fileError}
     catch(error){version.fileError='文档版本已保存，Word文件写入失败：'+errorMessage(error)}
@@ -327,6 +327,7 @@ export class RequirementsService {
       const task=await this.get(id), c=object(raw) as unknown as RequirementCommand
       // A repeated operation token returns the existing run without another charge.
       if((c.type==='run'||c.type==='template.run'||c.type==='run.resume') && (task.run?.id===c.requestId||task.messages.some(m=>m.runId===c.requestId))) return task
+      if(c.type==='template.draft.new'&&task.template?.endedDrafts?.some(d=>d.id===c.runId))return task
       // A stop targets an exact run, so background checkpoint writes cannot make it stale.
       const exactStop=c.type==='run.stop'&&!!c.runId&&c.runId===task.run?.id
       if(!exactStop&&integer(revision)!==task.revision) throw new InputError('分析记录已更新，请刷新后核对再保存；当前输入请保留',409)
@@ -342,6 +343,10 @@ export class RequirementsService {
             workspace(task).knowledge = { providerId:status.providerId, collectionIds: [...new Set(collectionIds)], product: str(scope.product, '产品范围', 240), project: str(scope.project, '项目范围', 240) }
           } else delete workspace(task).knowledge
           this.event(task, 'material', c.scope ? '更新本次知识库范围' : '改用本次上传资料'); break
+        }
+        case 'template.draft.new': {
+          this.authorize(task,'write');editTemplate(task,c)
+          this.event(task,'change','新开一版；旧草稿只读保留，旧进度已结束');break
         }
         case 'template.remove':case 'template.document.restore': {
           this.authorize(task,c.type==='template.document.restore'?'review':workspace(task).template?.id===c.id?'importTemplate':'importSource')
@@ -361,7 +366,7 @@ export class RequirementsService {
           validateTemplateRun(task,c.action,instruction)
           if(c.versionId&&(!workspace(task).versions.some(v=>v.id===c.versionId)||c.action==='ask'))throw new InputError('所选文档版本不存在')
           if(c.action==='ask'&&task.run?.templateProgress)workspace(task).draftRun=structuredClone(task.run)
-          if(c.action!=='ask'){delete workspace(task).draftRun;if(c.versionId)templateVersion(workspace(task),'手动修改')}
+          if(c.action!=='ask'){delete workspace(task).newDraft;delete workspace(task).draftRun;if(c.versionId)templateVersion(workspace(task),'手动修改')}
           syncRequirementQuestionRun(task)
           task.run={templateVersionId:c.versionId,id:c.requestId,operation:c.action==='generate'?'document':c.action==='ask'?'analyze':'revise',templateAction:c.action,status:'running',startedAt:now(),model:selected,instruction,baseRevision:task.dataRevision}
           const message: import('../core/requirements-model.ts').RequirementMessage={id:randomUUID(),role:'user',runId:c.requestId,text:instruction,createdAt:task.run.startedAt}

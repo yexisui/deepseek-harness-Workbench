@@ -17,12 +17,15 @@ export type TemplateProgress = {
 export type TemplateVersion = { title?:string; fileError?:string; evidenceGroups?:{proposalId:string;groupId:string}[]; id:string; number:number; label:string; at:string; values:Record<string,string>; note:string }
 export type TemplateAnswer = { runId?:string; evidence?:import('./knowledge.ts').KnowledgeEvidence[]; id:string; question:string; answer:string; at:string; sources:{sourceId:string; blockId:string; name:string; quote:string}[] }
 export type TemplateDocumentArchive = {id:string;at:string;template:TemplateSource;values:Record<string,string>;note:string;proposals:TemplateProposal[];versions:TemplateVersion[]}
-export type TemplateWorkspace = { draftRun?:import('./requirements-model.ts').RequirementRun; knowledge?:import('./knowledge.ts').KnowledgeScope; documents?:TemplateDocumentArchive[];
+/** Ended drafts are immutable viewing snapshots, never resume checkpoints. */
+export type TemplateEndedDraft = {id:string;at:string;title:string;instruction:string;model:string;template:TemplateSource;values:Record<string,string>;note:string;completedBatches:number;totalBatches:number}
+export type TemplateWorkspace = { newDraft?:{id:string}; endedDrafts?:TemplateEndedDraft[]; draftRun?:import('./requirements-model.ts').RequirementRun; knowledge?:import('./knowledge.ts').KnowledgeScope; documents?:TemplateDocumentArchive[];
   product:string; brief:string; intent:'new-product'|'revise'; template?:TemplateSource; sources:TemplateSource[]
   values:Record<string,string>; note:string; proposals:TemplateProposal[]; versions:TemplateVersion[]; answers:TemplateAnswer[]
 }
 export const emptyTemplateWorkspace=():TemplateWorkspace=>({product:'',brief:'',intent:'new-product',sources:[],values:{},note:'',proposals:[],versions:[],answers:[]})
 export type TemplateCommand =
+ | {type:'template.draft.new'; runId:string}
  | {type:'template.remove'; id:string}
  | {type:'template.document.restore'; id:string}
  | {type:'template.knowledge'; scope?:import('./knowledge.ts').KnowledgeScope}
