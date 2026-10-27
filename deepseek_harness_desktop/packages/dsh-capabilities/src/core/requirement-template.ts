@@ -14,7 +14,8 @@ export type TemplateProgress = {
   batches:Record<string,{received?:string[];complete?:boolean;changes:(TemplateChange & {reason:string})[];summary:string;questions:string[];evidence:import('./knowledge.ts').KnowledgeEvidence[]}>
   retrieval:Record<string,import('./knowledge.ts').KnowledgeEvidence[]>
 }
-export type TemplateVersion = { title?:string; fileError?:string; evidenceGroups?:{proposalId:string;groupId:string}[]; id:string; number:number; label:string; at:string; values:Record<string,string>; note:string }
+/** number is the immutable chronological index; major/minor are the displayed document edition. */
+export type TemplateVersion = { major?:number; minor?:number; parentId?:string; title?:string; fileError?:string; evidenceGroups?:{proposalId:string;groupId:string}[]; id:string; number:number; label:string; at:string; values:Record<string,string>; note:string }
 export type TemplateAnswer = { runId?:string; evidence?:import('./knowledge.ts').KnowledgeEvidence[]; id:string; question:string; answer:string; at:string; sources:{sourceId:string; blockId:string; name:string; quote:string}[] }
 export type TemplateDocumentArchive = {id:string;at:string;template:TemplateSource;values:Record<string,string>;note:string;proposals:TemplateProposal[];versions:TemplateVersion[]}
 /** Ended drafts are immutable viewing snapshots, never resume checkpoints. */

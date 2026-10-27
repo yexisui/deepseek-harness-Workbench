@@ -630,7 +630,7 @@ export class RequirementsService {
           if(Object.values(candidate.values).reduce((n,v)=>n+v.length,0)>240000)throw new InputError('生成内容过长，请缩小本次范围')
           for(const group of proposal?.groups??[])group.status='accepted'
           output.workspace=candidate
-          templateVersion(candidate,snapshot.run.templateAction==='generate'?'生成初稿':'按要求修改')
+          templateVersion(candidate,snapshot.run.templateAction==='generate'?'生成初稿':'按要求修改',undefined,{action:snapshot.run.templateAction,baseId:snapshot.run.templateVersionId})
         }
         return await this.serialized(async()=>{
           const task=await this.get(snapshot.id);if(task.run?.id!==runId||task.run.status!=='running'||controller.signal.aborted)return

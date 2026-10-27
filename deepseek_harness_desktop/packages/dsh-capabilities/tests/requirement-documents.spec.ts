@@ -7,6 +7,7 @@ import {createRequire} from 'node:module'
 import {RequirementsService} from '../src/host/requirements.ts'
 import {runTemplate} from '../src/host/requirement-template-work.ts'
 import {templateDraft} from '../src/core/requirement-template.ts'
+import {templateVersionLabel} from '../src/core/requirement-versions.ts'
 import {initialState} from '../src/core/model.ts'
 import {REQUIREMENTS_ROLE_ID,type RequirementTask} from '../src/core/requirements-model.ts'
 import {inspectDocx} from '../src/host/requirement-docx.ts'
@@ -49,6 +50,19 @@ it('does not overwrite externally edited Word files and rejects unknown actions 
  await writeFile(opened.path,'external edit');await e.service.exportDocument(t.id,v.id);expect(await readFile(opened.path,'utf8')).toBe('external edit')
  await expect(e.service.openDocument(t.id,'open','../../bad')).rejects.toThrow('请选择');await expect(e.service.openDocument(t.id,'anything',v.id)).rejects.toThrow('操作无效');e.state.roles.find(r=>r.id===REQUIREMENTS_ROLE_ID)!.enabled=false;await expect(e.service.openDocument(t.id,'folder')).rejects.toThrow()
 })
+it('saves V1, V1.1 and V2 through the real command path and reopens an older-family revision',async()=>{
+ let count=0;const e=await setup(async p=>{const q=input(p);count++;return JSON.stringify({items:q.document.map((r:any)=>({id:r.id,after:'访客规则'+count+' '+r.id}))})})
+ let t=await run(e),v1=t.template!.versions.at(-1)!
+ t=await run(e,'revise');const minor=t.template!.versions.at(-1)!
+ expect(templateVersionLabel(t.template!.versions,minor)).toBe('V1.1');expect(minor.parentId).toBe(v1.id)
+ const output=await e.service.openDocument(t.id,'open',minor.id);expect(output.path).toMatch(/V1\.1_访客系统\.docx$/)
+ expect(inspectDocx(await readFile(output.path))[0]!.text).toContain('规则2')
+ t=await run(e,'generate');expect(templateVersionLabel(t.template!.versions,t.template!.versions.at(-1)!)).toBe('V2')
+ t=await run(e,'revise',v1.id);expect(templateVersionLabel(t.template!.versions,t.template!.versions.at(-1)!)).toBe('V1.2')
+ await e.service.close();const s=new RequirementsService(e.root,async p=>response(input(p)),()=>e.state,()=> 'test/chat');services.push(s);await s.init();t=await s.get(t.id)
+ expect(t.template!.versions.map(v=>templateVersionLabel(t.template!.versions,v))).toEqual(['V0','V1','V1.1','V2','V1.2']);expect(t.template!.versions[1]).toEqual(v1)
+ const reopened=await s.openDocument(t.id,'open',minor.id);expect(reopened.path).toBe(output.path);expect(inspectDocx(await readFile(reopened.path))[0]!.text).toContain('规则2')
+})
 it('preserves a saved version when file output fails, then permits retry',async()=>{
  const e=await setup();await writeFile(join(e.root,'_outputs'),'not a directory');const t=await run(e);expect(t.run!.status).toBe('ready');expect(t.template!.versions[1]!.fileError).toContain('写入失败');expect(t.template!.values['word/document.xml#0']).toContain('访客')
  await rm(join(e.root,'_outputs'));const result=await e.service.openDocument(t.id,'open',t.template!.versions[1]!.id);expect(inspectDocx(await readFile(result.path))).toHaveLength(3)
@@ -58,7 +72,7 @@ it('keeps an unfinished document across an intervening question and resumes it a
  let t=await run(e);const paused=t.run!,revision=t.dataRevision
  t=await run(e,'ask');expect(t.run!.status,t.run!.error).toBe('ready');expect(t.dataRevision).toBe(revision);expect(t.template!.draftRun!.id).toBe(paused.id)
  complete=true;await e.service.command(t.id,t.revision,{type:'run.resume',runId:paused.id,requestId:randomUUID()});t=await finish(e.service,t.id)
- expect(t.run!.status,t.run!.error).toBe('ready');expect(t.template!.versions).toHaveLength(2);expect(t.template!.answers).toHaveLength(1);expect(t.template!.draftRun).toBeUndefined()
+ expect(t.run!.status,t.run!.error).toBe('ready');expect(t.template!.versions).toHaveLength(2);expect(t.template!.answers).toHaveLength(1);expect(t.template!.draftRun).toBeUndefined();expect(templateVersionLabel(t.template!.versions,t.template!.versions.at(-1)!)).toBe('V1')
 })
 
 it('ends a draft atomically, preserves it after restart and template changes, and starts fresh without old progress',async()=>{

@@ -3,6 +3,7 @@ import {afterEach,beforeEach,it,expect,vi} from 'vitest'
 import React,{act} from 'react'
 import {createRoot,type Root} from 'react-dom/client'
 import {RequirementsWorkspace} from '../src/client/RequirementsWorkspace.tsx'
+import {exportRequirementDocument} from '../src/client/requirements-client.ts'
 import {emptyTemplateWorkspace,templateDraft} from '../../dsh-capabilities/src/core/requirement-template.ts'
 import {defaultRequirementSettings,emptyRequirementOverview,type RequirementTask} from '../../dsh-capabilities/src/core/requirements-model.ts'
 let host:HTMLDivElement,root:Root,task:RequirementTask,writes:any[]
@@ -29,7 +30,22 @@ afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAl
 const button=(label:string)=>Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent?.trim()===label)!
 const click=async(label:string)=>act(async()=>{expect(button(label),label).toBeTruthy();button(label).click();await flush()})
 const render=async()=>act(async()=>{root.render(<RequirementsWorkspace roleId="builtin-analyst" taskId={task.id} onLegacy={()=>{}}/>);await flush()})
-const version=(n:number)=>Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.querySelector('span')?.textContent==='V'+n)!
+const version=(n:number|string)=>Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.querySelector('span')?.textContent==='V'+n)!
+it('uses minor labels for legacy revisions in the list, preview and historical base selection',async()=>{
+ const w=task.template!;w.versions.push({id:'old-v2',number:2,label:'按要求修改',at,values:{p1:'普通访客自动通过'},note:''},{id:'new-v2',number:3,major:2,minor:0,label:'生成初稿',at,values:{p1:'重新生成的版本'},note:''});w.values={p1:'重新生成的版本'}
+ await render();await click('我的文档');expect(version('1.1')).toBeTruthy();expect(version(2)).toBeTruthy()
+ await act(async()=>version('1.1').click());expect(host.querySelector('[data-block-id=p1] p')?.textContent).toBe('普通访客自动通过');expect(host.textContent).toContain('V1.1 · 访客系统')
+ await click('打开 Word');expect(writes.at(-1).body).toEqual({action:'open',versionId:'old-v2'})
+ await click('基于此版修改');expect(host.textContent).toContain('基于 V1.1 修改')
+})
+it('downloads Word and PDF using the same minor label while requesting the immutable version ID',async()=>{
+ const w=task.template!;w.versions.push({id:'old-v2',number:2,label:'按要求修改',at,title:'访客系统',values:{p1:'普通访客自动通过'},note:''})
+ const names:string[]=[],spy=vi.spyOn(HTMLAnchorElement.prototype,'click').mockImplementation(function(this:HTMLAnchorElement){names.push(this.download)})
+ vi.stubGlobal('URL',Object.assign(URL,{createObjectURL:vi.fn(()=> 'blob:test'),revokeObjectURL:vi.fn()}))
+ try{for(const format of ['docx','pdf'] as const)await exportRequirementDocument(task,'old-v2',format)
+ expect(names).toEqual(['V1.1_访客系统.docx','V1.1_访客系统.pdf']);expect(writes.map(w=>w.url)).toEqual(expect.arrayContaining([expect.stringContaining('version=old-v2')]))
+ }finally{spy.mockRestore()}
+})
 it('opens each version inline without restoring it and retains the original left-side controls',async()=>{
  await render();expect(host.querySelector('[data-block-id=p1] p')?.textContent).toBe('访客预约后扫码入园');await click('我的文档')
  expect(button('比较版本')).toBeUndefined();expect(button('更换模板')).toBeTruthy();expect(button('添加参考资料')).toBeTruthy();expect(button('查看知识库设置')).toBeTruthy()

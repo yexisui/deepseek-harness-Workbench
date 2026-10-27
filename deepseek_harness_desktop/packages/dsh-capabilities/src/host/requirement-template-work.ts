@@ -1,4 +1,5 @@
 import { KnowledgeService } from './knowledge.ts'
+import {nextTemplateEdition,templateVersionLabel} from '../core/requirement-versions.ts'
 import type { KnowledgeEvidence } from '../core/knowledge.ts'
 import type { TemplateCitation } from '../core/requirement-template.ts'
 import {randomUUID,createHash} from 'node:crypto'
@@ -12,9 +13,9 @@ const stamp=()=>new Date().toISOString()
 const current=(w:TemplateWorkspace,p:TemplateSlot)=>w.values[p.id]??p.text
 function list(v:unknown,max=4000):unknown[]{if(!Array.isArray(v)||v.length>max)throw new InputError('模型返回的条目数量无效');return v}
 function parse(raw:string){const start=raw.indexOf('{'),end=raw.lastIndexOf('}');try{return object(JSON.parse(raw.slice(start,end+1)))}catch{throw new InputError('模型未返回有效结构，原文保留，请重试')}}
-export function templateVersion(w:TemplateWorkspace,label='保存文档',evidenceGroups=w.proposals.flatMap(p=>p.groups.filter(g=>g.status==='accepted'&&g.changes.every(c=>w.values[c.id]===c.after)).map(g=>({proposalId:p.id,groupId:g.id})))){
- const last=w.versions.at(-1);if(last&&JSON.stringify(last.values)===JSON.stringify(w.values)&&last.note===w.note)return
- w.versions.push({id:randomUUID(),number:w.versions.length,label,at:stamp(),values:structuredClone(w.values),note:w.note,title:w.product||w.template?.name,evidenceGroups:structuredClone(evidenceGroups)})
+export function templateVersion(w:TemplateWorkspace,label='保存文档',evidenceGroups=w.proposals.flatMap(p=>p.groups.filter(g=>g.status==='accepted'&&g.changes.every(c=>w.values[c.id]===c.after)).map(g=>({proposalId:p.id,groupId:g.id}))),options:{action?:'generate'|'revise';baseId?:string}={}){
+ const last=w.versions.at(-1);if(options.action!=='generate'&&last&&JSON.stringify(last.values)===JSON.stringify(w.values)&&last.note===w.note)return
+ w.versions.push({id:randomUUID(),number:w.versions.length,...nextTemplateEdition(w.versions,options.action,options.baseId),label,at:stamp(),values:structuredClone(w.values),note:w.note,title:w.product||w.template?.name,evidenceGroups:structuredClone(evidenceGroups)})
 }
 export function detachTemplate(w:TemplateWorkspace){
  if(w.template)(w.documents??=[]).push({id:randomUUID(),at:stamp(),template:structuredClone(w.template),values:structuredClone(w.values),note:w.note,proposals:structuredClone(w.proposals),versions:structuredClone(w.versions)})
@@ -64,7 +65,7 @@ export function editTemplate(task:RequirementTask,c:Exclude<TemplateCommand,{typ
   }
   case 'template.note':w.note=str(c.note,'文档备注',8000);break
   case 'template.version':if(!w.template)throw new InputError('请先选择Word模板');templateVersion(w,str(c.label,'版本名称',160)||'保存文档');break
-  case 'template.restore':{const v=w.versions.find(v=>v.id===c.id);if(!v)throw new InputError('文档版本不存在');w.values=structuredClone(v.values);w.note=v.note;templateVersion(w,'从 V'+v.number+' 恢复',v.evidenceGroups??[]);break}
+  case 'template.restore':{const v=w.versions.find(v=>v.id===c.id);if(!v)throw new InputError('文档版本不存在');w.values=structuredClone(v.values);w.note=v.note;templateVersion(w,'从 '+templateVersionLabel(w.versions,v)+' 恢复',v.evidenceGroups??[],{baseId:v.id});break}
   case 'template.review':{
    const proposal=w.proposals.find(p=>p.id===c.proposalId);if(!proposal||!Array.isArray(c.groupIds)||!c.groupIds.length||new Set(c.groupIds).size!==c.groupIds.length)throw new InputError('请选择有效的修改建议')
    if(!['accept','reject','revert'].includes(c.action))throw new InputError('审阅操作无效')
