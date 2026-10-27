@@ -97,6 +97,8 @@ function harness() {
   const originalStartSession = vi.fn()
   const openExisting = vi.fn((id: string) => sessions.open(id))
   const props = {
+    collapsed: false,
+    toggleSidebar: vi.fn(),
     sessionId: undefined as string | undefined,
     owner: { disabled: true, blocked: { reason: 'Choose workspace' }, onRequestWorkspace: vi.fn(), placeholder: 'Choose workspace' },
     useSessions: (select: (value: typeof list) => unknown) => select(list),
@@ -125,6 +127,7 @@ describe('ordinary chat UI integration', () => {
     const definition = { ...emptyRole(), name: '网页助手', capabilities: [{ capabilityId: 'browser', version: 1, enabled: true }] }
     state.roles.push({ id: 'reader', enabled: true, draft: definition, versions: [{ ...definition, version: 1, preset: 'workbench-role-reader-v1', createdAt: state.updatedAt }] })
     vi.stubGlobal('fetch', vi.fn(async (url: string | URL | Request) => {
+      if(String(url).endsWith('/knowledge/status'))return {ok:true,json:async()=>({available:false,configured:false,collections:[],message:'测试环境未连接知识库'})}
       if(String(url).includes('/assistant-archives'))return {ok:true,json:async()=>({revision:0,entries:{}})}
       if (/\/capabilities\/(recording|file-search|documents)\/list/.test(String(url))) return { ok: true, json: async () => [] }
       if (String(url).includes('/developer/tasks?')) return { ok: true, json: async () => ({ items: [] }) }
@@ -414,6 +417,76 @@ describe('ordinary chat UI integration', () => {
     await act(async () => choice.click())
   }
 
+  it.each(['网页助手', '会议纪要助手', '需求分析助手', '自由聊天'])('collapses the main sidebar when selecting %s from the toolbar', async name => {
+    await renderWithSidebarAndRoles()
+    await switchFromToolbar(name)
+    expect(app.props.toggleSidebar).toHaveBeenCalledTimes(1)
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+  })
+
+  it('keeps an already collapsed sidebar closed and allows manual reopening until the next selection', async () => {
+    await renderWithSidebarAndRoles({ ...app.props, collapsed: true })
+    await switchFromToolbar('自由聊天')
+    expect(app.props.toggleSidebar).not.toHaveBeenCalled()
+    await renderWithSidebarAndRoles()
+    await type('保留当前草稿')
+    expect(app.props.toggleSidebar).not.toHaveBeenCalled()
+    await switchFromToolbar('自由聊天')
+    expect(app.props.toggleSidebar).toHaveBeenCalledTimes(1)
+    expect(container.querySelector('textarea')!.value).toBe('保留当前草稿')
+    expect(app.sessions.clear).not.toHaveBeenCalled()
+  })
+
+  it('collapses on role cards and the new-conversation picker without opening it twice', async () => {
+    await renderWithSidebarAndRoles()
+    await type('卡片选择保留输入')
+    await click('button[aria-label="选定助手：网页助手"]')
+    expect(app.props.toggleSidebar).toHaveBeenCalledTimes(1)
+    await click('button[aria-label="选定助手：网页助手"]')
+    expect(app.props.toggleSidebar).toHaveBeenCalledTimes(1)
+    expect(container.querySelector('textarea')!.value).toBe('卡片选择保留输入')
+    await renderWithSidebarAndRoles({ ...app.props, collapsed: true })
+    await renderWithSidebarAndRoles()
+    await click('button[aria-haspopup="dialog"]:not([data-current-assistant])')
+    const dialog = document.querySelector('[role="dialog"]') ?? document.querySelector('dialog')!
+    const choice = Array.from(dialog.querySelectorAll('button')).find(button => button.querySelector('strong')?.textContent === '网页助手')!
+    await act(async () => choice.click())
+    expect(app.props.toggleSidebar).toHaveBeenCalledTimes(2)
+    expect(container.querySelector('textarea')!.value).toBe('卡片选择保留输入')
+  })
+
+  it('collapses when opening an assistant draft or creating its next conversation', async () => {
+    await renderWithSidebarAndRoles()
+    await click('button[aria-label="选定助手：网页助手"]')
+    await type('保存的助手草稿')
+    await switchFromToolbar('自由聊天')
+    await renderWithSidebarAndRoles({ ...app.props, collapsed: true })
+    await renderWithSidebarAndRoles()
+    app.props.toggleSidebar.mockClear()
+    await click('[data-assistant-group="reader"] [data-conversation-id] button')
+    expect(app.props.toggleSidebar).toHaveBeenCalledTimes(1)
+    expect(container.querySelector('textarea')!.value).toBe('保存的助手草稿')
+    await renderWithSidebarAndRoles({ ...app.props, collapsed: true })
+    await renderWithSidebarAndRoles()
+    await click('button[aria-label="新建网页助手对话"]')
+    expect(app.props.toggleSidebar).toHaveBeenCalledTimes(2)
+    expect(app.remoteCreate).not.toHaveBeenCalled()
+  })
+
+  it('collapses native assistant history but keeps ordinary navigation unchanged', async () => {
+    app.list.byId.older = { projectionValues: { agentPreset: 'workbench-role-reader-v1' } }
+    await renderWithSidebarAndRoles()
+    await click('[data-action="open-existing"]')
+    expect(app.props.toggleSidebar).toHaveBeenCalledTimes(1)
+    await renderWithSidebarAndRoles({ ...app.props, collapsed: true })
+    await renderWithSidebarAndRoles()
+    app.props.toggleSidebar.mockClear()
+    app.list.byId.older = { projectionValues: { agentPreset: 'workbench-chat' } }
+    await click('[data-action="open-existing"]')
+    await click('[data-action="new"]')
+    expect(app.props.toggleSidebar).not.toHaveBeenCalled()
+  })
+
   it('switches from a saved session immediately without rebinding or submitting it', async () => {
     app.list.current = 'readerSession'
     app.list.byId.readerSession = { projectionValues: { agentPreset: 'workbench-role-reader-v1' } }
@@ -597,6 +670,12 @@ describe('ordinary chat UI integration', () => {
     expect(app.remoteCreate).not.toHaveBeenCalled()
   })
 
+  async function enterLegacyRequirements() {
+    // New assistants start in the document workflow; these cases exercise the retained legacy route.
+    const entry = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent?.trim() === '需求整理')!
+    await act(async () => entry.click())
+  }
+
   it('keeps mode selection in the same sidebar row and promotes it only when meaningful content is saved', async () => {
     const original = vi.mocked(fetch).getMockImplementation()!
     let created: RequirementTask | undefined
@@ -619,6 +698,7 @@ describe('ordinary chat UI integration', () => {
     await renderWithSidebarAndRoles()
     await type('保留原来写下的业务想法')
     await click('button[aria-label="选定助手：需求分析助手"]')
+    await enterLegacyRequirements()
     expect(container.querySelector('[data-requirements-assistant]')).not.toBeNull()
     expect(container.querySelector<HTMLTextAreaElement>('[data-requirements-assistant] textarea')!.value).toBe('保留原来写下的业务想法')
     const currentRow = () => container.querySelector('[data-local-conversations]')!
@@ -665,12 +745,15 @@ describe('ordinary chat UI integration', () => {
   it('keeps an unsaved requirement draft in its own local row when leaving before autosave', async () => {
     await renderWithSidebarAndRoles()
     await click('button[aria-label="选定助手：需求分析助手"]')
+    await enterLegacyRequirements()
     await click('button[aria-label="选择常规模式"]')
     await type('第一份尚未发送的需求草稿')
     await click('[data-action="new"]')
     await click('button[aria-label="选定助手：需求分析助手"]')
+    await enterLegacyRequirements()
     expect(container.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('')
     await click('[data-assistant-group] [aria-label="打开本地会话：第一份尚未发送的需求草稿"]')
+    await enterLegacyRequirements()
     expect(container.querySelector<HTMLTextAreaElement>('[aria-label="需求分析输入"]')!.value).toBe('第一份尚未发送的需求草稿')
     expect(container.querySelector('button[aria-label="选择常规模式"]')).toBeNull()
     expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith('/requirements/create'))).toHaveLength(0)
@@ -689,6 +772,7 @@ describe('ordinary chat UI integration', () => {
       })
       await renderWithSidebarAndRoles()
       await click('button[aria-label="选定助手：需求分析助手"]')
+    await enterLegacyRequirements()
       await type('后台保存的第一份需求')
       await act(async () => { await vi.advanceTimersByTimeAsync(1000) })
       expect(created).toBeDefined()

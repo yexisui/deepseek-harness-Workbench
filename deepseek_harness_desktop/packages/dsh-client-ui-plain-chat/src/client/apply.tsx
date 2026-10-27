@@ -37,6 +37,7 @@ import type { DeveloperTask } from '../../../dsh-capabilities/src/core/developer
 import { createRequirementHistory } from './requirement-history.ts'
 import { usesRequirements } from './requirements-routing.ts'
 import { MeetingDemo } from './MeetingDemo.tsx'
+import { roleForPreset } from './conversation-history.ts'
 import { AssistantHistory } from './AssistantHistory.tsx'
 import { createLocalConversations } from './local-conversations.ts'
 import { removeMeetingConversation } from './meeting-removal.ts'
@@ -69,6 +70,8 @@ export function apply(ctx: Context): void {
     return (result.value?.groups ?? []).flatMap(group => (group.models ?? []).map(model => ({ id: `${group.id ?? group.provider}/${model.id}`, name: model.name ?? model.id }))).filter(model => !model.id.startsWith('undefined/'))
   }
   const layout = ctx.get('layout') as { selectPanel(id: string | null): void }
+  // The sidebar owns responsive geometry; use its current state and native toggle.
+  let collapseSidebar = () => {}
   const created = new Set<string>()
   let revision = 0
   const listeners = new Set<() => void>()
@@ -140,6 +143,7 @@ export function apply(ctx: Context): void {
   })
   // 切换岗位需要重新创建会话；重复选中则保留失败重试的会话身份。
   const selectRole = (id: string) => {
+    collapseSidebar()
     if (id === roleSelection.getSnapshot()) return
     leaveSearch();leaveRecording()
     start.reset()
@@ -156,6 +160,7 @@ export function apply(ctx: Context): void {
   // Both the main New button and the ungrouped chat-row + open a fresh draft.
   // A new draft always begins in free chat; published sessions keep their own preset.
   const startFreshChat = (role = 'chat', mode?: CapabilityMode) => {
+    if (role !== 'chat') collapseSidebar()
     void documents.newDocument().catch(documents.fail)
     leaveSearch();leaveRecording()
     requirementViewKey = `requirements-new-${role}-${++requirementNavigation}`
@@ -172,6 +177,7 @@ export function apply(ctx: Context): void {
   }
   const openDocument=(id:string)=>{
     const row=documents.getSnapshot().rows.find(r=>r.id===id);if(!row)return
+    if (row.roleId !== 'chat') collapseSidebar()
     leaveSearch();leaveRecording();activeDocument=id;start.reset();localConversations.leave();requirementHistory.leave();developerHistory.leave();roleSelection.select(row.roleId);clearSavedDraft();revision++;listeners.forEach(fn=>fn());sessions.clear();layout.selectPanel(null)
     void documents.open(id).catch(documents.fail)
   }
@@ -179,6 +185,7 @@ export function apply(ctx: Context): void {
   const openSearch=(id:string)=>{
     activeDocument=null
     const state=searches.getSnapshot(),row=state.rows.find(r=>r.id===id),roleId=row?.roleId??(state.request?.id===id?state.request.roleId:state.config?.roleId)
+    if (roleId && roleId !== 'chat') collapseSidebar()
     if(row)searches.draft({query:row.query,path:row.path})
     leaveRecording();activeSearch=id;sessionStorage.setItem('workbench-file-search-active',id);start.reset();localConversations.leave();requirementHistory.leave();developerHistory.leave();if(roleId)roleSelection.select(roleId);clearSavedDraft();revision++;listeners.forEach(fn=>fn());sessions.clear();layout.selectPanel(null)
   }
@@ -187,10 +194,11 @@ export function apply(ctx: Context): void {
     if(searches.getSnapshot().rows.some(r=>r.id===id)){openSearch(id);return}
     leaveSearch()
     const recording=recordings.getSnapshot().rows.find(row=>row.id===id)
-    if(recording){activeRecording=id;sessionStorage.setItem('workbench-recording-active',id);start.reset();localConversations.leave();requirementHistory.leave();developerHistory.leave();roleSelection.select(recording.roleId);clearSavedDraft();revision++;listeners.forEach(fn=>fn());sessions.clear();layout.selectPanel(null);return}
+    if(recording){if(recording.roleId !== 'chat')collapseSidebar();activeRecording=id;sessionStorage.setItem('workbench-recording-active',id);start.reset();localConversations.leave();requirementHistory.leave();developerHistory.leave();roleSelection.select(recording.roleId);clearSavedDraft();revision++;listeners.forEach(fn=>fn());sessions.clear();layout.selectPanel(null);return}
     leaveSearch();leaveRecording()
     const developer = developerHistory.getSnapshot().items.find(item => item.id === id)
     if (developer) {
+      if (developer.roleId !== 'chat') collapseSidebar()
       developerViewKey = `developer-${id}-${++developerNavigation}`
       start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.open(id); roleSelection.select(developer.roleId); clearSavedDraft()
       revision++; listeners.forEach(fn => fn()); sessions.clear(); layout.selectPanel(null); return
@@ -198,6 +206,7 @@ export function apply(ctx: Context): void {
     developerHistory.leave(); developerViewKey = `developer-local-${id}-${++developerNavigation}`
     const requirement = requirementHistory.getSnapshot().items.find(item => item.id === id)
     if (requirement) {
+      if (requirement.roleId !== 'chat') collapseSidebar()
       requirementViewKey = `requirements-${id}-${++requirementNavigation}`
       start.reset(); localConversations.leave(); requirementHistory.open(id); roleSelection.select(requirement.roleId); clearSavedDraft()
       revision++; listeners.forEach(fn => fn()); sessions.clear(); layout.selectPanel(null); return
@@ -205,6 +214,7 @@ export function apply(ctx: Context): void {
     requirementHistory.leave()
     const row = localConversations.getSnapshot().items.find(item => item.id === id)
     if (!row) return
+    if (row.role !== 'chat') collapseSidebar()
     requirementViewKey = `requirements-local-${id}-${++requirementNavigation}`
     start.reset()
     localConversations.open(id)
@@ -479,7 +489,7 @@ export function apply(ctx: Context): void {
         if (binding && local?.kind === 'draft') commitLocalChat(local.id)
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedRolePicker t={t} selected={displayedRole} onSelect={id => { if (id !== displayedRole) switchAssistant(id) }} current={{ preset: noSession && search ? originRole?.versions.find(v=>v.version===search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset }} onManage={settingsNavigation.openPresets} /></div>
+        <div className={styles.assistantToolbar}><ManagedRolePicker t={t} selected={displayedRole} onSelect={id => { collapseSidebar(); if (id !== displayedRole) switchAssistant(id) }} current={{ preset: noSession && search ? originRole?.versions.find(v=>v.version===search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset }} onManage={settingsNavigation.openPresets} /></div>
         {displayedRole !== 'chat' && modes.length > 1 && <nav aria-label="岗位能力入口" className={styles.capabilityModes}>{modes.map(item => <button key={item.mode} type="button" aria-pressed={noSession ? workMode === item.mode : item.mode === 'chat'} onClick={() => { if (noSession && workMode === item.mode) return; startFreshChat(displayedRole, item.mode) }}>{item.label}</button>)}</nav>}
         {!recording && recordingSnapshot.error && <p role="alert" style={{margin:"4px 24px",fontSize:13}}>{recordingSnapshot.error}</p>}
         <BrowserTaskStatus sessionId={props.sessionId}/>
@@ -522,6 +532,16 @@ export function apply(ctx: Context): void {
   }), 'plain-chat: conversation adapter')
 
   ctx.effect(() => decorateSlot(registry, 'sidebar', 'SidebarRoot', Original => function ChatSidebar(props: any) {
+    useEffect(() => {
+      let expanded = !props.collapsed
+      const collapse = () => {
+        if (!expanded) return
+        expanded = false
+        props.toggleSidebar()
+      }
+      collapseSidebar = collapse
+      return () => { if (collapseSidebar === collapse) collapseSidebar = () => {} }
+    }, [props.collapsed, props.toggleSidebar])
     const startSession = (workspaceId?: string) => {
       if (workspaceId !== undefined) return props.startSession(workspaceId)
       startFreshChat()
@@ -541,7 +561,10 @@ export function apply(ctx: Context): void {
     useEffect(() => { if (meetings.hasMore && !meetings.loading && !meetings.error) void meetingHistory.load(true) }, [meetings])
     useEffect(() => { if (requirements.hasMore && !requirements.loading && !requirements.error) void requirementHistory.load(true) }, [requirements])
     const historyRows = archiveRows()
-    const open = (id: string) => { leaveSearch();leaveRecording(); start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
+    const nativeSessions = props.useSessions((state: any) => state.byId)
+    const open = (id: string) => {
+      if (roleForPreset(nativeSessions[id]?.projectionValues?.agentPreset, capabilityClient.getSnapshot().data?.state.roles ?? []) !== 'chat') collapseSidebar()
+      leaveSearch();leaveRecording(); start.reset(); localConversations.leave(); requirementHistory.leave(); developerHistory.leave(); clearSavedDraft(); props.open(id) }
     const historyReady = historyInitialLoaded && !developers.loading && !meetings.loading && !meetings.hasMore && !meetings.error && !requirements.loading && !requirements.hasMore && !requirements.error && !developers.error && !recorded.error && !searched.error && !documentRows.error
     return <>
       <AssistantHistory archives={assistantArchives} onArchive={archiveConversation} Original={Original} browser={{ ...props, open }} rows={historyRows} activeId={activeDocument ?? activeSearch ?? activeRecording ?? developers.activeId ?? requirements.activeId ?? local.activeId} onOpen={openLocalConversation} onRemove={removeLocalConversation} onFork={forkLocalConversation} onRename={renameLocalConversation} onNew={startFreshChat} ready={historyReady} historyStatus={<>
