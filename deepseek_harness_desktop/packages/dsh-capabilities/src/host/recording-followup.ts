@@ -7,6 +7,7 @@ import type { MeetingService } from './meeting.ts'
 const choices=[{id:'transcribe',action:'followup-transcribe',label:'转为文字'},{id:'quick',action:'followup-quick',label:'快速生成纪要'},{id:'guided',action:'followup-guided',label:'引导整理'}] as const
 /** The adapter owns workflow links; recording capture has no meeting dependency. */
 export class RecordingFollowupService {
+  reportUsage?: import('../core/team-contributions.ts').ContributionReporter
  private pending=new Map<string,Promise<unknown>>()
  constructor(private recording:RecordingService,private meeting:MeetingService,private state:()=>State){}
  options(id:string){
@@ -43,6 +44,7 @@ export class RecordingFollowupService {
   const job=await this.meeting.create({title:row.title,fileName:row.audio,mode:operation==='quick'?'quick':'guided',audience:body.audience||'',focus:body.focus||'',summaryModel:body.summaryModel||'',roleId:row.roleId,roleVersion:available.roleVersion},id)
   const link={jobId:job.id,operation,roleVersion:available.roleVersion!,capabilityId:available.capabilityId,capabilityVersion:available.capabilityVersion}
   await this.recording.linkFollowup(id,link)
+  this.reportUsage?.('capability',available.capabilityId,job.id)
   return {link,job:await this.meeting.importSavedAudio(job.id,path)}
  }
 }

@@ -20,11 +20,12 @@ type Handler = (request: IncomingMessage, response: ServerResponse) => Promise<u
 let handler: Handler
 beforeEach(async () => {
   vi.resetAllMocks()
-  mocks.store.snapshot.mockReturnValue({ revision: 10 })
+  mocks.store.snapshot.mockReturnValue({ revision: 10, capabilities: [], roles: [] })
   mocks.store.exclusive.mockImplementation(async run => run())
   mocks.writePresets.mockResolvedValue([])
   mocks.runtime.tasks.mockReturnValue([]); mocks.runtime.dependencies.mockReturnValue([])
   const ctx = {
+    on: vi.fn(()=>()=>{}),
     agentPresets: { remove: vi.fn(), copy: vi.fn() },
     webServer: { register: vi.fn((route: { handler: Handler }) => { handler = route.handler; return () => {} }) },
     connection: { requestRejection: mocks.requestRejection }, inject: vi.fn(), provide: vi.fn(), effect: (effect: () => unknown) => effect(),
@@ -50,7 +51,7 @@ describe('capability named-route authentication', () => {
         ['/api/capabilities/packages/export-link','POST'], ['/api/capabilities/packages/download/00000000-0000-4000-8000-000000000000','GET'], ['/api/capabilities/packages/download/00000000-0000-4000-8000-000000000000','DELETE'], ['/api/capabilities/packages/upload/token/file','PUT'],
         ['/api/capabilities/packages/start', 'POST'], ['/api/capabilities/packages/install','POST'], ['/api/capabilities/packages/export','POST'], ['/api/capabilities/packages/tasks','GET'], ['/api/capabilities/packages/upload/token','DELETE'], ['/api/capabilities/packages/run','POST'], ['/api/capabilities/state', 'GET'], [`/api/capabilities/icons/${'a'.repeat(64)}`, 'GET'], ['/api/capabilities/icons', 'POST'],
         ['/api/capabilities/knowledge/ask','POST'], ['/api/capabilities/knowledge/search','POST'], ['/api/capabilities/command', 'POST'], ['/api/capabilities/connect', 'POST'], ['/api/capabilities/stop', 'POST'],
-        ['/api/capabilities/meeting/jobs', 'GET'], ['/api/capabilities/presets/repair', 'POST'],
+        ['/api/capabilities/team-contributions', 'GET'], ['/api/capabilities/team-contributions', 'POST'], ['/api/capabilities/meeting/jobs', 'GET'], ['/api/capabilities/presets/repair', 'POST'],
         ['/api/capabilities/requirements/config', 'GET'], ['/api/capabilities/requirements/config', 'POST'],
         ['/api/capabilities/requirements/tasks', 'GET'], ['/api/capabilities/requirements/task/123', 'GET'],
         ['/api/capabilities/requirements/task/123', 'DELETE'], ['/api/capabilities/requirements/create', 'POST'], ['/api/capabilities/requirements/command', 'POST'],
@@ -104,7 +105,7 @@ describe('capability named-route authentication', () => {
     await handler(stale.req,rejected);expect(rejected.writeHead).toHaveBeenCalledWith(409,expect.any(Object));expect(mocks.writePresets).not.toHaveBeenCalled()
     const current=request('/api/capabilities/presets/repair','POST',JSON.stringify({revision:10})), repaired=response()
     await handler(current.req,repaired)
-    expect(mocks.writePresets).toHaveBeenCalledWith(`${process.env.TEMP}/dsh-route-auth-test`,{revision:10},true)
+    expect(mocks.writePresets).toHaveBeenCalledWith(`${process.env.TEMP}/dsh-route-auth-test`,{revision:10,capabilities:[],roles:[]},true)
     expect(repaired.end).toHaveBeenCalledWith(JSON.stringify({presetIssues:[]}));expect(mocks.store.command).not.toHaveBeenCalled()
   })
 
@@ -119,3 +120,5 @@ describe('capability named-route authentication', () => {
     expect(mocks.store.icons.upload).not.toHaveBeenCalled()
   })
 })
+
+it('serves the contribution projection through the authenticated route and validates writes',async()=>{const input=request('/api/capabilities/team-contributions?period=7'),res=response();await handler(input.req,res);expect(res.writeHead).toHaveBeenCalledWith(200,expect.any(Object));expect(JSON.parse((res.end as any).mock.calls[0][0]).entries).toEqual([]);const bad=request('/api/capabilities/team-contributions','POST',JSON.stringify({revision:-1,type:'owner.set',key:'capability:missing'})),badRes=response();await handler(bad.req,badRes);expect(badRes.writeHead).toHaveBeenCalledWith(409,expect.any(Object))})

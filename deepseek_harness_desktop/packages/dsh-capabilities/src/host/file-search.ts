@@ -11,6 +11,7 @@ import { EverythingEngine } from './everything.ts'
 import { json, readBody } from './http.ts'
 
 export class FileSearchService {
+  reportUsage?: import('../core/team-contributions.ts').ContributionReporter
   private roleId = ''
   private rows = new Map<string, FileSearchRecord>()
   private active = new Map<string, { controller: AbortController; roleId: string; roleVersion: number }>()
@@ -62,6 +63,7 @@ export class FileSearchService {
         if (!(await stat(directory).catch(() => null))?.isDirectory()) throw new InputError('搜索路径不存在或不是文件夹')
       }
       controller.signal.throwIfAborted()
+      this.reportUsage?.('capability','local-file-search',id);this.reportUsage?.('role',roleId,id)
       const result = await this.engine.query(query, directory, controller.signal)
       this.reconcile(); controller.signal.throwIfAborted()
       const now = new Date().toISOString(), row: FileSearchRecord = { id, roleId, roleVersion: version.version, roleName: version.name, title: '搜索 · ' + query.slice(0, 80), query, path: directory, createdAt: now, updatedAt: now, ...result }

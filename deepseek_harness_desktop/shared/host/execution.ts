@@ -26,6 +26,7 @@ export class ExecutionRun {
   }
 }
 export class ExecutionStore {
+  onStart?: (value:{id:string;roleId?:string;capabilityIds:string[];nested:boolean})=>void
   readonly live = new Map<string,ExecutionRecord>()
   private pending = new Set<Promise<unknown>>()
   private writes = new Set<Promise<unknown>>()
@@ -44,12 +45,13 @@ export class ExecutionStore {
     do{const page=await this.list(source,offset,50);for(const original of page.items){const row=structuredClone(original);row.taskId=target;if(row.status==='running'){row.status='interrupted';row.finishedAt=now()}for(const event of row.events)if(event.status==='running')event.status='interrupted';await this.save(row)}offset+=page.items.length;if(offset>=page.total)break}while(true)
   }
   async drain(){await Promise.allSettled([...this.pending])}
-  run<T>(taskId:string,meta:Partial<ExecutionRecord>&Pick<ExecutionRecord,'operation'|'input'>,work:()=>Promise<T>,finish:(value:T)=>{status:ExecutionStatus;summary?:string;result?:ExecutionRecord['result']}):Promise<T>{
+  run<T>(taskId:string,meta:Partial<ExecutionRecord>&Pick<ExecutionRecord,'operation'|'input'>&{usage?:{roleId?:string;capabilityIds:string[]}},work:()=>Promise<T>,finish:(value:T)=>{status:ExecutionStatus;summary?:string;result?:ExecutionRecord['result']}):Promise<T>{
     const pending=this.execute(taskId,meta,work,finish);this.pending.add(pending);void pending.finally(()=>this.pending.delete(pending)).catch(()=>{});return pending
   }
-  private async execute<T>(taskId:string,meta:Partial<ExecutionRecord>&Pick<ExecutionRecord,'operation'|'input'>,work:()=>Promise<T>,finish:(value:T)=>{status:ExecutionStatus;summary?:string;result?:ExecutionRecord['result']}):Promise<T>{
+  private async execute<T>(taskId:string,meta:Partial<ExecutionRecord>&Pick<ExecutionRecord,'operation'|'input'>&{usage?:{roleId?:string;capabilityIds:string[]}},work:()=>Promise<T>,finish:(value:T)=>{status:ExecutionStatus;summary?:string;result?:ExecutionRecord['result']}):Promise<T>{
     const record:ExecutionRecord={schema:1,id:meta.id??randomUUID(),taskId:this.id(taskId),operation:meta.operation,input:clean(meta.input),inputKind:meta.inputKind??'operation',startedAt:now(),status:'running',events:[],seq:0,model:meta.model,roleVersion:meta.roleVersion,mode:meta.mode};this.id(record.id)
     try{await this.save(record)}catch{record.warning='执行过程保存失败，请保留当前结果后检查磁盘';this.live.set(record.id,record)}const run=new ExecutionRun(record,this)
+    if(meta.usage)this.onStart?.({id:record.id,...meta.usage,nested:!!execution()})
     return context.run(run,async()=>{try{const value=await work();await run.finish(finish(value));return value}catch(e){await run.finish({status:'failed',summary:e instanceof Error?e.message:String(e)});throw e}})
   }
 }

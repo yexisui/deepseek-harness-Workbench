@@ -12,6 +12,7 @@ import { json, readBody } from './http.ts'
 export type Recording = { followup?: {jobId:string;operation:string;roleVersion:number;capabilityId:string;capabilityVersion:number}; id: string; roleId: string; roleVersion: number; roleName: string; title: string; createdAt: string; updatedAt: string; status: 'recording'|'paused'|'finished'|'interrupted'|'cancelled'; durationMs: number; nextChunk: number; mime: string; audio?: string; warning?: string; notes: {text:string;at:string}[] }
 const live = (r: Recording) => r.status === 'recording' || r.status === 'paused'
 export class RecordingService {
+  reportUsage?: import('../core/team-contributions.ts').ContributionReporter
   private rows = new Map<string, Recording>()
   private tail: Promise<unknown> = Promise.resolve()
   private roleId = ''
@@ -61,7 +62,7 @@ export class RecordingService {
     if(!this.roleId){await writeFile(join(this.root,'settings.json.tmp'),JSON.stringify({roleId:config.roleId}));await rename(join(this.root,'settings.json.tmp'),join(this.root,'settings.json'));this.roleId=config.roleId}
     const role=this.state().roles.find(r=>r.id===config.roleId)!, version=latest(role.versions)!, now=new Date().toISOString()
     const row:Recording={id,roleId:role.id,roleVersion:version.version,roleName:version.name,title:'录音 · '+new Date().toLocaleString('zh-CN',{hour12:false}),createdAt:now,updatedAt:now,status:'recording',durationMs:0,nextChunk:0,mime,notes:[]}
-    await this.save(row);this.beats.set(id,Date.now());return row
+    await this.save(row);this.reportUsage?.('capability','audio-recording',id);this.reportUsage?.('role',row.roleId,id);this.beats.set(id,Date.now());return row
   }) }
   async chunk(id:string,seq:number,req:AsyncIterable<Uint8Array>) { return this.serial(async()=>{
     const row=this.get(id);if(!live(row))throw new InputError('录音已结束',409)

@@ -39,7 +39,7 @@ export class DocumentAI {
   try{if(revise){if(body.storageRevision!==row.revision)throw new InputError('工作副本已更新，请重新生成建议',409);source=await this.bytes?.(row.id,storageRevision);if(!source)throw new Error('当前文档尚未暂存')}}catch(e){this.controllers.delete(row.id);this.revisions.delete(row.id);this.retrievals.delete(row.id);throw e}
   row.messages.push({id:randomUUID(),role:'user',text:input.question,createdAt:now,scope:input.scope},reply);row.updatedAt=now
   try{await this.persist()}catch(e){this.controllers.delete(row.id);this.revisions.delete(row.id);this.retrievals.delete(row.id);row.messages.splice(-2);throw e}
-  const job=this.executions.run(row.id,{operation:revise?'改写文档':'理解文档',input:input.question,model:input.model,roleVersion:row.roleVersion},async()=>{
+  const job=this.executions.run(row.id,{usage:{roleId:row.roleId,capabilityIds:['smart-document']},operation:revise?'改写文档':'理解文档',input:input.question,model:input.model,roleVersion:row.roleVersion},async()=>{
    controller.signal.throwIfAborted()
    step('document-context','读取当前编辑内容','done',input.scope+'；'+input.selected.length+' 个段落')
    let sources:ReturnType<typeof knowledgeSources>=[]

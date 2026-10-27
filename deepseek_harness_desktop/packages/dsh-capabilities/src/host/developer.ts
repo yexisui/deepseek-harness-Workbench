@@ -236,7 +236,7 @@ export class DeveloperService {
   }) }
   private async develop(id: string, roundId: string, signal: AbortSignal) {
     const task=await this.get(id)
-    await this.executions.run(id,{id:roundId,operation:'开发任务',input:task.messages.at(-1)?.text??'执行开发任务',inputKind:'user',model:task.model,roleVersion:task.roleVersion},async()=>{step('permission','检查项目权限','done',task.permission==='edit'?'允许项目内编辑':'只读讨论');await this.developWork(id,roundId,signal);return this.get(id)},value=>{const round=value.rounds.find(r=>r.id===roundId)!;return {status:round.status==='done'?'done':signal.aborted?'stopped':execution()?.record.events.some(e=>e.status==='review')?'review':'failed',summary:round.error||'开发轮次已保存；测试状态以实际验证记录为准',result:round.status==='done'?{kind:'developer',text:value.messages.at(-1)?.text??''}:undefined}})
+    await this.executions.run(id,{id:roundId,usage:{roleId:task.roleId,capabilityIds:['developer-workspace']},operation:'开发任务',input:task.messages.at(-1)?.text??'执行开发任务',inputKind:'user',model:task.model,roleVersion:task.roleVersion},async()=>{step('permission','检查项目权限','done',task.permission==='edit'?'允许项目内编辑':'只读讨论');await this.developWork(id,roundId,signal);return this.get(id)},value=>{const round=value.rounds.find(r=>r.id===roundId)!;return {status:round.status==='done'?'done':signal.aborted?'stopped':execution()?.record.events.some(e=>e.status==='review')?'review':'failed',summary:round.error||'开发轮次已保存；测试状态以实际验证记录为准',result:round.status==='done'?{kind:'developer',text:value.messages.at(-1)?.text??''}:undefined}})
   }
   private async developWork(id: string, roundId: string, signal: AbortSignal) {
     const observed = new Map<string, string>(), evidence: unknown[] = []

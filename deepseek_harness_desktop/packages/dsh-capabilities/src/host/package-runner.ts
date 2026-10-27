@@ -22,6 +22,7 @@ const api={previous:workerData.previous,resourceRoot:workerData.resourceRoot,mod
 
 /** Each call owns one worker. Author-trusted Node code is not presented as a permissions sandbox. */
 export class PackageRunner {
+  reportUsage?: import('../core/team-contributions.ts').ContributionReporter
   private jobs = new Map<string,PackageJob>()
   private active = new Map<string,{controller:AbortController;done:Promise<unknown>;allowed:()=>boolean}>()
   private unsubscribe?:()=>void
@@ -80,6 +81,7 @@ export class PackageRunner {
         if(sourceId&&(!prior||!sameScope(prior)))throw new Error('此流程图不属于当前会话，或尚未生成成功')
         // Only pass previous structured content, never rendered image bytes or another conversation's result.
         const previous=prior?{id:prior.id,output:prior.output&&typeof prior.output==='object'?{...prior.output as Record<string,unknown>,svg:undefined}:prior.output}:undefined
+        this.reportUsage?.('capability',capabilityId,job.id)
         job.output=await this.executeWorker({entry:join(root,part.entry),resourceRoot:join(root,'resources'),action:declared.id,input,previous},signal,release.manifest.permissions.includes('model'),this.packages.model(capabilityId),allowed,options.role?{taskId:job.id,roleId:options.role.roleId,roleVersion:options.role.version.version,authorityAt:options.role.sessionCreatedAt,kind:'package'}:undefined)
         if(signal.aborted||!allowed())throw new Error('任务已停止或权限已撤销')
         job.status='done'

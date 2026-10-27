@@ -24,7 +24,8 @@ import { withAppearanceNavigation } from './AppearanceNavigation.tsx'
 import { CapabilityPreviewContext, createCapabilityPreview } from './capability-preview.tsx'
 import { UnifiedCenter, settingsSectionForLink } from './UnifiedCenter.tsx'
 import { registerComponentInventory } from './component-inventory-slot.tsx'
-import { registerCapabilityCenter } from './capability-settings.tsx'
+import { TeamContributions } from './TeamContributions.tsx'
+import { registerCapabilityCenter, registerTeamContributions } from './capability-settings.tsx'
 import { nativePresetHook } from './native-preset-view.ts'
 import { AgentPresetDisclosure } from './RoleAssistants.tsx'
 
@@ -398,6 +399,7 @@ export function apply(ctx: Context): void {
   }),'plain-chat: native recording commands')
   const capabilityPreview = createCapabilityPreview()
   registerCapabilityCenter(ctx.slots as unknown as Parameters<typeof registerCapabilityCenter>[0], () => t('centerTitle'), () => <UnifiedCenter />)
+  registerTeamContributions(ctx.slots as unknown as Parameters<typeof registerTeamContributions>[0],TeamContributions)
   const settingsNavigation = createSettingsNavigation()
   ctx.effect(() => {
     const open = (event: Event) => settingsNavigation.openSection(settingsSectionForLink((event as CustomEvent<CapabilityLink>).detail))

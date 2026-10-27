@@ -11,8 +11,9 @@ import { resolveWorkbenchModel } from './model-text.ts'
 import { RoleSkills } from './role-skills.ts'
 
 /** Narrow workbench adapter: models and authority stay in the host, state stays in the module. */
-export async function createCodeAssistant(ctx: Context, home: string, store: CapabilityStore, git: GitService, knowledge?: KnowledgeAccess) {
+export async function createCodeAssistant(ctx: Context, home: string, store: CapabilityStore, git: GitService, knowledge?: KnowledgeAccess, report?: import('../core/team-contributions.ts').ContributionReporter) {
   const skills = new RoleSkills(home)
+  skills.onGuidanceLoaded=ids=>ids.forEach(id=>report?.('skill',id))
   const usingKnowledge=new Set<string>()
   const service = new CodeAssistantService({
     releaseGuidance:(task:{id:string})=>usingKnowledge.delete(task.id),
@@ -33,6 +34,7 @@ export async function createCodeAssistant(ctx: Context, home: string, store: Cap
       if (!version || !allowedActions(state, task.roleId, version).includes(action) || wasRevoked(state, task.roleId, {...version,capabilities:version.capabilities.filter(b=>b.capabilityId==='developer-workspace')}, task.authorityAt)) throw new Error('此岗位的开发能力已停用或授权已改变，请在能力中心检查')
     },
     guidance: async (task: { roleId: string; roleVersion: number; cwd: string; authorityAt: number; id:string }, request?:{message:string;signal:AbortSignal}) => {
+      if(request){report?.('capability','developer-workspace');report?.('role',task.roleId)}
       const state = store.snapshot(), version = state.roles.find(role => role.id === task.roleId)?.versions.find(version => version.version === task.roleVersion)
       const rules = await readFile(join(task.cwd, 'AGENTS.md'), 'utf8').catch(() => '')
       const guide=(version ? skills.guidance(state, task.roleId, version, task.cwd, task.authorityAt) : '') + (rules ? '\n项目规则：\n' + rules.slice(0, 32000) : '')

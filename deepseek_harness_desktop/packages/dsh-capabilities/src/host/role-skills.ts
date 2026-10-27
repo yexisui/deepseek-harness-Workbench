@@ -6,6 +6,7 @@ import type {RoleVersion,SkillBinding,State} from '../core/model.ts'
 
 /** Skill resources confer no general filesystem or shell authority. */
 export class RoleSkills {
+  onGuidanceLoaded?: (ids:string[])=>void
   private managed: ManagedSkills
   constructor(home:string){this.managed=new ManagedSkills(home,()=>[])}
   private version(binding:SkillBinding,cwd?:string){
@@ -52,6 +53,7 @@ export class RoleSkills {
       total+=loaded.content.length;if(total>256*1024)throw Error('技能加载失败：绑定资料过大，请精简技能')
       result.push({name:binding.name,content:loaded.content,resources})
     }
+    this.onGuidanceLoaded?.(original.map(b=>b.id))
     return '\n岗位已绑定的技能指导（遵守当前流程的输出协议，不增加工具权限）：\n'+JSON.stringify(result)
   }
 }

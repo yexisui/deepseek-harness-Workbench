@@ -334,7 +334,7 @@ export class MeetingService {
   }
   private async transcribe(id: string) {
     const initial=await this.get(id);this.stopped.delete(id)
-    await this.executions.run(id,{operation:'录音转写',input:'录音：'+initial.fileName+'；'+initial.size+' 字节；'+(initial.mode==='quick'?'快速生成':'引导整理')+'；用途：'+(initial.audience||'通用')+'；重点：'+(initial.focus||'结论与待办'),mode:initial.mode,roleVersion:initial.role?.version},async()=>{
+    await this.executions.run(id,{usage:{roleId:initial.role?.id??MEETING_ROLE_ID,capabilityIds:['meeting-transcription']},operation:'录音转写',input:'录音：'+initial.fileName+'；'+initial.size+' 字节；'+(initial.mode==='quick'?'快速生成':'引导整理')+'；用途：'+(initial.audience||'通用')+'；重点：'+(initial.focus||'结论与待办'),mode:initial.mode,roleVersion:initial.role?.version},async()=>{
       step('upload','录音上传完成','done',initial.fileName)
       await this.transcribeWork(id);return this.get(id)
     },value=>({status:value.status==='error'?(this.stopped.has(id)?'stopped':'failed'):value.mode==='guided'?'waiting':'done',summary:value.status==='error'?value.error:value.mode==='guided'?'转写已保存，请核对后确认生成':'转写已保存',result:value.segments.length?{kind:'transcript',text:value.segments.map(s=>s.text).join('\n')}:undefined}))
@@ -397,7 +397,7 @@ export class MeetingService {
   }
   private async finishGenerate(job: MeetingJob, instruction?: string, changed=0) {
     this.stopped.delete(job.id)
-    await this.executions.run(job.id,{operation:job.minutes?'修改会议纪要':'生成会议纪要',input:instruction || (job.mode==='guided'?'确认当前转写并生成纪要':'按当前转写生成纪要'),inputKind:instruction?'user':'operation',model:job.summaryModel,roleVersion:job.role?.version,mode:job.mode},async()=>{
+    await this.executions.run(job.id,{usage:{roleId:job.role?.id??MEETING_ROLE_ID,capabilityIds:['meeting-transcription']},operation:job.minutes?'修改会议纪要':'生成会议纪要',input:instruction || (job.mode==='guided'?'确认当前转写并生成纪要':'按当前转写生成纪要'),inputKind:instruction?'user':'operation',model:job.summaryModel,roleVersion:job.role?.version,mode:job.mode},async()=>{
       step('transcript','使用已保存转写','done',job.segments.length+' 个片段；用途：'+(job.audience||'通用会议纪要')+'；重点：'+(job.focus||'结论与待办'))
       if(changed)step('corrections','保存转写校对','done',changed+' 个片段已校对；本轮使用校对后的原文')
       await this.finishGenerateWork(job,instruction)
