@@ -51,11 +51,13 @@ it.each(['stopped','interrupted','error'] as const)('keeps the %s draft resume a
  await render()
  const footer=host.querySelector<HTMLElement>('section[aria-label="文档生成状态"]')!
  expect(footer).toBeTruthy();expect(footer.parentElement?.dataset.templateWorkspace).toBe('true');expect(footer.closest('main')).toBeNull()
- for(const tab of ['我的文档','编写']){await click(tab);expect(footer.contains(button('继续补全'))).toBe(true);expect(Array.from(host.querySelectorAll('button')).filter(b=>b.textContent==='继续补全')).toHaveLength(1)}
+ expect(button('按模板生成初稿')).toBeUndefined();expect(button('按要求修改')).toBeUndefined()
+ for(const tab of ['我的文档','编写']){await click(tab);expect(footer.querySelector('button')?.textContent).toBe('继续补全');expect(Array.from(host.querySelectorAll('button')).filter(b=>b.textContent==='继续补全')).toHaveLength(tab==='编写'?2:1)}
  const progress=structuredClone(task.run!.templateProgress)
  await click('继续补全');expect(writes.at(-1).body.command).toMatchObject({type:'run.resume',runId:'saved-progress'});expect(task.run!.templateProgress).toEqual(progress)
- expect(button('继续补全')).toBeUndefined();expect(footer.contains(button('暂停生成'))).toBe(true)
- await click('暂停生成');expect(footer.contains(button('继续补全'))).toBe(true)
+ expect(button('继续补全')).toBeUndefined();expect(footer.querySelector('button')?.textContent).toBe('暂停生成')
+ expect(host.querySelector('[aria-label="文档生成操作"] button')?.textContent).toBe('暂停生成');expect(button('按模板生成初稿')).toBeUndefined()
+ await click('暂停生成');expect(footer.querySelector('button')?.textContent).toBe('继续补全')
 })
 
 it('resumes the saved document draft after a separate question without starting a new document',async()=>{
