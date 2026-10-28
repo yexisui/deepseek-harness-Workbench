@@ -30,6 +30,9 @@ try {
  $record=@{wordPid=if($process){$process.Id}else{0};owned=($null -ne $process);started=if($process){$process.StartTime.ToUniversalTime().ToString('o')}else{''}}
  $record | ConvertTo-Json -Compress | Set-Content -LiteralPath (Join-Path $directory 'recovery.json') -Encoding UTF8
  $doc=$word.Documents.Open($Source,$false,$true,$false,'','')
+ $doc.Repaginate()
+ foreach($field in $doc.Fields){if($field.Type -in @(26,33,66)){[void]$field.Update()}}
+ foreach($section in $doc.Sections){foreach($header in $section.Headers){foreach($field in $header.Range.Fields){if($field.Type -in @(26,33,66)){[void]$field.Update()}}};foreach($footer in $section.Footers){foreach($field in $footer.Range.Fields){if($field.Type -in @(26,33,66)){[void]$field.Update()}}}}
  $doc.ExportAsFixedFormat($Target,17)
 } catch { $_.Exception.Message | Set-Content -LiteralPath (Join-Path $directory 'error.txt') -Encoding UTF8;exit 1 }
 finally {

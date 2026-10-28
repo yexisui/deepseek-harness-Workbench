@@ -30,3 +30,15 @@ it('rejects a late preview from a replaced template and keeps current document v
  const render=(template:TemplateSource)=>root.render(<RequirementDocumentView taskId="task" template={template} slots={template.slots} values={{}} original={false} note="" disabled={false} pendingIds={[]} onEdit={()=>{}} onCompare={()=>{}}/>)
  await act(async()=>{render(a);await flush()});await act(async()=>{render(b);await flush()});await act(async()=>{finish(new Response(JSON.stringify(old)));await flush()});expect(host.textContent).toContain('新文档')
 })
+
+it('uses fixed A4 sheets, repeated template footer fields and keeps edit actions on their page',async()=>{
+ const template={...source,asset:'pages'},view=basicRequirementPreview(template)
+ view.body=[{type:'paragraph',id:'p0',style:{size:12},heading:false,breakAfter:true,runs:[{text:'第一页',style:{}}]},{type:'paragraph',id:'p1',style:{size:12},heading:false,runs:[{text:'第二页',style:{}}]}]
+ view.footers=[{type:'paragraph',id:'word/footer1.xml#0',style:{align:'center'},heading:false,runs:[{text:'第',style:{}},{text:'1',field:'PAGE',style:{}},{text:'页 / 共',style:{}},{text:'99',field:'NUMPAGES',style:{}},{text:'页',style:{}}]}]
+ const bounds=vi.spyOn(HTMLElement.prototype,'getBoundingClientRect').mockImplementation(function(this:HTMLElement){return {top:0,bottom:40,height:this.hasAttribute('data-flow-node')?40:0,left:0,right:600,width:600,x:0,y:0,toJSON(){}}})
+ vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify(view))))
+ await act(async()=>{root.render(<RequirementDocumentView taskId="task" template={template} slots={template.slots} values={{}} original={false} note="" disabled={false} pendingIds={[]} onEdit={()=>{}} onCompare={()=>{}}/>);await flush()})
+ const pages=host.querySelectorAll<HTMLElement>('[data-document-page]');expect(pages).toHaveLength(2);expect(pages[0]!.style.width).toBe('595.3pt');expect(pages[1]!.style.height).toBe('841.9pt')
+ expect(pages[0]!.querySelector('[aria-label="文档页脚"]')?.textContent).toBe('第1页 / 共2页');expect(pages[1]!.querySelector('[aria-label="文档页脚"]')?.textContent).toBe('第2页 / 共2页')
+ expect(pages[1]!.querySelector('[data-block-id="p1"] button[aria-label^="编辑"]')).not.toBeNull();bounds.mockRestore()
+})

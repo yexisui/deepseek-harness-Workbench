@@ -42,3 +42,15 @@ it('previews existing tasks without changing their versions, values, original ex
  try{let task=await service.create({roleId:'builtin-analyst',workflow:'template'});task=await service.importDocument(task.id,task.revision,'模板.docx','template',bytes());const before=await service.get(task.id),output=await service.exportDocument(task.id),view=await service.previewDocument(task.id);expect(view.body.some(n=>n.type==='table')).toBe(true);expect(await service.get(task.id)).toEqual(before);expect(await service.exportDocument(task.id)).toEqual(output)}
  finally{await service.close();if(resolve(root).startsWith(resolve(tmpdir())+'\\requirements-preview-'))await rm(root,{recursive:true,force:true})}
 })
+
+it('reads A4 geometry, template spacing, table borders and dynamic page fields',()=>{
+ const z=fixture();z.file('word/document.xml',z.file('word/document.xml').asText().replace('</w:body>','<w:p><w:r><w:br w:type="page"/></w:r></w:p><w:sectPr><w:footerReference w:type="default" r:id="footer"/><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1000" w:bottom="900" w:left="1200" w:right="1100" w:header="400" w:footer="500"/></w:sectPr></w:body>'))
+ z.file('word/styles.xml',z.file('word/styles.xml').asText().replace('</w:styles>','<w:style w:type="paragraph" w:default="1" w:styleId="defaultBody"><w:pPr><w:spacing w:before="40" w:after="100" w:line="360" w:lineRule="exact"/><w:ind w:firstLine="440"/></w:pPr><w:rPr><w:rFonts w:eastAsia="宋体"/><w:sz w:val="24"/></w:rPr></w:style></w:styles>'))
+ z.file('word/_rels/document.xml.rels','<Relationships><Relationship Id="footer" Target="footer1.xml"/></Relationships>')
+ z.file('word/footer1.xml','<w:ftr><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:t>第</w:t></w:r><w:fldSimple w:instr="PAGE"><w:r><w:t>1</w:t></w:r></w:fldSimple><w:r><w:t>页/共</w:t></w:r><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText>NUMPAGES</w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>99</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r><w:r><w:t>页</w:t></w:r></w:p></w:ftr>')
+ const input=bytes(z),view=buildRequirementPreview(input,'a',inspectDocx(input))
+ expect(view.pages?.[0]).toMatchObject({width:595.3,height:841.9,top:50,bottom:45,left:60,right:55,footer:25,footers:{default:'word/footer1.xml'}})
+ expect(view.body[1]).toMatchObject({style:{font:'宋体',size:12,linePoints:18,before:2,after:5,indent:22}})
+ expect(view.body.at(-1)).toMatchObject({breakAfter:true,runs:[]})
+ expect(paragraphs(view.footers)[0].runs.filter((r:any)=>r.field).map((r:any)=>r.field)).toEqual(['PAGE','NUMPAGES'])
+})

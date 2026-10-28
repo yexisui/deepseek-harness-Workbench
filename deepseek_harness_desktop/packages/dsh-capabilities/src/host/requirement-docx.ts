@@ -55,7 +55,7 @@ function rewriteParagraph(p:Span,after:string){
  const first=p.xml.match(/<w:t\b[^>]*>[\s\S]*?<\/w:t>/),escaped=escape(after).replace(/\r?\n/g,'</w:t><w:br/><w:t xml:space="preserve">')
  let body=p.xml
  if(p.image)body=body.replace(/<w:drawing\b[\s\S]*?<\/w:drawing>|<w:pict\b[\s\S]*?<\/w:pict>/g,'')
- if(first){let inserted=false;body=body.replace(/<w:t\b[^>]*>[\s\S]*?<\/w:t>|<w:(tab|br)\b[^>]*\/?\s*>/g,()=>{if(inserted)return '';inserted=true;return '<w:t xml:space="preserve">'+escaped+'</w:t>'})}
+ if(first){let inserted=false;body=body.replace(/<w:t\b[^>]*>[\s\S]*?<\/w:t>|<w:(tab|br)\b[^>]*\/?\s*>/g,match=>{if(/^<w:br\b/.test(match)&&/w:type=["'](page|column)["']/.test(match))return match;if(inserted)return '';inserted=true;return '<w:t xml:space="preserve">'+escaped+'</w:t>'})}
  else {const run='<w:r><w:t xml:space="preserve">'+escaped+'</w:t></w:r>';body=body.endsWith('/>')?body.slice(0,-2)+'>'+run+'</w:p>':body.replace(/<\/w:p>$/,run+'</w:p>')}
  return body
 }
@@ -69,6 +69,19 @@ export async function renderTemplate(root:string,workspace:TemplateWorkspace,ver
   if(part==='word/document.xml'&&note){if(/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(note))throw new InputError('备注含无效控制字符');const content='<w:p><w:r><w:t xml:space="preserve">'+escape(note).replace(/\r?\n/g,'</w:t><w:br/><w:t xml:space="preserve">')+'</w:t></w:r></w:p>';const at=xml.lastIndexOf('<w:sectPr');xml=at<0||at<xml.lastIndexOf('</w:p>')?xml.replace('</w:body>',content+'</w:body>'):xml.slice(0,at)+content+xml.slice(at)}
   zip.file(part,xml)
  }
+ // Keep template sections/margins and formatting; generated pages use A4 in the original orientation.
+ let document=zip.file('word/document.xml')!.asText()
+ if(!/<w:sectPr\b/.test(document))document=document.replace('</w:body>','<w:sectPr><w:pgSz w:w="11906" w:h="16838"/></w:sectPr></w:body>')
+ document=document.replace(/<w:sectPr\b([^>]*?)\/>/g,'<w:sectPr$1></w:sectPr>')
+ document=document.replace(/<w:sectPr\b[^>]*>[\s\S]*?<\/w:sectPr>/g,section=>{
+  const size=section.match(/<w:pgSz\b[^>]*\/?\s*>/)?.[0],landscape=!!size&&(Number(size.match(/w:w="(\d+)"/)?.[1])>Number(size.match(/w:h="(\d+)"/)?.[1])||/w:orient="landscape"/.test(size)),width=landscape?16838:11906,height=landscape?11906:16838
+  let next=size||'<w:pgSz/>'
+  for(const [key,value] of [['w',width],['h',height]] as const){const attr=new RegExp('w:'+key+'="[^"]*"');next=attr.test(next)?next.replace(attr,`w:${key}="${value}"`):next.replace('/>',` w:${key}="${value}"/>`)}
+  next=next.replace(/\s+w:code="[^"]*"/g,'')
+  return size?section.replace(size,next):section.replace(/(<w:sectPr\b[^>]*>)/,'$1'+next)
+ })
+ zip.file('word/document.xml',document)
+ const settings=zip.file('word/settings.xml')?.asText();if(settings)zip.file('word/settings.xml',/<w:updateFields\b/.test(settings)?settings.replace(/<w:updateFields\b[^>]*\/?\s*>/,'<w:updateFields w:val="true"/>'):settings.replace('</w:settings>','<w:updateFields w:val="true"/></w:settings>'))
  const output=zip.generate({type:'nodebuffer',compression:'DEFLATE'});inspectDocx(output);return output
 }
 export function sourceValue(source:TemplateSource,id:string){return source.slots.find(p=>p.id===id)?.text}
