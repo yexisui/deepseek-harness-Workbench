@@ -5,25 +5,25 @@
   },
   "skins": {},
   "affinity": {
-    "points": 232,
+    "points": 233,
     "lastPetAt": 1792637888626,
     "lastFeedAt": 1791613782543,
     "pets": 50,
     "feeds": 32,
     "petRejects": 447,
     "feedRejects": 116,
-    "turns": 22
+    "turns": 23
   },
   "treats": {
     "treats": 20,
-    "lastTreatGrantAt": 1792919219238,
+    "lastTreatGrantAt": 1793027219238,
     "turnsAtLastTreatGrant": 0
   },
   "display": {
     "visible": true,
     "size": 160,
-    "right": 14,
-    "bottom": 0,
+    "right": 32,
+    "bottom": 442,
     "bubbleScale": 1
   },
   "gameplay": {}

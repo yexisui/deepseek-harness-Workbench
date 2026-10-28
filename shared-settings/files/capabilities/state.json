@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "revision": 61,
-  "updatedAt": "2026-10-26T02:04:37.775Z",
+  "revision": 64,
+  "updatedAt": "2026-10-26T08:03:41.121Z",
   "roles": [
     {
       "id": "builtin-analyst",
@@ -21,6 +21,17 @@
           {
             "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
             "version": 4,
+            "enabled": true
+          },
+          {
+            "capabilityId": "external-knowledge",
+            "version": 1,
+            "knowledgeScope": {
+              "collectionIds": [
+                "lib-23e50512-3e5f-427b-b331-b151c4499d92"
+              ],
+              "providerId": "workbench-knowledge"
+            },
             "enabled": true
           }
         ]
@@ -122,6 +133,40 @@
           "createdAt": "2026-10-21T01:31:44.461Z",
           "preset": "workbench-role-builtin-analyst-v5",
           "directSave": true
+        },
+        {
+          "name": "需求分析助手",
+          "color": "#4F73E8",
+          "duties": "协助梳理核电企业办公业务的软件需求，理解业务目标、使用角色与操作流程，整理功能清单和待确认事项。",
+          "requirements": "区分明确需求与待确认事项，不自行补充业务规则。\n信息不足时先提出澄清问题，使用业务人员易懂的语言。",
+          "format": "一、业务目标\n二、操作步骤\n三、功能清单\n四、待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "requirements-analysis",
+              "version": 1,
+              "enabled": true
+            },
+            {
+              "capabilityId": "local-24a8fe74-eaf6-4b6f-bdbe-389c052f0e78",
+              "version": 4,
+              "enabled": true
+            },
+            {
+              "capabilityId": "external-knowledge",
+              "version": 1,
+              "knowledgeScope": {
+                "collectionIds": [
+                  "lib-23e50512-3e5f-427b-b331-b151c4499d92"
+                ],
+                "providerId": "workbench-knowledge"
+              },
+              "enabled": true
+            }
+          ],
+          "version": 6,
+          "preset": "workbench-role-builtin-analyst-v6",
+          "createdAt": "2026-10-26T07:05:42.978Z",
+          "directSave": true
         }
       ]
     },
@@ -153,7 +198,7 @@
     },
     {
       "id": "builtin-manager",
-      "enabled": true,
+      "enabled": false,
       "draft": {
         "name": "项目经理助手",
         "color": "#9A62D8",
@@ -174,7 +219,8 @@
           "preset": "workbench-role-builtin-manager-v1",
           "createdAt": "2026-09-22T06:04:59.989Z"
         }
-      ]
+      ],
+      "archivedAt": "2026-10-26T08:03:41.121Z"
     },
     {
       "id": "builtin-developer",
@@ -378,6 +424,23 @@
           ],
           "version": 11,
           "preset": "workbench-role-builtin-developer-v11",
+          "createdAt": "2026-10-09T03:56:52.921Z"
+        },
+        {
+          "name": "开发助手",
+          "color": "#22A58B",
+          "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+          "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+          "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "developer-workspace",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 12,
+          "preset": "workbench-role-builtin-developer-v12",
           "createdAt": "2026-10-09T03:56:52.921Z"
         }
       ]
@@ -1533,7 +1596,8 @@
     "role:builtin-analyst": 1790057149528,
     "capability:local-ac98522c-69cc-4674-9569-0f7aad3b8176": 1790060061249,
     "role:local-118bde26-3801-43da-abca-cec490224cdf": 1791524012677,
-    "capability:local-80a17072-f1ae-499a-8420-8cdf3591eace": 1791531999389
+    "capability:local-80a17072-f1ae-499a-8420-8cdf3591eace": 1791531999389,
+    "role:builtin-manager": 1793001821121
   },
   "meetingCapabilityVersion": 1,
   "requirementsCapabilityVersion": 1,
