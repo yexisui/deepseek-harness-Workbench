@@ -1,3 +1,4 @@
+import { questionSummaries } from '../core/conversation.mjs'
 import { randomUUID, randomBytes } from 'node:crypto'
 import { mkdir, readFile, readdir, rename, writeFile, stat, rm } from 'node:fs/promises'
 import { join, dirname, resolve, relative, extname } from 'node:path'
@@ -6,6 +7,7 @@ import { OpenCodeEngine, ENGINE_VERSION } from './engine.mjs'
 import { ModelBridge } from './model-bridge.mjs'
 import { assertIsolatedProject } from './project-guard.mjs'
 
+const projectKey = value => { const path = resolve(value); return process.platform === 'win32' ? path.toLowerCase() : path }
 const now = () => new Date().toISOString()
 const idPattern = /^[a-f\d-]{36}$/i
 function required(value, label, max = 4000) { if (typeof value !== 'string' || !value.trim() || value.length > max) throw new Error(label + '无效'); return value }
@@ -18,7 +20,7 @@ function permissions(mode) {
 export class CodeAssistantService {
   constructor({ root, toolsRoot, assets, workspace, projects, addProject, authorize, resolveModel, stream, guidance, releaseGuidance }) {
     Object.assign(this, { root, toolsRoot, assets, workspace, projects, addProject, authorize, resolveModel, stream, guidance, releaseGuidance })
-    this.tasks = new Map(); this.active = null; this.tail = Promise.resolve(); this.closed = false
+    this.tasks = new Map(); this.removedProjects = new Set(); this.historyProjects = new Map(); this.active = null; this.tail = Promise.resolve(); this.closed = false
   }
   async init() {
     await mkdir(join(this.root, 'tasks'), { recursive: true })
@@ -26,6 +28,11 @@ export class CodeAssistantService {
       if (!idPattern.test(name.replace(/\.json$/, ''))) continue
       try { const task = JSON.parse(await readFile(join(this.root, 'tasks', name), 'utf8')); if (task.schema === 1 && task.id + '.json' === name) { this.tasks.set(task.id, task); if (task.status === 'running') { task.status = 'interrupted'; task.permissions = []; task.error = '上次运行已中断，可以继续发送；不会重放命令'; await this.save(task) } } } catch { /* Preserve unreadable records on disk. */ }
     }
+    try { const saved = JSON.parse(await readFile(join(this.root, 'projects.json'), 'utf8')); this.removedProjects = new Set((saved.removed ?? []).map(projectKey)) } catch (error) { if (error.code !== 'ENOENT') throw error }
+    try {
+      const saved = JSON.parse(await readFile(join(this.root, 'history-projects.json'), 'utf8'))
+      this.historyProjects = new Map((saved.removed ?? []).map(row => [this.historyProjectKey(row.roleId, row.cwd), row]))
+    } catch (error) { if (error.code !== 'ENOENT') throw error }
     this.token = randomBytes(32).toString('hex')
     this.bridge = new ModelBridge({ token: this.token, stream: this.stream, route: () => { if (!this.active) throw new Error('没有正在运行的代码任务'); this.authorize(this.active.task, 'develop'); return this.resolveModel(this.active.task.model) } })
     const bridgeUrl = await this.bridge.start()
@@ -33,11 +40,74 @@ export class CodeAssistantService {
     try { const pointer = JSON.parse(await readFile(join(this.toolsRoot, 'opencode/current.json'), 'utf8')); executable = resolve(this.toolsRoot, 'opencode', pointer.opencode); if (!executable.startsWith(resolve(this.toolsRoot, 'opencode') + '/'.replace('/', process.platform === 'win32' ? '\\' : '/'))) throw new Error('引擎路径无效') } catch { executable = join(this.toolsRoot, 'opencode/releases/opencode-1.19.3-win-x64/opencode.exe') }
     this.engine = new OpenCodeEngine({ executable, assets: this.assets, root: join(this.root, 'engine'), bridgeUrl, token: this.token })
   }
+  projectList() { return this.projects().filter(project => !this.removedProjects.has(projectKey(project.path))) }
+  async saveProjectList(removed) {
+    const file = join(this.root, 'projects.json'), temp = file + '.tmp'
+    await writeFile(temp, JSON.stringify({ removed: [...removed] }), { mode: 0o600 }); await rename(temp, file)
+    this.removedProjects = removed
+  }
+  async addLocalProject(value) { return this.serialize(async () => {
+    const path = required(value, '项目目录'), key = projectKey(path)
+    if (!this.projects().some(project => projectKey(project.path) === key)) await this.addProject(path)
+    if (this.removedProjects.has(key)) { const removed = new Set(this.removedProjects); removed.delete(key); await this.saveProjectList(removed) }
+    return this.projectList()
+  }) }
+  async removeLocalProject(value) { return this.serialize(async () => {
+    const key = projectKey(required(value, '项目目录'))
+    if (this.active && projectKey(this.active.task.cwd) === key) throw new Error('此项目有任务正在运行，请先停止或等待完成')
+    const removed = new Set(this.removedProjects); removed.add(key); await this.saveProjectList(removed)
+    return this.projectList()
+  }) }
   serialize(fn) { const result = this.tail.then(fn); this.tail = result.catch(() => {}); return result }
   get(id) { const task = this.tasks.get(id); if (!task) throw new Error('代码任务不存在'); return task }
-  async save(task) { task.updatedAt = now(); const path = join(this.root, 'tasks', task.id + '.json'), temp = path + '.tmp'; await writeFile(temp, JSON.stringify(task), { mode: 0o600 }); await rename(temp, path); return task }
+  async save(task, touch = true) { if (touch) task.updatedAt = now(); const path = join(this.root, 'tasks', task.id + '.json'), temp = path + '.tmp'; await writeFile(temp, JSON.stringify(task), { mode: 0o600 }); await rename(temp, path); return task }
   view(task) { return { ...task, messages: task.messages ?? [], permissions: task.permissions ?? [] } }
-  list(roleId) { return [...this.tasks.values()].filter(task => task.roleId === roleId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map(task => ({ id: task.id, title: task.title, cwd: task.cwd, status: task.status, updatedAt: task.updatedAt })) }
+  list(roleId) { return [...this.tasks.values()].filter(task => task.roleId === roleId && !task.historyRemovedAt && !this.historyProjects.has(this.historyProjectKey(roleId, task.cwd))).sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')).map(task => ({ id: task.id, title: task.title, cwd: task.cwd, status: task.status, updatedAt: task.updatedAt, questions: questionSummaries(task) })) }
+  historyProjectKey(roleId, cwd) { return JSON.stringify([roleId, cwd ? projectKey(cwd) : '']) }
+  history(roleId) {
+    required(roleId, '岗位')
+    const records = [...this.tasks.values()].filter(task => task.roleId === roleId)
+    const removedProjects = [...this.historyProjects.values()].filter(row => row.roleId === roleId).map(row => ({ cwd: row.cwd, removedAt: row.removedAt, count: records.filter(task => !task.historyRemovedAt && this.historyProjectKey(roleId, task.cwd) === this.historyProjectKey(roleId, row.cwd)).length })).sort((a,b) => b.removedAt.localeCompare(a.removedAt))
+    const removedTasks = records.filter(task => task.historyRemovedAt && !this.historyProjects.has(this.historyProjectKey(roleId, task.cwd))).map(task => ({ id: task.id, title: task.title, cwd: task.cwd, status: task.status, updatedAt: task.updatedAt, removedAt: task.historyRemovedAt })).sort((a,b) => b.removedAt.localeCompare(a.removedAt))
+    return { tasks: this.list(roleId), removedProjects, removedTasks }
+  }
+  async saveHistoryProjects(removed) {
+    const file = join(this.root, 'history-projects.json'), temp = file + '.tmp'
+    await writeFile(temp, JSON.stringify({ removed: [...removed.values()] }), { mode: 0o600 }); await rename(temp, file)
+    this.historyProjects = removed
+  }
+  async setProjectHistoryRemoved(cwd, roleId, removed) { return this.serialize(async () => {
+    required(roleId, '岗位')
+    if (typeof cwd !== 'string' || cwd.length > 4000) throw new Error('项目路径无效')
+    if (this.closed) throw new Error('代码模块正在关闭')
+    const key = this.historyProjectKey(roleId, cwd)
+    const matches = task => this.historyProjectKey(task.roleId, task.cwd) === key
+    if (removed && ([...this.tasks.values()].some(task => matches(task) && task.status === 'running') || (this.active && matches(this.active.task)))) throw new Error('此项目有任务正在运行，请等待完成后再移除')
+    if (this.historyProjects.has(key) !== removed) {
+      const next = new Map(this.historyProjects)
+      if (removed) next.set(key, { roleId, cwd, removedAt: now() })
+      else next.delete(key)
+      // One atomic metadata write; never rewrite the project's task files.
+      await this.saveHistoryProjects(next)
+    }
+    return this.history(roleId)
+  }) }
+  async setHistoryRemoved(id, roleId, removed) { return this.serialize(async () => {
+    if (!idPattern.test(id)) throw new Error('任务标识无效')
+    const task = this.get(id)
+    if (task.roleId !== required(roleId, '岗位')) throw new Error('任务不属于当前岗位')
+    if (this.active?.task.id === id || task.status === 'running') throw new Error('此任务正在运行，请等待完成后再移除记录')
+    if (this.closed) throw new Error('代码模块正在关闭')
+    if (!removed && this.historyProjects.has(this.historyProjectKey(roleId, task.cwd))) throw new Error('请先在回收站恢复所属项目')
+    if (Boolean(task.historyRemovedAt) !== removed) {
+      const next = { ...task }
+      if (removed) next.historyRemovedAt = now()
+      else delete next.historyRemovedAt
+      // Keep the conversation, its timestamp and engine session intact.
+      await this.save(next, false); this.tasks.set(id, next)
+    }
+    return this.list(roleId)
+  }) }
   idle(task) { if (this.active) throw new Error('有任务正在运行，请先停止或等待完成'); if (this.closed) throw new Error('代码模块正在关闭'); this.authorize(task, 'develop') }
   async create(data) { return this.serialize(async () => {
     const cwd = await this.workspace.root(required(data.cwd, '项目目录')), id = required(data.requestId, '请求标识')
@@ -53,6 +123,7 @@ export class CodeAssistantService {
     const source=this.get(id),existing=this.tasks.get(target)
     if(existing){if(existing.forkedFrom!==id)throw Error('分叉标识已占用');return this.view(existing)}
     const task={...structuredClone(source),id:target,forkedFrom:id,title:source.title.slice(0,90)+' · 分叉',createdAt:now(),updatedAt:now(),status:'idle',permissions:[],requests:[],sessionId:'',error:''}
+    delete task.historyRemovedAt
     try{if(source.sessionId){await assertIsolatedProject(source.cwd);await this.engine.start();const fork=await this.engine.request('/session/'+source.sessionId+'/fork',{},source.cwd);task.sessionId=fork.id;await this.refresh(task);task.permissions=[]}
     await this.save(task);this.tasks.set(target,task)}catch(e){if(task.sessionId)await this.engine.request('/session/'+task.sessionId,undefined,task.cwd,true,{method:'DELETE'}).catch(()=>{});throw e}return this.view(task)
   }) }
@@ -90,7 +161,7 @@ export class CodeAssistantService {
     try {
       await this.ensureSession(task)
       await this.engine.request('/session/' + task.sessionId, { permission: permissions(task.mode) }, task.cwd, true, { method: 'PATCH' })
-      task.status = 'running'; task.error = ''; task.permissions = []; task.requests.push(requestId)
+      task.status = 'running'; task.error = ''; task.permissions = []; task.requests.push(requestId); delete task.historyRemovedAt
       if (task.title === '新代码任务') task.title = message.slice(0, 45)
       await this.save(task)
       active.promise = this.run(active, message)
@@ -162,7 +233,8 @@ export class CodeAssistantService {
     const json = value => { res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); res.end(JSON.stringify(value)) }
     if (req.method === 'GET') {
       if (route === 'health') return json(await this.health())
-      if (route === 'projects') return json(this.projects())
+      if (route === 'projects') return json(this.projectList())
+      if (route === 'history') return json(this.history(params.roleId))
       if (route === 'tasks') return json(this.list(params.roleId))
       if (route === 'task') return json(this.view(this.get(params.id)))
       const task = this.get(params.id), cwd = task.cwd
@@ -178,7 +250,11 @@ export class CodeAssistantService {
     const chunks = []; let size = 0
     for await (const chunk of req) { size += chunk.length; if (size > 1024 * 1024) throw new Error('请求过大'); chunks.push(chunk) }
     const data = JSON.parse(Buffer.concat(chunks).toString('utf8'))
-    if (route === 'project') { await this.addProject(required(data.path, '项目目录')); return json(this.projects()) }
+    if (route === 'project') return json(await this.addLocalProject(data.path))
+    if (route === 'project/remove') return json(await this.removeLocalProject(data.path))
+    if (route === 'history/project/remove') return json(await this.setProjectHistoryRemoved(data.cwd, data.roleId, true))
+    if (route === 'history/project/restore') return json(await this.setProjectHistoryRemoved(data.cwd, data.roleId, false))
+    if (route === 'history/remove' || route === 'history/restore') { await this.setHistoryRemoved(data.id, data.roleId, route === 'history/remove'); return json(this.history(data.roleId)) }
     if (route === 'create') return json(await this.create(data))
     if (route === 'send') return json(await this.send(data.id, data))
     if (route === 'stop') return json(await this.stop(data.id))

@@ -6,6 +6,7 @@ import { MessageTime } from './MessageTime.tsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { CodeAssistant } from '../../../dsh-code-assistant/src/client/CodeAssistant.tsx'
 import { EnableSwitch } from '../../../../shared/client/EnableSwitch.tsx'
+import { ManagementIcon } from '../../../../shared/client/ManagementRow.tsx'
 import type { DeveloperContext, DeveloperProject, DeveloperTask } from '../../../dsh-capabilities/src/core/developer-model.ts'
 import type { BranchesView, GraphView, WorktreeListView } from '../../../dsh-git-graph/src/core/types.ts'
 import type { CommitPreview, FileView, WorkspaceDiff, WorkspaceState } from '../../../dsh-git-graph/src/core/workspace.ts'
@@ -13,6 +14,7 @@ import { developerApi as api, developerUrl } from './developer-client.ts'
 import { DeveloperProjectSettings } from './DeveloperProjectSettings.tsx'
 import { Modal } from './PreviewModal.tsx'
 import s from './DeveloperAssistant.module.css'
+import panelStyle from './Capabilities.module.css'
 
 const tabs = [['develop', '开发'], ['changes', '变更'], ['runs', '运行']]
 const scopes = [['round', '本轮变更'], ['task', '任务累计'], ['uncommitted', '当前修改']]
@@ -28,7 +30,7 @@ function Tabs({ values, value, onChange, label }: { values: string[][]; value: s
   }}>{title}</button>)}</div>
 }
 export function DeveloperAssistant(props: Props) {
-  return props.taskId ? <LegacyDeveloperAssistant {...props} /> : <CodeAssistant {...props} Toggle={EnableSwitch} renderEvidence={(taskId,active)=><KnowledgeHistory taskId={taskId} active={active}/>} />
+  return props.taskId ? <LegacyDeveloperAssistant {...props} /> : <CodeAssistant {...props} panelToggleClassName={panelStyle.collapseButton} Modal={Modal} removeIcon={<ManagementIcon kind="remove"/>} Toggle={EnableSwitch} renderEvidence={(taskId,active)=><KnowledgeHistory taskId={taskId} active={active}/>} />
 }
 export function LegacyDeveloperAssistant(props: Props) {
   const storageKey = 'workbench-developer-view-' + (props.taskId ?? props.draftKey)

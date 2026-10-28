@@ -19,7 +19,8 @@
     "THIRD_PARTY_NOTICES.txt",
     "LICENSE",
     "cordis.patch.yml",
-    "src/index.d.ts"
+    "src/index.d.ts",
+    "src/core"
   ],
   "license": "Apache-2.0",
   "scripts": {

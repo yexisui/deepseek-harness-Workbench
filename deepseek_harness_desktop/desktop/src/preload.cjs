@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('desktop', {
   selectSearchDirectory: (path) => ipcRenderer.invoke('desktop:select-search-directory', path),
   revealSearchResult: (path) => ipcRenderer.invoke('desktop:reveal-search-result', path),
   selectProjectDirectory: () => ipcRenderer.invoke('desktop:select-project-directory'),
+  openCodeProjectDirectory: (path) => ipcRenderer.invoke('desktop:open-code-project-directory', path),
   getPathForFile: (file) => webUtils.getPathForFile(file),
   resolveProjectPaths: (paths) => ipcRenderer.invoke('desktop:resolve-project-paths', paths),
   /**

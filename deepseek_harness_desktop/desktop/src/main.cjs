@@ -436,6 +436,18 @@ ipcMain.handle('desktop:resolve-project-paths', async (event, paths) => {
   return result;
 });
 
+// Code assistant only: open the selected directory itself in Explorer.
+ipcMain.handle('desktop:open-code-project-directory', async (event, value) => {
+  assertProjectSender(event, mainWindow, tokenUrl);
+  if (typeof value !== 'string' || !path.isAbsolute(value) || value.includes('\0')) throw new Error('请选择项目文件夹');
+  const directory = path.resolve(value);
+  const info = await fs.promises.stat(directory).catch(() => null);
+  if (!info?.isDirectory()) throw new Error('项目文件夹不存在或无法访问');
+  assertProjectSender(event, mainWindow, tokenUrl);
+  const error = await shell.openPath(directory);
+  if (error) throw new Error(error);
+});
+
 ipcMain.on('desktop:retry', () => {
   if (quitting) return;
   void run();
