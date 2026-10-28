@@ -25,10 +25,11 @@ export function splitKnowledge(parts:Chunk[],size=900,overlap=100):Chunk[]{
 /** Stable public library IDs. All consumers retain the existing knowledge boundary. */
 export class KnowledgeLibraries implements KnowledgeProvider {
  private state:Registry={id:'workbench-knowledge',revision:0,libraries:[]}
- private running=new Map<string,{controller:AbortController;promise:Promise<void>}>()
+ private running=new Map<string,{controller:AbortController;promise:Promise<void>;fingerprint:string}>()
+ private readers=new Map<string,number>()
  private tail:Promise<unknown>=Promise.resolve()
  private shutting=false
- constructor(private root:string,private engine:VectorEngine,private embeddings:Embeddings,private legacy:()=>KnowledgeProvider|undefined,private secrets:()=>RemoteConnection[],private saveSecrets:(connections:RemoteConnection[])=>Promise<void>){}
+ constructor(private root:string,private engine:VectorEngine,private embeddings:Embeddings,private legacy:()=>KnowledgeProvider|undefined,private secrets:()=>RemoteConnection[],private saveSecrets:(connections:RemoteConnection[])=>Promise<void>,private forgetAssociations?:(id:string)=>Promise<void>){}
  get id(){return this.state.id}
  get hasLibraries(){return this.state.libraries.length>0}
  cancelAll(){for(const r of this.running.values())r.controller.abort()}
@@ -39,7 +40,7 @@ export class KnowledgeLibraries implements KnowledgeProvider {
  private async changed(){this.state.revision++;await this.persist()}
  view(){const value=structuredClone({revision:this.state.revision,libraries:this.state.libraries});for(const l of value.libraries)if(this.running.has(l.id)&&l.job)l.job.state='running';return value}
  async wait(id:string){await this.running.get(id)?.promise}
- library(id:unknown){const l=this.state.libraries.find(v=>v.id===id);if(!l)throw new InputError('知识库不存在',404);return l}
+ library(id:unknown,includeRemoved=false){const l=this.state.libraries.find(v=>v.id===id);if(!l)throw new InputError('知识库不存在',404);if(l.removedAt&&!includeRemoved)throw new InputError('知识库已移入回收站，请先恢复',409);return l}
  private idle(l:Library){if(this.running.has(l.id))throw new InputError('此知识库正在处理，请先取消或等待完成',409)}
  private connection(){return {uri:join(this.root,'vectors.db')}}
  private async parse(name:string,bytes:Buffer):Promise<Chunk[]>{
@@ -100,13 +101,43 @@ export class KnowledgeLibraries implements KnowledgeProvider {
   if(remember&&!l.directories.includes(dir))l.directories.push(dir);await this.changed();return {added,unchanged,removed:removed.length,skipped:skipped.length,failed}
  }
  async removeDocument(id:unknown,documentId:unknown){const l=this.library(id);this.idle(l);const d=l.documents.find(v=>v.id===documentId);if(!d)throw new InputError('资料不存在',404);l.documents=l.documents.filter(v=>v!==d);l.updatedAt=now();await this.changed();if(l.collection)await this.engine.call({op:'delete',connection:this.connection(),collection:l.collection,filter:'document == '+JSON.stringify(d.id)}).catch(()=>{});return this.view()}
- async remove(id:unknown){const l=this.library(id);this.idle(l);this.state.libraries=this.state.libraries.filter(v=>v!==l);await this.changed();if(l.kind==='local'&&l.collection)await this.engine.call({op:'drop',connection:this.connection(),collection:l.collection}).catch(()=>{});if(l.kind==='milvus')await this.saveSecrets(this.secrets().filter(v=>v.id!==l.id));return this.view()}
+ async remove(id:unknown){const l=this.library(id,true);this.idle(l);if(!l.removedAt){l.removedAt=now();l.updatedAt=l.removedAt;await this.changed()}return this.view()}
+ async restore(id:unknown){const l=this.library(id,true);if(l.purgeStartedAt)throw new InputError('删除尚未完成，请重试彻底删除',409);if(l.removedAt){delete l.removedAt;l.updatedAt=now();await this.changed()}return this.view()}
+ async purge(id:unknown){
+  const l=this.library(id,true);if(!l.removedAt)throw new InputError('请先将知识库移入回收站',409);this.idle(l)
+  if(this.readers.has(l.id))throw new InputError('此知识库仍有检索正在完成，请稍后重试',409)
+  // Persist the irreversible phase before touching storage; failed cleanup remains retryable.
+  l.purgeStartedAt??=now();await this.changed()
+  if(l.kind==='local'){
+   const hasStorage=await stat(this.connection().uri).then(()=>true,e=>{if(e.code==='ENOENT')return false;throw e})
+   if(hasStorage||l.collection||l.job){const prefix='kb_'+l.id.slice(4).replace(/-/g,'')+'_';const collections=await this.engine.call<{name:string}[]>({op:'collections',connection:this.connection()});for(const c of collections)if(c.name.startsWith(prefix))await this.engine.call({op:'drop',connection:this.connection(),collection:c.name})}
+   await this.cleanLocalFiles(l.id)
+  }else await this.saveSecrets(this.secrets().filter(v=>v.id!==l.id))
+  await this.forgetAssociations?.(l.id)
+  const previous=this.state.libraries;this.state.libraries=previous.filter(v=>v!==l)
+  try{await this.changed()}catch(e){this.state.libraries=previous;throw e}return this.view()
+ }
+ private async cleanLocalFiles(removedId:string){
+  // Text and embedding caches are content-addressed and shared across libraries.
+  // Keep every remaining library (including recycle-bin entries) and in-flight build.
+  const retained=this.state.libraries.filter(l=>l.id!==removedId).map(l=>({library:structuredClone(l),building:this.running.get(l.id)?.fingerprint})),texts=new Set<string>(),cache=new Set<string>()
+  for(const {library:l,building} of retained){
+   const hashes=new Set(l.documents.flatMap(d=>[d.hash,d.activeHash].filter((v):v is string=>!!v&&/^[a-f0-9]{64}$/.test(v))))
+   for(const hash of hashes){texts.add(hash);const fingerprints=new Set([l.fingerprint,building].filter((v):v is string=>!!v));if(!fingerprints.size)continue
+    let parts:Chunk[];try{parts=JSON.parse(await readFile(join(this.root,'texts',hash+'.json'),'utf8'))}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')continue;throw e}
+    for(const fingerprint of fingerprints)for(const chunk of splitKnowledge(parts,l.chunkSize,l.overlap))cache.add(digest(fingerprint+'\n'+chunk.text))
+   }
+  }
+  for(const [folder,keep] of [['texts',texts],['embedding-cache',cache]] as const){let files:string[];try{files=await readdir(join(this.root,folder))}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')continue;throw e}
+   for(const file of files)if(/^[a-f0-9]{64}\.json$/.test(file)&&!keep.has(file.slice(0,-5)))await unlink(join(this.root,folder,file)).catch(e=>{if(e.code!=='ENOENT')throw e})
+  }
+ }
  async start(id:unknown){const l=this.library(id);this.idle(l);if(l.kind!=='local')throw new InputError('远端库在原服务更新，此处只读引用');if(this.shutting)throw new InputError('工作台正在关闭',503)
   // Directory scans are explicit, never triggered by merely opening the page.
   const scans=[];for(const dir of [...l.directories])scans.push(await this.directory(id,dir,false))
   const profile=await this.embeddings.profile(l.modelRef);if(!l.documents.length)throw new InputError('请先添加资料')
   const controller=new AbortController();l.job={state:'running',total:l.documents.length,completed:0,message:'正在准备向量索引…',startedAt:now()};await this.changed()
-  const promise=Promise.resolve().then(()=>this.build(l,profile,controller.signal)).finally(()=>this.running.delete(l.id));this.running.set(l.id,{controller,promise});return {...this.view(),scans}
+  const promise=Promise.resolve().then(()=>this.build(l,profile,controller.signal)).finally(()=>this.running.delete(l.id));this.running.set(l.id,{controller,promise,fingerprint:profile.fingerprint});return {...this.view(),scans}
  }
  cancel(id:unknown){const l=this.library(id);this.running.get(l.id)?.controller.abort();return {cancelled:l.id}}
  private async build(l:Library,profile:EmbeddingProfile,signal:AbortSignal){
@@ -138,12 +169,13 @@ export class KnowledgeLibraries implements KnowledgeProvider {
  }
  private publicLegacyId(provider:KnowledgeProvider,id:string){return provider.id===this.state.legacyId?id:'remote:'+digest(provider.id).slice(0,16)+':'+id}
  async status(){const legacy=this.legacy();let external:Awaited<ReturnType<KnowledgeProvider['status']>>|undefined;try{external=await legacy?.status()}catch{}
-  const libraries=this.state.libraries.map(l=>({id:l.id,name:l.name+(!l.collection&&l.kind==='local'?'（待建立索引）':'')})),collections=[...libraries,...(external?.collections||[]).map(c=>({id:this.publicLegacyId(legacy!,c.id),name:c.name}))]
-  return {configured:collections.length>0,verified:this.state.libraries.some(l=>!!l.collection||l.kind==='milvus')||external?.verified===true,label:'外部知识库',message:collections.length?`已管理 ${collections.length} 个知识库／资料集。`:'新建知识库并添加资料，或接入已有服务。',collections}
+  const libraries=this.state.libraries.filter(l=>!l.removedAt).map(l=>({id:l.id,name:l.name+(!l.collection&&l.kind==='local'?'（待建立索引）':'')})),collections=[...libraries,...(external?.collections||[]).map(c=>({id:this.publicLegacyId(legacy!,c.id),name:c.name}))]
+  return {configured:collections.length>0,verified:this.state.libraries.some(l=>!l.removedAt&&(!!l.collection||l.kind==='milvus'))||external?.verified===true,label:'外部知识库',message:collections.length?`已管理 ${collections.length} 个知识库／资料集。`:'新建知识库并添加资料，或接入已有服务。',collections}
  }
  async search(request:KnowledgeRequest,signal:AbortSignal){
   const ids=request.scope?.collectionIds||[],sources:any[]=[],errors:string[]=[]
-  for(const id of ids){signal.throwIfAborted();const l=this.state.libraries.find(v=>v.id===id);if(!l)continue
+  for(const id of ids){signal.throwIfAborted();const l=this.state.libraries.find(v=>v.id===id);if(!l||l.removedAt)continue
+   this.readers.set(l.id,(this.readers.get(l.id)||0)+1)
    try{if(request.scope?.product||request.scope?.project)throw new InputError('此知识库尚未配置产品／项目标签，请使用知识库范围选择，避免错误扩大引用范围')
     if(l.kind==='local'&&!l.collection)throw new InputError(l.name+'尚未完成索引')
     const profile=await this.embeddings.profile(l.activeModel||l.modelRef);if(l.fingerprint&&profile.fingerprint!==l.fingerprint)throw new InputError(l.name+'的模型配置已改变，请更新索引或恢复原模型配置')
@@ -152,7 +184,7 @@ export class KnowledgeLibraries implements KnowledgeProvider {
     if(l.kind==='local'&&!active.length)continue
     const rows=await this.engine.call<any[]>({op:'search',connection,collection:remote?.collection||l.collection,vector,field:remote?.vector||'vector',metric:remote?.metric||'COSINE',limit:request.limit,filter:remote?'':'revision in '+JSON.stringify(active.map(d=>d.revision)),fields:remote?[remote.text,...(remote.source?[remote.source]:[])]:['document','revision','text','locator']},signal)
     rows.forEach((r,index)=>{const e=r.entity||{},doc=active.find(d=>d.id===e.document),content=e[remote?.text||'text'];if(typeof content!=='string'||!content.trim())return;sources.push({id:String(r.id),documentId:doc?.id||String(r.id),chunkId:String(r.id),collectionId:l.id,title:doc?.name||String(e[remote?.source||'']||l.name),text:content,locator:remote?String(e[remote.source]||''):e.locator,version:doc?.activeHash?.slice(0,12),rank:index})})
-   }catch(e){if(signal.aborted)throw e;errors.push(e instanceof InputError?e.message:'知识库检索失败')}
+   }catch(e){if(signal.aborted)throw e;errors.push(e instanceof InputError?e.message:'知识库检索失败')}finally{const count=this.readers.get(l.id)!-1;if(count)this.readers.set(l.id,count);else this.readers.delete(l.id)}
   }
   const externalIds=ids.filter(id=>!this.state.libraries.some(l=>l.id===id)),legacy=this.legacy()
   if(externalIds.length&&legacy){const status=await legacy.status(),selected=status.collections.filter(c=>externalIds.includes(this.publicLegacyId(legacy,c.id)));if(selected.length!==externalIds.length)throw new InputError('部分资料范围已失效，请重新选择',409);const result=await legacy.search({...request,scope:{...request.scope!,providerId:legacy.id,collectionIds:selected.map(c=>c.id)}},signal);sources.push(...result.sources.map((s,i)=>({...s,collectionId:this.publicLegacyId(legacy,s.collectionId!),rank:i})))}

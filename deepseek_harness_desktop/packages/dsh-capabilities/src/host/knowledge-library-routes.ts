@@ -21,6 +21,8 @@ async function dispatchLibraryRoute(libraries:KnowledgeLibraries,embeddings:Embe
  if(action==='/build')return json(res,202,await libraries.start(body.id))
  if(action==='/cancel')return json(res,200,libraries.cancel(body.id))
  if(action==='/remove-document')return json(res,200,await libraries.removeDocument(body.id,body.documentId))
+ if(action==='/restore')return json(res,200,await libraries.restore(body.id))
+ if(action==='/purge')return json(res,200,await libraries.purge(body.id))
  if(action==='/remove')return json(res,200,await libraries.remove(body.id))
  if(action==='/remote-check'){const result=await libraries.remoteCheck(body);return json(res,200,{collections:result.collections})}
  if(action==='/remote-create')return json(res,200,await libraries.remoteCreate(body))

@@ -91,6 +91,9 @@ export async function apply(ctx: Context, config: { bskPath?: string; bskHome?: 
   const libraries=new KnowledgeLibraries(join(home,'capabilities','knowledge'),new MilvusEngine(join(home,'..','external-tools')),embeddings,()=>connection.provider()??optionalService('knowledgeProvider') as import('./core/knowledge.ts').KnowledgeProvider|undefined,()=>currentMilvus().connections,async connections=>{
     const settings=ctx.get('settings'),section=settings?.describe().find(s=>s.ns==='knowledge-milvus');if(!settings?.writable||!section)throw new InputError('连接配置当前不可写',503)
     await settings.replace('knowledge-milvus',{connections},section.revision)
+  },async libraryId=>{
+    const state=store.snapshot()
+    if(state.roles.some(r=>!r.archivedAt&&!r.removedAt&&[r.draft,r.versions.at(-1)].some(v=>v?.capabilities.some(b=>b.knowledgeScope?.collectionIds.includes(libraryId)))))await store.command(state.revision,{type:'role.knowledge',libraryId,providerId:libraries.id,roleIds:[]})
   })
   await libraries.init()
   const provider = new KnowledgeService(() => libraries.hasLibraries||connection.provider()||optionalService('knowledgeProvider')||!optionalService('documentKnowledge')?libraries:undefined, () => optionalService('documentKnowledge') as import('./core/document-knowledge.ts').DocumentKnowledgeAdapter | undefined)

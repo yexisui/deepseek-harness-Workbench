@@ -16,7 +16,7 @@ it('does not apply the template product name as an unsupported filter to a local
 
 it('keeps the vector library list visible and exposes parsed Word content without a write',async()=>{
  libraries=[{id:'local',name:'Word报告',kind:'local',modelRef:'configured/embed',dimension:4096,collection:'kb_one',documents:[{id:'doc',name:'报告.docx',status:'ready',chunks:4,revision:'one'}],directories:[]},{id:'remote',name:'远端资料',kind:'milvus',modelRef:'configured/embed',documents:[],directories:[]}];
- await render();const list=document.body.querySelector('[aria-label="知识库列表"]')!;expect(list.textContent).toContain('知识库列表（2）');expect(list.textContent).toContain('已存储 4 个向量片段');expect(list.textContent).toContain('未统计文档数');
+ await render();const list=document.body.querySelector('[aria-label="知识库列表"]')!;expect(list.textContent).toContain('知识库（2）');expect(list.textContent).toContain('4 个向量片段');expect(list.textContent).toContain('只读连接');
  await act(async()=>Array.from(list.querySelectorAll('button')).find(b=>b.textContent?.includes('Word报告'))!.click());expect(document.body.querySelector('[aria-label="知识库列表"]')).toBeTruthy();
  await act(async()=>{button('查看解析内容').click();await new Promise(r=>setTimeout(r,10))});expect(document.querySelector('dialog')?.textContent).toContain('账单合计18,828.57元');expect(writes).toEqual([]);
 });
@@ -54,4 +54,17 @@ it('keeps a submitted save open until the result and preserves input on failure'
  await render();await clickText('新建知识库');await changeInput(field('知识库名称'),'保留草稿');const original=globalThis.fetch;let finish!:(v:any)=>void;vi.stubGlobal('fetch',vi.fn((url:string,options?:RequestInit)=>url.endsWith('/create')?new Promise(r=>{finish=r}):original(url,options)));
  await clickText('保存并建立索引');expect(button('取消').disabled).toBe(true);await act(async()=>document.querySelector('dialog')!.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true})));expect(document.querySelector('dialog')).toBeTruthy();
  await act(async()=>{finish({ok:false,json:async()=>({error:'模拟保存失败'})});await new Promise(r=>setTimeout(r,10))});expect(document.querySelector('dialog [role=alert]')?.textContent).toContain('模拟保存失败');expect(field('知识库名称').value).toBe('保留草稿');expect(button('取消').disabled).toBe(false);
+});
+
+const labelled=(name:string)=>document.querySelector<HTMLButtonElement>('button[aria-label="'+name+'"]')!;
+it('expands details inside the library card and exposes a separate accessible recycle action',async()=>{
+ libraries=[{id:'one',name:'资料甲',kind:'local',modelRef:'configured/embed',documents:[],directories:[]}];await render();expect(labelled('移入回收站：资料甲')).toBeTruthy();expect(document.querySelector('button button')).toBeNull();await act(async()=>labelled('展开知识库：资料甲').click());const card=document.querySelector('article')!;expect(card.querySelector('[id=library-detail-one]')?.textContent).toContain('添加资料');expect(document.body.textContent).not.toContain('← 收起资料详情');await act(async()=>labelled('收起知识库：资料甲').click());expect(card.querySelector('[id=library-detail-one]')).toBeNull();expect(writes).toEqual([]);
+});
+it('separates recycle, restore and permanent delete with cancellation and visible failure',async()=>{
+ libraries=[{id:'one',name:'资料甲',kind:'local',modelRef:'configured/embed',documents:[],directories:[]}];const original=globalThis.fetch,paths:string[]=[];let fail=false;
+ vi.stubGlobal('fetch',vi.fn(async(url:string,options?:RequestInit)=>{if(options?.method==='POST'){paths.push(url.split('/').at(-1)!);if(url.endsWith('/remove'))libraries[0].removedAt='2026-10-28T00:00:00Z';if(url.endsWith('/restore'))delete libraries[0].removedAt;if(url.endsWith('/purge')){if(fail)return {ok:false,json:async()=>({error:'删除失败，请重试'})};libraries=[]}}return original(url,options)}));
+ await render();await act(async()=>labelled('移入回收站：资料甲').click());await clickText('取消');expect(paths).toEqual([]);await act(async()=>labelled('移入回收站：资料甲').click());await clickText('移入回收站');expect(paths).toEqual(['remove']);expect(labelled('移入回收站：资料甲')).toBeNull();await clickText('回收站（1）');expect(labelled('彻底删除知识库：资料甲')).toBeTruthy();await act(async()=>labelled('恢复知识库：资料甲').click());expect(paths).toEqual(['remove','restore']);await clickText('知识库（1）');await act(async()=>labelled('移入回收站：资料甲').click());await clickText('移入回收站');await clickText('回收站（1）');await act(async()=>labelled('彻底删除知识库：资料甲').click());expect(document.querySelector('dialog')?.textContent).toContain('无法恢复');fail=true;await clickText('彻底删除');expect(document.querySelector('dialog [role=alert]')?.textContent).toContain('删除失败');fail=false;await clickText('彻底删除');expect(libraries).toEqual([]);expect(document.body.textContent).toContain('回收站是空的');
+});
+it('disables removal while indexing and restoration after an interrupted purge',async()=>{
+ libraries=[{id:'one',name:'处理中',kind:'local',modelRef:'configured/embed',documents:[],directories:[],job:{state:'running'}},{id:'two',name:'待清理',kind:'local',modelRef:'configured/embed',documents:[],directories:[],removedAt:'2026-10-28',purgeStartedAt:'2026-10-28'}];await render();expect(labelled('移入回收站：处理中').disabled).toBe(true);await clickText('回收站（1）');expect(labelled('恢复知识库：待清理').disabled).toBe(true);expect(labelled('彻底删除知识库：待清理').disabled).toBe(false);expect(writes).toEqual([]);
 });
