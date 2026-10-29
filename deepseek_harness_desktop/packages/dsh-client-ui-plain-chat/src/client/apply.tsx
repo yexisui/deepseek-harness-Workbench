@@ -50,6 +50,7 @@ import { createRoleSelection, createSettingsNavigation } from './role-ui-state.t
 import { en, zh, type ChatKey } from './locales.ts'
 import { ru } from '../../../dsh-i18n/src/client/ru/plain-chat.ts'
 import styles from './Chat.module.css'
+import { AssistantToolbar } from './AssistantToolbar.tsx'
 
 export const inject = ['slots', 'locale', 'sessions', 'conversation', 'layout', 'remote', 'remote.session']
 const NS = 'workbench-chat'
@@ -491,8 +492,9 @@ export function apply(ctx: Context): void {
         if (binding && local?.kind === 'draft') commitLocalChat(local.id)
       }
       return <div className={styles.conversationShell}>
-        <div className={styles.assistantToolbar}><ManagedRolePicker t={t} selected={displayedRole} onSelect={id => { collapseSidebar(); if (id !== displayedRole) switchAssistant(id) }} current={{ preset: noSession && search ? originRole?.versions.find(v=>v.version===search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset }} onManage={settingsNavigation.openPresets} /></div>
-        {displayedRole !== 'chat' && modes.length > 1 && <nav aria-label="岗位能力入口" className={styles.capabilityModes}>{modes.map(item => <button key={item.mode} type="button" aria-pressed={noSession ? workMode === item.mode : item.mode === 'chat'} onClick={() => { if (noSession && workMode === item.mode) return; startFreshChat(displayedRole, item.mode) }}>{item.label}</button>)}</nav>}
+        <AssistantToolbar scopeKey={displayedRole} modes={displayedRole === 'chat' ? [] : modes} activeMode={noSession ? workMode : 'chat'} onModeChange={mode => { if (noSession && workMode === mode) return; startFreshChat(displayedRole, mode) }}>
+          <ManagedRolePicker t={t} selected={displayedRole} onSelect={id => { collapseSidebar(); if (id !== displayedRole) switchAssistant(id) }} current={{ preset: noSession && search ? originRole?.versions.find(v=>v.version===search.roleVersion)?.preset : noSession && recording ? originRole?.versions.find(v=>v.version===recording.roleVersion)?.preset : noSession && showDeveloper ? developerVersion?.preset : noSession && showRequirements ? analysisVersion?.preset : noSession && workMode === 'meeting' ? meetingVersion?.preset : noSession ? undefined : actualPreset }} onManage={settingsNavigation.openPresets} />
+        </AssistantToolbar>
         {!recording && recordingSnapshot.error && <p role="alert" style={{margin:"4px 24px",fontSize:13}}>{recordingSnapshot.error}</p>}
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}

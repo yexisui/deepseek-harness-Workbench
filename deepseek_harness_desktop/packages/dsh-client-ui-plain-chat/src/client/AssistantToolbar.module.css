@@ -1,0 +1,33 @@
+.toolbar {
+  --toolbar-text:var(--dsw-alias-label-primary,#202938);
+  --toolbar-muted:var(--dsw-alias-label-secondary,#78869f);
+  --toolbar-accent:var(--dsw-alias-button-primary-fill,#5870ce);
+  display:flex; align-items:flex-start; flex-wrap:nowrap; gap:10px;
+  flex:none; min-width:0; min-height:42px; padding:4px 12px 3px;
+  box-sizing:border-box; color:var(--toolbar-text);
+}
+.rolePicker { flex:0 1 auto; min-width:0; max-width:clamp(112px,34%,220px); }
+.rolePicker > button[data-current-assistant] { min-height:32px; padding:3px 9px 3px 5px; gap:6px; }
+.rolePicker > button[data-current-assistant] > span { font-size:12px; line-height:20px; }
+.rolePicker > button[data-current-assistant] > :first-child { width:23px; height:23px; flex:0 0 23px; }
+.modules { display:grid; grid-template-columns:20px minmax(0,1fr) 20px; gap:2px; flex:0 1 640px; min-width:0; height:35px; }
+.center { min-width:0; }
+.viewport { overflow-x:auto; overflow-y:hidden; scrollbar-width:none; height:29px; touch-action:pan-y; user-select:none; }
+.viewport::-webkit-scrollbar { display:none; }
+.modules[data-overflow="true"] .viewport, .modules[data-overflow="true"] .module { cursor:grab; }
+.modules .dragging, .modules .dragging .module { cursor:grabbing; }
+.strip { display:flex; width:max-content; min-width:100%; gap:5px; align-items:center; height:29px; }
+.module { flex:none; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-height:28px; box-sizing:border-box; padding:3px 9px; border:1px solid var(--border-color,#aab2c344); border-radius:7px; color:inherit; background:transparent; font:inherit; font-size:12px; line-height:20px; cursor:pointer; }
+.module[aria-pressed="true"] { background:var(--role-accent-soft,#5870ce20); border-color:var(--role-accent,var(--toolbar-accent)); }
+.module:hover { background:color-mix(in srgb,var(--toolbar-accent) 10%,transparent); }
+.arrow { align-self:start; height:28px; padding:0; border:0; border-radius:5px; color:var(--toolbar-muted); background:transparent; font:inherit; font-size:20px; line-height:1; cursor:pointer; }
+.arrow:not(:disabled):hover { color:var(--toolbar-text); background:color-mix(in srgb,var(--toolbar-accent) 12%,transparent); }
+.arrow:disabled { opacity:.3; cursor:default; }
+.scrollbar { display:block; appearance:none; -webkit-appearance:none; width:100%; height:5px; margin:1px 0 0; padding:0; border:0; border-radius:8px; background:color-mix(in srgb,var(--toolbar-muted) 18%,transparent); cursor:ew-resize; }
+.scrollbar::-webkit-slider-runnable-track { height:5px; background:transparent; border-radius:8px; }
+.scrollbar::-webkit-slider-thumb { appearance:none; -webkit-appearance:none; width:42px; height:5px; border:0; border-radius:8px; background:var(--toolbar-accent); }
+.scrollbar::-moz-range-thumb { width:42px; height:5px; border:0; border-radius:8px; background:var(--toolbar-accent); }
+.modules[data-overflow="false"] .arrow, .modules[data-overflow="false"] .scrollbar { visibility:hidden; }
+.module:focus-visible, .arrow:focus-visible, .scrollbar:focus-visible { outline:2px solid var(--toolbar-accent); outline-offset:1px; }
+@media(max-width:600px) { .toolbar { padding:4px 6px 3px; gap:5px; } .rolePicker { max-width:40%; } .module { padding-inline:7px; } .modules { grid-template-columns:16px minmax(0,1fr) 16px; } }
+@media(pointer:coarse) { .toolbar { min-height:48px; } .rolePicker > button[data-current-assistant] { min-height:40px; } .modules { height:40px; } .viewport,.strip { height:34px; } .module,.arrow { min-height:32px; } .scrollbar { height:7px; } }
