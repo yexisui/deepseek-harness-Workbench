@@ -195,6 +195,14 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
   // stack, or the legacy status bubble) — only one exists at a time.
   const bubbleRef = useRef<HTMLDivElement | null>(null)
   const [imageReady, setImageReady] = useState(false)
+  const [imageFailed, setImageFailed] = useState(false)
+  const [imageAttempt, setImageAttempt] = useState(0)
+  const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }))
+  useEffect(() => {
+    const resize = (): void => setViewport({ width: window.innerWidth, height: window.innerHeight })
+    window.addEventListener('resize', resize)
+    return () => window.removeEventListener('resize', resize)
+  }, [])
   const [hovered, setHovered] = useState(false)
   const [searchOpen,setSearchOpen]=useState(false)
   const pickingSearch=useRef(false)
@@ -234,7 +242,9 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
   useEffect(() => {
     if (props.visual !== undefined) return
     setImageReady(false)
+    setImageFailed(false)
     let cancelled = false
+    let exhausted = false
     let retryTimer: ReturnType<typeof setTimeout> | undefined
     let attempt = 0
     const maxAttempts = 3
@@ -252,22 +262,38 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
           attempt += 1
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000)
           retryTimer = setTimeout(loadAtlas, delay)
+        } else {
+          exhausted = true
+          setImageFailed(true)
         }
       }
       img.src = definition.atlasUrl
     }
 
     loadAtlas()
+    // A temporary host/network interruption must not leave a blank pet forever.
+    const recover = (): void => {
+      if (!cancelled && exhausted && document.visibilityState !== 'hidden') {
+        exhausted = false
+        setImageAttempt(value => value + 1)
+      }
+    }
+    window.addEventListener('focus', recover)
+    window.addEventListener('online', recover)
+    document.addEventListener('visibilitychange', recover)
 
     return () => {
       cancelled = true
+      window.removeEventListener('focus', recover)
+      window.removeEventListener('online', recover)
+      document.removeEventListener('visibilitychange', recover)
       if (retryTimer !== undefined) clearTimeout(retryTimer)
       if (activeImg !== null) {
         activeImg.onload = null
         activeImg.onerror = null
       }
     }
-  }, [definition.atlasUrl, props.visual])
+  }, [definition.atlasUrl, props.visual, imageAttempt])
 
   // Frame loop: advance the current track and write background-position.
   // Offsets must be in SCALED coordinates (background-position applies to the
@@ -275,7 +301,7 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
   // the loop reads every tick. Under prefers-reduced-motion the sprite holds
   // its track's first frame instead of animating (presentation-only; the
   // animation state machine is untouched).
-  const spriteScale = display.size / cell.height
+  const spriteScale = Math.min(display.size / cell.height, viewport.width / cell.width, viewport.height / cell.height)
   const phase = snapshot?.phase ?? 'idle'
   const animation = snapshot?.animation ?? 'idle'
   const scaleRef = useRef(spriteScale)
@@ -402,7 +428,7 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
     if (e.button !== 0 || props.dragDisabled === true) return
     e.preventDefault()
     ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
-    const current = dragPos ?? { right: display.right, bottom: display.bottom }
+    const current = pos
     dragRef.current = { startX: e.clientX, startY: e.clientY, ...current }
     draggedRef.current = false
     setHovered(false)
@@ -416,8 +442,8 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
       if (!draggedRef.current) props.onDraggingChange?.(true)
       draggedRef.current = true
     }
-    const right = clampOffset(drag.right - dx, window.innerWidth - 40)
-    const bottom = clampOffset(drag.bottom - dy, window.innerHeight - 40)
+    const right = clampOffset(drag.right - dx, window.innerWidth - spriteWidth)
+    const bottom = clampOffset(drag.bottom - dy, window.innerHeight - spriteHeight)
     setDragPos({ right, bottom })
   }
   const onPointerUp = (): void => {
@@ -427,9 +453,14 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
     if (dragPos !== null) props.onDragEnd(dragPos.right, dragPos.bottom)
   }
 
-  const pos = dragPos ?? { right: display.right, bottom: display.bottom }
   const spriteWidth = Math.round(cell.width * spriteScale)
   const spriteHeight = Math.round(cell.height * spriteScale)
+  const requestedPos = dragPos ?? { right: display.right, bottom: display.bottom }
+  // Constrain rendering after a resize without overwriting the saved preference.
+  const pos = {
+    right: clampOffset(requestedPos.right, viewport.width - spriteWidth),
+    bottom: clampOffset(requestedPos.bottom, viewport.height - spriteHeight),
+  }
   // Bubble typography follows the sprite's own scale (#1549), bounded so a
   // shrunk pet never carries unreadably small text.
   const bubbleScale = bubbleScaleFor(display)
@@ -473,13 +504,12 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
       const sprite = spriteRef.current
       const panel = panelRef.current
       if (sprite === null || panel === null) return
-      // Keep the wider search form inside the viewport without moving recording controls.
-      panel.style.transform = searchOpen ? 'none' : ''
-      panel.style.left = ''
-      if (searchOpen && floatRef.current) {
+      // Every panel (including recording controls) stays inside the viewport.
+      if (floatRef.current) {
         const anchor = floatRef.current.getBoundingClientRect()
-        const width = panel.getBoundingClientRect().width
-        panel.style.left = `${Math.max(8, Math.min(anchor.left, window.innerWidth - width - 8)) - anchor.left}px`
+        const width = panel.offsetWidth
+        const preferredLeft = searchOpen ? anchor.left : anchor.left + (anchor.width - width) / 2
+        panel.style.left = `${Math.max(8, Math.min(preferredLeft, window.innerWidth - width - 8)) - anchor.left}px`
       }
       const availableBelow = window.innerHeight - sprite.getBoundingClientRect().bottom
       const above = availableBelow < panel.getBoundingClientRect().height + 8
@@ -491,9 +521,14 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
       setPanelLift(bubbleHeight > 0 ? Math.ceil(bubbleHeight) + 14 : 0)
     }
     updatePanelPlacement()
+    const observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(updatePanelPlacement)
+    if (panelRef.current) observer?.observe(panelRef.current)
     window.addEventListener('resize', updatePanelPlacement)
-    return () => window.removeEventListener('resize', updatePanelPlacement)
-  }, [hovered, searchOpen, pos.right, pos.bottom, display.size, bubblePresent, sessionBubbles.length, stackOpen, feedback])
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', updatePanelPlacement)
+    }
+  }, [hovered, searchOpen, pos.right, pos.bottom, spriteWidth, spriteHeight, bubblePresent, sessionBubbles.length, stackOpen, feedback])
 
   const recordingStore=recordingClient(), recordingState=useSyncExternalStore(recordingStore.subscribe,recordingStore.getSnapshot)
   useEffect(()=>{
@@ -575,6 +610,15 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
         >
           {props.visual}
         </div>
+        {props.visual === undefined && imageFailed && (
+          <button
+            type="button"
+            className={styles.imageRetry}
+            onClick={() => setImageAttempt(value => value + 1)}
+          >
+            {props.t('pet.image.retry')}
+          </button>
+        )}
       </div>
       {props.hud}
       {feedback !== null && (
