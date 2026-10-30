@@ -66,7 +66,7 @@ export function createAssistantArchiveApi(ports: AssistantArchivePorts, native: 
           archivedAt: entry?.archived ? Date.parse(entry.archivedAt) : undefined,
           createdAt: row?.createdAt, lastActivityAt: row?.updatedAt,
           lastActivityReliable: Number.isFinite(row?.updatedAt),
-          running: source.get(id)?.running ?? false, blank: row?.kind === 'draft' && !row.draft && !row.meeting && !row.codeTaskId,
+          running: source.get(id)?.running ?? false, blank: row?.kind === 'draft' && !row.draft && !row.meeting && !row.codeTaskId && !row.documentTaskId,
           workspaceIds: [], childIds: [], childCount: 0, issues: [] })
       }
       const nativeIds = new Set(inventory.rows.map(row => row.id))

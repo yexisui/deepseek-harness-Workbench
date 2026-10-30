@@ -4,7 +4,7 @@ import {InputError,object,text} from '../core/validation.ts'
 export type AssistantArchive = {id:string;title:string;role:string;archived:boolean;archivedAt:string;removed?:boolean;sourceKey?:string;localSnapshot?:Record<string,unknown>}
 function sourceKey(row:Record<string,unknown>|undefined){
  const meeting=row?.meeting as {jobId?:unknown}|undefined
- return typeof row?.codeTaskId==='string'?'code:'+row.codeTaskId:typeof meeting?.jobId==='string'?'meeting:'+meeting.jobId:undefined
+ return typeof row?.documentTaskId==='string'?'document-workflow:'+row.documentTaskId:typeof row?.codeTaskId==='string'?'code:'+row.codeTaskId:typeof meeting?.jobId==='string'?'meeting:'+meeting.jobId:undefined
 }
 export class AssistantArchives {
  private state:{revision:number;entries:Record<string,AssistantArchive>}={revision:0,entries:{}}

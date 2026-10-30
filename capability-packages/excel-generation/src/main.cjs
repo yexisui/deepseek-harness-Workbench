@@ -26,13 +26,16 @@ function formula(v,names,row){let f=string(v,1000,'公式').replaceAll('{row}',S
 }
 function scalar(v){check(v===null||typeof v==='string'||typeof v==='boolean'||(typeof v==='number'&&Number.isFinite(v)),'单元格仅支持文本、有限数字、布尔值或null');if(typeof v==='string')string(v,32767,'单元格文本');return v;}
 async function execute({action,input}){
- check(action==='generate','仅支持generate生成动作');const spec=object(input);keys(spec,['fileName','sheets'],'工作簿');
+ check(action==='generate','仅支持generate生成动作');const spec=object(input);keys(spec,['fileName','sheets','templateBase64'],'工作簿');
  const fileName=string(spec.fileName,150,'文件名');check(fileName.toLowerCase().endsWith('.xlsx')&&!/[\\/:*?"<>|\r\n]/.test(fileName)&&!/^\./.test(fileName),'请提供不含路径的.xlsx文件名');
  const sheets=list(spec.sheets,20,'工作表');check(sheets.length>0,'至少需要一个工作表');const names=new Set();
  for(const sheet of sheets){object(sheet);const n=string(sheet.name,31,'工作表名');check(n.trim()&&!/[\\/?*\[\]:]/.test(n)&&!/^'|'$/.test(n),'工作表名无效');check(!names.has(n.toLowerCase()),'工作表名称重复');names.add(n.toLowerCase());}
- const wb=new Workbook();wb.calcProperties={fullCalcOnLoad:true};let touched=0,formulaCount=0;const summary=[];
+ const wb=new Workbook();if(spec.templateBase64){string(spec.templateBase64,240000,'模板');await wb.xlsx.load(Buffer.from(spec.templateBase64,'base64'));}wb.calcProperties={fullCalcOnLoad:true};let touched=0,formulaCount=0;const summary=[];
  const budget=n=>{touched+=n;check(touched<=200000,'格式/公式操作总量过大');};
- for(const s of sheets){keys(s,['name','rows','formulas','merges','formats','columnWidths','rowHeights','freezeRows','autoFilter'],'工作表');const ws=wb.addWorksheet(s.name);const occupied=new Set();
+ for(const s of sheets){keys(s,['name','rows','formulas','merges','formats','columnWidths','rowHeights','freezeRows','autoFilter','templateStyleRow'],'工作表');const existing=wb.getWorksheet(s.name),ws=existing??wb.addWorksheet(s.name);const inherited=new Map();let templateStyles;
+ if(existing){const capture=row=>{const cells={};row.eachCell({includeEmpty:true},(cell,col)=>{cells[col]=structuredClone(cell.style)});return {height:row.height,cells};};existing.eachRow({includeEmpty:true},(row,index)=>inherited.set(index,capture(row)));templateStyles=inherited.get(s.templateStyleRow??3);for(const address of [...(existing.model.merges??[])])existing.unMergeCells(address);existing.spliceRows(1,existing.rowCount);}
+ for(let index=0;index<(s.rows??[]).length;index++){const original=index<2?inherited.get(index+1):templateStyles;if(!original)continue;const row=ws.getRow(index+1);row.height=original.height;for(const [col,style] of Object.entries(original.cells))row.getCell(Number(col)).style=structuredClone(style);}
+ const occupied=new Set();
  const reserve=(r,c)=>{const id=r+':'+c;if(!occupied.has(id)){occupied.add(id);check(occupied.size<=MAX_CELLS,'单表最多20000个单元格');}};
  list(s.rows??[],MAX_ROWS,'数据行').forEach((row,i)=>{list(row,MAX_COLS,'列').forEach((v,j)=>{if(v===null)return;reserve(i+1,j+1);const target=ws.getCell(i+1,j+1);if(typeof v==='object'){object(v);keys(v,['formula','result'],'公式单元格');const f=formula(v.formula,names,i+1);target.value={formula:f,...(v.result===undefined?{}:{result:scalar(v.result)})};formulaCount++;}else target.value=scalar(v);});});
  for(const rule of list(s.formulas??[],500,'公式规则')){object(rule);keys(rule,['range','formula'],'公式规则');const{p,q}=range(rule.range);budget((q.r-p.r+1)*(q.c-p.c+1));for(let r=p.r;r<=q.r;r++)for(let c=p.c;c<=q.c;c++){reserve(r,c);check(ws.getCell(r,c).value===null,'公式覆盖已有值，请在数据中留空：'+ws.getCell(r,c).address);ws.getCell(r,c).value={formula:formula(rule.formula,names,r)};formulaCount++;}}

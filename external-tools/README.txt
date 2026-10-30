@@ -64,3 +64,12 @@ DOCX导入/导出与含文字PDF导入使用项目已有的dsh-office-toolkit、
 Word由用户自行安装和授权，不属于tools.json自动安装工具，不打入Git或离线ZIP；普通启动和Deploy不安装或探测Word。
 仅点击导出PDF时调用；没有Word或转换失败会说明原因，DOCX导出仍可用。转换使用只读临时副本，不改原模板。
 PDF输入重建文字、标题和简单表格，原图与复杂排版不会原样保留；扫描PDF需先OCR。优先用Word输入保留模板格式。
+
+文档解析与 OCR
+RapidOCR 3.10.0 + ONNX Runtime CPU，通过 document-worker.py 读取 DOCX、PDF、图片。扫描内容使用轮子自带的 PP-OCRv6 ONNX 模型，在本机完成；不连接在线 OCR 服务、不在运行时下载模型。
+Tools / Deploy 使用 install-rapidocr.ps1 和 rapidocr-lock.json 安装独立 Python，Check 只读检查。程序位于 rapidocr/releases，current.json 指向当前版本；downloads 中的锁定下载用于离线交付。
+功能入口由 document-processing 能力包登记；报告生成使用工作台现有模型设置。
+
+文档表格阅读：document_layout.py 使用既有 OpenCV 依赖按扫描表格网格与 OCR 坐标还原单元格；保留跨行/跨列、逐页文字和原图查看。已保存的 OCR 坐标可直接补充排版，无需重新识别。
+
+Word 结构化阅读：document_docx.py 直接解析 DOCX 原生段落、标题、自动编号和表格，保留合并单元格，按阅读内容分页并为跨页表格续接表头。阅读页不等同 Word 打印页；不需要 OCR 或安装 Office。已上传 DOCX 可从保存的原件自动更新解析。

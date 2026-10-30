@@ -2,13 +2,32 @@
   "schema": 1,
   "protocol": "dsh-worker-v1",
   "id": "org.workbench.excel",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "Excel 生成",
-  "description": "按传入的工作表、单元格、公式和格式参数生成可下载的 XLSX 文件。业务字段、计算口径、样式规范由技能或用户要求提供。",
+  "description": "按传入的工作表、单元格、公式和格式参数生成可下载的 XLSX 文件。业务字段、计算口径、样式规范由技能或用户要求提供。 支持以技能提供的 XLSX 模板为底稿填写。",
   "instructions": "用户需要生成Excel文件时，通过capability_action调用本能力generate动作。input为JSON字符串，内容为工作簿生成参数，接口说明见已绑定的excel-generation-guidelines技能。先加载适用的业务技能与Excel生成规范技能，按其规则组织参数。此能力仅写入用户/技能指定的数据、公式和格式，不拆需求、不估算、不设固定比例、不调用模型、不执行任意脚本。成功后原样使用工具返回的downloadUrl提供下载链接；失败时如实说明，不编造文件。",
   "author": "工作台",
   "license": "Apache-2.0 (bundled dependencies: see THIRD_PARTY_NOTICES.txt)",
-  "permissions": ["node"],
-  "components": [{"id":"writer","name":"Excel 文件生成","entry":"runtime/main.cjs","actions":[{"id":"generate","name":"生成 Excel","description":"从工作簿参数创建 XLSX；支持多表、公式、合并、字体边框、列宽行高与冻结，不含业务规则。"}]}],
-  "files": {"runtime/main.cjs":"auto","docs/README.txt":"auto","docs/THIRD_PARTY_NOTICES.txt":"auto"}
+  "permissions": [
+    "node"
+  ],
+  "components": [
+    {
+      "id": "writer",
+      "name": "Excel 文件生成",
+      "entry": "runtime/main.cjs",
+      "actions": [
+        {
+          "id": "generate",
+          "name": "生成 Excel",
+          "description": "从工作簿参数创建 XLSX；支持多表、公式、合并、字体边框、列宽行高与冻结，不含业务规则。"
+        }
+      ]
+    }
+  ],
+  "files": {
+    "runtime/main.cjs": "auto",
+    "docs/README.txt": "auto",
+    "docs/THIRD_PARTY_NOTICES.txt": "auto"
+  }
 }

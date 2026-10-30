@@ -3,14 +3,14 @@ ui-onboarding:
 pet:
   visible: true
   size: 160
-  right: 32
-  bottom: 442
-  petId: ouo-neko
+  right: 39
+  bottom: 27
+  petId: whale-girl
   enabled: true
 ui-theme:
   preference: system
 skin-custom-theme:
-  applied: false
+  applied: true
 agent-default-model:
   provider: deepseek-official
   model: deepseek-flash

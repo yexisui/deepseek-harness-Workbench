@@ -1,4 +1,4 @@
-import { questionSummaries } from '../core/conversation.mjs'
+import { groupConversation, questionSummaries } from '../core/conversation.mjs'
 import { randomUUID, randomBytes } from 'node:crypto'
 import { mkdir, readFile, readdir, rename, writeFile, stat, rm } from 'node:fs/promises'
 import { join, dirname, resolve, relative, extname } from 'node:path'
@@ -107,6 +107,25 @@ export class CodeAssistantService {
       await this.save(next, false); this.tasks.set(id, next)
     }
     return this.list(roleId)
+  }) }
+  async setQuestionRemoved(id, roleId, questionId, removed) { return this.serialize(async () => {
+    if (!idPattern.test(id)) throw new Error('任务标识无效')
+    const task = this.get(id)
+    if (task.roleId !== required(roleId, '岗位')) throw new Error('任务不属于当前岗位')
+    if (this.closed) throw new Error('代码模块正在关闭')
+    if (this.active?.task.id === id || task.status === 'running') throw new Error('当前对话正在运行，请等待完成后再移除或撤销')
+    required(questionId, '提问标识')
+    if (!groupConversation(task.messages, task.status).rounds.some(q => q.id === questionId)) throw new Error('提问不存在')
+    const ids = new Set(task.removedQuestionIds || [])
+    if (ids.has(questionId) !== removed) {
+      removed ? ids.add(questionId) : ids.delete(questionId)
+      const next = { ...task }
+      if (ids.size) next.removedQuestionIds = [...ids]
+      else delete next.removedQuestionIds
+      // Persist visibility only; preserve raw messages, timestamps and engine context.
+      await this.save(next, false); this.tasks.set(id, next)
+    }
+    return this.view(this.get(id))
   }) }
   idle(task) { if (this.active) throw new Error('有任务正在运行，请先停止或等待完成'); if (this.closed) throw new Error('代码模块正在关闭'); this.authorize(task, 'develop') }
   async create(data) { return this.serialize(async () => {
@@ -255,6 +274,7 @@ export class CodeAssistantService {
     if (route === 'history/project/remove') return json(await this.setProjectHistoryRemoved(data.cwd, data.roleId, true))
     if (route === 'history/project/restore') return json(await this.setProjectHistoryRemoved(data.cwd, data.roleId, false))
     if (route === 'history/remove' || route === 'history/restore') { await this.setHistoryRemoved(data.id, data.roleId, route === 'history/remove'); return json(this.history(data.roleId)) }
+    if (route === 'question/remove' || route === 'question/restore') return json(await this.setQuestionRemoved(data.id, data.roleId, data.questionId, route === 'question/remove'))
     if (route === 'create') return json(await this.create(data))
     if (route === 'send') return json(await this.send(data.id, data))
     if (route === 'stop') return json(await this.stop(data.id))

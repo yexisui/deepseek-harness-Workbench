@@ -6,7 +6,7 @@ import { useCodePanels } from './useCodePanels.ts'
 import s from './code-assistant.module.css'
 
 type Props = { panelToggleClassName?: string; Modal: React.ComponentType<HistoryModalProps>; removeIcon?: React.ReactNode; renderEvidence?: (taskId: string | undefined, active: boolean) => React.ReactNode; Toggle: React.ComponentType<{ checked: boolean; disabled?: boolean; label: string; onChange: (value: boolean) => void }>; roleId: string; roleVersion?: number; draftKey: string; initialTaskId?: string; initialDraft?: string; initialTitle?: string; onDraftChange?: (value: string) => void; onTaskChange?: (task: { id: string; title: string } | null) => void; loadModels: () => Promise<{ id: string; name: string }[]> }
-type Task = { id: string; cwd: string; title: string; model: string; mode: string; status: string; error: string; messages: any[]; permissions: any[]; updatedAt: string }
+type Task = { id: string; cwd: string; title: string; model: string; mode: string; status: string; error: string; messages: any[]; permissions: any[]; updatedAt: string; removedQuestionIds?: string[] }
 type File = { path: string; text: string; version: string; reason?: string }
 // Keep editor buffers when the host temporarily unmounts a work area (new chat, role or settings).
 // Browser close/reload is separately protected by beforeunload.
@@ -162,6 +162,16 @@ export function CodeAssistant(props: Props) {
     if (!alive.current) return
     resetTask(); setCwd(''); setProjects(list); setNotice('已移除当前项目')
   })
+  const changeQuestion = async (questionId: string, removed: boolean) => {
+    const current = taskRef.current
+    if (!current || pending.current || current.status === 'running') throw new Error('请等待当前操作完成')
+    pending.current = true; setBusy(true)
+    try {
+      const next = await api<Task>('question/' + (removed ? 'remove' : 'restore'), {}, { id: current.id, roleId: props.roleId, questionId })
+      if (taskRef.current?.id === current.id) { accept(next); if (!removed) { setSelectedQuestion(questionId); setQuestionJump(value => value + 1) } }
+      try { await listTasks() } catch { setError('提问已更新，历史列表暂未刷新，请重新打开对话记录') }
+    } finally { pending.current = false; if (alive.current) setBusy(false) }
+  }
   const selectQuestion = (id: string) => { setSelectedQuestion(id); setQuestionJump(value => value + 1); panels.toggle('right', true) }
   const panelButton = (side: 'left' | 'right', expanded: boolean) => <button type="button" className={expanded ? [s.collapseButton, props.panelToggleClassName].filter(Boolean).join(' ') : s.restorePanel} aria-label={`${expanded ? '收起' : '展开'}${side === 'left' ? '项目文件' : '开发对话'}`} aria-expanded={expanded} aria-controls={`${storageKey}-${side}`} title={`${expanded ? '收起' : '展开'}${side === 'left' ? '项目文件' : '开发对话'}`} onClick={() => {
     if (reading) setReading(false)
@@ -194,7 +204,7 @@ export function CodeAssistant(props: Props) {
       {separator('right')}
       <aside className={s.collapsedPanel} data-side="right" hidden={panels.layout.rightOpen}>{panelButton('right', false)}</aside>
       <aside className={s.chat} id={`${storageKey}-right`} aria-label="开发对话" hidden={!panels.layout.rightOpen}><div className={s.sectionTitle}><div className={s.conversationTitle}><strong title={task?.title}>{task?.title || '开发对话'}</strong>{selection && <small>已引用选区</small>}</div><button type="button" className={s.readingButton} aria-pressed={reading} onClick={() => setReading(value => !value)}>{reading ? '退出专注' : '专注阅读'}</button>{panelButton('right', true)}</div>
-        <Conversation task={task} selected={selectedQuestion} jump={questionJump} onSelect={selectQuestion} evidence={props.renderEvidence?.(task?.id, !!running)}/>
+        <Conversation task={task} onChangeQuestion={changeQuestion} removeIcon={props.removeIcon} disabled={busy || !!running} selected={selectedQuestion} jump={questionJump} onSelect={selectQuestion} evidence={props.renderEvidence?.(task?.id, !!running)}/>
         {task?.permissions.map(permission => <div className={s.approval} key={permission.id}><strong>{['bash', 'shell'].includes(permission.permission) ? '允许运行这条命令？' : '允许这次文件修改？'}</strong><pre>{permission.metadata?.diff || permission.metadata?.command || permission.patterns?.join('\n') || JSON.stringify(permission.metadata, null, 2)}</pre><div><button disabled={busy} onClick={() => void action(async () => accept(await api('permission', {}, { id: task.id, permissionId: permission.id, allow: false })))}>拒绝</button><button className={s.primary} disabled={busy} onClick={() => void action(async () => accept(await api('permission', {}, { id: task.id, permissionId: permission.id, allow: true })))}>允许本次</button></div></div>)}
         <div className={s.composer}><textarea ref={composer} rows={2} aria-label="代码任务说明" placeholder="描述要完成的开发任务…" value={draft} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && draft.trim() && !busy && !running) { event.preventDefault(); void send() } }} /><div className={s.composerActions}><select aria-label="代码助手模型" value={model} disabled={running || busy} onChange={event => setModel(event.target.value)}><option value="">使用工作台默认模型</option>{models.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}</select><label><EnableSwitch checked={mode === 'edit'} disabled={running || busy} label="允许请求修改和运行" onChange={value => setMode(value ? 'edit' : 'read')} /><span>{mode === 'edit' ? '修改与运行需审批' : '只读审查'}</span></label>{running ? <button className={s.stop} disabled={busy} onClick={() => void action(async () => { accept(await api('stop', {}, { id: task!.id })); await refresh() })}>停止</button> : <button className={s.primary} disabled={!draft.trim() || busy || !cwd || !health?.installed} onClick={() => void send()}>{busy ? '处理中…' : '发送'}</button>}</div></div>
       </aside>

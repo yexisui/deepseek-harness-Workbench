@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "protocol": "dsh-worker-v1",
+  "id": "org.workbench.document",
+  "version": "1.0.0",
+  "name": "文档解析与 OCR",
+  "description": "读取 Word、文字 PDF 和图片；扫描 PDF 使用本机 OCR 转为文字，手动选择技能与功能后生成报告。",
+  "instructions": "此功能提供文档工作区。先在工作区上传 DOCX、PDF 或图片；扫描件可点使用 OCR 解析。用户选择本次技能与功能后直接生成结果，不设置审批、质量审核或额外确认。动作 input 为 {operation:\"parse\",taskId,assetId?} 或 {operation:\"status\",taskId}。解析异步执行，status 返回已保存的逐页文字与状态。必须使用真实 taskId；不声称未执行任务已经完成。",
+  "author": "工作台",
+  "license": "Apache-2.0; OCR runtime licenses in external-tools",
+  "permissions": [
+    "node"
+  ],
+  "components": [
+    {
+      "id": "reader",
+      "name": "文档读取与扫描解析",
+      "entry": "runtime/main.cjs",
+      "actions": [
+        {
+          "id": "parse",
+          "name": "解析文档",
+          "description": "通过工作台共享文档运行环境读取任务附件，或读取解析状态。"
+        }
+      ]
+    }
+  ],
+  "files": {
+    "runtime/main.cjs": "auto",
+    "docs/README.txt": "auto"
+  }
+}

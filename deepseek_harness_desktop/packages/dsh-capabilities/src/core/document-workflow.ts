@@ -1,0 +1,7 @@
+export const DOCUMENT_ACTION = 'pack:org.workbench.document:reader:parse';
+export type DocumentTableCell={col:number;colspan:number;rowspan:number;text:string;blocks?:DocumentBlock[]};
+export type DocumentBlock={type:'text';text:string;headingLevel?:number;y?:number}|{type:'table';rows:DocumentTableCell[][];columns:number;widths:number[];headerRow?:number;continuedHeader?:DocumentTableCell[];preserveLines?:boolean;y?:number};
+export type DocumentPage={page:number;text:string;method:string;lines?:{text:string;box:unknown}[];blocks?:DocumentBlock[];structuredText?:string;layoutVersion?:number;renderScale?:number};
+export type DocumentAsset={id:string;name:string;extension:string;createdAt:string;pages:DocumentPage[];needsOcr:boolean;scanPages?:number[]};
+export type DocumentRun={id:string;createdAt:string;finishedAt?:string;instruction:string;skillId:string;skillName:string;capabilityIds:string[];model:string;status:'running'|'done'|'error'|'stopped';phase:string;report:string;error?:string;files:{name:string;id:string;kind:string;taskId?:string}[]};
+export type DocumentWorkflow={id:string;roleId:string;roleVersion:number;title:string;createdAt:string;updatedAt:string;forkedFrom?:string;assets:DocumentAsset[];instruction:string;skillId:string;capabilityIds:string[];model:string;runs:DocumentRun[];processing?:{assetId:string;completed:number;total:number;phase:string;error?:string};};

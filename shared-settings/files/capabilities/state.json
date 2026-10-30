@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "revision": 64,
-  "updatedAt": "2026-10-26T08:03:41.121Z",
+  "revision": 74,
+  "updatedAt": "2026-10-30T06:26:02.552Z",
   "roles": [
     {
       "id": "builtin-analyst",
@@ -442,6 +442,40 @@
           "version": 12,
           "preset": "workbench-role-builtin-developer-v12",
           "createdAt": "2026-10-09T03:56:52.921Z"
+        },
+        {
+          "name": "开发助手",
+          "color": "#22A58B",
+          "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+          "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+          "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "developer-workspace",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 13,
+          "preset": "workbench-role-builtin-developer-v13",
+          "createdAt": "2026-10-09T03:56:52.921Z"
+        },
+        {
+          "name": "开发助手",
+          "color": "#22A58B",
+          "duties": "协助将明确需求转为技术方案，分析代码结构与问题原因，提供实现建议、代码示例和测试要点。",
+          "requirements": "结合已提供的技术栈、接口和项目约束，不假设未确认的实现。\n区分建议、示例与实际执行结果；未经运行的代码和测试明确标注未验证。",
+          "format": "一、需求理解与技术方案\n二、实现步骤或代码示例\n三、测试要点\n四、风险与待确认事项",
+          "capabilities": [
+            {
+              "capabilityId": "developer-workspace",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "version": 14,
+          "preset": "workbench-role-builtin-developer-v14",
+          "createdAt": "2026-10-09T03:56:52.921Z"
         }
       ]
     },
@@ -845,6 +879,11 @@
         "capabilities": [
           {
             "capabilityId": "local-683c2126-572d-400c-b982-58a0df5aa06d",
+            "version": 2,
+            "enabled": true
+          },
+          {
+            "capabilityId": "local-efb8f96d-fec1-4c35-8da9-7fc67e0d8c2a",
             "version": 1,
             "enabled": true
           }
@@ -860,6 +899,12 @@
             "id": "6683e8a6-b1b7-425f-a98b-ce08e43a8eb4",
             "name": "excel-generation-guidelines",
             "hash": "bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a",
+            "enabled": true
+          },
+          {
+            "id": "65391dc4-fae1-4815-bf40-630deccd9960",
+            "name": "idoc-project-estimator",
+            "hash": "d88badb939c6cd7664ef1ce8e94c731638864813a2bdcffc2d9d1ffba90591ce",
             "enabled": true
           }
         ]
@@ -915,6 +960,81 @@
           "version": 2,
           "preset": "workbench-role-local-b7e37045-6ca6-4a47-918f-e4d0e5dc8eef-v2",
           "createdAt": "2026-10-19T03:54:01.202Z",
+          "directSave": true
+        },
+        {
+          "name": "AI 项目估算助手",
+          "color": "#2563eb",
+          "duties": "负责根据项目介绍、需求文档或功能清单，使用 workload-estimator 技能进行 AI 部分工作量估算。先理解范围与目标人月，再拆分模块和功能项，说明估算依据、假设与待确认事项，并按技能规定整理交付结果。",
+          "requirements": "处理工作量估算任务时使用已绑定的 workload-estimator 及其包内资源。遵循技能的估算口径、模板结构与公式规则；缺少关键信息时先询问。区分用户明确需求与估算假设，不凭空增加范围。仅在真实文件已生成并可访问时提供下载链接；如当前工具不能执行脚本或写入文件，应说明具体限制并保留可用的估算明细，不虚报生成成功。 生成Excel时同时加载excel-generation-guidelines，遵循业务技能规则后调用已绑定的Excel生成能力。业务估算规范由workload-estimator提供，文件生成工具不决定业务规则。",
+          "format": "用中文说明估算范围、模块与功能拆分、编码人天及总人天/人月、计算口径和待确认事项。具备实际生成条件时按技能模板交付 Excel；不把工作量直接等同于工期，不输出无依据的报价。",
+          "capabilities": [
+            {
+              "capabilityId": "local-683c2126-572d-400c-b982-58a0df5aa06d",
+              "version": 2,
+              "enabled": true
+            }
+          ],
+          "skills": [
+            {
+              "id": "96518f70-e180-421d-a62b-c3a849d21ee9",
+              "name": "workload-estimator",
+              "hash": "0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522",
+              "enabled": true
+            },
+            {
+              "id": "6683e8a6-b1b7-425f-a98b-ce08e43a8eb4",
+              "name": "excel-generation-guidelines",
+              "hash": "bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a",
+              "enabled": true
+            }
+          ],
+          "version": 3,
+          "createdAt": "2026-10-29T07:42:20.218Z",
+          "preset": "workbench-role-local-b7e37045-6ca6-4a47-918f-e4d0e5dc8eef-v3",
+          "directSave": true
+        },
+        {
+          "name": "AI 项目估算助手",
+          "color": "#2563eb",
+          "duties": "负责根据项目介绍、需求文档或功能清单，使用 workload-estimator 技能进行 AI 部分工作量估算。先理解范围与目标人月，再拆分模块和功能项，说明估算依据、假设与待确认事项，并按技能规定整理交付结果。",
+          "requirements": "处理工作量估算任务时使用已绑定的 workload-estimator 及其包内资源。遵循技能的估算口径、模板结构与公式规则；缺少关键信息时先询问。区分用户明确需求与估算假设，不凭空增加范围。仅在真实文件已生成并可访问时提供下载链接；如当前工具不能执行脚本或写入文件，应说明具体限制并保留可用的估算明细，不虚报生成成功。 生成Excel时同时加载excel-generation-guidelines，遵循业务技能规则后调用已绑定的Excel生成能力。业务估算规范由workload-estimator提供，文件生成工具不决定业务规则。",
+          "format": "用中文说明估算范围、模块与功能拆分、编码人天及总人天/人月、计算口径和待确认事项。具备实际生成条件时按技能模板交付 Excel；不把工作量直接等同于工期，不输出无依据的报价。",
+          "capabilities": [
+            {
+              "capabilityId": "local-683c2126-572d-400c-b982-58a0df5aa06d",
+              "version": 2,
+              "enabled": true
+            },
+            {
+              "capabilityId": "local-efb8f96d-fec1-4c35-8da9-7fc67e0d8c2a",
+              "version": 1,
+              "enabled": true
+            }
+          ],
+          "skills": [
+            {
+              "id": "96518f70-e180-421d-a62b-c3a849d21ee9",
+              "name": "workload-estimator",
+              "hash": "0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522",
+              "enabled": true
+            },
+            {
+              "id": "6683e8a6-b1b7-425f-a98b-ce08e43a8eb4",
+              "name": "excel-generation-guidelines",
+              "hash": "bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a",
+              "enabled": true
+            },
+            {
+              "id": "65391dc4-fae1-4815-bf40-630deccd9960",
+              "name": "idoc-project-estimator",
+              "hash": "d88badb939c6cd7664ef1ce8e94c731638864813a2bdcffc2d9d1ffba90591ce",
+              "enabled": true
+            }
+          ],
+          "version": 4,
+          "preset": "workbench-role-local-b7e37045-6ca6-4a47-918f-e4d0e5dc8eef-v4",
+          "createdAt": "2026-10-29T07:42:20.436Z",
           "directSave": true
         }
       ]
@@ -1518,7 +1638,7 @@
       "pinned": false,
       "draft": {
         "name": "Excel 生成",
-        "description": "按传入的工作表、单元格、公式和格式参数生成可下载的 XLSX 文件。业务字段、计算口径、样式规范由技能或用户要求提供。",
+        "description": "按传入的工作表、单元格、公式和格式参数生成可下载的 XLSX 文件。业务字段、计算口径、样式规范由技能或用户要求提供。 支持以技能提供的 XLSX 模板为底稿填写。",
         "instructions": "用户需要生成Excel文件时，通过capability_action调用本能力generate动作。input为JSON字符串，内容为工作簿生成参数，接口说明见已绑定的excel-generation-guidelines技能。先加载适用的业务技能与Excel生成规范技能，按其规则组织参数。此能力仅写入用户/技能指定的数据、公式和格式，不拆需求、不估算、不设固定比例、不调用模型、不执行任意脚本。成功后原样使用工具返回的downloadUrl提供下载链接；失败时如实说明，不编造文件。",
         "components": [
           {
@@ -1545,6 +1665,23 @@
           "version": 1,
           "createdAt": "2026-10-19T03:54:01.092Z",
           "packageHash": "b7f76536500f3665a7e7a78d3a96288464b6e614047a5b96bdda47c43b176f0e",
+          "directSave": true
+        },
+        {
+          "name": "Excel 生成",
+          "description": "按传入的工作表、单元格、公式和格式参数生成可下载的 XLSX 文件。业务字段、计算口径、样式规范由技能或用户要求提供。 支持以技能提供的 XLSX 模板为底稿填写。",
+          "instructions": "用户需要生成Excel文件时，通过capability_action调用本能力generate动作。input为JSON字符串，内容为工作簿生成参数，接口说明见已绑定的excel-generation-guidelines技能。先加载适用的业务技能与Excel生成规范技能，按其规则组织参数。此能力仅写入用户/技能指定的数据、公式和格式，不拆需求、不估算、不设固定比例、不调用模型、不执行任意脚本。成功后原样使用工具返回的downloadUrl提供下载链接；失败时如实说明，不编造文件。",
+          "components": [
+            {
+              "componentId": "pkg:org.workbench.excel:writer",
+              "actions": [
+                "pack:org.workbench.excel:writer:generate"
+              ]
+            }
+          ],
+          "version": 2,
+          "createdAt": "2026-10-29T07:42:20.218Z",
+          "packageHash": "5726c917f9272f11f6ac7cde97f44747692dde5465e33dfe3dc9be90b7b93e12",
           "directSave": true
         }
       ],
@@ -1588,6 +1725,48 @@
           "createdAt": "2026-10-26T02:04:37.775Z"
         }
       ]
+    },
+    {
+      "id": "local-efb8f96d-fec1-4c35-8da9-7fc67e0d8c2a",
+      "source": "local",
+      "enabled": true,
+      "pinned": false,
+      "draft": {
+        "name": "文档解析与 OCR",
+        "description": "读取 Word、文字 PDF 和图片；扫描 PDF 使用本机 OCR 转为文字，手动选择技能与功能后生成报告。",
+        "instructions": "此功能提供文档工作区。先在工作区上传 DOCX、PDF 或图片；扫描件可点使用 OCR 解析。用户选择本次技能与功能后直接生成结果，不设置审批、质量审核或额外确认。动作 input 为 {operation:\"parse\",taskId,assetId?} 或 {operation:\"status\",taskId}。解析异步执行，status 返回已保存的逐页文字与状态。必须使用真实 taskId；不声称未执行任务已经完成。",
+        "components": [
+          {
+            "componentId": "pkg:org.workbench.document:reader",
+            "actions": [
+              "pack:org.workbench.document:reader:parse"
+            ]
+          }
+        ]
+      },
+      "versions": [
+        {
+          "name": "文档解析与 OCR",
+          "description": "读取 Word、文字 PDF 和图片；扫描 PDF 使用本机 OCR 转为文字，手动选择技能与功能后生成报告。",
+          "instructions": "此功能提供文档工作区。先在工作区上传 DOCX、PDF 或图片；扫描件可点使用 OCR 解析。用户选择本次技能与功能后直接生成结果，不设置审批、质量审核或额外确认。动作 input 为 {operation:\"parse\",taskId,assetId?} 或 {operation:\"status\",taskId}。解析异步执行，status 返回已保存的逐页文字与状态。必须使用真实 taskId；不声称未执行任务已经完成。",
+          "components": [
+            {
+              "componentId": "pkg:org.workbench.document:reader",
+              "actions": [
+                "pack:org.workbench.document:reader:parse"
+              ]
+            }
+          ],
+          "version": 1,
+          "createdAt": "2026-10-29T07:42:20.339Z",
+          "packageHash": "fc0d02cb0430e3614247dcf96a1fc95b5b0bbf27db9e174d273cbf9a5ffbcfa4",
+          "directSave": true
+        }
+      ],
+      "packageOrigin": {
+        "id": "org.workbench.document",
+        "draftBackups": []
+      }
     }
   ],
   "defaultRolesVersion": 2,
@@ -1895,6 +2074,79 @@
         }
       },
       "installedAt": "2026-10-21T01:31:44.461Z"
+    },
+    "5726c917f9272f11f6ac7cde97f44747692dde5465e33dfe3dc9be90b7b93e12": {
+      "hash": "5726c917f9272f11f6ac7cde97f44747692dde5465e33dfe3dc9be90b7b93e12",
+      "manifest": {
+        "schema": 1,
+        "protocol": "dsh-worker-v1",
+        "id": "org.workbench.excel",
+        "version": "1.1.0",
+        "name": "Excel 生成",
+        "description": "按传入的工作表、单元格、公式和格式参数生成可下载的 XLSX 文件。业务字段、计算口径、样式规范由技能或用户要求提供。 支持以技能提供的 XLSX 模板为底稿填写。",
+        "instructions": "用户需要生成Excel文件时，通过capability_action调用本能力generate动作。input为JSON字符串，内容为工作簿生成参数，接口说明见已绑定的excel-generation-guidelines技能。先加载适用的业务技能与Excel生成规范技能，按其规则组织参数。此能力仅写入用户/技能指定的数据、公式和格式，不拆需求、不估算、不设固定比例、不调用模型、不执行任意脚本。成功后原样使用工具返回的downloadUrl提供下载链接；失败时如实说明，不编造文件。",
+        "author": "工作台",
+        "license": "Apache-2.0 (bundled dependencies: see THIRD_PARTY_NOTICES.txt)",
+        "permissions": [
+          "node"
+        ],
+        "components": [
+          {
+            "id": "writer",
+            "name": "Excel 文件生成",
+            "entry": "runtime/main.cjs",
+            "actions": [
+              {
+                "id": "generate",
+                "name": "生成 Excel",
+                "description": "从工作簿参数创建 XLSX；支持多表、公式、合并、字体边框、列宽行高与冻结，不含业务规则。"
+              }
+            ]
+          }
+        ],
+        "files": {
+          "runtime/main.cjs": "7744404e9e69e8ecb21513ab7b381dbf1d1c6e767a48cf6ce1df6ca51c7c822e",
+          "docs/README.txt": "3a67db07e8fcd4136ce6dcf35da2f5bb42f0ecf9aa76e772e351e7971f9ecdd2",
+          "docs/THIRD_PARTY_NOTICES.txt": "f8b93e189b4a73a861f0836d5abb09113f90de9158f8d748ae827b712f3a712a"
+        }
+      },
+      "installedAt": "2026-10-29T07:42:20.218Z"
+    },
+    "fc0d02cb0430e3614247dcf96a1fc95b5b0bbf27db9e174d273cbf9a5ffbcfa4": {
+      "hash": "fc0d02cb0430e3614247dcf96a1fc95b5b0bbf27db9e174d273cbf9a5ffbcfa4",
+      "manifest": {
+        "schema": 1,
+        "protocol": "dsh-worker-v1",
+        "id": "org.workbench.document",
+        "version": "1.0.0",
+        "name": "文档解析与 OCR",
+        "description": "读取 Word、文字 PDF 和图片；扫描 PDF 使用本机 OCR 转为文字，手动选择技能与功能后生成报告。",
+        "instructions": "此功能提供文档工作区。先在工作区上传 DOCX、PDF 或图片；扫描件可点使用 OCR 解析。用户选择本次技能与功能后直接生成结果，不设置审批、质量审核或额外确认。动作 input 为 {operation:\"parse\",taskId,assetId?} 或 {operation:\"status\",taskId}。解析异步执行，status 返回已保存的逐页文字与状态。必须使用真实 taskId；不声称未执行任务已经完成。",
+        "author": "工作台",
+        "license": "Apache-2.0; OCR runtime licenses in external-tools",
+        "permissions": [
+          "node"
+        ],
+        "components": [
+          {
+            "id": "reader",
+            "name": "文档读取与扫描解析",
+            "entry": "runtime/main.cjs",
+            "actions": [
+              {
+                "id": "parse",
+                "name": "解析文档",
+                "description": "通过工作台共享文档运行环境读取任务附件，或读取解析状态。"
+              }
+            ]
+          }
+        ],
+        "files": {
+          "runtime/main.cjs": "14264d52c9ba519eb4b2abccf1909ca3ac75cbefc8062a8e2910f4108dbd8175",
+          "docs/README.txt": "6100034805aed36c9cca650cd75a049d925eec9c1e543204fadab6bbdbc6ad61"
+        }
+      },
+      "installedAt": "2026-10-29T07:42:20.339Z"
     }
   },
   "recordingCapabilityVersion": 1,

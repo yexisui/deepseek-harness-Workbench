@@ -10,6 +10,7 @@ export type LocalConversation = {
   draft: string
   createdAt?: number
   updatedAt: number
+  documentTaskId?: string
   codeTaskId?: string
   searchId?: string
   recordingId?: string
@@ -51,11 +52,11 @@ export function createLocalConversations(mint: () => string = () => `local-${cry
   const active = () => snapshot.items.find(row => row.id === snapshot.activeId)
   const leave = () => {
     const current = active()
-    update(snapshot.items.filter(row => row !== current || row.retained || row.kind === 'demo' || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode)), null)
+    update(snapshot.items.filter(row => row !== current || row.retained || row.kind === 'demo' || row.codeTaskId || row.documentTaskId || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode)), null)
   }
   const start = (role = 'chat', workMode?: LocalConversation['workMode']) => {
     const current = active()
-    const retained = snapshot.items.filter(row => row !== current || row.retained || row.kind === 'demo' || row.codeTaskId || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode))
+    const retained = snapshot.items.filter(row => row !== current || row.retained || row.kind === 'demo' || row.codeTaskId || row.documentTaskId || row.customTitle || row.draft.trim() || Boolean((row.meeting as { mode?: string } | undefined)?.mode))
     const now = Date.now()
     const row: LocalConversation = { id: mint(), role, workMode, kind: 'draft', title: '新对话', draft: '', createdAt: now, updatedAt: now }
     update([row, ...retained], row.id)
@@ -70,7 +71,7 @@ export function createLocalConversations(mint: () => string = () => `local-${cry
   }
   return {
     restoreArchived: (row:LocalConversation) => {
-      const same=(item:LocalConversation)=>item.id===row.id||Boolean(row.codeTaskId&&item.codeTaskId===row.codeTaskId)||Boolean((row.meeting as {jobId?:string})?.jobId&&(item.meeting as {jobId?:string})?.jobId===(row.meeting as {jobId:string}).jobId)
+      const same=(item:LocalConversation)=>item.id===row.id||Boolean(row.documentTaskId&&item.documentTaskId===row.documentTaskId)||Boolean(row.codeTaskId&&item.codeTaskId===row.codeTaskId)||Boolean((row.meeting as {jobId?:string})?.jobId&&(item.meeting as {jobId?:string})?.jobId===(row.meeting as {jobId:string}).jobId)
       const existing=snapshot.items.find(same),next={...structuredClone(existing??row),id:row.id,retained:true}
       update([next,...snapshot.items.filter(item=>!same(item))],existing?.id===snapshot.activeId?row.id:snapshot.activeId)
     },
@@ -100,7 +101,9 @@ export function createLocalConversations(mint: () => string = () => `local-${cry
     remove: (id: string) => update(snapshot.items.filter(row => row.id !== id), snapshot.activeId === id ? null : snapshot.activeId),
     rename: (id: string, title: string) => patch(id, { title, customTitle: true }),
     setRole: (id: string, role: string) => patch(id, { role, workMode: undefined }),
-    setDraft: (id: string, draft: string) => patch(id, { draft, title: (snapshot.items.find(row => row.id === id)?.customTitle || snapshot.items.find(row => row.id === id)?.codeTaskId) ? snapshot.items.find(row => row.id === id)!.title : draft.trim() ? draft.trim().slice(0, 28) : '新对话' }),
+    setDraft: (id: string, draft: string) => patch(id, { draft, title: (snapshot.items.find(row => row.id === id)?.customTitle || snapshot.items.find(row => row.id === id)?.codeTaskId || snapshot.items.find(row => row.id === id)?.documentTaskId) ? snapshot.items.find(row => row.id === id)!.title : draft.trim() ? draft.trim().slice(0, 28) : '新对话' }),
+    setDocumentTask: (id:string,task:{id:string;title:string}) => {const row=snapshot.items.find(r=>r.id===id);if(!row||row.documentTaskId===task.id&&(row.customTitle||row.title===task.title))return;patch(id,{documentTaskId:task.id,retained:true,workMode:'document-workflow',title:row.customTitle?row.title:task.title})},
+    restoreDocumentTasks: (tasks:{id:string;roleId:string;title:string;createdAt:string;updatedAt:string}[]) => {const added=tasks.filter(t=>!snapshot.items.some(r=>r.documentTaskId===t.id)).map(t=>({id:'document-'+t.id,documentTaskId:t.id,role:t.roleId,title:t.title,draft:'',kind:'draft' as const,retained:true,workMode:'document-workflow' as const,createdAt:Date.parse(t.createdAt),updatedAt:Date.parse(t.updatedAt)}));if(added.length)update([...snapshot.items,...added])},
     setCodeTask: (id: string, task: { id: string; title: string } | null) => { const row = snapshot.items.find(row => row.id === id); if (!row || (row.codeTaskId === task?.id && (!task || row.customTitle || row.title === task.title))) return; patch(id, { codeTaskId: task?.id, workMode: 'developer', title: row.customTitle ? row.title : task?.title || '新对话' }) },
     setMeeting: (id: string, meeting: unknown, draft: string) => patch(id, { meeting, draft }),
     commitDemo: (id: string, title: string) => patch(id, { kind: 'demo', title: snapshot.items.find(row => row.id === id)?.customTitle ? snapshot.items.find(row => row.id === id)!.title : title }),

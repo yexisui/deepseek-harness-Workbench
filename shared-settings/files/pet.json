@@ -1,29 +1,29 @@
 {
-  "petId": "ouo-neko",
+  "petId": "whale-girl",
   "names": {
     "whale-girl": "鲸鱼娘（原版）"
   },
   "skins": {},
   "affinity": {
-    "points": 233,
+    "points": 246,
     "lastPetAt": 1792637888626,
     "lastFeedAt": 1791613782543,
     "pets": 50,
     "feeds": 32,
     "petRejects": 447,
     "feedRejects": 116,
-    "turns": 23
+    "turns": 36
   },
   "treats": {
     "treats": 20,
-    "lastTreatGrantAt": 1793027219238,
-    "turnsAtLastTreatGrant": 0
+    "lastTreatGrantAt": 1793333219238,
+    "turnsAtLastTreatGrant": 30
   },
   "display": {
     "visible": true,
     "size": 160,
-    "right": 32,
-    "bottom": 442,
+    "right": 39,
+    "bottom": 27,
     "bubbleScale": 1
   },
   "gameplay": {}

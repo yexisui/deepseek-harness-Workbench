@@ -1,5 +1,5 @@
 {
-  "revision": 21,
+  "revision": 24,
   "skills": [
     {
       "id": "e5163661-906f-4075-976d-159db1281ad4",
@@ -99,6 +99,32 @@
       "hashes": [
         "a4cf4915a33ee16c3d69bd0f7e023c5290a0294c7fbf9235d2c34b516de85011"
       ],
+      "pinned": true
+    },
+    {
+      "id": "65391dc4-fae1-4815-bf40-630deccd9960",
+      "name": "idoc-project-estimator",
+      "description": "阅读甲方《技术规范书》(docx)，严格按公司《工作量评估表》(xlsx)既有格式完成工作量评估（真实编码人天→编码人天→自动比例人天→总费用），并输出技术难点与风险点分析。适用于核电/中广核类信息化项目投标前评估。",
+      "root": "{{WORKBENCH_ROOT}}\\dsh-data\\skills",
+      "scope": "global",
+      "hash": "d88badb939c6cd7664ef1ce8e94c731638864813a2bdcffc2d9d1ffba90591ce",
+      "enabled": true,
+      "auto": true,
+      "manual": true,
+      "tags": [],
+      "category": "未分类",
+      "warnings": [],
+      "updatedAt": "2026-10-29T07:42:20.396Z",
+      "contentHistory": [
+        {
+          "at": 1793259740396,
+          "hash": "d88badb939c6cd7664ef1ce8e94c731638864813a2bdcffc2d9d1ffba90591ce"
+        }
+      ],
+      "hashes": [
+        "d88badb939c6cd7664ef1ce8e94c731638864813a2bdcffc2d9d1ffba90591ce"
+      ],
+      "usage": "roles",
       "pinned": true
     }
   ]

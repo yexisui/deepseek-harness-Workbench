@@ -67,6 +67,16 @@
       "executables": {
         "python": "python.exe"
       }
+    },
+    {
+      "id": "rapidocr",
+      "version": "3.10.0",
+      "directory": "rapidocr-3.10.0-python-3.12.10-win-x64",
+      "runtimeManifest": "rapidocr-lock.json",
+      "license": "Apache-2.0; ONNX Runtime MIT; Python PSF; bundled models and wheel licenses retained",
+      "executables": {
+        "python": "python.exe"
+      }
     }
   ]
 }

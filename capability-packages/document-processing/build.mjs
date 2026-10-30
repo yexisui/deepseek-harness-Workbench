@@ -1,0 +1,4 @@
+import fs from 'node:fs';import path from 'node:path';import {createRequire} from 'node:module';import crypto from 'node:crypto';
+const root=import.meta.dirname,require=createRequire(path.join(process.argv[2],'package.json')),Zip=require('pizzip');
+fs.mkdirSync(path.join(root,'runtime'),{recursive:true});fs.mkdirSync(path.join(root,'dist'),{recursive:true});fs.copyFileSync(path.join(root,'src/main.cjs'),path.join(root,'runtime/main.cjs'));
+const manifest=JSON.parse(fs.readFileSync(path.join(root,'capability.json'),'utf8')),zip=new Zip();for(const file of Object.keys(manifest.files)){const bytes=fs.readFileSync(path.join(root,file));manifest.files[file]=crypto.createHash('sha256').update(bytes).digest('hex');zip.file(file,bytes)}zip.file('capability.json',JSON.stringify(manifest,null,2));fs.writeFileSync(path.join(root,'dist/document-processing.zip'),zip.generate({type:'nodebuffer',compression:'DEFLATE'}));console.log('document-processing.zip ready');

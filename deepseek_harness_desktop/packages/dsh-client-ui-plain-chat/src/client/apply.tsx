@@ -1,3 +1,4 @@
+import {DocumentWorkflowAssistant,documentWorkflowApi} from './DocumentWorkflowAssistant.tsx'
 import {createAssistantArchives,type ArchiveEntry} from './assistant-archive-client.ts'
 import {adaptAssistantArchiveController} from './assistant-archive-adapter.ts'
 import type {SessionPreviewView} from '../../../dsh-session-archive/src/core/types.ts'
@@ -82,6 +83,7 @@ export function apply(ctx: Context): void {
   const clearSavedDraft = () => { try { sessionStorage.removeItem('workbench-chat-draft') } catch { /* Optional storage. */ } }
   const roleSelection = createRoleSelection<string>()
   const localConversations = createLocalConversations()
+  void documentWorkflowApi('list').then(rows=>localConversations.restoreDocumentTasks(rows)).catch(()=>{})
   const documents=documentsClient()
   let activeDocument:string|null=null
   let historyInitialLoaded = false
@@ -277,15 +279,15 @@ export function apply(ctx: Context): void {
     const pending=pendingForks.get(id);if(pending)return pending
     const work=(async()=>{
       const local=localConversations.getSnapshot().items.find(r=>r.id===id)
-      const kind=documents.getSnapshot().rows.some(r=>r.id===id)?'documents':searches.getSnapshot().rows.some(r=>r.id===id)?'file-search':recordings.getSnapshot().rows.some(r=>r.id===id)?'recording':requirementHistory.getSnapshot().items.some(r=>r.id===id)?'requirements':developerHistory.getSnapshot().items.some(r=>r.id===id)?'developer':local?.codeTaskId?'code':(local?.meeting as {jobId?:string})?.jobId?'meeting':'local'
+      const kind=documents.getSnapshot().rows.some(r=>r.id===id)?'documents':searches.getSnapshot().rows.some(r=>r.id===id)?'file-search':recordings.getSnapshot().rows.some(r=>r.id===id)?'recording':requirementHistory.getSnapshot().items.some(r=>r.id===id)?'requirements':developerHistory.getSnapshot().items.some(r=>r.id===id)?'developer':local?.documentTaskId?'document-workflow':local?.codeTaskId?'code':(local?.meeting as {jobId?:string})?.jobId?'meeting':'local'
       const target=forkRequests.get(id)??crypto.randomUUID();forkRequests.set(id,target)
       if(kind==='local'){if(!local)throw Error('对话不存在');localConversations.addFork(local,target);openLocalConversation(target)}
       else{
-        const source=kind==='code'?local!.codeTaskId:kind==='meeting'?(local!.meeting as {jobId:string}).jobId:id
+        const source=kind==='document-workflow'?local!.documentTaskId:kind==='code'?local!.codeTaskId:kind==='meeting'?(local!.meeting as {jobId:string}).jobId:id
         const response=await fetch('/api/capabilities/conversations/fork',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,id:source,requestId:target})})
         const result=await response.json();if(!response.ok)throw Error(result.error||'分叉失败，请重试')
-        if(kind==='code'||kind==='meeting'){
-          const patch=kind==='code'?{codeTaskId:result.id}:{meeting:{...(structuredClone(local!.meeting) as object),jobId:result.id,phase:'ready'}}
+        if(kind==='code'||kind==='meeting'||kind==='document-workflow'){
+          const patch=kind==='document-workflow'?{documentTaskId:result.id}:kind==='code'?{codeTaskId:result.id}:{meeting:{...(structuredClone(local!.meeting) as object),jobId:result.id,phase:'ready'}}
           localConversations.addFork(local!,kind==='meeting'?'meeting-'+result.id:target,patch);openLocalConversation(kind==='meeting'?'meeting-'+result.id:target)
         }else{
           if(kind==='recording'){const raw=localStorage.getItem('recording-followup:'+id);if(raw){const saved=JSON.parse(raw);if(saved.state){saved.state.jobId=target;saved.state.phase='ready'}localStorage.setItem('recording-followup:'+target,JSON.stringify(saved))}await recordings.refresh()}
@@ -319,6 +321,7 @@ export function apply(ctx: Context): void {
     }
     const row = localConversations.getSnapshot().items.find(row => row.id === id)
     if (!row) throw new Error('此会话已不存在')
+    if(row.documentTaskId)await documentWorkflowApi('settings',{id:row.documentTaskId},{title})
     const jobId = (row.meeting as { jobId?: string } | undefined)?.jobId
     if (jobId) {
       const response = await fetch('/api/capabilities/meeting/rename', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: jobId, title }) })
@@ -338,6 +341,7 @@ export function apply(ctx: Context): void {
       const row=localConversations.getSnapshot().items.find(r=>r.id===id)??assistantArchives.getSnapshot().entries[id]?.localSnapshot
       if(!row)throw Error('未能读取此对话，请刷新后重试')
       const jobId=(row.meeting as {jobId?:string})?.jobId
+      if(row.documentTaskId)await documentWorkflowApi('task',{id:row.documentTaskId},undefined,'DELETE')
       if(row.codeTaskId){const response=await fetch('/api/capabilities/code-assistant/task?id='+encodeURIComponent(row.codeTaskId),{method:'DELETE',credentials:'same-origin'});if(!response.ok){const body=await response.json();throw Error(body.error||'代码对话删除失败')}}
       if(jobId)await removeMeetingConversation(jobId,row.title,()=>meetingHistory.forget(jobId),()=>true)
       localConversations.remove(id)
@@ -348,7 +352,8 @@ export function apply(ctx: Context): void {
     if(!row)throw Error('未能读取此对话，请刷新后重试')
     let data:any=documents.getSnapshot().rows.find(r=>r.id===id)??searches.getSnapshot().rows.find(r=>r.id===id)??recordings.getSnapshot().rows.find(r=>r.id===id)??row.meeting
     const jobId=(row.meeting as {jobId?:string})?.jobId
-    if(row.kind==='requirements')data=await getRequirementTask(id)
+    if(row.documentTaskId)data=await documentWorkflowApi('task',{id:row.documentTaskId})
+    else if(row.kind==='requirements')data=await getRequirementTask(id)
     else if(row.kind==='developer')data=await developerApi('task',{id})
     else if(jobId||row.codeTaskId){
       const response=await fetch(jobId?'/api/capabilities/meeting/job/'+encodeURIComponent(jobId):'/api/capabilities/code-assistant/task?id='+encodeURIComponent(row.codeTaskId!),{credentials:'same-origin'})
@@ -357,6 +362,7 @@ export function apply(ctx: Context): void {
     const excerpt:{role:string;text:string}[]=[]
     const append=(role:string,value:unknown)=>{if(typeof value==='string'&&value.trim())excerpt.push({role,text:value.slice(0,4000)})}
     for(const message of data?.messages??[])append(message.role??message.info?.role??'assistant',message.text??message.parts?.filter((part:any)=>part.type==='text').map((part:any)=>part.text).join('\n'))
+    for(const run of data?.runs??[]){append('user',run.instruction);append('assistant',run.report)}
     for(const note of data?.notes??[])append('user',note.text)
     for(const segment of data?.segments??[])append('user',segment.text)
     if(data?.minutes)append('assistant',JSON.stringify(data.minutes,null,2))
@@ -457,7 +463,7 @@ export function apply(ctx: Context): void {
       const originRole = capabilities.data?.state.roles.find(role => role.id === displayedRole)
       const originVersion = noSession ? (developer ? developerVersion : requirement ? analysisVersion : local?.kind === 'demo' ? meetingVersion : originRole && latest(originRole.versions)) : originRole?.versions.find(v => v.preset === actualPreset)
       const modes = roleCapabilityModes(capabilities.data?.state, originVersion)
-      const workMode: CapabilityMode = activeDocument ? 'document' : activeSearch ? 'file-search' : developer ? 'developer' : requirement ? 'requirements' : local?.kind === 'demo' ? 'meeting' : local?.workMode && modes.some(m => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes)
+      const workMode: CapabilityMode = activeDocument ? 'document' : activeSearch ? 'file-search' : developer ? 'developer' : requirement ? 'requirements' : local?.documentTaskId ? 'document-workflow' : local?.kind === 'demo' ? 'meeting' : local?.workMode && modes.some(m => m.mode === local.workMode) ? local.workMode : defaultCapabilityMode(modes)
       const showDeveloper = workMode === 'developer', showRequirements = workMode === 'requirements'
       const translate = (key: string, ...args: unknown[]) => key === 'hero.chooseWorkspace' && (plain || noSession) ? t('workspace') : props.t(key, ...args)
       const renderSlot = (key: string, owner: any, ...rest: any[]) => {
@@ -498,7 +504,7 @@ export function apply(ctx: Context): void {
         {!recording && recordingSnapshot.error && <p role="alert" style={{margin:"4px 24px",fontSize:13}}>{recordingSnapshot.error}</p>}
         <BrowserTaskStatus sessionId={props.sessionId}/>
         {String(actualPreset ?? '').startsWith('workbench-role-') && <BrowserObservation sessionId={props.sessionId}/>}
-        <div className={styles.conversationContent}>{noSession && workMode==='document' ? <DocumentAssistant roleId={effectiveRole} loadModels={loadMeetingModels}/> : noSession && (activeSearch || !recording && workMode==='file-search') ? <FileSearchView key={activeSearch??effectiveRole} id={activeSearch??'new'} roleId={effectiveRole==='chat'?undefined:effectiveRole}/> : noSession && recording ? <RecordingView key={recording.id} id={recording.id} loadModels={loadMeetingModels}/> : noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
+        <div className={styles.conversationContent}>{noSession && workMode==='document-workflow' ? <DocumentWorkflowAssistant key={local?.id??effectiveRole} roleId={effectiveRole} taskId={local?.documentTaskId} initialDraft={local?.draft} onDraftChange={value=>{const row=localConversations.active()??localConversations.start(effectiveRole,'document-workflow');localConversations.setDraft(row.id,value)}} onTask={task=>{const row=localConversations.active()??localConversations.start(effectiveRole,'document-workflow');if(row.role===effectiveRole)localConversations.setDocumentTask(row.id,task)}}/> : noSession && workMode==='document' ? <DocumentAssistant roleId={effectiveRole} loadModels={loadMeetingModels}/> : noSession && (activeSearch || !recording && workMode==='file-search') ? <FileSearchView key={activeSearch??effectiveRole} id={activeSearch??'new'} roleId={effectiveRole==='chat'?undefined:effectiveRole}/> : noSession && recording ? <RecordingView key={recording.id} id={recording.id} loadModels={loadMeetingModels}/> : noSession && developerSnapshot.activeId && !developer ? <p role="status">{developerSnapshot.error || '正在恢复开发任务…'}<button onClick={() => { void developerHistory.load() }}>重新读取</button><button onClick={() => startFreshChat()}>返回新对话</button></p> : noSession && showDeveloper
           ? <DeveloperAssistant initialTaskId={local?.codeTaskId} onTaskChange={task => { const row = localConversations.active(); if (row && row.role === effectiveRole && developerKey === developerViewKey) localConversations.setCodeTask(row.id, task) }} initialTitle={local?.customTitle ? local.title : undefined} key={developerKey} taskId={developer?.id} draftKey={local?.id ?? developerKey} initialDraft={local?.kind === 'draft' ? local.draft : undefined} roleId={effectiveRole} roleVersion={developerVersion?.version} loadModels={loadMeetingModels} onDraftChange={value => {
             if (developerKey !== developerViewKey || sessions.list.getSnapshot().current !== undefined || developerHistory.getSnapshot().activeId) return
             const row = localConversations.active()

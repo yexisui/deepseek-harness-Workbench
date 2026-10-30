@@ -11,6 +11,7 @@ import {allowedActions} from '../core/policy.ts'
 import {InputError,text} from '../core/validation.ts'
 import {json,readBody} from './http.ts'
 import {documentAssets} from './document-assets.ts'
+import {parseKnowledgeScope,KNOWLEDGE_CAPABILITY_ID} from '../core/knowledge-module.ts'
 export const MAX_DOCUMENT_BYTES=40*1024*1024
 const uuid=/^[0-9a-f-]{36}$/i
 export class DocumentsService {
@@ -49,12 +50,29 @@ export class DocumentsService {
    const previous=row.revision,updatedAt=row.updatedAt,next=previous+1,target=join(this.root,id,`revision-${next}.docx`),temp=target+'.tmp';await writeFile(temp,bytes);await rename(temp,target);row.revision=next;row.updatedAt=new Date().toISOString();try{await this.persist()}catch(e){row.revision=previous;row.updatedAt=updatedAt;throw e}await unlink(join(this.root,id,`revision-${previous}.docx`)).catch(()=>{});return structuredClone(row)
   })
  }
- async command(id:string,action:string,value:unknown){return this.exclusive(async()=>{const row=this.get(id);if(action==='rename')row.title=text(value,'名称',120,true);else if(action==='remove'){this.ai.stop(id);row.removedAt=new Date().toISOString();}else throw new InputError('未知文档操作');row.updatedAt=new Date().toISOString();await this.persist();return structuredClone(row)})}
+ knowledgeScope(row:DocumentRecord){return row.knowledgeScope===undefined?this.state().roles.find(r=>r.id===row.roleId)?.versions.find(v=>v.version===row.roleVersion)?.capabilities.find(b=>b.capabilityId===KNOWLEDGE_CAPABILITY_ID)?.knowledgeScope:row.knowledgeScope}
+ async knowledgeStatus(id?:string){
+  const status=await this.knowledge()?.status()??noDocumentKnowledge
+  if(!id)return status
+  const row=this.get(id);let allowed=true
+  try{this.authorize(row.roleId,row.roleVersion,'search-knowledge');(this.knowledge() as import('./knowledge-access.ts').KnowledgeAccess|undefined)?.assert?.({taskId:row.id,roleId:row.roleId,roleVersion:row.roleVersion,authorityAt:Date.parse(row.createdAt)})}catch{allowed=false}
+  return {...status,allowed,scope:this.knowledgeScope(row)??null}
+ }
+ async command(id:string,action:string,value:unknown){return this.exclusive(async()=>{const row=this.get(id);
+  if(action==='knowledge-scope'){
+   this.authorize(row.roleId,row.roleVersion,'edit-document')
+   if(this.ai.activities().some(item=>item.id===id))throw new InputError('请等待当前回答完成后调整资料范围',409)
+   const scope=value==null?null:parseKnowledgeScope(value)
+   if(scope){this.authorize(row.roleId,row.roleVersion,'search-knowledge');(this.knowledge() as import('./knowledge-access.ts').KnowledgeAccess|undefined)?.assert?.({taskId:row.id,roleId:row.roleId,roleVersion:row.roleVersion,authorityAt:Date.parse(row.createdAt)})}
+   const previous=row.knowledgeScope,updatedAt=row.updatedAt;row.knowledgeScope=scope;row.updatedAt=new Date().toISOString()
+   try{await this.persist()}catch(error){row.knowledgeScope=previous;row.updatedAt=updatedAt;throw error}return structuredClone(row)
+  }
+  if(action==='rename')row.title=text(value,'名称',120,true);else if(action==='remove'){this.ai.stop(id);row.removedAt=new Date().toISOString();}else throw new InputError('未知文档操作');row.updatedAt=new Date().toISOString();await this.persist();return structuredClone(row)})}
  async routes(req:IncomingMessage,res:ServerResponse){
   const url=new URL(req.url!,'http://localhost'),route=url.pathname,base='/api/capabilities/documents/'
   if(await documentAssets(req,res,route))return
   const op=route.slice(base.length)
-  if(op==='knowledge'&&req.method==='GET')return json(res,200,await this.knowledge()?.status()??noDocumentKnowledge)
+  if(op==='knowledge'&&req.method==='GET')return json(res,200,await this.knowledgeStatus(url.searchParams.get('id')||undefined))
   if(op==='list'&&req.method==='GET')return json(res,200,this.list())
   if(op.startsWith('file/')&&req.method==='GET'){const bytes=await this.bytes(op.slice(5));res.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.wordprocessingml.document');res.setHeader('Cache-Control','no-store');res.end(bytes);return}
   if(op.startsWith('file/')&&req.method==='PUT')return json(res,200,await this.upload(op.slice(5),Number(url.searchParams.get('revision')),req))

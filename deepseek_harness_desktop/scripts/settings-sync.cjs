@@ -17,6 +17,7 @@ const secretField = /^(?:api[-_]?key|.*apiKey|password|passwd|secret|clientSecre
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
 const json = value => JSON.stringify(value, null, 2) + '\n';
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const skillAsset = name => /^(?:skills|skill-management\/versions)\//.test(name);
 function allowed(relative) {
   if (relative.includes('\\') || relative.split('/').some(p => !p || p === '.' || p === '..' || p.includes(':'))) return false;
   if (structuredFiles.includes(relative)) return true;
@@ -99,7 +100,12 @@ function exportSettings(root) {
   // Build and inspect everything in memory before publishing any files.
   const files = names.sort().map(name => {
     let bytes = fs.readFileSync(safe(home, name));
-    const format = /\.(json|ya?ml)$/.test(name) ? 'structured' : /\.(png|jpe?g|webp|gif|xlsx)$/i.test(name) ? 'binary' : 'text';
+    // Skill hashes cover exact bytes. Reformatting JSON or rewriting paths corrupts the version.
+    const format = skillAsset(name) ? 'binary' : /\.(json|ya?ml)$/.test(name) ? 'structured' : /\.(png|jpe?g|webp|gif|xlsx)$/i.test(name) ? 'binary' : 'text';
+    if (skillAsset(name) && /\.(json|ya?ml)$/.test(name)) {
+      const value = read(name, bytes);
+      if (json(value) !== json(transform(value, s => s, true))) throw Error('Credential fields cannot be shared inside a skill asset: ' + name);
+    }
     if (format === 'structured') {
       let value = transform(read(name, bytes), portable, true);
       if (name === 'capabilities/state.json') delete value.stoppedSessions;

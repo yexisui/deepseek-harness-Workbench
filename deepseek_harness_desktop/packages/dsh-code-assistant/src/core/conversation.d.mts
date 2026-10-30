@@ -2,4 +2,5 @@ export type QuestionSummary = { id: string; title: string; index: number; create
 export type ConversationRound = QuestionSummary & { messages: any[] }
 export function toolResult(part: any): { command: boolean; exit: number | null; failed: boolean; status: string; label: string }
 export function groupConversation(messages?: any[], taskStatus?: string): { rounds: ConversationRound[]; unassigned: any[] }
-export function questionSummaries(task: { messages?: any[]; status?: string }): QuestionSummary[]
+export function visibleConversation(task?: { messages?: any[]; status?: string; removedQuestionIds?: string[] } | null): { rounds: ConversationRound[]; unassigned: any[] }
+export function questionSummaries(task: { messages?: any[]; status?: string; removedQuestionIds?: string[] }): QuestionSummary[]

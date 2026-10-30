@@ -54,6 +54,12 @@ beforeEach(() => {
       result = snapshot()
     }
     if (route === 'task') { if (failOpen && parsed.searchParams.get('id') !== 'one') return new Response(JSON.stringify({ error: '读取任务失败' }), { status: 500 }); result = tasks.find(t => t.id === parsed.searchParams.get('id')) }
+    if (route === 'question/remove' || route === 'question/restore') {
+      if ((route.endsWith('/remove') && failRemove) || (route.endsWith('/restore') && failRestore)) return new Response(JSON.stringify({ error: '保存失败，请重试' }), { status: 500 })
+      const t = tasks.find(t => t.id === data.id), ids = new Set<string>(t.removedQuestionIds || [])
+      route.endsWith('/remove') ? ids.add(data.questionId) : ids.delete(data.questionId)
+      t.removedQuestionIds = [...ids]; t.questions = questionSummaries(t); result = t
+    }
     if (route === 'send') { const t = tasks.find(t => t.id === data.id); t.messages.push(ask('q5', data.message)); t.questions = questionSummaries(t); result = t }
     if (route === 'files') result = { files: ['notes.md'] }
     if (route === 'state') result = { git: true, branch: 'main', files: [] }
@@ -168,4 +174,38 @@ it('keeps the model and approval control beside send without changing execution 
   await render();const model=host.querySelector('[aria-label="代码助手模型"]')!, send=button('发送')
   expect(model.parentElement).toBe(send.parentElement);expect((host.querySelector('[aria-label="代码任务说明"]') as HTMLTextAreaElement).rows).toBe(2)
   await input('代码任务说明','解释代码');await click('发送');expect(calls.find(c=>c.route==='send').data.mode).toBe('read')
+})
+
+it('confirmed removal hides the original question and answer from the actual transcript and history; undo survives remount', async () => {
+  await render(); await input('代码任务说明','保留输入'); await click('问题目录 · 3')
+  await click('移除提问：跑一下测试'); await click('取消')
+  expect(host.querySelector('[data-question-id="q2"]')).not.toBeNull()
+  await click('移除提问：跑一下测试'); await click('移除提问')
+  expect(host.querySelector('[data-question-id="q2"]')).toBeNull()
+  expect(host.querySelector('[aria-label="连续对话内容"]')?.textContent).not.toContain('FAILED')
+  expect(host.textContent).toContain('问题目录 · 2')
+  expect(tasks[0].messages).toHaveLength(6)
+  await click('任务记录'); await click('按问题')
+  expect(button('定位问题：跑一下测试')).toBeUndefined()
+  await click('关闭任务记录')
+  expect((host.querySelector('[aria-label="代码任务说明"]') as HTMLTextAreaElement).value).toBe('保留输入')
+  await act(async()=>root.unmount());root=createRoot(host);await render()
+  expect(host.querySelector('[data-question-id="q2"]')).toBeNull()
+  await click('撤销移除提问')
+  expect(host.querySelector('[data-question-id="q2"]')?.textContent).toContain('FAILED')
+  expect(host.textContent).toContain('问题目录 · 3')
+})
+it('failed question removal retains body and permits retry; all removed remains recoverable', async () => {
+  await render();await click('问题目录 · 3');await click('移除提问：跑一下测试')
+  failRemove=true;await click('移除提问')
+  expect(host.textContent).toContain('保存失败，请重试')
+  expect(host.querySelector('[data-question-id="q2"]')).not.toBeNull()
+  failRemove=false;await click('移除提问')
+  await click('移除提问：这个项目做什么？');await click('移除提问')
+  await click('移除提问：修好再测');await click('移除提问')
+  expect(host.querySelectorAll('[data-question-id]')).toHaveLength(0)
+  expect(host.textContent).toContain('本次提问已全部移除')
+  await click('撤销移除提问')
+  expect(host.querySelectorAll('[data-question-id]')).toHaveLength(1)
+  expect(host.textContent).toContain('OK')
 })

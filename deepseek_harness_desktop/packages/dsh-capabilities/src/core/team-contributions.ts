@@ -5,7 +5,9 @@ export type ContributionKind = 'capability' | 'skill' | 'role'
 export type ContributionMember = { id: string; employeeId: string; name: string; department: string }
 export type ContributionEntry = { key: string; id: string; kind: ContributionKind; name: string; description: string; enabled: boolean; archived: boolean; source: string; related: string[]; color?: string; icon?: RoleIconSpec }
 export type ContributionCount = { count: number; lastAt: string }
-export type ContributionSnapshot = { revision: number; members: ContributionMember[]; owners: Record<string,string>; entries: ContributionEntry[]; counts: Record<string,ContributionCount>; startedAt: string; syncedAt: string; warning: string }
+export type ContributionSnapshot = { revision: number; members: ContributionMember[]; owners: Record<string,string | string[]>; multipleOwners?: boolean; entries: ContributionEntry[]; counts: Record<string,ContributionCount>; startedAt: string; syncedAt: string; warning: string }
+/** Accept the previous single-owner snapshot while an installed host is awaiting restart. */
+export const contributionOwnerIds = (value: string | string[] | undefined): string[] => Array.isArray(value) ? value : value ? [value] : []
 export type ContributionReporter = (kind: ContributionKind, id: string, eventId?: string) => void
 export const contributionKey = (kind: ContributionKind, id: string) => `${kind}:${id}`
 export const contributionLabels: Record<ContributionKind,string> = { capability: '能力', skill: 'Skills', role: '岗位助手' }

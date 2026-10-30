@@ -41,6 +41,12 @@ export function groupConversation(messages = [], taskStatus = 'idle') {
   return { rounds, unassigned }
 }
 
+export function visibleConversation(task) {
+  const grouped = groupConversation(task?.messages, task?.status)
+  const removed = new Set(task?.removedQuestionIds || [])
+  return { ...grouped, rounds: grouped.rounds.filter(q => !removed.has(q.id)).map((q, i) => ({ ...q, index: i + 1 })) }
+}
+
 export function questionSummaries(task) {
-  return groupConversation(task.messages, task.status).rounds.map(({ messages, ...question }) => question)
+  return visibleConversation(task).rounds.map(({ messages, ...question }) => question)
 }

@@ -31,7 +31,7 @@ capability_files=release_files(source/'shared-settings/files/capabilities/state.
 out.mkdir(parents=True,exist_ok=True)
 if any(out.iterdir()): raise SystemExit('Output must be empty; refusing to overwrite a release')
 offline=out/'offline';offline.mkdir()
-release='2026.10.26-r16-win-x64'
+release='2026.10.29-r17-win-x64'
 files=[]; seen=set()
 def digest(f):
     h=hashlib.sha256()
@@ -63,7 +63,7 @@ for tool in json.loads((source/'external-tools/tools.json').read_text('utf-8-sig
     if tool['id'] == 'ffmpeg':continue
     toolroot=source/'external-tools'/tool['id']
     trees.extend([(toolroot/'releases','external-tools/'+tool['id']+'/releases'),(toolroot/'current.json','external-tools/'+tool['id']+'/current.json')])
-for name in ['install.ps1','search-service.ps1','everything-LICENSE.txt','es-LICENSE.txt','opencode-LICENSE.txt','install-milvus.ps1','milvus-lock.json','milvus-worker.py']:
+for name in ['install.ps1','search-service.ps1','everything-LICENSE.txt','es-LICENSE.txt','opencode-LICENSE.txt','install-milvus.ps1','milvus-lock.json','milvus-worker.py','install-rapidocr.ps1','rapidocr-lock.json','document-worker.py','document_layout.py','document_docx.py']:
     trees.append((source/'external-tools'/name,'external-tools/'+name))
 # Legacy portable BrowserSkill is already maintained separately from the npm plugin.
 bsk=donor/'runtime/browserskill/0.3.0'

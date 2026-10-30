@@ -58,3 +58,9 @@
 .workspace[data-compact=true][data-reading=true] .messages{min-height:400px;max-height:650px}
 @media(max-width:1100px){.currentQuestion{display:none}.latestQuestion{margin-left:2px}.questionCount{margin-left:auto}}
 @media(max-width:500px){.questionToolbar{gap:4px;padding:5px 7px}.questionToolbar>button{padding:3px 5px}.readingButton{font-size:11px!important}.messages{padding:12px}.composerActions select{max-width:100%;flex-basis:100%}.composerActions label{margin-left:0}.composerActions>button{margin-left:auto}.questionPopover .questionList button{flex-wrap:wrap}.questionPopover .questionList button small{margin-left:18px;max-width:none}}
+
+/* Question removal shares the host management icon; keep row actions independent. */
+.questionItem{display:flex;align-items:center;gap:4px}.questionItem>button:first-child{flex:1;min-width:0}.questionList .removeQuestion{flex:none;width:30px;min-height:30px;display:grid;place-items:center;padding:5px;color:var(--ca-muted);border-radius:6px}.removeQuestion svg{width:17px;height:17px}.questionList .removeQuestion:hover:not(:disabled){background:#ba4b5512;color:var(--dsw-alias-status-error,#b34040)}
+.questionPopover:has(.questionConfirm){max-height:min(420px,70vh)}.questionConfirm{padding:10px;background:var(--ca-soft);border:1px solid var(--ca-border);border-radius:7px;flex-shrink:0}.questionConfirm p{margin:6px 0;font-size:12px;line-height:1.6}.questionConfirm>div{display:flex;justify-content:flex-end;gap:6px}.questionConfirm [role=alert]{color:var(--dsw-alias-status-error,#b34040)}.questionConfirm .questionDanger{color:var(--dsw-alias-status-error,#b34040)}
+.questionUndo{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 12px;flex-shrink:0;background:var(--ca-soft);color:var(--ca-muted);font-size:11px}.questionUndo button{border:0;padding:3px 6px;font-size:11px;color:var(--ca-accent)}
+@media(pointer:coarse){.questionList .removeQuestion{width:44px;min-height:44px}}

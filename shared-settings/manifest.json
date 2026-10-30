@@ -14,12 +14,12 @@
     {
       "path": "capabilities/state.json",
       "format": "structured",
-      "sha256": "75c97de21b44959539421bef392e483fb152f661ddd9cb7b05e65d6ad083795c"
+      "sha256": "bda7cdc385fc7c8178aa2f53ab69c0aa1184d3241f525d56894fd9a092506d68"
     },
     {
       "path": "pet.json",
       "format": "structured",
-      "sha256": "56c64d7610d1de9e7bb7e5c499c63c8dcfee2f78416934c3326a79807e86a88e"
+      "sha256": "dd084ad8daff4ec523e56ce1d43b96adf2f26d6713913c822ac97e932ed142e6"
     },
     {
       "path": "plugin-management/classification.json",
@@ -34,22 +34,22 @@
     {
       "path": "settings.yaml",
       "format": "structured",
-      "sha256": "eb430d6c9363fdc98361593e9f84ba4c02f3f5d1cb214a37765e659f8b2920df"
+      "sha256": "dba1257cfd234881a94e533d9ef66729597d4843a71f1c4d02a8384d98e7634c"
     },
     {
       "path": "skill-management/state.json",
       "format": "structured",
-      "sha256": "9eb7db72a4c1643e300507d7896edd91510cbab20e08d3a34fc34e8f2113655e"
+      "sha256": "ff8f4e4f72cecc20ec51ad316019407530b433ad65306bc08964e353da1c503a"
     },
     {
       "path": "skill-management/versions/0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522/SKILL.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "c8c05c3a2bec8a9833cac1c348cbcb206e7ade2f037bf17578ca8eceb6235e16"
     },
     {
       "path": "skill-management/versions/0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522/assets/公共部分.json",
-      "format": "structured",
-      "sha256": "99ebcd607992211efeae5f9a5b7b90ba9bbd06acd524f373c79902bb841026b8"
+      "format": "binary",
+      "sha256": "b3974ac35d9fc0813e9de571b75b20e682ce7c9415cc9ca1ee4860842afac609"
     },
     {
       "path": "skill-management/versions/0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522/assets/工作量估算表-模板.xlsx",
@@ -58,68 +58,88 @@
     },
     {
       "path": "skill-management/versions/0b67fa2b6765d64b13d1baaa6cb6dad434c637666bb87da2e0f8ad2edf3d0522/scripts/build_estimate.py",
-      "format": "text",
+      "format": "binary",
       "sha256": "cff73615b00291c8b3b0e74a0ee7b96217337996258c9ed0f76ee417ffc31e5b"
     },
     {
       "path": "skill-management/versions/18bb214beae06eec1bc8bb5c0d817417ed61f6ca87bc32c08a5b349bff78bb00/SKILL.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "18562cc37095ebffe8b63ad888bdbef6d970f8f69e95163d91327c5bc5c67641"
     },
     {
       "path": "skill-management/versions/18bb214beae06eec1bc8bb5c0d817417ed61f6ca87bc32c08a5b349bff78bb00/references/review-template.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "e54bd31559025de402a2f01622bc78df3c83159b884af0e1047a1f00e96e351d"
     },
     {
       "path": "skill-management/versions/a4cf4915a33ee16c3d69bd0f7e023c5290a0294c7fbf9235d2c34b516de85011/SKILL.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "efc50b4ec4b19475974d0f184336307e5d7b384ed1e544d0564170c862a0624d"
     },
     {
       "path": "skill-management/versions/bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a/SKILL.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "ae495fea150102a49e5dbc62324fe60b7e64440082fb54160280f4c95e9303f5"
     },
     {
       "path": "skill-management/versions/bab5dbd25a7bc3a10d235c8d8e261944e471bafe5c35c8091f64a462b522065a/references/workbook-input.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "69c08ca215acbc6927d131c42bc957ae08b150e46237710325b849077cd5ffa0"
     },
     {
+      "path": "skill-management/versions/d88badb939c6cd7664ef1ce8e94c731638864813a2bdcffc2d9d1ffba90591ce/SKILL.md",
+      "format": "binary",
+      "sha256": "14413a8bba7cb228a4df36e8373c2e50966fc5137618ff6dc14cc609a784f1a7"
+    },
+    {
+      "path": "skill-management/versions/d88badb939c6cd7664ef1ce8e94c731638864813a2bdcffc2d9d1ffba90591ce/assets/工作量评估-模板表.xlsx",
+      "format": "binary",
+      "sha256": "6cfa301955979b5760e0caaad732d742e6dd15b4018e6a2c9565e064dc212a1e"
+    },
+    {
       "path": "skills/excel-generation-guidelines/SKILL.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "f2c7518bbffdcce8fa201f68fc8ac228f3f5efbddbb32fcd8938412256848d58"
     },
     {
       "path": "skills/excel-generation-guidelines/references/workbook-input.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "69c08ca215acbc6927d131c42bc957ae08b150e46237710325b849077cd5ffa0"
     },
     {
+      "path": "skills/idoc-project-estimator/SKILL.md",
+      "format": "binary",
+      "sha256": "055c0eccff2f31611133cb3fb2e0d0925c19b5c23f31542499dd00f4e28a2870"
+    },
+    {
+      "path": "skills/idoc-project-estimator/assets/工作量评估-模板表.xlsx",
+      "format": "binary",
+      "sha256": "6cfa301955979b5760e0caaad732d742e6dd15b4018e6a2c9565e064dc212a1e"
+    },
+    {
       "path": "skills/requirement-review/SKILL.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "d838a1ca7a698313d182cfc0564cc018ca8daa590e418f5bd359e0f80243af1b"
     },
     {
       "path": "skills/requirement-review/references/review-template.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "e54bd31559025de402a2f01622bc78df3c83159b884af0e1047a1f00e96e351d"
     },
     {
       "path": "skills/webpage-archive/SKILL.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "7b78c06da79879683b276ab1b967f98798c82e5d1ed787d6e78d37f0eaf5aa78"
     },
     {
       "path": "skills/workload-estimator/SKILL.md",
-      "format": "text",
+      "format": "binary",
       "sha256": "8df6737be08f6c869a2764991f8b3b714576cd0ecfaf3bb2b4321a24a90b0ef9"
     },
     {
       "path": "skills/workload-estimator/assets/公共部分.json",
-      "format": "structured",
-      "sha256": "99ebcd607992211efeae5f9a5b7b90ba9bbd06acd524f373c79902bb841026b8"
+      "format": "binary",
+      "sha256": "b3974ac35d9fc0813e9de571b75b20e682ce7c9415cc9ca1ee4860842afac609"
     },
     {
       "path": "skills/workload-estimator/assets/工作量估算表-模板.xlsx",
@@ -128,13 +148,13 @@
     },
     {
       "path": "skills/workload-estimator/scripts/build_estimate.py",
-      "format": "text",
+      "format": "binary",
       "sha256": "cff73615b00291c8b3b0e74a0ee7b96217337996258c9ed0f76ee417ffc31e5b"
     },
     {
       "path": "skin-center-active.json",
       "format": "structured",
-      "sha256": "605fd5cb27279580efec56e3cfeb24f8dcf73e4e77e0206db2237c7ee2729922"
+      "sha256": "ed16af2a60b234285de4a0ab0ffb900763230aaa4a8c47eec99d9468e3e49a84"
     },
     {
       "path": "skins/furina/LICENSE",

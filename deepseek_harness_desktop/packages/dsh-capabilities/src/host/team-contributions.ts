@@ -6,13 +6,14 @@ import { contributionCatalog, contributionKey, type ContributionMember, type Con
 import type { State } from '../core/model.ts'
 import { InputError, object, text } from '../core/validation.ts'
 
-type Config = { schema:1; revision:number; members:ContributionMember[]; owners:Record<string,string> }
+type Config = { schema:2; revision:number; members:ContributionMember[]; owners:Record<string,string[]> }
+type StoredConfig = Omit<Config,'schema'|'owners'> & { schema:1|2; owners:Record<string,string|string[]> }
 type Usage = { schema:1; startedAt:string; days:Record<string,Record<string,ContributionCount>>; seen:string[] }
 const dateKey=(date:Date)=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
 
 /** Only IDs, roster fields and aggregate counters are stored, never task content. */
 export class TeamContributions {
-  private config:Config={schema:1,revision:0,members:[],owners:{}}
+  private config:Config={schema:2,revision:0,members:[],owners:{}}
   private usage:Usage={schema:1,startedAt:'',days:{},seen:[]}
   private seen=new Set<string>()
   private configTail:Promise<unknown>=Promise.resolve()
@@ -28,7 +29,18 @@ export class TeamContributions {
   private async read<T>(name:string,fallback:T):Promise<T>{try{return JSON.parse(await readFile(join(this.root,name),'utf8'))}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return fallback;throw e}}
   private async save(name:string,value:unknown){await mkdir(this.root,{recursive:true});const file=join(this.root,name),tmp=file+'.'+randomUUID()+'.tmp';try{await writeFile(tmp,JSON.stringify(value),{mode:0o600});await rename(tmp,file)}finally{await rm(tmp,{force:true}).catch(()=>{})}}
   async init(){
-    try{const value=await this.read('settings.json',this.config);if(value.schema!==1||!Number.isSafeInteger(value.revision)||!Array.isArray(value.members)||!value.owners||typeof value.owners!=='object')throw Error();this.config=value}catch{this.configError='团队配置无法读取，请检查 team-contributions/settings.json；原文件未被覆盖。'}
+    try{
+      const value=await this.read<StoredConfig>('settings.json',this.config)
+      if(![1,2].includes(value.schema)||!Number.isSafeInteger(value.revision)||!Array.isArray(value.members)||!value.owners||typeof value.owners!=='object'||Array.isArray(value.owners))throw Error()
+      const owners:Record<string,string[]>={}
+      for(const [key,owner] of Object.entries(value.owners)){
+        const ids=value.schema===1&&typeof owner==='string'?(owner?[owner]:[]):owner
+        if(!Array.isArray(ids)||ids.some(id=>typeof id!=='string'||!id||id.length>100))throw Error()
+        if(ids.length)owners[key]=[...new Set(ids)]
+      }
+      // Migrate in memory; merely opening the page never rewrites the user's settings.
+      this.config={...value,schema:2,owners}
+    }catch{this.configError='团队配置无法读取，请检查 team-contributions/settings.json；原文件未被覆盖。'}
     try{const value=await this.read('usage.json',{...this.usage,startedAt:this.clock().toISOString()});if(value.schema!==1||!Array.isArray(value.seen)||!value.days||!Number.isFinite(Date.parse(value.startedAt)))throw Error();this.usage=value;this.seen=new Set(value.seen);await this.save('usage.json',value);this.ready=true}catch{this.usageError='使用统计存储不可用，当前未采集新计数；请检查 team-contributions/usage.json 后重启工作台。'}
   }
   catalog(){return contributionCatalog(this.state(),this.skills.read().skills)}
@@ -38,7 +50,7 @@ export class TeamContributions {
     const from=this.clock();from.setHours(0,0,0,0);if(period!=='all')from.setDate(from.getDate()-Number(period)+1)
     const start=period==='all'?'':dateKey(from),end=dateKey(this.clock()),counts:Record<string,ContributionCount>={}
     for(const [day,items] of Object.entries(this.usage.days))if(day>=start&&day<=end)for(const [key,value] of Object.entries(items)){const previous=counts[key];counts[key]={count:(previous?.count??0)+value.count,lastAt:previous&&previous.lastAt>value.lastAt?previous.lastAt:value.lastAt}}
-    return {revision:this.config.revision,members:structuredClone(this.config.members),owners:{...this.config.owners},entries:this.catalog(),counts,startedAt:this.usage.startedAt,syncedAt:this.clock().toISOString(),warning:this.usageError}
+    return {revision:this.config.revision,members:structuredClone(this.config.members),owners:structuredClone(this.config.owners),multipleOwners:true,entries:this.catalog(),counts,startedAt:this.usage.startedAt,syncedAt:this.clock().toISOString(),warning:this.usageError}
   }
   async change(raw:unknown){
     const work=this.configTail.then(async()=>{
@@ -57,10 +69,16 @@ export class TeamContributions {
         }
         if(next.members.length>10000)throw new InputError('最多保存 10000 位成员')
       }else if(type==='members.remove'){
-        const id=text(body.id,'成员',100,true);if(!next.members.some(m=>m.id===id))throw new InputError('成员不存在',404);next.members=next.members.filter(m=>m.id!==id);for(const [key,owner] of Object.entries(next.owners))if(owner===id)delete next.owners[key]
+        const id=text(body.id,'成员',100,true);if(!next.members.some(m=>m.id===id))throw new InputError('成员不存在',404);next.members=next.members.filter(m=>m.id!==id)
+        for(const [key,owners] of Object.entries(next.owners)){const remaining=owners.filter(owner=>owner!==id);if(remaining.length)next.owners[key]=remaining;else delete next.owners[key]}
       }else if(type==='owner.set'){
         const key=text(body.key,'贡献条目',200,true);if(!this.catalog().some(e=>e.key===key))throw new InputError('条目已被移除，请刷新',409)
-        if(body.memberId){const id=text(body.memberId,'贡献人',100,true);if(!next.members.some(m=>m.id===id))throw new InputError('贡献人不存在，请重新选择',409);next.owners[key]=id}else delete next.owners[key]
+        if(body.memberIds===undefined&&(next.owners[key]?.length??0)>1)throw new InputError('此内容已有多位贡献人，请刷新页面后重新选择',409)
+        const incoming=body.memberIds===undefined?(body.memberId?[body.memberId]:[]):body.memberIds
+        if(!Array.isArray(incoming)||incoming.length>10000)throw new InputError('贡献人选择无效')
+        const ids=[...new Set(incoming.map(value=>text(value,'贡献人',100,true)))],members=new Set(next.members.map(m=>m.id))
+        if(ids.some(id=>!members.has(id)))throw new InputError('贡献人不存在，请重新选择',409)
+        if(ids.length)next.owners[key]=ids;else delete next.owners[key]
       }else throw new InputError('未知团队操作')
       next.revision++;await this.save('settings.json',next);this.config=next;return {revision:next.revision}
     });this.configTail=work.catch(()=>{});return work
