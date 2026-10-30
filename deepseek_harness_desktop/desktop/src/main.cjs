@@ -12,7 +12,7 @@
  * quit, forced after 5s).
  */
 
-const { app, BrowserWindow, ipcMain, shell, dialog, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, Menu, screen } = require('electron');
 const { windowAppearance, applyWindowAppearance } = require('./window-appearance.cjs');
 app.setName('工作台');
 const { spawn, execFile } = require('node:child_process');
@@ -57,6 +57,7 @@ const LOG_TAIL_LINES = 200;
 
 /** @type {BrowserWindow | null} */
 let mainWindow = null;
+let petWindow = null;
 /** @type {import('node:child_process').ChildProcess | null} */
 let hostChild = null;
 let quitting = false;
@@ -209,7 +210,19 @@ function createWindow() {
   });
   applyWindowAppearance(window);
   if (background) window.once('ready-to-show', () => { window.showInactive(); });
-  window.webContents.setWindowOpenHandler(({ url }) => {
+  petWindow = require('./pet-window.cjs').createPetWindow({ screen, mainWindow: () => mainWindow,
+    statePath: path.join(app.getPath('userData'), 'pet-window.json'), log: pushLogLine });
+  window.webContents.on('did-create-window', (child, details) => {
+    if (details.frameName === 'workbench-desktop-pet') petWindow.adopt(child);
+  });
+  window.on('close', () => petWindow.close());
+  window.webContents.on('did-start-navigation', (_event, _url, inPlace, isMainFrame) => {
+    if (isMainFrame && !inPlace) petWindow.close();
+  });
+  window.webContents.setWindowOpenHandler((details) => {
+    const { url } = details;
+    const petOptions = isGuiUrl(window.webContents.getURL()) ? petWindow.options(details) : null;
+    if (petOptions) return petOptions;
     if (openPackageArtifact(window, url, BrowserWindow)) return { action: 'deny' };
     if (/^https?:\/\//.test(url) && !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//.test(url)) {
       void shell.openExternal(url);
@@ -389,6 +402,12 @@ app.on('before-quit', (event) => {
 // The GUI's renderer-side observer reports that a run needs the user. The
 // sender and the payload are both treated as untrusted: only the main window
 // may report, and only a known kind is acted on.
+ipcMain.handle('desktop:pet-window', (event, action, value) => {
+  assertProjectSender(event, mainWindow, tokenUrl);
+  if (!petWindow) throw new Error('桌面宠物尚未就绪');
+  return petWindow.command(action, value);
+});
+
 ipcMain.on('desktop:attention', (event, payload) => {
   if (mainWindow === null || mainWindow.isDestroyed() || event.sender !== mainWindow.webContents) return;
   const kind = parseAttentionSignal(payload);

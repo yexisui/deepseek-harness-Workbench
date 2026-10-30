@@ -16,6 +16,7 @@ import { useEffect, useRef, useSyncExternalStore, type ReactElement } from 'reac
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { PetDisplayConfig } from '../persist.ts'
 import type { PetStoreInstance } from './pet-store.ts'
+import { useDesktopPet, raisePetOwner } from './desktop-pet.ts'
 import { PetSprite } from './PetSprite.tsx'
 import { PetRendererSwitch } from './renderers/PetRendererSwitch.tsx'
 import { createDragStream, type DragStream } from './drag-stream.ts'
@@ -68,6 +69,7 @@ const DEFAULT_DISPLAY: PetDisplayConfig = { visible: true, size: 160, right: 24,
  */
 export function PetDockEntry(props: PetDockEntryProps): ReactElement {
   const { store, ensure } = props
+  const desktop = useDesktopPet()
   const ui = useSyncExternalStore(store.subscribe, store.getSnapshot)
   const snapshot = ui.snapshot
   const feedback = ui.feedback
@@ -103,13 +105,15 @@ export function PetDockEntry(props: PetDockEntryProps): ReactElement {
               <PetSprite
                 snapshot={snapshot}
                 definition={definition}
-                display={snapshot.display}
+                display={desktop.position ? { ...snapshot.display, ...desktop.position } : snapshot.display}
+                surfaceWindow={desktop.view}
+                desktopSurface={desktop.surface}
                 feedback={feedback}
                 onPet={props.pet}
                 onDragEnd={props.dragEnd}
-                onOpenSession={props.openSession}
+                onOpenSession={id => { if (desktop.surface?.detached) raisePetOwner(); props.openSession(id) }}
                 onFeedbackDone={props.feedbackDone}
-                portalTarget={props.portalTarget}
+                portalTarget={desktop.target ?? props.portalTarget}
                 dragDisabled={snapshot.gameplay?.mode === 'work'}
                 {...(gameplay === undefined || aux === null
                   ? {}

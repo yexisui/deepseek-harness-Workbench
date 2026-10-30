@@ -39,6 +39,7 @@ import { live2dRenderer } from './renderers/live2d.ts'
 import { frames2dRenderer } from './renderers/frames2d.ts'
 import { registerPetUiTeardown, takeoverPetUiTeardown } from './ui-teardown.ts'
 import { PetSettingsSection, PetSettingsCardController, type PetSettings } from './PetSettingsCard.tsx'
+import { isDesktopPetDetached } from './desktop-pet.ts'
 import { NS, en, zh, t } from './locales.ts'
 
 /** The host pet API as the browser sees it (same-origin JSON endpoints). */
@@ -278,12 +279,12 @@ export function apply(ctx: ClientContext): void {
           }
         }
         const start = (): void => {
-          if (timer === undefined && document.visibilityState === 'visible') {
+          if (timer === undefined && (document.visibilityState === 'visible' || isDesktopPetDetached())) {
             timer = window.setInterval(pollNow, POLL_MS)
           }
         }
         const onVisibility = (): void => {
-          if (document.visibilityState === 'visible') {
+          if ((document.visibilityState === 'visible' || isDesktopPetDetached())) {
             pollNow()
             start()
           } else {
@@ -292,9 +293,11 @@ export function apply(ctx: ClientContext): void {
         }
         start()
         document.addEventListener('visibilitychange', onVisibility)
+        window.addEventListener('workbench-pet-surface-changed', onVisibility)
         return () => {
           stop()
           document.removeEventListener('visibilitychange', onVisibility)
+          window.removeEventListener('workbench-pet-surface-changed', onVisibility)
         }
       }, 'pet: poll')
 
@@ -303,7 +306,7 @@ export function apply(ctx: ClientContext): void {
       // poll loop itself does.
       const disposeSessionWatch = ctx.effect(() => {
         const unsubscribe = sessions.list.subscribe(() => {
-          if (document.visibilityState === 'visible') pollNow()
+          if ((document.visibilityState === 'visible' || isDesktopPetDetached())) pollNow()
         })
         return unsubscribe
       }, 'pet: current-session watch')

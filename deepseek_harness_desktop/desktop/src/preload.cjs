@@ -10,6 +10,17 @@
 const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('desktop', {
+  petWindow: (action, value) => ipcRenderer.invoke('desktop:pet-window', action, value),
+  onPetLayout: callback => {
+    const listener = (_event, value) => callback(value);
+    ipcRenderer.on('desktop:pet-layout', listener);
+    return () => ipcRenderer.removeListener('desktop:pet-layout', listener);
+  },
+  onPetClosed: callback => {
+    const listener = () => callback();
+    ipcRenderer.on('desktop:pet-closed', listener);
+    return () => ipcRenderer.removeListener('desktop:pet-closed', listener);
+  },
   openDocument: path => ipcRenderer.invoke('desktop:document-open',path),
   saveDocument: input => ipcRenderer.invoke('desktop:document-save',input),
   selectSearchDirectory: (path) => ipcRenderer.invoke('desktop:select-search-directory', path),

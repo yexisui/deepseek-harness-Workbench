@@ -29,10 +29,13 @@ import { createSequenceTimeline } from './sequences.ts'
 import { animationForPhase, type ActivityPhase, type PetAnimation } from '../state.ts'
 import { NS } from './locales.ts'
 import styles from './pet.module.css'
+import type { DesktopPetSurface } from './desktop-pet.ts'
 
 /** Props injected by the plugin apply body (store actions + locale). */
 export interface PetSpriteProps {
   /** Latest host snapshot; null while loading. */
+  surfaceWindow?: Window
+  desktopSurface?: DesktopPetSurface
   snapshot: PetStateView | null
   /** The selected pet's registry definition (atlas URL + geometry + tracks). */
   definition: PetDefinition
@@ -188,6 +191,7 @@ function StatusOrnament(props: { decoration: DecorationView; phase: ActivityPhas
  */
 export function PetSprite(props: PetSpriteProps): ReactPortal {
   const { snapshot, definition, display, feedback } = props
+  const view = props.surfaceWindow ?? window
   const spriteRef = useRef<HTMLDivElement | null>(null)
   const floatRef = useRef<HTMLDivElement | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
@@ -197,12 +201,13 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
   const [imageReady, setImageReady] = useState(false)
   const [imageFailed, setImageFailed] = useState(false)
   const [imageAttempt, setImageAttempt] = useState(0)
-  const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }))
-  useEffect(() => {
-    const resize = (): void => setViewport({ width: window.innerWidth, height: window.innerHeight })
-    window.addEventListener('resize', resize)
-    return () => window.removeEventListener('resize', resize)
-  }, [])
+  const [viewport, setViewport] = useState(() => ({ width: view.innerWidth, height: view.innerHeight }))
+  useLayoutEffect(() => {
+    const resize = (): void => setViewport({ width: view.innerWidth, height: view.innerHeight })
+    resize()
+    view.addEventListener('resize', resize)
+    return () => view.removeEventListener('resize', resize)
+  }, [view])
   const [hovered, setHovered] = useState(false)
   const [searchOpen,setSearchOpen]=useState(false)
   const pickingSearch=useRef(false)
@@ -223,7 +228,7 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
   // the native flag alone is not a safe submit/cancel guard (#303).
   const composingRef = useRef(false)
   const [dragPos, setDragPos] = useState<{ right: number; bottom: number } | null>(null)
-  const dragRef = useRef<{ startX: number; startY: number; right: number; bottom: number } | null>(null)
+  const dragRef = useRef<{ startX: number; startY: number; screenX: number; screenY: number; right: number; bottom: number } | null>(null)
   const hideTimerRef = useRef<number | null>(null)
   const frameRef = useRef<{ track: PetAnimation | null; index: number; elapsed: number }>({
     track: null,
@@ -273,27 +278,27 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
     loadAtlas()
     // A temporary host/network interruption must not leave a blank pet forever.
     const recover = (): void => {
-      if (!cancelled && exhausted && document.visibilityState !== 'hidden') {
+      if (!cancelled && exhausted && view.document.visibilityState !== 'hidden') {
         exhausted = false
         setImageAttempt(value => value + 1)
       }
     }
-    window.addEventListener('focus', recover)
+    view.addEventListener('focus', recover)
     window.addEventListener('online', recover)
-    document.addEventListener('visibilitychange', recover)
+    view.document.addEventListener('visibilitychange', recover)
 
     return () => {
       cancelled = true
-      window.removeEventListener('focus', recover)
+      view.removeEventListener('focus', recover)
       window.removeEventListener('online', recover)
-      document.removeEventListener('visibilitychange', recover)
+      view.document.removeEventListener('visibilitychange', recover)
       if (retryTimer !== undefined) clearTimeout(retryTimer)
       if (activeImg !== null) {
         activeImg.onload = null
         activeImg.onerror = null
       }
     }
-  }, [definition.atlasUrl, props.visual, imageAttempt])
+  }, [definition.atlasUrl, props.visual, imageAttempt, view])
 
   // Frame loop: advance the current track and write background-position.
   // Offsets must be in SCALED coordinates (background-position applies to the
@@ -429,33 +434,47 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
     e.preventDefault()
     ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
     const current = pos
-    dragRef.current = { startX: e.clientX, startY: e.clientY, ...current }
+    if (props.desktopSurface?.detached) {
+      const rect = e.currentTarget.getBoundingClientRect()
+      props.desktopSurface.dragStart(e.clientX - rect.left, e.clientY - rect.top)
+    }
+    dragRef.current = { startX: e.clientX, startY: e.clientY, screenX: e.screenX, screenY: e.screenY, ...current }
     draggedRef.current = false
     setHovered(false)
   }
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>): void => {
     const drag = dragRef.current
     if (drag === null) return
-    const dx = e.clientX - drag.startX
-    const dy = e.clientY - drag.startY
+    const dx = props.desktopSurface?.detached ? e.screenX - drag.screenX : e.clientX - drag.startX
+    const dy = props.desktopSurface?.detached ? e.screenY - drag.screenY : e.clientY - drag.startY
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
       if (!draggedRef.current) props.onDraggingChange?.(true)
       draggedRef.current = true
     }
-    const right = clampOffset(drag.right - dx, window.innerWidth - spriteWidth)
-    const bottom = clampOffset(drag.bottom - dy, window.innerHeight - spriteHeight)
+    if (props.desktopSurface?.detached) return
+    const right = clampOffset(drag.right - dx, view.innerWidth - spriteWidth)
+    const bottom = clampOffset(drag.bottom - dy, view.innerHeight - spriteHeight)
     setDragPos({ right, bottom })
   }
-  const onPointerUp = (): void => {
+  const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>): void => {
     if (dragRef.current === null) return
     dragRef.current = null
     if (draggedRef.current) props.onDraggingChange?.(false)
+    if (props.desktopSurface?.detached) { props.desktopSurface.dragEnd(); return }
+    if (draggedRef.current && props.desktopSurface && (e.clientX < 0 || e.clientY < 0 || e.clientX > view.innerWidth || e.clientY > view.innerHeight)) {
+      setDragPos(null)
+      props.desktopSurface.detach(spriteWidth, spriteHeight, true)
+      return
+    }
     if (dragPos !== null) props.onDragEnd(dragPos.right, dragPos.bottom)
   }
 
   const spriteWidth = Math.round(cell.width * spriteScale)
   const spriteHeight = Math.round(cell.height * spriteScale)
-  const requestedPos = dragPos ?? { right: display.right, bottom: display.bottom }
+  useEffect(() => {
+    if (props.desktopSurface?.detached) props.desktopSurface.resize(spriteWidth, spriteHeight)
+  }, [props.desktopSurface?.detached, spriteWidth, spriteHeight])
+  const requestedPos = (props.desktopSurface?.detached ? null : dragPos) ?? { right: display.right, bottom: display.bottom }
   // Constrain rendering after a resize without overwriting the saved preference.
   const pos = {
     right: clampOffset(requestedPos.right, viewport.width - spriteWidth),
@@ -509,9 +528,9 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
         const anchor = floatRef.current.getBoundingClientRect()
         const width = panel.offsetWidth
         const preferredLeft = searchOpen ? anchor.left : anchor.left + (anchor.width - width) / 2
-        panel.style.left = `${Math.max(8, Math.min(preferredLeft, window.innerWidth - width - 8)) - anchor.left}px`
+        panel.style.left = `${Math.max(8, Math.min(preferredLeft, view.innerWidth - width - 8)) - anchor.left}px`
       }
-      const availableBelow = window.innerHeight - sprite.getBoundingClientRect().bottom
+      const availableBelow = view.innerHeight - sprite.getBoundingClientRect().bottom
       const above = availableBelow < panel.getBoundingClientRect().height + 8
       setPanelAbove(above)
       // The fallback above-placement shares the sprite's top edge with the
@@ -523,12 +542,12 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
     updatePanelPlacement()
     const observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(updatePanelPlacement)
     if (panelRef.current) observer?.observe(panelRef.current)
-    window.addEventListener('resize', updatePanelPlacement)
+    view.addEventListener('resize', updatePanelPlacement)
     return () => {
       observer?.disconnect()
-      window.removeEventListener('resize', updatePanelPlacement)
+      view.removeEventListener('resize', updatePanelPlacement)
     }
-  }, [hovered, searchOpen, pos.right, pos.bottom, spriteWidth, spriteHeight, bubblePresent, sessionBubbles.length, stackOpen, feedback])
+  }, [view, hovered, searchOpen, pos.right, pos.bottom, spriteWidth, spriteHeight, bubblePresent, sessionBubbles.length, stackOpen, feedback])
 
   const recordingStore=recordingClient(), recordingState=useSyncExternalStore(recordingStore.subscribe,recordingStore.getSnapshot)
   useEffect(()=>{
@@ -565,9 +584,9 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
         // area, and the grace period covers a slow mouse crossing the
         // remaining sliver.
         const next = e.relatedTarget
-        if (next instanceof Node && floatRef.current?.contains(next)) return
+        if (next && 'nodeType' in next && floatRef.current?.contains(next as Node)) return
         clearHideTimer()
-        hideTimerRef.current = window.setTimeout(() => {if(!pickingSearch.current&&(!searchOpen||!panelRef.current?.contains(document.activeElement)))setHovered(false)}, 300)
+        hideTimerRef.current = window.setTimeout(() => {if(!pickingSearch.current&&(!searchOpen||!panelRef.current?.contains(view.document.activeElement)))setHovered(false)}, 300)
       }}
     >
       <div
@@ -575,6 +594,7 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
         style={{ width: spriteWidth, height: spriteHeight }}
       >
         <div
+          data-pet-hit="sprite"
           ref={spriteRef}
           className={styles.sprite}
           style={{
@@ -593,6 +613,8 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
+          onPointerCancel={() => { dragRef.current = null; setDragPos(null); props.onDraggingChange?.(false); props.desktopSurface?.dragEnd() }}
+          onLostPointerCapture={() => { if (dragRef.current) { dragRef.current = null; props.onDraggingChange?.(false); props.desktopSurface?.dragEnd() } }}
           onClick={(e) => {
             // A pointer sequence that moved (dragged) still fires a trailing
             // click; skip the pet when that happened.
@@ -606,6 +628,11 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
             props.onPet()
           }}
           role="button"
+          tabIndex={0}
+          onFocus={() => { clearHideTimer(); setHovered(true) }}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); props.onPet() }
+          }}
           aria-label={definition.displayName}
         >
           {props.visual}
@@ -701,6 +728,7 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
       )}
       {hovered && dragRef.current === null && (
         <div
+          data-pet-hit="panel"
           ref={panelRef}
           className={clsx(styles.panel, panelAbove && styles.panelAbove, searchOpen && !recordingState.activeId && styles.searchPanel)}
           data-placement={panelAbove ? 'above' : 'below'}
@@ -714,6 +742,12 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
             clearHideTimer()
           }}
         >
+          {props.desktopSurface && <button type="button" className={styles.desktopToggle}
+            onClick={() => props.desktopSurface!.detached ? props.desktopSurface!.attach() : props.desktopSurface!.detach(spriteWidth, spriteHeight)}
+            title={props.desktopSurface.detached ? '返回应用内显示' : '在桌面置顶显示，也可拖出窗口后松手'}>
+            {props.desktopSurface.detached ? '返回应用' : '放到桌面'}
+          </button>}
+          {props.desktopSurface?.error && <div role="alert">{props.desktopSurface.error}</div>}
           <div className={styles.rankRow}><span className={styles.nameCell}>{displayName}</span>{searchOpen&&!recordingState.activeId&&<button type="button" className={styles.searchBack} aria-label="返回宠物功能" onClick={()=>setSearchOpen(false)}><SearchIcon kind="back"/></button>}</div>
           {searchOpen&&!recordingState.activeId?<FileSearchForm compact onPickingChange={value=>{pickingSearch.current=value;clearHideTimer();setHovered(true)}}/>:<div className={styles.functionRow}>
             {(!!recordingState.config?.roles.length || !!recordingState.activeId) && <div role="toolbar" aria-label="宠物录音工具"><RecordingControls tone="pet"/></div>}

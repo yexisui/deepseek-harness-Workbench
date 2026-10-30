@@ -163,7 +163,7 @@ describe('PetSprite hover panel placement', () => {
     renderPet({ display: { ...snapshot.display, bottom: 20 } })
     fireEvent.pointerOver(screen.getByRole('button', { name: '鲸鱼娘' }))
 
-    const panel = screen.getByText('改名').closest('[data-placement]') as HTMLElement
+    const panel = document.querySelector('[data-placement]') as HTMLElement
     expect(panel.getAttribute('data-placement')).toBe('above')
     // No bubble above the sprite: the panel keeps its default 8px gap.
     expect(panel.style.marginBottom).toBe('')
@@ -189,7 +189,7 @@ describe('PetSprite hover panel placement', () => {
     })
     fireEvent.pointerOver(screen.getByRole('button', { name: '鲸鱼娘' }))
 
-    const panel = screen.getByText('改名').closest('[data-placement]') as HTMLElement
+    const panel = document.querySelector('[data-placement]') as HTMLElement
     expect(panel.getAttribute('data-placement')).toBe('above')
     // 40px bubble height + 14px (8px base gap + 6px clearance).
     expect(panel.style.marginBottom).toBe('54px')
@@ -219,7 +219,7 @@ describe('PetSprite hover panel placement', () => {
     })
     fireEvent.pointerOver(screen.getByRole('button', { name: '鲸鱼娘' }))
 
-    const panel = screen.getByText('改名').closest('[data-placement]') as HTMLElement
+    const panel = document.querySelector('[data-placement]') as HTMLElement
     expect(panel.getAttribute('data-placement')).toBe('above')
     // 88px stack height + 14px clearance.
     expect(panel.style.marginBottom).toBe('102px')
@@ -423,7 +423,7 @@ describe('PetSprite status bubble', () => {
     })
     fireEvent.pointerOver(screen.getByRole('button', { name: '鲸鱼娘' }))
     // The hover panel is open...
-    expect(screen.queryByText('改名')).not.toBeNull()
+    expect(document.querySelector('[data-placement]')).not.toBeNull()
     // ...and the bubbles are still there, still clickable once the collapsed
     // stack is expanded by hovering it.
     fireEvent.pointerOver(screen.getByText('正在思考').closest('div')!)

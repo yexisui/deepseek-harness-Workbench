@@ -613,3 +613,16 @@
 .functionRow{display:flex;align-items:center;gap:6px}
 .searchButton{width:30px;height:30px;padding:5px;border-radius:10px;border:1px solid #6782ff;background:linear-gradient(135deg,#506fff,#344dde);color:#fff;display:grid;place-items:center;cursor:pointer}
 .searchBack{margin-left:auto;width:20px;height:20px;padding:2px;border:0;background:transparent;color:#b3c4ff;display:grid;place-items:center;cursor:pointer}
+
+.desktopToggle {
+  align-self: flex-end;
+  border: 1px solid rgba(126, 152, 255, .45);
+  border-radius: 8px;
+  padding: 4px 9px;
+  background: rgba(77, 107, 254, .14);
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.desktopToggle:hover { background: rgba(77, 107, 254, .3); }
