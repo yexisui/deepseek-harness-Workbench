@@ -615,6 +615,7 @@
 .searchBack{margin-left:auto;width:20px;height:20px;padding:2px;border:0;background:transparent;color:#b3c4ff;display:grid;place-items:center;cursor:pointer}
 
 .desktopToggle {
+  white-space: nowrap;
   align-self: flex-end;
   border: 1px solid rgba(126, 152, 255, .45);
   border-radius: 8px;

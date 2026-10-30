@@ -9,7 +9,7 @@ const definition = { id: 'test', displayName: '测试宠物', renderer: 'sprite2
   columns: 1, rows: [1], tracks: { idle: { frames: [0], durations: [400], loop: true } }, atlasUrl: '/atlas.webp' } as PetDefinition
 const props = (detached = false): PetSpriteProps => ({ definition, display: { visible: true, size: 160, right: 24, bottom: 20, bubbleScale: 1 },
   snapshot: null, feedback: null, onPet: vi.fn(), onDragEnd: vi.fn(), onOpenSession: vi.fn(), onFeedbackDone: vi.fn(), t,
-  desktopSurface: { detached, error: '', detach: vi.fn(), attach: vi.fn(), dragStart: vi.fn(), dragEnd: vi.fn(), resize: vi.fn() },
+  desktopSurface: { detached, error: '', ownerVisible: true, toggleOwner: vi.fn(), detach: vi.fn(), attach: vi.fn(), dragStart: vi.fn(), dragEnd: vi.fn(), resize: vi.fn() },
 })
 beforeEach(() => {
   document.documentElement.lang = 'zh'
@@ -40,15 +40,18 @@ describe('desktop pet gestures', () => {
     expect(p.desktopSurface!.dragStart).toHaveBeenCalled(); expect(p.desktopSurface!.dragEnd).toHaveBeenCalled()
     expect(p.onPet).not.toHaveBeenCalled(); expect(p.onDragEnd).not.toHaveBeenCalled()
   })
-  it('opens the workbench without reattaching and cancels native dragging when capture is cancelled', () => {
-    const p = props(true); render(<PetSprite {...p} />)
+  it('shows only the action for the actual owner state and cancels native dragging', () => {
+    const p = props(true); const { rerender } = render(<PetSprite {...p} />)
     const sprite = screen.getByRole('button', { name: '测试宠物' })
-    const petWindow = vi.fn(async () => undefined)
-    Object.assign(window, { desktop: { petWindow } })
-    fireEvent.contextMenu(sprite); fireEvent.click(screen.getByText('打开工作台'))
-    expect(petWindow).toHaveBeenCalledWith('show-main')
+    fireEvent.contextMenu(sprite)
+    expect(screen.queryByText('显示工作台')).toBeNull()
+    fireEvent.click(screen.getByText('隐藏工作台'))
+    expect(p.desktopSurface!.toggleOwner).toHaveBeenCalledOnce()
+    rerender(<PetSprite {...p} desktopSurface={{ ...p.desktopSurface!, ownerVisible: false }} />)
+    expect(screen.queryByText('隐藏工作台')).toBeNull()
+    fireEvent.click(screen.getByText('显示工作台'))
+    expect(p.desktopSurface!.toggleOwner).toHaveBeenCalledTimes(2)
     expect(p.desktopSurface!.attach).not.toHaveBeenCalled()
-    Reflect.deleteProperty(window, 'desktop')
     fireEvent.pointerDown(sprite, { button: 0 }); fireEvent.pointerCancel(sprite)
     expect(p.desktopSurface!.dragEnd).toHaveBeenCalled(); expect(p.onDragEnd).not.toHaveBeenCalled()
   })

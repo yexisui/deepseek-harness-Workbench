@@ -16,6 +16,11 @@ contextBridge.exposeInMainWorld('desktop', {
     ipcRenderer.on('desktop:pet-layout', listener);
     return () => ipcRenderer.removeListener('desktop:pet-layout', listener);
   },
+  onPetOwnerVisibility: callback => {
+    const listener = (_event, visible) => callback(visible);
+    ipcRenderer.on('desktop:pet-owner-visible', listener);
+    return () => ipcRenderer.removeListener('desktop:pet-owner-visible', listener);
+  },
   onPetClosed: callback => {
     const listener = () => callback();
     ipcRenderer.on('desktop:pet-closed', listener);

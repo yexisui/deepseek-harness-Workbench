@@ -2,13 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 
 type Position = { right: number; bottom: number }
 type Bridge = {
-  petWindow: (action: string, value?: unknown) => Promise<Position | undefined>
+  petWindow(action: 'owner-visible'): Promise<boolean>
+  petWindow(action: string, value?: unknown): Promise<Position | undefined>
+  onPetOwnerVisibility?: (callback: (visible: boolean) => void) => () => void
   onPetLayout: (callback: (position: Position) => void) => () => void
   onPetClosed: (callback: () => void) => () => void
 }
 export type DesktopPetSurface = {
   detached: boolean
   error: string
+  ownerVisible?: boolean
+  toggleOwner?: () => void
   detach: (width: number, height: number, cursor?: boolean) => void
   attach: () => void
   dragStart: (x: number, y: number) => void
@@ -35,6 +39,7 @@ export function useDesktopPet(): {
   const cleanup = useRef<(() => void) | undefined>(undefined)
   const [state, setState] = useState<{ target: HTMLElement; view: Window; position?: Position }>()
   const [error, setError] = useState('')
+  const [ownerVisible, setOwnerVisible] = useState<boolean>()
   const reset = (): void => {
     cleanup.current?.(); cleanup.current = undefined; popup.current = null
     announce(false); setState(undefined)
@@ -43,8 +48,13 @@ export function useDesktopPet(): {
     if (!api) return
     const offLayout = api.onPetLayout(position => setState(old => old && (old.position?.right !== position.right || old.position?.bottom !== position.bottom) ? { ...old, position } : old))
     const offClosed = api.onPetClosed(reset)
+    let disposed = false, visibilityVersion = 0
+    const offVisibility = api.onPetOwnerVisibility?.(visible => { visibilityVersion++; setOwnerVisible(visible) })
+    if (api.onPetOwnerVisibility) void api.petWindow('owner-visible').then(visible => {
+      if (!disposed && visibilityVersion === 0) setOwnerVisible(visible)
+    }).catch(() => {})
     return () => {
-      offLayout(); offClosed(); cleanup.current?.(); popup.current?.close(); announce(false)
+      disposed = true; offVisibility?.(); offLayout(); offClosed(); cleanup.current?.(); popup.current?.close(); announce(false)
     }
   }, [])
   const detach = async (width: number, height: number, cursor = false): Promise<void> => {
@@ -109,7 +119,8 @@ export function useDesktopPet(): {
   }
   if (!api) return {}
   return { ...state, surface: {
-    detached: !!state, error,
+    detached: !!state, error, ownerVisible,
+    toggleOwner: () => { void api.petWindow('toggle-owner').catch(e => setError(e instanceof Error ? e.message : String(e))) },
     detach: (width, height, cursor) => { void detach(width, height, cursor) },
     attach: () => { void api.petWindow('close').catch(() => { popup.current?.close(); reset() }) },
     dragStart: (x, y) => { void api.petWindow('drag-start', { x, y }).catch(() => {}) },

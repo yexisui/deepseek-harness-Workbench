@@ -21,8 +21,8 @@ test('pet stays reachable at every screen edge and under scaled/negative-coordin
 test('native window restricts creation/navigation and restores parent throttling after close', () => {
   let cursor={x:100,y:100};
   const screen=Object.assign(new EventEmitter(),{getCursorScreenPoint:()=>cursor,getDisplayNearestPoint:()=>({workArea:{x:0,y:0,width:1920,height:1040}})});
-  const throttles=[],sent=[];
-  const main={isDestroyed:()=>false,webContents:{send:(...v)=>sent.push(v),setBackgroundThrottling:v=>throttles.push(v),getZoomFactor:()=>1},getContentBounds:()=>({x:0,y:0})};
+  const throttles=[],sent=[]; let mainVisible=true, mainMinimized=false;
+  const main=Object.assign(new EventEmitter(),{isDestroyed:()=>false,isVisible:()=>mainVisible,isMinimized:()=>mainMinimized,restore(){mainMinimized=false;this.emit('restore')},show(){mainVisible=true;this.emit('show')},hide(){mainVisible=false;this.emit('hide')},focus(){},webContents:{send:(...v)=>sent.push(v),setBackgroundThrottling:v=>throttles.push(v),getZoomFactor:()=>1},getContentBounds:()=>({x:0,y:0})});
   const c=createPetWindow({screen,mainWindow:()=>main,statePath:'Z:/nonexistent-test/pet.json'});
   assert.equal(c.options({url:'https://example.com',frameName:'workbench-desktop-pet'}),null);
   const options=c.options({url:'about:blank',frameName:'workbench-desktop-pet'}).overrideBrowserWindowOptions;
@@ -45,6 +45,14 @@ test('native window restricts creation/navigation and restores parent throttling
   const layouts=sent.filter(([name])=>name==='desktop:pet-layout').length;
   cursor={x:540,y:420};c.command('place',{width:160,height:160,cursor:true});
   assert.equal(sent.filter(([name])=>name==='desktop:pet-layout').length,layouts,'moving a native window with unchanged local geometry must not rerender React');
+  c.command('toggle-owner'); assert.equal(mainVisible,false);
+  assert.deepEqual(throttles,[false], 'hiding the owner must keep the pet running');
+  assert.equal(c.command('owner-visible'),false);
+  c.command('toggle-owner'); assert.equal(mainVisible,true);
+  mainMinimized=true; main.emit('minimize');
+  assert.equal(sent.at(-1)[1],false);
+  c.command('toggle-owner'); assert.equal(mainMinimized,false); assert.equal(sent.at(-1)[1],true);
   c.close();assert.deepEqual(throttles,[false,true]);
   assert.equal(sent.at(-1)[0],'desktop:pet-closed');
+  assert.equal(main.listenerCount('hide'),0);
 });

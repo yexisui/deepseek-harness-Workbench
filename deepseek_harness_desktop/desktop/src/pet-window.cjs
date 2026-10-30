@@ -62,6 +62,10 @@ function createPetWindow({ screen, mainWindow, statePath, log = () => {} }) {
     const main = mainWindow();
     if (main && !main.isDestroyed()) { if (main.isMinimized()) main.restore(); main.show(); main.focus(); }
   }
+  function ownerVisible() {
+    const main = mainWindow();
+    return !!main && !main.isDestroyed() && main.isVisible() && !main.isMinimized();
+  }
   function adopt(window) {
     if (pet) { window.close(); return; }
     pet = window;
@@ -73,9 +77,14 @@ function createPetWindow({ screen, mainWindow, statePath, log = () => {} }) {
     pet.webContents.on('render-process-gone', close);
     const main = mainWindow();
     main?.webContents.setBackgroundThrottling(false);
+    const publishVisibility = () => send('desktop:pet-owner-visible', ownerVisible());
+    const visibilityEvents = ['show', 'hide', 'minimize', 'restore'];
+    for (const event of visibilityEvents) main?.on(event, publishVisibility);
+    publishVisibility();
     pet.on('blur', () => { if (drag) { drag = null; save(); } });
     pet.on('closed', () => {
       save(); clearTimeout(timer); timer = null; pet = null; drag = null; rects = []; ignored = true; lastLayout = ''; lastDisplay = '';
+      for (const event of visibilityEvents) main?.removeListener(event, publishVisibility);
       if (main && !main.isDestroyed()) main.webContents.setBackgroundThrottling(true);
       send('desktop:pet-closed');
     });
@@ -83,12 +92,18 @@ function createPetWindow({ screen, mainWindow, statePath, log = () => {} }) {
     poll();
   }
   function command(action, value = {}) {
+    if (action === 'owner-visible') return ownerVisible();
     if (action === 'close') { showMain(); close(); return; }
     if (action === 'show-main') {
       showMain();
       return;
     }
     if (!pet || pet.isDestroyed()) throw Error('桌面宠物窗口未打开，请重试。');
+    if (action === 'toggle-owner') {
+      if (ownerVisible()) mainWindow().hide();
+      else showMain();
+      return;
+    }
     if (action === 'place') {
       if (![value.width, value.height].every(n => Number.isFinite(n) && n > 0 && n <= 2048)) throw Error('Invalid pet size');
       size = { width: value.width, height: value.height };
