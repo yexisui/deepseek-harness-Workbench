@@ -43,6 +43,9 @@ export interface ActivityStatusEventLike {
 /** Per-session facts needed to project the official event stream. */
 export interface ProjectionRuntime {
   activeTools: Set<string>
+  approvals: Set<string>
+  questions: Set<string>
+  progress: PetStateInput
   /** callIds whose tool looked like a test run, marked at tool/call (pet M6). */
   testCalls: Set<string>
   officialEventsSeen: boolean
@@ -70,6 +73,9 @@ export interface PetActivityTransition {
 export function emptyProjectionRuntime(pools?: VoicePoolsProvider): ProjectionRuntime {
   return {
     activeTools: new Set(),
+    approvals: new Set(),
+    questions: new Set(),
+    progress: { phase: 'thinking' },
     testCalls: new Set(),
     officialEventsSeen: false,
     stepHadFailure: false,
@@ -94,7 +100,7 @@ export function isActivityPhase(phase: string): phase is PetStateInput['phase'] 
  * Unknown and log-only events do not disturb the last meaningful activity.
  * @param nowMs - injected wall clock for copy rotation and whisper pacing.
  */
-export function projectOfficialEvent(
+function projectEvent(
   event: SessionEvent,
   runtime: ProjectionRuntime,
   nowMs: number = Date.now(),
@@ -104,11 +110,11 @@ export function projectOfficialEvent(
       runtime.activeTools.clear()
       runtime.testCalls.clear()
       runtime.stepHadFailure = false
-      return { input: { phase: 'waiting', line: runtime.voice.scene('prepare', nowMs) } }
+      return { input: { phase: 'thinking', line: runtime.voice.scene('prepare', nowMs) } }
     case 'step/start':
       runtime.activeTools.clear()
       runtime.stepHadFailure = false
-      return { input: { phase: 'waiting', line: runtime.voice.scene('waiting', nowMs) } }
+      return { input: { phase: 'thinking', line: runtime.voice.scene('thinking', nowMs) } }
     case 'assistant/message':
       return { input: { phase: 'review', line: runtime.voice.scene('review', nowMs) } }
     case 'tool/call': {
@@ -203,7 +209,7 @@ export function projectOfficialEvent(
  * `assistant/chunk` event: a reasoning delta keeps the pet thinking, a text
  * delta moves it to review; start, end, and non-delta chunks change nothing.
  */
-export function projectAssistantStreamFrame(
+function projectStream(
   frame: AssistantStreamFrame,
   runtime: ProjectionRuntime,
   nowMs: number = Date.now(),
@@ -225,4 +231,42 @@ export function projectAssistantStreamFrame(
     }
   }
   return undefined
+}
+
+/** Human waits overlay normal progress without writing any session event. */
+function withHumanWait(runtime: ProjectionRuntime, transition?: PetActivityTransition): PetActivityTransition | undefined {
+  if (transition) runtime.progress = transition.input
+  if (runtime.questions.size || runtime.approvals.size) return {
+    ...transition,
+    input: { phase: 'waiting', line: runtime.questions.size ? '等待你的选择或回答' : '等待人工确认' },
+  }
+  return transition
+}
+
+export function projectUserQuestion(runtime: ProjectionRuntime, key: string, open: boolean): PetStateInput {
+  if (open) runtime.questions.add(key)
+  else runtime.questions.delete(key)
+  return withHumanWait(runtime, { input: runtime.progress })!.input
+}
+
+export function projectOfficialEvent(event: SessionEvent, runtime: ProjectionRuntime, nowMs = Date.now()): PetActivityTransition | undefined {
+  // Approval fields are optional extension vocabulary in the pinned SDK.
+  const approval = event as unknown as { type: string; data: { id?: string } }
+  if (approval.type === 'approval/asked') {
+    if (approval.data.id) runtime.approvals.add(String(approval.data.id))
+    return withHumanWait(runtime, { input: runtime.progress })
+  }
+  if (approval.type === 'approval/decided') {
+    runtime.approvals.delete(String(approval.data.id))
+    return withHumanWait(runtime, { input: runtime.progress })
+  }
+  if (event.type === 'turn/start' || event.type === 'turn/end') {
+    runtime.approvals.clear()
+    runtime.questions.clear()
+  }
+  return withHumanWait(runtime, projectEvent(event, runtime, nowMs))
+}
+
+export function projectAssistantStreamFrame(frame: AssistantStreamFrame, runtime: ProjectionRuntime, nowMs = Date.now()): PetActivityTransition | undefined {
+  return withHumanWait(runtime, projectStream(frame, runtime, nowMs))
 }

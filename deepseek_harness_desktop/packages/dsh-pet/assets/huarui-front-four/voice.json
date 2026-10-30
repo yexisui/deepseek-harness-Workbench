@@ -1,0 +1,153 @@
+{
+  "voicePackVersion": 1,
+  "status": {
+    "prepare": [
+      "准备任务"
+    ],
+    "waiting": [
+      "等待确认"
+    ],
+    "thinking": [
+      "正在分析"
+    ],
+    "review": [
+      "正在核验"
+    ],
+    "toolResult": [
+      "执行完成"
+    ],
+    "done": [
+      "任务已完成"
+    ],
+    "failed": [
+      "任务需要关注"
+    ],
+    "toolFailed": [
+      "执行需要关注"
+    ],
+    "maxTokens": [
+      "已达到本轮上限"
+    ],
+    "interrupted": [
+      "任务已暂停"
+    ],
+    "blocked": [
+      "等待处理"
+    ]
+  },
+  "panel": {
+    "labels": {
+      "hide": "收起助手"
+    },
+    "stats": {
+      "rank": "小睿 · 企业AI工作伙伴",
+      "treats": "WAIT / THINK / WORK / DONE",
+      "points": "正面四态 · 独立姿态"
+    },
+    "actions": [
+      "hide"
+    ],
+    "ranks": [
+      {
+        "min": 0,
+        "name": "企业助手",
+        "nameEn": "Enterprise Assistant"
+      }
+    ]
+  },
+  "remarks": {
+    "pet": [
+      "小睿已就绪，随时为你分担。",
+      "稳稳推进，每一步都算数。",
+      "收到，一起把这件事做好。",
+      "辛苦了，也记得照顾好自己。"
+    ],
+    "petCooldown": [
+      "小睿已就绪，随时为你分担。",
+      "稳稳推进，每一步都算数。",
+      "收到，一起把这件事做好。",
+      "辛苦了，也记得照顾好自己。"
+    ],
+    "feed": [
+      "小睿已就绪。"
+    ],
+    "feedCooldown": [
+      "请继续当前任务。"
+    ],
+    "noTreats": [
+      "小睿已就绪。"
+    ]
+  },
+  "tools": {
+    "read": [
+      "正在执行任务"
+    ],
+    "write": [
+      "正在执行任务"
+    ],
+    "edit": [
+      "正在执行任务"
+    ],
+    "shell": [
+      "正在执行任务"
+    ],
+    "grep": [
+      "正在执行任务"
+    ],
+    "find": [
+      "正在执行任务"
+    ],
+    "ls": [
+      "正在执行任务"
+    ],
+    "webSearch": [
+      "正在执行任务"
+    ],
+    "webFetch": [
+      "正在执行任务"
+    ],
+    "mcp": [
+      "正在执行任务"
+    ],
+    "memory": [
+      "正在执行任务"
+    ],
+    "subagent": [
+      "正在执行任务"
+    ],
+    "todo": [
+      "正在执行任务"
+    ],
+    "browser": [
+      "正在执行任务"
+    ],
+    "git": [
+      "正在执行任务"
+    ],
+    "ask": [
+      "正在执行任务"
+    ],
+    "generic": [
+      "正在执行任务"
+    ]
+  },
+  "whispers": {
+    "categories": {
+      "thinking": [],
+      "writing": [],
+      "reading": [],
+      "editing": [],
+      "running": [],
+      "searching": [],
+      "git": [],
+      "delegating": [],
+      "browsing": [],
+      "generic": []
+    },
+    "results": {
+      "pass": [],
+      "fail": [],
+      "done": []
+    }
+  }
+}

@@ -159,7 +159,7 @@ export class PetStateMachine {
       animation,
       ...(bubble === undefined ? {} : { bubble }),
       animationStartedAt: nowMs,
-      phase: this.phase,
+      phase: settled ? 'idle' : this.phase,
       sessionActive: this.sessionActive,
     }
   }

@@ -5,7 +5,7 @@ pet:
   size: 160
   right: 26
   bottom: 27
-  petId: whale-girl
+  petId: huarui-front-four
   enabled: true
 ui-theme:
   preference: system

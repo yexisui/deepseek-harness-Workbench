@@ -40,11 +40,15 @@ describe('desktop pet gestures', () => {
     expect(p.desktopSurface!.dragStart).toHaveBeenCalled(); expect(p.desktopSurface!.dragEnd).toHaveBeenCalled()
     expect(p.onPet).not.toHaveBeenCalled(); expect(p.onDragEnd).not.toHaveBeenCalled()
   })
-  it('offers returning to the app and cancels native dragging when capture is cancelled', () => {
+  it('opens the workbench without reattaching and cancels native dragging when capture is cancelled', () => {
     const p = props(true); render(<PetSprite {...p} />)
     const sprite = screen.getByRole('button', { name: '测试宠物' })
-    fireEvent.contextMenu(sprite); fireEvent.click(screen.getByText('返回应用'))
-    expect(p.desktopSurface!.attach).toHaveBeenCalledOnce()
+    const petWindow = vi.fn(async () => undefined)
+    Object.assign(window, { desktop: { petWindow } })
+    fireEvent.contextMenu(sprite); fireEvent.click(screen.getByText('打开工作台'))
+    expect(petWindow).toHaveBeenCalledWith('show-main')
+    expect(p.desktopSurface!.attach).not.toHaveBeenCalled()
+    Reflect.deleteProperty(window, 'desktop')
     fireEvent.pointerDown(sprite, { button: 0 }); fireEvent.pointerCancel(sprite)
     expect(p.desktopSurface!.dragEnd).toHaveBeenCalled(); expect(p.onDragEnd).not.toHaveBeenCalled()
   })

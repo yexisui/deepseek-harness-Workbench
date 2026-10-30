@@ -35,6 +35,8 @@ vi.mock('@deepseek-ai/dsh-client-store', () => ({
     },
   }),
 }))
+const desktopMock = vi.hoisted(() => ({ value: {} as Record<string, unknown> }))
+vi.mock('./desktop-pet.ts', () => ({ useDesktopPet: () => desktopMock.value, raisePetOwner: vi.fn() }))
 import { PetDockEntry, type PetInjected } from './PetDockEntry.tsx'
 import { createPetStore } from './pet-store.ts'
 import { t } from './locales.ts'
@@ -44,7 +46,7 @@ beforeAll(() => {
   document.documentElement.lang = 'zh'
 })
 
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.clearAllMocks() })
 
 /** Snapshot fixture with the pet hidden (the summon-button state). */
 const hiddenSnapshot: PetStateView = {
@@ -90,8 +92,26 @@ describe('PetDockEntry L2 semantic attributes (#506)', () => {
   it('tags the summon button as the summon-button part', () => {
     const props = injected()
     props.store.actions.setSnapshot(hiddenSnapshot)
+    const target = document.createElement('div'); document.body.append(target)
+    desktopMock.value = { target, surface: { detached: true, error: '' } }
     render(<PetDockEntry {...props} t={t} />)
     const summon = screen.getByTestId('pet-summon')
     expect(summon.getAttribute('data-dsh-part')).toBe('summon-button')
+    expect(target.contains(summon)).toBe(true)
   })
+})
+
+it('never embeds a pet or summon button in an ordinary browser', () => {
+  desktopMock.value = {}
+  const props = injected(); props.store.actions.setSnapshot(hiddenSnapshot)
+  const { container } = render(<PetDockEntry {...props} t={t} />)
+  expect(container.innerHTML).toBe('')
+})
+it('opens the external surface automatically without an embedded startup frame', () => {
+  const detach = vi.fn()
+  desktopMock.value = { surface: { detached: false, error: '', detach } }
+  const props = injected(); props.store.actions.setSnapshot(hiddenSnapshot)
+  const { container } = render(<PetDockEntry {...props} t={t} />)
+  expect(detach).toHaveBeenCalledWith(160, 160)
+  expect(container.innerHTML).toBe('')
 })

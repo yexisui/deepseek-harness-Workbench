@@ -23,6 +23,7 @@ import {
   isActivityPhase,
   projectAssistantStreamFrame,
   projectOfficialEvent,
+  projectUserQuestion,
   type ActivityStatusEventLike,
   type ProjectionRuntime,
 } from './event-projection.ts'
@@ -446,7 +447,34 @@ export class PetService extends Service {
     }
     if (!this.enabled) return
     this.disposeActivity = (() => {
+      let questionSerial = 0
+      // The portable host supports this waterfall, but the older source SDK
+      // does not re-export its declaration. Keep that compatibility boundary
+      // structural and local instead of upgrading the host for one event.
+      const onQuestion = this.ctx.on.bind(this.ctx) as unknown as (
+        name: 'user-questions/request',
+        listener: (request: { agent?: { session: Session }; questions: unknown[]; signal?: AbortSignal }, next: () => Promise<unknown>) => Promise<unknown>,
+        options: { global: boolean; prepend: boolean },
+      ) => () => void
       const disposers = [
+        onQuestion('user-questions/request', async (request, next) => {
+          const session = request.agent?.session
+          if (!session || !request.questions.length || request.signal?.aborted) return next()
+          const runtime = this.activityOf(session).runtime
+          const key = String(++questionSerial)
+          this.applyActivity(session, projectUserQuestion(runtime, key, true))
+          let closed = false
+          const close = (): void => {
+            if (closed) return
+            closed = true
+            // Disabling/disposal must not revive an old session projection.
+            if (!this.enabled || this.sessionActivity.get(session)?.runtime !== runtime) return
+            this.applyActivity(session, projectUserQuestion(runtime, key, false))
+          }
+          request.signal?.addEventListener('abort', close, { once: true })
+          try { return await next() }
+          finally { request.signal?.removeEventListener('abort', close); close() }
+        }, { global: true, prepend: true }),
         this.ctx.on('session/event', (session: Session, event: SessionEvent) => {
           const runtime = this.activityOf(session).runtime
           // `activity/status` is an optional compatibility input. It is not
@@ -540,6 +568,7 @@ export class PetService extends Service {
   private applyActivity(session: Session, input: PetStateInput, whisper?: string): void {
     const activity = this.activityOf(session)
     activity.lastInput = input
+    if (input.phase === 'waiting') activity.whisper = undefined
     if (whisper !== undefined) activity.whisper = { text: whisper, at: Date.now() }
     activity.machine.onActivityStatus(input)
     activity.machine.onSessionActive()
@@ -837,7 +866,9 @@ export class PetService extends Service {
   }
 
   private view(currentSessionId?: string): PetStateView {
-    const snapshot = this.machine.render()
+    const waiting = [...this.sessionActivity.entries()].reverse().find(([session, activity]) =>
+      session.header?.origin !== 'subagent' && (activity.runtime.questions.size > 0 || activity.runtime.approvals.size > 0))
+    const snapshot = waiting?.[1].machine.render() ?? this.machine.render()
     const entry = this.activeEntry()
     // One bubble per concurrently active TOP-LEVEL session. The GUI's current
     // session leads the stack when reported (the browser half passes its
@@ -873,6 +904,10 @@ export class PetService extends Service {
     // legacy most-recent-first order.
     if (currentSessionId !== undefined) {
       const index = sessions.findIndex(session => session.sessionId === currentSessionId)
+      if (index > 0) sessions.unshift(sessions.splice(index, 1)[0]!)
+    }
+    if (waiting) {
+      const index = sessions.findIndex(session => session.sessionId === String(waiting[0].id))
       if (index > 0) sessions.unshift(sessions.splice(index, 1)[0]!)
     }
     const decoration = this.activeDecoration()

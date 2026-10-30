@@ -166,6 +166,7 @@ export const frames2dRenderer: PetRenderer<PetFrames2dConfig> = {
   validateConfig: validateFrames2dConfig,
 
   mount(ctx: PetRendererContext, config: PetFrames2dConfig): Frames2dRendererHandle {
+    const view = ctx.container.ownerDocument.defaultView ?? window
     const reducedMotion = typeof window !== 'undefined'
       && typeof window.matchMedia === 'function'
       && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -307,6 +308,14 @@ export const frames2dRenderer: PetRenderer<PetFrames2dConfig> = {
 
     let disposed = false
     let timer: ReturnType<typeof setTimeout> | undefined
+    let raf: number | undefined
+    let due = 0
+    const useRaf = canvas !== null && typeof view.requestAnimationFrame === 'function'
+    const stopFrame = (): void => {
+      if (timer !== undefined) clearTimeout(timer)
+      if (raf !== undefined) view.cancelAnimationFrame(raf)
+      timer = undefined; raf = undefined
+    }
     let watchdog: ReturnType<typeof setInterval> | undefined
     let track: string = config.phases.idle
     let frameIndex = 0
@@ -349,17 +358,29 @@ export const frames2dRenderer: PetRenderer<PetFrames2dConfig> = {
       const def = config.tracks[trackId]
       const url = def?.frames[index]
       if (url === undefined) return
-      prefetchAhead(trackId, index)
       if (img !== null) {
+        prefetchAhead(trackId, index)
         if (img.getAttribute('src') !== url) img.src = url
         return
       }
+      // Demand gets the first pool slot, ahead of speculative look-ahead.
       paintCanvas(url)
+      prefetchAhead(trackId, index)
     }
 
     const schedule = (ms: number): void => {
       if (disposed) return
-      timer = setTimeout(tick, ms)
+      due += ms
+      const now = Date.now()
+      // A long suspension resumes locally instead of replaying stale frames.
+      if (now - due > 250) due = now + ms
+      if (!useRaf) { timer = setTimeout(tick, Math.max(0, due - now)); return }
+      const frame = (): void => {
+        if (disposed) return
+        if (Date.now() >= due) { raf = undefined; tick() }
+        else raf = view.requestAnimationFrame(frame)
+      }
+      raf = view.requestAnimationFrame(frame)
     }
 
     function tick(): void {
@@ -385,17 +406,21 @@ export const frames2dRenderer: PetRenderer<PetFrames2dConfig> = {
       // (that resolves through the skin base idle); anything else lands on
       // the skin base idle. When the settle target is what the phase map
       // plays anyway, release the gameplay override.
-      const target = def.fallback !== undefined && config.tracks[def.fallback] !== undefined
+      let target = def.fallback !== undefined && config.tracks[def.fallback] !== undefined
         ? (def.fallback === config.phases.idle ? baseIdle : def.fallback)
         : baseIdle
-      if (target === trackForPhase(ctx.phase.get())) override = undefined
+      if (override !== undefined && (target === baseIdle || target === trackForPhase(ctx.phase.get()))) {
+        override = undefined
+        target = trackForPhase(ctx.phase.get())
+      }
       play(target)
     }
 
     function play(trackId: string): void {
       if (disposed) return
       if (config.tracks[trackId] === undefined) trackId = baseIdle
-      if (timer !== undefined) clearTimeout(timer)
+      stopFrame()
+      due = Date.now()
       track = trackId
       frameIndex = 0
       lastAdvance = Date.now()
@@ -419,11 +444,11 @@ export const frames2dRenderer: PetRenderer<PetFrames2dConfig> = {
         const def = config.tracks[track]
         if (def === undefined || !def.loop) return
         const expected = (def.durations[frameIndex] ?? 200) + WATCHDOG_MS
-        if (Date.now() - lastAdvance > expected) tick()
+        if (Date.now() - lastAdvance > expected) { stopFrame(); due = Date.now(); tick() }
       }, WATCHDOG_MS)
     }
 
-    play(track)
+    play(trackForPhase(ctx.phase.get()))
 
     let disposedOnce = false
     const dispose = (): void => {
@@ -431,7 +456,7 @@ export const frames2dRenderer: PetRenderer<PetFrames2dConfig> = {
       disposedOnce = true
       disposed = true
       unsubscribe()
-      if (timer !== undefined) clearTimeout(timer)
+      stopFrame()
       if (watchdog !== undefined) clearInterval(watchdog)
       // Release decoded bitmaps after pending decodes settle; close() is
       // browser-only, so guard it for exotic hosts. Queued-but-unstarted

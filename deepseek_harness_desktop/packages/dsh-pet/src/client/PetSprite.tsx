@@ -29,7 +29,7 @@ import { createSequenceTimeline } from './sequences.ts'
 import { animationForPhase, type ActivityPhase, type PetAnimation } from '../state.ts'
 import { NS } from './locales.ts'
 import styles from './pet.module.css'
-import type { DesktopPetSurface } from './desktop-pet.ts'
+import { raisePetOwner, type DesktopPetSurface } from './desktop-pet.ts'
 
 /** Props injected by the plugin apply body (store actions + locale). */
 export interface PetSpriteProps {
@@ -743,9 +743,9 @@ export function PetSprite(props: PetSpriteProps): ReactPortal {
           }}
         >
           {props.desktopSurface && <button type="button" className={styles.desktopToggle}
-            onClick={() => props.desktopSurface!.detached ? props.desktopSurface!.attach() : props.desktopSurface!.detach(spriteWidth, spriteHeight)}
-            title={props.desktopSurface.detached ? '返回应用内显示' : '在桌面置顶显示，也可拖出窗口后松手'}>
-            {props.desktopSurface.detached ? '返回应用' : '放到桌面'}
+            onClick={raisePetOwner}
+            title="打开工作台，宠物继续留在桌面">
+            打开工作台
           </button>}
           {props.desktopSurface?.error && <div role="alert">{props.desktopSurface.error}</div>}
           <div className={styles.rankRow}><span className={styles.nameCell}>{displayName}</span>{searchOpen&&!recordingState.activeId&&<button type="button" className={styles.searchBack} aria-label="返回宠物功能" onClick={()=>setSearchOpen(false)}><SearchIcon kind="back"/></button>}</div>

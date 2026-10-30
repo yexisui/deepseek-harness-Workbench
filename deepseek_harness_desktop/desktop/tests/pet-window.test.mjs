@@ -41,6 +41,10 @@ test('native window restricts creation/navigation and restores parent throttling
   c.command('drag-start',{x:80,y:80});assert.equal(ignored,false);
   assert.ok(bounds.x>0 && bounds.y>0);
   c.command('drag-end');assert.equal(ignored,true);
+  cursor={x:500,y:400};c.command('place',{width:160,height:160,cursor:true});
+  const layouts=sent.filter(([name])=>name==='desktop:pet-layout').length;
+  cursor={x:540,y:420};c.command('place',{width:160,height:160,cursor:true});
+  assert.equal(sent.filter(([name])=>name==='desktop:pet-layout').length,layouts,'moving a native window with unchanged local geometry must not rerender React');
   c.close();assert.deepEqual(throttles,[false,true]);
   assert.equal(sent.at(-1)[0],'desktop:pet-closed');
 });

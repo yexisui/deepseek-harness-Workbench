@@ -19,7 +19,7 @@
     {
       "path": "pet.json",
       "format": "structured",
-      "sha256": "068cd83c5a29544769b7a5663fcfe4bd65cab183a60d03d7b26e267b1c838503"
+      "sha256": "ed2981002333146bd43fd3c6ef36f49ec3e246f2175b155b94ef846c7148f24f"
     },
     {
       "path": "plugin-management/classification.json",
@@ -34,7 +34,7 @@
     {
       "path": "settings.yaml",
       "format": "structured",
-      "sha256": "4d5fddd3938bf44251a0739a1f28edb746574427773d831679ce3befbab35c76"
+      "sha256": "9539173fec54a35c4a951e382083defac2e2999301335f1ba04bbfce676ec659"
     },
     {
       "path": "skill-management/state.json",

@@ -280,10 +280,10 @@ describe('PetService (rc.6 session events)', () => {
       const service = new PetService(ctx, { persistDir: dir })
 
       ctx.emit('session/event', session, turnStart(1, 1))
-      expect(await service.state()).toMatchObject({ animation: 'waiting', bubble: '准备开始' })
+      expect(await service.state()).toMatchObject({ animation: 'running', bubble: '准备开始' })
 
       ctx.emit('session/event', session, stepStart(1, 1, 2))
-      expect(await service.state()).toMatchObject({ animation: 'waiting', bubble: '等待模型响应' })
+      expect(await service.state()).toMatchObject({ animation: 'running', bubble: '正在思考' })
 
       ctx.emit('agent/assistant-stream', assistantChunk(session, 1, 1, {
         type: 'reasoning-delta', index: 0, text: '分析',
@@ -1370,4 +1370,27 @@ describe('status decorations in PetService (pet-center M5, #567)', () => {
       rmSync(dir, { recursive: true, force: true })
     }
   })
+})
+
+
+it('observes questions without answering or writing synthetic session events', async () => {
+  const ctx = new Context(), dir = tempDir(), session = makeSession('question-test')
+  const controller = new AbortController()
+  let finish!: (value: unknown) => void
+  const answer = { answers: [{ id: 'q', selected: ['yes'] }] }
+  const pending = new Promise(resolve => { finish = resolve })
+  try {
+    const service = new PetService(ctx, { persistDir: dir, registry: fixtureRegistry() })
+    ctx.emit('session/event', session, turnStart(1, 1))
+    const emitted = vi.fn(); ctx.on('session/event', emitted)
+    const ask = ctx.waterfall.bind(ctx) as unknown as (...args: unknown[]) => Promise<unknown>
+    const result = ask('user-questions/request', { agent: { session }, questions: [{ id: 'q' }], signal: controller.signal }, () => pending)
+    await Promise.resolve()
+    expect((await service.state()).phase).toBe('waiting')
+    finish(answer)
+    expect(await result).toBe(answer)
+    expect((await service.state()).phase).toBe('thinking')
+    expect(emitted).not.toHaveBeenCalled()
+    service.setEnabled(false)
+  } finally { rmSync(dir, { recursive: true, force: true }) }
 })

@@ -21,7 +21,7 @@ function petLayout(point, size, area, zoom = 1) {
 function createPetWindow({ screen, mainWindow, statePath, log = () => {} }) {
   let pet = null, timer = null, drag = null, rects = [], ignored = true;
   let size = { width: 160, height: 160 }, point = null, zoom = 1;
-  let lastLayout = '';
+  let lastLayout = '', lastDisplay = '';
   const send = (channel, value) => {
     const main = mainWindow();
     if (main && !main.isDestroyed()) main.webContents.send(channel, value);
@@ -41,8 +41,10 @@ function createPetWindow({ screen, mainWindow, statePath, log = () => {} }) {
     const key = JSON.stringify(result);
     if (key !== lastLayout) {
       lastLayout = key;
-      pet.setBounds(result.bounds);
-      send('desktop:pet-layout', result.display);
+      const current = pet.getBounds();
+      if (Object.keys(result.bounds).some(key => current[key] !== result.bounds[key])) pet.setBounds(result.bounds);
+      const displayKey = JSON.stringify(result.display);
+      if (displayKey !== lastDisplay) { lastDisplay = displayKey; send('desktop:pet-layout', result.display); }
     }
     return result.display;
   }
@@ -73,11 +75,12 @@ function createPetWindow({ screen, mainWindow, statePath, log = () => {} }) {
     main?.webContents.setBackgroundThrottling(false);
     pet.on('blur', () => { if (drag) { drag = null; save(); } });
     pet.on('closed', () => {
-      save(); clearInterval(timer); timer = null; pet = null; drag = null; rects = []; ignored = true; lastLayout = '';
+      save(); clearTimeout(timer); timer = null; pet = null; drag = null; rects = []; ignored = true; lastLayout = ''; lastDisplay = '';
       if (main && !main.isDestroyed()) main.webContents.setBackgroundThrottling(true);
       send('desktop:pet-closed');
     });
-    timer = setInterval(tick, 32);
+    const poll = () => { tick(); timer = setTimeout(poll, drag ? 16 : 50); };
+    poll();
   }
   function command(action, value = {}) {
     if (action === 'close') { showMain(); close(); return; }

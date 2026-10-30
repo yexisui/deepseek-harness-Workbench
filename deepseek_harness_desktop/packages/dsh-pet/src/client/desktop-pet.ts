@@ -41,7 +41,7 @@ export function useDesktopPet(): {
   }
   useEffect(() => {
     if (!api) return
-    const offLayout = api.onPetLayout(position => setState(old => old ? { ...old, position } : old))
+    const offLayout = api.onPetLayout(position => setState(old => old && (old.position?.right !== position.right || old.position?.bottom !== position.bottom) ? { ...old, position } : old))
     const offClosed = api.onPetClosed(reset)
     return () => {
       offLayout(); offClosed(); cleanup.current?.(); popup.current?.close(); announce(false)
@@ -80,17 +80,29 @@ export function useDesktopPet(): {
       if (popup.current !== child || child.closed) { observer.disconnect(); return }
       setState({ target, view: child, position }); announce(true)
       let shown = false
+      let lastRegions = ''
       const updateRegions = (): void => {
         if (child!.closed) return
         const rects = Array.from(target.querySelectorAll<HTMLElement>('[data-pet-hit],button,input,select,textarea,a'))
           .filter(node => child!.getComputedStyle(node).visibility !== 'hidden')
           .map(node => { const r = node.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height } })
           .filter(r => r.width > 0 && r.height > 0).slice(0, 200)
-        void api.petWindow('hit-regions', rects).catch(() => {})
+        const key = JSON.stringify(rects)
+        if (key !== lastRegions) { lastRegions = key; void api.petWindow('hit-regions', rects).catch(() => {}) }
         if (!shown && rects.length) { shown = true; void api.petWindow('show').catch(() => {}) }
       }
-      const timer = window.setInterval(updateRegions, 60)
-      cleanup.current = () => { observer?.disconnect(); window.clearInterval(timer) }
+      // Geometry changes only when controls/layout change; canvas frame paints
+      // do not need IPC or forced layout. Keep a slow fallback for CSS motion.
+      let pending = 0
+      const scheduleRegions = (): void => {
+        if (!pending) pending = child!.requestAnimationFrame(() => { pending = 0; updateRegions() })
+      }
+      const geometry = new MutationObserver(scheduleRegions)
+      geometry.observe(target, { childList: true, subtree: true, attributes: true, characterData: true })
+      child.addEventListener('resize', scheduleRegions)
+      const timer = window.setInterval(updateRegions, 250)
+      scheduleRegions()
+      cleanup.current = () => { observer?.disconnect(); geometry.disconnect(); child?.removeEventListener('resize', scheduleRegions); if (pending) child?.cancelAnimationFrame(pending); window.clearInterval(timer) }
     } catch (e) {
       observer?.disconnect(); child?.close(); reset(); setError(e instanceof Error ? e.message : String(e))
     }

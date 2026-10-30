@@ -12,6 +12,7 @@
  * @module @linxin666/dsh-pet/client/PetDockEntry
  */
 
+import { createPortal } from 'react-dom'
 import { useEffect, useRef, useSyncExternalStore, type ReactElement } from 'react'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { PetDisplayConfig } from '../persist.ts'
@@ -67,7 +68,7 @@ const DEFAULT_DISPLAY: PetDisplayConfig = { visible: true, size: 160, right: 24,
  * single instance — the slot system provides none because the pet is
  * host-global, not session-scoped.
  */
-export function PetDockEntry(props: PetDockEntryProps): ReactElement {
+export function PetDockEntry(props: PetDockEntryProps): ReactElement | null {
   const { store, ensure } = props
   const desktop = useDesktopPet()
   const ui = useSyncExternalStore(store.subscribe, store.getSnapshot)
@@ -80,6 +81,15 @@ export function PetDockEntry(props: PetDockEntryProps): ReactElement {
     ensure()
   }, [ensure])
 
+  // The desktop shell owns the only pet surface. Never flash an embedded
+  // sprite while opening, and never recreate a second pet in a browser tab.
+  useEffect(() => {
+    if (!desktop.surface || desktop.surface.detached || desktop.surface.error || !snapshot) return
+    const height = snapshot.display.size
+    const ratio = definition ? definition.cell.width / definition.cell.height : 1
+    desktop.surface.detach(Math.round(height * ratio), height)
+  }, [desktop.surface?.detached, desktop.surface?.error, snapshot?.display.size, definition])
+
   // Per-pet gameplay wiring: the coordination bus (HUD taps <-> chrome,
   // HUD track overrides <-> frames2d mount) and the shared drag stream.
   const auxRef = useRef<{ id: string; bus: GameplayBus; drag: DragStream } | null>(null)
@@ -88,6 +98,11 @@ export function PetDockEntry(props: PetDockEntryProps): ReactElement {
   }
   const aux = auxRef.current
   const gameplay = definition?.gameplay
+
+  if (!desktop.surface) return null
+  if (!desktop.target) return desktop.surface.error
+    ? <button type="button" role="alert" onClick={() => desktop.surface?.detach(160, 160)}>{desktop.surface.error} 点击重试</button>
+    : null
 
   if (visible) {
     return (
@@ -138,14 +153,14 @@ export function PetDockEntry(props: PetDockEntryProps): ReactElement {
     )
   }
   const display = snapshot?.display ?? DEFAULT_DISPLAY
-  return (
+  return createPortal(
     <button
       type="button"
       className={styles.summon}
       style={{
         position: 'fixed',
-        right: display.right,
-        bottom: display.bottom,
+        right: desktop.position?.right ?? display.right,
+        bottom: desktop.position?.bottom ?? display.bottom,
         zIndex: 2147483000,
       }}
       onClick={props.summon}
@@ -153,6 +168,6 @@ export function PetDockEntry(props: PetDockEntryProps): ReactElement {
       data-dsh-part="summon-button"
     >
       {props.t('pet.summon', { name: snapshot?.name ?? '' })}
-    </button>
+    </button>, desktop.target
   )
 }

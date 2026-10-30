@@ -97,7 +97,7 @@ describe('frames2dRenderer', () => {
     // current phase map (thinking -> work? no: standup fell back to idle,
     // but the phase says work, so the release lands on the phase track).
     vi.advanceTimersByTime(150)
-    expect(handle.currentTrack()).toBe('idle')
+    expect(handle.currentTrack()).toBe('work')
     handle.setState('work')
     expect(handle.currentTrack()).toBe('work')
     handle.setState(undefined)
@@ -239,7 +239,7 @@ describe('frames2dRenderer canvas bitmap path', () => {
     expect(bitmaps.length).toBe(2)
     const paintsAtMount = draws
     expect(paintsAtMount).toBeGreaterThanOrEqual(1)
-    vi.advanceTimersByTime(100)
+    vi.advanceTimersByTime(116)
     await flush()
     expect(draws).toBeGreaterThan(paintsAtMount)
     handle.dispose()
@@ -269,7 +269,7 @@ describe('frames2dRenderer canvas bitmap path', () => {
     stream.push('thinking' as ActivityPhase)
     expect(handle.currentTrack()).toBe('work')
     await flush()
-    vi.advanceTimersByTime(100)
+    vi.advanceTimersByTime(116)
     await flush()
     // Steady-state playback is DOM-mutation-free: no element added or removed.
     expect(container.querySelectorAll('*').length).toBe(nodesBefore)

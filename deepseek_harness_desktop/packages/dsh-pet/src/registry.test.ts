@@ -322,6 +322,7 @@ describe('loadPetRegistry', () => {
     // the other atlas pets.
     expect(registry.entries.map(entry => entry.id)).toEqual([
       'blue-throated-bee-eater',
+      'huarui-front-four',
       'jyn',
       'miku',
       'ouo-neko',

@@ -92,7 +92,7 @@ const petApi: PetHttpApi = {
 }
 
 /** Poll interval for the host snapshot. */
-const POLL_MS = 2000
+const POLL_MS = 500
 
 /** Settings namespace the pet settings card edits (the Host plugin registers it). */
 const PET_SETTINGS_NS = 'pet'
